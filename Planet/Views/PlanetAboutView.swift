@@ -47,6 +47,8 @@ private struct SharingsPicker: NSViewRepresentable {
 
 
 struct PlanetAboutView: View {
+    @EnvironmentObject private var planetStore: PlanetStore
+
     var planet: Planet
     
     @State private var isSharing = false
@@ -71,13 +73,9 @@ struct PlanetAboutView: View {
                     .font(.title)
                 Spacer()
             }
-            HStack {
-                Spacer()
-                Text(planet.about ?? "")
-                    .font(.body)
-                Spacer()
-            }
-            
+            Text(planet.about ?? "")
+                .font(.body)
+
             Spacer()
             
             HStack {
@@ -92,10 +90,13 @@ struct PlanetAboutView: View {
                     }
 
                     Button {
-                        
+                        Task.init {
+                            await PlanetManager.shared.publishForPlanet(planet: planet)
+                        }
                     } label: {
-                        Text("Edit")
+                        Text(planetStore.publishingPlanets.contains(planet.id!) ? "Publishing" : "Publish")
                     }
+                    .disabled(planetStore.publishingPlanets.contains(planet.id!))
                     
                     Spacer()
                     
@@ -113,6 +114,15 @@ struct PlanetAboutView: View {
                             Text("Share")
                         }
                     }
+                    
+                    Button {
+                        Task.init {
+                            await PlanetManager.shared.updateForPlanet(planet: planet)
+                        }
+                    } label: {
+                        Text(planetStore.updatingPlanets.contains(planet.id!) ? "Updating" : "Update")
+                    }
+                    .disabled(planetStore.updatingPlanets.contains(planet.id!))
 
                     Spacer()
                     

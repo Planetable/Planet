@@ -92,6 +92,10 @@ class PlanetManager: NSObject {
         terminateDaemon(forceSkip: true)
     }
     
+    func relaunchDaemon() {
+        relaunchDaemonIfNeeded()
+    }
+    
     // MARK: - General -
     func loadTemplates() {
         let templatePath = _templatesPath()
@@ -395,7 +399,7 @@ class PlanetManager: NSObject {
         }
         debugPrint("updating for planet: \(planet) ...")
         let ipnsString = "http://127.0.0.1" + ":" + self.gatewayPort + "/" + "ipns" + "/" + ipns + "/" + "feed.json"
-        let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 15)
+        let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
             let decoder = JSONDecoder()
@@ -582,9 +586,11 @@ class PlanetManager: NSObject {
                             self.launchDaemon()
                         }
                     } else {
-                        DispatchQueue.global(qos: .background).async {
-                            self.publishLocalPlanets()
-                            self.updatingFollowingPlanets()
+                        if PlanetStore.shared.peersCount > 0 {
+                            DispatchQueue.global(qos: .background).async {
+                                self.publishLocalPlanets()
+                                self.updatingFollowingPlanets()
+                            }
                         }
                     }
                 }

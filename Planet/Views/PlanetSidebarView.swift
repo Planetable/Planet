@@ -46,6 +46,7 @@ struct PlanetSidebarToolbarButtonView: View {
         .popover(isPresented: $isInfoAlert, arrowEdge: .bottom) {
             if let planet = planetStore.currentPlanet {
                 PlanetAboutView(planet: planet)
+                    .environmentObject(planetStore)
             }
         }
 
@@ -273,6 +274,12 @@ struct PlanetSidebarView: View {
             }
             .onReceive(planetStore.timer) { t in
                 updateStatus()
+            }
+            .onTapGesture {
+                if planetStore.daemonIsOnline == false {
+                    debugPrint("try to relaunch daemon ...")
+                    PlanetManager.shared.relaunchDaemon()
+                }
             }
             .frame(height: 44)
             .padding(.leading, 16)
