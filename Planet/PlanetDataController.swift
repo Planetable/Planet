@@ -1,0 +1,310 @@
+//
+//  PlanetDataController.swift
+//  Planet
+//
+//  Created by Kai on 2/15/22.
+//
+
+import Foundation
+import CoreData
+
+
+class PlanetDataController: NSObject {
+    static let shared: PlanetDataController = .init()
+    
+    let titles = ["Hello and Welcome", "Hello World", "New Content Here!"]
+    let contents = ["No content yet.", "This is a demo content.", "Hello from planet demo."]
+
+    var persistentContainer: NSPersistentContainer = {
+        let container = NSPersistentContainer(name: "Planet")
+        container.loadPersistentStores { storeDescription, error in
+            if let error = error {
+                fatalError("Unable to load data store: \(error)")
+            }
+        }
+        return container
+    }()
+
+    // MARK: - -
+    func saveContext() {
+        let context = persistentContainer.viewContext
+        guard context.hasChanges else { return }
+        do {
+            try context.save()
+        } catch {
+            debugPrint("failed to save data store: \(error)")
+        }
+    }
+    
+    func createPlanet(withID id: UUID, name: String, about: String, keyName: String?, keyID: String?, ipns: String?) {
+        let ctx = persistentContainer.viewContext
+        let planet = Planet(context: ctx)
+        planet.id = id
+        planet.created = Date()
+        planet.name = name
+        planet.about = about
+        planet.keyName = keyName
+        planet.keyID = keyID
+        planet.ipns = ipns
+        do {
+            try ctx.save()
+            debugPrint("planet created: \(planet)")
+            PlanetManager.shared.setupDirectory(forPlanet: planet)
+        } catch {
+            debugPrint("failed to create new planet: \(planet), error: \(error)")
+        }
+    }
+    
+    func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String) {
+        let ctx = persistentContainer.viewContext
+        let article = PlanetArticle(context: ctx)
+        article.id = id
+        article.planetID = planetID
+        article.title = title
+        article.content = content
+        article.created = Date()
+        do {
+            try ctx.save()
+            debugPrint("planet article created: \(article)")
+            Task.init(priority: .utility) {
+                await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
+                guard let planet = getPlanet(id: planetID) else { return }
+                await PlanetManager.shared.publishForPlanet(planet: planet)
+            }
+        } catch {
+            debugPrint("failed to create new planet article: \(article), error: \(error)")
+        }
+    }
+    
+    func removePlanet(planet: Planet) {
+        let uuid = planet.id!
+        let context = persistentContainer.viewContext
+        let articlesToDelete = getArticles(byPlanetID: uuid)
+        for a in articlesToDelete {
+            context.delete(a)
+        }
+        context.delete(planet)
+        do {
+            try context.save()
+            PlanetManager.shared.destroyDirectory(fromPlanet: uuid)
+            reportDatabaseStatus()
+            DispatchQueue.main.async {
+                PlanetStore.shared.selectedPlanet = UUID().uuidString
+                PlanetStore.shared.selectedArticle = UUID().uuidString
+            }
+        } catch {
+            debugPrint("failed to delete planet: \(planet), error: \(error)")
+        }
+    }
+    
+    func getPlanet(id: UUID) -> Planet? {
+        let request: NSFetchRequest<Planet> = Planet.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        let context = persistentContainer.viewContext
+        do {
+            return try context.fetch(request).first
+        } catch {
+            debugPrint("failed to get planet: \(error), target uuid: \(id)")
+        }
+        return nil
+    }
+    
+    func deletePlanet(planet: Planet, inContext context: NSManagedObjectContext) {
+        let articlesToDelete = getArticles(byPlanetID: planet.id!)
+        for a in articlesToDelete {
+            context.delete(a)
+        }
+        context.delete(planet)
+        do {
+            try context.save()
+            reportDatabaseStatus()
+            DispatchQueue.main.async {
+                PlanetStore.shared.selectedPlanet = UUID().uuidString
+                PlanetStore.shared.selectedArticle = UUID().uuidString
+            }
+        } catch {
+            debugPrint("failed to delete planet: \(planet), error: \(error)")
+        }
+    }
+
+    func createArticle(inContext context: NSManagedObjectContext, forPlanet planetID: UUID) {
+        let title = titles.randomElement()!
+        let content = contents.randomElement()!
+        let now = Date()
+        let articleID = UUID()
+        
+        let article = PlanetArticle(context: context)
+        article.id = articleID
+        article.created = now
+        article.title = title
+        article.content = content
+        article.planetID = planetID
+        
+        do {
+            try context.save()
+        } catch {
+            debugPrint("failed to create new article: \(article), error: \(error)")
+        }
+    }
+    
+    func updateArticle(inContext context: NSManagedObjectContext, articleID id: UUID, forPlanet planetID: UUID, updatedTitle title: String, updatedContent content: String) {
+        guard let article = getArticle(id: id) else { return }
+        article.title = title
+        article.content = content
+        
+        do {
+            try context.save()
+            
+            DispatchQueue.main.async {
+                PlanetStore.shared.selectedArticle = UUID().uuidString
+            }
+        } catch {
+            debugPrint("failed to update article: \(article), error: \(error)")
+        }
+    }
+    
+    func getArticle(id: UUID) -> PlanetArticle? {
+        let request: NSFetchRequest<PlanetArticle> = PlanetArticle.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        let context = persistentContainer.viewContext
+        do {
+            return try context.fetch(request).first
+        } catch {
+            debugPrint("failed to get article: \(error), target uuid: \(id)")
+        }
+        return nil
+    }
+    
+    func getArticles(byPlanetID id: UUID) -> [PlanetArticle] {
+        let request: NSFetchRequest<PlanetArticle> = PlanetArticle.fetchRequest()
+        request.predicate = NSPredicate(format: "planetID == %@", id as CVarArg)
+        let context = persistentContainer.viewContext
+        do {
+            return try context.fetch(request)
+        } catch {
+            debugPrint("failed to get article: \(error), target uuid: \(id)")
+        }
+        return []
+    }
+    
+    func getLocalIPNSs() -> Set<String> {
+        let request: NSFetchRequest<Planet> = Planet.fetchRequest()
+        request.predicate = NSPredicate(format: "keyName != null && keyID != null")
+        let context = persistentContainer.viewContext
+        do {
+            let results = try context.fetch(request)
+            let ids: [String] = results.map() { r in
+                return r.ipns ?? ""
+            }
+            debugPrint("got local ipns: \(ids)")
+            return Set(ids)
+        } catch {
+            debugPrint("failed to get planets: \(error)")
+        }
+        return Set()
+    }
+    
+    func getLocalPlanets() -> Set<Planet> {
+        let request: NSFetchRequest<Planet> = Planet.fetchRequest()
+        request.predicate = NSPredicate(format: "keyName != null && keyID != null")
+        let context = persistentContainer.viewContext
+        do {
+            let results = try context.fetch(request)
+            let planets: [Planet] = results.map() { r in
+                return r
+            }
+            return Set(planets)
+        } catch {
+            debugPrint("failed to get planets: \(error)")
+        }
+        return Set()
+    }
+    
+    func getFollowingPlanets() -> Set<Planet> {
+        let request: NSFetchRequest<Planet> = Planet.fetchRequest()
+        request.predicate = NSPredicate(format: "keyName == null && keyID == null")
+        let context = persistentContainer.viewContext
+        do {
+            let results = try context.fetch(request)
+            let planets: [Planet] = results.map() { r in
+                return r
+            }
+            return Set(planets)
+        } catch {
+            debugPrint("failed to get planets: \(error)")
+        }
+        return Set()
+    }
+    
+    func removeArticle(article: PlanetArticle) {
+        let uuid = article.id!
+        let planetUUID = article.planetID!
+        let context = persistentContainer.viewContext
+        context.delete(article)
+        do {
+            try context.save()
+            PlanetManager.shared.destroyArticleDirectory(planetUUID: planetUUID, articleUUID: uuid)
+            reportDatabaseStatus()
+            DispatchQueue.main.async {
+                PlanetStore.shared.selectedArticle = UUID().uuidString
+            }
+        } catch {
+            debugPrint("failed to delete article: \(article), error: \(error)")
+        }
+    }
+    
+    func deleteArticle(article: PlanetArticle, inContext context: NSManagedObjectContext) {
+        context.delete(article)
+        do {
+            try context.save()
+            reportDatabaseStatus()
+            DispatchQueue.main.async {
+                PlanetStore.shared.selectedArticle = UUID().uuidString
+            }
+        } catch {
+            debugPrint("failed to delete article: \(article), error: \(error)")
+        }
+    }
+    
+    func reportDatabaseStatus() {
+        let articlesCountRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "PlanetArticle")
+        let articlesCount: Int = try! persistentContainer.viewContext.count(for: articlesCountRequest)
+        let planetsCountRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Planet")
+        let planetsCount: Int = try! persistentContainer.viewContext.count(for: planetsCountRequest)
+        debugPrint("context saved, now articles count: \(articlesCount), planets count: \(planetsCount)")
+        if planetsCount == 0 && articlesCount > 0 {
+            debugPrint("cleanup articles without planets.")
+            let context = persistentContainer.viewContext
+            let removeRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "PlanetArticle")
+            do {
+                let articles = try context.fetch(removeRequest)
+                for a in articles {
+                    context.delete(a as! NSManagedObject)
+                }
+                try context.save()
+                reportDatabaseStatus()
+            } catch {
+                debugPrint("failed to get articles: \(error)")
+            }
+        }
+    }
+    
+    func resetDatabase() {
+        let context = persistentContainer.viewContext
+        let removePlanetRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Planet")
+        let removePlanetArticleRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "PlanetArticle")
+        do {
+            let planets = try context.fetch(removePlanetRequest)
+            let _ = planets.map() { p in
+                context.delete(p as! NSManagedObject)
+            }
+            let articles = try context.fetch(removePlanetArticleRequest)
+            let _ = articles.map() { a in
+                context.delete(a as! NSManagedObject)
+            }
+            try context.save()
+        } catch {
+            debugPrint("failed to reset database: \(error)")
+        }
+    }
+}
