@@ -194,7 +194,7 @@ struct PlanetSidebarView: View {
                                             .environmentObject(planetStore)
                                     }
                                     if planet.name == nil || planet.name == "" {
-                                        Text("Waiting for planet...")
+                                        Text(planetStore.updatingPlanets.contains(planet.id!) ? "Waiting for planet..." : "Unknown Planet")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     } else {
@@ -276,10 +276,8 @@ struct PlanetSidebarView: View {
                 updateStatus()
             }
             .onTapGesture {
-                if planetStore.daemonIsOnline == false {
-                    debugPrint("try to relaunch daemon ...")
-                    PlanetManager.shared.relaunchDaemon()
-                }
+                guard planetStore.daemonIsOnline == false else { return }
+                PlanetManager.shared.relaunchDaemon()
             }
             .frame(height: 44)
             .padding(.leading, 16)

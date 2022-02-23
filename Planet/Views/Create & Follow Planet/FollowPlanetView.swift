@@ -54,9 +54,10 @@ struct FollowPlanetView: View {
                 
                 Button {
                     planetStore.isFollowingPlanet = false
-                    Task.init(priority: .utility) {
-                        PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedIPNS())
+                    if PlanetDataController.shared.getFollowingIPNSs().contains(processedIPNS()) {
+                        return
                     }
+                    PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedIPNS())
                 } label: {
                     Text("Follow")
                 }

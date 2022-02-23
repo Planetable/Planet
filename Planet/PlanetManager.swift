@@ -398,7 +398,7 @@ class PlanetManager: NSObject {
             }
         }
         debugPrint("updating for planet: \(planet) ...")
-        let ipnsString = "http://127.0.0.1" + ":" + self.gatewayPort + "/" + "ipns" + "/" + ipns + "/" + "feed.json"
+        let ipnsString = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns + "/" + "feed.json"
         let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         do {
             let (data, _) = try await URLSession.shared.data(for: request)

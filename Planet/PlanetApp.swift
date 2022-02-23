@@ -37,7 +37,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first else { return }
         let ipns = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
-        debugPrint("about to follow planet: \(ipns)")
+        guard !PlanetDataController.shared.getFollowingIPNSs().contains(ipns) else { return }
+        PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: ipns)
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {

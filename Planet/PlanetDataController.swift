@@ -204,6 +204,23 @@ class PlanetDataController: NSObject {
         return Set()
     }
     
+    func getFollowingIPNSs() -> Set<String> {
+        let request: NSFetchRequest<Planet> = Planet.fetchRequest()
+        request.predicate = NSPredicate(format: "keyName == null && keyID == null")
+        let context = persistentContainer.viewContext
+        do {
+            let results = try context.fetch(request)
+            let ids: [String] = results.map() { r in
+                return r.ipns ?? ""
+            }
+            debugPrint("got following ipns: \(ids)")
+            return Set(ids)
+        } catch {
+            debugPrint("failed to get planets: \(error)")
+        }
+        return Set()
+    }
+    
     func getLocalPlanets() -> Set<Planet> {
         let request: NSFetchRequest<Planet> = Planet.fetchRequest()
         request.predicate = NSPredicate(format: "keyName != null && keyID != null")
