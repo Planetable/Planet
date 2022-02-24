@@ -39,7 +39,7 @@ struct PlanetMainView: View {
                 .environment(\.managedObjectContext, context)
                 .frame(minWidth: 200)
             
-            PlanetArticleDetailsView()
+            PlanetArticleView()
                 .environmentObject(planetStore)
                 .environment(\.managedObjectContext, context)
                 .frame(minWidth: 320)
