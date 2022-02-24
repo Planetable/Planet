@@ -62,7 +62,7 @@ struct PlanetAboutView: View {
                     PlanetAvatarView(planet: planet, size: CGSize(width: 80, height: 80), inEditMode: true)
                     Spacer()
                 }
-                .padding(.top, 15)
+                .padding(.top, 20)
                 .padding(.bottom, 5)
                 
                 HStack {
@@ -142,7 +142,12 @@ struct PlanetAboutView: View {
             
             VStack {
                 HStack {
+                    Text(planet.isMyPlanet() ? "Never Published" : "Never Updated")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
                     Spacer()
+                    
                     Button {
                         planetStore.isShowingPlanetInfo = false
                         DispatchQueue.main.async {
@@ -162,7 +167,7 @@ struct PlanetAboutView: View {
             }
         }
         .padding()
-        .frame(width: 280, height: 250, alignment: .center)
+        .frame(width: 280, height: 260, alignment: .center)
     }
 }
 
