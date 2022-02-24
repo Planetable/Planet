@@ -508,6 +508,8 @@ class PlanetManager: NSObject {
                 }
             }
             
+            // MARK: TODO: delete saved articles which was deleted if needed.
+            
             // update planet avatar if needed.
             let avatarString = prefix + "/" + "avatar.png"
             let avatarRequest = URLRequest(url: URL(string: avatarString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
