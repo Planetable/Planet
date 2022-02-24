@@ -24,6 +24,10 @@ class PlanetStore: ObservableObject {
     @Published var isFollowingPlanet: Bool = false
     @Published var isShowingPlanetInfo: Bool = false
     
+    @Published var isFailedAlert: Bool = false
+    @Published var failedAlertTitle: String = ""
+    @Published var failedAlertMessage: String = ""
+    
     @Published var templatePaths: [URL] = []
     
     @Published var publishingPlanets: Set<UUID> = Set()

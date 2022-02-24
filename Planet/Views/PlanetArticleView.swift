@@ -35,6 +35,7 @@ struct SwiftUIWebView: NSViewRepresentable {
         
         NotificationCenter.default.addObserver(forName: Notification.Name("SwiftUIWebViewReloadAction"), object: nil, queue: nil) { n in
             guard let url = n.object as? URL else { return }
+            debugPrint("reloading article: \(url)")
             DispatchQueue.main.async {
                 self.webView.load(URLRequest(url: URL(string: url.absoluteString)!, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 10))
             }
@@ -61,9 +62,8 @@ struct SwiftUIWebView: NSViewRepresentable {
         public func webView(_: WKWebView, didFailProvisionalNavigation: WKNavigation!, withError: Error) { }
 
         public func webView(_ web: WKWebView, didFinish: WKNavigation!) {
-            let placeholderURL = Bundle.main.url(forResource: "TemplatePlaceholder.html", withExtension: "")
             self.viewModel.pageTitle = web.title!
-            self.viewModel.link = web.url?.absoluteString ?? placeholderURL!.absoluteString
+//            self.viewModel.link = web.url?.absoluteString
             self.viewModel.didFinishLoading = true
         }
 
@@ -103,6 +103,14 @@ struct PlanetArticleView: View {
                         if let urlPath = await PlanetManager.shared.articleURL(article: article) {
                             DispatchQueue.main.async {
                                 NotificationCenter.default.post(name: Notification.Name("SwiftUIWebViewReloadAction"), object: urlPath)
+                            }
+                        } else {
+                            DispatchQueue.main.async {
+                                self.planetStore.currentArticle = nil
+                                self.planetStore.selectedArticle = UUID().uuidString
+                                self.planetStore.isFailedAlert = true
+                                self.planetStore.failedAlertTitle = "Failed to load article"
+                                self.planetStore.failedAlertMessage = "Please try again later."
                             }
                         }
                     }

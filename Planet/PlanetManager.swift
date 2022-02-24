@@ -308,7 +308,18 @@ class PlanetManager: NSObject {
         } else {
             let prefixString = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns
             let urlString: String = prefixString + "/" + articleID.uuidString + "/" + "index.html"
-            return URL(string: urlString)
+            if let url = URL(string: urlString) {
+                let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+                do {
+                    let (data, _) = try await URLSession.shared.data(for: request)
+                    // cache index.html file if needed.
+                    return url
+                } catch {
+                    debugPrint("failed to validate article url: \(url), error: \(error)")
+                    return nil
+                }
+            }
+            return nil
         }
     }
     
@@ -462,7 +473,8 @@ class PlanetManager: NSObject {
         }.resume()
 
         debugPrint("updating for planet: \(planet) ...")
-        let ipnsString = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns + "/" + "feed.json"
+        let prefix = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns + "/"
+        let ipnsString = prefix + "feed.json"
         let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
@@ -485,6 +497,17 @@ class PlanetManager: NSObject {
                     PlanetDataController.shared.createArticle(withID: a.id, forPlanet: feed.id, title: a.title, content: "")
                 }
             }
+            
+            // update planet avatar if needed.
+            let avatarString = prefix + "/" + "avatar.png"
+            let avatarRequest = URLRequest(url: URL(string: avatarString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+            let (avatarData, _) = try await URLSession.shared.data(for: avatarRequest)
+            let planetPath = _planetsPath().appendingPathComponent(id.uuidString)
+            if !FileManager.default.fileExists(atPath: planetPath.path) {
+                try FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true, attributes: nil)
+            }
+            let avatarPath = planetPath.appendingPathComponent("avatar.png")
+            try avatarData.write(to: avatarPath)
         } catch {
             debugPrint("failed to get feed: \(error)")
         }

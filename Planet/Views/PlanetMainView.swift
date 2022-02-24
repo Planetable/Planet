@@ -44,6 +44,14 @@ struct PlanetMainView: View {
                 .environment(\.managedObjectContext, context)
                 .frame(minWidth: 320)
         }
+        .alert(isPresented: $planetStore.isFailedAlert) {
+            Alert(title: Text(planetStore.failedAlertTitle), message: Text(planetStore.failedAlertMessage), dismissButton: Alert.Button.cancel(Text("OK"), action: {
+                DispatchQueue.main.async {
+                    self.planetStore.failedAlertTitle = ""
+                    self.planetStore.failedAlertMessage = ""
+                }
+            }))
+        }
     }
     
     private func toggleSidebar() {
