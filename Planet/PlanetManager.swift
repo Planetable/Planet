@@ -511,6 +511,9 @@ class PlanetManager: NSObject {
                 try FileManager.default.removeItem(at: avatarPath)
             }
             NSImage(data: avatarData)?.imageSave(avatarPath)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .updateAvatar, object: nil)
+            }
         } catch {
             debugPrint("failed to get feed: \(error)")
         }
