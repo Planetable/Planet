@@ -76,7 +76,9 @@ struct PlanetWriterView: View {
         // make sure current new article id equals to the planet id first, then generate new article id.
         let planetID = articleID
         let createdArticleID = UUID()
-        PlanetDataController.shared.createArticle(withID: createdArticleID, forPlanet: planetID, title: title, content: content)
+        Task.init(priority: .utility) {
+            await PlanetDataController.shared.createArticle(withID: createdArticleID, forPlanet: planetID, title: title, content: content)
+        }
         DispatchQueue.main.async {
             if PlanetStore.shared.writerIDs.contains(articleID) {
                 PlanetStore.shared.writerIDs.remove(articleID)

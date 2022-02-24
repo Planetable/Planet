@@ -55,7 +55,7 @@ class PlanetDataController: NSObject {
         }
     }
     
-    func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String) {
+    func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String) async {
         let ctx = persistentContainer.viewContext
         let article = PlanetArticle(context: ctx)
         article.id = id
@@ -92,7 +92,7 @@ class PlanetDataController: NSObject {
         do {
             try context.save()
             PlanetManager.shared.destroyDirectory(fromPlanet: uuid)
-            reportDatabaseStatus()
+            self.reportDatabaseStatus()
             DispatchQueue.main.async {
                 PlanetStore.shared.selectedPlanet = UUID().uuidString
                 PlanetStore.shared.selectedArticle = UUID().uuidString

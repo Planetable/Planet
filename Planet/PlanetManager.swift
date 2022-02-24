@@ -504,7 +504,7 @@ class PlanetManager: NSObject {
             for a in feed.articles {
                 if let _ = PlanetDataController.shared.getArticle(id: a.id) {
                 } else {
-                    PlanetDataController.shared.createArticle(withID: a.id, forPlanet: feed.id, title: a.title, content: "")
+                    await PlanetDataController.shared.createArticle(withID: a.id, forPlanet: feed.id, title: a.title, content: "")
                 }
             }
             
@@ -561,7 +561,7 @@ class PlanetManager: NSObject {
 
     // MARK: - Private -
     
-    // MARK: TODO: convert info async method.
+    // MARK: TODO: convert to async method.
     private func verifyIPFSStatus(on: @escaping (Bool) -> Void) {
         debugPrint("checking command status...")
         let targetPath = _ipfsPath()

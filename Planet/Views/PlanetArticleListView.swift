@@ -46,10 +46,12 @@ struct PlanetArticleListView: View {
                     }
                     .contextMenu {
                         VStack {
-                            Button {
-                                PlanetDataController.shared.removeArticle(article: article)
-                            } label: {
-                                Text("Delete Article: \(article.title ?? "")")
+                            if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
+                                Button {
+                                    PlanetDataController.shared.removeArticle(article: article)
+                                } label: {
+                                    Text("Delete Article: \(article.title ?? "")")
+                                }
                             }
                         }
                     }
