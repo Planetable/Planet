@@ -16,6 +16,7 @@
 		2A441BAE27C40BD30008A694 /* PlanetWriterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAD27C40BD30008A694 /* PlanetWriterView.swift */; };
 		2A441BB027C4DD980008A694 /* CreatePlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAF27C4DD980008A694 /* CreatePlanetView.swift */; };
 		2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BB227C4DF110008A694 /* FollowPlanetView.swift */; };
+		2A780CF927C76EF0007DC36A /* PlanetAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A780CF827C76EF0007DC36A /* PlanetAvatarView.swift */; };
 		2AC4994927BB6E7500F1C2D1 /* PlanetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */; };
 		2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2AC4994C27BB6E7600F1C2D1 /* Assets.xcassets */; };
 		2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2AC4994F27BB6E7600F1C2D1 /* Preview Assets.xcassets */; };
@@ -42,6 +43,7 @@
 		2A441BAD27C40BD30008A694 /* PlanetWriterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterView.swift; sourceTree = "<group>"; };
 		2A441BAF27C4DD980008A694 /* CreatePlanetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreatePlanetView.swift; sourceTree = "<group>"; };
 		2A441BB227C4DF110008A694 /* FollowPlanetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowPlanetView.swift; sourceTree = "<group>"; };
+		2A780CF827C76EF0007DC36A /* PlanetAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAvatarView.swift; sourceTree = "<group>"; };
 		2AC4994527BB6E7500F1C2D1 /* Planet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Planet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetApp.swift; sourceTree = "<group>"; };
 		2AC4994C27BB6E7600F1C2D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -79,6 +81,7 @@
 				2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */,
 				2A441BA927C34FCC0008A694 /* PlanetAboutView.swift */,
 				2A441BAD27C40BD30008A694 /* PlanetWriterView.swift */,
+				2A780CF827C76EF0007DC36A /* PlanetAvatarView.swift */,
 				2A09A36027C2582B0003A0B5 /* PlanetArticleListView.swift */,
 				2A09A36227C258450003A0B5 /* PlanetArticleDetailsView.swift */,
 				2A441BB127C4DDDE0008A694 /* Create & Follow Planet */,
@@ -239,6 +242,7 @@
 			files = (
 				2AC4996627BB97F000F1C2D1 /* PlanetConfiguration.swift in Sources */,
 				2A09A36127C2582B0003A0B5 /* PlanetArticleListView.swift in Sources */,
+				2A780CF927C76EF0007DC36A /* PlanetAvatarView.swift in Sources */,
 				2AC4996227BB97A200F1C2D1 /* PlanetManager.swift in Sources */,
 				2AC4996427BB97D300F1C2D1 /* PlanetCommand.swift in Sources */,
 				2A09A36327C258450003A0B5 /* PlanetArticleDetailsView.swift in Sources */,

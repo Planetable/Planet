@@ -22,12 +22,7 @@ class PlanetStore: ObservableObject {
     
     @Published var isCreatingPlanet: Bool = false
     @Published var isFollowingPlanet: Bool = false
-    
-    @Published var isEditingPlanet: Bool = false
-    @Published var isDeletingPlanet: Bool = false
-    @Published var isCreatingArticle: Bool = false
-    @Published var isEditingArticle: Bool = false
-    @Published var isDeletingArticle: Bool = false
+    @Published var isShowingPlanetInfo: Bool = false
     
     @Published var templatePaths: [URL] = []
     
@@ -37,6 +32,7 @@ class PlanetStore: ObservableObject {
     @Published var currentPlanet: Planet! {
         didSet {
             debugPrint("[Current Planet] \(currentPlanet)")
+            NotificationCenter.default.post(name: .updateAvatar, object: nil)
         }
     }
     @Published var selectedPlanet: String! {

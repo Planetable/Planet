@@ -14,6 +14,9 @@ import PathKit
 class PlanetManager: NSObject {
     static let shared: PlanetManager = PlanetManager()
     
+    private var publishTimer: Timer?
+    private var feedTimer: Timer?
+
     private var unitTesting: Bool = {
         return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }()
@@ -85,11 +88,16 @@ class PlanetManager: NSObject {
             }
             self.updateAPIAndGatewayPorts()
         }
+        
+        publishTimer = Timer.scheduledTimer(timeInterval: 600, target: self, selector: #selector(publishLocalPlanets), userInfo: nil, repeats: true)
+        feedTimer = Timer.scheduledTimer(timeInterval: 300, target: self, selector: #selector(updatingFollowingPlanets), userInfo: nil, repeats: true)
     }
     
     func cleanup() {
         debugPrint("Planet Manager Cleanup")
         terminateDaemon(forceSkip: true)
+        publishTimer?.invalidate()
+        feedTimer?.invalidate()
     }
     
     func relaunchDaemon() {
@@ -213,6 +221,42 @@ class PlanetManager: NSObject {
         } catch {
             debugPrint("failed to remove key with name: \(name), error: \(error)")
         }
+    }
+    
+    func resizedAvatarImage(image: NSImage) -> NSImage {
+        let targetImage: NSImage
+        let targetImageSize = CGSize(width: 144, height: 144)
+        if min(image.size.width, image.size.height) > targetImageSize.width / 2.0 {
+            targetImage = image.imageResize(targetImageSize) ?? image
+        } else {
+            targetImage = image
+        }
+        return targetImage
+    }
+    
+    func updateAvatar(forPlanet planet: Planet, image: NSImage, isEditing: Bool = false) {
+        guard let id = planet.id else { return }
+        let imageURL = _avatarPath(forPlanetID: id, isEditing: isEditing)
+        let targetImage = resizedAvatarImage(image: image)
+        targetImage.imageSave(imageURL)
+    }
+    
+    func removeAvatar(forPlanet planet: Planet) {
+        guard let id = planet.id else { return }
+        let imageURL = _avatarPath(forPlanetID: id, isEditing: false)
+        let imageEditURL = _avatarPath(forPlanetID: id, isEditing: true)
+        try? FileManager.default.removeItem(at: imageURL)
+        try? FileManager.default.removeItem(at: imageEditURL)
+    }
+    
+    func avatar(forPlanet planet: Planet) -> NSImage? {
+        if let id = planet.id {
+            let imageURL = _avatarPath(forPlanetID: id, isEditing: false)
+            if FileManager.default.fileExists(atPath: imageURL.path) {
+                return NSImage(contentsOf: imageURL)
+            }
+        }
+        return nil
     }
     
     // MARK: - Planet & Planet Article -
@@ -397,6 +441,14 @@ class PlanetManager: NSObject {
                 PlanetStore.shared.updatingPlanets.remove(id)
             }
         }
+        
+        // pin planet in background.
+        debugPrint("pin in the background ...")
+        let pinRequest = serverURL(path: "pin/add", args: ["arg": "/ipns/" + ipns], timeout: 120)
+        URLSession.shared.dataTask(with: pinRequest) { data, response, error in
+            debugPrint("pinned: \(response).")
+        }.resume()
+
         debugPrint("updating for planet: \(planet) ...")
         let ipnsString = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns + "/" + "feed.json"
         let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
@@ -428,6 +480,7 @@ class PlanetManager: NSObject {
         debugPrint("done updating.")
     }
     
+    @objc
     func publishLocalPlanets() {
         checkDaemonStatus { status in
             guard status else { return }
@@ -441,6 +494,7 @@ class PlanetManager: NSObject {
         }
     }
     
+    @objc
     func updatingFollowingPlanets() {
         checkDaemonStatus { status in
             guard status else { return }
@@ -702,6 +756,14 @@ class PlanetManager: NSObject {
             try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
         }
         return path
+    }
+    
+    func _avatarPath(forPlanetID id: UUID, isEditing: Bool = false) -> URL {
+        let path = _planetsPath().appendingPathComponent(id.uuidString)
+        if !FileManager.default.fileExists(atPath: path.path) {
+            try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
+        }
+        return path.appendingPathComponent("avatar.png")
     }
 
     private func _ipfsPath() -> URL {

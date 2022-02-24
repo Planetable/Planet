@@ -55,90 +55,111 @@ struct PlanetAboutView: View {
     @State private var planetIPNS = "planet://"
 
     var body: some View {
-        VStack {
-            HStack {
-                Spacer()
-                Image(systemName: "person.crop.circle")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 80, height: 80, alignment: .center)
-                    .cornerRadius(40)
-                Spacer()
-            }
-            .padding(15)
-            
-            HStack {
-                Spacer()
-                Text(planet.name ?? "")
-                    .font(.title)
-                Spacer()
-            }
-            Text(planet.about ?? "")
-                .font(.body)
-
-            Spacer()
-            
-            HStack {
-                if planet.isMyPlanet() {
-                    if let ipns = planet.ipns, ipns != "" {
-                        Button {
-                            isSharing = true
-                            planetIPNS = "planet://" + ipns
-                        } label: {
-                            Text("Share")
-                        }
-                    }
-
-                    Button {
-                        Task.init {
-                            await PlanetManager.shared.publishForPlanet(planet: planet)
-                        }
-                    } label: {
-                        Text(planetStore.publishingPlanets.contains(planet.id!) ? "Publishing" : "Publish")
-                    }
-                    .disabled(planetStore.publishingPlanets.contains(planet.id!))
-                    
+        ZStack {
+            VStack {
+                HStack {
                     Spacer()
-                    
-                    Button {
-                        PlanetDataController.shared.removePlanet(planet: planet)
-                    } label: {
-                        Text("Delete")
-                    }
-                } else {
-                    if let ipns = planet.ipns, ipns != "" {
-                        Button {
-                            isSharing = true
-                            planetIPNS = "planet://" + ipns
-                        } label: {
-                            Text("Share")
-                        }
-                    }
-                    
-                    Button {
-                        Task.init {
-                            await PlanetManager.shared.updateForPlanet(planet: planet)
-                        }
-                    } label: {
-                        Text(planetStore.updatingPlanets.contains(planet.id!) ? "Updating" : "Update")
-                    }
-                    .disabled(planetStore.updatingPlanets.contains(planet.id!))
-
+                    PlanetAvatarView(planet: planet, size: CGSize(width: 80, height: 80), inEditMode: true)
                     Spacer()
-                    
-                    Button {
-                        PlanetDataController.shared.removePlanet(planet: planet)
-                    } label: {
-                        Text("Unfollow")
+                }
+                .padding(.top, 15)
+                .padding(.bottom, 5)
+                
+                HStack {
+                    Spacer()
+                    Text(planet.name ?? "")
+                        .font(.title)
+                    Spacer()
+                }
+                Text(planet.about ?? "")
+                    .font(.body)
+
+                Spacer()
+                
+                HStack {
+                    if planet.isMyPlanet() {
+                        if let ipns = planet.ipns, ipns != "" {
+                            Button {
+                                isSharing = true
+                                planetIPNS = "planet://" + ipns
+                            } label: {
+                                Text("Share")
+                            }
+                        }
+
+                        Button {
+                            planetStore.isShowingPlanetInfo = false
+                            Task.init {
+                                await PlanetManager.shared.publishForPlanet(planet: planet)
+                            }
+                        } label: {
+                            Text(planetStore.publishingPlanets.contains(planet.id!) ? "Publishing" : "Publish")
+                        }
+                        .disabled(planetStore.publishingPlanets.contains(planet.id!))
+                        
+                        Spacer()
+                        
+                        Button {
+                            planetStore.isShowingPlanetInfo = false
+                            PlanetDataController.shared.removePlanet(planet: planet)
+                        } label: {
+                            Text("Delete")
+                        }
+                    } else {
+                        if let ipns = planet.ipns, ipns != "" {
+                            Button {
+                                isSharing = true
+                                planetIPNS = "planet://" + ipns
+                            } label: {
+                                Text("Share")
+                            }
+                        }
+                        
+                        Button {
+                            planetStore.isShowingPlanetInfo = false
+                            Task.init {
+                                await PlanetManager.shared.updateForPlanet(planet: planet)
+                            }
+                        } label: {
+                            Text(planetStore.updatingPlanets.contains(planet.id!) ? "Updating" : "Update")
+                        }
+                        .disabled(planetStore.updatingPlanets.contains(planet.id!))
+
+                        Spacer()
+                        
+                        Button {
+                            planetStore.isShowingPlanetInfo = false
+                            PlanetDataController.shared.removePlanet(planet: planet)
+                        } label: {
+                            Text("Unfollow")
+                        }
                     }
                 }
+            }
+            .background(
+                SharingsPicker(isPresented: $isSharing, sharingItems: [planetIPNS])
+            )
+            
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        planetStore.isShowingPlanetInfo = false
+                    } label: {
+                        Image(systemName: "xmark.circle")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 16, height: 16, alignment: .center)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .keyboardShortcut(.escape, modifiers: [])
+                    .keyboardShortcut(.cancelAction)
+                }
+                Spacer()
             }
         }
         .padding()
         .frame(width: 280, height: 250, alignment: .center)
-        .background(
-            SharingsPicker(isPresented: $isSharing, sharingItems: [planetIPNS])
-        )
     }
 }
 

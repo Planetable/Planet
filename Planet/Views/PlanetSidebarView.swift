@@ -30,12 +30,10 @@ struct PlanetSidebarLoadingIndicatorView: View {
 struct PlanetSidebarToolbarButtonView: View {
     @EnvironmentObject private var planetStore: PlanetStore
     @Environment(\.managedObjectContext) private var context
-    
-    @State private var isInfoAlert: Bool = false
 
     var body: some View {
         Button {
-            isInfoAlert = true
+            planetStore.isShowingPlanetInfo = true
         } label: {
             Image(systemName: "info.circle")
                 .resizable()
@@ -43,12 +41,15 @@ struct PlanetSidebarToolbarButtonView: View {
                 .frame(width: 16, height: 16, alignment: .center)
         }
         .disabled(planetStore.currentPlanet == nil)
-        .popover(isPresented: $isInfoAlert, arrowEdge: .bottom) {
+        .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
+            
+        } content: {
             if let planet = planetStore.currentPlanet {
                 PlanetAboutView(planet: planet)
                     .environmentObject(planetStore)
             }
         }
+
 
         Button {
             if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
@@ -114,6 +115,7 @@ struct PlanetSidebarView: View {
                                         }, tag: planet.id!.uuidString, selection: $planetStore.selectedPlanet) {
                             VStack {
                                 HStack (spacing: 4) {
+                                    PlanetAvatarView(planet: planet, size: CGSize(width: 24, height: 24))
                                     Text(planet.name ?? "")
                                         .font(.body)
                                         .foregroundColor(.primary)
@@ -189,20 +191,21 @@ struct PlanetSidebarView: View {
                                         }, tag: planet.id!.uuidString, selection: $planetStore.selectedPlanet) {
                             VStack {
                                 HStack (spacing: 4) {
-                                    if planetStore.updatingPlanets.contains(planet.id!) {
-                                        PlanetSidebarLoadingIndicatorView()
-                                            .environmentObject(planetStore)
-                                    }
                                     if planet.name == nil || planet.name == "" {
                                         Text(planetStore.updatingPlanets.contains(planet.id!) ? "Waiting for planet..." : "Unknown Planet")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     } else {
+                                        PlanetAvatarView(planet: planet, size: CGSize(width: 24, height: 24))
                                         Text(planet.name ?? "")
                                             .font(.body)
                                             .foregroundColor(.primary)
                                     }
                                     Spacer()
+                                    if planetStore.updatingPlanets.contains(planet.id!) {
+                                        PlanetSidebarLoadingIndicatorView()
+                                            .environmentObject(planetStore)
+                                    }
                                 }
                             }
                         }

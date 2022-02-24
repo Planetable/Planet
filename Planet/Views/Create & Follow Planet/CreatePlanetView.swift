@@ -66,21 +66,6 @@ struct CreatePlanetView: View {
                         }
                     }
                 }
-
-                VStack {
-                    Image(systemName: "person.crop.circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 64, height: 64, alignment: .center)
-                    HStack {
-                        Spacer()
-                        Text("Avatar")
-                        Spacer()
-                    }
-                    Spacer()
-                }
-                .frame(width: 60, alignment: .center)
-                .padding()
             }
             .padding(.horizontal, 16)
             

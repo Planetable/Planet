@@ -77,6 +77,7 @@ class PlanetDataController: NSObject {
     }
     
     func removePlanet(planet: Planet) {
+        guard planet.id != nil else { return }
         let uuid = planet.id!
         let context = persistentContainer.viewContext
         let articlesToDelete = getArticles(byPlanetID: uuid)

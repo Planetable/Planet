@@ -23,6 +23,21 @@ struct PlanetApp: App {
         .handlesExternalEvents(matching: Set(arrayLiteral: "Planet"))
         .commands {
             CommandGroup(replacing: .newItem) {
+                Button {
+                    PlanetManager.shared.publishLocalPlanets()
+                } label: {
+                    Text("Publish My Planets")
+                }
+                .keyboardShortcut("p", modifiers: [.command, .shift])
+
+                Button {
+                    PlanetManager.shared.updatingFollowingPlanets()
+                } label: {
+                    Text("Update Following Planets")
+                }
+                .keyboardShortcut("r", modifiers: [.command, .shift])
+
+                Divider()
             }
         }
     }
