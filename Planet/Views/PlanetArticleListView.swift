@@ -29,8 +29,7 @@ struct PlanetArticleListView: View {
                     }
                     return false
                 })) { article in
-                    // MARK: TODO: render article
-                    NavigationLink(destination: PlanetArticleDetailsView(article: article).environmentObject(planetStore).environment(\.managedObjectContext, context), tag: article.id!.uuidString, selection: $planetStore.selectedArticle) {
+                    NavigationLink(destination: PlanetArticleView(article: article).environmentObject(planetStore), tag: article.id!.uuidString, selection: $planetStore.selectedArticle) {
                         VStack {
                             HStack {
                                 Text(article.title ?? "")

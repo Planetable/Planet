@@ -67,9 +67,13 @@ class PlanetDataController: NSObject {
             try ctx.save()
             debugPrint("planet article created: \(article)")
             Task.init(priority: .utility) {
-                await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
                 guard let planet = getPlanet(id: planetID) else { return }
-                await PlanetManager.shared.publishForPlanet(planet: planet)
+                if planet.isMyPlanet() {
+                    await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
+                    await PlanetManager.shared.publishForPlanet(planet: planet)
+                } else {
+                    // MARK: TODO: cache articles.
+                }
             }
         } catch {
             debugPrint("failed to create new planet article: \(article), error: \(error)")

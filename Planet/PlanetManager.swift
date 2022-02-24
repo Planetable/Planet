@@ -300,6 +300,18 @@ class PlanetManager: NSObject {
         }
     }
     
+    func articleURL(article: PlanetArticle) async -> URL? {
+        guard let articleID = article.id, let planetID = article.planetID else { return nil }
+        guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!), let ipns = planet.ipns else { return nil }
+        if planet.isMyPlanet() {
+            return _planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
+        } else {
+            let prefixString = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns
+            let urlString: String = prefixString + "/" + articleID.uuidString + "/" + "index.html"
+            return URL(string: urlString)
+        }
+    }
+    
     func renderArticleToDirectory(fromArticle article: PlanetArticle, templateIndex: Int = 0, force: Bool = false) async {
         debugPrint("about to render article: \(article)")
         let planetPath = _planetsPath().appendingPathComponent(article.planetID!.uuidString)
