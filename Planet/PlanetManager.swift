@@ -507,7 +507,10 @@ class PlanetManager: NSObject {
                 try FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true, attributes: nil)
             }
             let avatarPath = planetPath.appendingPathComponent("avatar.png")
-            try avatarData.write(to: avatarPath)
+            if FileManager.default.fileExists(atPath: avatarPath.path) {
+                try FileManager.default.removeItem(at: avatarPath)
+            }
+            NSImage(data: avatarData)?.imageSave(avatarPath)
         } catch {
             debugPrint("failed to get feed: \(error)")
         }
