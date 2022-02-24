@@ -59,7 +59,7 @@ struct PlanetAboutView: View {
             VStack {
                 HStack {
                     Spacer()
-                    PlanetAvatarView(planet: planet, size: CGSize(width: 80, height: 80), inEditMode: true)
+                    PlanetAvatarView(planet: planet, size: CGSize(width: 80, height: 80), inEditMode: planet.isMyPlanet())
                     Spacer()
                 }
                 .padding(.top, 20)

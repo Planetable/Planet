@@ -114,8 +114,9 @@ extension Planet {
     }
 
     func gradient() -> Gradient {
+        guard let id = id else { return gradients.randomElement()! }
         let gs = gradients
-        let parts = id!.integers
+        let parts = id.integers
         let a: Int64 = abs(parts.0)
         let c = Int((a % Int64(31)) % Int64(gs.count))
         let g = gs[c]
