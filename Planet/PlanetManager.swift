@@ -378,6 +378,11 @@ class PlanetManager: NSObject {
         defer {
             DispatchQueue.main.async {
                 PlanetStore.shared.publishingPlanets.remove(id)
+                let published: Date = Date()
+                PlanetStore.shared.lastPublishedDates[id] = published
+                DispatchQueue.global(qos: .background).async {
+                    UserDefaults.standard.set(published, forKey: "PlanetLastPublished" + "-" + id.uuidString)
+                }
             }
         }
         debugPrint("publishing for planet: \(planet), with key name: \(keyName) ...")
@@ -462,6 +467,11 @@ class PlanetManager: NSObject {
         defer {
             DispatchQueue.main.async {
                 PlanetStore.shared.updatingPlanets.remove(id)
+                let updated: Date = Date()
+                PlanetStore.shared.lastUpdatedDates[id] = updated
+                DispatchQueue.global(qos: .background).async {
+                    UserDefaults.standard.set(updated, forKey: "PlanetLastUpdated" + "-" + id.uuidString)
+                }
             }
         }
         

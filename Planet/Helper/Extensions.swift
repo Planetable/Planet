@@ -31,6 +31,20 @@ extension Date {
         format.timeStyle = .medium
         return format.string(from: self)
     }
+    
+    func shortDateDescription() -> String {
+        let format = DateFormatter()
+        format.dateStyle = .none
+        format.timeStyle = .medium
+        return format.string(from: self)
+    }
+
+    func relativeDateDescription() -> String {
+        let format = RelativeDateTimeFormatter()
+        format.formattingContext = .standalone
+        format.unitsStyle = .short
+        return format.string(for: self) ?? shortDateDescription()
+    }
 }
 
 

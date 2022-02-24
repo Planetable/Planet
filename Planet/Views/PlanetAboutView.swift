@@ -142,7 +142,7 @@ struct PlanetAboutView: View {
             
             VStack {
                 HStack {
-                    Text(planet.isMyPlanet() ? "Never Published" : "Never Updated")
+                    Text(planet.isMyPlanet() ? lastPublishedStatus() : lastUpdatedStatus())
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -168,6 +168,28 @@ struct PlanetAboutView: View {
         }
         .padding()
         .frame(width: 280, height: 260, alignment: .center)
+    }
+    
+    private func lastUpdatedStatus() -> String {
+        if let id = planet.id {
+            if let updated = planetStore.lastUpdatedDates[id] {
+                return "Updated " + updated.relativeDateDescription()
+            } else if let updated = UserDefaults.standard.object(forKey: "PlanetLastUpdated" + "-" + id.uuidString) as? Date {
+                return "Updated " + updated.relativeDateDescription()
+            }
+        }
+        return "Never Updated"
+    }
+    
+    private func lastPublishedStatus() -> String {
+        if let id = planet.id {
+            if let published = planetStore.lastPublishedDates[id] {
+                return "Published " + published.relativeDateDescription()
+            } else if let published = UserDefaults.standard.object(forKey: "PlanetLastPublished" + "-" + id.uuidString) as? Date {
+                return "Published " + published.relativeDateDescription()
+            }
+        }
+        return "Never Published"
     }
 }
 
