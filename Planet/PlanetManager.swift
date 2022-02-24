@@ -90,7 +90,7 @@ class PlanetManager: NSObject {
         }
         
         publishTimer = Timer.scheduledTimer(timeInterval: 600, target: self, selector: #selector(publishLocalPlanets), userInfo: nil, repeats: true)
-        feedTimer = Timer.scheduledTimer(timeInterval: 300, target: self, selector: #selector(updatingFollowingPlanets), userInfo: nil, repeats: true)
+        feedTimer = Timer.scheduledTimer(timeInterval: 300, target: self, selector: #selector(updateFollowingPlanets), userInfo: nil, repeats: true)
     }
     
     func cleanup() {
@@ -495,7 +495,7 @@ class PlanetManager: NSObject {
     }
     
     @objc
-    func updatingFollowingPlanets() {
+    func updateFollowingPlanets() {
         checkDaemonStatus { status in
             guard status else { return }
             let planets = PlanetDataController.shared.getFollowingPlanets()
@@ -643,7 +643,7 @@ class PlanetManager: NSObject {
                         if PlanetStore.shared.peersCount > 0 {
                             DispatchQueue.global(qos: .background).async {
                                 self.publishLocalPlanets()
-                                self.updatingFollowingPlanets()
+                                self.updateFollowingPlanets()
                             }
                         }
                     }

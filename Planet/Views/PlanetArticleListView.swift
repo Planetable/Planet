@@ -29,6 +29,7 @@ struct PlanetArticleListView: View {
                     }
                     return false
                 })) { article in
+                    // MARK: TODO: render article
                     NavigationLink(destination: PlanetArticleDetailsView(article: article).environmentObject(planetStore).environment(\.managedObjectContext, context), tag: article.id!.uuidString, selection: $planetStore.selectedArticle) {
                         VStack {
                             HStack {
@@ -46,14 +47,6 @@ struct PlanetArticleListView: View {
                     }
                     .contextMenu {
                         VStack {
-                            Button {
-                                PlanetDataController.shared.updateArticle(inContext: context, articleID: article.id!, forPlanet: planetID, updatedTitle: "Updated Title 123", updatedContent: "Updated Content 123")
-                            } label: {
-                                Text("Update Article: \(article.title ?? "")")
-                            }
-                            
-                            Divider()
-                            
                             Button {
                                 PlanetDataController.shared.removeArticle(article: article)
                             } label: {

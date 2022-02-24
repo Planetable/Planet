@@ -31,13 +31,19 @@ struct PlanetApp: App {
                 .keyboardShortcut("p", modifiers: [.command, .shift])
 
                 Button {
-                    PlanetManager.shared.updatingFollowingPlanets()
+                    PlanetManager.shared.updateFollowingPlanets()
                 } label: {
                     Text("Update Following Planets")
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
 
                 Divider()
+                
+                Button {
+                    PlanetDataController.shared.resetDatabase()
+                } label: {
+                    Text("Reset Database")
+                }
             }
         }
     }
