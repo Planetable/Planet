@@ -145,6 +145,9 @@ struct PlanetAboutView: View {
                     Spacer()
                     Button {
                         planetStore.isShowingPlanetInfo = false
+                        DispatchQueue.main.async {
+                            NotificationCenter.default.post(name: .updateAvatar, object: nil)
+                        }
                     } label: {
                         Image(systemName: "xmark.circle")
                             .resizable()
