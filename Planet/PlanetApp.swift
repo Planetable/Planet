@@ -23,6 +23,8 @@ struct PlanetApp: App {
         .handlesExternalEvents(matching: Set(arrayLiteral: "Planet"))
         .commands {
             CommandGroup(replacing: .newItem) {
+            }
+            CommandMenu("Planet") {
                 Button {
                     PlanetManager.shared.publishLocalPlanets()
                 } label: {
@@ -45,6 +47,9 @@ struct PlanetApp: App {
                     Text("Reset Database")
                 }
             }
+            SidebarCommands()
+            TextEditingCommands()
+            TextFormattingCommands()
         }
     }
 }

@@ -16,6 +16,7 @@ class PlanetManager: NSObject {
     
     private var publishTimer: Timer?
     private var feedTimer: Timer?
+    private var statusTimer: Timer?
 
     private var unitTesting: Bool = {
         return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
@@ -91,6 +92,7 @@ class PlanetManager: NSObject {
         
         publishTimer = Timer.scheduledTimer(timeInterval: 600, target: self, selector: #selector(publishLocalPlanets), userInfo: nil, repeats: true)
         feedTimer = Timer.scheduledTimer(timeInterval: 300, target: self, selector: #selector(updateFollowingPlanets), userInfo: nil, repeats: true)
+        statusTimer = Timer .scheduledTimer(timeInterval: 5, target: self, selector: #selector(updatePlanetStatus), userInfo: nil, repeats: true)
     }
     
     func cleanup() {
@@ -98,6 +100,7 @@ class PlanetManager: NSObject {
         terminateDaemon(forceSkip: true)
         publishTimer?.invalidate()
         feedTimer?.invalidate()
+        statusTimer?.invalidate()
     }
     
     func relaunchDaemon() {
@@ -558,6 +561,14 @@ class PlanetManager: NSObject {
                     await self.updateForPlanet(planet: p)
                 }
             }
+        }
+    }
+    
+    @objc
+    func updatePlanetStatus() {
+        checkPeersStatus { _ in
+        }
+        checkDaemonStatus { _ in
         }
     }
 

@@ -275,9 +275,6 @@ struct PlanetSidebarView: View {
                 .frame(width: 24, height: 24, alignment: .center)
                 .menuStyle(BorderlessButtonMenuStyle(showsMenuIndicator: false))
             }
-            .onReceive(planetStore.timer) { t in
-                updateStatus()
-            }
             .onTapGesture {
                 guard planetStore.daemonIsOnline == false else { return }
                 PlanetManager.shared.relaunchDaemon()
@@ -297,13 +294,6 @@ struct PlanetSidebarView: View {
         } content: {
             CreatePlanetView()
                 .environmentObject(planetStore)
-        }
-    }
-    
-    private func updateStatus() {
-        PlanetManager.shared.checkDaemonStatus { status in
-        }
-        PlanetManager.shared.checkPeersStatus { count in
         }
     }
 
