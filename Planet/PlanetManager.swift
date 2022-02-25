@@ -595,7 +595,7 @@ class PlanetManager: NSObject {
             }
         } else {
             do {
-                let binaryDataName: String = "IPFS-GO"
+                let binaryDataName: String = isOnAppleSilicon() ? "IPFS-GO-ARM" : "IPFS-GO"
                 if let data = NSDataAsset(name: NSDataAsset.Name(binaryDataName)) {
                     try data.data.write(to: targetPath, options: .atomic)
                     // verify permission
