@@ -76,23 +76,18 @@ class PlanetManager: NSObject {
 
     func setup() {
         debugPrint("Planet Manager Setup")
-//        #if DEBUG
-//        PlanetDataController.shared.resetDatabase()
-//        #endif
-        
         loadTemplates()
-        
-        verifyIPFSStatus { ready in
-            guard ready else {
-                debugPrint("IPFS setup not ready, do something.")
-                return
-            }
-            self.updateAPIAndGatewayPorts()
-        }
         
         publishTimer = Timer.scheduledTimer(timeInterval: 600, target: self, selector: #selector(publishLocalPlanets), userInfo: nil, repeats: true)
         feedTimer = Timer.scheduledTimer(timeInterval: 300, target: self, selector: #selector(updateFollowingPlanets), userInfo: nil, repeats: true)
         statusTimer = Timer .scheduledTimer(timeInterval: 5, target: self, selector: #selector(updatePlanetStatus), userInfo: nil, repeats: true)
+
+        Task.init(priority: .background) {
+            let onlineStatus = await verifyIPFSOnlineStatus()
+            if onlineStatus {
+                await updateAPIAndGatewayPorts()
+            }
+        }
     }
     
     func cleanup() {
@@ -125,34 +120,27 @@ class PlanetManager: NSObject {
             }
         }
     }
-
-    func checkDaemonStatus(on: @escaping (Bool) -> Void) {
-        guard apiPort != "" else {
-            return on(false)
-        }
-        verifyPortAvailability(port: apiPort, suffix: "/webui/") { status in
-            DispatchQueue.main.async {
-                PlanetStore.shared.daemonIsOnline = status
-            }
-            on(status)
-        }
-    }
     
-    func checkPeersStatus(on: @escaping (Int) -> Void) {
+    func checkDaemonStatus() async -> Bool {
+        guard apiPort != "" else { return false }
+        let status = await verifyPortOnlineStatus(port: apiPort, suffix: "/webui")
+        DispatchQueue.main.async {
+            PlanetStore.shared.daemonIsOnline = status
+        }
+        return status
+    }
+
+    func checkPeersStatus() async -> Int {
         let request = serverURL(path: "swarm/peers")
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if error == nil, let data = data {
-                let decoder = JSONDecoder()
-                do {
-                    let peers = try decoder.decode(PlanetPeers.self, from: data)
-                    DispatchQueue.main.async {
-                        PlanetStore.shared.peersCount = peers.peers?.count ?? 0
-                    }
-                } catch {
-                    debugPrint("failed to decode planet peers: \(error)")
-                }
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let decoder = JSONDecoder()
+            let peers = try decoder.decode(PlanetPeers.self, from: data)
+            DispatchQueue.main.async {
+                PlanetStore.shared.peersCount = peers.peers?.count ?? 0
             }
-        }.resume()
+        } catch {}
+        return 0
     }
     
     func checkPublishingStatus(planetID id: UUID) async -> Bool {
@@ -538,45 +526,40 @@ class PlanetManager: NSObject {
     
     @objc
     func publishLocalPlanets() {
-        checkDaemonStatus { status in
-            guard status else { return }
+        Task.init(priority: .background) {
+            guard await checkDaemonStatus() else { return }
             let planets = PlanetDataController.shared.getLocalPlanets()
             debugPrint("publishing local planets: \(planets) ...")
             for p in planets {
-                Task.init(priority: .background) {
-                    await self.publishForPlanet(planet: p)
-                }
+                await publishForPlanet(planet: p)
             }
         }
     }
     
     @objc
     func updateFollowingPlanets() {
-        checkDaemonStatus { status in
-            guard status else { return }
+        Task.init(priority: .background) {
+            guard await checkDaemonStatus() else { return }
             let planets = PlanetDataController.shared.getFollowingPlanets()
             debugPrint("updating following planets: \(planets) ...")
             for p in planets {
-                Task.init(priority: .background) {
-                    await self.updateForPlanet(planet: p)
-                }
+                await updateForPlanet(planet: p)
             }
         }
     }
     
     @objc
     func updatePlanetStatus() {
-        checkPeersStatus { _ in
+        Task.init(priority: .background) {
+            await checkDaemonStatus()
         }
-        checkDaemonStatus { _ in
+        Task.init(priority: .background) {
+            await checkPeersStatus()
         }
     }
 
     // MARK: - Private -
-    
-    // MARK: TODO: convert to async method.
-    private func verifyIPFSStatus(on: @escaping (Bool) -> Void) {
-        debugPrint("checking command status...")
+    private func verifyIPFSOnlineStatus() async -> Bool {
         let targetPath = _ipfsPath()
         let configPath = _configPath()
         if FileManager.default.fileExists(atPath: targetPath.path) && FileManager.default.fileExists(atPath: configPath.path) {
@@ -586,79 +569,53 @@ class PlanetManager: NSObject {
                     let result = try runCommand(command: .ipfsGetID(target: targetPath, config: configPath))
                     debugPrint("init command result: \(result)")
                     debugPrint("command status: ready.")
-                    on(true)
-                } else {
-                    on(false)
+                    return true
                 }
-            } catch {
-                on(false)
-            }
+            } catch {}
         } else {
-            do {
-                let binaryDataName: String = isOnAppleSilicon() ? "IPFS-GO-ARM" : "IPFS-GO"
-                if let data = NSDataAsset(name: NSDataAsset.Name(binaryDataName)) {
+            let binaryDataName: String = isOnAppleSilicon() ? "IPFS-GO-ARM" : "IPFS-GO"
+            if let data = NSDataAsset(name: NSDataAsset.Name(binaryDataName)) {
+                do {
                     try data.data.write(to: targetPath, options: .atomic)
-                    // verify permission
                     try FileManager.default.setAttributes([.posixPermissions: 755], ofItemAtPath: targetPath.path)
-                    commandQueue.addOperation {
-                        do {
-                            var result = try runCommand(command: .ipfsInit(target: targetPath, config: configPath))
-                            debugPrint("init command result: \(result)")
-                            result = try runCommand(command: .ipfsGetID(target: targetPath, config: configPath))
-                            debugPrint("id command result: \(result)")
-                            debugPrint("command status: ready.")
-                            on(true)
-                        } catch {
-                            debugPrint("failed to init ipfs binary: \(error)")
-                            on(false)
-                        }
-                    }
-                } else {
-                    debugPrint("failed to setup ipfs binary, data asset not ready.")
-                    on(false)
-                }
-            } catch {
-                debugPrint("failed to init ipfs binary: \(error)")
-                on(false)
+                    var result = try runCommand(command: .ipfsInit(target: targetPath, config: configPath))
+                    debugPrint("init command result: \(result)")
+                    result = try runCommand(command: .ipfsGetID(target: targetPath, config: configPath))
+                    debugPrint("id command result: \(result)")
+                    debugPrint("command status: ready.")
+                    return true
+                } catch {}
             }
         }
+        return false
     }
 
-    private func verifyPortAvailability(port: String) -> Bool {
-        var available: Bool = false
-        let semaphore = DispatchSemaphore(value: 0)
+    private func verifyPortAvailability(port: String) async -> Bool {
         let request = URLRequest(url: URL(string: "http://127.0.0.1:\(port)")!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 1)
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let response = response {
-                let statusCode = (response as! HTTPURLResponse).statusCode
-                debugPrint("\(port) status code : \(statusCode)")
-                if !(200..<500).contains(statusCode) {
-                    available = true
+        debugPrint("verify port: \(port)")
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let res = response as? HTTPURLResponse {
+                if !(200..<500).contains(res.statusCode) {
+                    return true
                 }
-            } else {
-                available = true
             }
-            semaphore.signal()
+            return false
+        } catch {
+            return true
         }
-        task.resume()
-        semaphore.wait()
-        return available
     }
     
-    private func verifyPortAvailability(port: String, suffix: String = "/", complete: @escaping (Bool) -> Void) {
+    private func verifyPortOnlineStatus(port: String, suffix: String = "/") async -> Bool {
         let url = URL(string: "http://127.0.0.1:" + port + suffix)!
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 5)
-        URLSession.shared.dataTask(with: request) { _, response, error in
-            if let _ = error {
-                complete(false)
-            } else {
-                if (response as! HTTPURLResponse).statusCode == 200 {
-                    complete(true)
-                } else {
-                    complete(false)
-                }
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let res = response as? HTTPURLResponse, res.statusCode == 200 {
+                return true
             }
-        }.resume()
+        } catch {}
+        return false
     }
     
     private func serverURL(path: String, args: [String: String] = [:], timeout: TimeInterval = 5) -> URLRequest {
@@ -680,12 +637,9 @@ class PlanetManager: NSObject {
     }
     
     private func launchDaemon() {
-        checkDaemonStatus { status in
-            guard status == false else {
-                return
-            }
-            
-            self.commandDaemonQueue.addOperation {
+        Task.init(priority: .utility) {
+            guard await checkDaemonStatus() == false else { return }
+            commandDaemonQueue.addOperation {
                 do {
                     let _ = try runCommand(command: .ipfsLaunchDaemon(target: self._ipfsPath(), config: self._configPath()))
                 } catch {
@@ -695,7 +649,8 @@ class PlanetManager: NSObject {
             }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                self.checkDaemonStatus { s in
+                Task.init(priority: .utility) {
+                    let s = await self.checkDaemonStatus()
                     DispatchQueue.main.async {
                         PlanetStore.shared.daemonIsOnline = s
                     }
@@ -718,26 +673,24 @@ class PlanetManager: NSObject {
 
     private func relaunchDaemonIfNeeded() {
         debugPrint("relaunching daemon ...")
-        checkDaemonStatus { status in
+        Task.init(priority: .utility) {
+            let status = await checkDaemonStatus()
             if status {
-                // check api and gateway config, restart if needed.
-                self.getAPIAndGatewayInformationFromConfig { api, gateway in
-                    if let a = api, let g = gateway {
-                        if let theAPIPort = a.components(separatedBy: "/").last, let theGatewayPort = g.components(separatedBy: "/").last {
-                            if theAPIPort == self.apiPort, theGatewayPort == self.gatewayPort {
-                                debugPrint("no need to relaunch daemon.")
-                                return
-                            }
+                let (api, gateway) = await getAPIAndGatewayInformationFromConfig()
+                if let a = api, let g = gateway {
+                    if let theAPIPort = a.components(separatedBy: "/").last, let theGatewayPort = g.components(separatedBy: "/").last {
+                        if theAPIPort == self.apiPort, theGatewayPort == self.gatewayPort {
+                            debugPrint("no need to relaunch daemon.")
+                            return
                         }
                     }
-                    
-                    self.terminateDaemon()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                        self.launchDaemon()
-                    }
+                }
+                terminateDaemon()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    self.launchDaemon()
                 }
             } else {
-                self.launchDaemon()
+                launchDaemon()
             }
             
             DispatchQueue.main.async {
@@ -746,41 +699,36 @@ class PlanetManager: NSObject {
         }
     }
 
-    private func updateAPIAndGatewayPorts() {
+    private func updateAPIAndGatewayPorts() async {
         debugPrint("updating api and gateway ports ...")
-        commandQueue.addOperation {
+        Task.init(priority: .utility) {
             for p in 5981...5991 {
-                if self.verifyPortAvailability(port: String(p)) {
-                    self.apiPort = String(p)
+                if await verifyPortAvailability(port: String(p)) {
+                    apiPort = String(p)
                     break
                 }
             }
             
             for p in 18181...18191 {
-                if self.verifyPortAvailability(port: String(p)) {
-                    self.gatewayPort = String(p)
+                if await verifyPortAvailability(port: String(p)) {
+                    gatewayPort = String(p)
                     break
                 }
             }
         }
     }
-
-    private func getAPIAndGatewayInformationFromConfig(on: @escaping (String?, String?) -> Void) {
+    
+    private func getAPIAndGatewayInformationFromConfig() async -> (String?, String?) {
         let request = serverURL(path: "config/show")
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if error == nil, let data = data {
-                let decoder = JSONDecoder()
-                do {
-                    let config: PlanetConfig = try decoder.decode(PlanetConfig.self, from: data)
-                    if let api = config.addresses?.api, let gateway = config.addresses?.gateway {
-                        return on(api, gateway)
-                    }
-                } catch {
-                    debugPrint("failed to decode config json: \(error)")
-                }
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let decoder = JSONDecoder()
+            let config: PlanetConfig = try decoder.decode(PlanetConfig.self, from: data)
+            if let api = config.addresses?.api, let gateway = config.addresses?.gateway {
+                return (api, gateway)
             }
-            on(nil, nil)
-        }.resume()
+        } catch { }
+        return (nil, nil)
     }
     
     private func isOnAppleSilicon() -> Bool {
