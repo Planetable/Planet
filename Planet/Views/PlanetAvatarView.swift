@@ -20,7 +20,7 @@ struct PlanetAvatarView: View {
         VStack {
             if updatedAvatarImage == nil {
                 Text(planet.generateAvatarName())
-                    .font(Font.custom("Arial Rounded MT Bold", size: size.width / 3.0))
+                    .font(Font.custom("Arial Rounded MT Bold", size: size.width / 2.0))
                     .foregroundColor(Color.white)
                     .contentShape(Rectangle())
                     .frame(width: size.width, height: size.height, alignment: .center)
