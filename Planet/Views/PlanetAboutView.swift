@@ -165,8 +165,6 @@ struct PlanetAboutView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     .keyboardShortcut(.escape, modifiers: [])
-                    .keyboardShortcut(.cancelAction)
-                    .focusable()
                 }
                 Spacer()
             }

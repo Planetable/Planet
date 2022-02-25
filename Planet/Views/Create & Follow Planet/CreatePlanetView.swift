@@ -77,7 +77,8 @@ struct CreatePlanetView: View {
                 } label: {
                     Text("Close")
                 }
-                
+                .keyboardShortcut(.escape, modifiers: [])
+
                 Spacer()
                 
                 Button {

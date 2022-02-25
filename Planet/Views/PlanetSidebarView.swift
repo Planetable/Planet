@@ -41,15 +41,6 @@ struct PlanetSidebarToolbarButtonView: View {
                 .frame(width: 16, height: 16, alignment: .center)
         }
         .disabled(planetStore.currentPlanet == nil)
-        .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
-            
-        } content: {
-            if let planet = planetStore.currentPlanet {
-                PlanetAboutView(planet: planet)
-                    .environmentObject(planetStore)
-            }
-        }
-
 
         Button {
             if let planet = planetStore.currentPlanet, planet.isMyPlanet() {

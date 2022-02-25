@@ -52,6 +52,14 @@ struct PlanetMainView: View {
                 }
             }))
         }
+        .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
+            
+        } content: {
+            if let planet = planetStore.currentPlanet {
+                PlanetAboutView(planet: planet)
+                    .environmentObject(planetStore)
+            }
+        }
     }
     
     private func toggleSidebar() {

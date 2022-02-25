@@ -49,7 +49,8 @@ struct FollowPlanetView: View {
                 } label: {
                     Text("Dismiss")
                 }
-                
+                .keyboardShortcut(.escape, modifiers: [])
+
                 Spacer()
                 
                 Button {
