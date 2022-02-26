@@ -21,6 +21,7 @@ class PlanetStore: ObservableObject {
     @Published var peersCount: Int = 0
     
     @Published var isCreatingPlanet: Bool = false
+    @Published var isEditingPlanet: Bool = false
     @Published var isFollowingPlanet: Bool = false
     @Published var isShowingPlanetInfo: Bool = false
     

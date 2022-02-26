@@ -1,24 +1,26 @@
 //
-//  CreatePlanetView.swift
+//  EditPlanetView.swift
 //  Planet
 //
-//  Created by Kai on 1/15/22.
+//  Created by Kai on 2/26/22.
 //
 
 import SwiftUI
 
 
-struct CreatePlanetView: View {
+struct EditPlanetView: View {
     @EnvironmentObject private var planetStore: PlanetStore
-    
-    @Environment(\.dismiss) private var dismiss
 
+    @Environment(\.dismiss) private var dismiss
+    
+    var planet: Planet
+    
     @State private var planetName: String = ""
     @State private var planetDescription: String = ""
-
+    
     var body: some View {
-        VStack (spacing: 0) {
-            Text("New Planet")
+        VStack(spacing: 0) {
+            Text("Edit Planet")
                 .frame(height: 34, alignment: .leading)
                 .padding(.bottom, 2)
                 .padding(.horizontal, 16)
@@ -85,22 +87,10 @@ struct CreatePlanetView: View {
                 
                 Button {
                     dismiss()
-                    Task.init(priority: .utility) {
-                        let (keyName, keyID) = await PlanetManager.shared.generateKeys()
-                        guard let keyName = keyName else {
-                            return
-                        }
-                        guard let keyID = keyID else {
-                            return
-                        }
-                        if keyName != "" && keyID != "" {
-                            DispatchQueue.main.async {
-                                PlanetDataController.shared.createPlanet(withID: UUID(uuidString: keyName)!, name: self.planetName, about: self.planetDescription, keyName: keyName, keyID: keyID, ipns: keyID)
-                            }
-                        }
-                    }
+                    guard let id = planet.id else { return }
+                    PlanetDataController.shared.updatePlanet(withID: id, name: planetName, about: planetDescription)
                 } label: {
-                    Text("Create")
+                    Text("Save")
                 }
                 .disabled(planetName.count > 0 ? false : true)
             }
@@ -108,12 +98,16 @@ struct CreatePlanetView: View {
         }
         .padding(0)
         .frame(width: 480, height: 300, alignment: .center)
+        .task {
+            planetName = planet.name ?? ""
+            planetDescription = planet.about ?? ""
+        }
     }
 }
 
-struct CreatePlanetView_Previews: PreviewProvider {
+struct EditPlanetView_Previews: PreviewProvider {
     static var previews: some View {
-        CreatePlanetView()
+        EditPlanetView(planet: Planet())
             .environmentObject(PlanetStore.shared)
             .frame(width: 480, height: 300, alignment: .center)
     }

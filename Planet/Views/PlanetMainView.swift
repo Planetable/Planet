@@ -60,6 +60,14 @@ struct PlanetMainView: View {
                     .environmentObject(planetStore)
             }
         }
+        .sheet(isPresented: $planetStore.isEditingPlanet) {
+            
+        } content: {
+            if let planet = planetStore.currentPlanet {
+                EditPlanetView(planet: planet)
+                    .environmentObject(planetStore)
+            }
+        }
     }
     
     private func toggleSidebar() {

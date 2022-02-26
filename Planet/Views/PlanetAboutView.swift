@@ -49,6 +49,8 @@ private struct SharingsPicker: NSViewRepresentable {
 struct PlanetAboutView: View {
     @EnvironmentObject private var planetStore: PlanetStore
 
+    @Environment(\.dismiss) private var dismiss
+
     var planet: Planet
     
     @State private var isSharing = false
@@ -88,7 +90,7 @@ struct PlanetAboutView: View {
                         }
 
                         Button {
-                            planetStore.isShowingPlanetInfo = false
+                            dismiss()
                             Task.init {
                                 await PlanetManager.shared.publishForPlanet(planet: planet)
                             }
@@ -100,7 +102,14 @@ struct PlanetAboutView: View {
                         Spacer()
                         
                         Button {
-                            planetStore.isShowingPlanetInfo = false
+                            dismiss()
+                            planetStore.isEditingPlanet = true
+                        } label: {
+                            Text("Edit")
+                        }
+                        
+                        Button {
+                            dismiss()
                             Task.init {
                                 PlanetDataController.shared.removePlanet(planet: planet)
                             }
@@ -118,7 +127,7 @@ struct PlanetAboutView: View {
                         }
                         
                         Button {
-                            planetStore.isShowingPlanetInfo = false
+                            dismiss()
                             Task.init {
                                 await PlanetManager.shared.updateForPlanet(planet: planet)
                             }
@@ -130,7 +139,7 @@ struct PlanetAboutView: View {
                         Spacer()
                         
                         Button {
-                            planetStore.isShowingPlanetInfo = false
+                            dismiss()
                             Task.init {
                                 PlanetDataController.shared.removePlanet(planet: planet)
                             }
@@ -153,7 +162,7 @@ struct PlanetAboutView: View {
                     Spacer()
                     
                     Button {
-                        planetStore.isShowingPlanetInfo = false
+                        dismiss()
                         DispatchQueue.main.async {
                             NotificationCenter.default.post(name: .updateAvatar, object: nil)
                         }
@@ -170,7 +179,7 @@ struct PlanetAboutView: View {
             }
         }
         .padding()
-        .frame(width: 280, height: 260, alignment: .center)
+        .frame(width: 320, height: 260, alignment: .center)
     }
     
     private func lastUpdatedStatus() -> String {

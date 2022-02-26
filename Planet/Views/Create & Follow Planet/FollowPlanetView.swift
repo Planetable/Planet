@@ -11,6 +11,8 @@ import SwiftUI
 struct FollowPlanetView: View {
     @EnvironmentObject private var planetStore: PlanetStore
     
+    @Environment(\.dismiss) private var dismiss
+
     @State private var ipns: String = "planet://"
 
     var body: some View {
@@ -45,7 +47,7 @@ struct FollowPlanetView: View {
             
             HStack {
                 Button {
-                    planetStore.isFollowingPlanet = false
+                    dismiss()
                 } label: {
                     Text("Dismiss")
                 }
@@ -54,7 +56,7 @@ struct FollowPlanetView: View {
                 Spacer()
                 
                 Button {
-                    planetStore.isFollowingPlanet = false
+                    dismiss()
                     if PlanetDataController.shared.getFollowingIPNSs().contains(processedIPNS()) {
                         return
                     }

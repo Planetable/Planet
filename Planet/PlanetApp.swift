@@ -18,7 +18,6 @@ struct PlanetApp: App {
             PlanetMainView()
                 .environmentObject(planetStore)
                 .environment(\.managedObjectContext, PlanetDataController.shared.persistentContainer.viewContext)
-                .frame(minWidth: 720, idealWidth: 720, maxWidth: .infinity, minHeight: 320, idealHeight: 320, maxHeight: .infinity)
         }
         .handlesExternalEvents(matching: Set(arrayLiteral: "Planet"))
         .commands {

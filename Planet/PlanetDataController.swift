@@ -56,6 +56,21 @@ class PlanetDataController: NSObject {
         }
     }
     
+    func updatePlanet(withID id: UUID, name: String, about: String) {
+        let ctx = persistentContainer.viewContext
+        guard let planet = getPlanet(id: id) else { return }
+        planet.name = name
+        planet.about = about
+        do {
+            try ctx.save()
+            Task.init(priority: .utility) {
+                await PlanetManager.shared.publishForPlanet(planet: planet)
+            }
+        } catch {
+            debugPrint("failed to update planet: \(planet), error: \(error)")
+        }
+    }
+    
     func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String) async {
         let ctx = persistentContainer.viewContext
         let article = PlanetArticle(context: ctx)
