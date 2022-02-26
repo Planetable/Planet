@@ -11,8 +11,10 @@ import SwiftUI
 struct PlanetWriterView: View {
     var articleID: UUID
     
-    @State private var title: String = ""
-    @State private var content: String = ""
+    var isEditing: Bool = false
+    
+    @State var title: String = ""
+    @State var content: String = ""
     
     var body: some View {
         VStack (spacing: 0) {
@@ -43,7 +45,11 @@ struct PlanetWriterView: View {
                 Spacer()
                 
                 Button {
-                    saveAction()
+                    if isEditing {
+                        updateAction()
+                    } else {
+                        saveAction()
+                    }
                 } label: {
                     Text("Save")
                 }
@@ -79,6 +85,19 @@ struct PlanetWriterView: View {
         Task.init(priority: .utility) {
             await PlanetDataController.shared.createArticle(withID: createdArticleID, forPlanet: planetID, title: title, content: content)
         }
+        DispatchQueue.main.async {
+            if PlanetStore.shared.writerIDs.contains(articleID) {
+                PlanetStore.shared.writerIDs.remove(articleID)
+            }
+            if PlanetStore.shared.activeWriterID == articleID {
+                PlanetStore.shared.activeWriterID = .init()
+            }
+        }
+    }
+    
+    private func updateAction() {
+        debugPrint("About to update")
+        PlanetDataController.shared.updateArticle(withID: articleID, title: title, content: content)
         DispatchQueue.main.async {
             if PlanetStore.shared.writerIDs.contains(articleID) {
                 PlanetStore.shared.writerIDs.remove(articleID)

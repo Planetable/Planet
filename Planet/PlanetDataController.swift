@@ -113,6 +113,10 @@ class PlanetDataController: NSObject {
             if planet.isMyPlanet() {
                 await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
                 await PlanetManager.shared.publishForPlanet(planet: planet)
+                DispatchQueue.main.async {
+                    PlanetStore.shared.currentArticle = nil
+                    PlanetStore.shared.selectedArticle = UUID().uuidString
+                }
             }
         }
     }

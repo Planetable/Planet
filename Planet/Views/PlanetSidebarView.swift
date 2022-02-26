@@ -44,7 +44,7 @@ struct PlanetSidebarToolbarButtonView: View {
 
         Button {
             if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
-                launchWriterIfNeeded(forPlanet: planet, inContext: context)
+                launchWriterIfNeeded(forPlanet: planet)
             }
         } label: {
             Image(systemName: "square.and.pencil")
@@ -55,7 +55,7 @@ struct PlanetSidebarToolbarButtonView: View {
         .disabled(planetStore.currentPlanet == nil || !planetStore.currentPlanet.isMyPlanet())
     }
     
-    private func launchWriterIfNeeded(forPlanet planet: Planet, inContext context: NSManagedObjectContext) {
+    private func launchWriterIfNeeded(forPlanet planet: Planet) {
         let articleID = planet.id!
         
         if planetStore.writerIDs.contains(articleID) {
