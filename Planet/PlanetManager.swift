@@ -301,7 +301,7 @@ class PlanetManager: NSObject {
             let prefixString = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns
             let urlString: String = prefixString + "/" + articleID.uuidString + "/" + "index.html"
             if let url = URL(string: urlString) {
-                let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+                let request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 15)
                 do {
                     let (data, _) = try await URLSession.shared.data(for: request)
                     // cache index.html file if needed.
