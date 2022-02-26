@@ -296,7 +296,14 @@ class PlanetManager: NSObject {
         guard let articleID = article.id, let planetID = article.planetID else { return nil }
         guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!), let ipns = planet.ipns else { return nil }
         if planet.isMyPlanet() {
-            return _planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
+            let articlePath = _planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
+            if !FileManager.default.fileExists(atPath: articlePath.path) {
+                Task.init(priority: .background) {
+                    PlanetDataController.shared.removeArticle(article: article)
+                }
+                return nil
+            }
+            return articlePath
         } else {
             let prefixString = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns
             let urlString: String = prefixString + "/" + articleID.uuidString + "/" + "index.html"
@@ -359,8 +366,8 @@ class PlanetManager: NSObject {
     }
     
     func publishForPlanet(planet: Planet) async {
-        let now = Date()
         guard let id = planet.id, let keyName = planet.keyName, keyName != "" else { return }
+        let now = Date()
         let planetPath = _planetsPath().appendingPathComponent(id.uuidString)
         guard FileManager.default.fileExists(atPath: planetPath.path) else { return }
         let publishingStatus = await checkPublishingStatus(planetID: id)
@@ -732,7 +739,7 @@ class PlanetManager: NSObject {
             if let api = config.addresses?.api, let gateway = config.addresses?.gateway {
                 return (api, gateway)
             }
-        } catch { }
+        } catch {}
         return (nil, nil)
     }
     
