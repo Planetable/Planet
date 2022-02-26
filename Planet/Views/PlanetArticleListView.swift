@@ -48,6 +48,11 @@ struct PlanetArticleListView: View {
                         VStack {
                             if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
                                 Button {
+                                    
+                                } label: {
+                                    Text("Update Article: \(article.title ?? "")")
+                                }
+                                Button {
                                     PlanetDataController.shared.removeArticle(article: article)
                                 } label: {
                                     Text("Delete Article: \(article.title ?? "")")
@@ -57,11 +62,11 @@ struct PlanetArticleListView: View {
                                 } label: {
                                     Text("Refresh")
                                 }
-                                Button {
-                                    PlanetDataController.shared.copyPublicLinkOfArticle(article)
-                                } label: {
-                                    Text("Copy Public Link")
-                                }
+                            }
+                            Button {
+                                PlanetDataController.shared.copyPublicLinkOfArticle(article)
+                            } label: {
+                                Text("Copy Public Link")
                             }
                         }
                     }

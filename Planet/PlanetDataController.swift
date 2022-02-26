@@ -82,31 +82,38 @@ class PlanetDataController: NSObject {
         do {
             try ctx.save()
             debugPrint("planet article created: \(article)")
-            Task.init(priority: .utility) {
-                guard let planet = getPlanet(id: planetID) else { return }
-                if planet.isMyPlanet() {
-                    await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
-                    await PlanetManager.shared.publishForPlanet(planet: planet)
-                } else {
-                    // MARK: TODO: cache articles.
-                }
+            guard let planet = getPlanet(id: planetID) else { return }
+            if planet.isMyPlanet() {
+                await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
+                await PlanetManager.shared.publishForPlanet(planet: planet)
+            } else {
+                // MARK: TODO: cache articles.
             }
         } catch {
             debugPrint("failed to create new planet article: \(article), error: \(error)")
         }
     }
+    
+    func updateArticle(withID id: UUID, title: String, content: String) {
+        let ctx = persistentContainer.viewContext
+        guard let article = getArticle(id: id) else { return }
+        article.title = title
+        article.content = content
+        do {
+            try ctx.save()
+            refreshArticle(article)
+        } catch {
+            debugPrint("failed to update planet article: \(article), error: \(error)")
+        }
+    }
 
     func refreshArticle(_ article: PlanetArticle) {
-        do {
-            Task.init(priority: .utility) {
-                guard let planet = getPlanet(id: article.planetID!) else { return }
-                if planet.isMyPlanet() {
-                    await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
-                    await PlanetManager.shared.publishForPlanet(planet: planet)
-                }
+        Task.init(priority: .utility) {
+            guard let planet = getPlanet(id: article.planetID!) else { return }
+            if planet.isMyPlanet() {
+                await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
+                await PlanetManager.shared.publishForPlanet(planet: planet)
             }
-        } catch {
-            debugPrint("failed to refresh planet article: \(article), error: \(error)")
         }
     }
 
