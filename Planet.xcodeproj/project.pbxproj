@@ -32,6 +32,7 @@
 		2AC4997427BC0EBA00F1C2D1 /* Planet.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4997227BC0EBA00F1C2D1 /* Planet.xcdatamodeld */; };
 		2AF1318727C7CDAF007792FE /* PlanetArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF1318627C7CDAF007792FE /* PlanetArticleView.swift */; };
 		2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */; };
+		6A0172E827C9EE05006154B7 /* Basic.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A0172E727C9EE05006154B7 /* Basic.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +63,7 @@
 		2AC4997327BC0EBA00F1C2D1 /* Planet.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Planet.xcdatamodel; sourceTree = "<group>"; };
 		2AF1318627C7CDAF007792FE /* PlanetArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleView.swift; sourceTree = "<group>"; };
 		2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = TemplatePlaceholder.html; sourceTree = "<group>"; };
+		6A0172E727C9EE05006154B7 /* Basic.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Basic.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,6 +163,7 @@
 			children = (
 				2AC4996F27BB9F2200F1C2D1 /* TemplateTON.html */,
 				2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */,
+				6A0172E727C9EE05006154B7 /* Basic.html */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -232,6 +235,7 @@
 				2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */,
 				2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */,
 				2AC4996827BB981200F1C2D1 /* Planet.xcconfig in Resources */,
+				6A0172E827C9EE05006154B7 /* Basic.html in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
 				2AC4997127BB9F2200F1C2D1 /* TemplateTON.html in Resources */,
 			);

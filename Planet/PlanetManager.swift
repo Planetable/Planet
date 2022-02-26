@@ -105,13 +105,13 @@ class PlanetManager: NSObject {
     // MARK: - General -
     func loadTemplates() {
         let templatePath = _templatesPath()
-        if let tonPath = Bundle.main.url(forResource: "TemplateTON", withExtension: "html") {
-            let targetPath = templatePath.appendingPathComponent("ton.html")
+        if let sourcePath = Bundle.main.url(forResource: "Basic", withExtension: "html") {
+            let targetPath = templatePath.appendingPathComponent("basic.html")
             do {
                 if FileManager.default.fileExists(atPath: targetPath.path) {
                     try? FileManager.default.removeItem(at: targetPath)
                 }
-                try FileManager.default.copyItem(at: tonPath, to: targetPath)
+                try FileManager.default.copyItem(at: sourcePath, to: targetPath)
             } catch {
                 debugPrint("failed to copy template file: \(error)")
             }

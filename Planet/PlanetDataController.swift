@@ -79,6 +79,20 @@ class PlanetDataController: NSObject {
             debugPrint("failed to create new planet article: \(article), error: \(error)")
         }
     }
+
+    func refreshArticle(_ article: PlanetArticle) {
+        do {
+            Task.init(priority: .utility) {
+                guard let planet = getPlanet(id: article.planetID!) else { return }
+                if planet.isMyPlanet() {
+                    await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
+                    await PlanetManager.shared.publishForPlanet(planet: planet)
+                }
+            }
+        } catch {
+            debugPrint("failed to refresh planet article: \(article), error: \(error)")
+        }
+    }
     
     func removePlanet(planet: Planet) {
         guard planet.id != nil else { return }

@@ -52,6 +52,11 @@ struct PlanetArticleListView: View {
                                 } label: {
                                     Text("Delete Article: \(article.title ?? "")")
                                 }
+                                Button {
+                                    PlanetDataController.shared.refreshArticle(article)
+                                } label: {
+                                    Text("Refresh")
+                                }
                             }
                         }
                     }

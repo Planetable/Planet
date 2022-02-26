@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{{ article.title }}</title>
+    <style type="text/css">
+    :root {
+      --background-color: #fff;
+      --foreground-color: #000;
+      --foreground-secondary-color: #999;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background-color: #101016;
+        --foreground-color: #e0e0e6;
+        --foreground-secondary-color: #909096;
+      }
+    }
+
+    html {
+      padding: 0px;
+      margin: 0px;
+    }
+
+    body {
+      background-color: var(--background-color);
+      padding: 20px;
+      margin: 0px;
+      font-family: helvetica neue,Arial,hiragino sans gb,microsoft yahei,sans-serif;
+    }
+
+    h1 {
+      color: var(--foreground-color);
+      font-size: 2em;
+    }
+
+    .date {
+      font-size: 0.8em;
+      color: var(--foreground-secondary-color);
+    }
+
+    .content {
+      margin: 20px 0px 20px 0px;
+      line-height: 160%;
+      font-size: 16px;
+      color: var(--foreground-color);
+    }
+    </style>
+  </head>
+  <body>
+  <h1>{{ article.title }}</h1>
+    <div class="date">{{ article.created }}</div>
+    <div class="content">{{ article.content }}</div>
+  </body>
+</html>
