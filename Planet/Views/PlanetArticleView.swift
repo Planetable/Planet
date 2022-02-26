@@ -33,6 +33,17 @@ struct PlanetArticleView: View {
                             }
                         }
                     }
+                    .onReceive(NotificationCenter.default.publisher(for: .refreshArticle, object: nil)) { n in
+                        if let articleID = n.object as? UUID, let currentArticleID = article.id {
+                            guard articleID == currentArticleID else { return }
+                            Task.init(priority: .background) {
+                                if let urlPath = await PlanetManager.shared.articleURL(article: article) {
+                                    let now = Int(Date().timeIntervalSince1970)
+                                    url = URL(string: urlPath.absoluteString + "?\(now)")!
+                                }
+                            }
+                        }
+                    }
             } else {
                 Text("No Article Selected")
                     .foregroundColor(.secondary)

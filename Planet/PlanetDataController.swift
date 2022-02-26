@@ -112,11 +112,14 @@ class PlanetDataController: NSObject {
             guard let planet = getPlanet(id: article.planetID!) else { return }
             if planet.isMyPlanet() {
                 await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
-                await PlanetManager.shared.publishForPlanet(planet: planet)
-                DispatchQueue.main.async {
-                    PlanetStore.shared.currentArticle = nil
-                    PlanetStore.shared.selectedArticle = UUID().uuidString
+                if let id = article.id {
+                    DispatchQueue.global(qos: .background).async {
+                        DispatchQueue.main.async {
+                            NotificationCenter.default.post(name: .refreshArticle, object: id)
+                        }
+                    }
                 }
+                await PlanetManager.shared.publishForPlanet(planet: planet)
             }
         }
     }

@@ -21,6 +21,7 @@ extension Notification.Name {
     static let terminateDaemon = Notification.Name("PlanetTerminatePlanetDaemonNotification")
     static let closeWriterWindow = Notification.Name("PlanetCloseWriterWindowNotification")
     static let updateAvatar = Notification.Name("PlanetUpdateAvatarNotification")
+    static let refreshArticle = Notification.Name("PlanetRefreshArticleNotification")
 }
 
 
