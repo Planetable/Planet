@@ -57,6 +57,11 @@ struct PlanetArticleListView: View {
                                 } label: {
                                     Text("Refresh")
                                 }
+                                Button {
+                                    PlanetDataController.shared.copyPublicLinkOfArticle(article)
+                                } label: {
+                                    Text("Copy Public Link")
+                                }
                             }
                         }
                     }

@@ -94,6 +94,14 @@ class PlanetDataController: NSObject {
             debugPrint("failed to refresh planet article: \(article), error: \(error)")
         }
     }
+
+    func copyPublicLinkOfArticle(_ article: PlanetArticle) {
+        guard let planet = getPlanet(id: article.planetID!) else { return }
+        let publicLink = "https://ipfs.io/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(publicLink, forType: .string)
+    }
     
     func removePlanet(planet: Planet) {
         guard planet.id != nil else { return }

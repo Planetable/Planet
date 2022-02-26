@@ -1,19 +1,23 @@
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta name="Content-Type" content="text/html;charset=utf-8">
+    <meta content="True" name="HandheldFriendly">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#fff">
+    <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
     <title>{{ article.title }}</title>
     <style type="text/css">
     :root {
       --background-color: #fff;
       --foreground-color: #000;
-      --foreground-secondary-color: #999;
+      --foreground-secondary-color: #666;
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --background-color: #101016;
-        --foreground-color: #e0e0e6;
-        --foreground-secondary-color: #909096;
+        --background-color: #1c1c1e;
+        --foreground-color: #fff;
+        --foreground-secondary-color: #adadaf;
       }
     }
 
@@ -42,7 +46,7 @@
     .content {
       margin: 20px 0px 20px 0px;
       line-height: 160%;
-      font-size: 16px;
+      font-size: 1em;
       color: var(--foreground-color);
     }
     </style>
@@ -50,6 +54,8 @@
   <body>
   <h1>{{ article.title }}</h1>
     <div class="date">{{ article.created }}</div>
-    <div class="content">{{ article.content }}</div>
+    <div class="content">
+      {{ content_html }}
+    </div>
   </body>
 </html>

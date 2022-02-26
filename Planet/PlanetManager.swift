@@ -9,6 +9,7 @@ import Foundation
 import Cocoa
 import Stencil
 import PathKit
+import Ink
 
 
 class PlanetManager: NSObject {
@@ -330,7 +331,11 @@ class PlanetManager: NSObject {
         // render html
         let loader = FileSystemLoader(paths: [Path(templatePath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader)
-        let context = ["article": article]
+        let parser = MarkdownParser()
+        let result = parser.parse(article.content!)
+        let content_html = result.html
+        var context: [String: Any]
+        context = ["article": article, "content_html": content_html]
         let templateName = templatePath.lastPathComponent
         let articleIndexPagePath = articlePath.appendingPathComponent("index.html")
         do {
