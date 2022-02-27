@@ -10,18 +10,31 @@ import SwiftUI
 
 struct PlanetSidebarLoadingIndicatorView: View {
     @EnvironmentObject private var planetStore: PlanetStore
-    @State private var isTop: Bool = false
+    
+    @State private var timerState: Int = 0
+    @State private var hourglass: String = "hourglass.bottomhalf.filled"
     
     var body: some View {
         VStack {
-            Image(systemName: isTop ? "hourglass.tophalf.fill" : "hourglass.bottomhalf.fill")
+            Image(systemName: hourglass)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 12, height: 12, alignment: .center)
         }
         .padding(0)
-        .onReceive(planetStore.timer) { t in
-            isTop.toggle()
+        .onReceive(planetStore.indicatorTimer) { t in
+            if timerState > 2 {
+                timerState = 0
+            }
+            switch timerState {
+            case 1:
+                hourglass = "hourglass"
+            case 2:
+                hourglass = "hourglass.tophalf.filled"
+            default:
+                hourglass = "hourglass.bottomhalf.filled"
+            }
+            timerState += 1
         }
     }
 }

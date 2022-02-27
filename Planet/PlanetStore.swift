@@ -16,6 +16,7 @@ class PlanetStore: ObservableObject {
     static let shared: PlanetStore = .init()
     
     let timer = Timer.publish(every: 5, tolerance: 1, on: .current, in: .common).autoconnect()
+    let indicatorTimer = Timer.publish(every: 1.25, tolerance: 0.25, on: .current, in: .common).autoconnect()
 
     @Published var daemonIsOnline: Bool = false
     @Published var peersCount: Int = 0
