@@ -72,6 +72,7 @@ class PlanetDataController: NSObject {
     }
     
     func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String) async {
+        guard _articleExists(id: id) == false else { return }
         let ctx = persistentContainer.viewContext
         let article = PlanetArticle(context: ctx)
         article.id = id
@@ -181,42 +182,6 @@ class PlanetDataController: NSObject {
             }
         } catch {
             debugPrint("failed to delete planet: \(planet), error: \(error)")
-        }
-    }
-
-    func createArticle(inContext context: NSManagedObjectContext, forPlanet planetID: UUID) {
-        let title = titles.randomElement()!
-        let content = contents.randomElement()!
-        let now = Date()
-        let articleID = UUID()
-        
-        let article = PlanetArticle(context: context)
-        article.id = articleID
-        article.created = now
-        article.title = title
-        article.content = content
-        article.planetID = planetID
-        
-        do {
-            try context.save()
-        } catch {
-            debugPrint("failed to create new article: \(article), error: \(error)")
-        }
-    }
-    
-    func updateArticle(inContext context: NSManagedObjectContext, articleID id: UUID, forPlanet planetID: UUID, updatedTitle title: String, updatedContent content: String) {
-        guard let article = getArticle(id: id) else { return }
-        article.title = title
-        article.content = content
-        
-        do {
-            try context.save()
-            
-            DispatchQueue.main.async {
-                PlanetStore.shared.selectedArticle = UUID().uuidString
-            }
-        } catch {
-            debugPrint("failed to update article: \(article), error: \(error)")
         }
     }
     
@@ -379,6 +344,18 @@ class PlanetDataController: NSObject {
             try context.save()
         } catch {
             debugPrint("failed to reset database: \(error)")
+        }
+    }
+    
+    func _articleExists(id: UUID) -> Bool {
+        let context = persistentContainer.viewContext
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "PlanetArticle")
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        do {
+            let count = try context.count(for: request)
+            return count != 0
+        } catch {
+            return false
         }
     }
 }
