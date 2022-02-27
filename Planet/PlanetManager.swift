@@ -132,6 +132,7 @@ class PlanetManager: NSObject {
     }
 
     func checkPeersStatus() async -> Int {
+        guard await PlanetStore.shared.daemonIsOnline else { return 0}
         let request = serverURL(path: "swarm/peers")
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
