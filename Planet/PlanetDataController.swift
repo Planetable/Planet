@@ -72,6 +72,7 @@ class PlanetDataController: NSObject {
     }
 
     func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String) async {
+        guard _articleExists(id: id) == false else { return }
         let ctx = persistentContainer.viewContext
         let article = PlanetArticle(context: ctx)
         article.id = id
@@ -384,6 +385,18 @@ class PlanetDataController: NSObject {
             try context.save()
         } catch {
             debugPrint("failed to reset database: \(error)")
+        }
+    }
+
+    func _articleExists(id: UUID) -> Bool {
+        let context = persistentContainer.viewContext
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "PlanetArticle")
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        do {
+            let count = try context.count(for: request)
+            return count != 0
+        } catch {
+            return false
         }
     }
 }
