@@ -12,7 +12,7 @@ import CoreData
 
 class PlanetDataController: NSObject {
     static let shared: PlanetDataController = .init()
-    
+
     let titles = ["Hello and Welcome", "Hello World", "New Content Here!"]
     let contents = ["No content yet.", "This is a demo content.", "Hello from planet demo."]
 
@@ -36,7 +36,7 @@ class PlanetDataController: NSObject {
             debugPrint("failed to save data store: \(error)")
         }
     }
-    
+
     func createPlanet(withID id: UUID, name: String, about: String, keyName: String?, keyID: String?, ipns: String?) {
         let ctx = persistentContainer.viewContext
         let planet = Planet(context: ctx)
@@ -55,7 +55,7 @@ class PlanetDataController: NSObject {
             debugPrint("failed to create new planet: \(planet), error: \(error)")
         }
     }
-    
+
     func updatePlanet(withID id: UUID, name: String, about: String) {
         let ctx = persistentContainer.viewContext
         guard let planet = getPlanet(id: id) else { return }
@@ -70,7 +70,7 @@ class PlanetDataController: NSObject {
             debugPrint("failed to update planet: \(planet), error: \(error)")
         }
     }
-    
+
     func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String) async {
         let ctx = persistentContainer.viewContext
         let article = PlanetArticle(context: ctx)
@@ -93,7 +93,7 @@ class PlanetDataController: NSObject {
             debugPrint("failed to create new planet article: \(article), error: \(error)")
         }
     }
-    
+
     func updateArticle(withID id: UUID, title: String, content: String) {
         let ctx = persistentContainer.viewContext
         guard let article = getArticle(id: id) else { return }
@@ -124,14 +124,19 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func copyPublicLinkOfArticle(_ article: PlanetArticle) {
-        guard let planet = getPlanet(id: article.planetID!) else { return }
+    func getArticlePublicLink(_ article: PlanetArticle) -> String {
+        guard let planet = getPlanet(id: article.planetID!) else { return "" }
         let publicLink = "https://ipfs.io/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
+        return publicLink
+    }
+
+    func copyPublicLinkOfArticle(_ article: PlanetArticle) {
+        let publicLink = getArticlePublicLink(article)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(publicLink, forType: .string)
     }
-    
+
     func removePlanet(planet: Planet) {
         guard planet.id != nil else { return }
         let uuid = planet.id!
@@ -153,7 +158,7 @@ class PlanetDataController: NSObject {
             debugPrint("failed to delete planet: \(planet), error: \(error)")
         }
     }
-    
+
     func getPlanet(id: UUID) -> Planet? {
         let request: NSFetchRequest<Planet> = Planet.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -165,7 +170,7 @@ class PlanetDataController: NSObject {
         }
         return nil
     }
-    
+
     func deletePlanet(planet: Planet, inContext context: NSManagedObjectContext) {
         let articlesToDelete = getArticles(byPlanetID: planet.id!)
         for a in articlesToDelete {
@@ -189,29 +194,29 @@ class PlanetDataController: NSObject {
         let content = contents.randomElement()!
         let now = Date()
         let articleID = UUID()
-        
+
         let article = PlanetArticle(context: context)
         article.id = articleID
         article.created = now
         article.title = title
         article.content = content
         article.planetID = planetID
-        
+
         do {
             try context.save()
         } catch {
             debugPrint("failed to create new article: \(article), error: \(error)")
         }
     }
-    
+
     func updateArticle(inContext context: NSManagedObjectContext, articleID id: UUID, forPlanet planetID: UUID, updatedTitle title: String, updatedContent content: String) {
         guard let article = getArticle(id: id) else { return }
         article.title = title
         article.content = content
-        
+
         do {
             try context.save()
-            
+
             DispatchQueue.main.async {
                 PlanetStore.shared.selectedArticle = UUID().uuidString
             }
@@ -219,7 +224,7 @@ class PlanetDataController: NSObject {
             debugPrint("failed to update article: \(article), error: \(error)")
         }
     }
-    
+
     func getArticle(id: UUID) -> PlanetArticle? {
         let request: NSFetchRequest<PlanetArticle> = PlanetArticle.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -231,7 +236,7 @@ class PlanetDataController: NSObject {
         }
         return nil
     }
-    
+
     func getArticles(byPlanetID id: UUID) -> [PlanetArticle] {
         let request: NSFetchRequest<PlanetArticle> = PlanetArticle.fetchRequest()
         request.predicate = NSPredicate(format: "planetID == %@", id as CVarArg)
@@ -243,7 +248,7 @@ class PlanetDataController: NSObject {
         }
         return []
     }
-    
+
     func getLocalIPNSs() -> Set<String> {
         let request: NSFetchRequest<Planet> = Planet.fetchRequest()
         request.predicate = NSPredicate(format: "keyName != null && keyID != null")
@@ -260,7 +265,7 @@ class PlanetDataController: NSObject {
         }
         return Set()
     }
-    
+
     func getFollowingIPNSs() -> Set<String> {
         let request: NSFetchRequest<Planet> = Planet.fetchRequest()
         request.predicate = NSPredicate(format: "keyName == null && keyID == null")
@@ -277,7 +282,7 @@ class PlanetDataController: NSObject {
         }
         return Set()
     }
-    
+
     func getLocalPlanets() -> Set<Planet> {
         let request: NSFetchRequest<Planet> = Planet.fetchRequest()
         request.predicate = NSPredicate(format: "keyName != null && keyID != null")
@@ -293,7 +298,7 @@ class PlanetDataController: NSObject {
         }
         return Set()
     }
-    
+
     func getFollowingPlanets() -> Set<Planet> {
         let request: NSFetchRequest<Planet> = Planet.fetchRequest()
         request.predicate = NSPredicate(format: "keyName == null && keyID == null")
@@ -309,7 +314,7 @@ class PlanetDataController: NSObject {
         }
         return Set()
     }
-    
+
     func removeArticle(article: PlanetArticle) {
         let uuid = article.id!
         let planetUUID = article.planetID!
@@ -326,7 +331,7 @@ class PlanetDataController: NSObject {
             debugPrint("failed to delete article: \(article), error: \(error)")
         }
     }
-    
+
     func deleteArticle(article: PlanetArticle, inContext context: NSManagedObjectContext) {
         context.delete(article)
         do {
@@ -339,7 +344,7 @@ class PlanetDataController: NSObject {
             debugPrint("failed to delete article: \(article), error: \(error)")
         }
     }
-    
+
     func reportDatabaseStatus() {
         let articlesCountRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "PlanetArticle")
         let articlesCount: Int = try! persistentContainer.viewContext.count(for: articlesCountRequest)
@@ -362,7 +367,7 @@ class PlanetDataController: NSObject {
             }
         }
     }
-    
+
     func resetDatabase() {
         let context = persistentContainer.viewContext
         let removePlanetRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Planet")
