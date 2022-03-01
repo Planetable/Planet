@@ -121,13 +121,18 @@ class PlanetDataController: NSObject {
                     }
                 }
                 await PlanetManager.shared.publishForPlanet(planet: planet)
+                do {
+                    try await PlanetDataController.shared.pingPublicGatewayForArticle(article)
+                } catch {
+                    // handle the error here in some way
+                }
             }
         }
     }
 
     func getArticlePublicLink(_ article: PlanetArticle) -> String {
         guard let planet = getPlanet(id: article.planetID!) else { return "" }
-        let publicLink = "https://ipfs.io/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
+        let publicLink = "https://www.cloudflare-ipfs.com/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
         return publicLink
     }
 
@@ -136,6 +141,19 @@ class PlanetDataController: NSObject {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(publicLink, forType: .string)
+    }
+    
+    func pingPublicGatewayForArticle(_ article: PlanetArticle) async throws {
+        let publicLink = getArticlePublicLink(article)
+        guard let url = URL(string: publicLink) else {
+            return
+        }
+
+        // Use the async variant of URLSession to fetch data
+        // Code might suspend here
+        let (_, _) = try await URLSession.shared.data(from: url)
+
+        debugPrint("Pinged public gateway: \(publicLink)")
     }
 
     func removePlanet(planet: Planet) {
