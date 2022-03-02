@@ -43,14 +43,11 @@ class PlanetManager: NSObject {
             debugPrint("api port updated.")
             commandQueue.addOperation {
                 do {
-                    // update api and gateway ports.
+                    // update api port.
                     let result = try runCommand(command: .ipfsUpdateAPIPort(target: self._ipfsPath(), config: self._configPath(), port: self.apiPort))
                     debugPrint("update api port command result: \(result)")
-                    
-                    // restart daemon
-                    self.relaunchDaemonIfNeeded()
                 } catch {
-                    debugPrint("failed to setup daemon: \(error)")
+                    debugPrint("failed to update api port: \(error)")
                 }
             }
         }
@@ -60,16 +57,29 @@ class PlanetManager: NSObject {
         didSet {
             guard gatewayPort != "" else { return }
             debugPrint("gateway port updated.")
-            self.commandQueue.addOperation {
+            commandQueue.addOperation {
                 do {
-                    // update api and gateway ports.
+                    // update gateway port.
                     let result = try runCommand(command: .ipfsUpdateGatewayPort(target: self._ipfsPath(), config: self._configPath(), port: self.gatewayPort))
                     debugPrint("update gateway port command result: \(result)")
-                    
-                    // restart daemon
-                    self.relaunchDaemonIfNeeded()
                 } catch {
-                    debugPrint("failed to setup daemon: \(error)")
+                    debugPrint("failed to update gateway port: \(error)")
+                }
+            }
+        }
+    }
+    
+    private var swarmPort: String = "" {
+        didSet {
+            guard swarmPort != "" else { return }
+            debugPrint("swarm port updated.")
+            commandQueue.addOperation {
+                do {
+                    // update swarm port
+                    let result = try runCommand(command: .ipfsUpdateSwarmPort(target: self._ipfsPath(), config: self._configPath(), port: self.swarmPort))
+                    debugPrint("update swarm port command result: \(result)")
+                } catch {
+                    debugPrint("failed to update swarm port: \(error)")
                 }
             }
         }
@@ -82,16 +92,11 @@ class PlanetManager: NSObject {
         publishTimer = Timer.scheduledTimer(timeInterval: 600, target: self, selector: #selector(publishLocalPlanets), userInfo: nil, repeats: true)
         feedTimer = Timer.scheduledTimer(timeInterval: 300, target: self, selector: #selector(updateFollowingPlanets), userInfo: nil, repeats: true)
         statusTimer = Timer .scheduledTimer(timeInterval: 5, target: self, selector: #selector(updatePlanetStatus), userInfo: nil, repeats: true)
-
+        
         Task.init(priority: .background) {
-            let onlineStatus = await verifyIPFSOnlineStatus()
-            if onlineStatus {
-                await updateAPIAndGatewayPorts()
-                let version = await ipfsVersion()
-                DispatchQueue.main.async {
-                    PlanetStore.shared.currentPlanetVersion = version
-                }
-            }
+            guard await verifyIPFSOnlineStatus() else { return }
+            await updateInternalPorts()
+            relaunchDaemonIfNeeded()
         }
     }
     
@@ -709,7 +714,7 @@ class PlanetManager: NSObject {
         Task.init(priority: .utility) {
             let status = await checkDaemonStatus()
             if status {
-                let (api, gateway) = await getAPIAndGatewayInformationFromConfig()
+                let (api, gateway) = await getInternalPortsInformationFromConfig()
                 if let a = api, let g = gateway {
                     if let theAPIPort = a.components(separatedBy: "/").last, let theGatewayPort = g.components(separatedBy: "/").last {
                         if theAPIPort == self.apiPort, theGatewayPort == self.gatewayPort {
@@ -732,26 +737,32 @@ class PlanetManager: NSObject {
         }
     }
 
-    private func updateAPIAndGatewayPorts() async {
-        debugPrint("updating api and gateway ports ...")
-        Task.init(priority: .utility) {
-            for p in 5981...5991 {
-                if await verifyPortAvailability(port: String(p)) {
-                    apiPort = String(p)
-                    break
-                }
+    private func updateInternalPorts() async {
+        debugPrint("updating internal ports ...")
+        debugPrint("updating swarm port in range(4001, 4011) ...")
+        for p in 4001...4011 {
+            if await verifyPortAvailability(port: String(p)) {
+                swarmPort = String(p)
+                break
             }
-            
-            for p in 18181...18191 {
-                if await verifyPortAvailability(port: String(p)) {
-                    gatewayPort = String(p)
-                    break
-                }
+        }
+        debugPrint("updating api port in range(5981, 5991) ...")
+        for p in 5981...5991 {
+            if await verifyPortAvailability(port: String(p)) {
+                apiPort = String(p)
+                break
+            }
+        }
+        debugPrint("updating gateway port in range(18181, 18191) ...")
+        for p in 18181...18191 {
+            if await verifyPortAvailability(port: String(p)) {
+                gatewayPort = String(p)
+                break
             }
         }
     }
     
-    private func getAPIAndGatewayInformationFromConfig() async -> (String?, String?) {
+    private func getInternalPortsInformationFromConfig() async -> (String?, String?) {
         let request = serverURL(path: "config/show")
         do {
             let (data, _) = try await URLSession.shared.data(for: request)

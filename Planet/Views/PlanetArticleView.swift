@@ -12,13 +12,13 @@ import WebKit
 struct PlanetArticleView: View {
     @EnvironmentObject private var planetStore: PlanetStore
 
-    var article: PlanetArticle!
+    var article: PlanetArticle
     
     @State private var url: URL = Bundle.main.url(forResource: "TemplatePlaceholder.html", withExtension: "")!
 
     var body: some View {
         VStack {
-            if let article = article, let id = planetStore.selectedArticle, article.id != nil, id == article.id!.uuidString {
+            if let id = planetStore.selectedArticle, article.id != nil, id == article.id!.uuidString {
                 SimplePlanetArticleView(url: $url)
                     .task(priority: .utility) {
                         if let urlPath = await PlanetManager.shared.articleURL(article: article) {
@@ -49,6 +49,5 @@ struct PlanetArticleView: View {
                     .foregroundColor(.secondary)
             }
         }
-        .navigationTitle(planetStore.currentPlanet == nil ? "Planet" : planetStore.currentPlanet.name ?? "Planet")
     }
 }

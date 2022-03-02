@@ -109,6 +109,7 @@ struct PlanetSidebarView: View {
                         NavigationLink(destination: PlanetArticleListView(planetID: planet.id!, articles: articles)
                                         .environmentObject(planetStore)
                                         .environment(\.managedObjectContext, context)
+                                        .frame(minWidth: 200)
                                         .toolbar {
                                             ToolbarItemGroup {
                                                 Spacer()
@@ -185,6 +186,7 @@ struct PlanetSidebarView: View {
                         NavigationLink(destination: PlanetArticleListView(planetID: planet.id!, articles: articles)
                                         .environmentObject(planetStore)
                                         .environment(\.managedObjectContext, context)
+                                        .frame(minWidth: 200)
                                         .toolbar {
                                             ToolbarItemGroup {
                                                 Spacer()

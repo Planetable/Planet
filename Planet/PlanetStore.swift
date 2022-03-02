@@ -15,8 +15,8 @@ import Combine
 class PlanetStore: ObservableObject {
     static let shared: PlanetStore = .init()
     
-    let timer = Timer.publish(every: 5, tolerance: 1, on: .current, in: .common).autoconnect()
-    let indicatorTimer = Timer.publish(every: 1.25, tolerance: 0.25, on: .current, in: .common).autoconnect()
+    let timer = Timer.publish(every: 5, tolerance: 1, on: .main, in: .common).autoconnect()
+    let indicatorTimer = Timer.publish(every: 1.25, tolerance: 0.25, on: .main, in: .common).autoconnect()
 
     @Published var daemonIsOnline: Bool = false
     @Published var peersCount: Int = 0
@@ -38,7 +38,11 @@ class PlanetStore: ObservableObject {
     @Published var lastPublishedDates: [UUID: Date] = [:]
     @Published var lastUpdatedDates: [UUID: Date] = [:]
 
-    @Published var currentPlanetVersion: String = ""
+    @Published var currentPlanetVersion: String = "" {
+        didSet {
+            debugPrint("[Current Planet Version] \(currentPlanetVersion)")
+        }
+    }
     @Published var currentPlanet: Planet! {
         didSet {
             debugPrint("[Current Planet] \(currentPlanet)")

@@ -87,6 +87,11 @@ extension PlanetCommand {
         return cmd
     }
     
+    static func ipfsUpdateSwarmPort(target: URL, config: URL, port: String) -> PlanetCommand {
+        let cmd = PlanetCommand(command: target.path, arguments: ["config", "Addresses.Swarm", "[\"/ip4/0.0.0.0/tcp/\(port)\", \"/ip6/::/tcp/\(port)\", \"/ip4/0.0.0.0/udp/\(port)/quic\", \"/ip6/::/udp/\(port)/quic\"]", "--json"], configPath: config.path)
+        return cmd
+    }
+    
     static func ipfsLaunchDaemon(target: URL, config: URL) -> PlanetCommand {
         let cmd = PlanetCommand(command: target.path, arguments: ["daemon", "--enable-namesys-pubsub", "--enable-pubsub-experiment"], configPath: config.path)
         return cmd

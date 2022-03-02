@@ -34,14 +34,12 @@ struct PlanetMainView: View {
                     }
                 }
             
-            PlanetArticleListView()
-                .environmentObject(planetStore)
-                .environment(\.managedObjectContext, context)
+            Text("No Planet Selected")
+                .foregroundColor(.secondary)
                 .frame(minWidth: 200)
             
-            PlanetArticleView()
-                .environmentObject(planetStore)
-                .environment(\.managedObjectContext, context)
+            Text("No Article Selected")
+                .foregroundColor(.secondary)
                 .frame(minWidth: 320)
         }
         .alert(isPresented: $planetStore.isFailedAlert) {

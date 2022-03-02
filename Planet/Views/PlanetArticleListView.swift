@@ -12,12 +12,12 @@ struct PlanetArticleListView: View {
     @EnvironmentObject private var planetStore: PlanetStore
     @Environment(\.managedObjectContext) private var context
     
-    var planetID: UUID?
-    var articles: FetchedResults<PlanetArticle>?
+    var planetID: UUID
+    var articles: FetchedResults<PlanetArticle>
     
     var body: some View {
         VStack {
-            if let planetID = planetID, let articles = articles, articles.filter({ aa in
+            if articles.filter({ aa in
                 if let id = aa.planetID {
                     return id == planetID
                 }
@@ -29,7 +29,9 @@ struct PlanetArticleListView: View {
                     }
                     return false
                 })) { article in
-                    NavigationLink(destination: PlanetArticleView(article: article).environmentObject(planetStore), tag: article.id!.uuidString, selection: $planetStore.selectedArticle) {
+                    NavigationLink(destination: PlanetArticleView(article: article)
+                                    .environmentObject(planetStore)
+                                    .frame(minWidth: 320), tag: article.id!.uuidString, selection: $planetStore.selectedArticle) {
                         VStack {
                             HStack {
                                 Text(article.title ?? "")
@@ -80,7 +82,7 @@ struct PlanetArticleListView: View {
             planetStore.currentPlanet == nil ? "Planet" : planetStore.currentPlanet.name ?? "Planet"
         )
         .navigationSubtitle(
-            Text(planetID == nil ? "" : "\(PlanetDataController.shared.getArticleStatus(byPlanetID: planetID!).total) articles total, \(PlanetDataController.shared.getArticleStatus(byPlanetID: planetID!).unread) unread.")
+            Text(articleStatus())
         )
     }
     
@@ -100,10 +102,12 @@ struct PlanetArticleListView: View {
         writerWindow.contentView = NSHostingView(rootView: writerView)
         writerWindow.makeKeyAndOrderFront(nil)
     }
-}
-
-struct PlanetArticleListView_Previews: PreviewProvider {
-    static var previews: some View {
-        PlanetArticleListView()
+    
+    private func articleStatus() -> String {
+        let status = PlanetDataController.shared.getArticleStatus(byPlanetID: planetID)
+        if status.total == 0 {
+            return "No articles yet."
+        }
+        return "\(status.total) articles, \(status.unread) unread."
     }
 }
