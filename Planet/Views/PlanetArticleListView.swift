@@ -35,11 +35,13 @@ struct PlanetArticleListView: View {
                         VStack {
                             HStack {
                                 Text(article.title ?? "")
+                                    .fontWeight(PlanetManager.shared.articleReadingStatus(article: article) ? .regular : .bold)
                                     .foregroundColor(.primary)
                                 Spacer()
                             }
                             HStack {
                                 Text(article.created?.dateDescription() ?? "")
+                                    .fontWeight(PlanetManager.shared.articleReadingStatus(article: article) ? .regular : .bold)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 Spacer()
@@ -104,6 +106,7 @@ struct PlanetArticleListView: View {
     }
     
     private func articleStatus() -> String {
+        guard planetStore.currentPlanet != nil, planetStore.currentPlanet.name != "" else { return "" }
         let status = PlanetDataController.shared.getArticleStatus(byPlanetID: planetID)
         if status.total == 0 {
             return "No articles yet."

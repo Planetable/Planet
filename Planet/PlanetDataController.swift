@@ -271,14 +271,11 @@ class PlanetDataController: NSObject {
     func getArticleStatus(byPlanetID id: UUID) -> (unread: Int, total: Int) {
         var unread: Int = 0
         var total: Int = 0
-        let request: NSFetchRequest<PlanetArticle> = PlanetArticle.fetchRequest()
-        request.predicate = NSPredicate(format: "planetID == %@", id as CVarArg)
-        let context = persistentContainer.viewContext
-        do {
-            total = try context.count(for: request)
-        } catch {
-            debugPrint("failed to get article: \(error), target uuid: \(id)")
-        }
+        let articles = getArticles(byPlanetID: id)
+        total = articles.count
+        unread = articles.filter({ a in
+            return !PlanetManager.shared.articleReadingStatus(article: a)
+        }).count
         return (unread, total)
     }
 

@@ -87,6 +87,14 @@ class PlanetManager: NSObject {
 
     func setup() {
         debugPrint("Planet Manager Setup")
+        #if DEBUG
+        for key in UserDefaults.standard.dictionaryRepresentation().keys {
+            if key.hasPrefix("PlanetArticleReadingStatus"){
+                UserDefaults.standard.removeObject(forKey: key)
+            }
+        }
+        #endif
+        
         loadTemplates()
         
         publishTimer = Timer.scheduledTimer(timeInterval: 600, target: self, selector: #selector(publishLocalPlanets), userInfo: nil, repeats: true)
@@ -338,6 +346,12 @@ class PlanetManager: NSObject {
                 do {
                     let (data, _) = try await URLSession.shared.data(for: request)
                     // cache index.html file if needed.
+                    
+                    // update unreads
+                    DispatchQueue.global(qos: .background).async {
+                        self.updateArticleReadingStatus(article: article)
+                    }
+
                     return url
                 } catch {
                     debugPrint("failed to validate article url: \(url), error: \(error)")
@@ -346,6 +360,14 @@ class PlanetManager: NSObject {
             }
             return nil
         }
+    }
+    
+    func articleReadingStatus(article: PlanetArticle) -> Bool {
+        return UserDefaults.standard.bool(forKey: "PlanetArticleReadingStatus" + "-" + article.id!.uuidString)
+    }
+    
+    func updateArticleReadingStatus(article: PlanetArticle, read: Bool = true) {
+        UserDefaults.standard.set(read, forKey: "PlanetArticleReadingStatus" + "-" + article.id!.uuidString)
     }
     
     func renderArticleToDirectory(fromArticle article: PlanetArticle, templateIndex: Int = 0, force: Bool = false) async {
