@@ -24,9 +24,10 @@ struct PlanetApp: App {
             CommandGroup(replacing: .newItem) {
             }
             CommandMenu("Planet") {
-                Text(planetStore.currentPlanetVersion)
-                
-                Divider()
+                if planetStore.currentPlanetVersion != "" {
+                    Text(planetStore.currentPlanetVersion)
+                    Divider()
+                }
                 
                 Button {
                     PlanetManager.shared.publishLocalPlanets()

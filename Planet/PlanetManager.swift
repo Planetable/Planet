@@ -93,10 +93,10 @@ class PlanetManager: NSObject {
         feedTimer = Timer.scheduledTimer(timeInterval: 300, target: self, selector: #selector(updateFollowingPlanets), userInfo: nil, repeats: true)
         statusTimer = Timer .scheduledTimer(timeInterval: 5, target: self, selector: #selector(updatePlanetStatus), userInfo: nil, repeats: true)
         
-        Task.init(priority: .background) {
+        Task.init(priority: .utility) {
             guard await verifyIPFSOnlineStatus() else { return }
             await updateInternalPorts()
-            relaunchDaemonIfNeeded()
+            launchDaemon()
         }
     }
     
@@ -697,11 +697,13 @@ class PlanetManager: NSObject {
                             self.launchDaemon()
                         }
                     } else {
-                        if PlanetStore.shared.peersCount > 0 {
-                            DispatchQueue.global(qos: .background).async {
-                                self.publishLocalPlanets()
-                                self.updateFollowingPlanets()
-                            }
+                        DispatchQueue.global(qos: .background).async {
+                            self.publishLocalPlanets()
+                            self.updateFollowingPlanets()
+                        }
+                        let version = await self.ipfsVersion()
+                        DispatchQueue.main.async {
+                            PlanetStore.shared.currentPlanetVersion = version
                         }
                     }
                 }
@@ -760,6 +762,7 @@ class PlanetManager: NSObject {
                 break
             }
         }
+        debugPrint("internal ports updated: api \(apiPort), gateway \(gatewayPort), swarm \(swarmPort)")
     }
     
     private func getInternalPortsInformationFromConfig() async -> (String?, String?) {
