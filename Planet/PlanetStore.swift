@@ -38,6 +38,7 @@ class PlanetStore: ObservableObject {
     @Published var lastPublishedDates: [UUID: Date] = [:]
     @Published var lastUpdatedDates: [UUID: Date] = [:]
 
+    @Published var currentPlanetVersion: String = ""
     @Published var currentPlanet: Planet! {
         didSet {
             debugPrint("[Current Planet] \(currentPlanet)")

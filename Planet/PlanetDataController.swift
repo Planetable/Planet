@@ -267,6 +267,20 @@ class PlanetDataController: NSObject {
         }
         return []
     }
+    
+    func getArticleStatus(byPlanetID id: UUID) -> (unread: Int, total: Int) {
+        var unread: Int = 0
+        var total: Int = 0
+        let request: NSFetchRequest<PlanetArticle> = PlanetArticle.fetchRequest()
+        request.predicate = NSPredicate(format: "planetID == %@", id as CVarArg)
+        let context = persistentContainer.viewContext
+        do {
+            total = try context.count(for: request)
+        } catch {
+            debugPrint("failed to get article: \(error), target uuid: \(id)")
+        }
+        return (unread, total)
+    }
 
     func getLocalIPNSs() -> Set<String> {
         let request: NSFetchRequest<Planet> = Planet.fetchRequest()

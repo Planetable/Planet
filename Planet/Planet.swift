@@ -161,6 +161,16 @@ class PlanetArticle: NSManagedObject, Codable {
 
 
 // MARK: - Unfinished Models -
+struct PlanetIPFSVersionInfo: Codable {
+    let version: String?
+    let system: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case version = "Version"
+        case system = "System"
+    }
+}
+
 struct PlanetKeys: Codable {
     let keys: [PlanetKey]?
     

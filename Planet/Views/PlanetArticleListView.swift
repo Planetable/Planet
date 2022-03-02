@@ -79,6 +79,9 @@ struct PlanetArticleListView: View {
         .navigationTitle(
             planetStore.currentPlanet == nil ? "Planet" : planetStore.currentPlanet.name ?? "Planet"
         )
+        .navigationSubtitle(
+            Text(planetID == nil ? "" : "\(PlanetDataController.shared.getArticleStatus(byPlanetID: planetID!).total) articles total, \(PlanetDataController.shared.getArticleStatus(byPlanetID: planetID!).unread) unread.")
+        )
     }
     
     private func launchWriter(forArticle article: PlanetArticle) {

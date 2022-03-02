@@ -87,6 +87,10 @@ class PlanetManager: NSObject {
             let onlineStatus = await verifyIPFSOnlineStatus()
             if onlineStatus {
                 await updateAPIAndGatewayPorts()
+                let version = await ipfsVersion()
+                DispatchQueue.main.async {
+                    PlanetStore.shared.currentPlanetVersion = version
+                }
             }
         }
     }
@@ -205,6 +209,22 @@ class PlanetManager: NSObject {
             try? FileManager.default.createDirectory(at: envPath, withIntermediateDirectories: true, attributes: nil)
         }
         return envPath
+    }
+    
+    func ipfsVersion() async -> String {
+        let checkKeyExistsRequest = serverURL(path: "version")
+        do {
+            let (data, _) = try await URLSession.shared.data(for: checkKeyExistsRequest)
+            let decoder = JSONDecoder()
+            let info: PlanetIPFSVersionInfo = try decoder.decode(PlanetIPFSVersionInfo.self, from: data)
+            debugPrint("got ipfs version: \(info)")
+            if let version = info.version, let system = info.system {
+                return version + " " + system
+            }
+        } catch {
+            debugPrint("failed to get ipfs version, error: \(error)")
+        }
+        return "0.12.0"
     }
     
     func deleteKey(withName name: String) async {
