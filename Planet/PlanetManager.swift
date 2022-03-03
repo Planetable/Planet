@@ -554,26 +554,27 @@ class PlanetManager: NSObject {
             // update planet articles if needed.
             var articlesToCreate: [PlanetFeedArticle] = []
             for a in feed.articles {
-                if let _ = PlanetDataController.shared.getArticle(id: a.id) {
-                } else {
+                if PlanetDataController.shared.getArticle(id: a.id) == nil {
                     articlesToCreate.append(a)
                 }
             }
+            debugPrint("planet articles to created: \(articlesToCreate)")
             if articlesToCreate.count > 0 {
-                await PlanetDataController.shared.batchCreateArticles(articles: articlesToCreate, planetID: id)
+                await PlanetDataController.shared.batchCreateArticles(articles: articlesToCreate, planetID: feed.id)
             }
 
             // delete saved articles which was deleted if needed.
             var articlesToDelete: [PlanetArticle] = []
-            let availableArticles = PlanetDataController.shared.getArticles(byPlanetID: id)
-            let feedIDs = feed.articles.map() { a in
+            let availableArticles = PlanetDataController.shared.getArticles(byPlanetID: feed.id)
+            let feedArticleIDs = feed.articles.map() { a in
                 return a.id
             }
             for a in availableArticles {
-                if !feedIDs.contains(a.id!) {
+                if !feedArticleIDs.contains(a.id!) {
                     articlesToDelete.append(a)
                 }
             }
+            debugPrint("planet articles to delete: \(articlesToDelete)")
             if articlesToDelete.count > 0 {
                 await PlanetDataController.shared.batchDeleteArticles(articles: articlesToDelete)
             }
