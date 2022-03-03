@@ -69,20 +69,22 @@ struct PlanetArticleListView: View {
                                 } label: {
                                     Text("Refresh")
                                 }
+                            } else {
+                                Button {
+                                    if articleListFontWeight(article: article) == .bold {
+                                        PlanetManager.shared.updateArticleReadingStatus(article: article, read: true)
+                                    } else {
+                                        PlanetManager.shared.updateArticleReadingStatus(article: article, read: false)
+                                    }
+                                } label: {
+                                    Text(articleListFontWeight(article: article) == .bold ? "Mark as Read" : "Mark as Unread")
+                                }
                             }
+
                             Button {
                                 PlanetDataController.shared.copyPublicLinkOfArticle(article)
                             } label: {
                                 Text("Copy Public Link")
-                            }
-                            Button {
-                                if articleListFontWeight(article: article) == .bold {
-                                    PlanetManager.shared.updateArticleReadingStatus(article: article, read: true)
-                                } else {
-                                    PlanetManager.shared.updateArticleReadingStatus(article: article, read: false)
-                                }
-                            } label: {
-                                Text(articleListFontWeight(article: article) == .bold ? "Mark as Read" : "Mark as Unread")
                             }
                         }
                     }
