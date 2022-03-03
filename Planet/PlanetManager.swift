@@ -552,14 +552,31 @@ class PlanetManager: NSObject {
             }
             
             // update planet articles if needed.
+            var articlesToCreate: [PlanetFeedArticle] = []
             for a in feed.articles {
                 if let _ = PlanetDataController.shared.getArticle(id: a.id) {
                 } else {
-                    await PlanetDataController.shared.createArticle(withID: a.id, forPlanet: feed.id, title: a.title, content: "")
+                    articlesToCreate.append(a)
                 }
             }
-            
-            // MARK: TODO: delete saved articles which was deleted if needed.
+            if articlesToCreate.count > 0 {
+                await PlanetDataController.shared.batchCreateArticles(articles: articlesToCreate, planetID: id)
+            }
+
+            // delete saved articles which was deleted if needed.
+            var articlesToDelete: [PlanetArticle] = []
+            let availableArticles = PlanetDataController.shared.getArticles(byPlanetID: id)
+            let feedIDs = feed.articles.map() { a in
+                return a.id
+            }
+            for a in availableArticles {
+                if !feedIDs.contains(a.id!) {
+                    articlesToDelete.append(a)
+                }
+            }
+            if articlesToDelete.count > 0 {
+                await PlanetDataController.shared.batchDeleteArticles(articles: articlesToDelete)
+            }
             
             // update planet avatar if needed.
             let avatarString = prefix + "/" + "avatar.png"

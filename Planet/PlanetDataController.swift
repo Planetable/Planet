@@ -23,6 +23,7 @@ class PlanetDataController: NSObject {
                 fatalError("Unable to load data store: \(error)")
             }
         }
+        container.viewContext.automaticallyMergesChangesFromParent = true
         return container
     }()
 
@@ -38,7 +39,7 @@ class PlanetDataController: NSObject {
     }
 
     func createPlanet(withID id: UUID, name: String, about: String, keyName: String?, keyID: String?, ipns: String?) {
-        let ctx = persistentContainer.viewContext
+        let ctx = persistentContainer.newBackgroundContext()
         let planet = Planet(context: ctx)
         planet.id = id
         planet.created = Date()
@@ -57,7 +58,7 @@ class PlanetDataController: NSObject {
     }
 
     func updatePlanet(withID id: UUID, name: String, about: String) {
-        let ctx = persistentContainer.viewContext
+        let ctx = persistentContainer.newBackgroundContext()
         guard let planet = getPlanet(id: id) else { return }
         planet.name = name
         planet.about = about
@@ -73,7 +74,7 @@ class PlanetDataController: NSObject {
 
     func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String) async {
         guard _articleExists(id: id) == false else { return }
-        let ctx = persistentContainer.viewContext
+        let ctx = persistentContainer.newBackgroundContext()
         let article = PlanetArticle(context: ctx)
         article.id = id
         article.planetID = planetID
@@ -83,20 +84,46 @@ class PlanetDataController: NSObject {
         do {
             try ctx.save()
             debugPrint("planet article created: \(article)")
-            guard let planet = getPlanet(id: planetID) else { return }
-            if planet.isMyPlanet() {
-                await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
-                await PlanetManager.shared.publishForPlanet(planet: planet)
-            } else {
-                // MARK: TODO: cache articles.
-            }
+            guard let planet = getPlanet(id: planetID), planet.isMyPlanet() else { return }
+            await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
+            await PlanetManager.shared.publishForPlanet(planet: planet)
         } catch {
             debugPrint("failed to create new planet article: \(article), error: \(error)")
         }
     }
+    
+    func batchCreateArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
+        let ctx = persistentContainer.newBackgroundContext()
+        for article in articles {
+            let a = PlanetArticle(context: ctx)
+            a.id = article.id
+            a.planetID = planetID
+            a.title = article.title
+            a.created = article.created
+        }
+        do {
+            try ctx.save()
+            debugPrint("planet articles created: \(articles)")
+            // MARK: TODO: cache following planets' articles.
+        } catch {
+            debugPrint("failed to batch create new planet articles: \(articles), error: \(error)")
+        }
+    }
+    
+    func batchDeleteArticles(articles: [PlanetArticle]) async {
+        let ctx = persistentContainer.newBackgroundContext()
+        for a in articles {
+            ctx.delete(a)
+        }
+        do {
+            try ctx.save()
+        } catch {
+            debugPrint("failed to delete articles: \(error)")
+        }
+    }
 
     func updateArticle(withID id: UUID, title: String, content: String) {
-        let ctx = persistentContainer.viewContext
+        let ctx = persistentContainer.newBackgroundContext()
         guard let article = getArticle(id: id) else { return }
         article.title = title
         article.content = content
@@ -159,7 +186,7 @@ class PlanetDataController: NSObject {
     func removePlanet(planet: Planet) {
         guard planet.id != nil else { return }
         let uuid = planet.id!
-        let context = persistentContainer.viewContext
+        let context = persistentContainer.newBackgroundContext()
         let articlesToDelete = getArticles(byPlanetID: uuid)
         for a in articlesToDelete {
             context.delete(a)
@@ -188,60 +215,6 @@ class PlanetDataController: NSObject {
             debugPrint("failed to get planet: \(error), target uuid: \(id)")
         }
         return nil
-    }
-
-    func deletePlanet(planet: Planet, inContext context: NSManagedObjectContext) {
-        let articlesToDelete = getArticles(byPlanetID: planet.id!)
-        for a in articlesToDelete {
-            context.delete(a)
-        }
-        context.delete(planet)
-        do {
-            try context.save()
-            reportDatabaseStatus()
-            DispatchQueue.main.async {
-                PlanetStore.shared.selectedPlanet = UUID().uuidString
-                PlanetStore.shared.selectedArticle = UUID().uuidString
-            }
-        } catch {
-            debugPrint("failed to delete planet: \(planet), error: \(error)")
-        }
-    }
-
-    func createArticle(inContext context: NSManagedObjectContext, forPlanet planetID: UUID) {
-        let title = titles.randomElement()!
-        let content = contents.randomElement()!
-        let now = Date()
-        let articleID = UUID()
-
-        let article = PlanetArticle(context: context)
-        article.id = articleID
-        article.created = now
-        article.title = title
-        article.content = content
-        article.planetID = planetID
-
-        do {
-            try context.save()
-        } catch {
-            debugPrint("failed to create new article: \(article), error: \(error)")
-        }
-    }
-
-    func updateArticle(inContext context: NSManagedObjectContext, articleID id: UUID, forPlanet planetID: UUID, updatedTitle title: String, updatedContent content: String) {
-        guard let article = getArticle(id: id) else { return }
-        article.title = title
-        article.content = content
-
-        do {
-            try context.save()
-
-            DispatchQueue.main.async {
-                PlanetStore.shared.selectedArticle = UUID().uuidString
-            }
-        } catch {
-            debugPrint("failed to update article: \(article), error: \(error)")
-        }
     }
 
     func getArticle(id: UUID) -> PlanetArticle? {
@@ -348,24 +321,11 @@ class PlanetDataController: NSObject {
     func removeArticle(article: PlanetArticle) {
         let uuid = article.id!
         let planetUUID = article.planetID!
-        let context = persistentContainer.viewContext
+        let context = persistentContainer.newBackgroundContext()
         context.delete(article)
         do {
             try context.save()
             PlanetManager.shared.destroyArticleDirectory(planetUUID: planetUUID, articleUUID: uuid)
-            reportDatabaseStatus()
-            DispatchQueue.main.async {
-                PlanetStore.shared.selectedArticle = UUID().uuidString
-            }
-        } catch {
-            debugPrint("failed to delete article: \(article), error: \(error)")
-        }
-    }
-
-    func deleteArticle(article: PlanetArticle, inContext context: NSManagedObjectContext) {
-        context.delete(article)
-        do {
-            try context.save()
             reportDatabaseStatus()
             DispatchQueue.main.async {
                 PlanetStore.shared.selectedArticle = UUID().uuidString

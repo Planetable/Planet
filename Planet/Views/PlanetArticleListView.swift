@@ -138,7 +138,7 @@ struct PlanetArticleListView: View {
     
     private func articleListFontWeight(article: PlanetArticle) -> Font.Weight {
         if articleIsMine() == false {
-            if PlanetManager.shared.articleReadingStatus(article: article) {
+            if PlanetManager.shared.articleReadingStatus(article: article) == false {
                 return .bold
             }
         }
