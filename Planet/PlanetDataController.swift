@@ -111,7 +111,7 @@ class PlanetDataController: NSObject {
     }
     
     func batchDeleteArticles(articles: [PlanetArticle]) async {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         for a in articles {
             ctx.delete(a)
         }
@@ -186,7 +186,7 @@ class PlanetDataController: NSObject {
     func removePlanet(planet: Planet) {
         guard planet.id != nil else { return }
         let uuid = planet.id!
-        let context = persistentContainer.newBackgroundContext()
+        let context = persistentContainer.viewContext
         let articlesToDelete = getArticles(byPlanetID: uuid)
         for a in articlesToDelete {
             context.delete(a)
@@ -321,7 +321,7 @@ class PlanetDataController: NSObject {
     func removeArticle(article: PlanetArticle) {
         let uuid = article.id!
         let planetUUID = article.planetID!
-        let context = persistentContainer.newBackgroundContext()
+        let context = persistentContainer.viewContext
         context.delete(article)
         do {
             try context.save()
