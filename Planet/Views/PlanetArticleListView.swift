@@ -54,13 +54,16 @@ struct PlanetArticleListView: View {
                                 Button {
                                     launchWriter(forArticle: article)
                                 } label: {
-                                    Text("Update Article: \(article.title ?? "")")
+                                    Text("Update Article")
                                 }
                                 Button {
                                     PlanetDataController.shared.removeArticle(article: article)
                                 } label: {
-                                    Text("Delete Article: \(article.title ?? "")")
+                                    Text("Delete Article")
                                 }
+                                
+                                Divider()
+                                
                                 Button {
                                     PlanetDataController.shared.refreshArticle(article)
                                 } label: {
@@ -71,6 +74,15 @@ struct PlanetArticleListView: View {
                                 PlanetDataController.shared.copyPublicLinkOfArticle(article)
                             } label: {
                                 Text("Copy Public Link")
+                            }
+                            Button {
+                                if articleListFontWeight(article: article) == .bold {
+                                    PlanetManager.shared.updateArticleReadingStatus(article: article, read: true)
+                                } else {
+                                    PlanetManager.shared.updateArticleReadingStatus(article: article, read: false)
+                                }
+                            } label: {
+                                Text(articleListFontWeight(article: article) == .bold ? "Mark as Read" : "Mark as Unread")
                             }
                         }
                     }

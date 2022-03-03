@@ -233,6 +233,16 @@ struct PlanetSidebarView: View {
                                     .disabled(true)
                                 }
                                 
+                                if articles.count > 0 {
+                                    Button {
+                                        let _ = articles.map() { a in
+                                            PlanetManager.shared.updateArticleReadingStatus(article: a, read: true)
+                                        }
+                                    } label: {
+                                        Text("Mark All as Read")
+                                    }
+                                }
+                                
                                 Divider()
                                 
                                 Button {
