@@ -35,13 +35,13 @@ struct PlanetArticleListView: View {
                         VStack {
                             HStack {
                                 Text(article.title ?? "")
-                                    .fontWeight(PlanetManager.shared.articleReadingStatus(article: article) ? .regular : .bold)
+                                    .fontWeight(articleListFontWeight(article: article))
                                     .foregroundColor(.primary)
                                 Spacer()
                             }
                             HStack {
                                 Text(article.created?.dateDescription() ?? "")
-                                    .fontWeight(PlanetManager.shared.articleReadingStatus(article: article) ? .regular : .bold)
+                                    .fontWeight(articleListFontWeight(article: article))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 Spacer()
@@ -50,7 +50,7 @@ struct PlanetArticleListView: View {
                     }
                     .contextMenu {
                         VStack {
-                            if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
+                            if articleIsMine() {
                                 Button {
                                     launchWriter(forArticle: article)
                                 } label: {
@@ -105,12 +105,29 @@ struct PlanetArticleListView: View {
         writerWindow.makeKeyAndOrderFront(nil)
     }
     
+    private func articleIsMine() -> Bool {
+        if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
+            return true
+        }
+        return false
+    }
+    
     private func articleStatus() -> String {
+        guard articleIsMine() == false else { return "" }
         guard planetStore.currentPlanet != nil, planetStore.currentPlanet.name != "" else { return "" }
         let status = PlanetDataController.shared.getArticleStatus(byPlanetID: planetID)
         if status.total == 0 {
             return "No articles yet."
         }
         return "\(status.total) articles, \(status.unread) unread."
+    }
+    
+    private func articleListFontWeight(article: PlanetArticle) -> Font.Weight {
+        if articleIsMine() == false {
+            if PlanetManager.shared.articleReadingStatus(article: article) {
+                return .bold
+            }
+        }
+        return .regular
     }
 }
