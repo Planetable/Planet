@@ -10,12 +10,12 @@ import SwiftUI
 
 struct PlanetWriterView: View {
     var articleID: UUID
-    
+
     var isEditing: Bool = false
-    
+
     @State var title: String = ""
     @State var content: String = ""
-    
+
     var body: some View {
         VStack (spacing: 0) {
             TextField("Title", text: $title)
@@ -27,23 +27,28 @@ struct PlanetWriterView: View {
                 .textFieldStyle(PlainTextFieldStyle())
 
             Divider()
-            
-            TextEditor(text: $content)
+
+            ZStack {
+                Rectangle()
+                .fill(Color(NSColor.textBackgroundColor))
+
+                TextEditor(text: $content)
                 .font(.system(size: 14, weight: .regular, design: .monospaced))
-                .lineSpacing(10)
                 .disableAutocorrection(true)
+                .padding(10)
+            }
 
             Divider()
-            
+
             HStack {
                 Button {
                     closeAction()
                 } label: {
                     Text("Cancel")
                 }
-                
+
                 Spacer()
-                
+
                 Button {
                     if isEditing {
                         updateAction()
@@ -65,7 +70,7 @@ struct PlanetWriterView: View {
             self.closeAction()
         }
     }
-    
+
     private func closeAction() {
         DispatchQueue.main.async {
             if PlanetStore.shared.writerIDs.contains(articleID) {
@@ -76,7 +81,7 @@ struct PlanetWriterView: View {
             }
         }
     }
-    
+
     private func saveAction() {
         debugPrint("About to save ")
         // make sure current new article id equals to the planet id first, then generate new article id.
@@ -94,7 +99,7 @@ struct PlanetWriterView: View {
             }
         }
     }
-    
+
     private func updateAction() {
         debugPrint("About to update")
         PlanetDataController.shared.updateArticle(withID: articleID, title: title, content: content)
