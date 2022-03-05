@@ -10,6 +10,12 @@ import Foundation
 import CoreData
 
 
+enum PublicGateway: String {
+    case cloudflare = "www.cloudflare-ipfs.com"
+    case ipfs = "ipfs.io"
+    case dweb = "dweb.link"
+}
+
 class PlanetDataController: NSObject {
     static let shared: PlanetDataController = .init()
 
@@ -91,7 +97,7 @@ class PlanetDataController: NSObject {
             debugPrint("failed to create new planet article: \(article), error: \(error)")
         }
     }
-    
+
     func batchCreateArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
         let ctx = persistentContainer.newBackgroundContext()
         for article in articles {
@@ -109,7 +115,7 @@ class PlanetDataController: NSObject {
             debugPrint("failed to batch create new planet articles: \(articles), error: \(error)")
         }
     }
-    
+
     func batchDeleteArticles(articles: [PlanetArticle]) async {
         let ctx = persistentContainer.viewContext
         for a in articles {
@@ -157,21 +163,21 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func getArticlePublicLink(_ article: PlanetArticle) -> String {
+    func getArticlePublicLink(article: PlanetArticle, gateway: PublicGateway = .dweb) -> String {
         guard let planet = getPlanet(id: article.planetID!) else { return "" }
-        let publicLink = "https://www.cloudflare-ipfs.com/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
+        let publicLink = "https://\(gateway.rawValue)/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
         return publicLink
     }
 
     func copyPublicLinkOfArticle(_ article: PlanetArticle) {
-        let publicLink = getArticlePublicLink(article)
+        let publicLink = getArticlePublicLink(article: article, gateway: .cloudflare)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(publicLink, forType: .string)
     }
-    
+
     func pingPublicGatewayForArticle(_ article: PlanetArticle) async throws {
-        let publicLink = getArticlePublicLink(article)
+        let publicLink = getArticlePublicLink(article: article, gateway: .dweb)
         guard let url = URL(string: publicLink) else {
             return
         }
@@ -240,7 +246,7 @@ class PlanetDataController: NSObject {
         }
         return []
     }
-    
+
     func getArticleStatus(byPlanetID id: UUID) -> (unread: Int, total: Int) {
         var unread: Int = 0
         var total: Int = 0

@@ -10,10 +10,10 @@ import SwiftUI
 
 struct PlanetSidebarLoadingIndicatorView: View {
     @EnvironmentObject private var planetStore: PlanetStore
-    
+
     @State private var timerState: Int = 0
     @State private var hourglass: String = "hourglass.bottomhalf.filled"
-    
+
     var body: some View {
         VStack {
             Image(systemName: hourglass)
@@ -67,17 +67,17 @@ struct PlanetSidebarToolbarButtonView: View {
         }
         .disabled(planetStore.currentPlanet == nil || !planetStore.currentPlanet.isMyPlanet())
     }
-    
+
     private func launchWriterIfNeeded(forPlanet planet: Planet) {
         let articleID = planet.id!
-        
+
         if planetStore.writerIDs.contains(articleID) {
             DispatchQueue.main.async {
                 self.planetStore.activeWriterID = articleID
             }
             return
         }
-        
+
         let writerView = PlanetWriterView(articleID: articleID)
         let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 480, 320), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
         writerWindow.center()
@@ -140,7 +140,7 @@ struct PlanetSidebarView: View {
                                 } label: {
                                     Text("New Article")
                                 }
-                                
+
                                 if !planetStore.publishingPlanets.contains(planet.id!) {
                                     Button {
                                         Task.init {
@@ -157,8 +157,14 @@ struct PlanetSidebarView: View {
                                     .disabled(true)
                                 }
 
+                                Button {
+                                    copyPlanetIPNSAction(planet: planet)
+                                } label: {
+                                    Text("Copy IPNS")
+                                }
+
                                 Divider()
-                                
+
                                 Button {
                                     if let keyName = planet.keyName, keyName != "" {
                                         Task.init(priority: .background) {
@@ -173,7 +179,7 @@ struct PlanetSidebarView: View {
                         })
                     }
                 }
-                
+
                 Section(header:
                     HStack {
                         Text("Following Planets")
@@ -232,7 +238,7 @@ struct PlanetSidebarView: View {
                                     }
                                     .disabled(true)
                                 }
-                                
+
                                 if articles.count > 0 {
                                     Button {
                                         let _ = articles.map() { a in
@@ -242,9 +248,15 @@ struct PlanetSidebarView: View {
                                         Text("Mark All as Read")
                                     }
                                 }
-                                
+
+                                Button {
+                                    copyPlanetIPNSAction(planet: planet)
+                                } label: {
+                                    Text("Copy IPNS")
+                                }
+
                                 Divider()
-                                
+
                                 Button {
                                     unfollowPlanetAction(planet: planet)
                                 } label: {
@@ -256,16 +268,16 @@ struct PlanetSidebarView: View {
                 }
             }
             .listStyle(.sidebar)
-            
+
             HStack (spacing: 6) {
                 Circle()
                     .frame(width: 11, height: 11, alignment: .center)
                     .foregroundColor((planetStore.daemonIsOnline && planetStore.peersCount > 0) ? Color.green : Color.red)
                 Text(planetStore.peersCount == 0 ? "Offline" : "Online (\(planetStore.peersCount))")
                     .font(.body)
-                
+
                 Spacer()
-                
+
                 Menu {
                     Button(action: {
                         planetStore.isCreatingPlanet = true
@@ -273,9 +285,9 @@ struct PlanetSidebarView: View {
                         Label("Create Planet", systemImage: "plus")
                     }
                     .disabled(planetStore.isCreatingPlanet)
-                    
+
                     Divider()
-                    
+
                     Button(action: {
                         planetStore.isFollowingPlanet = true
                     }) {
@@ -316,17 +328,24 @@ struct PlanetSidebarView: View {
     private func unfollowPlanetAction(planet: Planet) {
         PlanetDataController.shared.removePlanet(planet: planet)
     }
-    
+
+    private func copyPlanetIPNSAction(planet: Planet) {
+        guard let ipns = planet.ipns else { return }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(ipns, forType: .string)
+    }
+
     private func launchWriterIfNeeded(forPlanet planet: Planet, inContext context: NSManagedObjectContext) {
         let articleID = planet.id!
-        
+
         if planetStore.writerIDs.contains(articleID) {
             DispatchQueue.main.async {
                 self.planetStore.activeWriterID = articleID
             }
             return
         }
-        
+
         let writerView = PlanetWriterView(articleID: articleID)
         let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 480, 320), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
         writerWindow.center()
