@@ -101,6 +101,23 @@ class PlanetDataController: NSObject {
     func batchCreateArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
         let ctx = persistentContainer.newBackgroundContext()
         for article in articles {
+            let a = PlanetDataController.shared.getArticle(id: article.id)
+            if a != nil {
+                a!.title = article.title
+            }
+        }
+        do {
+            try ctx.save()
+            debugPrint("planet articles updated: \(articles)")
+            // MARK: TODO: cache following planets' articles.
+        } catch {
+            debugPrint("failed to batch update planet articles: \(articles), error: \(error)")
+        }
+    }
+
+    func batchUpdateArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
+        let ctx = persistentContainer.newBackgroundContext()
+        for article in articles {
             let a = PlanetArticle(context: ctx)
             a.id = article.id
             a.planetID = planetID

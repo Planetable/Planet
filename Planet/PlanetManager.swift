@@ -14,7 +14,7 @@ import Ink
 
 class PlanetManager: NSObject {
     static let shared: PlanetManager = PlanetManager()
-    
+
     private var publishTimer: Timer?
     private var feedTimer: Timer?
     private var statusTimer: Timer?
@@ -22,7 +22,7 @@ class PlanetManager: NSObject {
     private var unitTesting: Bool = {
         return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }()
-    
+
     private var commandQueue: OperationQueue = {
         let q = OperationQueue()
         q.maxConcurrentOperationCount = 1
@@ -36,7 +36,7 @@ class PlanetManager: NSObject {
         q.qualityOfService = .background
         return q
     }()
-    
+
     private var apiPort: String = "" {
         didSet {
             guard apiPort != "" else { return }
@@ -52,7 +52,7 @@ class PlanetManager: NSObject {
             }
         }
     }
-    
+
     private var gatewayPort: String = "" {
         didSet {
             guard gatewayPort != "" else { return }
@@ -68,7 +68,7 @@ class PlanetManager: NSObject {
             }
         }
     }
-    
+
     private var swarmPort: String = "" {
         didSet {
             guard swarmPort != "" else { return }
@@ -94,20 +94,20 @@ class PlanetManager: NSObject {
             }
         }
         #endif
-        
+
         loadTemplates()
-        
+
         publishTimer = Timer.scheduledTimer(timeInterval: 600, target: self, selector: #selector(publishLocalPlanets), userInfo: nil, repeats: true)
         feedTimer = Timer.scheduledTimer(timeInterval: 300, target: self, selector: #selector(updateFollowingPlanets), userInfo: nil, repeats: true)
         statusTimer = Timer .scheduledTimer(timeInterval: 5, target: self, selector: #selector(updatePlanetStatus), userInfo: nil, repeats: true)
-        
+
         Task.init(priority: .utility) {
             guard await verifyIPFSOnlineStatus() else { return }
             await updateInternalPorts()
             launchDaemon()
         }
     }
-    
+
     func cleanup() {
         debugPrint("Planet Manager Cleanup")
         terminateDaemon(forceSkip: true)
@@ -115,11 +115,11 @@ class PlanetManager: NSObject {
         feedTimer?.invalidate()
         statusTimer?.invalidate()
     }
-    
+
     func relaunchDaemon() {
         relaunchDaemonIfNeeded()
     }
-    
+
     // MARK: - General -
     func loadTemplates() {
         let templatePath = _templatesPath()
@@ -138,7 +138,7 @@ class PlanetManager: NSObject {
             }
         }
     }
-    
+
     func checkDaemonStatus() async -> Bool {
         guard apiPort != "" else { return false }
         let status = await verifyPortOnlineStatus(port: apiPort, suffix: "/webui")
@@ -161,15 +161,15 @@ class PlanetManager: NSObject {
         } catch {}
         return 0
     }
-    
+
     func checkPublishingStatus(planetID id: UUID) async -> Bool {
         return await PlanetStore.shared.publishingPlanets.contains(id)
     }
-    
+
     func checkUpdatingStatus(planetID id: UUID) async -> Bool {
         return await PlanetStore.shared.updatingPlanets.contains(id)
     }
-    
+
     func generateKeys() async -> (keyName: String?, keyID: String?) {
         let uuid = UUID()
         let checkKeyExistsRequest = serverURL(path: "key/list")
@@ -215,7 +215,7 @@ class PlanetManager: NSObject {
         }
         return (nil, nil)
     }
-    
+
     func ipfsENVPath() -> URL {
         let envPath = _ipfsENVPath()
         if !FileManager.default.fileExists(atPath: envPath.path) {
@@ -223,7 +223,7 @@ class PlanetManager: NSObject {
         }
         return envPath
     }
-    
+
     func ipfsVersion() async -> String {
         let checkKeyExistsRequest = serverURL(path: "version")
         do {
@@ -239,7 +239,7 @@ class PlanetManager: NSObject {
         }
         return "0.12.0"
     }
-    
+
     func deleteKey(withName name: String) async {
         let checkKeyExistsRequest = serverURL(path: "key/rm", args: ["arg": name])
         do {
@@ -248,7 +248,7 @@ class PlanetManager: NSObject {
             debugPrint("failed to remove key with name: \(name), error: \(error)")
         }
     }
-    
+
     func resizedAvatarImage(image: NSImage) -> NSImage {
         let targetImage: NSImage
         let targetImageSize = CGSize(width: 144, height: 144)
@@ -259,14 +259,14 @@ class PlanetManager: NSObject {
         }
         return targetImage
     }
-    
+
     func updateAvatar(forPlanet planet: Planet, image: NSImage, isEditing: Bool = false) {
         guard let id = planet.id else { return }
         let imageURL = _avatarPath(forPlanetID: id, isEditing: isEditing)
         let targetImage = resizedAvatarImage(image: image)
         targetImage.imageSave(imageURL)
     }
-    
+
     func removeAvatar(forPlanet planet: Planet) {
         guard let id = planet.id else { return }
         let imageURL = _avatarPath(forPlanetID: id, isEditing: false)
@@ -274,7 +274,7 @@ class PlanetManager: NSObject {
         try? FileManager.default.removeItem(at: imageURL)
         try? FileManager.default.removeItem(at: imageEditURL)
     }
-    
+
     func avatar(forPlanet planet: Planet) -> NSImage? {
         if let id = planet.id {
             let imageURL = _avatarPath(forPlanetID: id, isEditing: false)
@@ -284,7 +284,7 @@ class PlanetManager: NSObject {
         }
         return nil
     }
-    
+
     // MARK: - Planet & Planet Article -
     func setupDirectory(forPlanet planet: Planet) {
         if !planet.isMyPlanet() {
@@ -305,7 +305,7 @@ class PlanetManager: NSObject {
             }
         }
     }
-    
+
     func destroyDirectory(fromPlanet planetUUID: UUID) {
         debugPrint("about to destroy directory from planet: \(planetUUID) ...")
         let planetPath = _planetsPath().appendingPathComponent(planetUUID.uuidString)
@@ -315,7 +315,7 @@ class PlanetManager: NSObject {
             debugPrint("failed to destroy planet path at: \(planetPath), error: \(error)")
         }
     }
-    
+
     func destroyArticleDirectory(planetUUID: UUID, articleUUID: UUID) {
         debugPrint("about to destroy directory from article: \(articleUUID) ...")
         let articlePath = _planetsPath().appendingPathComponent(planetUUID.uuidString).appendingPathComponent(articleUUID.uuidString)
@@ -325,7 +325,7 @@ class PlanetManager: NSObject {
             debugPrint("failed to destroy article path at: \(articlePath), error: \(error)")
         }
     }
-    
+
     func articleURL(article: PlanetArticle) async -> URL? {
         guard let articleID = article.id, let planetID = article.planetID else { return nil }
         guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!), let ipns = planet.ipns else { return nil }
@@ -346,7 +346,7 @@ class PlanetManager: NSObject {
                 do {
                     let (data, _) = try await URLSession.shared.data(for: request)
                     // cache index.html file if needed.
-                    
+
                     // update unreads
                     DispatchQueue.global(qos: .background).async {
                         self.updateArticleReadingStatus(article: article)
@@ -361,15 +361,15 @@ class PlanetManager: NSObject {
             return nil
         }
     }
-    
+
     func articleReadingStatus(article: PlanetArticle) -> Bool {
         return UserDefaults.standard.bool(forKey: "PlanetArticleReadingStatus" + "-" + article.id!.uuidString)
     }
-    
+
     func updateArticleReadingStatus(article: PlanetArticle, read: Bool = true) {
         UserDefaults.standard.set(read, forKey: "PlanetArticleReadingStatus" + "-" + article.id!.uuidString)
     }
-    
+
     func renderArticleToDirectory(fromArticle article: PlanetArticle, templateIndex: Int = 0, force: Bool = false) async {
         debugPrint("about to render article: \(article)")
         let planetPath = _planetsPath().appendingPathComponent(article.planetID!.uuidString)
@@ -412,7 +412,7 @@ class PlanetManager: NSObject {
         }
         debugPrint("article \(article) rendered at: \(articlePath).")
     }
-    
+
     func publishForPlanet(planet: Planet) async {
         guard let id = planet.id, let keyName = planet.keyName, keyName != "" else { return }
         let now = Date()
@@ -437,7 +437,7 @@ class PlanetManager: NSObject {
             }
         }
         debugPrint("publishing for planet: \(planet), with key name: \(keyName) ...")
-        
+
         // update feed.json
         let feedPath = planetPath.appendingPathComponent("feed.json")
         if FileManager.default.fileExists(atPath: feedPath.path) {
@@ -461,7 +461,7 @@ class PlanetManager: NSObject {
             debugPrint("failed to encode feed: \(feed), at path: \(feedPath), error: \(error)")
             return
         }
-        
+
         // add planet directory
         var planetCID: String?
         do {
@@ -496,17 +496,17 @@ class PlanetManager: NSObject {
             debugPrint("failed to publish planet: \(planet), at path: \(planetPath), error: \(error)")
         }
     }
-    
+
     func updateForPlanet(planet: Planet) async {
         guard let id = planet.id, let name = planet.name, let ipns = planet.ipns, ipns.count == "k51qzi5uqu5dioq5on1s4oc3wg2t13w03xxsq32b1qovi61b6oi8pcyep2gsyf".count else { return }
-        
+
         // make sure you do not follow your own planet on the same Mac.
         guard !PlanetDataController.shared.getLocalIPNSs().contains(ipns) else {
             debugPrint("cannot follow your own planet on the same machine, abort.")
             PlanetDataController.shared.removePlanet(planet: planet)
             return
         }
-        
+
         let updatingStatus = await checkUpdatingStatus(planetID: id)
         guard updatingStatus == false else {
             debugPrint("planet \(planet) is still been updating, abort.")
@@ -525,7 +525,7 @@ class PlanetManager: NSObject {
                 }
             }
         }
-        
+
         // pin planet in background.
         debugPrint("pin in the background ...")
         let pinRequest = serverURL(path: "pin/add", args: ["arg": "/ipns/" + ipns], timeout: 120)
@@ -542,25 +542,35 @@ class PlanetManager: NSObject {
             let decoder = JSONDecoder()
             let feed: PlanetFeed = try decoder.decode(PlanetFeed.self, from: data)
             guard feed.name != "" else { return }
-            
+
             debugPrint("got following planet feed: \(feed)")
-            
+
             // remove current planet as placeholder, create new planet with feed.id
             if name == "" {
                 PlanetDataController.shared.removePlanet(planet: planet)
                 PlanetDataController.shared.createPlanet(withID: feed.id, name: feed.name, about: feed.about, keyName: nil, keyID: nil, ipns: feed.ipns)
             }
-            
+
             // update planet articles if needed.
             var articlesToCreate: [PlanetFeedArticle] = []
+            var articlesToUpdate: [PlanetFeedArticle] = []
             for a in feed.articles {
-                if PlanetDataController.shared.getArticle(id: a.id) == nil {
+                let existing = PlanetDataController.shared.getArticle(id: a.id)
+                if existing == nil {
                     articlesToCreate.append(a)
+                } else {
+                    if existing!.title != a.title {
+                        articlesToUpdate.append(a)
+                    }
                 }
             }
-            debugPrint("planet articles to created: \(articlesToCreate)")
+            debugPrint("planet articles to create: \(articlesToCreate)")
+            debugPrint("planet articles to update: \(articlesToUpdate)")
             if articlesToCreate.count > 0 {
                 await PlanetDataController.shared.batchCreateArticles(articles: articlesToCreate, planetID: feed.id)
+            }
+            if articlesToUpdate.count > 0 {
+                await PlanetDataController.shared.batchUpdateArticles(articles: articlesToUpdate, planetID: feed.id)
             }
 
             // delete saved articles which was deleted if needed.
@@ -578,7 +588,7 @@ class PlanetManager: NSObject {
             if articlesToDelete.count > 0 {
                 await PlanetDataController.shared.batchDeleteArticles(articles: articlesToDelete)
             }
-            
+
             // update planet avatar if needed.
             let avatarString = prefix + "/" + "avatar.png"
             let avatarRequest = URLRequest(url: URL(string: avatarString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
@@ -598,10 +608,10 @@ class PlanetManager: NSObject {
         } catch {
             debugPrint("failed to get feed: \(error)")
         }
-        
+
         debugPrint("done updating.")
     }
-    
+
     @objc
     func publishLocalPlanets() {
         Task.init(priority: .background) {
@@ -613,7 +623,7 @@ class PlanetManager: NSObject {
             }
         }
     }
-    
+
     @objc
     func updateFollowingPlanets() {
         Task.init(priority: .background) {
@@ -625,7 +635,7 @@ class PlanetManager: NSObject {
             }
         }
     }
-    
+
     @objc
     func updatePlanetStatus() {
         Task.init(priority: .background) {
@@ -683,7 +693,7 @@ class PlanetManager: NSObject {
             return true
         }
     }
-    
+
     private func verifyPortOnlineStatus(port: String, suffix: String = "/") async -> Bool {
         let url = URL(string: "http://127.0.0.1:" + port + suffix)!
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 5)
@@ -695,7 +705,7 @@ class PlanetManager: NSObject {
         } catch {}
         return false
     }
-    
+
     private func serverURL(path: String, args: [String: String] = [:], timeout: TimeInterval = 5) -> URLRequest {
         var urlPath: String = "http://127.0.0.1" + ":" + apiPort + "/" + "api" + "/" + "v0"
         urlPath += "/" + path
@@ -707,13 +717,13 @@ class PlanetManager: NSObject {
         request.httpMethod = "POST"
         return request
     }
-    
+
     private func terminateDaemon(forceSkip: Bool = false) {
         let request = serverURL(path: "shutdown")
         URLSession.shared.dataTask(with: request) { data, response, error in
         }.resume()
     }
-    
+
     private func launchDaemon() {
         Task.init(priority: .utility) {
             guard await checkDaemonStatus() == false else { return }
@@ -772,7 +782,7 @@ class PlanetManager: NSObject {
             } else {
                 launchDaemon()
             }
-            
+
             DispatchQueue.main.async {
                 PlanetStore.shared.daemonIsOnline = status
             }
@@ -804,7 +814,7 @@ class PlanetManager: NSObject {
         }
         debugPrint("internal ports updated: api \(apiPort), gateway \(gatewayPort), swarm \(swarmPort)")
     }
-    
+
     private func getInternalPortsInformationFromConfig() async -> (String?, String?) {
         let request = serverURL(path: "config/show")
         do {
@@ -817,7 +827,7 @@ class PlanetManager: NSObject {
         } catch {}
         return (nil, nil)
     }
-    
+
     private func isOnAppleSilicon() -> Bool {
         var systeminfo = utsname()
         uname(&systeminfo)
@@ -856,7 +866,7 @@ class PlanetManager: NSObject {
         }
         return path
     }
-    
+
     func _avatarPath(forPlanetID id: UUID, isEditing: Bool = false) -> URL {
         let path = _planetsPath().appendingPathComponent(id.uuidString)
         if !FileManager.default.fileExists(atPath: path.path) {
@@ -869,12 +879,12 @@ class PlanetManager: NSObject {
         let ipfsPath = _basePath().appendingPathComponent("ipfs", isDirectory: false)
         return ipfsPath
     }
-    
+
     private func _ipfsENVPath() -> URL {
         let envPath = _basePath().appendingPathComponent(".ipfs", isDirectory: true)
         return envPath
     }
-    
+
     private func _configPath() -> URL {
         let configPath = _basePath().appendingPathComponent("config", isDirectory: true)
         if !FileManager.default.fileExists(atPath: configPath.path) {
@@ -882,7 +892,7 @@ class PlanetManager: NSObject {
         }
         return configPath
     }
-    
+
     private func _planetsPath() -> URL {
         let contentPath = _basePath().appendingPathComponent("planets", isDirectory: true)
         if !FileManager.default.fileExists(atPath: contentPath.path) {
