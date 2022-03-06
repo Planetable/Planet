@@ -98,7 +98,7 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func batchCreateArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
+    func batchUpdateArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
         let ctx = persistentContainer.newBackgroundContext()
         for article in articles {
             let a = PlanetDataController.shared.getArticle(id: article.id)
@@ -115,7 +115,7 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func batchUpdateArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
+    func batchCreateArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
         let ctx = persistentContainer.newBackgroundContext()
         for article in articles {
             let a = PlanetArticle(context: ctx)
