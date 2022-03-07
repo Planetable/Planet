@@ -25,6 +25,7 @@ struct PlanetFeedArticle: Codable {
     let id: UUID
     let created: Date
     let title: String
+    var content: String?
 }
 
 
@@ -48,14 +49,14 @@ class Planet: NSManagedObject, Codable {
         case keyID
         case keyName
     }
-    
+
     required convenience init(from decoder: Decoder) throws {
         guard let context = decoder.userInfo[.managedObjectContext] as? NSManagedObjectContext else {
             throw DecoderConfigurationError.missingManagedObjectContext
         }
-        
+
         self.init(context: context)
-        
+
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         created = try container.decode(Date.self, forKey: .created)
@@ -65,7 +66,7 @@ class Planet: NSManagedObject, Codable {
         keyID = try container.decode(String.self, forKey: .keyID)
         keyName = try container.decode(String.self, forKey: .keyName)
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
@@ -86,7 +87,7 @@ extension Planet {
         }
         return false
     }
-    
+
     func generateAvatarName() -> String {
         guard let name = name else {
             return ""
@@ -133,14 +134,14 @@ class PlanetArticle: NSManagedObject, Codable {
         case content
         case planetID
     }
-    
+
     required convenience init(from decoder: Decoder) throws {
         guard let context = decoder.userInfo[.managedObjectContext] as? NSManagedObjectContext else {
             throw DecoderConfigurationError.missingManagedObjectContext
         }
-        
+
         self.init(context: context)
-        
+
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         created = try container.decode(Date.self, forKey: .created)
@@ -148,7 +149,7 @@ class PlanetArticle: NSManagedObject, Codable {
         content = try container.decode(String.self, forKey: .content)
         planetID = try container.decode(UUID.self, forKey: .planetID)
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
@@ -164,7 +165,7 @@ class PlanetArticle: NSManagedObject, Codable {
 struct PlanetIPFSVersionInfo: Codable {
     let version: String?
     let system: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case version = "Version"
         case system = "System"
@@ -173,7 +174,7 @@ struct PlanetIPFSVersionInfo: Codable {
 
 struct PlanetKeys: Codable {
     let keys: [PlanetKey]?
-    
+
     enum CodingKeys: String, CodingKey {
         case keys = "Keys"
     }
@@ -183,7 +184,7 @@ struct PlanetKeys: Codable {
 struct PlanetKey: Codable {
     let id: String?
     let name: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case id = "Id"
         case name = "Name"
@@ -193,7 +194,7 @@ struct PlanetKey: Codable {
 
 struct PlanetPeers: Codable {
     let peers: [PlanetPeer]?
-    
+
     enum CodingKeys: String, CodingKey {
         case peers = "Peers"
     }
@@ -202,7 +203,7 @@ struct PlanetPeers: Codable {
 
 struct PlanetPeer: Codable {
     let addr: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case addr = "Addr"
     }
@@ -211,7 +212,7 @@ struct PlanetPeer: Codable {
 
 struct PlanetConfig: Codable {
     let addresses: PlanetConfigAddresses?
-    
+
     enum CodingKeys: String, CodingKey {
         case addresses = "Addresses"
     }
@@ -232,7 +233,7 @@ struct PlanetConfigAddresses: Codable {
 struct PlanetPublished: Codable {
     let name: String?
     let value: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case name = "Name"
         case value = "Value"

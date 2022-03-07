@@ -438,8 +438,8 @@ class PlanetManager: NSObject {
         }
         debugPrint("publishing for planet: \(planet), with key name: \(keyName) ...")
 
-        // update feed.json
-        let feedPath = planetPath.appendingPathComponent("feed.json")
+        // update planet.json
+        let feedPath = planetPath.appendingPathComponent("planet.json")
         if FileManager.default.fileExists(atPath: feedPath.path) {
             do {
                 try FileManager.default.removeItem(at: feedPath)
@@ -449,7 +449,7 @@ class PlanetManager: NSObject {
         }
         let articles = PlanetDataController.shared.getArticles(byPlanetID: id)
         let feedArticles: [PlanetFeedArticle] = articles.map() { t in
-            let feedArticle: PlanetFeedArticle = PlanetFeedArticle(id: t.id!, created: t.created!, title: t.title ?? "")
+            let feedArticle: PlanetFeedArticle = PlanetFeedArticle(id: t.id!, created: t.created!, title: t.title ?? "", content: t.content ?? "")
             return feedArticle
         }
         let feed = PlanetFeed(id: id, ipns: planet.ipns!, created: planet.created!, updated: now, name: planet.name ?? "", about: planet.about ?? "", articles: feedArticles)
@@ -535,7 +535,7 @@ class PlanetManager: NSObject {
 
         debugPrint("updating for planet: \(planet) ...")
         let prefix = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns + "/"
-        let ipnsString = prefix + "feed.json"
+        let ipnsString = prefix + "planet.json"
         let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         do {
             let (data, _) = try await URLSession.shared.data(for: request)

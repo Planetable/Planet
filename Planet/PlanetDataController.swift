@@ -172,7 +172,9 @@ class PlanetDataController: NSObject {
                 }
                 await PlanetManager.shared.publishForPlanet(planet: planet)
                 do {
-                    try await PlanetDataController.shared.pingPublicGatewayForArticle(article)
+                    try await PlanetDataController.shared.pingPublicGatewayForArticle(article: article, gateway: .dweb)
+                    try await PlanetDataController.shared.pingPublicGatewayForArticle(article: article, gateway: .cloudflare)
+                    try await PlanetDataController.shared.pingPublicGatewayForArticle(article: article, gateway: .ipfs)
                 } catch {
                     // handle the error here in some way
                 }
@@ -193,8 +195,8 @@ class PlanetDataController: NSObject {
         pasteboard.setString(publicLink, forType: .string)
     }
 
-    func pingPublicGatewayForArticle(_ article: PlanetArticle) async throws {
-        let publicLink = getArticlePublicLink(article: article, gateway: .dweb)
+    func pingPublicGatewayForArticle(article: PlanetArticle, gateway: PublicGateway = .dweb) async throws {
+        let publicLink = getArticlePublicLink(article: article, gateway: gateway)
         guard let url = URL(string: publicLink) else {
             return
         }
