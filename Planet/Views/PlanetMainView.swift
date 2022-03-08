@@ -27,8 +27,6 @@ struct PlanetMainView: View {
                         
                         Button(action: toggleSidebar) {
                             Image(systemName: "sidebar.left")
-                                .resizable()
-                                .frame(width: 16, height: 16, alignment: .center)
                                 .help("Toggle Sidebar")
                         }
                     }
