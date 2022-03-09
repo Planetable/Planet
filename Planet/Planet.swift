@@ -38,14 +38,36 @@ enum DecoderConfigurationError: Error {
     case missingManagedObjectContext
 }
 
+enum PlanetType: Int32 {
+    case planet = 0
+    case ens = 1
+    case dnslink = 2
+    case dns = 3
+}
+
+enum FeedType: Int32 {
+    case none = 0
+    case planet = 1
+    case jsonfeed = 2
+    case rss = 3
+    case atom = 4
+}
 
 class Planet: NSManagedObject, Codable {
     enum CodingKeys: CodingKey {
         case id
+        case typeValue
         case created
         case name
         case about
         case ipns
+        case ipfs
+        case ens
+        case dns
+        case dnslink
+        case feedTypeValue
+        case feedAddress
+        case feedSHA256
         case keyID
         case keyName
     }
@@ -59,10 +81,18 @@ class Planet: NSManagedObject, Codable {
 
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
+        typeValue = try container.decode(Int32.self, forKey: .typeValue)
         created = try container.decode(Date.self, forKey: .created)
         name = try container.decode(String.self, forKey: .name)
         about = try container.decode(String.self, forKey: .about)
         ipns = try container.decode(String.self, forKey: .ipns)
+        ipfs = try container.decode(String.self, forKey: .ipfs)
+        ens = try container.decode(String.self, forKey: .ens)
+        dnslink = try container.decode(String.self, forKey: .dnslink)
+        dns = try container.decode(String.self, forKey: .dns)
+        feedTypeValue = try container.decode(Int32.self, forKey: .feedTypeValue)
+        feedAddress = try container.decode(String.self, forKey: .feedAddress)
+        feedSHA256 = try container.decode(String.self, forKey: .feedSHA256)
         keyID = try container.decode(String.self, forKey: .keyID)
         keyName = try container.decode(String.self, forKey: .keyName)
     }
@@ -70,10 +100,18 @@ class Planet: NSManagedObject, Codable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
+        try container.encode(typeValue, forKey: .typeValue)
         try container.encode(created, forKey: .created)
         try container.encode(name, forKey: .name)
         try container.encode(about, forKey: .about)
         try container.encode(ipns, forKey: .ipns)
+        try container.encode(ipfs, forKey: .ipfs)
+        try container.encode(ens, forKey: .ens)
+        try container.encode(dnslink, forKey: .dnslink)
+        try container.encode(dns, forKey: .dns)
+        try container.encode(feedTypeValue, forKey: .feedTypeValue)
+        try container.encode(feedAddress, forKey: .feedAddress)
+        try container.encode(feedSHA256, forKey: .feedSHA256)
         try container.encode(keyID, forKey: .keyID)
         try container.encode(keyName, forKey: .keyName)
     }
@@ -87,6 +125,28 @@ extension Planet {
         }
         return false
     }
+    
+    var type: PlanetType {
+        get {
+            return PlanetType(rawValue: self.typeValue)!
+        }
+
+        set {
+            self.typeValue = newValue.rawValue
+        }
+    }
+    
+    var feedType: FeedType {
+        get {
+            return FeedType(rawValue: self.feedTypeValue)!
+        }
+
+        set {
+            self.feedTypeValue = newValue.rawValue
+        }
+    }
+    
+    
 
     func generateAvatarName() -> String {
         guard let name = name else {
@@ -130,6 +190,7 @@ class PlanetArticle: NSManagedObject, Codable {
     enum CodingKeys: CodingKey {
         case id
         case created
+        case read
         case title
         case content
         case planetID
@@ -145,6 +206,7 @@ class PlanetArticle: NSManagedObject, Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         created = try container.decode(Date.self, forKey: .created)
+        read = try container.decode(Date.self, forKey: .read)
         title = try container.decode(String.self, forKey: .title)
         content = try container.decode(String.self, forKey: .content)
         planetID = try container.decode(UUID.self, forKey: .planetID)

@@ -69,6 +69,7 @@
 		2AF1318627C7CDAF007792FE /* PlanetArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleView.swift; sourceTree = "<group>"; };
 		2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = TemplatePlaceholder.html; sourceTree = "<group>"; };
 		6A0172E727C9EE05006154B7 /* Basic.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Basic.html; sourceTree = "<group>"; };
+		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -519,9 +520,10 @@
 		2AC4997227BC0EBA00F1C2D1 /* Planet.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */,
 				2AC4997327BC0EBA00F1C2D1 /* Planet.xcdatamodel */,
 			);
-			currentVersion = 2AC4997327BC0EBA00F1C2D1 /* Planet.xcdatamodel */;
+			currentVersion = 6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */;
 			path = Planet.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

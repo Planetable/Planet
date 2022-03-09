@@ -10,10 +10,10 @@ import SwiftUI
 
 struct FollowPlanetView: View {
     @EnvironmentObject private var planetStore: PlanetStore
-    
+
     @Environment(\.dismiss) private var dismiss
 
-    @State private var ipns: String = "planet://"
+    @State private var endpoint: String = "planet://"
 
     var body: some View {
         VStack (spacing: 0) {
@@ -27,7 +27,7 @@ struct FollowPlanetView: View {
             Divider()
 
             HStack {
-                TextEditor(text: $ipns)
+                TextEditor(text: $endpoint)
                     .font(.system(size: 13, weight: .regular, design: .monospaced))
                     .lineSpacing(4)
                     .disableAutocorrection(true)
@@ -44,7 +44,7 @@ struct FollowPlanetView: View {
             Spacer()
 
             Divider()
-            
+
             HStack {
                 Button {
                     dismiss()
@@ -54,13 +54,13 @@ struct FollowPlanetView: View {
                 .keyboardShortcut(.escape, modifiers: [])
 
                 Spacer()
-                
+
                 Button {
                     dismiss()
-                    if PlanetDataController.shared.getFollowingIPNSs().contains(processedIPNS()) {
+                    if PlanetDataController.shared.getFollowingIPNSs().contains(processedEndpoint()) {
                         return
                     }
-                    PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedIPNS())
+                    PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedEndpoint())
                 } label: {
                     Text("Follow")
                 }
@@ -70,12 +70,12 @@ struct FollowPlanetView: View {
         .padding(0)
         .frame(width: 480, height: 260, alignment: .center)
     }
-    
-    private func processedIPNS() -> String {
-        if ipns.hasPrefix("planet://") {
-            ipns = ipns.replacingOccurrences(of: "planet://", with: "")
+
+    private func processedEndpoint() -> String {
+        if endpoint.hasPrefix("planet://") {
+            endpoint = endpoint.replacingOccurrences(of: "planet://", with: "")
         }
-        return ipns
+        return endpoint
     }
 }
 

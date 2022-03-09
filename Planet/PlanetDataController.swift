@@ -24,7 +24,13 @@ class PlanetDataController: NSObject {
 
     var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "Planet")
+
+        let description = NSPersistentStoreDescription()
+        description.shouldInferMappingModelAutomatically = true
+        description.shouldMigrateStoreAutomatically = true
+        container.persistentStoreDescriptions.append(description)
         container.loadPersistentStores { storeDescription, error in
+            debugPrint("Store Description: \(storeDescription)")
             if let error = error {
                 fatalError("Unable to load data store: \(error)")
             }
@@ -48,6 +54,7 @@ class PlanetDataController: NSObject {
         let ctx = persistentContainer.newBackgroundContext()
         let planet = Planet(context: ctx)
         planet.id = id
+        planet.type = .planet
         planet.created = Date()
         planet.name = name
         planet.about = about
@@ -60,6 +67,25 @@ class PlanetDataController: NSObject {
             PlanetManager.shared.setupDirectory(forPlanet: planet)
         } catch {
             debugPrint("failed to create new planet: \(planet), error: \(error)")
+        }
+    }
+
+    func createPlanetENS(withID id: UUID, name: String, about: String, ipfs: String?, ens: String?) {
+        let ctx = persistentContainer.newBackgroundContext()
+        let planet = Planet(context: ctx)
+        planet.id = id
+        planet.type = .ens
+        planet.created = Date()
+        planet.name = name
+        planet.about = about
+        planet.ipfs = ipfs
+        planet.ens = ens
+        do {
+            try ctx.save()
+            debugPrint("planet created: \(planet.ens)")
+            PlanetManager.shared.setupDirectory(forPlanet: planet)
+        } catch {
+            debugPrint("failed to create new planet: \(planet.ens), error: \(error)")
         }
     }
 
