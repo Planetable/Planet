@@ -25,10 +25,6 @@ class PlanetDataController: NSObject {
     var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "Planet")
 
-        let description = NSPersistentStoreDescription()
-        description.shouldInferMappingModelAutomatically = true
-        description.shouldMigrateStoreAutomatically = true
-        container.persistentStoreDescriptions.append(description)
         container.loadPersistentStores { storeDescription, error in
             debugPrint("Store Description: \(storeDescription)")
             if let error = error {
