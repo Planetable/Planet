@@ -2,6 +2,23 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeIconSystemGenerated</key>
+			<integer>1</integer>
+			<key>CFBundleTypeName</key>
+			<string>Planet Data</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>$(ORGANIZATION_IDENTIFIER_PREFIX).planet.data</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -17,5 +34,63 @@
 	</array>
 	<key>ORGANIZATION_IDENTIFIER_PREFIX</key>
 	<string>$(ORGANIZATION_IDENTIFIER_PREFIX)</string>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Planet Data</string>
+			<key>UTTypeIcons</key>
+			<dict>
+				<key>UTTypeIconBackgroundName</key>
+				<string>AppDataIcon-Fill</string>
+				<key>UTTypeIconBadgeName</key>
+				<string>AppDataIcon-Image</string>
+				<key>UTTypeIconText</key>
+				<string>data</string>
+			</dict>
+			<key>UTTypeIdentifier</key>
+			<string>$(ORGANIZATION_IDENTIFIER_PREFIX).planet.data</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>planet</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Planet Data</string>
+			<key>UTTypeIcons</key>
+			<dict>
+				<key>UTTypeIconBackgroundName</key>
+				<string>AppDataIcon-Fill</string>
+				<key>UTTypeIconBadgeName</key>
+				<string>AppDataIcon-Image</string>
+				<key>UTTypeIconText</key>
+				<string>data</string>
+			</dict>
+			<key>UTTypeIdentifier</key>
+			<string>$(ORGANIZATION_IDENTIFIER_PREFIX).planet.data</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>planet</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

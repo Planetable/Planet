@@ -50,6 +50,15 @@ struct PlanetMainView: View {
                 }
             }))
         }
+        .fileImporter(isPresented: $planetStore.isExportingPlanet, allowedContentTypes: [.directory], allowsMultipleSelection: false, onCompletion: { result in
+            if let urls = try? result.get(), let url = urls.first {
+                self.planetStore.exportPath = url
+                PlanetManager.shared.exportCurrentPlanet()
+            }
+            DispatchQueue.main.async {
+                self.planetStore.exportPath = nil
+            }
+        })
         .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
             
         } content: {

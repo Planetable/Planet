@@ -645,6 +645,37 @@ class PlanetManager: NSObject {
             await checkPeersStatus()
         }
     }
+    
+    func importCurrentPlanet() {
+        
+    }
+    
+    @MainActor
+    func exportCurrentPlanet() {
+        guard let planet = PlanetStore.shared.currentPlanet, planet.isMyPlanet() else {
+            DispatchQueue.main.async {
+                PlanetStore.shared.isFailedAlert = true
+                PlanetStore.shared.failedAlertTitle = "Failed to Export Planet"
+                PlanetStore.shared.failedAlertMessage = "Unable to prepare for current selected planet, please make sure the planet you selected is ready to export then try again."
+            }
+            return
+        }
+        
+        guard let exportPath = PlanetStore.shared.exportPath else {
+            PlanetStore.shared.isFailedAlert = true
+            PlanetStore.shared.failedAlertTitle = "Failed to Export Planet"
+            PlanetStore.shared.failedAlertMessage = "Please choose the export path then try again."
+            return
+        }
+        
+        debugPrint("exporting planet \(planet), to path: \(exportPath)")
+        /*
+         sample_planet.planet
+            - planet.json
+            - planet.key
+            - planets/
+         */
+    }
 
     // MARK: - Private -
     private func verifyIPFSOnlineStatus() async -> Bool {

@@ -42,6 +42,22 @@ struct PlanetApp: App {
                     Text("Update Following Planets")
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
+                
+                Divider()
+                
+                Button {
+                    PlanetManager.shared.importCurrentPlanet()
+                } label: {
+                    Text("Import Planet")
+                }
+                .keyboardShortcut("i", modifiers: [.command, .shift])
+
+                Button {
+                    planetStore.isExportingPlanet = true
+                } label: {
+                    Text("Export Planet")
+                }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
 
                 Divider()
                 
