@@ -546,10 +546,11 @@ class PlanetManager: NSObject {
             debugPrint("got following planet feed: \(feed)")
 
             // remove current planet as placeholder, create new planet with feed.id
-            if name == "" {
-                PlanetDataController.shared.removePlanet(planet: planet)
-                PlanetDataController.shared.createPlanet(withID: feed.id, name: feed.name, about: feed.about, keyName: nil, keyID: nil, ipns: feed.ipns)
-            }
+            //if name == "" {
+            //    PlanetDataController.shared.removePlanet(planet: planet)
+            //    PlanetDataController.shared.createPlanet(withID: feed.id, name: feed.name, about: feed.about, keyName: nil, keyID: nil, ipns: feed.ipns)
+            //}
+            PlanetDataController.shared.updatePlanetMetadata(forID: id, name: feed.name, about: feed.about, ipns: feed.ipns)
 
             // update planet articles if needed.
             var articlesToCreate: [PlanetFeedArticle] = []
@@ -567,15 +568,15 @@ class PlanetManager: NSObject {
             debugPrint("planet articles to create: \(articlesToCreate)")
             debugPrint("planet articles to update: \(articlesToUpdate)")
             if articlesToCreate.count > 0 {
-                await PlanetDataController.shared.batchCreateArticles(articles: articlesToCreate, planetID: feed.id)
+                await PlanetDataController.shared.batchCreateArticles(articles: articlesToCreate, planetID: id)
             }
             if articlesToUpdate.count > 0 {
-                await PlanetDataController.shared.batchUpdateArticles(articles: articlesToUpdate, planetID: feed.id)
+                await PlanetDataController.shared.batchUpdateArticles(articles: articlesToUpdate, planetID: id)
             }
 
             // delete saved articles which was deleted if needed.
             var articlesToDelete: [PlanetArticle] = []
-            let availableArticles = PlanetDataController.shared.getArticles(byPlanetID: feed.id)
+            let availableArticles = PlanetDataController.shared.getArticles(byPlanetID: id)
             let feedArticleIDs = feed.articles.map() { a in
                 return a.id
             }

@@ -85,6 +85,26 @@ class PlanetDataController: NSObject {
         }
     }
 
+    func updatePlanetMetadata(forID id: UUID, name: String?, about: String?, ipns: String?) {
+        let ctx = persistentContainer.newBackgroundContext()
+        guard let planet = getPlanet(id: id) else { return }
+        if let name = name {
+            planet.name = name
+        }
+        if let about = about {
+            planet.about = about
+        }
+        if let ipns = ipns {
+            planet.ipns = ipns
+        }
+        do {
+            try ctx.save()
+            debugPrint("planet updated: \(planet)")
+        } catch {
+            debugPrint("failed to update planet: \(planet), error: \(error)")
+        }
+    }
+
     func updatePlanet(withID id: UUID, name: String, about: String) {
         let ctx = persistentContainer.newBackgroundContext()
         guard let planet = getPlanet(id: id) else { return }
