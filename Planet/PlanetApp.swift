@@ -42,6 +42,23 @@ struct PlanetApp: App {
                     Text("Update Following Planets")
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
+                
+                Divider()
+                
+                Button {
+                    planetStore.isImportingPlanet = true
+                } label: {
+                    Text("Import Planet")
+                }
+                .keyboardShortcut("i", modifiers: [.command, .shift])
+
+                Button {
+                    guard planetStore.currentPlanet != nil else { return }
+                    planetStore.isExportingPlanet = true
+                } label: {
+                    Text("Export Planet")
+                }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
 
                 Divider()
                 
@@ -66,9 +83,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first else { return }
-        let ipns = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
-        guard !PlanetDataController.shared.getFollowingIPNSs().contains(ipns) else { return }
-        PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: ipns)
+        if url.absoluteString.hasPrefix("planet://") {
+            let ipns = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
+            guard !PlanetDataController.shared.getFollowingIPNSs().contains(ipns) else { return }
+            PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: ipns)
+        } else if url.lastPathComponent.hasSuffix(".planet") {
+            DispatchQueue.main.async {
+                PlanetStore.shared.importPath = url
+                PlanetManager.shared.importCurrentPlanet()
+            }
+        }
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {

@@ -27,9 +27,9 @@ struct PlanetArticleView: View {
                             DispatchQueue.main.async {
                                 self.planetStore.currentArticle = nil
                                 self.planetStore.selectedArticle = UUID().uuidString
-                                self.planetStore.isFailedAlert = true
-                                self.planetStore.failedAlertTitle = "Failed to load article"
-                                self.planetStore.failedAlertMessage = "Please try again later."
+                                self.planetStore.isAlert = true
+                                self.planetStore.alertTitle = "Failed to load article"
+                                self.planetStore.alertMessage = "Please try again later."
                             }
                         }
                     }

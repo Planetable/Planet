@@ -29,62 +29,64 @@ struct PlanetArticleListView: View {
                     }
                     return false
                 })) { article in
-                    NavigationLink(destination: PlanetArticleView(article: article)
-                                    .environmentObject(planetStore)
-                                    .frame(minWidth: 320), tag: article.id!.uuidString, selection: $planetStore.selectedArticle) {
-                        VStack {
-                            HStack {
-                                Text(article.title ?? "")
-                                    .fontWeight(articleListFontWeight(article: article))
-                                    .foregroundColor(.primary)
-                                Spacer()
-                            }
-                            HStack {
-                                Text(article.created?.dateDescription() ?? "")
-                                    .fontWeight(articleListFontWeight(article: article))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Spacer()
+                    if let articleID = article.id {
+                        NavigationLink(destination: PlanetArticleView(article: article)
+                                        .environmentObject(planetStore)
+                                        .frame(minWidth: 320), tag: articleID.uuidString, selection: $planetStore.selectedArticle) {
+                            VStack {
+                                HStack {
+                                    Text(article.title ?? "")
+                                        .fontWeight(articleListFontWeight(article: article))
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                }
+                                HStack {
+                                    Text(article.created?.dateDescription() ?? "")
+                                        .fontWeight(articleListFontWeight(article: article))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                }
                             }
                         }
-                    }
-                    .contextMenu {
-                        VStack {
-                            if articleIsMine() {
-                                Button {
-                                    launchWriter(forArticle: article)
-                                } label: {
-                                    Text("Update Article")
-                                }
-                                Button {
-                                    PlanetDataController.shared.removeArticle(article: article)
-                                } label: {
-                                    Text("Delete Article")
-                                }
-                                
-                                Divider()
-                                
-                                Button {
-                                    PlanetDataController.shared.refreshArticle(article)
-                                } label: {
-                                    Text("Refresh")
-                                }
-                            } else {
-                                Button {
-                                    if articleListFontWeight(article: article) == .bold {
-                                        PlanetManager.shared.updateArticleReadingStatus(article: article, read: true)
-                                    } else {
-                                        PlanetManager.shared.updateArticleReadingStatus(article: article, read: false)
+                        .contextMenu {
+                            VStack {
+                                if articleIsMine() {
+                                    Button {
+                                        launchWriter(forArticle: article)
+                                    } label: {
+                                        Text("Update Article")
                                     }
-                                } label: {
-                                    Text(articleListFontWeight(article: article) == .bold ? "Mark as Read" : "Mark as Unread")
+                                    Button {
+                                        PlanetDataController.shared.removeArticle(article: article)
+                                    } label: {
+                                        Text("Delete Article")
+                                    }
+                                    
+                                    Divider()
+                                    
+                                    Button {
+                                        PlanetDataController.shared.refreshArticle(article)
+                                    } label: {
+                                        Text("Refresh")
+                                    }
+                                } else {
+                                    Button {
+                                        if articleListFontWeight(article: article) == .bold {
+                                            PlanetManager.shared.updateArticleReadingStatus(article: article, read: true)
+                                        } else {
+                                            PlanetManager.shared.updateArticleReadingStatus(article: article, read: false)
+                                        }
+                                    } label: {
+                                        Text(articleListFontWeight(article: article) == .bold ? "Mark as Read" : "Mark as Unread")
+                                    }
                                 }
-                            }
 
-                            Button {
-                                PlanetDataController.shared.copyPublicLinkOfArticle(article)
-                            } label: {
-                                Text("Copy Public Link")
+                                Button {
+                                    PlanetDataController.shared.copyPublicLinkOfArticle(article)
+                                } label: {
+                                    Text("Copy Public Link")
+                                }
                             }
                         }
                     }

@@ -26,9 +26,14 @@ class PlanetStore: ObservableObject {
     @Published var isFollowingPlanet: Bool = false
     @Published var isShowingPlanetInfo: Bool = false
     
-    @Published var isFailedAlert: Bool = false
-    @Published var failedAlertTitle: String = ""
-    @Published var failedAlertMessage: String = ""
+    @Published var isImportingPlanet: Bool = false
+    @Published var importPath: URL!
+    @Published var isExportingPlanet: Bool = false
+    @Published var exportPath: URL!
+    
+    @Published var isAlert: Bool = false
+    @Published var alertTitle: String = ""
+    @Published var alertMessage: String = ""
     
     @Published var templatePaths: [URL] = []
     

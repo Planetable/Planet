@@ -31,6 +31,19 @@ struct PlanetMainView: View {
                         }
                     }
                 }
+                .fileImporter(isPresented: $planetStore.isImportingPlanet, allowedContentTypes: [.data, .package], allowsMultipleSelection: false, onCompletion: { result in
+                    if let urls = try? result.get(), let url = urls.first, url.pathExtension == "planet" {
+                        self.planetStore.importPath = url
+                        PlanetManager.shared.importCurrentPlanet()
+                        return
+                    }
+                    DispatchQueue.main.async {
+                        self.planetStore.isAlert = true
+                        self.planetStore.alertTitle = "Failed to Import Planet"
+                        self.planetStore.alertMessage = "Please try again."
+                        self.planetStore.importPath = nil
+                    }
+                })
             
             Text("No Planet Selected")
                 .foregroundColor(.secondary)
@@ -40,14 +53,26 @@ struct PlanetMainView: View {
                 .foregroundColor(.secondary)
                 .frame(minWidth: 320)
         }
-        .alert(isPresented: $planetStore.isFailedAlert) {
-            Alert(title: Text(planetStore.failedAlertTitle), message: Text(planetStore.failedAlertMessage), dismissButton: Alert.Button.cancel(Text("OK"), action: {
+        .alert(isPresented: $planetStore.isAlert) {
+            Alert(title: Text(planetStore.alertTitle), message: Text(planetStore.alertMessage), dismissButton: Alert.Button.cancel(Text("OK"), action: {
                 DispatchQueue.main.async {
-                    self.planetStore.failedAlertTitle = ""
-                    self.planetStore.failedAlertMessage = ""
+                    self.planetStore.alertTitle = ""
+                    self.planetStore.alertMessage = ""
                 }
             }))
         }
+        .fileImporter(isPresented: $planetStore.isExportingPlanet, allowedContentTypes: [.directory], allowsMultipleSelection: false, onCompletion: { result in
+            if let urls = try? result.get(), let url = urls.first {
+                self.planetStore.exportPath = url
+                PlanetManager.shared.exportCurrentPlanet()
+                return
+            }
+            DispatchQueue.main.async {
+                self.planetStore.alertTitle = "Failed to Export Planet"
+                self.planetStore.alertMessage = "Please try again."
+                self.planetStore.exportPath = nil
+            }
+        })
         .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
             
         } content: {

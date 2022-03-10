@@ -10,7 +10,7 @@ import SwiftUI
 import Cocoa
 
 
-struct PlanetFeed: Codable {
+struct PlanetFeed: Codable, Hashable {
     let id: UUID
     let ipns: String
     let created: Date
@@ -21,7 +21,7 @@ struct PlanetFeed: Codable {
 }
 
 
-struct PlanetFeedArticle: Codable {
+struct PlanetFeedArticle: Codable, Hashable {
     let id: UUID
     let created: Date
     let title: String

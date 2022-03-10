@@ -52,7 +52,7 @@ class PlanetDataController: NSObject {
         planet.id = id
         planet.type = .planet
         planet.created = Date()
-        planet.name = name
+        planet.name = name.sanitized()
         planet.about = about
         planet.keyName = keyName
         planet.keyID = keyID
@@ -443,9 +443,21 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func _articleExists(id: UUID) -> Bool {
+    private func _articleExists(id: UUID) -> Bool {
         let context = persistentContainer.viewContext
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "PlanetArticle")
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        do {
+            let count = try context.count(for: request)
+            return count != 0
+        } catch {
+            return false
+        }
+    }
+    
+    private func _planetExists(id: UUID) -> Bool {
+        let context = persistentContainer.viewContext
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Planet")
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         do {
             let count = try context.count(for: request)
