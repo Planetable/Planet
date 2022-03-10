@@ -498,7 +498,18 @@ class PlanetManager: NSObject {
     }
 
     func updateForPlanet(planet: Planet) async {
-        guard let id = planet.id, let name = planet.name, let ipns = planet.ipns, ipns.count == "k51qzi5uqu5dioq5on1s4oc3wg2t13w03xxsq32b1qovi61b6oi8pcyep2gsyf".count else { return }
+        guard
+            let id = planet.id,
+            let name = planet.name,
+            let ipns = planet.ipns,
+            ipns.count == "k51qzi5uqu5dioq5on1s4oc3wg2t13w03xxsq32b1qovi61b6oi8pcyep2gsyf".count
+            else { return }
+        
+        let type = planet.type
+
+        if type == .ens {
+            return
+        }
 
         // make sure you do not follow your own planet on the same Mac.
         guard !PlanetDataController.shared.getLocalIPNSs().contains(ipns) else {

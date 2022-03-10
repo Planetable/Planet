@@ -60,7 +60,12 @@ struct FollowPlanetView: View {
                     if PlanetDataController.shared.getFollowingIPNSs().contains(processedEndpoint()) {
                         return
                     }
-                    PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedEndpoint())
+                    // If endpoint ends with .eth, create it as a Type 1 Planet
+                    if processedEndpoint().hasSuffix(".eth") {
+                        PlanetDataController.shared.createPlanetENS(ens: processedEndpoint())
+                    } else {
+                        PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedEndpoint())
+                    }
                 } label: {
                     Text("Follow")
                 }

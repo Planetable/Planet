@@ -66,22 +66,21 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func createPlanetENS(withID id: UUID, name: String, about: String, ipfs: String?, ens: String?) {
+    func createPlanetENS(ens: String) {
         let ctx = persistentContainer.newBackgroundContext()
         let planet = Planet(context: ctx)
-        planet.id = id
+        planet.id = UUID()
         planet.type = .ens
         planet.created = Date()
-        planet.name = name
-        planet.about = about
-        planet.ipfs = ipfs
+        planet.name = ens
+        planet.about = ""
         planet.ens = ens
         do {
             try ctx.save()
-            debugPrint("planet created: \(planet.ens)")
+            debugPrint("ENS planet created: \(ens)")
             PlanetManager.shared.setupDirectory(forPlanet: planet)
         } catch {
-            debugPrint("failed to create new planet: \(planet.ens), error: \(error)")
+            debugPrint("failed to create new planet: \(ens), error: \(error)")
         }
     }
 
