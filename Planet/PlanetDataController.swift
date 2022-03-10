@@ -382,14 +382,6 @@ class PlanetDataController: NSObject {
             }
         }
     }
-    
-    func exportPlanet(toTargetPath path: URL) {
-        
-    }
-    
-    func importPlanet(fromPath path: URL) {
-        
-    }
 
     func resetDatabase() {
         let context = persistentContainer.viewContext
@@ -410,7 +402,7 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func _articleExists(id: UUID) -> Bool {
+    private func _articleExists(id: UUID) -> Bool {
         let context = persistentContainer.viewContext
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "PlanetArticle")
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -422,7 +414,7 @@ class PlanetDataController: NSObject {
         }
     }
     
-    func _planetExists(id: UUID) -> Bool {
+    private func _planetExists(id: UUID) -> Bool {
         let context = persistentContainer.viewContext
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Planet")
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)

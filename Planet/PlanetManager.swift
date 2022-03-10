@@ -681,6 +681,16 @@ class PlanetManager: NSObject {
         do {
             let planetInfoData = try Data.init(contentsOf: importPlanetInfoPath)
             let planetInfo = try decoder.decode(PlanetFeed.self, from: planetInfoData)
+            
+            if PlanetDataController.shared.getPlanet(id: planetInfo.id) != nil {
+                DispatchQueue.main.async {
+                    PlanetStore.shared.isAlert = true
+                    PlanetStore.shared.alertTitle = "Failed to Import Planet"
+                    PlanetStore.shared.alertMessage = "The planet '\(planetInfo.name)' exists."
+                }
+                return
+            }
+            
             let planetDirectories = try FileManager.default.contentsOfDirectory(at: importPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter({ u in
                 return u.hasDirectoryPath
             })
