@@ -49,7 +49,7 @@ class PlanetDataController: NSObject {
         let planet = Planet(context: ctx)
         planet.id = id
         planet.created = Date()
-        planet.name = name
+        planet.name = name.sanitized()
         planet.about = about
         planet.keyName = keyName
         planet.keyID = keyID

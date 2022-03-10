@@ -646,35 +646,154 @@ class PlanetManager: NSObject {
         }
     }
     
+    @MainActor
     func importCurrentPlanet() {
+        guard let importPath = PlanetStore.shared.importPath else {
+            DispatchQueue.main.async {
+                PlanetStore.shared.isAlert = true
+                PlanetStore.shared.alertTitle = "Failed to Import Planet"
+                PlanetStore.shared.alertMessage = "Please choose a planet data file to import."
+            }
+            return
+        }
         
+        let importPlanetInfoPath = importPath.appendingPathComponent("planet.json")
+        guard FileManager.default.fileExists(atPath: importPlanetInfoPath.path) else {
+            DispatchQueue.main.async {
+                PlanetStore.shared.isAlert = true
+                PlanetStore.shared.alertTitle = "Failed to Import Planet"
+                PlanetStore.shared.alertMessage = "The planet data file is damaged."
+            }
+            return
+        }
+        
+        let importPlanetKeyPath = importPath.appendingPathComponent("planet.key")
+        guard FileManager.default.fileExists(atPath: importPlanetKeyPath.path) else {
+            DispatchQueue.main.async {
+                PlanetStore.shared.isAlert = true
+                PlanetStore.shared.alertTitle = "Failed to Import Planet"
+                PlanetStore.shared.alertMessage = "The planet data file is damaged."
+            }
+            return
+        }
+        
+        let decoder = JSONDecoder()
+        do {
+            let planetInfoData = try Data.init(contentsOf: importPlanetInfoPath)
+            let planetInfo = try decoder.decode(PlanetFeed.self, from: planetInfoData)
+            let planetDirectories = try FileManager.default.contentsOfDirectory(at: importPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter({ u in
+                return u.hasDirectoryPath
+            })
+
+            // import planet key if needed
+            let targetPath = _ipfsPath()
+            let configPath = _configPath()
+            let importPlanetKeyName = planetInfo.id.uuidString
+            let importPlanetKeyPath = importPath.appendingPathComponent("planet.key")
+            try runCommand(command: .ipfsImportKey(target: targetPath, config: configPath, keyName: importPlanetKeyName, targetPath: importPlanetKeyPath))
+            
+            // create planet
+            PlanetDataController.shared.createPlanet(withID: planetInfo.id, name: planetInfo.name, about: planetInfo.about, keyName: planetInfo.id.uuidString, keyID: planetInfo.ipns, ipns: planetInfo.ipns)
+            
+            // create planet directory if needed
+            let targetPlanetPath = _planetsPath().appendingPathComponent(planetInfo.id.uuidString)
+            if !FileManager.default.fileExists(atPath: targetPlanetPath.path) {
+                try FileManager.default.createDirectory(at: targetPlanetPath, withIntermediateDirectories: true, attributes: nil)
+            }
+            
+            // copy planet.json
+            try FileManager.default.copyItem(at: importPlanetInfoPath, to: targetPlanetPath.appendingPathComponent("planet.json"))
+            
+            // copy avatar.png if exists
+            let importPlanetAvatarPath = importPath.appendingPathComponent("avatar.png")
+            if FileManager.default.fileExists(atPath: importPlanetAvatarPath.path) {
+                try FileManager.default.copyItem(at: importPlanetAvatarPath, to: targetPlanetPath.appendingPathComponent("avatar.png"))
+            }
+
+            // import planet directory from feed, ignore publish status.
+            let decoder: JSONDecoder = JSONDecoder()
+            var targetArticles: Set<PlanetFeedArticle> = Set()
+            for planetDirectory in planetDirectories {
+                let articleJSONPath = planetDirectory.appendingPathComponent("article.json")
+                let articleJSONData = try Data(contentsOf: articleJSONPath)
+                let article = try decoder.decode(PlanetFeedArticle.self, from: articleJSONData)
+                try FileManager.default.copyItem(at: planetDirectory, to: targetPlanetPath.appendingPathComponent(planetDirectory.lastPathComponent))
+                targetArticles.insert(article)
+            }
+            if targetArticles.count > 0 {
+                let articles: [PlanetFeedArticle] = Array(targetArticles)
+                Task.init(priority: .background) {
+                    await PlanetDataController.shared.batchCreateArticles(articles: articles, planetID: planetInfo.id)
+                }
+            }
+            
+            DispatchQueue.main.async {
+                PlanetStore.shared.isAlert = true
+                PlanetStore.shared.alertTitle = "Planet Imported"
+                PlanetStore.shared.alertMessage = "\(planetInfo.name)"
+            }
+        } catch {
+            DispatchQueue.main.async {
+                PlanetStore.shared.isAlert = true
+                PlanetStore.shared.alertTitle = "Failed to Import Planet"
+                PlanetStore.shared.alertMessage = error.localizedDescription
+            }
+        }
     }
     
     @MainActor
     func exportCurrentPlanet() {
-        guard let planet = PlanetStore.shared.currentPlanet, planet.isMyPlanet() else {
+        guard let planet = PlanetStore.shared.currentPlanet, planet.isMyPlanet(), let planetID = planet.id, let planetName = planet.name, let planetKeyName = planet.keyName else {
             DispatchQueue.main.async {
-                PlanetStore.shared.isFailedAlert = true
-                PlanetStore.shared.failedAlertTitle = "Failed to Export Planet"
-                PlanetStore.shared.failedAlertMessage = "Unable to prepare for current selected planet, please make sure the planet you selected is ready to export then try again."
+                PlanetStore.shared.isAlert = true
+                PlanetStore.shared.alertTitle = "Failed to Export Planet"
+                PlanetStore.shared.alertMessage = "Unable to prepare for current selected planet, please make sure the planet you selected is ready to export then try again."
             }
             return
         }
         
         guard let exportPath = PlanetStore.shared.exportPath else {
-            PlanetStore.shared.isFailedAlert = true
-            PlanetStore.shared.failedAlertTitle = "Failed to Export Planet"
-            PlanetStore.shared.failedAlertMessage = "Please choose the export path then try again."
+            DispatchQueue.main.async {
+                PlanetStore.shared.isAlert = true
+                PlanetStore.shared.alertTitle = "Failed to Export Planet"
+                PlanetStore.shared.alertMessage = "Please choose the export path then try again."
+            }
             return
         }
         
-        debugPrint("exporting planet \(planet), to path: \(exportPath)")
-        /*
-         sample_planet.planet
-            - planet.json
-            - planet.key
-            - planets/
-         */
+        let exportPlanetPath = exportPath.appendingPathComponent("\(planetName.sanitized()).planet")
+        guard FileManager.default.fileExists(atPath: exportPlanetPath.path) == false else {
+            DispatchQueue.main.async {
+                PlanetStore.shared.isAlert = true
+                PlanetStore.shared.alertTitle = "Failed to Export Planet"
+                PlanetStore.shared.alertMessage = "Export path exists, please choose another export path then try again."
+            }
+            return
+        }
+        
+        let currentPlanetPath = _planetsPath().appendingPathComponent(planetID.uuidString)
+        do {
+            try FileManager.default.copyItem(at: currentPlanetPath, to: exportPlanetPath)
+        } catch {
+            DispatchQueue.main.async {
+                PlanetStore.shared.isAlert = true
+                PlanetStore.shared.alertTitle = "Failed to Export Planet"
+                PlanetStore.shared.alertMessage = error.localizedDescription
+            }
+            return
+        }
+        
+        let targetPath = _ipfsPath()
+        let configPath = _configPath()
+        let exportPlanetKeyPath = exportPlanetPath.appendingPathComponent("planet.key")
+        do {
+            try runCommand(command: .ipfsExportKey(target: targetPath, config: configPath, keyName: planetKeyName, targetPath: exportPlanetKeyPath))
+        } catch {
+            debugPrint("failed to export planet key: \(error)")
+            return
+        }
+        
+        NSWorkspace.shared.activateFileViewerSelecting([exportPlanetPath])
     }
 
     // MARK: - Private -
