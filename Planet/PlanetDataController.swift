@@ -66,7 +66,7 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func createPlanetENS(ens: String) {
+    func createPlanetENS(ens: String) -> Planet? {
         let ctx = persistentContainer.newBackgroundContext()
         let planet = Planet(context: ctx)
         planet.id = UUID()
@@ -79,8 +79,57 @@ class PlanetDataController: NSObject {
             try ctx.save()
             debugPrint("ENS planet created: \(ens)")
             PlanetManager.shared.setupDirectory(forPlanet: planet)
+            return planet
         } catch {
             debugPrint("failed to create new planet: \(ens), error: \(error)")
+            return nil
+        }
+    }
+
+    func checkUpdateForPlanetENS(planet: Planet) async {
+        if let id = planet.id, let ens = planet.ens {
+            let url = URL(string: "http://192.168.1.200:3000/ens/\(ens)")!
+            debugPrint("Trying to parse ENS: \(planet.ens!) with API url: \(url)")
+            do {
+                let (data, response) = try! await URLSession.shared.data(from: url)
+                debugPrint("ENS metadata retrieved: \(String(data: data, encoding: .utf8) ?? "")")
+                let json = try? JSONSerialization.jsonObject(with: data, options: [])
+                if let dictionary = json as? [String: Any] {
+                    if let contentHash = dictionary["content_hash"] as? String {
+                        debugPrint("ENS IPFS content hash found: \(contentHash)")
+                        if contentHash.hasPrefix("ipfs://") {
+                            let ipfs = contentHash.replacingOccurrences(of: "ipfs://", with: "")
+                            updatePlanetENSContentHash(forID: id, contentHash: ipfs)
+                            await checkContentUpdateForPlanetENS(forID: id, ipfs: ipfs)
+                        } else {
+                            debugPrint("ENS content hash is not an IPFS hash: \(contentHash)")
+                        }
+                    }
+                }
+            } catch {
+                debugPrint("Error loading ENS metadata: \(url): \(String(describing: error))")
+            }
+        }
+    }
+
+    func checkContentUpdateForPlanetENS(forID id: UUID, ipfs: String) async {
+        let url = URL(string: "http://127.0.0.1:\(PlanetManager.shared.gatewayPort)/ipfs/\(ipfs)")!
+        debugPrint("Trying to access IPFS content: \(url)")
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    debugPrint("IPFS content returns 200 OK: \(url)")
+                    // Try detect if there is a feed
+                    // The better way would be to parse the HTML and check if it has a feed
+                    let feedURL = URL(string: "http://127.0.0.1:\(PlanetManager.shared.gatewayPort)/ipfs/\(ipfs)/feed.xml")!
+                } else {
+                    debugPrint("IPFS content returns \(httpResponse.statusCode): \(url)")
+                }
+            }
+        }
+        catch {
+           debugPrint("Error loading IPFS content: \(url): \(String(describing: error))")
         }
     }
 
@@ -101,6 +150,18 @@ class PlanetDataController: NSObject {
             debugPrint("planet updated: \(planet)")
         } catch {
             debugPrint("failed to update planet: \(planet), error: \(error)")
+        }
+    }
+
+    func updatePlanetENSContentHash(forID id: UUID, contentHash: String) {
+        let ctx = persistentContainer.newBackgroundContext()
+        guard let planet = getPlanet(id: id) else { return }
+        planet.ipfs = contentHash
+        do {
+            try ctx.save()
+            debugPrint("ENS planet IPFS content hash updated: \(planet.name) \(contentHash)")
+        } catch {
+            debugPrint("failed to update planet: \(planet.name), error: \(error)")
         }
     }
 
@@ -454,7 +515,7 @@ class PlanetDataController: NSObject {
             return false
         }
     }
-    
+
     private func _planetExists(id: UUID) -> Bool {
         let context = persistentContainer.viewContext
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Planet")

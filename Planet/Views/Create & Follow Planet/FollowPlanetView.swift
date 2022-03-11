@@ -60,9 +60,11 @@ struct FollowPlanetView: View {
                     if PlanetDataController.shared.getFollowingIPNSs().contains(processedEndpoint()) {
                         return
                     }
-                    // If endpoint ends with .eth, create it as a Type 1 Planet
+                    // If endpoint ends with .eth, create it as a Type 1 ENS Planet
                     if processedEndpoint().hasSuffix(".eth") {
-                        PlanetDataController.shared.createPlanetENS(ens: processedEndpoint())
+                        if let planet = PlanetDataController.shared.createPlanetENS(ens: processedEndpoint()) {
+
+                        }
                     } else {
                         PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedEndpoint())
                     }

@@ -53,7 +53,7 @@ class PlanetManager: NSObject {
         }
     }
 
-    private var gatewayPort: String = "" {
+    var gatewayPort: String = "" {
         didSet {
             guard gatewayPort != "" else { return }
             debugPrint("gateway port updated.")
@@ -498,18 +498,22 @@ class PlanetManager: NSObject {
     }
 
     func updateForPlanet(planet: Planet) async {
+        print("update for planet: \(planet) (type: \(planet.type))")
+
+        if planet.type == .ens {
+            debugPrint("Going to update ENS planet: \(planet.ens!)")
+            Task.init(priority: .background) {
+                await PlanetDataController.shared.checkUpdateForPlanetENS(planet: planet)
+            }
+            return
+        }
+
         guard
             let id = planet.id,
             let name = planet.name,
             let ipns = planet.ipns,
             ipns.count == "k51qzi5uqu5dioq5on1s4oc3wg2t13w03xxsq32b1qovi61b6oi8pcyep2gsyf".count
             else { return }
-        
-        let type = planet.type
-
-        if type == .ens {
-            return
-        }
 
         // make sure you do not follow your own planet on the same Mac.
         guard !PlanetDataController.shared.getLocalIPNSs().contains(ipns) else {
@@ -657,7 +661,7 @@ class PlanetManager: NSObject {
             await checkPeersStatus()
         }
     }
-    
+
     @MainActor
     func importCurrentPlanet() {
         guard let importPath = PlanetStore.shared.importPath else {
@@ -668,7 +672,7 @@ class PlanetManager: NSObject {
             }
             return
         }
-        
+
         let importPlanetInfoPath = importPath.appendingPathComponent("planet.json")
         guard FileManager.default.fileExists(atPath: importPlanetInfoPath.path) else {
             DispatchQueue.main.async {
@@ -678,7 +682,7 @@ class PlanetManager: NSObject {
             }
             return
         }
-        
+
         let importPlanetKeyPath = importPath.appendingPathComponent("planet.key")
         guard FileManager.default.fileExists(atPath: importPlanetKeyPath.path) else {
             DispatchQueue.main.async {
@@ -688,12 +692,12 @@ class PlanetManager: NSObject {
             }
             return
         }
-        
+
         let decoder = JSONDecoder()
         do {
             let planetInfoData = try Data.init(contentsOf: importPlanetInfoPath)
             let planetInfo = try decoder.decode(PlanetFeed.self, from: planetInfoData)
-            
+
             if PlanetDataController.shared.getPlanet(id: planetInfo.id) != nil {
                 DispatchQueue.main.async {
                     PlanetStore.shared.isAlert = true
@@ -702,7 +706,7 @@ class PlanetManager: NSObject {
                 }
                 return
             }
-            
+
             let planetDirectories = try FileManager.default.contentsOfDirectory(at: importPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter({ u in
                 return u.hasDirectoryPath
             })
@@ -713,19 +717,19 @@ class PlanetManager: NSObject {
             let importPlanetKeyName = planetInfo.id.uuidString
             let importPlanetKeyPath = importPath.appendingPathComponent("planet.key")
             try runCommand(command: .ipfsImportKey(target: targetPath, config: configPath, keyName: importPlanetKeyName, targetPath: importPlanetKeyPath))
-            
+
             // create planet
             PlanetDataController.shared.createPlanet(withID: planetInfo.id, name: planetInfo.name, about: planetInfo.about, keyName: planetInfo.id.uuidString, keyID: planetInfo.ipns, ipns: planetInfo.ipns)
-            
+
             // create planet directory if needed
             let targetPlanetPath = _planetsPath().appendingPathComponent(planetInfo.id.uuidString)
             if !FileManager.default.fileExists(atPath: targetPlanetPath.path) {
                 try FileManager.default.createDirectory(at: targetPlanetPath, withIntermediateDirectories: true, attributes: nil)
             }
-            
+
             // copy planet.json
             try FileManager.default.copyItem(at: importPlanetInfoPath, to: targetPlanetPath.appendingPathComponent("planet.json"))
-            
+
             // copy avatar.png if exists
             let importPlanetAvatarPath = importPath.appendingPathComponent("avatar.png")
             if FileManager.default.fileExists(atPath: importPlanetAvatarPath.path) {
@@ -748,7 +752,7 @@ class PlanetManager: NSObject {
                     await PlanetDataController.shared.batchCreateArticles(articles: articles, planetID: planetInfo.id)
                 }
             }
-            
+
             DispatchQueue.main.async {
                 PlanetStore.shared.isAlert = true
                 PlanetStore.shared.alertTitle = "Planet Imported"
@@ -762,7 +766,7 @@ class PlanetManager: NSObject {
             }
         }
     }
-    
+
     @MainActor
     func exportCurrentPlanet() {
         guard let planet = PlanetStore.shared.currentPlanet, planet.isMyPlanet(), let planetID = planet.id, let planetName = planet.name, let planetKeyName = planet.keyName else {
@@ -773,7 +777,7 @@ class PlanetManager: NSObject {
             }
             return
         }
-        
+
         guard let exportPath = PlanetStore.shared.exportPath else {
             DispatchQueue.main.async {
                 PlanetStore.shared.isAlert = true
@@ -782,7 +786,7 @@ class PlanetManager: NSObject {
             }
             return
         }
-        
+
         let exportPlanetPath = exportPath.appendingPathComponent("\(planetName.sanitized()).planet")
         guard FileManager.default.fileExists(atPath: exportPlanetPath.path) == false else {
             DispatchQueue.main.async {
@@ -792,7 +796,7 @@ class PlanetManager: NSObject {
             }
             return
         }
-        
+
         let currentPlanetPath = _planetsPath().appendingPathComponent(planetID.uuidString)
         do {
             try FileManager.default.copyItem(at: currentPlanetPath, to: exportPlanetPath)
@@ -804,7 +808,7 @@ class PlanetManager: NSObject {
             }
             return
         }
-        
+
         let targetPath = _ipfsPath()
         let configPath = _configPath()
         let exportPlanetKeyPath = exportPlanetPath.appendingPathComponent("planet.key")
@@ -814,7 +818,7 @@ class PlanetManager: NSObject {
             debugPrint("failed to export planet key: \(error)")
             return
         }
-        
+
         NSWorkspace.shared.activateFileViewerSelecting([exportPlanetPath])
     }
 
