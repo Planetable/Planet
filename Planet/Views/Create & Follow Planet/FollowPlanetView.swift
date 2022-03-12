@@ -63,7 +63,9 @@ struct FollowPlanetView: View {
                     // If endpoint ends with .eth, create it as a Type 1 ENS Planet
                     if processedEndpoint().hasSuffix(".eth") {
                         if let planet = PlanetDataController.shared.createPlanetENS(ens: processedEndpoint()) {
-
+                            Task.init(priority: .background) {
+                                await PlanetDataController.shared.checkUpdateForPlanetENS(planet: planet)
+                            }
                         }
                     } else {
                         PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedEndpoint())

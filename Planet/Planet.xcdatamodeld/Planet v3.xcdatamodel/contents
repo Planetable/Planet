@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19574" systemVersion="21D62" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Planet" representedClassName=".Planet" syncable="YES" codeGenerationType="category">
+        <attribute name="about" optional="YES" attributeType="String"/>
+        <attribute name="created" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="dns" optional="YES" attributeType="String"/>
+        <attribute name="dnslink" optional="YES" attributeType="String"/>
+        <attribute name="ens" optional="YES" attributeType="String"/>
+        <attribute name="feedAddress" optional="YES" attributeType="String"/>
+        <attribute name="feedSHA256" optional="YES" attributeType="String"/>
+        <attribute name="feedTypeValue" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="ipfs" optional="YES" attributeType="String"/>
+        <attribute name="ipns" optional="YES" attributeType="String"/>
+        <attribute name="keyID" optional="YES" attributeType="String"/>
+        <attribute name="keyName" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="typeValue" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="PlanetArticle" representedClassName=".PlanetArticle" syncable="YES" codeGenerationType="category">
+        <attribute name="content" optional="YES" attributeType="String"/>
+        <attribute name="created" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="link" optional="YES" attributeType="String"/>
+        <attribute name="planetID" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="read" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="title" attributeType="String"/>
+    </entity>
+    <elements>
+        <element name="Planet" positionX="-63" positionY="-18" width="128" height="254"/>
+        <element name="PlanetArticle" positionX="-54" positionY="45" width="128" height="134"/>
+    </elements>
+</model>

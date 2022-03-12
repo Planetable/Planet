@@ -26,6 +26,7 @@ struct PlanetFeedArticle: Codable, Hashable {
     let created: Date
     let title: String
     var content: String?
+    var link: String?
 }
 
 
@@ -125,7 +126,7 @@ extension Planet {
         }
         return false
     }
-    
+
     var type: PlanetType {
         get {
             return PlanetType(rawValue: self.typeValue)!
@@ -135,7 +136,7 @@ extension Planet {
             self.typeValue = newValue.rawValue
         }
     }
-    
+
     var feedType: FeedType {
         get {
             return FeedType(rawValue: self.feedTypeValue)!
@@ -145,8 +146,8 @@ extension Planet {
             self.feedTypeValue = newValue.rawValue
         }
     }
-    
-    
+
+
 
     func generateAvatarName() -> String {
         guard let name = name else {
@@ -194,6 +195,7 @@ class PlanetArticle: NSManagedObject, Codable {
         case title
         case content
         case planetID
+        case link
     }
 
     required convenience init(from decoder: Decoder) throws {
@@ -209,6 +211,7 @@ class PlanetArticle: NSManagedObject, Codable {
         read = try container.decode(Date.self, forKey: .read)
         title = try container.decode(String.self, forKey: .title)
         content = try container.decode(String.self, forKey: .content)
+        link = try container.decode(String.self, forKey: .link)
         planetID = try container.decode(UUID.self, forKey: .planetID)
     }
 
@@ -218,6 +221,7 @@ class PlanetArticle: NSManagedObject, Codable {
         try container.encode(created, forKey: .created)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
+        try container.encode(link, forKey: .link)
         try container.encode(planetID, forKey: .planetID)
     }
 }

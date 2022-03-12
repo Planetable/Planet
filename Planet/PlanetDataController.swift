@@ -8,6 +8,7 @@
 import SwiftUI
 import Foundation
 import CoreData
+import FeedKit
 
 
 enum PublicGateway: String {
@@ -123,6 +124,9 @@ class PlanetDataController: NSObject {
                     // Try detect if there is a feed
                     // The better way would be to parse the HTML and check if it has a feed
                     let feedURL = URL(string: "http://127.0.0.1:\(PlanetManager.shared.gatewayPort)/ipfs/\(ipfs)/feed.xml")!
+                    Task.init(priority: .background) {
+                        await parseFeedForPlanet(forID: id, feedURL: feedURL)
+                    }
                 } else {
                     debugPrint("IPFS content returns \(httpResponse.statusCode): \(url)")
                 }
@@ -130,6 +134,40 @@ class PlanetDataController: NSObject {
         }
         catch {
            debugPrint("Error loading IPFS content: \(url): \(String(describing: error))")
+        }
+    }
+
+    func parseFeedForPlanet(forID id: UUID, feedURL: URL) async {
+        let parser = FeedParser(URL: feedURL)
+        parser.parseAsync(queue: DispatchQueue.global(qos: .userInitiated)) { (result) in
+            // Do your thing, then back to the Main thread
+            switch result {
+                case .success(let feed):
+                    switch feed {
+                        case let .atom(feed):       // Atom Syndication Format Feed Model
+                            debugPrint(feed)
+                        case let .rss(feed):        // Really Simple Syndication Feed Model
+                            var articles: [PlanetFeedArticle] = []
+                            for item in feed.items! {
+                                guard let itemLink = URL(string: item.link!) else { continue }
+                                guard let itemTitle = item.title else { continue }
+                                let itemDescription = item.description ?? ""
+                                let itemPubdate = item.pubDate ?? Date()
+                                debugPrint("\(itemTitle) \(itemLink.path)")
+                                let a = PlanetFeedArticle(id: UUID(), created: itemPubdate, title: itemTitle, content: itemDescription, link: itemLink.path)
+                                articles.append(a)
+                            }
+                            debugPrint("RSS: Found \(articles.count) articles")
+                            PlanetDataController.shared.batchCreateRSSArticles(articles: articles, planetID: id)
+                        case let .json(feed):       // JSON Feed Model
+                            debugPrint(feed)
+                    }
+                case .failure(let error):
+                    print(error)
+                }
+            DispatchQueue.main.async {
+                // ..and update the UI
+            }
         }
     }
 
@@ -180,14 +218,15 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String) async {
+    func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String, link: String) async {
         guard _articleExists(id: id) == false else { return }
         let ctx = persistentContainer.newBackgroundContext()
         let article = PlanetArticle(context: ctx)
-        article.id = id
+        article.id = UUID()
         article.planetID = planetID
         article.title = title
         article.content = content
+        article.link = link
         article.created = Date()
         do {
             try ctx.save()
@@ -206,6 +245,7 @@ class PlanetDataController: NSObject {
             let a = PlanetDataController.shared.getArticle(id: article.id)
             if a != nil {
                 a!.title = article.title
+                a!.link = article.link ?? "/\(a!.id)/"
             }
         }
         do {
@@ -221,14 +261,37 @@ class PlanetDataController: NSObject {
         let ctx = persistentContainer.newBackgroundContext()
         for article in articles {
             let a = PlanetArticle(context: ctx)
-            a.id = article.id
+            a.id = UUID()
             a.planetID = planetID
             a.title = article.title
+            a.link = article.link
             a.created = article.created
         }
         do {
             try ctx.save()
             debugPrint("planet articles created: \(articles)")
+            // MARK: TODO: cache following planets' articles.
+        } catch {
+            debugPrint("failed to batch create new planet articles: \(articles), error: \(error)")
+        }
+    }
+
+    func batchCreateRSSArticles(articles: [PlanetFeedArticle], planetID: UUID) {
+        let ctx = persistentContainer.newBackgroundContext()
+        for article in articles {
+            let a = PlanetDataController.shared.getArticle(link: article.link!, planetID: planetID)
+            if a == nil {
+                let newArticle = PlanetArticle(context: ctx)
+                newArticle.id = UUID()
+                newArticle.planetID = planetID
+                newArticle.title = article.title
+                newArticle.link = article.link
+                newArticle.created = article.created
+            }
+        }
+        do {
+            try ctx.save()
+            debugPrint("planet RSS articles created: \(articles)")
             // MARK: TODO: cache following planets' articles.
         } catch {
             debugPrint("failed to batch create new planet articles: \(articles), error: \(error)")
@@ -352,6 +415,21 @@ class PlanetDataController: NSObject {
             return try context.fetch(request).first
         } catch {
             debugPrint("failed to get article: \(error), target uuid: \(id)")
+        }
+        return nil
+    }
+
+    func getArticle(link: String, planetID: UUID) -> PlanetArticle? {
+        let request: NSFetchRequest<PlanetArticle> = PlanetArticle.fetchRequest()
+        let predicate1: NSPredicate = NSPredicate(format: "link == %@", link as CVarArg)
+        let predicate2: NSPredicate = NSPredicate(format: "planetID == %@", planetID as CVarArg)
+        let predicateCompound = NSCompoundPredicate.init(type: .and, subpredicates: [predicate1, predicate2])
+        request.predicate = predicateCompound
+        let context = persistentContainer.viewContext
+        do {
+            return try context.fetch(request).first
+        } catch {
+            debugPrint("failed to get article: \(error), link: \(link), planetID: \(planetID)")
         }
         return nil
     }
@@ -508,6 +586,21 @@ class PlanetDataController: NSObject {
         let context = persistentContainer.viewContext
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "PlanetArticle")
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        do {
+            let count = try context.count(for: request)
+            return count != 0
+        } catch {
+            return false
+        }
+    }
+
+    private func _articleExists(link: String, planetID: UUID) -> Bool {
+        let context = persistentContainer.viewContext
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "PlanetArticle")
+        let predicate1: NSPredicate = NSPredicate(format: "link == %@", link as CVarArg)
+        let predicate2: NSPredicate = NSPredicate(format: "planetID == %@", planetID as CVarArg)
+        let predicateCompound = NSCompoundPredicate.init(type: .and, subpredicates: [predicate1, predicate2])
+        request.predicate = predicateCompound
         do {
             let count = try context.count(for: request)
             return count != 0

@@ -328,7 +328,8 @@ class PlanetManager: NSObject {
 
     func articleURL(article: PlanetArticle) async -> URL? {
         guard let articleID = article.id, let planetID = article.planetID else { return nil }
-        guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!), let ipns = planet.ipns else { return nil }
+        guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!) else { return nil }
+        let ipns = planet.ipns
         if planet.isMyPlanet() {
             let articlePath = _planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
             if !FileManager.default.fileExists(atPath: articlePath.path) {
@@ -339,8 +340,18 @@ class PlanetManager: NSObject {
             }
             return articlePath
         } else {
-            let prefixString = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns
-            let urlString: String = prefixString + "/" + articleID.uuidString + "/" + "index.html"
+            debugPrint("Trying to get article URL")
+            let urlString: String = {
+                switch (planet.type) {
+                    case .planet:
+                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns)/\(article.id)/index.html"
+                    case .ens:
+                        return "http://127.0.0.1:\(gatewayPort)/ipfs/\(planet.ipfs!)\(article.link!)"
+                    default:
+                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns)/\(article.id)/index.html"
+                }
+            }()
+            debugPrint("Article URL string: \(urlString)")
             if let url = URL(string: urlString) {
                 let request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 15)
                 do {
@@ -449,7 +460,7 @@ class PlanetManager: NSObject {
         }
         let articles = PlanetDataController.shared.getArticles(byPlanetID: id)
         let feedArticles: [PlanetFeedArticle] = articles.map() { t in
-            let feedArticle: PlanetFeedArticle = PlanetFeedArticle(id: t.id!, created: t.created!, title: t.title ?? "", content: t.content ?? "")
+            let feedArticle: PlanetFeedArticle = PlanetFeedArticle(id: t.id!, created: t.created!, title: t.title ?? "", content: t.content ?? "", link: "/\(t.id!)/")
             return feedArticle
         }
         let feed = PlanetFeed(id: id, ipns: planet.ipns!, created: planet.created!, updated: now, name: planet.name ?? "", about: planet.about ?? "", articles: feedArticles)

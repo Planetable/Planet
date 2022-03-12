@@ -88,7 +88,7 @@ struct PlanetWriterView: View {
         let planetID = articleID
         let createdArticleID = UUID()
         Task.init(priority: .utility) {
-            await PlanetDataController.shared.createArticle(withID: createdArticleID, forPlanet: planetID, title: title, content: content)
+            await PlanetDataController.shared.createArticle(withID: createdArticleID, forPlanet: planetID, title: title, content: content, link: "/\(createdArticleID)/")
         }
         DispatchQueue.main.async {
             if PlanetStore.shared.writerIDs.contains(articleID) {

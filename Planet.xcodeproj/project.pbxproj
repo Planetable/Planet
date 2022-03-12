@@ -36,6 +36,7 @@
 		2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */; };
 		6A0172E827C9EE05006154B7 /* Basic.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A0172E727C9EE05006154B7 /* Basic.html */; };
 		6A0172EB27C9FD5F006154B7 /* Ink in Frameworks */ = {isa = PBXBuildFile; productRef = 6A0172EA27C9FD5F006154B7 /* Ink */; };
+		6AA2BC3127DBD44100AC96B5 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6AA2BC3027DBD44100AC96B5 /* FeedKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -69,6 +70,7 @@
 		2AF1318627C7CDAF007792FE /* PlanetArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleView.swift; sourceTree = "<group>"; };
 		2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = TemplatePlaceholder.html; sourceTree = "<group>"; };
 		6A0172E727C9EE05006154B7 /* Basic.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Basic.html; sourceTree = "<group>"; };
+		6AA2BC3227DC09AE00AC96B5 /* Planet v3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v3.xcdatamodel"; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -77,6 +79,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6AA2BC3127DBD44100AC96B5 /* FeedKit in Frameworks */,
 				2AC4996C27BB99DC00F1C2D1 /* Stencil in Frameworks */,
 				6A0172EB27C9FD5F006154B7 /* Ink in Frameworks */,
 			);
@@ -196,6 +199,7 @@
 			packageProductDependencies = (
 				2AC4996B27BB99DC00F1C2D1 /* Stencil */,
 				6A0172EA27C9FD5F006154B7 /* Ink */,
+				6AA2BC3027DBD44100AC96B5 /* FeedKit */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -228,6 +232,7 @@
 			packageReferences = (
 				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */,
 				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */,
+				6AA2BC2F27DBD44000AC96B5 /* XCRemoteSwiftPackageReference "FeedKit" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -501,6 +506,14 @@
 				minimumVersion = 0.5.1;
 			};
 		};
+		6AA2BC2F27DBD44000AC96B5 /* XCRemoteSwiftPackageReference "FeedKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nmdias/FeedKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -514,16 +527,22 @@
 			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */;
 			productName = Ink;
 		};
+		6AA2BC3027DBD44100AC96B5 /* FeedKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6AA2BC2F27DBD44000AC96B5 /* XCRemoteSwiftPackageReference "FeedKit" */;
+			productName = FeedKit;
+		};
 /* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		2AC4997227BC0EBA00F1C2D1 /* Planet.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				6AA2BC3227DC09AE00AC96B5 /* Planet v3.xcdatamodel */,
 				6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */,
 				2AC4997327BC0EBA00F1C2D1 /* Planet.xcdatamodel */,
 			);
-			currentVersion = 6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */;
+			currentVersion = 6AA2BC3227DC09AE00AC96B5 /* Planet v3.xcdatamodel */;
 			path = Planet.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
