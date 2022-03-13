@@ -2,12 +2,30 @@
   "object": {
     "pins": [
       {
+        "package": "CodeEditor",
+        "repositoryURL": "https://github.com/ZeeZide/CodeEditor.git",
+        "state": {
+          "branch": "main",
+          "revision": "39f457f9ddeb5ee27a7dc035e9c9c8c40be25c37",
+          "version": null
+        }
+      },
+      {
         "package": "FeedKit",
         "repositoryURL": "https://github.com/nmdias/FeedKit",
         "state": {
           "branch": null,
           "revision": "68493a33d862c33c9a9f67ec729b3b7df1b20ade",
           "version": "9.1.2"
+        }
+      },
+      {
+        "package": "Highlightr",
+        "repositoryURL": "https://github.com/raspu/Highlightr",
+        "state": {
+          "branch": null,
+          "revision": "93199b9e434f04bda956a613af8f571933f9f037",
+          "version": "2.1.2"
         }
       },
       {

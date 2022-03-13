@@ -373,6 +373,14 @@ class PlanetManager: NSObject {
         }
     }
 
+    func articleDraftPath(articleID: UUID) -> URL {
+        let path = _draftPath().appendingPathComponent(articleID.uuidString)
+        if !FileManager.default.fileExists(atPath: path.path) {
+            try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
+        }
+        return path
+    }
+
     func articleReadingStatus(article: PlanetArticle) -> Bool {
         return UserDefaults.standard.bool(forKey: "PlanetArticleReadingStatus" + "-" + article.id!.uuidString)
     }
@@ -1054,7 +1062,7 @@ class PlanetManager: NSObject {
         return path
     }
 
-    func _avatarPath(forPlanetID id: UUID, isEditing: Bool = false) -> URL {
+    private func _avatarPath(forPlanetID id: UUID, isEditing: Bool = false) -> URL {
         let path = _planetsPath().appendingPathComponent(id.uuidString)
         if !FileManager.default.fileExists(atPath: path.path) {
             try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
@@ -1082,6 +1090,14 @@ class PlanetManager: NSObject {
 
     private func _planetsPath() -> URL {
         let contentPath = _basePath().appendingPathComponent("planets", isDirectory: true)
+        if !FileManager.default.fileExists(atPath: contentPath.path) {
+            try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
+        }
+        return contentPath
+    }
+
+    private func _draftPath() -> URL {
+        let contentPath = _basePath().appendingPathComponent("drafts", isDirectory: true)
         if !FileManager.default.fileExists(atPath: contentPath.path) {
             try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
         }

@@ -10,6 +10,7 @@
 		2A09A35C27C257D60003A0B5 /* PlanetMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */; };
 		2A09A35F27C2581F0003A0B5 /* PlanetSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */; };
 		2A09A36127C2582B0003A0B5 /* PlanetArticleListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A36027C2582B0003A0B5 /* PlanetArticleListView.swift */; };
+		2A1E8EB927DE113500EF1967 /* CodeEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 2A1E8EB827DE113500EF1967 /* CodeEditor */; };
 		2A441BAA27C34FCC0008A694 /* PlanetAboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BA927C34FCC0008A694 /* PlanetAboutView.swift */; };
 		2A441BAC27C40AAC0008A694 /* PlanetWriterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAB27C40AAC0008A694 /* PlanetWriterWindow.swift */; };
 		2A441BAE27C40BD30008A694 /* PlanetWriterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAD27C40BD30008A694 /* PlanetWriterView.swift */; };
@@ -79,6 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2A1E8EB927DE113500EF1967 /* CodeEditor in Frameworks */,
 				6AA2BC3127DBD44100AC96B5 /* FeedKit in Frameworks */,
 				2AC4996C27BB99DC00F1C2D1 /* Stencil in Frameworks */,
 				6A0172EB27C9FD5F006154B7 /* Ink in Frameworks */,
@@ -200,6 +202,7 @@
 				2AC4996B27BB99DC00F1C2D1 /* Stencil */,
 				6A0172EA27C9FD5F006154B7 /* Ink */,
 				6AA2BC3027DBD44100AC96B5 /* FeedKit */,
+				2A1E8EB827DE113500EF1967 /* CodeEditor */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -233,6 +236,7 @@
 				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */,
 				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */,
 				6AA2BC2F27DBD44000AC96B5 /* XCRemoteSwiftPackageReference "FeedKit" */,
+				2A1E8EB727DE113500EF1967 /* XCRemoteSwiftPackageReference "CodeEditor" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -490,6 +494,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		2A1E8EB727DE113500EF1967 /* XCRemoteSwiftPackageReference "CodeEditor" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ZeeZide/CodeEditor.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
@@ -517,6 +529,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2A1E8EB827DE113500EF1967 /* CodeEditor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2A1E8EB727DE113500EF1967 /* XCRemoteSwiftPackageReference "CodeEditor" */;
+			productName = CodeEditor;
+		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
