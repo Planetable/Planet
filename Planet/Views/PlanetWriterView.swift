@@ -7,6 +7,10 @@
 
 import SwiftUI
 import CodeEditor
+import Stencil
+import PathKit
+import WebKit
+import Ink
 
 
 struct PlanetWriterView: View {
@@ -22,7 +26,11 @@ struct PlanetWriterView: View {
     @State private var isPreviewOpen: Bool = false
 
     static private let initialSource = ""
-    @State private var source = Self.initialSource
+    @State private var source = Self.initialSource {
+        didSet {
+            content = source
+        }
+    }
     @State private var selection = Self.initialSource.endIndex..<Self.initialSource.endIndex
     @State private var sourceFiles: Set<URL> = Set() {
         didSet {
@@ -88,7 +96,7 @@ struct PlanetWriterView: View {
 
                     if isPreviewOpen {
                         VStack {
-                            Text("Preview Here.")
+                            SimpleWriterPreviewWebView(content: source)
                         }
                         .frame(minWidth: g.size.width / 2.0, idealWidth: g.size.width, maxWidth: .infinity, maxHeight: .infinity)
                     }
@@ -98,55 +106,33 @@ struct PlanetWriterView: View {
 
                     Divider()
 
-                    HStack {
-                        ScrollView(.horizontal) {
-                            HStack (spacing: 8) {
-                                ForEach(Array(sourceFiles), id: \.self) { fileURL in
-                                    Text("Text")
+                    ScrollView(.horizontal) {
+                        HStack (spacing: 0) {
+                            Image(systemName: "plus.viewfinder")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 40, height: 40, alignment: .center)
+                                .padding(.leading, 16)
+                                .opacity(0.5)
+                                .onTapGesture {
+                                    isFilePanelOpen = true
                                 }
+
+                            ForEach(Array(sourceFiles), id: \.self) { fileURL in
+                                thumbnailFromFile(fileURL: fileURL)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 40, height: 40, alignment: .center)
+                                    .padding(.leading, 16)
+                                    .onTapGesture {
+                                        insertFile(fileURL: fileURL)
+                                    }
                             }
                         }
-                        .padding(4)
                     }
                     .frame(height: 48)
+                    .frame(maxWidth: .infinity)
                     .background(Color.secondary.opacity(0.15))
-
-                    Divider()
-
-                    HStack {
-                        Button {
-                            debugPrint("current position: \(selection)")
-                            isFilePanelOpen.toggle()
-                        } label: {
-                            Image(systemName: "plus.app")
-                        }
-
-                        Button("Insert Sample Image") {
-                            let sample = "/Users/kai/Desktop/P3PC-6641-01EN.pdf"
-                            var sampleCharacters = [Character]()
-                            for char in sample {
-                                sampleCharacters.append(char)
-                            }
-                            source.insert(contentsOf: sampleCharacters, at: selection.lowerBound)
-                        }
-
-                        Spacer()
-
-                        Button("Cursor Front") {
-                            selection = source.startIndex..<source.startIndex
-                        }
-
-                        Button("Cursor End") {
-                            selection = source.endIndex..<source.endIndex
-                        }
-
-                        Button("Clear All") {
-                            source = ""
-                            selection = source.endIndex..<source.endIndex
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .frame(height: 36)
                 }
 
                 Divider()
@@ -234,6 +220,19 @@ struct PlanetWriterView: View {
         }
     }
 
+    private func moveCursorBeginningAction() {
+        selection = source.startIndex..<source.startIndex
+    }
+
+    private func moveCursorToEndAction() {
+        selection = source.endIndex..<source.endIndex
+    }
+
+    private func cleanUpAction() {
+        source = ""
+        selection = source.endIndex..<source.endIndex
+    }
+
     private func processInput(fromSource theSource: String, withUpdatedSource updatedSource: String) async {
         let originalSource: String = theSource
         var processedSource = updatedSource
@@ -273,12 +272,90 @@ struct PlanetWriterView: View {
             debugPrint("uploaded: \(targetPath)")
             if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID {
                 if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
-                    
+                    if let planetArticlePath = PlanetManager.shared.articlePath(articleID: articleID, planetID: planetID) {
+                        try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
+                        debugPrint("uploaded to planet article path: \(planetArticlePath.appendingPathComponent(fileName))")
+                    }
                 }
             }
         } catch {
             debugPrint("failed to upload file: \(url), to target path: \(targetPath), error: \(error)")
         }
+    }
+
+    private func thumbnailFromFile(fileURL url: URL) -> Image {
+        // check file locations
+        let size = NSSize(width: 80, height: 80)
+        let filename = url.lastPathComponent
+
+        // find in planet directory:
+        if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID {
+            if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
+                if let planetArticlePath = PlanetManager.shared.articlePath(articleID: articleID, planetID: planetID) {
+                    if FileManager.default.fileExists(atPath: planetArticlePath.appendingPathComponent(filename).path) {
+                        if let img = NSImage(contentsOf: planetArticlePath.appendingPathComponent(filename)), let resizedImg = img.imageResize(size) {
+                            return Image(nsImage: resizedImg)
+                        }
+                    }
+                }
+            }
+        }
+
+        // if not exists, find in draft directory:
+        let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
+        let imagePath = draftPath.appendingPathComponent(filename)
+        if FileManager.default.fileExists(atPath: imagePath.path) {
+            if let img = NSImage(contentsOf: imagePath), let resizedImg = img.imageResize(size) {
+                return Image(nsImage: resizedImg)
+            }
+        }
+
+        return Image(systemName: "questionmark.app.dashed")
+    }
+
+    private func insertFile(fileURL url: URL) {
+        debugPrint("inserting file: \(url) ...")
+        func _getCharacters(fromContent content: String) -> [Character] {
+            var cc = [Character]()
+            for c in content {
+                cc.append(c)
+            }
+            return cc
+        }
+
+        let filename = url.lastPathComponent
+        let fileExtension = url.pathExtension
+        let isImage: Bool
+        if ["jpg", "jpeg", "png", "pdf", "tiff", "gif"].contains(fileExtension) {
+            isImage = true
+        } else {
+            isImage = false
+        }
+
+        var filePath: URL?
+        if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID {
+            if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
+                if let planetArticlePath = PlanetManager.shared.articlePath(articleID: articleID, planetID: planetID) {
+                    if FileManager.default.fileExists(atPath: planetArticlePath.appendingPathComponent(filename).path) {
+                        filePath = planetArticlePath.appendingPathComponent(filename)
+                    }
+                }
+            }
+        }
+
+        // if not exists, find in draft directory:
+        let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
+        let draftFilePath = draftPath.appendingPathComponent(filename)
+        if filePath == nil, FileManager.default.fileExists(atPath: draftFilePath.path) {
+            filePath = draftFilePath
+        }
+
+        guard let filePath = filePath else {
+            return
+        }
+
+        let content: String = (isImage ? "!" : "") + "[\(filename)]" + "(" + filePath.absoluteString + ")"
+        source.insert(contentsOf: _getCharacters(fromContent: content), at: selection.lowerBound)
     }
 
     private func removeDraft() {
@@ -291,8 +368,101 @@ struct PlanetWriterView: View {
     }
 }
 
-struct PlanetWriterView_Previews: PreviewProvider {
-    static var previews: some View {
-        PlanetWriterView(articleID: .init())
+
+struct PlanetWriterPreviewView: View {
+    var articleID: UUID
+
+    @Binding var content: String
+
+    var body: some View {
+        VStack {
+            SimpleWriterPreviewWebView(content: content)
+                .onChange(of: content) { newValue in
+                    Task.init(priority: .utility) {
+                        content = await renderPreview(articleContent: newValue)
+                    }
+                }
+                .onAppear {
+                    Task.init(priority: .utility) {
+                        content = await renderPreview(articleContent: content)
+                    }
+                }
+        }
+    }
+
+    private func renderPreview(withTemplateIndex templateIndex: Int = 0, articleContent: String) async -> String {
+        let templatePath = await PlanetStore.shared.templatePaths[templateIndex]
+        // render html
+        let loader = FileSystemLoader(paths: [Path(templatePath.deletingLastPathComponent().path)])
+        let environment = Environment(loader: loader)
+        let parser = MarkdownParser()
+        let result = parser.parse(articleContent)
+        let content_html = result.html
+        var context: [String: Any]
+        let previewArticle = PlanetArticle()
+        previewArticle.title = articleID.uuidString
+        previewArticle.content = result.html
+        previewArticle.created = Date()
+        if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID {
+            if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
+                previewArticle.planetID = planetID
+            }
+        }
+        previewArticle.id = UUID()
+        context = ["article": previewArticle, "content_html": content_html]
+        let templateName = templatePath.lastPathComponent
+        do {
+            let output: String = try environment.renderTemplate(name: templateName, context: context)
+            debugPrint("render article: \(output)")
+            return output
+        } catch {
+            debugPrint("failed to render article: \(error)")
+            return content
+        }
+    }
+
+}
+
+
+private struct SimpleWriterPreviewWebView: View {
+    var content: String
+
+    var body: some View {
+        SimpleWriterWebView(content: content)
+    }
+}
+
+
+private struct SimpleWriterWebView: NSViewRepresentable {
+
+    public typealias NSViewType = WKWebView
+
+    let content: String
+    let navigationHelper = WebViewHelper()
+
+    func makeNSView(context: NSViewRepresentableContext<SimpleWriterWebView>) -> WKWebView {
+        let webview = WKWebView()
+        webview.navigationDelegate = navigationHelper
+        webview.loadHTMLString(content, baseURL: nil)
+        return webview
+    }
+
+    func updateNSView(_ webview: WKWebView, context: NSViewRepresentableContext<SimpleWriterWebView>) {
+        webview.loadHTMLString(content, baseURL: nil)
+    }
+}
+
+private class SimpleWriterWebViewHelper: NSObject, WKNavigationDelegate {
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    }
+
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+    }
+
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+    }
+
+    func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        completionHandler(.performDefaultHandling, nil)
     }
 }

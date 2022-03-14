@@ -373,6 +373,14 @@ class PlanetManager: NSObject {
         }
     }
 
+    func articlePath(articleID: UUID, planetID: UUID) -> URL? {
+        let path = _planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString)
+        if FileManager.default.fileExists(atPath: path.path) {
+            return path
+        }
+        return nil
+    }
+
     func articleDraftPath(articleID: UUID) -> URL {
         let path = _draftPath().appendingPathComponent(articleID.uuidString)
         if !FileManager.default.fileExists(atPath: path.path) {
