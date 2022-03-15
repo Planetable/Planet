@@ -79,7 +79,7 @@ struct PlanetSidebarToolbarButtonView: View {
         }
 
         let writerView = PlanetWriterView(articleID: articleID)
-        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 480, 320), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
+        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 720, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
         writerWindow.center()
         writerWindow.contentView = NSHostingView(rootView: writerView)
         writerWindow.makeKeyAndOrderFront(nil)
@@ -135,7 +135,7 @@ struct PlanetSidebarView: View {
                             VStack {
                                 Button {
                                     if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
-                                        launchWriterIfNeeded(forPlanet: planet, inContext: context)
+                                        launchWriterIfNeeded(forPlanet: planet)
                                     }
                                 } label: {
                                     Text("New Article")
@@ -336,7 +336,7 @@ struct PlanetSidebarView: View {
         pasteboard.setString(ipns, forType: .string)
     }
 
-    private func launchWriterIfNeeded(forPlanet planet: Planet, inContext context: NSManagedObjectContext) {
+    private func launchWriterIfNeeded(forPlanet planet: Planet) {
         let articleID = planet.id!
 
         if planetStore.writerIDs.contains(articleID) {
@@ -347,7 +347,7 @@ struct PlanetSidebarView: View {
         }
 
         let writerView = PlanetWriterView(articleID: articleID)
-        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 480, 320), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
+        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 720, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
         writerWindow.center()
         writerWindow.contentView = NSHostingView(rootView: writerView)
         writerWindow.makeKeyAndOrderFront(nil)
