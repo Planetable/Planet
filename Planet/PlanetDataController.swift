@@ -89,6 +89,7 @@ class PlanetDataController: NSObject {
 
     func checkUpdateForPlanetENS(planet: Planet) async {
         if let id = planet.id, let ens = planet.ens {
+//            let url = URL(string: "http://192.168.192.80:3000/ens/\(ens)")!
             let url = URL(string: "http://192.168.1.200:3000/ens/\(ens)")!
             debugPrint("Trying to parse ENS: \(planet.ens!) with API url: \(url)")
             do {

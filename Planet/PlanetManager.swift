@@ -326,7 +326,7 @@ class PlanetManager: NSObject {
         }
     }
 
-    func articleURL(article: PlanetArticle) async -> URL? {
+    func articleURL(article: PlanetArticle) -> URL? {
         guard let articleID = article.id, let planetID = article.planetID else { return nil }
         guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!) else { return nil }
         let ipns = planet.ipns
@@ -353,21 +353,22 @@ class PlanetManager: NSObject {
             }()
             debugPrint("Article URL string: \(urlString)")
             if let url = URL(string: urlString) {
-                let request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 15)
-                do {
-                    let (_, _) = try await URLSession.shared.data(for: request)
-                    // cache index.html file if needed.
-
-                    // update unreads
-                    DispatchQueue.global(qos: .background).async {
-                        self.updateArticleReadingStatus(article: article)
-                    }
-
-                    return url
-                } catch {
-                    debugPrint("failed to validate article url: \(url), error: \(error)")
-                    return nil
-                }
+//                let request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 15)
+//                do {
+//                    let (data, _) = try await URLSession.shared.data(for: request)
+//                    // cache index.html file if needed.
+//
+//                    // update unreads
+//                    DispatchQueue.global(qos: .background).async {
+//                        self.updateArticleReadingStatus(article: article)
+//                    }
+//
+//                    return url
+//                } catch {
+//                    debugPrint("failed to validate article url: \(url), error: \(error)")
+//                    return nil
+//                }
+                return url
             }
             return nil
         }
