@@ -30,7 +30,6 @@ struct SimpleWebView: NSViewRepresentable {
 
         let request = URLRequest(url: self.url, cachePolicy: .returnCacheDataElseLoad)
         webview.load(request)
-
         return webview
     }
 
