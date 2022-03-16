@@ -218,6 +218,22 @@ class PlanetDataController: NSObject {
         }
     }
 
+    func updateArticleReadStatus(article: PlanetArticle, read: Bool = true) {
+        let ctx = persistentContainer.newBackgroundContext()
+        guard let a = getArticle(id: article.id!) else { return }
+        if read {
+            a.read = Date()
+        } else {
+            a.setNilValueForKey("read")
+        }
+        do {
+            try ctx.save()
+            debugPrint("Read: article read status updated: \(a.read)")
+        } catch {
+            debugPrint("Read: failed to update article read status: \(a), error: \(error)")
+        }
+    }
+
     func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String, link: String) async {
         guard _articleExists(id: id) == false else { return }
         let ctx = persistentContainer.newBackgroundContext()
@@ -452,7 +468,7 @@ class PlanetDataController: NSObject {
         let articles = getArticles(byPlanetID: id)
         total = articles.count
         unread = articles.filter({ a in
-            return !PlanetManager.shared.articleReadingStatus(article: a)
+            return !a.isRead
         }).count
         return (unread, total)
     }

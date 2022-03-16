@@ -360,7 +360,7 @@ class PlanetManager: NSObject {
 
                     // update unreads
                     DispatchQueue.global(qos: .background).async {
-                        self.updateArticleReadingStatus(article: article)
+                        PlanetDataController.shared.updateArticleReadStatus(article: article)
                     }
 
                     return url
@@ -373,12 +373,8 @@ class PlanetManager: NSObject {
         }
     }
 
-    func articleReadingStatus(article: PlanetArticle) -> Bool {
-        return UserDefaults.standard.bool(forKey: "PlanetArticleReadingStatus" + "-" + article.id!.uuidString)
-    }
-
-    func updateArticleReadingStatus(article: PlanetArticle, read: Bool = true) {
-        UserDefaults.standard.set(read, forKey: "PlanetArticleReadingStatus" + "-" + article.id!.uuidString)
+    func articleReadStatus(article: PlanetArticle) -> Bool {
+        return article.read != nil
     }
 
     func renderArticleToDirectory(fromArticle article: PlanetArticle, templateIndex: Int = 0, force: Bool = false) async {
