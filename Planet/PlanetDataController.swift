@@ -92,9 +92,9 @@ class PlanetDataController: NSObject {
             let url = URL(string: "http://192.168.1.200:3000/ens/\(ens)")!
             debugPrint("Trying to parse ENS: \(planet.ens!) with API url: \(url)")
             do {
-                let (data, response) = try! await URLSession.shared.data(from: url)
+                let (data, response) = try await URLSession.shared.data(from: url)
                 debugPrint("ENS metadata retrieved: \(String(data: data, encoding: .utf8) ?? "")")
-                let json = try? JSONSerialization.jsonObject(with: data, options: [])
+                let json = try JSONSerialization.jsonObject(with: data, options: [])
                 if let dictionary = json as? [String: Any] {
                     if let contentHash = dictionary["content_hash"] as? String {
                         debugPrint("ENS IPFS content hash found: \(contentHash)")

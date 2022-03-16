@@ -25,13 +25,7 @@ struct PlanetWriterView: View {
     @State private var isToolBoxOpen: Bool = true
     @State private var isPreviewOpen: Bool = false
 
-    static private let initialSource = ""
-    @State private var source = Self.initialSource {
-        didSet {
-            content = source
-        }
-    }
-    @State private var selection = Self.initialSource.endIndex..<Self.initialSource.endIndex
+    @State private var selection = "".endIndex..<"".endIndex
     @State private var sourceFiles: Set<URL> = Set() {
         didSet {
             Task.init(priority: .utility) {
@@ -55,7 +49,7 @@ struct PlanetWriterView: View {
 
                 Spacer()
 
-                HStack (spacing: 16) {
+                HStack (spacing: 8) {
                     Button {
                         isToolBoxOpen.toggle()
                     } label: {
@@ -78,22 +72,19 @@ struct PlanetWriterView: View {
             if isPreviewOpen {
                 PlanetWriterPreviewView(articleID: articleID, content: content)
             } else {
-                CodeEditor(source: $source,
+                CodeEditor(source: $content,
                            selection: $selection,
                            language: .markdown,
-                           theme: .atelierSavannaDark,
+                           theme: .ocean,
                            flags: [.selectable, .editable, .smartIndent],
                            indentStyle: .softTab(width: 4),
-                           autoPairs: ["{": "}", "[": "]", "<": ">", "'": "'", "\"": "\""],
+                           autoPairs: ["{": "}", "(": ")", "[": "]", "<": ">", "'": "'", "\"": "\""],
                            autoscroll: true)
-                    .onChange(of: source) { [source] newValue in
-                        Task.init(priority: .background) {
-                            await processInput(fromSource: source, withUpdatedSource: newValue)
-                        }
-                    }
-                    .onChange(of: selection) { [selection] newValue in
-                        debugPrint("selection index changed from: \(selection.lowerBound.utf16Offset(in: source)) -> \(newValue.lowerBound.utf16Offset(in: source))")
-                    }
+//                    .onChange(of: source) { [source] newValue in
+//                        Task.init(priority: .background) {
+//                            await processInput(fromSource: source, withUpdatedSource: newValue)
+//                        }
+//                    }
             }
 
             if isToolBoxOpen && isPreviewOpen == false {
@@ -105,7 +96,7 @@ struct PlanetWriterView: View {
                         Image(systemName: "plus.viewfinder")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 40, height: 40, alignment: .center)
+                            .frame(width: 36, height: 36, alignment: .center)
                             .padding(.leading, 16)
                             .opacity(0.5)
                             .onTapGesture {
@@ -116,7 +107,7 @@ struct PlanetWriterView: View {
                             thumbnailFromFile(fileURL: fileURL)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 40, height: 40, alignment: .center)
+                                .frame(width: 36, height: 36, alignment: .center)
                                 .padding(.leading, 16)
                                 .onTapGesture {
                                     insertFile(fileURL: fileURL)
@@ -124,9 +115,9 @@ struct PlanetWriterView: View {
                         }
                     }
                 }
-                .frame(height: 48)
+                .frame(height: 44)
                 .frame(maxWidth: .infinity)
-                .background(Color.secondary.opacity(0.15))
+                .background(Color.secondary.opacity(0.03))
             }
 
             Divider()
@@ -154,7 +145,6 @@ struct PlanetWriterView: View {
             .padding(16)
         }
         .padding(0)
-        .frame(minWidth: 480, idealWidth: 480, maxWidth: .infinity, minHeight: 320, idealHeight: 320, maxHeight: .infinity, alignment: .center)
         .onReceive(NotificationCenter.default.publisher(for: .closeWriterWindow, object: nil)) { n in
             guard let id = n.object as? UUID else { return }
             guard id == self.articleID else { return }
@@ -182,7 +172,6 @@ struct PlanetWriterView: View {
     }
 
     private func saveAction() {
-        debugPrint("About to save ")
         // make sure current new article id equals to the planet id first, then generate new article id.
         let planetID = articleID
         let createdArticleID = UUID()
@@ -207,7 +196,6 @@ struct PlanetWriterView: View {
     }
 
     private func updateAction() {
-        debugPrint("About to update")
         PlanetDataController.shared.updateArticle(withID: articleID, title: title, content: content)
         DispatchQueue.main.async {
             if PlanetStore.shared.writerIDs.contains(articleID) {
@@ -220,16 +208,16 @@ struct PlanetWriterView: View {
     }
 
     private func moveCursorBeginningAction() {
-        selection = source.startIndex..<source.startIndex
+        selection = content.startIndex..<content.startIndex
     }
 
     private func moveCursorToEndAction() {
-        selection = source.endIndex..<source.endIndex
+        selection = content.endIndex..<content.endIndex
     }
 
     private func cleanUpAction() {
-        source = ""
-        selection = source.endIndex..<source.endIndex
+        content = ""
+        selection = content.endIndex..<content.endIndex
     }
 
     private func processInput(fromSource theSource: String, withUpdatedSource updatedSource: String) async {
@@ -257,7 +245,7 @@ struct PlanetWriterView: View {
             return
         }
 
-        self.source = processedSource
+        self.content = processedSource
         debugPrint("updated.")
     }
 
@@ -353,8 +341,8 @@ struct PlanetWriterView: View {
             return
         }
 
-        let content: String = (isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
-        source.insert(contentsOf: _getCharacters(fromContent: content), at: selection.lowerBound)
+        let c: String = (isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
+        content.insert(contentsOf: _getCharacters(fromContent: c), at: selection.lowerBound)
     }
     
     private func copyDraft(toTargetPath targetPath: URL) {
@@ -410,8 +398,7 @@ private struct PlanetWriterPreviewView: View {
             manager.setup(withArticleID: articleID)
         }
         
-        let result = manager.parser.parse(articleContent)
-        let content_html = result.html
+        let content_html = manager.parser.html(from: articleContent)
         let context: [String: Any] = ["content_html": content_html]
         do {
             let output: String = try manager.env.renderTemplate(name: manager.templateName, context: context)
