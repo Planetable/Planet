@@ -15,6 +15,7 @@
 		2A441BAE27C40BD30008A694 /* PlanetWriterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAD27C40BD30008A694 /* PlanetWriterView.swift */; };
 		2A441BB027C4DD980008A694 /* CreatePlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAF27C4DD980008A694 /* CreatePlanetView.swift */; };
 		2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BB227C4DF110008A694 /* FollowPlanetView.swift */; };
+		2A69F04727E1B53A00141DC0 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A69F04627E1B53A00141DC0 /* FeedKit */; };
 		2A780CF927C76EF0007DC36A /* PlanetAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A780CF827C76EF0007DC36A /* PlanetAvatarView.swift */; };
 		2A7D1BF427CA1B0A00D3C091 /* EditPlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7D1BF327CA1B0A00D3C091 /* EditPlanetView.swift */; };
 		2AC4994927BB6E7500F1C2D1 /* PlanetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */; };
@@ -36,7 +37,6 @@
 		2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */; };
 		6A0172E827C9EE05006154B7 /* Basic.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A0172E727C9EE05006154B7 /* Basic.html */; };
 		6A0172EB27C9FD5F006154B7 /* Ink in Frameworks */ = {isa = PBXBuildFile; productRef = 6A0172EA27C9FD5F006154B7 /* Ink */; };
-		6AA2BC3127DBD44100AC96B5 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6AA2BC3027DBD44100AC96B5 /* FeedKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,7 +79,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6AA2BC3127DBD44100AC96B5 /* FeedKit in Frameworks */,
+				2A69F04727E1B53A00141DC0 /* FeedKit in Frameworks */,
 				2AC4996C27BB99DC00F1C2D1 /* Stencil in Frameworks */,
 				6A0172EB27C9FD5F006154B7 /* Ink in Frameworks */,
 			);
@@ -199,7 +199,7 @@
 			packageProductDependencies = (
 				2AC4996B27BB99DC00F1C2D1 /* Stencil */,
 				6A0172EA27C9FD5F006154B7 /* Ink */,
-				6AA2BC3027DBD44100AC96B5 /* FeedKit */,
+				2A69F04627E1B53A00141DC0 /* FeedKit */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -232,7 +232,7 @@
 			packageReferences = (
 				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */,
 				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */,
-				6AA2BC2F27DBD44000AC96B5 /* XCRemoteSwiftPackageReference "FeedKit" */,
+				2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -490,6 +490,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nmdias/FeedKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+		};
 		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
@@ -506,17 +514,14 @@
 				minimumVersion = 0.5.1;
 			};
 		};
-		6AA2BC2F27DBD44000AC96B5 /* XCRemoteSwiftPackageReference "FeedKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/nmdias/FeedKit";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 9.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2A69F04627E1B53A00141DC0 /* FeedKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */;
+			productName = FeedKit;
+		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
@@ -526,11 +531,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */;
 			productName = Ink;
-		};
-		6AA2BC3027DBD44100AC96B5 /* FeedKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6AA2BC2F27DBD44000AC96B5 /* XCRemoteSwiftPackageReference "FeedKit" */;
-			productName = FeedKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 

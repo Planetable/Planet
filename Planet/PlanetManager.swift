@@ -344,18 +344,18 @@ class PlanetManager: NSObject {
             let urlString: String = {
                 switch (planet.type) {
                     case .planet:
-                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns)/\(article.id)/index.html"
+                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.id!)/index.html"
                     case .ens:
                         return "http://127.0.0.1:\(gatewayPort)/ipfs/\(planet.ipfs!)\(article.link!)"
                     default:
-                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns)/\(article.id)/index.html"
+                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.id!)/index.html"
                 }
             }()
             debugPrint("Article URL string: \(urlString)")
             if let url = URL(string: urlString) {
                 let request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 15)
                 do {
-                    let (data, _) = try await URLSession.shared.data(for: request)
+                    let (_, _) = try await URLSession.shared.data(for: request)
                     // cache index.html file if needed.
 
                     // update unreads
