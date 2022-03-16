@@ -147,8 +147,6 @@ extension Planet {
         }
     }
 
-
-
     func generateAvatarName() -> String {
         guard let name = name else {
             return ""
@@ -223,6 +221,20 @@ class PlanetArticle: NSManagedObject, Codable {
         try container.encode(content, forKey: .content)
         try container.encode(link, forKey: .link)
         try container.encode(planetID, forKey: .planetID)
+    }
+
+    var isRead: Bool {
+        get {
+            return read != nil
+        }
+
+        set {
+            if newValue {
+                read = Date()
+            } else {
+                read = nil
+            }
+        }
     }
 }
 
