@@ -13,7 +13,7 @@ struct PlanetArticleView: View {
     @EnvironmentObject private var planetStore: PlanetStore
 
     var article: PlanetArticle
-    
+
     @State private var url: URL = Bundle.main.url(forResource: "TemplatePlaceholder.html", withExtension: "")!
 
     var body: some View {
@@ -23,6 +23,7 @@ struct PlanetArticleView: View {
                     .task(priority: .utility) {
                         if let urlPath = PlanetManager.shared.articleURL(article: article) {
                             url = urlPath
+                            await PlanetDataController.shared.updateArticleReadStatus(article: article)
                         } else {
                             DispatchQueue.main.async {
                                 self.planetStore.currentArticle = nil

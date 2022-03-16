@@ -367,8 +367,14 @@ class PlanetDataController: NSObject {
 
     func getArticlePublicLink(article: PlanetArticle, gateway: PublicGateway = .dweb) -> String {
         guard let planet = getPlanet(id: article.planetID!) else { return "" }
-        let publicLink = "https://\(gateway.rawValue)/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
-        return publicLink
+        switch (planet.type) {
+            case .planet:
+                return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
+            case .ens:
+                return "https://\(gateway.rawValue)/ipfs/\(planet.ipfs!)\(article.link!)"
+            default:
+                return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
+        }
     }
 
     func copyPublicLinkOfArticle(_ article: PlanetArticle) {

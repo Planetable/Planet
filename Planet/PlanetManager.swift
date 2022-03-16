@@ -356,12 +356,7 @@ class PlanetManager: NSObject {
 //                let request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 15)
 //                do {
 //                    let (data, _) = try await URLSession.shared.data(for: request)
-//                    // cache index.html file if needed.
-//
-//                    // update unreads
-//                    DispatchQueue.global(qos: .background).async {
-//                        self.updateArticleReadingStatus(article: article)
-//                    }
+//                    // TODO: Properly cache the HTML file
 //
 //                    return url
 //                } catch {
