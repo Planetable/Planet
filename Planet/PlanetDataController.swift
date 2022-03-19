@@ -192,6 +192,18 @@ class PlanetDataController: NSObject {
         }
     }
 
+    func updatePlanetFeedSHA256(forID id: UUID, feedSHA256: String) {
+        let ctx = persistentContainer.newBackgroundContext()
+        guard let planet = getPlanet(id: id) else { return }
+        planet.feedSHA256 = feedSHA256
+        do {
+            try ctx.save()
+            debugPrint("Planet feed SHA256 updated: \(planet.feedSHA256)")
+        } catch {
+            debugPrint("Failed to update planet feed SHA256: \(planet), error: \(error)")
+        }
+    }
+
     func updatePlanetENSContentHash(forID id: UUID, contentHash: String) {
         let ctx = persistentContainer.newBackgroundContext()
         guard let planet = getPlanet(id: id) else { return }
