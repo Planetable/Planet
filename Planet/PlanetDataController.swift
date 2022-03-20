@@ -47,7 +47,7 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func createPlanet(withID id: UUID, name: String, about: String, keyName: String?, keyID: String?, ipns: String?) {
+    func createPlanet(withID id: UUID, name: String, about: String, keyName: String?, keyID: String?, ipns: String?) -> Planet? {
         let ctx = persistentContainer.newBackgroundContext()
         let planet = Planet(context: ctx)
         planet.id = id
@@ -60,10 +60,12 @@ class PlanetDataController: NSObject {
         planet.ipns = ipns
         do {
             try ctx.save()
-            debugPrint("planet created: \(planet)")
+            debugPrint("Type 0 Planet created: \(planet)")
             PlanetManager.shared.setupDirectory(forPlanet: planet)
+            return planet
         } catch {
-            debugPrint("failed to create new planet: \(planet), error: \(error)")
+            debugPrint("Failed to create new Type 0 Planet: \(planet), error: \(error)")
+            return nil
         }
     }
 
@@ -78,11 +80,11 @@ class PlanetDataController: NSObject {
         planet.ens = ens
         do {
             try ctx.save()
-            debugPrint("ENS planet created: \(ens)")
+            debugPrint("Type 1 ENS planet created: \(ens)")
             PlanetManager.shared.setupDirectory(forPlanet: planet)
             return planet
         } catch {
-            debugPrint("failed to create new planet: \(ens), error: \(error)")
+            debugPrint("Failed to create new Type 1 Planet: \(ens), error: \(error)")
             return nil
         }
     }

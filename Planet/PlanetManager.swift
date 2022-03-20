@@ -344,11 +344,11 @@ class PlanetManager: NSObject {
             let urlString: String = {
                 switch (planet.type) {
                     case .planet:
-                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.id!)/index.html"
+                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.link!)/index.html"
                     case .ens:
                         return "http://127.0.0.1:\(gatewayPort)/ipfs/\(planet.ipfs!)\(article.link!)"
                     default:
-                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.id!)/index.html"
+                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.link!)/index.html"
                 }
             }()
             debugPrint("Article URL string: \(urlString)")
@@ -582,7 +582,8 @@ class PlanetManager: NSObject {
             var articlesToCreate: [PlanetFeedArticle] = []
             var articlesToUpdate: [PlanetFeedArticle] = []
             for a in feed.articles {
-                let existing = PlanetDataController.shared.getArticle(id: a.id)
+                guard let articleLink = a.link else { continue }
+                let existing = PlanetDataController.shared.getArticle(link: articleLink, planetID: id)
                 if existing == nil {
                     articlesToCreate.append(a)
                 } else {
@@ -591,29 +592,13 @@ class PlanetManager: NSObject {
                     }
                 }
             }
-            debugPrint("planet articles to create: \(articlesToCreate)")
-            debugPrint("planet articles to update: \(articlesToUpdate)")
+            debugPrint("planet articles count to create: \(articlesToCreate.count)")
+            debugPrint("planet articles count to update: \(articlesToUpdate.count)")
             if articlesToCreate.count > 0 {
                 await PlanetDataController.shared.batchCreateArticles(articles: articlesToCreate, planetID: id)
             }
             if articlesToUpdate.count > 0 {
                 await PlanetDataController.shared.batchUpdateArticles(articles: articlesToUpdate, planetID: id)
-            }
-
-            // delete saved articles which was deleted if needed.
-            var articlesToDelete: [PlanetArticle] = []
-            let availableArticles = PlanetDataController.shared.getArticles(byPlanetID: id)
-            let feedArticleIDs = feed.articles.map() { a in
-                return a.id
-            }
-            for a in availableArticles {
-                if !feedArticleIDs.contains(a.id!) {
-                    articlesToDelete.append(a)
-                }
-            }
-            debugPrint("planet articles to delete: \(articlesToDelete)")
-            if articlesToDelete.count > 0 {
-                await PlanetDataController.shared.batchDeleteArticles(articles: articlesToDelete)
             }
 
             // update planet avatar if needed.
