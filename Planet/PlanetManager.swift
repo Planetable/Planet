@@ -416,6 +416,13 @@ class PlanetManager: NSObject {
         debugPrint("article \(article) rendered at: \(articlePath).")
     }
 
+    func pin(_ endpoint: String) {
+        let pinRequest = serverURL(path: "pin/add", args: ["arg": endpoint], timeout: 120)
+        URLSession.shared.dataTask(with: pinRequest) { data, response, error in
+            debugPrint("pinned: \(response).")
+        }.resume()
+    }
+
     func publishForPlanet(planet: Planet) async {
         guard let id = planet.id, let keyName = planet.keyName, keyName != "" else { return }
         let now = Date()
@@ -544,13 +551,6 @@ class PlanetManager: NSObject {
             }
         }
 
-        // pin planet in background.
-        debugPrint("pin in the background ...")
-        let pinRequest = serverURL(path: "pin/add", args: ["arg": "/ipns/" + ipns], timeout: 120)
-        URLSession.shared.dataTask(with: pinRequest) { data, response, error in
-            debugPrint("pinned: \(response).")
-        }.resume()
-
         debugPrint("updating for planet: \(planet) ...")
         let prefix = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns + "/"
         let ipnsString = prefix + "planet.json"
@@ -564,6 +564,12 @@ class PlanetManager: NSObject {
             let currentFeedSHA256 = planet.feedSHA256 ?? ""
             if currentFeedSHA256 != dataSHA256 {
                 PlanetDataController.shared.updatePlanetFeedSHA256(forID: id, feedSHA256: dataSHA256)
+                debugPrint("Feed SHA256 has changed, pinning: \(planet)")
+                if let IPFSContent = planet.IPFSContent {
+                    PlanetManager.shared.pin(IPFSContent)
+                }
+            } else {
+                debugPrint("Feed SHA256 has not changed, skip pinning: \(planet)")
             }
             let decoder = JSONDecoder()
             let feed: PlanetFeed = try decoder.decode(PlanetFeed.self, from: data)

@@ -120,6 +120,17 @@ class Planet: NSManagedObject, Codable {
 
 
 extension Planet {
+    override public var description: String {
+        switch type {
+            case .planet:
+                return "Planet Type 0: \(name!)"
+            case .ens:
+                return "Planet Type 1: \(name!)"
+            default:
+                return "Planet Type \(type.rawValue): \(name)"
+        }
+    }
+
     func isMyPlanet() -> Bool {
         if let keyID = keyID, let keyName = keyName {
             return keyID != "" && keyName != ""
@@ -144,6 +155,19 @@ extension Planet {
 
         set {
             self.feedTypeValue = newValue.rawValue
+        }
+    }
+
+    var IPFSContent: String? {
+        get {
+            switch type {
+            case .planet:
+                return "/ipns/\(ipns)"
+            case .ens:
+                return "/ipfs/\(ipfs)"
+            default:
+                return nil
+            }
         }
     }
 
