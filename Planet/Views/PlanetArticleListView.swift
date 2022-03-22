@@ -15,6 +15,9 @@ struct PlanetArticleListView: View {
     var planetID: UUID
     var articles: FetchedResults<PlanetArticle>
 
+    @State private var isShowingConfirmation = false
+    @State private var dialogDetail: PlanetArticle?
+
     var body: some View {
         VStack {
             if articles.filter({ aa in
@@ -55,10 +58,11 @@ struct PlanetArticleListView: View {
                                     Button {
                                         launchWriter(forArticle: article)
                                     } label: {
-                                        Text("Update Article")
+                                        Text("Edit Article")
                                     }
                                     Button {
-                                        PlanetDataController.shared.removeArticle(article: article)
+                                        isShowingConfirmation = true
+                                        dialogDetail = article
                                     } label: {
                                         Text("Delete Article")
                                     }
@@ -102,6 +106,18 @@ struct PlanetArticleListView: View {
         .navigationSubtitle(
             Text(articleStatus())
         )
+        .confirmationDialog(
+                    Text("Are you sure you want to delete this article?"),
+                    isPresented: $isShowingConfirmation,
+                    presenting: dialogDetail
+                ) { detail in
+                    Button(role: .destructive) {
+                        PlanetDataController.shared.removeArticle(detail)
+                    } label: {
+                        Text("Delete")
+                    }
+                }
+        
     }
 
     private func launchWriter(forArticle article: PlanetArticle) {

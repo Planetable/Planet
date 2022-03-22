@@ -564,7 +564,7 @@ class PlanetDataController: NSObject {
         return Set()
     }
 
-    func removeArticle(article: PlanetArticle) {
+    func removeArticle(_ article: PlanetArticle) {
         let uuid = article.id!
         let planetUUID = article.planetID!
         let context = persistentContainer.viewContext

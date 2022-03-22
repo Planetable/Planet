@@ -327,7 +327,7 @@ class PlanetManager: NSObject {
             let articlePath = _planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
             if !FileManager.default.fileExists(atPath: articlePath.path) {
                 Task.init(priority: .background) {
-                    PlanetDataController.shared.removeArticle(article: article)
+                    PlanetDataController.shared.removeArticle(article)
                 }
                 return nil
             }
