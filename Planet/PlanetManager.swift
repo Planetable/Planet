@@ -87,13 +87,6 @@ class PlanetManager: NSObject {
 
     func setup() {
         debugPrint("Planet Manager Setup")
-        #if DEBUG
-        for key in UserDefaults.standard.dictionaryRepresentation().keys {
-            if key.hasPrefix("PlanetArticleReadingStatus"){
-                UserDefaults.standard.removeObject(forKey: key)
-            }
-        }
-        #endif
 
         loadTemplates()
 
