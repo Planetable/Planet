@@ -383,11 +383,11 @@ class PlanetDataController: NSObject {
         guard let planet = getPlanet(id: article.planetID!) else { return "" }
         switch (planet.type) {
             case .planet:
-                return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
+                return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)\(article.link!)"
             case .ens:
                 return "https://\(gateway.rawValue)/ipfs/\(planet.ipfs!)\(article.link!)"
             default:
-                return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
+                return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)\(article.link!)"
         }
     }
 
