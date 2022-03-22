@@ -346,6 +346,9 @@ class PlanetDataController: NSObject {
         guard let article = getArticle(id: id) else { return }
         article.title = title
         article.content = content
+        if article.link == nil {
+            article.link = "/\(id)/"
+        }
         do {
             try ctx.save()
             refreshArticle(article)
