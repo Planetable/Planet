@@ -340,6 +340,8 @@ class PlanetManager: NSObject {
                         return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.link!)/index.html"
                     case .ens:
                         return "http://127.0.0.1:\(gatewayPort)/ipfs/\(planet.ipfs!)\(article.link!)"
+                    case .dns:
+                        return article.link!
                     default:
                         return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.link!)/index.html"
                 }
@@ -501,12 +503,18 @@ class PlanetManager: NSObject {
     }
 
     func updateForPlanet(planet: Planet) async {
-        print("update for planet: \(planet) (type: \(planet.type))")
-
         if planet.type == .ens {
-            debugPrint("Going to update ENS planet: \(planet.ens!)")
+            debugPrint("Going to update Type 1 ENS planet: \(planet.ens!)")
             Task.init(priority: .background) {
                 await PlanetDataController.shared.checkUpdateForPlanetENS(planet: planet)
+            }
+            return
+        }
+        
+        if planet.type == .dns {
+            debugPrint("Going to update Type 3 DNS planet: \(planet.dns!)")
+            Task.init(priority: .background) {
+                await PlanetDataController.shared.checkUpdateForPlanetDNS(planet: planet)
             }
             return
         }

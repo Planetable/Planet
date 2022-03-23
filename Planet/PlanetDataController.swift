@@ -47,6 +47,8 @@ class PlanetDataController: NSObject {
         }
     }
 
+    // MARK: Create Type 0 Planet: planet://ipns
+    
     func createPlanet(withID id: UUID, name: String, about: String, keyName: String?, keyID: String?, ipns: String?) -> Planet? {
         let ctx = persistentContainer.newBackgroundContext()
         let planet = Planet(context: ctx)
@@ -68,6 +70,8 @@ class PlanetDataController: NSObject {
             return nil
         }
     }
+    
+    // MARK: Create Type 1 Planet: planet://ens
 
     func createPlanetENS(ens: String) -> Planet? {
         let ctx = persistentContainer.newBackgroundContext()
@@ -88,6 +92,35 @@ class PlanetDataController: NSObject {
             return nil
         }
     }
+    
+    // MARK: Create Type 2 Planet: planet://ipns
+    
+    // MARK: Create Type 3 Planet: https://domain/feed.json
+    
+    func createPlanet(endpoint: String) -> Planet? {
+        guard let url = URL(string: endpoint) else { return nil }
+        if url.path.count == 1 { return nil }
+        let ctx = persistentContainer.newBackgroundContext()
+        let planet = Planet(context: ctx)
+        planet.id = UUID()
+        planet.type = .dns
+        planet.created = Date()
+        planet.name = url.host
+        planet.about = ""
+        planet.dns = url.host
+        planet.feedAddress = endpoint
+        do {
+            try ctx.save()
+            debugPrint("Type 3 DNS planet created: \(url.host!)")
+            return planet
+        } catch {
+            debugPrint("Failed to create new Type 3 DNS Planet: \(url.host!), error: \(error)")
+            return nil
+        }
+        
+    }
+    
+    // MARK: Check update for Type 1 ENS
 
     func checkUpdateForPlanetENS(planet: Planet) async {
         if let id = planet.id, let ens = planet.ens {
@@ -147,9 +180,20 @@ class PlanetDataController: NSObject {
             switch result {
                 case .success(let feed):
                     switch feed {
-                        case let .atom(feed):       // Atom Syndication Format Feed Model
-                            debugPrint(feed)
-                        case let .rss(feed):        // Really Simple Syndication Feed Model
+                        case let .atom(feed):       // Atom Syndication Format Feed
+                            var articles: [PlanetFeedArticle] = []
+                            for entry in feed.entries! {
+                                guard let entryURL = URL(string: entry.links![0].attributes!.href!) else { continue }
+                                let entryLink = "\(entryURL.scheme!)://\(entryURL.host!)\(entryURL.path)"
+                                guard let entryTitle = entry.title else { continue }
+                                let entryContent = entry.content?.attributes?.src ?? ""
+                                let entryPublished = entry.published ?? Date()
+                                let a = PlanetFeedArticle(id: UUID(), created: entryPublished, title: entryTitle, content: entryContent, link: entryLink)
+                                articles.append(a)
+                            }
+                            debugPrint("Atom Feed: Found \(articles.count) articles")
+                            PlanetDataController.shared.batchCreateRSSArticles(articles: articles, planetID: id)
+                        case let .rss(feed):        // Really Simple Syndication Feed
                             var articles: [PlanetFeedArticle] = []
                             for item in feed.items! {
                                 guard let itemLink = URL(string: item.link!) else { continue }
@@ -162,14 +206,44 @@ class PlanetDataController: NSObject {
                             }
                             debugPrint("RSS: Found \(articles.count) articles")
                             PlanetDataController.shared.batchCreateRSSArticles(articles: articles, planetID: id)
-                        case let .json(feed):       // JSON Feed Model
-                            debugPrint(feed)
+                        case let .json(feed):       // JSON Feed
+                            var articles: [PlanetFeedArticle] = []
+                            for item in feed.items! {
+                                guard let itemLink = URL(string: item.url!) else { continue }
+                                guard let itemTitle = item.title else { continue }
+                                let itemContentHTML = item.contentHtml ?? ""
+                                let itemDatePublished = item.datePublished ?? Date()
+                                debugPrint("\(itemTitle) \(itemLink.path)")
+                                let a = PlanetFeedArticle(id: UUID(), created: itemDatePublished, title: itemTitle, content: itemContentHTML, link: item.url!)
+                                articles.append(a)
+                            }
+                            debugPrint("JSON Feed: Found \(articles.count) articles")
+                            PlanetDataController.shared.batchCreateRSSArticles(articles: articles, planetID: id)
                     }
                 case .failure(let error):
                     print(error)
                 }
             DispatchQueue.main.async {
                 // ..and update the UI
+            }
+        }
+    }
+    
+    // MARK: Check update for Type 3 DNS
+    
+    func checkUpdateForPlanetDNS(planet: Planet) async {
+        if let id = planet.id, let feedAddress = planet.feedAddress {
+            let url = URL(string: feedAddress)!
+            debugPrint("Trying to fetch Feed: \(feedAddress)")
+            do {
+                let (data, response) = try await URLSession.shared.data(from: url)
+                if let httpResponse = response as? HTTPURLResponse {
+                    if httpResponse.statusCode == 200 {
+                        await parseFeedForPlanet(forID: id, feedURL: url)
+                    }
+                }
+            } catch {
+                debugPrint("Error fetching feed: \(url): \(String(describing: error))")
             }
         }
     }

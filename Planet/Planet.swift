@@ -126,8 +126,10 @@ extension Planet {
                 return "Planet Type 0: \(name!)"
             case .ens:
                 return "Planet Type 1: \(name!)"
+            case .dns:
+                return "Planet Type 3: \(dns!)"
             default:
-                return "Planet Type \(type.rawValue): \(name)"
+                return "Planet Type \(type.rawValue): \(name!)"
         }
     }
 
