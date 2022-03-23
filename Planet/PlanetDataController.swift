@@ -200,7 +200,7 @@ class PlanetDataController: NSObject {
         planet.feedSHA256 = feedSHA256
         do {
             try ctx.save()
-            debugPrint("Planet feed SHA256 updated: \(planet.feedSHA256)")
+            debugPrint("Planet feed SHA256 updated: \(feedSHA256)")
         } catch {
             debugPrint("Failed to update planet feed SHA256: \(planet), error: \(error)")
         }
