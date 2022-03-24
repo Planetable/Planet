@@ -36,21 +36,7 @@ struct PlanetArticleListView: View {
                         NavigationLink(destination: PlanetArticleView(article: article)
                                         .environmentObject(planetStore)
                                         .frame(minWidth: 320), tag: articleID.uuidString, selection: $planetStore.selectedArticle) {
-                            VStack {
-                                HStack {
-                                    Text(article.title ?? "")
-                                        .fontWeight(articleListFontWeight(article: article))
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                }
-                                HStack {
-                                    Text(article.created?.dateDescription() ?? "")
-                                        .fontWeight(articleListFontWeight(article: article))
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Spacer()
-                                }
-                            }
+                            PlanetArticleItemView(article: article)
                         }
                         .contextMenu {
                             VStack {
@@ -152,14 +138,5 @@ struct PlanetArticleListView: View {
             return "No articles yet."
         }
         return "\(status.total) articles, \(status.unread) unread."
-    }
-
-    private func articleListFontWeight(article: PlanetArticle) -> Font.Weight {
-        if articleIsMine() == false {
-            if PlanetManager.shared.articleReadStatus(article: article) == false {
-                return .bold
-            }
-        }
-        return .regular
     }
 }

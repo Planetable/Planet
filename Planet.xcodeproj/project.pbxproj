@@ -38,6 +38,7 @@
 		6A0172E827C9EE05006154B7 /* Basic.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A0172E727C9EE05006154B7 /* Basic.html */; };
 		6A0172EB27C9FD5F006154B7 /* Ink in Frameworks */ = {isa = PBXBuildFile; productRef = 6A0172EA27C9FD5F006154B7 /* Ink */; };
 		6A276F5827E5B40400898A73 /* Data+sha256.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A276F5727E5B40400898A73 /* Data+sha256.swift */; };
+		6A2B9BE627ED24A00005467C /* PlanetArticleItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -72,6 +73,7 @@
 		2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = TemplatePlaceholder.html; sourceTree = "<group>"; };
 		6A0172E727C9EE05006154B7 /* Basic.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Basic.html; sourceTree = "<group>"; };
 		6A276F5727E5B40400898A73 /* Data+sha256.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+sha256.swift"; sourceTree = "<group>"; };
+		6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleItemView.swift; sourceTree = "<group>"; };
 		6AA2BC3227DC09AE00AC96B5 /* Planet v3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v3.xcdatamodel"; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -102,6 +104,7 @@
 				2AF1318627C7CDAF007792FE /* PlanetArticleView.swift */,
 				2AE07DD927C9F4EA00377651 /* SimplePlanetArticleView.swift */,
 				2A441BB127C4DDDE0008A694 /* Create & Follow Planet */,
+				6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -287,6 +290,7 @@
 				2AC4995B27BB756400F1C2D1 /* Planet.swift in Sources */,
 				2A441BAE27C40BD30008A694 /* PlanetWriterView.swift in Sources */,
 				2A441BAA27C34FCC0008A694 /* PlanetAboutView.swift in Sources */,
+				6A2B9BE627ED24A00005467C /* PlanetArticleItemView.swift in Sources */,
 				2A7D1BF427CA1B0A00D3C091 /* EditPlanetView.swift in Sources */,
 				2AC4996027BB945800F1C2D1 /* PlanetDataController.swift in Sources */,
 			);
