@@ -65,6 +65,13 @@ extension Date {
         format.timeStyle = .medium
         return format.string(from: self)
     }
+    
+    func mmddyyyy() -> String {
+        let format = DateFormatter()
+        format.dateStyle = .medium
+        format.timeStyle = .none
+        return format.string(from: self)
+    }
 
     func relativeDateDescription() -> String {
         let format = RelativeDateTimeFormatter()
