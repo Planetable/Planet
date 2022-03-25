@@ -218,7 +218,7 @@ struct PlanetSidebarView: View {
                                         PlanetSidebarLoadingIndicatorView()
                                             .environmentObject(planetStore)
                                     }
-                                }
+                                }.badge(PlanetDataController.shared.getArticleStatus(forPlanetID: planet.id!).unread)
                             }
                         }
                         .contextMenu(menuItems: {
