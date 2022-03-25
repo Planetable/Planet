@@ -100,11 +100,11 @@
 				2A441BA927C34FCC0008A694 /* PlanetAboutView.swift */,
 				2A441BAD27C40BD30008A694 /* PlanetWriterView.swift */,
 				2A780CF827C76EF0007DC36A /* PlanetAvatarView.swift */,
+				6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */,
 				2A09A36027C2582B0003A0B5 /* PlanetArticleListView.swift */,
 				2AF1318627C7CDAF007792FE /* PlanetArticleView.swift */,
 				2AE07DD927C9F4EA00377651 /* SimplePlanetArticleView.swift */,
 				2A441BB127C4DDDE0008A694 /* Create & Follow Planet */,
-				6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";

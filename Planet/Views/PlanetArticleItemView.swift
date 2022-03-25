@@ -11,17 +11,26 @@ struct PlanetArticleItemView: View {
     var article: PlanetArticle
     
     var body: some View {
-        VStack {
-            HStack {
-                Text(article.title ?? "")
-                    .foregroundColor(.primary)
+        HStack {
+            VStack {
+                Circle()
+                    .fill(article.isRead ? Color.clear : Color.blue)
+                                .frame(width: 8, height: 8)
+                                .padding(4)
                 Spacer()
             }
-            HStack {
-                Text(article.created?.dateDescription() ?? "")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Spacer()
+            VStack {
+                HStack {
+                    Text(article.title ?? "")
+                        .foregroundColor(.primary)
+                    Spacer()
+                }
+                HStack {
+                    Text(article.created?.dateDescription() ?? "")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
             }
         }
     }
