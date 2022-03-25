@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PlanetArticleItemView: View {
-    var article: PlanetArticle
+    @ObservedObject var article: PlanetArticle
     
     var body: some View {
         HStack {

@@ -310,11 +310,7 @@ class PlanetDataController: NSObject {
     func updateArticleReadStatus(article: PlanetArticle, read: Bool = true) {
         let ctx = persistentContainer.newBackgroundContext()
         guard let a = getArticle(id: article.id!) else { return }
-        if read {
-            a.read = Date()
-        } else {
-            a.setNilValueForKey("read")
-        }
+        a.isRead = read
         do {
             try ctx.save()
             debugPrint("Read: article read status updated: \(a.read)")

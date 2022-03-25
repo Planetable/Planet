@@ -38,47 +38,48 @@ struct PlanetArticleListView: View {
                                         .frame(minWidth: 320), tag: articleID.uuidString, selection: $planetStore.selectedArticle) {
                             PlanetArticleItemView(article: article)
                         }
-                        .contextMenu {
-                            VStack {
-                                if articleIsMine() {
-                                    Button {
-                                        launchWriter(forArticle: article)
-                                    } label: {
-                                        Text("Edit Article")
-                                    }
-                                    Button {
-                                        isShowingConfirmation = true
-                                        dialogDetail = article
-                                    } label: {
-                                        Text("Delete Article")
-                                    }
+                                        .contextMenu {
+                                            VStack {
+                                                if articleIsMine() {
+                                                    Button {
+                                                        launchWriter(forArticle: article)
+                                                    } label: {
+                                                        Text("Edit Article")
+                                                    }
+                                                    Button {
+                                                        isShowingConfirmation = true
+                                                        dialogDetail = article
+                                                    } label: {
+                                                        Text("Delete Article")
+                                                    }
 
-                                    Divider()
+                                                    Divider()
 
-                                    Button {
-                                        PlanetDataController.shared.refreshArticle(article)
-                                    } label: {
-                                        Text("Refresh")
-                                    }
-                                } else {
-                                    Button {
-                                        if article.read == nil {
-                                            PlanetDataController.shared.updateArticleReadStatus(article: article, read: true)
-                                        } else {
-                                            PlanetDataController.shared.updateArticleReadStatus(article: article, read: false)
+                                                    Button {
+                                                        PlanetDataController.shared.refreshArticle(article)
+                                                    } label: {
+                                                        Text("Refresh")
+                                                    }
+                                                } else {
+                                                    Button {
+                                                        if article.isRead == false {
+                                                            PlanetDataController.shared.updateArticleReadStatus(article: article, read: true)
+                                                        } else {
+                                                            PlanetDataController.shared.updateArticleReadStatus(article: article, read: false)
+                                                        }
+                                                    } label: {
+                                                        Text(article.isRead == false ? "Mark as Read" : "Mark as Unread")
+                                                    }
+                                                }
+
+                                                Button {
+                                                    PlanetDataController.shared.copyPublicLinkOfArticle(article)
+                                                } label: {
+                                                    Text("Copy Public Link")
+                                                }
+                                            }
                                         }
-                                    } label: {
-                                        Text(article.read == nil ? "Mark as Read" : "Mark as Unread")
-                                    }
-                                }
-
-                                Button {
-                                    PlanetDataController.shared.copyPublicLinkOfArticle(article)
-                                } label: {
-                                    Text("Copy Public Link")
-                                }
-                            }
-                        }
+                        
                     }
                 }
             } else {
