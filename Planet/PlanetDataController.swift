@@ -48,7 +48,7 @@ class PlanetDataController: NSObject {
     }
 
     // MARK: Create Type 0 Planet: planet://ipns
-    
+
     func createPlanet(withID id: UUID, name: String, about: String, keyName: String?, keyID: String?, ipns: String?) -> Planet? {
         let ctx = persistentContainer.newBackgroundContext()
         let planet = Planet(context: ctx)
@@ -70,7 +70,7 @@ class PlanetDataController: NSObject {
             return nil
         }
     }
-    
+
     // MARK: Create Type 1 Planet: planet://ens
 
     func createPlanetENS(ens: String) -> Planet? {
@@ -92,11 +92,11 @@ class PlanetDataController: NSObject {
             return nil
         }
     }
-    
+
     // MARK: Create Type 2 Planet: planet://ipns
-    
+
     // MARK: Create Type 3 Planet: https://domain/feed.json
-    
+
     func createPlanet(endpoint: String) -> Planet? {
         guard let url = URL(string: endpoint) else { return nil }
         if url.path.count == 1 { return nil }
@@ -117,9 +117,9 @@ class PlanetDataController: NSObject {
             debugPrint("Failed to create new Type 3 DNS Planet: \(url.host!), error: \(error)")
             return nil
         }
-        
+
     }
-    
+
     // MARK: Check update for Type 1 ENS
 
     func checkUpdateForPlanetENS(planet: Planet) async {
@@ -228,9 +228,9 @@ class PlanetDataController: NSObject {
             }
         }
     }
-    
+
     // MARK: Check update for Type 3 DNS
-    
+
     func checkUpdateForPlanetDNS(planet: Planet) async {
         if let id = planet.id, let feedAddress = planet.feedAddress {
             let url = URL(string: feedAddress)!
@@ -320,6 +320,7 @@ class PlanetDataController: NSObject {
     }
 
     func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String, link: String) async {
+        guard let planet = getPlanet(id: planetID) else { return }
         guard _articleExists(id: id) == false else { return }
         let ctx = persistentContainer.newBackgroundContext()
         let article = PlanetArticle(context: ctx)
@@ -329,10 +330,13 @@ class PlanetDataController: NSObject {
         article.content = content
         article.link = link
         article.created = Date()
+        if planet.isMyPlanet() {
+            article.isRead = true
+        }
         do {
             try ctx.save()
             debugPrint("planet article created: \(article)")
-            guard let planet = getPlanet(id: planetID), planet.isMyPlanet() else { return }
+            if planet.isMyPlanet() == false { return }
             await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
             await PlanetManager.shared.publishForPlanet(planet: planet)
         } catch {
