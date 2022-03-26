@@ -459,12 +459,14 @@ class PlanetDataController: NSObject {
     func getArticlePublicLink(article: PlanetArticle, gateway: PublicGateway = .dweb) -> String {
         guard let planet = getPlanet(id: article.planetID!) else { return "" }
         switch (planet.type) {
-            case .planet:
-                return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)\(article.link!)"
-            case .ens:
-                return "https://\(gateway.rawValue)/ipfs/\(planet.ipfs!)\(article.link!)"
-            default:
-                return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)\(article.link!)"
+        case .planet:
+            return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)\(article.link!)"
+        case .ens:
+            return "https://\(gateway.rawValue)/ipfs/\(planet.ipfs!)\(article.link!)"
+        case .dns:
+            return "\(article.link!)"
+        default:
+            return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)\(article.link!)"
         }
     }
 
