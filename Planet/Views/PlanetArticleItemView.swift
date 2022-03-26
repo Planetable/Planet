@@ -22,19 +22,19 @@ struct PlanetArticleItemView: View {
                                 .padding(.trailing, 4)
                 Spacer()
             }
-            VStack {
+            VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(article.title ?? "")
                         .font(.headline)
                         .foregroundColor(.primary)
-                    Spacer()
+                    
                 }
                 HStack {
 
                     Text(article.created?.mmddyyyy() ?? "")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Spacer()
+                    
 
                 }
             }
