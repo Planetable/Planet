@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import CodeEditor
 import Stencil
 import PathKit
 import WebKit
@@ -68,24 +67,29 @@ struct PlanetWriterView: View {
             }
 
             Divider()
-            
-            if isPreviewOpen {
-                PlanetWriterPreviewView(articleID: articleID, content: content)
-            } else {
-                CodeEditor(source: $content,
-                           selection: $selection,
-                           language: .markdown,
-                           theme: .ocean,
-                           flags: [.selectable, .editable, .smartIndent],
-                           indentStyle: .softTab(width: 4),
-                           autoPairs: ["{": "}", "(": ")", "[": "]", "<": ">", "'": "'", "\"": "\""],
-                           autoscroll: true)
+
+            HStack {
+                Text("Hi")
+                if isPreviewOpen {
+                    PlanetWriterPreviewView(articleID: articleID, content: content)
+                }
+            }
+//            if isPreviewOpen {
+//            } else {
+//                CodeEditor(source: $content,
+//                           selection: $selection,
+//                           language: .markdown,
+//                           theme: .ocean,
+//                           flags: [.selectable, .editable, .smartIndent],
+//                           indentStyle: .softTab(width: 4),
+//                           autoPairs: ["{": "}", "(": ")", "[": "]", "<": ">", "'": "'", "\"": "\""],
+//                           autoscroll: true)
 //                    .onChange(of: source) { [source] newValue in
 //                        Task.init(priority: .background) {
 //                            await processInput(fromSource: source, withUpdatedSource: newValue)
 //                        }
 //                    }
-            }
+//            }
 
             if isToolBoxOpen && isPreviewOpen == false {
 

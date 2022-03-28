@@ -57,7 +57,7 @@ struct PlanetSidebarToolbarButtonView: View {
 
         Button {
             if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
-                launchWriterIfNeeded(forPlanet: planet)
+                PlanetWriterManager.shared.launchWriter(forPlanet: planet)
             }
         } label: {
             Image(systemName: "square.and.pencil")
@@ -66,23 +66,6 @@ struct PlanetSidebarToolbarButtonView: View {
                 .frame(width: 16, height: 16, alignment: .center)
         }
         .disabled(planetStore.currentPlanet == nil || !planetStore.currentPlanet.isMyPlanet())
-    }
-
-    private func launchWriterIfNeeded(forPlanet planet: Planet) {
-        let articleID = planet.id!
-
-        if planetStore.writerIDs.contains(articleID) {
-            DispatchQueue.main.async {
-                self.planetStore.activeWriterID = articleID
-            }
-            return
-        }
-
-        let writerView = PlanetWriterView(articleID: articleID)
-        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 720, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
-        writerWindow.center()
-        writerWindow.contentView = NSHostingView(rootView: writerView)
-        writerWindow.makeKeyAndOrderFront(nil)
     }
 }
 
@@ -135,7 +118,7 @@ struct PlanetSidebarView: View {
                             VStack {
                                 Button {
                                     if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
-                                        launchWriterIfNeeded(forPlanet: planet)
+                                        PlanetWriterManager.shared.launchWriter(forPlanet: planet)
                                     }
                                 } label: {
                                     Text("New Article")
@@ -334,23 +317,6 @@ struct PlanetSidebarView: View {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(ipns, forType: .string)
-    }
-
-    private func launchWriterIfNeeded(forPlanet planet: Planet) {
-        let articleID = planet.id!
-
-        if planetStore.writerIDs.contains(articleID) {
-            DispatchQueue.main.async {
-                self.planetStore.activeWriterID = articleID
-            }
-            return
-        }
-
-        let writerView = PlanetWriterView(articleID: articleID)
-        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 720, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
-        writerWindow.center()
-        writerWindow.contentView = NSHostingView(rootView: writerView)
-        writerWindow.makeKeyAndOrderFront(nil)
     }
 }
 
