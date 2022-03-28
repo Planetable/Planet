@@ -27,10 +27,10 @@ struct SimpleWebView: NSViewRepresentable {
     func makeNSView(context: NSViewRepresentableContext<SimpleWebView>) -> WKWebView {
         let webview = WKWebView()
         webview.navigationDelegate = navigationHelper
-
-        let request = URLRequest(url: self.url, cachePolicy: .returnCacheDataElseLoad)
-        webview.load(request)
-
+        if self.url.absoluteString != "" {
+            let request = URLRequest(url: self.url, cachePolicy: .returnCacheDataElseLoad)
+            webview.load(request)
+        }
         return webview
     }
 

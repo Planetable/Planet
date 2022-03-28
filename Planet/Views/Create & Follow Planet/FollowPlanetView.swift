@@ -68,7 +68,16 @@ struct FollowPlanetView: View {
                             }
                         }
                     } else {
-                        PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedEndpoint())
+                        // If endpoint starts with https://, create it as a Type 3 Planet
+                        if processedEndpoint().hasPrefix("https://") {
+                            PlanetDataController.shared.createPlanet(endpoint: processedEndpoint())
+                        } else {
+                            if let planet = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedEndpoint()) {
+                                Task.init(priority: .background) {
+                                    await PlanetManager.shared.updateForPlanet(planet: planet)
+                                }
+                            }
+                        }
                     }
                 } label: {
                     Text("Follow")

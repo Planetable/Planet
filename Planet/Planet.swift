@@ -120,6 +120,19 @@ class Planet: NSManagedObject, Codable {
 
 
 extension Planet {
+    override public var description: String {
+        switch type {
+            case .planet:
+                return "Planet Type 0: \(name!)"
+            case .ens:
+                return "Planet Type 1: \(name!)"
+            case .dns:
+                return "Planet Type 3: \(dns!)"
+            default:
+                return "Planet Type \(type.rawValue): \(name!)"
+        }
+    }
+
     func isMyPlanet() -> Bool {
         if let keyID = keyID, let keyName = keyName {
             return keyID != "" && keyName != ""
@@ -147,7 +160,18 @@ extension Planet {
         }
     }
 
-
+    var IPFSContent: String? {
+        get {
+            switch type {
+            case .planet:
+                return "/ipns/\(ipns)"
+            case .ens:
+                return "/ipfs/\(ipfs)"
+            default:
+                return nil
+            }
+        }
+    }
 
     func generateAvatarName() -> String {
         guard let name = name else {
@@ -224,6 +248,20 @@ class PlanetArticle: NSManagedObject, Codable {
         try container.encode(content, forKey: .content)
         try container.encode(link, forKey: .link)
         try container.encode(planetID, forKey: .planetID)
+    }
+
+    var isRead: Bool {
+        get {
+            return read != nil
+        }
+
+        set {
+            if newValue {
+                read = Date()
+            } else {
+                read = nil
+            }
+        }
     }
 }
 

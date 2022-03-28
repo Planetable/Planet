@@ -218,7 +218,7 @@ struct PlanetSidebarView: View {
                                         PlanetSidebarLoadingIndicatorView()
                                             .environmentObject(planetStore)
                                     }
-                                }
+                                }.badge(PlanetDataController.shared.getArticleStatus(byPlanetID: planet.id!).unread)
                             }
                         }
                         .contextMenu(menuItems: {
@@ -242,7 +242,7 @@ struct PlanetSidebarView: View {
                                 if articles.count > 0 {
                                     Button {
                                         let _ = articles.map() { a in
-                                            PlanetManager.shared.updateArticleReadingStatus(article: a, read: true)
+                                            PlanetDataController.shared.updateArticleReadStatus(article: a, read: true)
                                         }
                                     } label: {
                                         Text("Mark All as Read")

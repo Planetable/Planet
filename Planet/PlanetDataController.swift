@@ -47,7 +47,9 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func createPlanet(withID id: UUID, name: String, about: String, keyName: String?, keyID: String?, ipns: String?) {
+    // MARK: Create Type 0 Planet: planet://ipns
+
+    func createPlanet(withID id: UUID, name: String, about: String, keyName: String?, keyID: String?, ipns: String?) -> Planet? {
         let ctx = persistentContainer.newBackgroundContext()
         let planet = Planet(context: ctx)
         planet.id = id
@@ -60,12 +62,16 @@ class PlanetDataController: NSObject {
         planet.ipns = ipns
         do {
             try ctx.save()
-            debugPrint("planet created: \(planet)")
+            debugPrint("Type 0 Planet created: \(planet)")
             PlanetManager.shared.setupDirectory(forPlanet: planet)
+            return planet
         } catch {
-            debugPrint("failed to create new planet: \(planet), error: \(error)")
+            debugPrint("Failed to create new Type 0 Planet: \(planet), error: \(error)")
+            return nil
         }
     }
+
+    // MARK: Create Type 1 Planet: planet://ens
 
     func createPlanetENS(ens: String) -> Planet? {
         let ctx = persistentContainer.newBackgroundContext()
@@ -78,17 +84,47 @@ class PlanetDataController: NSObject {
         planet.ens = ens
         do {
             try ctx.save()
-            debugPrint("ENS planet created: \(ens)")
+            debugPrint("Type 1 ENS planet created: \(ens)")
             PlanetManager.shared.setupDirectory(forPlanet: planet)
             return planet
         } catch {
-            debugPrint("failed to create new planet: \(ens), error: \(error)")
+            debugPrint("Failed to create new Type 1 Planet: \(ens), error: \(error)")
             return nil
         }
     }
 
+    // MARK: Create Type 2 Planet: planet://ipns
+
+    // MARK: Create Type 3 Planet: https://domain/feed.json
+
+    func createPlanet(endpoint: String) -> Planet? {
+        guard let url = URL(string: endpoint) else { return nil }
+        if url.path.count == 1 { return nil }
+        let ctx = persistentContainer.newBackgroundContext()
+        let planet = Planet(context: ctx)
+        planet.id = UUID()
+        planet.type = .dns
+        planet.created = Date()
+        planet.name = url.host
+        planet.about = ""
+        planet.dns = url.host
+        planet.feedAddress = endpoint
+        do {
+            try ctx.save()
+            debugPrint("Type 3 DNS planet created: \(url.host!)")
+            return planet
+        } catch {
+            debugPrint("Failed to create new Type 3 DNS Planet: \(url.host!), error: \(error)")
+            return nil
+        }
+
+    }
+
+    // MARK: Check update for Type 1 ENS
+
     func checkUpdateForPlanetENS(planet: Planet) async {
         if let id = planet.id, let ens = planet.ens {
+//            let url = URL(string: "http://192.168.192.80:3000/ens/\(ens)")!
             let url = URL(string: "http://192.168.1.200:3000/ens/\(ens)")!
             debugPrint("Trying to parse ENS: \(planet.ens!) with API url: \(url)")
             do {
@@ -144,9 +180,20 @@ class PlanetDataController: NSObject {
             switch result {
                 case .success(let feed):
                     switch feed {
-                        case let .atom(feed):       // Atom Syndication Format Feed Model
-                            debugPrint(feed)
-                        case let .rss(feed):        // Really Simple Syndication Feed Model
+                        case let .atom(feed):       // Atom Syndication Format Feed
+                            var articles: [PlanetFeedArticle] = []
+                            for entry in feed.entries! {
+                                guard let entryURL = URL(string: entry.links![0].attributes!.href!) else { continue }
+                                let entryLink = "\(entryURL.scheme!)://\(entryURL.host!)\(entryURL.path)"
+                                guard let entryTitle = entry.title else { continue }
+                                let entryContent = entry.content?.attributes?.src ?? ""
+                                let entryPublished = entry.published ?? Date()
+                                let a = PlanetFeedArticle(id: UUID(), created: entryPublished, title: entryTitle, content: entryContent, link: entryLink)
+                                articles.append(a)
+                            }
+                            debugPrint("Atom Feed: Found \(articles.count) articles")
+                            PlanetDataController.shared.batchCreateRSSArticles(articles: articles, planetID: id)
+                        case let .rss(feed):        // Really Simple Syndication Feed
                             var articles: [PlanetFeedArticle] = []
                             for item in feed.items! {
                                 guard let itemLink = URL(string: item.link!) else { continue }
@@ -159,14 +206,44 @@ class PlanetDataController: NSObject {
                             }
                             debugPrint("RSS: Found \(articles.count) articles")
                             PlanetDataController.shared.batchCreateRSSArticles(articles: articles, planetID: id)
-                        case let .json(feed):       // JSON Feed Model
-                            debugPrint(feed)
+                        case let .json(feed):       // JSON Feed
+                            var articles: [PlanetFeedArticle] = []
+                            for item in feed.items! {
+                                guard let itemLink = URL(string: item.url!) else { continue }
+                                guard let itemTitle = item.title else { continue }
+                                let itemContentHTML = item.contentHtml ?? ""
+                                let itemDatePublished = item.datePublished ?? Date()
+                                debugPrint("\(itemTitle) \(itemLink.path)")
+                                let a = PlanetFeedArticle(id: UUID(), created: itemDatePublished, title: itemTitle, content: itemContentHTML, link: item.url!)
+                                articles.append(a)
+                            }
+                            debugPrint("JSON Feed: Found \(articles.count) articles")
+                            PlanetDataController.shared.batchCreateRSSArticles(articles: articles, planetID: id)
                     }
                 case .failure(let error):
                     print(error)
                 }
             DispatchQueue.main.async {
                 // ..and update the UI
+            }
+        }
+    }
+
+    // MARK: Check update for Type 3 DNS
+
+    func checkUpdateForPlanetDNS(planet: Planet) async {
+        if let id = planet.id, let feedAddress = planet.feedAddress {
+            let url = URL(string: feedAddress)!
+            debugPrint("Trying to fetch Feed: \(feedAddress)")
+            do {
+                let (data, response) = try await URLSession.shared.data(from: url)
+                if let httpResponse = response as? HTTPURLResponse {
+                    if httpResponse.statusCode == 200 {
+                        await parseFeedForPlanet(forID: id, feedURL: url)
+                    }
+                }
+            } catch {
+                debugPrint("Error fetching feed: \(url): \(String(describing: error))")
             }
         }
     }
@@ -188,6 +265,18 @@ class PlanetDataController: NSObject {
             debugPrint("planet updated: \(planet)")
         } catch {
             debugPrint("failed to update planet: \(planet), error: \(error)")
+        }
+    }
+
+    func updatePlanetFeedSHA256(forID id: UUID, feedSHA256: String) {
+        let ctx = persistentContainer.newBackgroundContext()
+        guard let planet = getPlanet(id: id) else { return }
+        planet.feedSHA256 = feedSHA256
+        do {
+            try ctx.save()
+            debugPrint("Planet feed SHA256 updated: \(feedSHA256)")
+        } catch {
+            debugPrint("Failed to update planet feed SHA256: \(planet), error: \(error)")
         }
     }
 
@@ -218,7 +307,20 @@ class PlanetDataController: NSObject {
         }
     }
 
+    func updateArticleReadStatus(article: PlanetArticle, read: Bool = true) {
+        let ctx = persistentContainer.newBackgroundContext()
+        guard let a = getArticle(id: article.id!) else { return }
+        a.isRead = read
+        do {
+            try ctx.save()
+            debugPrint("Read: article read status updated: \(a.read)")
+        } catch {
+            debugPrint("Read: failed to update article read status: \(a), error: \(error)")
+        }
+    }
+
     func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String, link: String) async {
+        guard let planet = getPlanet(id: planetID) else { return }
         guard _articleExists(id: id) == false else { return }
         let ctx = persistentContainer.newBackgroundContext()
         let article = PlanetArticle(context: ctx)
@@ -228,10 +330,13 @@ class PlanetDataController: NSObject {
         article.content = content
         article.link = link
         article.created = Date()
+        if planet.isMyPlanet() {
+            article.isRead = true
+        }
         do {
             try ctx.save()
             debugPrint("planet article created: \(article)")
-            guard let planet = getPlanet(id: planetID), planet.isMyPlanet() else { return }
+            if planet.isMyPlanet() == false { return }
             await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
             await PlanetManager.shared.publishForPlanet(planet: planet)
         } catch {
@@ -315,6 +420,9 @@ class PlanetDataController: NSObject {
         guard let article = getArticle(id: id) else { return }
         article.title = title
         article.content = content
+        if article.link == nil {
+            article.link = "/\(id)/"
+        }
         do {
             try ctx.save()
             refreshArticle(article)
@@ -331,6 +439,7 @@ class PlanetDataController: NSObject {
                 if let id = article.id {
                     DispatchQueue.global(qos: .background).async {
                         DispatchQueue.main.async {
+                            debugPrint("about to refresh article: \(article) ...")
                             NotificationCenter.default.post(name: .refreshArticle, object: id)
                         }
                     }
@@ -349,8 +458,16 @@ class PlanetDataController: NSObject {
 
     func getArticlePublicLink(article: PlanetArticle, gateway: PublicGateway = .dweb) -> String {
         guard let planet = getPlanet(id: article.planetID!) else { return "" }
-        let publicLink = "https://\(gateway.rawValue)/ipns/\(planet.ipns!)/\(article.id!.uuidString)/"
-        return publicLink
+        switch (planet.type) {
+        case .planet:
+            return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)\(article.link!)"
+        case .ens:
+            return "https://\(gateway.rawValue)/ipfs/\(planet.ipfs!)\(article.link!)"
+        case .dns:
+            return "\(article.link!)"
+        default:
+            return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)\(article.link!)"
+        }
     }
 
     func copyPublicLinkOfArticle(_ article: PlanetArticle) {
@@ -452,7 +569,7 @@ class PlanetDataController: NSObject {
         let articles = getArticles(byPlanetID: id)
         total = articles.count
         unread = articles.filter({ a in
-            return !PlanetManager.shared.articleReadingStatus(article: a)
+            return !a.isRead
         }).count
         return (unread, total)
     }
@@ -523,7 +640,7 @@ class PlanetDataController: NSObject {
         return Set()
     }
 
-    func removeArticle(article: PlanetArticle) {
+    func removeArticle(_ article: PlanetArticle) {
         let uuid = article.id!
         let planetUUID = article.planetID!
         let context = persistentContainer.viewContext

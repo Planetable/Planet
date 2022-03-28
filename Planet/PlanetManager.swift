@@ -87,13 +87,6 @@ class PlanetManager: NSObject {
 
     func setup() {
         debugPrint("Planet Manager Setup")
-        #if DEBUG
-        for key in UserDefaults.standard.dictionaryRepresentation().keys {
-            if key.hasPrefix("PlanetArticleReadingStatus"){
-                UserDefaults.standard.removeObject(forKey: key)
-            }
-        }
-        #endif
 
         loadTemplates()
 
@@ -326,7 +319,7 @@ class PlanetManager: NSObject {
         }
     }
 
-    func articleURL(article: PlanetArticle) async -> URL? {
+    func articleURL(article: PlanetArticle) -> URL? {
         guard let articleID = article.id, let planetID = article.planetID else { return nil }
         guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!) else { return nil }
         let ipns = planet.ipns
@@ -334,7 +327,7 @@ class PlanetManager: NSObject {
             let articlePath = _planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
             if !FileManager.default.fileExists(atPath: articlePath.path) {
                 Task.init(priority: .background) {
-                    PlanetDataController.shared.removeArticle(article: article)
+                    PlanetDataController.shared.removeArticle(article)
                 }
                 return nil
             }
@@ -344,64 +337,35 @@ class PlanetManager: NSObject {
             let urlString: String = {
                 switch (planet.type) {
                     case .planet:
-                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns)/\(article.id)/index.html"
+                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.link!)/index.html"
                     case .ens:
                         return "http://127.0.0.1:\(gatewayPort)/ipfs/\(planet.ipfs!)\(article.link!)"
+                    case .dns:
+                        return article.link!
                     default:
-                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns)/\(article.id)/index.html"
+                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.link!)/index.html"
                 }
             }()
             debugPrint("Article URL string: \(urlString)")
             if let url = URL(string: urlString) {
-                let request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 15)
-                do {
-                    let (data, _) = try await URLSession.shared.data(for: request)
-                    // cache index.html file if needed.
-
-                    // update unreads
-                    DispatchQueue.global(qos: .background).async {
-                        self.updateArticleReadingStatus(article: article)
-                    }
-
-                    return url
-                } catch {
-                    debugPrint("failed to validate article url: \(url), error: \(error)")
-                    return nil
-                }
+//                let request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 15)
+//                do {
+//                    let (data, _) = try await URLSession.shared.data(for: request)
+//                    // TODO: Properly cache the HTML file
+//
+//                    return url
+//                } catch {
+//                    debugPrint("failed to validate article url: \(url), error: \(error)")
+//                    return nil
+//                }
+                return url
             }
             return nil
         }
     }
 
-    func articlePath(articleID: UUID, planetID: UUID) -> URL? {
-        let path = _planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString)
-        if FileManager.default.fileExists(atPath: path.path) {
-            return path
-        }
-        
-        return nil
-    }
-    
-    func setupArticlePath(articleID: UUID, planetID: UUID) {
-        let path = _planetsPath().appendingPathComponent(planetID.uuidString)
-        try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
-        try? FileManager.default.createDirectory(at: path.appendingPathComponent(articleID.uuidString), withIntermediateDirectories: true, attributes: nil)
-    }
-
-    func articleDraftPath(articleID: UUID) -> URL {
-        let path = _draftPath().appendingPathComponent(articleID.uuidString)
-        if !FileManager.default.fileExists(atPath: path.path) {
-            try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
-        }
-        return path
-    }
-
-    func articleReadingStatus(article: PlanetArticle) -> Bool {
-        return UserDefaults.standard.bool(forKey: "PlanetArticleReadingStatus" + "-" + article.id!.uuidString)
-    }
-
-    func updateArticleReadingStatus(article: PlanetArticle, read: Bool = true) {
-        UserDefaults.standard.set(read, forKey: "PlanetArticleReadingStatus" + "-" + article.id!.uuidString)
+    func articleReadStatus(article: PlanetArticle) -> Bool {
+        return article.read != nil
     }
 
     func renderArticleToDirectory(fromArticle article: PlanetArticle, templateIndex: Int = 0, force: Bool = false) async {
@@ -445,6 +409,13 @@ class PlanetManager: NSObject {
             return
         }
         debugPrint("article \(article) rendered at: \(articlePath).")
+    }
+
+    func pin(_ endpoint: String) {
+        let pinRequest = serverURL(path: "pin/add", args: ["arg": endpoint], timeout: 120)
+        URLSession.shared.dataTask(with: pinRequest) { data, response, error in
+            debugPrint("pinned: \(response).")
+        }.resume()
     }
 
     func publishForPlanet(planet: Planet) async {
@@ -532,12 +503,18 @@ class PlanetManager: NSObject {
     }
 
     func updateForPlanet(planet: Planet) async {
-        print("update for planet: \(planet) (type: \(planet.type))")
-
         if planet.type == .ens {
-            debugPrint("Going to update ENS planet: \(planet.ens!)")
+            debugPrint("Going to update Type 1 ENS planet: \(planet.ens!)")
             Task.init(priority: .background) {
                 await PlanetDataController.shared.checkUpdateForPlanetENS(planet: planet)
+            }
+            return
+        }
+        
+        if planet.type == .dns {
+            debugPrint("Going to update Type 3 DNS planet: \(planet.dns!)")
+            Task.init(priority: .background) {
+                await PlanetDataController.shared.checkUpdateForPlanetDNS(planet: planet)
             }
             return
         }
@@ -575,19 +552,26 @@ class PlanetManager: NSObject {
             }
         }
 
-        // pin planet in background.
-        debugPrint("pin in the background ...")
-        let pinRequest = serverURL(path: "pin/add", args: ["arg": "/ipns/" + ipns], timeout: 120)
-        URLSession.shared.dataTask(with: pinRequest) { data, response, error in
-            debugPrint("pinned: \(response).")
-        }.resume()
-
         debugPrint("updating for planet: \(planet) ...")
         let prefix = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns + "/"
         let ipnsString = prefix + "planet.json"
         let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
+            let dataSHA256 = data.sha256()
+            debugPrint("Feed SHA256: \(dataSHA256)")
+            // If feed SHA256 has changed, write the latest to planet
+            // And pin the IPNS
+            let currentFeedSHA256 = planet.feedSHA256 ?? ""
+            if currentFeedSHA256 != dataSHA256 {
+                PlanetDataController.shared.updatePlanetFeedSHA256(forID: id, feedSHA256: dataSHA256)
+                debugPrint("Feed SHA256 has changed, pinning: \(planet)")
+                if let IPFSContent = planet.IPFSContent {
+                    PlanetManager.shared.pin(IPFSContent)
+                }
+            } else {
+                debugPrint("Feed SHA256 has not changed, skip pinning: \(planet)")
+            }
             let decoder = JSONDecoder()
             let feed: PlanetFeed = try decoder.decode(PlanetFeed.self, from: data)
             guard feed.name != "" else { return }
@@ -605,7 +589,8 @@ class PlanetManager: NSObject {
             var articlesToCreate: [PlanetFeedArticle] = []
             var articlesToUpdate: [PlanetFeedArticle] = []
             for a in feed.articles {
-                let existing = PlanetDataController.shared.getArticle(id: a.id)
+                guard let articleLink = a.link else { continue }
+                let existing = PlanetDataController.shared.getArticle(link: articleLink, planetID: id)
                 if existing == nil {
                     articlesToCreate.append(a)
                 } else {
@@ -614,29 +599,13 @@ class PlanetManager: NSObject {
                     }
                 }
             }
-            debugPrint("planet articles to create: \(articlesToCreate)")
-            debugPrint("planet articles to update: \(articlesToUpdate)")
+            debugPrint("planet articles count to create: \(articlesToCreate.count)")
+            debugPrint("planet articles count to update: \(articlesToUpdate.count)")
             if articlesToCreate.count > 0 {
                 await PlanetDataController.shared.batchCreateArticles(articles: articlesToCreate, planetID: id)
             }
             if articlesToUpdate.count > 0 {
                 await PlanetDataController.shared.batchUpdateArticles(articles: articlesToUpdate, planetID: id)
-            }
-
-            // delete saved articles which was deleted if needed.
-            var articlesToDelete: [PlanetArticle] = []
-            let availableArticles = PlanetDataController.shared.getArticles(byPlanetID: id)
-            let feedArticleIDs = feed.articles.map() { a in
-                return a.id
-            }
-            for a in availableArticles {
-                if !feedArticleIDs.contains(a.id!) {
-                    articlesToDelete.append(a)
-                }
-            }
-            debugPrint("planet articles to delete: \(articlesToDelete)")
-            if articlesToDelete.count > 0 {
-                await PlanetDataController.shared.batchDeleteArticles(articles: articlesToDelete)
             }
 
             // update planet avatar if needed.
