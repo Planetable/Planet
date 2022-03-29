@@ -39,6 +39,10 @@
 		2AF4003927F2321F005DF1A9 /* PlanetWriterTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF4003827F2321F005DF1A9 /* PlanetWriterTextView.swift */; };
 		2AF4003B27F232B2005DF1A9 /* PlanetWriterHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF4003A27F232B2005DF1A9 /* PlanetWriterHelper.swift */; };
 		2AF4003D27F23575005DF1A9 /* PlanetWriterEditorTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF4003C27F23575005DF1A9 /* PlanetWriterEditorTextView.swift */; };
+		2AF4006427F37992005DF1A9 /* PlanetWriterPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF4006327F37992005DF1A9 /* PlanetWriterPreviewView.swift */; };
+		2AF4006627F379BF005DF1A9 /* PlanetWriterWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF4006527F379BF005DF1A9 /* PlanetWriterWebView.swift */; };
+		2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF4006727F37C27005DF1A9 /* WriterBasic.html */; };
+		2AF4006A27F37C27005DF1A9 /* WriterBasicPlaceholder.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF4006827F37C27005DF1A9 /* WriterBasicPlaceholder.html */; };
 		6A0172E827C9EE05006154B7 /* Basic.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A0172E727C9EE05006154B7 /* Basic.html */; };
 		6A0172EB27C9FD5F006154B7 /* Ink in Frameworks */ = {isa = PBXBuildFile; productRef = 6A0172EA27C9FD5F006154B7 /* Ink */; };
 		6A276F5827E5B40400898A73 /* Data+sha256.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A276F5727E5B40400898A73 /* Data+sha256.swift */; };
@@ -80,6 +84,10 @@
 		2AF4003827F2321F005DF1A9 /* PlanetWriterTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterTextView.swift; sourceTree = "<group>"; };
 		2AF4003A27F232B2005DF1A9 /* PlanetWriterHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterHelper.swift; sourceTree = "<group>"; };
 		2AF4003C27F23575005DF1A9 /* PlanetWriterEditorTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterEditorTextView.swift; sourceTree = "<group>"; };
+		2AF4006327F37992005DF1A9 /* PlanetWriterPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterPreviewView.swift; sourceTree = "<group>"; };
+		2AF4006527F379BF005DF1A9 /* PlanetWriterWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterWebView.swift; sourceTree = "<group>"; };
+		2AF4006727F37C27005DF1A9 /* WriterBasic.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WriterBasic.html; sourceTree = "<group>"; };
+		2AF4006827F37C27005DF1A9 /* WriterBasicPlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WriterBasicPlaceholder.html; sourceTree = "<group>"; };
 		6A0172E727C9EE05006154B7 /* Basic.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Basic.html; sourceTree = "<group>"; };
 		6A276F5727E5B40400898A73 /* Data+sha256.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+sha256.swift"; sourceTree = "<group>"; };
 		6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleItemView.swift; sourceTree = "<group>"; };
@@ -191,6 +199,8 @@
 				2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */,
 				6A0172E727C9EE05006154B7 /* Basic.html */,
 				2A69F04327E0F5D800141DC0 /* BasicPreview.html */,
+				2AF4006727F37C27005DF1A9 /* WriterBasic.html */,
+				2AF4006827F37C27005DF1A9 /* WriterBasicPlaceholder.html */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -203,6 +213,8 @@
 				2AF4003827F2321F005DF1A9 /* PlanetWriterTextView.swift */,
 				2AF4003C27F23575005DF1A9 /* PlanetWriterEditorTextView.swift */,
 				2A441BAD27C40BD30008A694 /* PlanetWriterView.swift */,
+				2AF4006527F379BF005DF1A9 /* PlanetWriterWebView.swift */,
+				2AF4006327F37992005DF1A9 /* PlanetWriterPreviewView.swift */,
 				2AF4003A27F232B2005DF1A9 /* PlanetWriterHelper.swift */,
 			);
 			path = Writer;
@@ -276,9 +288,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2AF4006A27F37C27005DF1A9 /* WriterBasicPlaceholder.html in Resources */,
 				2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */,
 				2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */,
 				2AC4996827BB981200F1C2D1 /* Planet.xcconfig in Resources */,
+				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
 				6A0172E827C9EE05006154B7 /* Basic.html in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
 				2AC4997127BB9F2200F1C2D1 /* TemplateTON.html in Resources */,
@@ -315,9 +329,11 @@
 				2AF4003D27F23575005DF1A9 /* PlanetWriterEditorTextView.swift in Sources */,
 				2AF4003B27F232B2005DF1A9 /* PlanetWriterHelper.swift in Sources */,
 				2A441BAE27C40BD30008A694 /* PlanetWriterView.swift in Sources */,
+				2AF4006627F379BF005DF1A9 /* PlanetWriterWebView.swift in Sources */,
 				2A441BAA27C34FCC0008A694 /* PlanetAboutView.swift in Sources */,
 				6A2B9BE627ED24A00005467C /* PlanetArticleItemView.swift in Sources */,
 				2A7D1BF427CA1B0A00D3C091 /* EditPlanetView.swift in Sources */,
+				2AF4006427F37992005DF1A9 /* PlanetWriterPreviewView.swift in Sources */,
 				2AC4996027BB945800F1C2D1 /* PlanetDataController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -450,7 +466,7 @@
 				CODE_SIGN_ENTITLEMENTS = Planet/Planet.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 305;
+				CURRENT_PROJECT_VERSION = 310;
 				DEVELOPMENT_ASSET_PATHS = "\"Planet/Preview Content\"";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -479,7 +495,7 @@
 				CODE_SIGN_ENTITLEMENTS = Planet/Planet.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 305;
+				CURRENT_PROJECT_VERSION = 310;
 				DEVELOPMENT_ASSET_PATHS = "\"Planet/Preview Content\"";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;

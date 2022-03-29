@@ -7,11 +7,47 @@
 
 import Foundation
 import SwiftUI
+import Stencil
+import PathKit
+import Ink
 
 
 class PlanetWriterManager: NSObject {
     static let shared = PlanetWriterManager()
 
+    let loader: FileSystemLoader
+    let env: Stencil.Environment
+    let templateName: String
+
+    override init() {
+        let previewTemplatePath = Bundle.main.url(forResource: "WriterBasic", withExtension: "html")!
+        loader = FileSystemLoader(paths: [Path(previewTemplatePath.path)])
+        env = Environment(loader: loader)
+        templateName = previewTemplatePath.path
+    }
+
+    func renderHTML(fromContent c: String) -> String {
+        let parser = MarkdownParser()
+        let output = parser.html(from: c)
+        return output
+    }
+
+    func renderPreview(content: String, forDocument id: UUID) -> URL? {
+        debugPrint("rendering preview: \(content), document id: \(id) ...")
+        do {
+            let output = try env.renderTemplate(name: templateName, context: ["content_html": content])
+            let draftPath = PlanetManager.shared.articleDraftPath(articleID: id)
+            let targetPath = draftPath.appendingPathComponent("preview.html")
+            try output.data(using: .utf8)?.write(to: targetPath)
+            NotificationCenter.default.post(name: .reloadPage, object: targetPath)
+            return targetPath
+        } catch {
+            debugPrint("failed to render preview: \(content), error: \(error)")
+            return nil
+        }
+    }
+
+    // MARK: -
     @MainActor
     func launchWriter(forPlanet planet: Planet) {
         let articleID = planet.id!

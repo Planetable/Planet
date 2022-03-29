@@ -19,12 +19,18 @@ struct PlanetWriterView: View {
 
     @State var title: String = ""
     @State var content: String = ""
+    @State var htmlContent: String = ""
 
-    @State private var isFilePanelOpen: Bool = false
+    @State private var previewPath: URL!
+
     @State private var isToolBoxOpen: Bool = true
-    @State private var isPreviewOpen: Bool = false
+    @State private var isPreviewOpen: Bool = true
 
     @State private var selection = "".endIndex..<"".endIndex
+    @State private var selectedRanges: [NSValue] = [] {
+        didSet {
+        }
+    }
     @State private var sourceFiles: Set<URL> = Set() {
         didSet {
             Task.init(priority: .utility) {
@@ -68,33 +74,37 @@ struct PlanetWriterView: View {
 
             Divider()
 
-            HStack {
-                Text("Hi")
+            let writerView = PlanetWriterTextView(text: $content, selectedRanges: $selectedRanges, writerID: articleID)
+            let previewView = PlanetWriterPreviewView(url: previewPath)
+
+            HSplitView {
+                writerView
+                    .frame(minWidth: 300,
+                           maxWidth: .infinity,
+                           minHeight: 300,
+                           maxHeight: .infinity)
+                    .onChange(of: content) { newValue in
+                        htmlContent = PlanetWriterManager.shared.renderHTML(fromContent: newValue)
+                        Task.init(priority: .utility) {
+                            if let path = PlanetWriterManager.shared.renderPreview(content: htmlContent, forDocument: articleID) {
+                                previewPath = path
+                            }
+                        }
+                    }
+                    .onChange(of: selectedRanges) { [selectedRanges] newValue in
+                        debugPrint("Ranges: \(selectedRanges) -->> \(newValue)")
+                    }
                 if isPreviewOpen {
-                    PlanetWriterPreviewView(articleID: articleID, content: content)
+                    previewView
+                        .frame(minWidth: 300,
+                               maxWidth: .infinity,
+                               minHeight: 300,
+                               maxHeight: .infinity)
                 }
             }
-//            if isPreviewOpen {
-//            } else {
-//                CodeEditor(source: $content,
-//                           selection: $selection,
-//                           language: .markdown,
-//                           theme: .ocean,
-//                           flags: [.selectable, .editable, .smartIndent],
-//                           indentStyle: .softTab(width: 4),
-//                           autoPairs: ["{": "}", "(": ")", "[": "]", "<": ">", "'": "'", "\"": "\""],
-//                           autoscroll: true)
-//                    .onChange(of: source) { [source] newValue in
-//                        Task.init(priority: .background) {
-//                            await processInput(fromSource: source, withUpdatedSource: newValue)
-//                        }
-//                    }
-//            }
 
-            if isToolBoxOpen && isPreviewOpen == false {
-
+            if isToolBoxOpen {
                 Divider()
-
                 ScrollView(.horizontal) {
                     HStack (spacing: 0) {
                         Image(systemName: "plus.viewfinder")
@@ -104,7 +114,11 @@ struct PlanetWriterView: View {
                             .padding(.leading, 16)
                             .opacity(0.5)
                             .onTapGesture {
-                                isFilePanelOpen = true
+                                if let urls: [URL] = uploadImagesAction() {
+                                    for u in urls {
+                                        sourceFiles.insert(u)
+                                    }
+                                }
                             }
 
                         ForEach(Array(sourceFiles), id: \.self) { fileURL in
@@ -154,13 +168,6 @@ struct PlanetWriterView: View {
             guard id == self.articleID else { return }
             self.closeAction()
         }
-        .fileImporter(isPresented: $isFilePanelOpen, allowedContentTypes: [.image, .movie, .url, .pdf], allowsMultipleSelection: true) { result in
-            if let urls = try? result.get() {
-                for u in urls {
-                    sourceFiles.insert(u)
-                }
-            }
-        }
     }
 
     private func closeAction() {
@@ -209,6 +216,18 @@ struct PlanetWriterView: View {
                 PlanetStore.shared.activeWriterID = .init()
             }
         }
+    }
+
+    private func uploadImagesAction() -> [URL]? {
+        let openPanel = NSOpenPanel()
+        openPanel.allowedContentTypes = [.jpeg, .png, .pdf, .tiff, .gif]
+        openPanel.allowsMultipleSelection = true
+        openPanel.canChooseDirectories = false
+        openPanel.canChooseFiles = true
+        openPanel.message = "Please choose images to upload."
+        openPanel.prompt = "Choose"
+        let response = openPanel.runModal()
+        return response == .OK ? openPanel.urls : nil
     }
 
     private func moveCursorBeginningAction() {
@@ -374,111 +393,5 @@ struct PlanetWriterView: View {
         } catch {
             debugPrint("failed to remove draft path: \(draftPath), error: \(error)")
         }
-    }
-}
-
-
-private struct PlanetWriterPreviewView: View {
-    var articleID: UUID
-    var content: String
-
-    @State private var rendered: String = ""
-
-    var body: some View {
-        VStack {
-            SimpleWriterWebView(content: $rendered)
-                .task {
-                    rendered = renderPreview(articleContent: content)
-                }
-        }
-        .padding(0)
-    }
-
-    private func renderPreview(articleContent: String) -> String {
-        guard articleContent != "" else { return "" }
-        
-        let manager = SimpleWriterManager.shared
-        if manager.articleID == nil {
-            manager.setup(withArticleID: articleID)
-        }
-        
-        let content_html = manager.parser.html(from: articleContent)
-        let context: [String: Any] = ["content_html": content_html]
-        do {
-            let output: String = try manager.env.renderTemplate(name: manager.templateName, context: context)
-            debugPrint("rendered content: \(output)")
-            return output
-        } catch {
-            return articleContent
-        }
-    }
-}
-
-
-private struct SimpleWriterWebView: NSViewRepresentable {
-
-    public typealias NSViewType = WKWebView
-
-    @Binding var content: String
-    let navigationHelper = WebViewHelper()
-
-    func makeNSView(context: NSViewRepresentableContext<SimpleWriterWebView>) -> WKWebView {
-        let webview = WKWebView()
-        webview.navigationDelegate = navigationHelper
-        webview.loadHTMLString(content, baseURL: nil)
-        return webview
-    }
-
-    func updateNSView(_ webview: WKWebView, context: NSViewRepresentableContext<SimpleWriterWebView>) {
-        webview.loadHTMLString(content, baseURL: nil)
-    }
-}
-
-
-private class SimpleWriterWebViewHelper: NSObject, WKNavigationDelegate {
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-    }
-
-    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-    }
-
-    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-    }
-
-    func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        completionHandler(.performDefaultHandling, nil)
-    }
-}
-
-
-private class SimpleWriterManager: NSObject {
-    static let shared: SimpleWriterManager = SimpleWriterManager()
-    
-    var articleID: UUID!
-    var loader: FileSystemLoader!
-    var env: Stencil.Environment!
-    var parser: MarkdownParser!
-    var templateName: String!
-
-    override init() {
-    }
-    
-    func setup(withArticleID id: UUID) {
-        debugPrint("Setup Simple Writer Manager for article: \(id)")
-        articleID = id
-        
-        let previewTemplatePath = Bundle.main.url(forResource: "BasicPreview", withExtension: "html")!
-        let templatePath = PlanetManager.shared.articleDraftPath(articleID: articleID).appendingPathComponent("basic_preview.html")
-        if !FileManager.default.fileExists(atPath: templatePath.path) {
-            do {
-                try FileManager.default.copyItem(at: previewTemplatePath, to: templatePath)
-            } catch {
-            }
-        }
-        
-        loader = FileSystemLoader(paths: [Path(templatePath.deletingLastPathComponent().path)])
-        env = Environment(loader: loader)
-        parser = MarkdownParser()
-        templateName = templatePath.lastPathComponent
     }
 }
