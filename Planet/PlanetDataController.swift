@@ -9,6 +9,7 @@ import SwiftUI
 import Foundation
 import CoreData
 import FeedKit
+import ENSKit
 
 
 enum PublicGateway: String {
@@ -124,27 +125,19 @@ class PlanetDataController: NSObject {
 
     func checkUpdateForPlanetENS(planet: Planet) async {
         if let id = planet.id, let ens = planet.ens {
-//            let url = URL(string: "http://192.168.192.80:3000/ens/\(ens)")!
-            let url = URL(string: "http://192.168.1.200:3000/ens/\(ens)")!
-            debugPrint("Trying to parse ENS: \(planet.ens!) with API url: \(url)")
             do {
-                let (data, response) = try await URLSession.shared.data(from: url)
-                debugPrint("ENS metadata retrieved: \(String(data: data, encoding: .utf8) ?? "")")
-                let json = try JSONSerialization.jsonObject(with: data, options: [])
-                if let dictionary = json as? [String: Any] {
-                    if let contentHash = dictionary["content_hash"] as? String {
-                        debugPrint("ENS IPFS content hash found: \(contentHash)")
-                        if contentHash.hasPrefix("ipfs://") {
-                            let ipfs = contentHash.replacingOccurrences(of: "ipfs://", with: "")
-                            updatePlanetENSContentHash(forID: id, contentHash: ipfs)
-                            await checkContentUpdateForPlanetENS(forID: id, ipfs: ipfs)
-                        } else {
-                            debugPrint("ENS content hash is not an IPFS hash: \(contentHash)")
-                        }
-                    }
+                let enskit = ENSKit(/* jsonrpcClient: InfuraEthereumAPI(url: URL("https://mainnet.infura.io/v3/<projectid>")! */)
+                let result = try await enskit.resolve(name: ens)
+                debugPrint("ENSKit.resolve(\(ens)) => \(result?.absoluteString ?? "nil")")
+                if let contentHash = result,
+                   contentHash.scheme?.lowercased() == "ipfs" {
+                    let s = contentHash.absoluteString
+                    let ipfs = String(s.suffix(from: s.index(s.startIndex, offsetBy: 7)))
+                    updatePlanetENSContentHash(forID: id, contentHash: ipfs)
+                    await checkContentUpdateForPlanetENS(forID: id, ipfs: ipfs)
                 }
             } catch {
-                debugPrint("Error loading ENS metadata: \(url): \(String(describing: error))")
+                debugPrint("Error loading ENS metadata: \(String(describing: error))")
             }
         }
     }

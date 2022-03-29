@@ -558,7 +558,7 @@ class PlanetManager: NSObject {
         let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
-            let dataSHA256 = data.sha256()
+            let dataSHA256 = data.sha256().toHexString()
             debugPrint("Feed SHA256: \(dataSHA256)")
             // If feed SHA256 has changed, write the latest to planet
             // And pin the IPNS
