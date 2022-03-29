@@ -171,7 +171,7 @@ struct PlanetSidebarView: View {
                                             await PlanetManager.shared.deleteKey(withName: keyName)
                                         }
                                     }
-                                    PlanetDataController.shared.removePlanet(planet: planet)
+                                    PlanetDataController.shared.removePlanet(planet)
                                 } label: {
                                     Text("Delete Planet")
                                 }
@@ -326,7 +326,7 @@ struct PlanetSidebarView: View {
     }
 
     private func unfollowPlanetAction(planet: Planet) {
-        PlanetDataController.shared.removePlanet(planet: planet)
+        PlanetDataController.shared.removePlanet(planet)
     }
 
     private func copyPlanetIPNSAction(planet: Planet) {

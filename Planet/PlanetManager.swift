@@ -529,7 +529,7 @@ class PlanetManager: NSObject {
         // make sure you do not follow your own planet on the same Mac.
         guard !PlanetDataController.shared.getLocalIPNSs().contains(ipns) else {
             debugPrint("cannot follow your own planet on the same machine, abort.")
-            PlanetDataController.shared.removePlanet(planet: planet)
+            PlanetDataController.shared.removePlanet(planet)
             return
         }
 
@@ -580,7 +580,7 @@ class PlanetManager: NSObject {
 
             // remove current planet as placeholder, create new planet with feed.id
             //if name == "" {
-            //    PlanetDataController.shared.removePlanet(planet: planet)
+            //    PlanetDataController.shared.removePlanet(planet)
             //    PlanetDataController.shared.createPlanet(withID: feed.id, name: feed.name, about: feed.about, keyName: nil, keyID: nil, ipns: feed.ipns)
             //}
             PlanetDataController.shared.updatePlanetMetadata(forID: id, name: feed.name, about: feed.about, ipns: feed.ipns)

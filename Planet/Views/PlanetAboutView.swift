@@ -126,7 +126,7 @@ struct PlanetAboutView: View {
                         Button {
                             dismiss()
                             Task.init {
-                                PlanetDataController.shared.removePlanet(planet: planet)
+                                PlanetDataController.shared.removePlanet(planet)
                             }
                         } label: {
                             Text("Delete")
@@ -156,7 +156,7 @@ struct PlanetAboutView: View {
                         Button {
                             dismiss()
                             Task.init {
-                                PlanetDataController.shared.removePlanet(planet: planet)
+                                PlanetDataController.shared.removePlanet(planet)
                             }
                         } label: {
                             Text("Unfollow")

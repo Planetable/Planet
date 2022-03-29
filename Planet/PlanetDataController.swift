@@ -490,7 +490,7 @@ class PlanetDataController: NSObject {
         debugPrint("Pinged public gateway: \(publicLink)")
     }
 
-    func removePlanet(planet: Planet) {
+    func removePlanet(_ planet: Planet) {
         guard planet.id != nil else { return }
         let uuid = planet.id!
         let context = persistentContainer.viewContext
