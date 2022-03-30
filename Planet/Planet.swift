@@ -123,7 +123,11 @@ extension Planet {
     override public var description: String {
         switch type {
             case .planet:
+            if name != nil {
                 return "Planet Type 0: \(name!)"
+            } else {
+                return "Planet Type 0: \(id?.uuidString)"
+            }
             case .ens:
                 return "Planet Type 1: \(name!)"
             case .dns:
