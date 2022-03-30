@@ -464,10 +464,17 @@ class PlanetDataController: NSObject {
     }
 
     func copyPublicLinkOfArticle(_ article: PlanetArticle) {
-        let publicLink = getArticlePublicLink(article: article, gateway: .cloudflare)
+        let publicLink = getArticlePublicLink(article: article, gateway: .dweb)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(publicLink, forType: .string)
+    }
+
+    func openInBrowser(_ article: PlanetArticle) {
+        let publicLink = getArticlePublicLink(article: article, gateway: .dweb)
+        if let url = URL(string: publicLink) {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     func pingPublicGatewayForArticle(article: PlanetArticle, gateway: PublicGateway = .dweb) async throws {
