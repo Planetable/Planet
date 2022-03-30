@@ -282,7 +282,7 @@ class PlanetManager: NSObject {
     func setupDirectory(forPlanet planet: Planet) {
         if !planet.isMyPlanet() {
             Task.init(priority: .background) {
-                await updateForPlanet(planet: planet)
+                await update(planet)
             }
         } else {
             debugPrint("about setup directory for planet: \(planet) ...")
@@ -502,7 +502,7 @@ class PlanetManager: NSObject {
         }
     }
 
-    func updateForPlanet(planet: Planet) async {
+    func update(_ planet: Planet) async {
         if planet.type == .ens {
             debugPrint("Going to update Type 1 ENS planet: \(planet.ens!)")
             Task.init(priority: .background) {
@@ -648,7 +648,7 @@ class PlanetManager: NSObject {
             let planets = PlanetDataController.shared.getFollowingPlanets()
             debugPrint("updating following planets: \(planets) ...")
             for p in planets {
-                await updateForPlanet(planet: p)
+                await update(p)
             }
         }
     }
