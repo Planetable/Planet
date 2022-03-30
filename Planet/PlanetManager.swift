@@ -510,7 +510,7 @@ class PlanetManager: NSObject {
             }
             return
         }
-        
+
         if planet.type == .dns {
             debugPrint("Going to update Type 3 DNS planet: \(planet.dns!)")
             Task.init(priority: .background) {
@@ -518,6 +518,9 @@ class PlanetManager: NSObject {
             }
             return
         }
+
+        // The rest of the logic is for Type 0 Planet
+        // TODO: encapsulate this logic into a function
 
         guard
             let id = planet.id,
@@ -578,11 +581,6 @@ class PlanetManager: NSObject {
 
             debugPrint("got following planet feed: \(feed)")
 
-            // remove current planet as placeholder, create new planet with feed.id
-            //if name == "" {
-            //    PlanetDataController.shared.removePlanet(planet)
-            //    PlanetDataController.shared.createPlanet(withID: feed.id, name: feed.name, about: feed.about, keyName: nil, keyID: nil, ipns: feed.ipns)
-            //}
             PlanetDataController.shared.updatePlanetMetadata(forID: id, name: feed.name, about: feed.about, ipns: feed.ipns)
 
             // update planet articles if needed.
