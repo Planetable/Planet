@@ -610,18 +610,8 @@ class PlanetManager: NSObject {
             let avatarString = prefix + "/" + "avatar.png"
             let avatarRequest = URLRequest(url: URL(string: avatarString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
             let (avatarData, _) = try await URLSession.shared.data(for: avatarRequest)
-            let planetPath = planetsPath().appendingPathComponent(id.uuidString)
-            if !FileManager.default.fileExists(atPath: planetPath.path) {
-                try FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true, attributes: nil)
-            }
-            let avatarPath = planetPath.appendingPathComponent("avatar.png")
-            if FileManager.default.fileExists(atPath: avatarPath.path) {
-                try FileManager.default.removeItem(at: avatarPath)
-            }
-            NSImage(data: avatarData)?.imageSave(avatarPath)
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(name: .updateAvatar, object: nil)
-            }
+            let image = NSImage(data: avatarData)
+            PlanetDataController.shared.updatePlanetAvatar(forID: id, image: image)
         } catch {
             debugPrint("failed to get feed: \(error)")
         }
