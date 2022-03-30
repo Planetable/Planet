@@ -200,6 +200,9 @@ class PlanetDataController: NSObject {
                             debugPrint("RSS: Found \(articles.count) articles")
                             PlanetDataController.shared.batchCreateRSSArticles(articles: articles, planetID: id)
                         case let .json(feed):       // JSON Feed
+                            let feedTitle = feed.title ?? ""
+                            let feedDescription = feed.description ?? ""
+                            PlanetDataController.shared.updatePlanetMetadata(forID: id, name: feedTitle, about: feedDescription, ipns: nil)
                             var articles: [PlanetFeedArticle] = []
                             for item in feed.items! {
                                 guard let itemLink = URL(string: item.url!) else { continue }
@@ -244,10 +247,10 @@ class PlanetDataController: NSObject {
     func updatePlanetMetadata(forID id: UUID, name: String?, about: String?, ipns: String?) {
         let ctx = persistentContainer.newBackgroundContext()
         guard let planet = getPlanet(id: id) else { return }
-        if let name = name {
+        if let name = name, name != "" {
             planet.name = name
         }
-        if let about = about {
+        if let about = about, about != "" {
             planet.about = about
         }
         if let ipns = ipns {
