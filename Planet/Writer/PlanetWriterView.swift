@@ -87,7 +87,9 @@ struct PlanetWriterView: View {
                         htmlContent = PlanetWriterManager.shared.renderHTML(fromContent: newValue)
                         Task.init(priority: .utility) {
                             if let path = PlanetWriterManager.shared.renderPreview(content: htmlContent, forDocument: articleID) {
-                                previewPath = path
+                                if previewPath != path {
+                                    previewPath = path
+                                }
                             }
                         }
                     }
@@ -122,14 +124,7 @@ struct PlanetWriterView: View {
                             }
 
                         ForEach(Array(sourceFiles), id: \.self) { fileURL in
-                            thumbnailFromFile(fileURL: fileURL)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 36, height: 36, alignment: .center)
-                                .padding(.leading, 16)
-                                .onTapGesture {
-                                    insertFile(fileURL: fileURL)
-                                }
+                            PlanetWriterUploadImageThumbnailView(articleID: articleID, fileURL: fileURL, sourceFiles: $sourceFiles)
                         }
                     }
                 }
@@ -230,48 +225,6 @@ struct PlanetWriterView: View {
         return response == .OK ? openPanel.urls : nil
     }
 
-    private func moveCursorBeginningAction() {
-        selection = content.startIndex..<content.startIndex
-    }
-
-    private func moveCursorToEndAction() {
-        selection = content.endIndex..<content.endIndex
-    }
-
-    private func cleanUpAction() {
-        content = ""
-        selection = content.endIndex..<content.endIndex
-    }
-
-    private func processInput(fromSource theSource: String, withUpdatedSource updatedSource: String) async {
-        let originalSource: String = theSource
-        var processedSource = updatedSource
-        debugPrint("processing input source: \(theSource) -> updated source: \(updatedSource)")
-
-        let difference = updatedSource.difference(from: theSource)
-        let removals = difference.removals
-        let insertions = difference.insertions
-        let counts = difference.count
-
-        guard counts > 0 else {
-            debugPrint("skiped.")
-            return
-        }
-        debugPrint("REMOVALS: \(removals), INSERTIONS: \(insertions), DELTA COUNTS: \(counts)")
-
-        guard processedSource.count != originalSource.count else {
-            debugPrint("skiped.")
-            return
-        }
-        guard processedSource != originalSource else {
-            debugPrint("skiped.")
-            return
-        }
-
-        self.content = processedSource
-        debugPrint("updated.")
-    }
-
     private func uploadFile(fileURL url: URL) async {
         debugPrint("uploading file: \(url) ...")
         let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
@@ -293,81 +246,6 @@ struct PlanetWriterView: View {
         }
     }
 
-    private func thumbnailFromFile(fileURL url: URL) -> Image {
-        // check file locations
-        let size = NSSize(width: 80, height: 80)
-        let filename = url.lastPathComponent
-
-        // find in planet directory:
-        if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID {
-            if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
-                if let planetArticlePath = PlanetManager.shared.articlePath(articleID: articleID, planetID: planetID) {
-                    if FileManager.default.fileExists(atPath: planetArticlePath.appendingPathComponent(filename).path) {
-                        if let img = NSImage(contentsOf: planetArticlePath.appendingPathComponent(filename)), let resizedImg = img.imageResize(size) {
-                            return Image(nsImage: resizedImg)
-                        }
-                    }
-                }
-            }
-        }
-
-        // if not exists, find in draft directory:
-        let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
-        let imagePath = draftPath.appendingPathComponent(filename)
-        if FileManager.default.fileExists(atPath: imagePath.path) {
-            if let img = NSImage(contentsOf: imagePath), let resizedImg = img.imageResize(size) {
-                return Image(nsImage: resizedImg)
-            }
-        }
-
-        return Image(systemName: "questionmark.app.dashed")
-    }
-
-    private func insertFile(fileURL url: URL) {
-        debugPrint("inserting file: \(url) ...")
-        func _getCharacters(fromContent content: String) -> [Character] {
-            var cc = [Character]()
-            for c in content {
-                cc.append(c)
-            }
-            return cc
-        }
-
-        let filename = url.lastPathComponent
-        let fileExtension = url.pathExtension
-        let isImage: Bool
-        if ["jpg", "jpeg", "png", "pdf", "tiff", "gif"].contains(fileExtension) {
-            isImage = true
-        } else {
-            isImage = false
-        }
-
-        var filePath: URL?
-        if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID {
-            if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
-                if let planetArticlePath = PlanetManager.shared.articlePath(articleID: articleID, planetID: planetID) {
-                    if FileManager.default.fileExists(atPath: planetArticlePath.appendingPathComponent(filename).path) {
-                        filePath = planetArticlePath.appendingPathComponent(filename)
-                    }
-                }
-            }
-        }
-
-        // if not exists, find in draft directory:
-        let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
-        let draftFilePath = draftPath.appendingPathComponent(filename)
-        if filePath == nil, FileManager.default.fileExists(atPath: draftFilePath.path) {
-            filePath = draftFilePath
-        }
-
-        guard let filePath = filePath else {
-            return
-        }
-
-        let c: String = (isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
-        content.insert(contentsOf: _getCharacters(fromContent: c), at: selection.lowerBound)
-    }
-    
     private func copyDraft(toTargetPath targetPath: URL) {
         let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
         do {

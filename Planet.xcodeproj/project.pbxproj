@@ -10,6 +10,7 @@
 		2A09A35C27C257D60003A0B5 /* PlanetMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */; };
 		2A09A35F27C2581F0003A0B5 /* PlanetSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */; };
 		2A09A36127C2582B0003A0B5 /* PlanetArticleListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A36027C2582B0003A0B5 /* PlanetArticleListView.swift */; };
+		2A2E33F227F4A93B0093F405 /* PlanetWriterUploadImageThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2E33F127F4A93B0093F405 /* PlanetWriterUploadImageThumbnailView.swift */; };
 		2A441BAA27C34FCC0008A694 /* PlanetAboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BA927C34FCC0008A694 /* PlanetAboutView.swift */; };
 		2A441BAC27C40AAC0008A694 /* PlanetWriterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAB27C40AAC0008A694 /* PlanetWriterWindow.swift */; };
 		2A441BAE27C40BD30008A694 /* PlanetWriterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAD27C40BD30008A694 /* PlanetWriterView.swift */; };
@@ -53,6 +54,7 @@
 		2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetMainView.swift; sourceTree = "<group>"; };
 		2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSidebarView.swift; sourceTree = "<group>"; };
 		2A09A36027C2582B0003A0B5 /* PlanetArticleListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleListView.swift; sourceTree = "<group>"; };
+		2A2E33F127F4A93B0093F405 /* PlanetWriterUploadImageThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterUploadImageThumbnailView.swift; sourceTree = "<group>"; };
 		2A441BA927C34FCC0008A694 /* PlanetAboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAboutView.swift; sourceTree = "<group>"; };
 		2A441BAB27C40AAC0008A694 /* PlanetWriterWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterWindow.swift; sourceTree = "<group>"; };
 		2A441BAD27C40BD30008A694 /* PlanetWriterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterView.swift; sourceTree = "<group>"; };
@@ -213,6 +215,7 @@
 				2AF4003827F2321F005DF1A9 /* PlanetWriterTextView.swift */,
 				2AF4003C27F23575005DF1A9 /* PlanetWriterEditorTextView.swift */,
 				2A441BAD27C40BD30008A694 /* PlanetWriterView.swift */,
+				2A2E33F127F4A93B0093F405 /* PlanetWriterUploadImageThumbnailView.swift */,
 				2AF4006527F379BF005DF1A9 /* PlanetWriterWebView.swift */,
 				2AF4006327F37992005DF1A9 /* PlanetWriterPreviewView.swift */,
 				2AF4003A27F232B2005DF1A9 /* PlanetWriterHelper.swift */,
@@ -317,6 +320,7 @@
 				2AC4995D27BB758B00F1C2D1 /* Extensions.swift in Sources */,
 				2A09A35C27C257D60003A0B5 /* PlanetMainView.swift in Sources */,
 				2A441BB027C4DD980008A694 /* CreatePlanetView.swift in Sources */,
+				2A2E33F227F4A93B0093F405 /* PlanetWriterUploadImageThumbnailView.swift in Sources */,
 				2AC4997427BC0EBA00F1C2D1 /* Planet.xcdatamodeld in Sources */,
 				2AC4994927BB6E7500F1C2D1 /* PlanetApp.swift in Sources */,
 				2A09A35F27C2581F0003A0B5 /* PlanetSidebarView.swift in Sources */,

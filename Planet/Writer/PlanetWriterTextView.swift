@@ -41,6 +41,10 @@ struct PlanetWriterTextView: NSViewRepresentable {
             guard let t = n.object as? String else { return }
             textView.insertTextAtCursor(text: t)
         }
+        NotificationCenter.default.addObserver(forName: Notification.Name.notification(notification: .removeText, forID: writerID), object: nil, queue: .main) { n in
+            guard let t = n.object as? String else { return }
+
+        }
         NotificationCenter.default.addObserver(forName: Notification.Name.notification(notification: .moveCursorFront, forID: writerID), object: nil, queue: .main) { n in
             textView.moveCursorFront()
         }
@@ -195,6 +199,10 @@ class PlanetWriterCustomTextView: NSView {
         var range = textView.selectedRanges.first?.rangeValue ?? NSRange(location: 0, length: 0)
         range.length = 0
         textView.insertText(text, replacementRange: range)
+    }
+
+    func removeTargetText(text: String) {
+        textView.string.replacingOccurrences(of: text, with: "")
     }
 
     func moveCursorFront() {
