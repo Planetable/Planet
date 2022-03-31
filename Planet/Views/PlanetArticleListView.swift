@@ -77,9 +77,15 @@ struct PlanetArticleListView: View {
                                                 } label: {
                                                     Text("Copy Public Link")
                                                 }
+
+                                                Button {
+                                                    PlanetDataController.shared.openInBrowser(article)
+                                                } label: {
+                                                    Text("Open in Browser")
+                                                }
                                             }
                                         }
-                        
+
                     }
                 }
             } else {
@@ -104,7 +110,7 @@ struct PlanetArticleListView: View {
                         Text("Delete")
                     }
                 }
-        
+
     }
 
     private func launchWriter(forArticle article: PlanetArticle) {

@@ -217,6 +217,16 @@ class PlanetDataController: NSObject {
                             debugPrint("RSS: Found \(articles.count) articles")
                             PlanetDataController.shared.batchCreateRSSArticles(articles: articles, planetID: id)
                         case let .json(feed):       // JSON Feed
+                            let feedTitle = feed.title ?? ""
+                            let feedDescription = feed.description ?? ""
+                            PlanetDataController.shared.updatePlanet(withID: id, name: feedTitle, about: feedDescription)
+                            // Fetch feed avatar if any
+                            if let imageURL = feed.icon {
+                                let url = URL(string: imageURL)!
+                                let data = try! Data(contentsOf: url)
+                                let image = NSImage(data: data)
+                                PlanetDataController.shared.updatePlanetAvatar(forID: id, image: image)
+                            }
                             var articles: [PlanetFeedArticle] = []
                             for item in feed.items! {
                                 guard let itemLink = URL(string: item.url!) else { continue }
@@ -261,10 +271,10 @@ class PlanetDataController: NSObject {
     func updatePlanetMetadata(forID id: UUID, name: String?, about: String?, ipns: String?) {
         let ctx = persistentContainer.newBackgroundContext()
         guard let planet = getPlanet(id: id) else { return }
-        if let name = name {
+        if let name = name, name != "" {
             planet.name = name
         }
-        if let about = about {
+        if let about = about, about != "" {
             planet.about = about
         }
         if let ipns = ipns {
@@ -305,8 +315,12 @@ class PlanetDataController: NSObject {
     func updatePlanet(withID id: UUID, name: String, about: String) {
         let ctx = persistentContainer.newBackgroundContext()
         guard let planet = getPlanet(id: id) else { return }
-        planet.name = name
-        planet.about = about
+        if name != "" {
+            planet.name = name
+        }
+        if about != "" {
+            planet.about = about
+        }
         do {
             try ctx.save()
             Task.init(priority: .utility) {
@@ -314,6 +328,27 @@ class PlanetDataController: NSObject {
             }
         } catch {
             debugPrint("failed to update planet: \(planet), error: \(error)")
+        }
+    }
+
+    func updatePlanetAvatar(forID id: UUID, image: NSImage?) {
+        do {
+            if image == nil { return }
+            let planetPath = PlanetManager.shared.planetsPath().appendingPathComponent(id.uuidString)
+            if !FileManager.default.fileExists(atPath: planetPath.path) {
+                try FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true, attributes: nil)
+            }
+            let avatarPath = planetPath.appendingPathComponent("avatar.png")
+            
+            if FileManager.default.fileExists(atPath: avatarPath.path) {
+                try FileManager.default.removeItem(at: avatarPath)
+            }
+            image!.imageSave(avatarPath)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .updateAvatar, object: nil)
+            }
+        } catch {
+            debugPrint("Planet Avatar failed to update: \(error)")
         }
     }
 
@@ -481,10 +516,17 @@ class PlanetDataController: NSObject {
     }
 
     func copyPublicLinkOfArticle(_ article: PlanetArticle) {
-        let publicLink = getArticlePublicLink(article: article, gateway: .cloudflare)
+        let publicLink = getArticlePublicLink(article: article, gateway: .dweb)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(publicLink, forType: .string)
+    }
+
+    func openInBrowser(_ article: PlanetArticle) {
+        let publicLink = getArticlePublicLink(article: article, gateway: .dweb)
+        if let url = URL(string: publicLink) {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     func pingPublicGatewayForArticle(article: PlanetArticle, gateway: PublicGateway = .dweb) async throws {
