@@ -11,7 +11,11 @@ import SwiftUI
 @main
 struct PlanetApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject var planetStore = PlanetStore.shared
+    @StateObject var planetStore: PlanetStore
+
+    init() {
+        self._planetStore = StateObject(wrappedValue: PlanetStore.shared)
+    }
 
     var body: some Scene {
         WindowGroup {

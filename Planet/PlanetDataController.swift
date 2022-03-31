@@ -136,21 +136,11 @@ class PlanetDataController: NSObject {
                     updatePlanetENSContentHash(forID: id, contentHash: ipfs)
                     await checkContentUpdateForPlanetENS(forID: id, ipfs: ipfs)
                 }
-                if let avatar = try await enskit.getAvatar(name: ens) {
-                    debugPrint("ENSKit.avatar(\(ens)) => \(avatar)")
-                    if let avatarURL = try await enskit.getAvatarImageURL(avatar: avatar) {
-                        debugPrint("ENSKit.getAvatarURL(\(avatar)) => \(avatarURL)")
-                        var finalURL: URL
-                        if avatarURL.scheme == "ipfs" {
-                            finalURL = URL(string: "https://www.cloudflare-ipfs.com/ipfs\(avatarURL.path)")!
-                        } else {
-                            finalURL = avatarURL
-                        }
-                        debugPrint("ENSKit avatar final URL: \(finalURL)")
-                        let data = try Data(contentsOf: finalURL)
-                        if let image = NSImage(data: data) {
-                            PlanetManager.shared.updateAvatar(forPlanet: planet, image: image)
-                        }
+                let avatarResult = try await enskit.avatar(name: ens)
+                debugPrint("ENSKit.avatar(\(ens)) => \(avatarResult?.description ?? "nil")")
+                if let avatar = avatarResult {
+                    if let image = NSImage(data: avatar) {
+                        PlanetManager.shared.updateAvatar(forPlanet: planet, image: image)
                     }
                 }
             } catch {
