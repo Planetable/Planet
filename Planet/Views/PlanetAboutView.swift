@@ -113,7 +113,18 @@ struct PlanetAboutView: View {
                             Text(planetStore.publishingPlanets.contains(planet.id!) ? "Publishing" : "Publish")
                         }
                         .disabled(planetStore.publishingPlanets.contains(planet.id!))
-
+                        
+                        Spacer()
+                        
+                        Button {
+                            dismiss()
+                            Task.init {
+                                await PlanetDataController.shared.fixPlanet(planet)
+                            }
+                        } label: {
+                            Text("Fix")
+                        }
+                        
                         Spacer()
 
                         Button {

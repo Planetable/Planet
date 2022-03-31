@@ -329,7 +329,7 @@ class PlanetDataController: NSObject {
                 try FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true, attributes: nil)
             }
             let avatarPath = planetPath.appendingPathComponent("avatar.png")
-            
+
             if FileManager.default.fileExists(atPath: avatarPath.path) {
                 try FileManager.default.removeItem(at: avatarPath)
             }
@@ -348,9 +348,29 @@ class PlanetDataController: NSObject {
         a.isRead = read
         do {
             try ctx.save()
-            debugPrint("Read: article read status updated: \(a.read)")
+            debugPrint("Read: article read status updated: \(a.isRead)")
         } catch {
             debugPrint("Read: failed to update article read status: \(a), error: \(error)")
+        }
+    }
+    
+    func fixPlanet(_ planet: Planet) async {
+        let articles = getArticles(byPlanetID: planet.id!)
+        let ctx = persistentContainer.newBackgroundContext()
+        for article in articles {
+            if let a = PlanetDataController.shared.getArticle(id: article.id!) {
+                if planet.isMyPlanet() {
+                    if a.link != "/\(a.id!.uuidString)/" {
+                        a.link = "/\(a.id!.uuidString)/"
+                    }
+                }
+            }
+        }
+        do {
+            try ctx.save()
+            debugPrint("Fix Planet Done: \(planet.id!) - \(planet.name ?? "Planet \(planet.id!.uuidString)")")
+        } catch {
+            debugPrint("Failed to batch fix planet articles: \(planet.name ?? "Planet \(planet.id!.uuidString)"), error: \(error)")
         }
     }
 
@@ -359,11 +379,19 @@ class PlanetDataController: NSObject {
         guard _articleExists(id: id) == false else { return }
         let ctx = persistentContainer.newBackgroundContext()
         let article = PlanetArticle(context: ctx)
-        article.id = UUID()
+        if planet.isMyPlanet() {
+            article.id = id
+        } else {
+            article.id = UUID()
+        }
         article.planetID = planetID
         article.title = title
         article.content = content
-        article.link = link
+        if planet.isMyPlanet() {
+            article.link = "/\(id)/"
+        } else {
+            article.link = link
+        }
         article.created = Date()
         if planet.isMyPlanet() {
             article.isRead = true
