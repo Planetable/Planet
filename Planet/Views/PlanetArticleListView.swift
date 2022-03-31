@@ -34,51 +34,51 @@ struct PlanetArticleListView: View {
                 })) { article in
                     if let articleID = article.id {
                         NavigationLink(destination: PlanetArticleView(article: article)
-                                        .environmentObject(planetStore)
-                                        .frame(minWidth: 320), tag: articleID.uuidString, selection: $planetStore.selectedArticle) {
-                            PlanetArticleItemView(article: article)
-                        }
-                                        .contextMenu {
-                                            VStack {
-                                                if articleIsMine() {
-                                                    Button {
-                                                        PlanetWriterManager.shared.launchWriter(forArticle: article)
-                                                    } label: {
-                                                        Text("Edit Article")
-                                                    }
-                                                    Button {
-                                                        isShowingConfirmation = true
-                                                        dialogDetail = article
-                                                    } label: {
-                                                        Text("Delete Article")
-                                                    }
-
-                                                    Divider()
-
-                                                    Button {
-                                                        PlanetDataController.shared.refreshArticle(article)
-                                                    } label: {
-                                                        Text("Refresh")
-                                                    }
-                                                } else {
-                                                    Button {
-                                                        if article.isRead == false {
-                                                            PlanetDataController.shared.updateArticleReadStatus(article: article, read: true)
-                                                        } else {
-                                                            PlanetDataController.shared.updateArticleReadStatus(article: article, read: false)
-                                                        }
-                                                    } label: {
-                                                        Text(article.isRead == false ? "Mark as Read" : "Mark as Unread")
-                                                    }
-                                                }
-
-                                                Button {
-                                                    PlanetDataController.shared.copyPublicLinkOfArticle(article)
-                                                } label: {
-                                                    Text("Copy Public Link")
-                                                }
-                                            }
+                            .environmentObject(planetStore)
+                            .frame(minWidth: 320), tag: articleID.uuidString, selection: $planetStore.selectedArticle) {
+                                PlanetArticleItemView(article: article)
+                            }
+                            .contextMenu {
+                                VStack {
+                                    if articleIsMine() {
+                                        Button {
+                                            PlanetWriterManager.shared.launchWriter(forArticle: article)
+                                        } label: {
+                                            Text("Edit Article")
                                         }
+                                        Button {
+                                            isShowingConfirmation = true
+                                            dialogDetail = article
+                                        } label: {
+                                            Text("Delete Article")
+                                        }
+
+                                        Divider()
+
+                                        Button {
+                                            PlanetDataController.shared.refreshArticle(article)
+                                        } label: {
+                                            Text("Refresh")
+                                        }
+                                    } else {
+                                        Button {
+                                            if article.isRead == false {
+                                                PlanetDataController.shared.updateArticleReadStatus(article: article, read: true)
+                                            } else {
+                                                PlanetDataController.shared.updateArticleReadStatus(article: article, read: false)
+                                            }
+                                        } label: {
+                                            Text(article.isRead == false ? "Mark as Read" : "Mark as Unread")
+                                        }
+                                    }
+
+                                    Button {
+                                        PlanetDataController.shared.copyPublicLinkOfArticle(article)
+                                    } label: {
+                                        Text("Copy Public Link")
+                                    }
+                                }
+                            }
                         
                     }
                 }
@@ -94,16 +94,16 @@ struct PlanetArticleListView: View {
             Text(articleStatus())
         )
         .confirmationDialog(
-                    Text("Are you sure you want to delete this article?"),
-                    isPresented: $isShowingConfirmation,
-                    presenting: dialogDetail
-                ) { detail in
-                    Button(role: .destructive) {
-                        PlanetDataController.shared.removeArticle(detail)
-                    } label: {
-                        Text("Delete")
-                    }
-                }
+            Text("Are you sure you want to delete this article?"),
+            isPresented: $isShowingConfirmation,
+            presenting: dialogDetail
+        ) { detail in
+            Button(role: .destructive) {
+                PlanetDataController.shared.removeArticle(detail)
+            } label: {
+                Text("Delete")
+            }
+        }
         
     }
 

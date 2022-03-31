@@ -16,7 +16,7 @@ struct PlanetWriterTextView: NSViewRepresentable {
     var writerID: UUID
 
     var isEditable: Bool = true
-    var font: NSFont? = .systemFont(ofSize: 14, weight: .regular)
+    var font: NSFont? = .monospacedSystemFont(ofSize: 14, weight: .regular)
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -118,7 +118,7 @@ class PlanetWriterCustomTextView: NSView {
 
         let t = PlanetWriterEditorTextView(frame: .zero, textContainer: textContainer)
         t.autoresizingMask = .width
-        t.backgroundColor = NSColor.textBackgroundColor
+        t.backgroundColor = NSColor.clear
         t.delegate = self.delegate
         t.drawsBackground = true
         t.font = self.font
