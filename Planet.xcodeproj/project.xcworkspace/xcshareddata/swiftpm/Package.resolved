@@ -1,6 +1,42 @@
 {
   "pins" : [
     {
+      "identity" : "base58swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/keefertaylor/Base58Swift.git",
+      "state" : {
+        "revision" : "1c13ea6b07f1584660526f8bde3d4cc150e91acd",
+        "version" : "2.1.14"
+      }
+    },
+    {
+      "identity" : "bigint",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/attaswift/BigInt.git",
+      "state" : {
+        "revision" : "0ed110f7555c34ff468e72e1686e59721f2b0da6",
+        "version" : "5.3.0"
+      }
+    },
+    {
+      "identity" : "cryptoswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/krzyzanowskim/CryptoSwift.git",
+      "state" : {
+        "revision" : "12f2389aca4a07e0dd54c86ec23d0721ed88b8db",
+        "version" : "1.4.3"
+      }
+    },
+    {
+      "identity" : "enskit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Planetable/ENSKit",
+      "state" : {
+        "revision" : "44188f296635930d195c8646dd39ac58a059c7c1",
+        "version" : "0.3.0"
+      }
+    },
+    {
       "identity" : "feedkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nmdias/FeedKit",
@@ -43,6 +79,24 @@
       "state" : {
         "branch" : "master",
         "revision" : "c7e1c890f83a2d847c5d3dfc9a737a8e7fd4c641"
+      }
+    },
+    {
+      "identity" : "swiftyjson",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftyJSON/SwiftyJSON.git",
+      "state" : {
+        "revision" : "b3dcd7dbd0d488e1a7077cb33b00f2083e382f07",
+        "version" : "5.0.1"
+      }
+    },
+    {
+      "identity" : "uint256",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/stdc105/UInt256.git",
+      "state" : {
+        "revision" : "39268c507a732d0583ae813a7f957a4b0bd74d8a",
+        "version" : "0.3.0"
       }
     }
   ],

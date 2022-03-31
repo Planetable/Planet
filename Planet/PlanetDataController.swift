@@ -9,6 +9,7 @@ import SwiftUI
 import Foundation
 import CoreData
 import FeedKit
+import ENSKit
 
 
 enum PublicGateway: String {
@@ -124,27 +125,26 @@ class PlanetDataController: NSObject {
 
     func checkUpdateForPlanetENS(planet: Planet) async {
         if let id = planet.id, let ens = planet.ens {
-//            let url = URL(string: "http://192.168.192.80:3000/ens/\(ens)")!
-            let url = URL(string: "http://192.168.1.200:3000/ens/\(ens)")!
-            debugPrint("Trying to parse ENS: \(planet.ens!) with API url: \(url)")
             do {
-                let (data, response) = try await URLSession.shared.data(from: url)
-                debugPrint("ENS metadata retrieved: \(String(data: data, encoding: .utf8) ?? "")")
-                let json = try JSONSerialization.jsonObject(with: data, options: [])
-                if let dictionary = json as? [String: Any] {
-                    if let contentHash = dictionary["content_hash"] as? String {
-                        debugPrint("ENS IPFS content hash found: \(contentHash)")
-                        if contentHash.hasPrefix("ipfs://") {
-                            let ipfs = contentHash.replacingOccurrences(of: "ipfs://", with: "")
-                            updatePlanetENSContentHash(forID: id, contentHash: ipfs)
-                            await checkContentUpdateForPlanetENS(forID: id, ipfs: ipfs)
-                        } else {
-                            debugPrint("ENS content hash is not an IPFS hash: \(contentHash)")
-                        }
+                let enskit = ENSKit(/* jsonrpcClient: InfuraEthereumAPI(url: URL("https://mainnet.infura.io/v3/<projectid>")! */)
+                let result = try await enskit.resolve(name: ens)
+                debugPrint("ENSKit.resolve(\(ens)) => \(result?.absoluteString ?? "nil")")
+                if let contentHash = result,
+                   contentHash.scheme?.lowercased() == "ipfs" {
+                    let s = contentHash.absoluteString
+                    let ipfs = String(s.suffix(from: s.index(s.startIndex, offsetBy: 7)))
+                    updatePlanetENSContentHash(forID: id, contentHash: ipfs)
+                    await checkContentUpdateForPlanetENS(forID: id, ipfs: ipfs)
+                }
+                let avatarResult = try await enskit.avatar(name: ens)
+                debugPrint("ENSKit.avatar(\(ens)) => \(avatarResult?.description ?? "nil")")
+                if let avatar = avatarResult {
+                    if let image = NSImage(data: avatar) {
+                        PlanetManager.shared.updateAvatar(forPlanet: planet, image: image)
                     }
                 }
             } catch {
-                debugPrint("Error loading ENS metadata: \(url): \(String(describing: error))")
+                debugPrint("Error loading ENS metadata: \(String(describing: error))")
             }
         }
     }
@@ -207,6 +207,16 @@ class PlanetDataController: NSObject {
                             debugPrint("RSS: Found \(articles.count) articles")
                             PlanetDataController.shared.batchCreateRSSArticles(articles: articles, planetID: id)
                         case let .json(feed):       // JSON Feed
+                            let feedTitle = feed.title ?? ""
+                            let feedDescription = feed.description ?? ""
+                            PlanetDataController.shared.updatePlanet(withID: id, name: feedTitle, about: feedDescription)
+                            // Fetch feed avatar if any
+                            if let imageURL = feed.icon {
+                                let url = URL(string: imageURL)!
+                                let data = try! Data(contentsOf: url)
+                                let image = NSImage(data: data)
+                                PlanetDataController.shared.updatePlanetAvatar(forID: id, image: image)
+                            }
                             var articles: [PlanetFeedArticle] = []
                             for item in feed.items! {
                                 guard let itemLink = URL(string: item.url!) else { continue }
@@ -251,10 +261,10 @@ class PlanetDataController: NSObject {
     func updatePlanetMetadata(forID id: UUID, name: String?, about: String?, ipns: String?) {
         let ctx = persistentContainer.newBackgroundContext()
         guard let planet = getPlanet(id: id) else { return }
-        if let name = name {
+        if let name = name, name != "" {
             planet.name = name
         }
-        if let about = about {
+        if let about = about, about != "" {
             planet.about = about
         }
         if let ipns = ipns {
@@ -295,8 +305,12 @@ class PlanetDataController: NSObject {
     func updatePlanet(withID id: UUID, name: String, about: String) {
         let ctx = persistentContainer.newBackgroundContext()
         guard let planet = getPlanet(id: id) else { return }
-        planet.name = name
-        planet.about = about
+        if name != "" {
+            planet.name = name
+        }
+        if about != "" {
+            planet.about = about
+        }
         do {
             try ctx.save()
             Task.init(priority: .utility) {
@@ -304,6 +318,27 @@ class PlanetDataController: NSObject {
             }
         } catch {
             debugPrint("failed to update planet: \(planet), error: \(error)")
+        }
+    }
+
+    func updatePlanetAvatar(forID id: UUID, image: NSImage?) {
+        do {
+            if image == nil { return }
+            let planetPath = PlanetManager.shared.planetsPath().appendingPathComponent(id.uuidString)
+            if !FileManager.default.fileExists(atPath: planetPath.path) {
+                try FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true, attributes: nil)
+            }
+            let avatarPath = planetPath.appendingPathComponent("avatar.png")
+            
+            if FileManager.default.fileExists(atPath: avatarPath.path) {
+                try FileManager.default.removeItem(at: avatarPath)
+            }
+            image!.imageSave(avatarPath)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .updateAvatar, object: nil)
+            }
+        } catch {
+            debugPrint("Planet Avatar failed to update: \(error)")
         }
     }
 
@@ -471,10 +506,17 @@ class PlanetDataController: NSObject {
     }
 
     func copyPublicLinkOfArticle(_ article: PlanetArticle) {
-        let publicLink = getArticlePublicLink(article: article, gateway: .cloudflare)
+        let publicLink = getArticlePublicLink(article: article, gateway: .dweb)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(publicLink, forType: .string)
+    }
+
+    func openInBrowser(_ article: PlanetArticle) {
+        let publicLink = getArticlePublicLink(article: article, gateway: .dweb)
+        if let url = URL(string: publicLink) {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     func pingPublicGatewayForArticle(article: PlanetArticle, gateway: PublicGateway = .dweb) async throws {
@@ -490,7 +532,7 @@ class PlanetDataController: NSObject {
         debugPrint("Pinged public gateway: \(publicLink)")
     }
 
-    func removePlanet(planet: Planet) {
+    func removePlanet(_ planet: Planet) {
         guard planet.id != nil else { return }
         let uuid = planet.id!
         let context = persistentContainer.viewContext

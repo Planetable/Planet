@@ -283,11 +283,11 @@ class PlanetManager: NSObject {
     func setupDirectory(forPlanet planet: Planet) {
         if !planet.isMyPlanet() {
             Task.init(priority: .background) {
-                await updateForPlanet(planet: planet)
+                await update(planet)
             }
         } else {
             debugPrint("about setup directory for planet: \(planet) ...")
-            let planetPath = _planetsPath().appendingPathComponent(planet.id!.uuidString)
+            let planetPath = planetsPath().appendingPathComponent(planet.id!.uuidString)
             if !FileManager.default.fileExists(atPath: planetPath.path) {
                 debugPrint("setup directory for planet: \(planet), path: \(planetPath)")
                 do {
@@ -302,7 +302,7 @@ class PlanetManager: NSObject {
 
     func destroyDirectory(fromPlanet planetUUID: UUID) {
         debugPrint("about to destroy directory from planet: \(planetUUID) ...")
-        let planetPath = _planetsPath().appendingPathComponent(planetUUID.uuidString)
+        let planetPath = planetsPath().appendingPathComponent(planetUUID.uuidString)
         do {
             try FileManager.default.removeItem(at: planetPath)
         } catch {
@@ -312,7 +312,7 @@ class PlanetManager: NSObject {
 
     func destroyArticleDirectory(planetUUID: UUID, articleUUID: UUID) {
         debugPrint("about to destroy directory from article: \(articleUUID) ...")
-        let articlePath = _planetsPath().appendingPathComponent(planetUUID.uuidString).appendingPathComponent(articleUUID.uuidString)
+        let articlePath = planetsPath().appendingPathComponent(planetUUID.uuidString).appendingPathComponent(articleUUID.uuidString)
         do {
             try FileManager.default.removeItem(at: articlePath)
         } catch {
@@ -325,7 +325,7 @@ class PlanetManager: NSObject {
         guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!) else { return nil }
         let ipns = planet.ipns
         if planet.isMyPlanet() {
-            let articlePath = _planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
+            let articlePath = planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
             if !FileManager.default.fileExists(atPath: articlePath.path) {
                 Task.init(priority: .background) {
                     PlanetDataController.shared.removeArticle(article)
@@ -353,7 +353,7 @@ class PlanetManager: NSObject {
     }
 
     func articlePath(articleID: UUID, planetID: UUID) -> URL? {
-        let path = _planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString)
+        let path = planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString)
         if FileManager.default.fileExists(atPath: path.path) {
             return path
         }
@@ -362,7 +362,7 @@ class PlanetManager: NSObject {
     }
 
     func setupArticlePath(articleID: UUID, planetID: UUID) {
-        let path = _planetsPath().appendingPathComponent(planetID.uuidString)
+        let path = planetsPath().appendingPathComponent(planetID.uuidString)
         try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
         try? FileManager.default.createDirectory(at: path.appendingPathComponent(articleID.uuidString), withIntermediateDirectories: true, attributes: nil)
     }
@@ -381,7 +381,7 @@ class PlanetManager: NSObject {
 
     func renderArticleToDirectory(fromArticle article: PlanetArticle, templateIndex: Int = 0, force: Bool = false) async {
         debugPrint("about to render article: \(article)")
-        let planetPath = _planetsPath().appendingPathComponent(article.planetID!.uuidString)
+        let planetPath = planetsPath().appendingPathComponent(article.planetID!.uuidString)
         let articlePath = planetPath.appendingPathComponent(article.id!.uuidString)
         if !FileManager.default.fileExists(atPath: articlePath.path) {
             do {
@@ -432,7 +432,7 @@ class PlanetManager: NSObject {
     func publishForPlanet(planet: Planet) async {
         guard let id = planet.id, let keyName = planet.keyName, keyName != "" else { return }
         let now = Date()
-        let planetPath = _planetsPath().appendingPathComponent(id.uuidString)
+        let planetPath = planetsPath().appendingPathComponent(id.uuidString)
         guard FileManager.default.fileExists(atPath: planetPath.path) else { return }
         let publishingStatus = await checkPublishingStatus(planetID: id)
         guard publishingStatus == false else {
@@ -513,7 +513,7 @@ class PlanetManager: NSObject {
         }
     }
 
-    func updateForPlanet(planet: Planet) async {
+    func update(_ planet: Planet) async {
         if planet.type == .ens {
             debugPrint("Going to update Type 1 ENS planet: \(planet.ens!)")
             Task.init(priority: .background) {
@@ -521,7 +521,7 @@ class PlanetManager: NSObject {
             }
             return
         }
-        
+
         if planet.type == .dns {
             debugPrint("Going to update Type 3 DNS planet: \(planet.dns!)")
             Task.init(priority: .background) {
@@ -529,6 +529,9 @@ class PlanetManager: NSObject {
             }
             return
         }
+
+        // The rest of the logic is for Type 0 Planet
+        // TODO: encapsulate this logic into a function
 
         guard
             let id = planet.id,
@@ -540,7 +543,7 @@ class PlanetManager: NSObject {
         // make sure you do not follow your own planet on the same Mac.
         guard !PlanetDataController.shared.getLocalIPNSs().contains(ipns) else {
             debugPrint("cannot follow your own planet on the same machine, abort.")
-            PlanetDataController.shared.removePlanet(planet: planet)
+            PlanetDataController.shared.removePlanet(planet)
             return
         }
 
@@ -569,7 +572,7 @@ class PlanetManager: NSObject {
         let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
-            let dataSHA256 = data.sha256()
+            let dataSHA256 = data.sha256().toHexString()
             debugPrint("Feed SHA256: \(dataSHA256)")
             // If feed SHA256 has changed, write the latest to planet
             // And pin the IPNS
@@ -589,11 +592,6 @@ class PlanetManager: NSObject {
 
             debugPrint("got following planet feed: \(feed)")
 
-            // remove current planet as placeholder, create new planet with feed.id
-            //if name == "" {
-            //    PlanetDataController.shared.removePlanet(planet: planet)
-            //    PlanetDataController.shared.createPlanet(withID: feed.id, name: feed.name, about: feed.about, keyName: nil, keyID: nil, ipns: feed.ipns)
-            //}
             PlanetDataController.shared.updatePlanetMetadata(forID: id, name: feed.name, about: feed.about, ipns: feed.ipns)
 
             // update planet articles if needed.
@@ -623,18 +621,8 @@ class PlanetManager: NSObject {
             let avatarString = prefix + "/" + "avatar.png"
             let avatarRequest = URLRequest(url: URL(string: avatarString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
             let (avatarData, _) = try await URLSession.shared.data(for: avatarRequest)
-            let planetPath = _planetsPath().appendingPathComponent(id.uuidString)
-            if !FileManager.default.fileExists(atPath: planetPath.path) {
-                try FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true, attributes: nil)
-            }
-            let avatarPath = planetPath.appendingPathComponent("avatar.png")
-            if FileManager.default.fileExists(atPath: avatarPath.path) {
-                try FileManager.default.removeItem(at: avatarPath)
-            }
-            NSImage(data: avatarData)?.imageSave(avatarPath)
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(name: .updateAvatar, object: nil)
-            }
+            let image = NSImage(data: avatarData)
+            PlanetDataController.shared.updatePlanetAvatar(forID: id, image: image)
         } catch {
             debugPrint("failed to get feed: \(error)")
         }
@@ -661,7 +649,7 @@ class PlanetManager: NSObject {
             let planets = PlanetDataController.shared.getFollowingPlanets()
             debugPrint("updating following planets: \(planets) ...")
             for p in planets {
-                await updateForPlanet(planet: p)
+                await update(p)
             }
         }
     }
@@ -737,7 +725,7 @@ class PlanetManager: NSObject {
             PlanetDataController.shared.createPlanet(withID: planetInfo.id, name: planetInfo.name, about: planetInfo.about, keyName: planetInfo.id.uuidString, keyID: planetInfo.ipns, ipns: planetInfo.ipns)
 
             // create planet directory if needed
-            let targetPlanetPath = _planetsPath().appendingPathComponent(planetInfo.id.uuidString)
+            let targetPlanetPath = planetsPath().appendingPathComponent(planetInfo.id.uuidString)
             if !FileManager.default.fileExists(atPath: targetPlanetPath.path) {
                 try FileManager.default.createDirectory(at: targetPlanetPath, withIntermediateDirectories: true, attributes: nil)
             }
@@ -812,7 +800,7 @@ class PlanetManager: NSObject {
             return
         }
 
-        let currentPlanetPath = _planetsPath().appendingPathComponent(planetID.uuidString)
+        let currentPlanetPath = planetsPath().appendingPathComponent(planetID.uuidString)
         do {
             try FileManager.default.copyItem(at: currentPlanetPath, to: exportPlanetPath)
         } catch {
@@ -1058,8 +1046,8 @@ class PlanetManager: NSObject {
         return path
     }
 
-    private func _avatarPath(forPlanetID id: UUID, isEditing: Bool = false) -> URL {
-        let path = _planetsPath().appendingPathComponent(id.uuidString)
+    func _avatarPath(forPlanetID id: UUID, isEditing: Bool = false) -> URL {
+        let path = planetsPath().appendingPathComponent(id.uuidString)
         if !FileManager.default.fileExists(atPath: path.path) {
             try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
         }
@@ -1084,7 +1072,7 @@ class PlanetManager: NSObject {
         return configPath
     }
 
-    private func _planetsPath() -> URL {
+    func planetsPath() -> URL {
         let contentPath = _basePath().appendingPathComponent("planets", isDirectory: true)
         if !FileManager.default.fileExists(atPath: contentPath.path) {
             try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)

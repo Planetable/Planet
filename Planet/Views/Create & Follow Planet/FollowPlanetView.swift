@@ -74,7 +74,7 @@ struct FollowPlanetView: View {
                         } else {
                             if let planet = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedEndpoint()) {
                                 Task.init(priority: .background) {
-                                    await PlanetManager.shared.updateForPlanet(planet: planet)
+                                    await PlanetManager.shared.update(planet)
                                 }
                             }
                         }

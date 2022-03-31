@@ -37,7 +37,7 @@ private struct SharingsPicker: NSViewRepresentable {
         init(owner: SharingsPicker) {
             self.owner = owner
         }
-        
+
         func sharingServicePicker(_ sharingServicePicker: NSSharingServicePicker, sharingServicesForItems items: [Any], proposedSharingServices proposedServices: [NSSharingService]) -> [NSSharingService] {
             guard let image = NSImage(named: NSImage.networkName) else {
                 return proposedServices
@@ -67,7 +67,7 @@ struct PlanetAboutView: View {
     @Environment(\.dismiss) private var dismiss
 
     var planet: Planet
-    
+
     @State private var isSharing = false
     @State private var planetIPNS = "planet://"
 
@@ -81,7 +81,7 @@ struct PlanetAboutView: View {
                 }
                 .padding(.top, 20)
                 .padding(.bottom, 5)
-                
+
                 HStack {
                     Spacer()
                     Text(planet.name ?? "")
@@ -92,7 +92,7 @@ struct PlanetAboutView: View {
                     .font(.body)
 
                 Spacer()
-                
+
                 HStack {
                     if planet.isMyPlanet() {
                         if let ipns = planet.ipns, ipns != "" {
@@ -113,20 +113,20 @@ struct PlanetAboutView: View {
                             Text(planetStore.publishingPlanets.contains(planet.id!) ? "Publishing" : "Publish")
                         }
                         .disabled(planetStore.publishingPlanets.contains(planet.id!))
-                        
+
                         Spacer()
-                        
+
                         Button {
                             dismiss()
                             planetStore.isEditingPlanet = true
                         } label: {
                             Text("Edit")
                         }
-                        
+
                         Button {
                             dismiss()
                             Task.init {
-                                PlanetDataController.shared.removePlanet(planet: planet)
+                                PlanetDataController.shared.removePlanet(planet)
                             }
                         } label: {
                             Text("Delete")
@@ -140,11 +140,11 @@ struct PlanetAboutView: View {
                                 Text("Share")
                             }
                         }
-                        
+
                         Button {
                             dismiss()
                             Task.init {
-                                await PlanetManager.shared.updateForPlanet(planet: planet)
+                                await PlanetManager.shared.update(planet)
                             }
                         } label: {
                             Text(planetStore.updatingPlanets.contains(planet.id!) ? "Updating" : "Update")
@@ -152,11 +152,11 @@ struct PlanetAboutView: View {
                         .disabled(planetStore.updatingPlanets.contains(planet.id!))
 
                         Spacer()
-                        
+
                         Button {
                             dismiss()
                             Task.init {
-                                PlanetDataController.shared.removePlanet(planet: planet)
+                                PlanetDataController.shared.removePlanet(planet)
                             }
                         } label: {
                             Text("Unfollow")
@@ -167,15 +167,15 @@ struct PlanetAboutView: View {
             .background(
                 SharingsPicker(isPresented: $isSharing, sharingItems: [planetIPNS])
             )
-            
+
             VStack {
                 HStack {
                     Text(planet.isMyPlanet() ? lastPublishedStatus() : lastUpdatedStatus())
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Spacer()
-                    
+
                     Button {
                         dismiss()
                         DispatchQueue.main.async {
@@ -196,7 +196,7 @@ struct PlanetAboutView: View {
         .padding()
         .frame(width: 320, height: 260, alignment: .center)
     }
-    
+
     private func lastUpdatedStatus() -> String {
         if let id = planet.id {
             if let updated = planetStore.lastUpdatedDates[id] {
@@ -207,7 +207,7 @@ struct PlanetAboutView: View {
         }
         return "Never Updated"
     }
-    
+
     private func lastPublishedStatus() -> String {
         if let id = planet.id {
             if let published = planetStore.lastPublishedDates[id] {
