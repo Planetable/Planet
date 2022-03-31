@@ -188,7 +188,8 @@ struct PlanetWriterView: View {
             copyDraft(toTargetPath: targetPath)
         }
 
-        PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: planetID, title: title, content: content)
+        var article: PlanetArticle?
+        article = PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: planetID, title: title, content: content)
 
         DispatchQueue.main.async {
             if PlanetStore.shared.writerIDs.contains(articleID) {
@@ -197,6 +198,7 @@ struct PlanetWriterView: View {
             if PlanetStore.shared.activeWriterID == articleID {
                 PlanetStore.shared.activeWriterID = .init()
             }
+            PlanetStore.shared.selectedArticle = createdArticleID.uuidString
         }
 
         removeDraft()
@@ -251,6 +253,7 @@ struct PlanetWriterView: View {
         let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
         do {
             let contentsToCopy: [URL] = try FileManager.default.contentsOfDirectory(at: draftPath, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]).filter({ u in
+                // MARK: TODO: ignore files that not used in article:
                 return u.lastPathComponent != "preview.html"
             })
             for u in contentsToCopy {
