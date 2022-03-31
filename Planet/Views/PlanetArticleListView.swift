@@ -42,7 +42,7 @@ struct PlanetArticleListView: View {
                                 VStack {
                                     if articleIsMine() {
                                         Button {
-                                            launchWriter(forArticle: article)
+                                            PlanetWriterManager.shared.launchWriter(forArticle: article)
                                         } label: {
                                             Text("Edit Article")
                                         }
@@ -111,23 +111,6 @@ struct PlanetArticleListView: View {
             }
         }
 
-    }
-
-    private func launchWriter(forArticle article: PlanetArticle) {
-        let articleID = article.id!
-
-        if planetStore.writerIDs.contains(articleID) {
-            DispatchQueue.main.async {
-                self.planetStore.activeWriterID = articleID
-            }
-            return
-        }
-
-        let writerView = PlanetWriterView(articleID: articleID, isEditing: true, title: article.title ?? "", content: article.content ?? "")
-        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 480, 320), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
-        writerWindow.center()
-        writerWindow.contentView = NSHostingView(rootView: writerView)
-        writerWindow.makeKeyAndOrderFront(nil)
     }
 
     private func articleIsMine() -> Bool {
