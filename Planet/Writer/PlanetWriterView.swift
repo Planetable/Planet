@@ -112,7 +112,7 @@ struct PlanetWriterView: View {
                         Image(systemName: "plus.viewfinder")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 36, height: 36, alignment: .center)
+                            .frame(width: 30, height: 30, alignment: .center)
                             .padding(.leading, 16)
                             .opacity(0.5)
                             .onTapGesture {
@@ -157,6 +157,7 @@ struct PlanetWriterView: View {
             }
             .padding(16)
         }
+        .frame(minWidth: 600, minHeight: 300)
         .padding(0)
         .onReceive(NotificationCenter.default.publisher(for: .closeWriterWindow, object: nil)) { n in
             guard let id = n.object as? UUID else { return }
@@ -187,9 +188,8 @@ struct PlanetWriterView: View {
             copyDraft(toTargetPath: targetPath)
         }
 
-        Task.init(priority: .utility) {
-            await PlanetDataController.shared.createArticle(withID: createdArticleID, forPlanet: planetID, title: title, content: content, link: "/\(createdArticleID)/")
-        }
+        PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: planetID, title: title, content: content)
+
         DispatchQueue.main.async {
             if PlanetStore.shared.writerIDs.contains(articleID) {
                 PlanetStore.shared.writerIDs.remove(articleID)
@@ -198,6 +198,7 @@ struct PlanetWriterView: View {
                 PlanetStore.shared.activeWriterID = .init()
             }
         }
+
         removeDraft()
     }
 
@@ -250,13 +251,12 @@ struct PlanetWriterView: View {
         let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
         do {
             let contentsToCopy: [URL] = try FileManager.default.contentsOfDirectory(at: draftPath, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]).filter({ u in
-                return u.lastPathComponent != "basic_preview.html"
+                return u.lastPathComponent != "preview.html"
             })
             for u in contentsToCopy {
                 do {
                     try FileManager.default.copyItem(at: u, to: targetPath.appendingPathComponent(u.lastPathComponent))
                 } catch {
-                    
                 }
             }
         } catch {

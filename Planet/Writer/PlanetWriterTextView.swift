@@ -43,7 +43,7 @@ struct PlanetWriterTextView: NSViewRepresentable {
         }
         NotificationCenter.default.addObserver(forName: Notification.Name.notification(notification: .removeText, forID: writerID), object: nil, queue: .main) { n in
             guard let t = n.object as? String else { return }
-
+            textView.removeTargetText(text: t)
         }
         NotificationCenter.default.addObserver(forName: Notification.Name.notification(notification: .moveCursorFront, forID: writerID), object: nil, queue: .main) { n in
             textView.moveCursorFront()
@@ -202,7 +202,7 @@ class PlanetWriterCustomTextView: NSView {
     }
 
     func removeTargetText(text: String) {
-        textView.string.replacingOccurrences(of: text, with: "")
+        textView.string = textView.string.replacingOccurrences(of: text, with: "")
     }
 
     func moveCursorFront() {

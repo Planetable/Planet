@@ -15,15 +15,18 @@ import Ink
 class PlanetWriterManager: NSObject {
     static let shared = PlanetWriterManager()
 
-    let loader: FileSystemLoader
-    let env: Stencil.Environment
-    let templateName: String
+    let previewEnv: Stencil.Environment
+    let outputEnv: Stencil.Environment
+    var articleTemplateName: String
+    var writerTemplateName: String
 
     override init() {
+        let basicTemplatePath = Bundle.main.url(forResource: "Basic", withExtension: "html")!
         let previewTemplatePath = Bundle.main.url(forResource: "WriterBasic", withExtension: "html")!
-        loader = FileSystemLoader(paths: [Path(previewTemplatePath.path)])
-        env = Environment(loader: loader)
-        templateName = previewTemplatePath.path
+        previewEnv = Environment(loader: FileSystemLoader(paths: [Path(previewTemplatePath.path)]))
+        outputEnv = Environment(loader: FileSystemLoader(paths: [Path(basicTemplatePath.path)]))
+        writerTemplateName = previewTemplatePath.path
+        articleTemplateName = basicTemplatePath.path
     }
 
     func renderHTML(fromContent c: String) -> String {
@@ -35,7 +38,7 @@ class PlanetWriterManager: NSObject {
     func renderPreview(content: String, forDocument id: UUID) -> URL? {
         debugPrint("rendering preview: \(content), document id: \(id) ...")
         do {
-            let output = try env.renderTemplate(name: templateName, context: ["content_html": content])
+            let output = try previewEnv.renderTemplate(name: writerTemplateName, context: ["content_html": content])
             let draftPath = PlanetManager.shared.articleDraftPath(articleID: id)
             let targetPath = draftPath.appendingPathComponent("preview.html")
             try output.data(using: .utf8)?.write(to: targetPath)
@@ -44,6 +47,45 @@ class PlanetWriterManager: NSObject {
         } catch {
             debugPrint("failed to render preview: \(content), error: \(error)")
             return nil
+        }
+    }
+
+    func createArticle(withArticleID id: UUID, forPlanet planetID: UUID, title: String, content: String) {
+        let dataController = PlanetDataController.shared
+        guard let planet = dataController.getPlanet(id: planetID) else { return }
+        let context = dataController.persistentContainer.newBackgroundContext()
+        let article = PlanetArticle(context: context)
+        article.id = id
+        article.planetID = planetID
+        article.title = title
+        article.content = content
+        article.link = "/\(id.uuidString)/"
+        article.created = Date()
+        if planet.isMyPlanet() {
+            article.isRead = true
+        }
+        do {
+            try context.save()
+            if planet.isMyPlanet(), let articlePath = PlanetManager.shared.articlePath(articleID: id, planetID: planetID) {
+                // render article with default template
+                let html = renderHTML(fromContent: content)
+                let output = try outputEnv.renderTemplate(name: articleTemplateName, context: ["article": article, "content_html": html])
+                let articleIndexPath = articlePath.appendingPathComponent("index.html")
+                try output.data(using: .utf8)?.write(to: articleIndexPath)
+
+                // generate article.json
+                let articleJSONPath = articlePath.appendingPathComponent("article.json")
+                let encoder = JSONEncoder()
+                let data = try encoder.encode(article)
+                try data.write(to: articleJSONPath)
+
+                // publish
+                Task.init(priority: .background) {
+                    await PlanetManager.shared.publishForPlanet(planet: planet)
+                }
+            }
+        } catch {
+            debugPrint("failed to create new article: \(article), error: \(error)")
         }
     }
 
