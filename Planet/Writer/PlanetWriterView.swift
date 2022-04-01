@@ -181,9 +181,9 @@ struct PlanetWriterView: View {
         // make sure current new article id equals to the planet id first, then generate new article id.
         let planetID = articleID
         let createdArticleID = UUID()
-        
-        PlanetManager.shared.setupArticlePath(articleID: createdArticleID, planetID: planetID)
-        if let targetPath = PlanetManager.shared.articlePath(articleID: createdArticleID, planetID: planetID) {
+
+        PlanetWriterManager.shared.setupArticlePath(articleID: createdArticleID, planetID: planetID)
+        if let targetPath = PlanetWriterManager.shared.articlePath(articleID: createdArticleID, planetID: planetID) {
             copyDraft(toTargetPath: targetPath)
         }
 
@@ -228,7 +228,7 @@ struct PlanetWriterView: View {
 
     private func uploadFile(fileURL url: URL) async {
         debugPrint("uploading file: \(url) ...")
-        let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
+        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: articleID)
         let fileName = url.lastPathComponent
         let targetPath = draftPath.appendingPathComponent(fileName)
         do {
@@ -236,7 +236,7 @@ struct PlanetWriterView: View {
             debugPrint("uploaded: \(targetPath)")
             if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID {
                 if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
-                    if let planetArticlePath = PlanetManager.shared.articlePath(articleID: articleID, planetID: planetID) {
+                    if let planetArticlePath = PlanetWriterManager.shared.articlePath(articleID: articleID, planetID: planetID) {
                         try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
                         debugPrint("uploaded to planet article path: \(planetArticlePath.appendingPathComponent(fileName))")
                     }
@@ -248,7 +248,7 @@ struct PlanetWriterView: View {
     }
 
     private func copyDraft(toTargetPath targetPath: URL) {
-        let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
+        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: articleID)
         do {
             let contentsToCopy: [URL] = try FileManager.default.contentsOfDirectory(at: draftPath, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]).filter({ u in
                 // MARK: TODO: ignore files that not used in article:
@@ -266,7 +266,7 @@ struct PlanetWriterView: View {
     }
 
     private func removeDraft() {
-        let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
+        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: articleID)
         do {
             try FileManager.default.removeItem(at: draftPath)
         } catch {

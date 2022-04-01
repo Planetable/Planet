@@ -39,7 +39,7 @@ class PlanetWriterManager: NSObject {
         debugPrint("rendering preview: \(content), document id: \(id) ...")
         do {
             let output = try previewEnv.renderTemplate(name: writerTemplateName, context: ["content_html": content])
-            let draftPath = PlanetManager.shared.articleDraftPath(articleID: id)
+            let draftPath = articleDraftPath(articleID: id)
             let targetPath = draftPath.appendingPathComponent("preview.html")
             try output.data(using: .utf8)?.write(to: targetPath)
             NotificationCenter.default.post(name: .reloadPage, object: targetPath)
@@ -66,7 +66,7 @@ class PlanetWriterManager: NSObject {
         }
         do {
             try context.save()
-            if planet.isMyPlanet(), let articlePath = PlanetManager.shared.articlePath(articleID: id, planetID: planetID) {
+            if planet.isMyPlanet(), let articlePath = articlePath(articleID: id, planetID: planetID) {
                 // render article with default template
                 let html = renderHTML(fromContent: content)
                 let output = try outputEnv.renderTemplate(name: articleTemplateName, context: ["article": article, "content_html": html])
@@ -87,6 +87,28 @@ class PlanetWriterManager: NSObject {
         } catch {
             debugPrint("failed to create new article: \(article), error: \(error)")
         }
+    }
+
+    func articlePath(articleID: UUID, planetID: UUID) -> URL? {
+        let path = _planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString)
+        if FileManager.default.fileExists(atPath: path.path) {
+            return path
+        }
+        return nil
+    }
+
+    func setupArticlePath(articleID: UUID, planetID: UUID) {
+        let path = _planetsPath().appendingPathComponent(planetID.uuidString)
+        try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
+        try? FileManager.default.createDirectory(at: path.appendingPathComponent(articleID.uuidString), withIntermediateDirectories: true, attributes: nil)
+    }
+
+    func articleDraftPath(articleID: UUID) -> URL {
+        let path = _draftPath().appendingPathComponent(articleID.uuidString)
+        if !FileManager.default.fileExists(atPath: path.path) {
+            try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
+        }
+        return path
     }
 
     // MARK: -
@@ -125,4 +147,52 @@ class PlanetWriterManager: NSObject {
         writerWindow.contentView = NSHostingView(rootView: writerView)
         writerWindow.makeKeyAndOrderFront(nil)
     }
+
+    // MARK: -
+    private func _applicationSupportPath() -> URL? {
+        return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+    }
+
+    private func _basePath() -> URL {
+#if DEBUG
+        let bundleID = Bundle.main.bundleIdentifier! + ".v03"
+#else
+        let bundleID = Bundle.main.bundleIdentifier! + ".v03"
+#endif
+        let path: URL
+        if let p = _applicationSupportPath() {
+            path = p.appendingPathComponent(bundleID, isDirectory: true)
+        } else {
+            path = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Planet")
+        }
+        if !FileManager.default.fileExists(atPath: path.path) {
+            try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
+        }
+        return path
+    }
+
+    private func _planetsPath() -> URL {
+        let contentPath = _basePath().appendingPathComponent("planets", isDirectory: true)
+        if !FileManager.default.fileExists(atPath: contentPath.path) {
+            try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
+        }
+        return contentPath
+    }
+
+    private func _draftPath() -> URL {
+        let contentPath = _basePath().appendingPathComponent("drafts", isDirectory: true)
+        if !FileManager.default.fileExists(atPath: contentPath.path) {
+            try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
+        }
+        return contentPath
+    }
+
+    private func _templatesPath() -> URL {
+        let contentPath = _basePath().appendingPathComponent("templates", isDirectory: true)
+        if !FileManager.default.fileExists(atPath: contentPath.path) {
+            try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
+        }
+        return contentPath
+    }
+
 }
