@@ -187,8 +187,7 @@ struct PlanetWriterView: View {
             copyDraft(toTargetPath: targetPath)
         }
 
-        var article: PlanetArticle?
-        article = PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: planetID, title: title, content: content)
+        PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: planetID, title: title, content: content)
 
         DispatchQueue.main.async {
             if PlanetStore.shared.writerIDs.contains(articleID) {

@@ -50,9 +50,9 @@ class PlanetWriterManager: NSObject {
         }
     }
 
-    func createArticle(withArticleID id: UUID, forPlanet planetID: UUID, title: String, content: String) -> PlanetArticle? {
+    func createArticle(withArticleID id: UUID, forPlanet planetID: UUID, title: String, content: String) {
         let dataController = PlanetDataController.shared
-        guard let planet = dataController.getPlanet(id: planetID) else { return nil }
+        guard let planet = dataController.getPlanet(id: planetID) else { return }
         let context = dataController.persistentContainer.newBackgroundContext()
         let article = PlanetArticle(context: context)
         article.id = id
@@ -84,11 +84,9 @@ class PlanetWriterManager: NSObject {
                     await PlanetManager.shared.publishForPlanet(planet: planet)
                 }
             }
-            return article
         } catch {
             debugPrint("failed to create new article: \(article), error: \(error)")
         }
-        return nil
     }
 
     // MARK: -
