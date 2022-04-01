@@ -44,14 +44,14 @@ class PlanetDataController: NSObject {
         do {
             try context.save()
         } catch {
-            debugPrint("failed to save data store: \(error)")
+            debugPrint("Failed to save persistent container: \(error)")
         }
     }
 
     // MARK: Create Type 0 Planet: planet://ipns
 
     func createPlanet(withID id: UUID, name: String, about: String, keyName: String?, keyID: String?, ipns: String?) -> Planet? {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         let planet = Planet(context: ctx)
         planet.id = id
         planet.type = .planet
@@ -75,7 +75,7 @@ class PlanetDataController: NSObject {
     // MARK: Create Type 1 Planet: planet://ens
 
     func createPlanetENS(ens: String) -> Planet? {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         let planet = Planet(context: ctx)
         planet.id = UUID()
         planet.type = .ens
@@ -101,7 +101,7 @@ class PlanetDataController: NSObject {
     func createPlanet(endpoint: String) -> Planet? {
         guard let url = URL(string: endpoint) else { return nil }
         if url.path.count == 1 { return nil }
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         let planet = Planet(context: ctx)
         planet.id = UUID()
         planet.type = .dns
@@ -259,7 +259,7 @@ class PlanetDataController: NSObject {
     }
 
     func updatePlanetMetadata(forID id: UUID, name: String?, about: String?, ipns: String?) {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         guard let planet = getPlanet(id: id) else { return }
         if let name = name, name != "" {
             planet.name = name
@@ -279,7 +279,7 @@ class PlanetDataController: NSObject {
     }
 
     func updatePlanetFeedSHA256(forID id: UUID, feedSHA256: String) {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         guard let planet = getPlanet(id: id) else { return }
         planet.feedSHA256 = feedSHA256
         do {
@@ -291,7 +291,7 @@ class PlanetDataController: NSObject {
     }
 
     func updatePlanetENSContentHash(forID id: UUID, contentHash: String) {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         guard let planet = getPlanet(id: id) else { return }
         planet.ipfs = contentHash
         do {
@@ -303,7 +303,7 @@ class PlanetDataController: NSObject {
     }
 
     func updatePlanet(withID id: UUID, name: String, about: String) {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         guard let planet = getPlanet(id: id) else { return }
         if name != "" {
             planet.name = name
@@ -343,7 +343,7 @@ class PlanetDataController: NSObject {
     }
 
     func updateArticleReadStatus(article: PlanetArticle, read: Bool = true) {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         guard let a = getArticle(id: article.id!) else { return }
         a.isRead = read
         do {
@@ -353,10 +353,10 @@ class PlanetDataController: NSObject {
             debugPrint("Read: failed to update article read status: \(a), error: \(error)")
         }
     }
-    
+
     func fixPlanet(_ planet: Planet) async {
         let articles = getArticles(byPlanetID: planet.id!)
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         for article in articles {
             if let a = PlanetDataController.shared.getArticle(id: article.id!) {
                 if planet.isMyPlanet() {
@@ -377,7 +377,7 @@ class PlanetDataController: NSObject {
     func createArticle(withID id: UUID, forPlanet planetID: UUID, title: String, content: String, link: String) async {
         guard let planet = getPlanet(id: planetID) else { return }
         guard _articleExists(id: id) == false else { return }
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         let article = PlanetArticle(context: ctx)
         if planet.isMyPlanet() {
             article.id = id
@@ -408,7 +408,7 @@ class PlanetDataController: NSObject {
     }
 
     func batchUpdateArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         for article in articles {
             let a = PlanetDataController.shared.getArticle(id: article.id)
             if a != nil {
@@ -426,7 +426,7 @@ class PlanetDataController: NSObject {
     }
 
     func batchCreateArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         for article in articles {
             let a = PlanetArticle(context: ctx)
             a.id = UUID()
@@ -445,7 +445,7 @@ class PlanetDataController: NSObject {
     }
 
     func batchCreateRSSArticles(articles: [PlanetFeedArticle], planetID: UUID) {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         for article in articles {
             let a = PlanetDataController.shared.getArticle(link: article.link!, planetID: planetID)
             if a == nil {
@@ -479,7 +479,7 @@ class PlanetDataController: NSObject {
     }
 
     func updateArticle(withID id: UUID, title: String, content: String) {
-        let ctx = persistentContainer.newBackgroundContext()
+        let ctx = persistentContainer.viewContext
         guard let article = getArticle(id: id) else { return }
         article.title = title
         article.content = content
