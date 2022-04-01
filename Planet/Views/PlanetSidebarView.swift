@@ -99,6 +99,14 @@ struct PlanetSidebarView: View {
             List {
                 Section(header:
                     HStack {
+                        Text("Smart Feeds")
+                        Spacer()
+                    })
+                    {
+
+                    }
+                Section(header:
+                    HStack {
                         Text("My Planets")
                         Spacer()
                     }
