@@ -82,6 +82,14 @@ struct PlanetSidebarView: View {
             List {
                 Section(header:
                     HStack {
+                        Text("Smart Feeds")
+                        Spacer()
+                    })
+                    {
+
+                    }
+                Section(header:
+                    HStack {
                         Text("My Planets")
                         Spacer()
                     }
@@ -157,6 +165,16 @@ struct PlanetSidebarView: View {
                                     PlanetDataController.shared.removePlanet(planet)
                                 } label: {
                                     Text("Delete Planet")
+                                }
+
+                                Divider()
+
+                                Button {
+                                    Task.init {
+                                        await PlanetDataController.shared.fixPlanet(planet)
+                                    }
+                                } label: {
+                                    Text("Fix Planet")
                                 }
                             }
                         })
