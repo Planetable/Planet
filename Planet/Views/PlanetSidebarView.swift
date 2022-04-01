@@ -183,6 +183,16 @@ struct PlanetSidebarView: View {
                                 } label: {
                                     Text("Delete Planet")
                                 }
+
+                                Divider()
+
+                                Button {
+                                    Task.init {
+                                        await PlanetDataController.shared.fixPlanet(planet)
+                                    }
+                                } label: {
+                                    Text("Fix Planet")
+                                }
                             }
                         })
                     }
