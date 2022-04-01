@@ -444,6 +444,25 @@ class PlanetDataController: NSObject {
         }
     }
 
+    func batchImportArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
+        let ctx = persistentContainer.viewContext
+        for article in articles {
+            let a = PlanetArticle(context: ctx)
+            a.id = article.id
+            a.planetID = planetID
+            a.title = article.title
+            a.link = article.link
+            a.created = article.created
+        }
+        do {
+            try ctx.save()
+            debugPrint("planet articles created: \(articles)")
+            // MARK: TODO: cache following planets' articles.
+        } catch {
+            debugPrint("failed to batch create new planet articles: \(articles), error: \(error)")
+        }
+    }
+
     func batchCreateRSSArticles(articles: [PlanetFeedArticle], planetID: UUID) {
         let ctx = persistentContainer.viewContext
         for article in articles {

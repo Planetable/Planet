@@ -699,7 +699,7 @@ class PlanetManager: NSObject {
             try runCommand(command: .ipfsImportKey(target: targetPath, config: configPath, keyName: importPlanetKeyName, targetPath: importPlanetKeyPath))
 
             // create planet
-            PlanetDataController.shared.createPlanet(withID: planetInfo.id, name: planetInfo.name, about: planetInfo.about, keyName: planetInfo.id.uuidString, keyID: planetInfo.ipns, ipns: planetInfo.ipns)
+            let _ = PlanetDataController.shared.createPlanet(withID: planetInfo.id, name: planetInfo.name, about: planetInfo.about, keyName: planetInfo.id.uuidString, keyID: planetInfo.ipns, ipns: planetInfo.ipns)
 
             // create planet directory if needed
             let targetPlanetPath = planetsPath().appendingPathComponent(planetInfo.id.uuidString)
@@ -729,7 +729,7 @@ class PlanetManager: NSObject {
             if targetArticles.count > 0 {
                 let articles: [PlanetFeedArticle] = Array(targetArticles)
                 Task.init(priority: .background) {
-                    await PlanetDataController.shared.batchCreateArticles(articles: articles, planetID: planetInfo.id)
+                    await PlanetDataController.shared.batchImportArticles(articles: articles, planetID: planetInfo.id)
                 }
             }
 
