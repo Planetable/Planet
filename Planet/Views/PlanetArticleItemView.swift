@@ -12,17 +12,15 @@ struct PlanetArticleItemView: View {
     
     var body: some View {
         HStack {
-            if !article.isRead {
-                VStack {
-                    Circle()
-                        .fill(Color.blue)
-                        .frame(width: 8, height: 8)
-                        .padding(.top, 4)
-                        .padding(.bottom, 4)
-                        .padding(.leading, 4)
-                        .padding(.trailing, 4)
-                    Spacer()
-                }
+            VStack {
+                Circle()
+                    .fill(article.isRead ? Color.clear : Color.blue)
+                    .frame(width: 8, height: 8)
+                    .padding(.top, 4)
+                    .padding(.bottom, 4)
+                    .padding(.leading, 4)
+                    .padding(.trailing, 4)
+                Spacer()
             }
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
