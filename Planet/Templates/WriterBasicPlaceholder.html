@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#fff">
     <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
-    <title>{{ article.title }}</title>
+    <title>Preview</title>
     <style type="text/css">
     :root {
       --background-color: #fff;
@@ -38,17 +38,13 @@
       font-size: 2em;
     }
 
-    img {
-        width: 90%;
-    }
-
     .date {
       font-size: 0.8em;
       color: var(--foreground-secondary-color);
     }
 
     .content {
-      margin: 20px 0px 20px 0px;
+      margin: -20px 0px 0px 0px;
       line-height: 160%;
       font-size: 1em;
       color: var(--foreground-color);
@@ -56,10 +52,6 @@
     </style>
   </head>
   <body>
-  <h1>{{ article.title }}</h1>
-    <div class="date">{{ article.created }}</div>
-    <div class="content">
-      {{ content_html }}
-    </div>
   </body>
 </html>
+

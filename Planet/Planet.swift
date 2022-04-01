@@ -247,6 +247,7 @@ class PlanetArticle: NSManagedObject, Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(created, forKey: .created)
+        try container.encode(read, forKey: .read)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
         try container.encode(link, forKey: .link)

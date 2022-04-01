@@ -34,57 +34,57 @@ struct PlanetArticleListView: View {
                 })) { article in
                     if let articleID = article.id {
                         NavigationLink(destination: PlanetArticleView(article: article)
-                                        .environmentObject(planetStore)
-                                        .frame(minWidth: 320), tag: articleID.uuidString, selection: $planetStore.selectedArticle) {
-                            PlanetArticleItemView(article: article)
-                        }
-                                        .contextMenu {
-                                            VStack {
-                                                if articleIsMine() {
-                                                    Button {
-                                                        launchWriter(forArticle: article)
-                                                    } label: {
-                                                        Text("Edit Article")
-                                                    }
-                                                    Button {
-                                                        isShowingConfirmation = true
-                                                        dialogDetail = article
-                                                    } label: {
-                                                        Text("Delete Article")
-                                                    }
-
-                                                    Divider()
-
-                                                    Button {
-                                                        PlanetDataController.shared.refreshArticle(article)
-                                                    } label: {
-                                                        Text("Refresh")
-                                                    }
-                                                } else {
-                                                    Button {
-                                                        if article.isRead == false {
-                                                            PlanetDataController.shared.updateArticleReadStatus(article: article, read: true)
-                                                        } else {
-                                                            PlanetDataController.shared.updateArticleReadStatus(article: article, read: false)
-                                                        }
-                                                    } label: {
-                                                        Text(article.isRead == false ? "Mark as Read" : "Mark as Unread")
-                                                    }
-                                                }
-
-                                                Button {
-                                                    PlanetDataController.shared.copyPublicLinkOfArticle(article)
-                                                } label: {
-                                                    Text("Copy Public Link")
-                                                }
-
-                                                Button {
-                                                    PlanetDataController.shared.openInBrowser(article)
-                                                } label: {
-                                                    Text("Open in Browser")
-                                                }
-                                            }
+                            .environmentObject(planetStore)
+                            .frame(minWidth: 320), tag: articleID.uuidString, selection: $planetStore.selectedArticle) {
+                                PlanetArticleItemView(article: article)
+                            }
+                            .contextMenu {
+                                VStack {
+                                    if articleIsMine() {
+                                        Button {
+                                            PlanetWriterManager.shared.launchWriter(forArticle: article)
+                                        } label: {
+                                            Text("Edit Article")
                                         }
+                                        Button {
+                                            isShowingConfirmation = true
+                                            dialogDetail = article
+                                        } label: {
+                                            Text("Delete Article")
+                                        }
+
+                                        Divider()
+
+                                        Button {
+                                            PlanetDataController.shared.refreshArticle(article)
+                                        } label: {
+                                            Text("Refresh")
+                                        }
+                                    } else {
+                                        Button {
+                                            if article.isRead == false {
+                                                PlanetDataController.shared.updateArticleReadStatus(article: article, read: true)
+                                            } else {
+                                                PlanetDataController.shared.updateArticleReadStatus(article: article, read: false)
+                                            }
+                                        } label: {
+                                            Text(article.isRead == false ? "Mark as Read" : "Mark as Unread")
+                                        }
+                                    }
+
+                                    Button {
+                                        PlanetDataController.shared.copyPublicLinkOfArticle(article)
+                                    } label: {
+                                        Text("Copy Public Link")
+                                    }
+
+                                    Button {
+                                        PlanetDataController.shared.openInBrowser(article)
+                                    } label: {
+                                        Text("Open in Browser")
+                                    }
+                                }
+                            }
 
                     }
                 }
@@ -100,34 +100,17 @@ struct PlanetArticleListView: View {
             Text(articleStatus())
         )
         .confirmationDialog(
-                    Text("Are you sure you want to delete this article?"),
-                    isPresented: $isShowingConfirmation,
-                    presenting: dialogDetail
-                ) { detail in
-                    Button(role: .destructive) {
-                        PlanetDataController.shared.removeArticle(detail)
-                    } label: {
-                        Text("Delete")
-                    }
-                }
-
-    }
-
-    private func launchWriter(forArticle article: PlanetArticle) {
-        let articleID = article.id!
-
-        if planetStore.writerIDs.contains(articleID) {
-            DispatchQueue.main.async {
-                self.planetStore.activeWriterID = articleID
+            Text("Are you sure you want to delete this article?"),
+            isPresented: $isShowingConfirmation,
+            presenting: dialogDetail
+        ) { detail in
+            Button(role: .destructive) {
+                PlanetDataController.shared.removeArticle(detail)
+            } label: {
+                Text("Delete")
             }
-            return
         }
 
-        let writerView = PlanetWriterView(articleID: articleID, isEditing: true, title: article.title ?? "", content: article.content ?? "")
-        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 480, 320), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
-        writerWindow.center()
-        writerWindow.contentView = NSHostingView(rootView: writerView)
-        writerWindow.makeKeyAndOrderFront(nil)
     }
 
     private func articleIsMine() -> Bool {

@@ -80,13 +80,11 @@ class PlanetStore: ObservableObject {
     @Published var selectedArticle: String! {
         didSet {
             if let selectedArticle = selectedArticle {
-                DispatchQueue.global(qos: .utility).async {
-                    if let targetArticle = PlanetDataController.shared.getArticle(id: UUID(uuidString: selectedArticle)!) {
-                        DispatchQueue.main.async {
-                            self.currentArticle = targetArticle
-                        }
-                        return
+                if let targetArticle = PlanetDataController.shared.getArticle(id: UUID(uuidString: selectedArticle)!) {
+                    DispatchQueue.main.async {
+                        self.currentArticle = targetArticle
                     }
+                    return
                 }
             }
             DispatchQueue.main.async {

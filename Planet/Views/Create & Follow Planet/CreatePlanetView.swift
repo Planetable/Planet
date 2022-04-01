@@ -95,7 +95,7 @@ struct CreatePlanetView: View {
                         }
                         if keyName != "" && keyID != "" {
                             DispatchQueue.main.async {
-                                PlanetDataController.shared.createPlanet(withID: UUID(uuidString: keyName)!, name: self.planetName, about: self.planetDescription, keyName: keyName, keyID: keyID, ipns: keyID)
+                                let _ = PlanetDataController.shared.createPlanet(withID: UUID(uuidString: keyName)!, name: self.planetName, about: self.planetDescription, keyName: keyName, keyID: keyID, ipns: keyID)
                             }
                         }
                     }

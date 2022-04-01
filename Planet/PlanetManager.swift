@@ -7,6 +7,7 @@
 
 import Foundation
 import Cocoa
+import SwiftUI
 import Stencil
 import PathKit
 import Ink
@@ -347,20 +348,7 @@ class PlanetManager: NSObject {
                 }
             }()
             debugPrint("Article URL string: \(urlString)")
-            if let url = URL(string: urlString) {
-//                let request = URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 15)
-//                do {
-//                    let (data, _) = try await URLSession.shared.data(for: request)
-//                    // TODO: Properly cache the HTML file
-//
-//                    return url
-//                } catch {
-//                    debugPrint("failed to validate article url: \(url), error: \(error)")
-//                    return nil
-//                }
-                return url
-            }
-            return nil
+            return URL(string: urlString)
         }
     }
 
@@ -653,6 +641,7 @@ class PlanetManager: NSObject {
         }
     }
 
+    // MARK: -
     @MainActor
     func importCurrentPlanet() {
         guard let importPath = PlanetStore.shared.importPath else {
@@ -863,7 +852,7 @@ class PlanetManager: NSObject {
 
     private func verifyPortOnlineStatus(port: String, suffix: String = "/") async -> Bool {
         let url = URL(string: "http://127.0.0.1:" + port + suffix)!
-        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 5)
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 1)
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
             if let res = response as? HTTPURLResponse, res.statusCode == 200 {
