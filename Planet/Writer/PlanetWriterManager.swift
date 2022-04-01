@@ -140,9 +140,8 @@ class PlanetWriterManager: NSObject {
             }
             return
         }
-
-        let writerView = PlanetWriterView(articleID: articleID, isEditing: true, title: article.title ?? "", content: article.content ?? "")
-        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 720, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
+        let writerView = PlanetWriterEditView(articleID: articleID, title: article.title ?? "", content: article.content ?? "")
+        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 600, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
         writerWindow.center()
         writerWindow.contentView = NSHostingView(rootView: writerView)
         writerWindow.makeKeyAndOrderFront(nil)

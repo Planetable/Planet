@@ -14,8 +14,6 @@ struct PlanetWriterTextView: NSViewRepresentable {
     @Binding var selectedRanges: [NSValue]
 
     var writerID: UUID
-
-    var isEditable: Bool = true
     var font: NSFont? = .monospacedSystemFont(ofSize: 14, weight: .regular)
 
     func makeCoordinator() -> Coordinator {
@@ -23,7 +21,7 @@ struct PlanetWriterTextView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> PlanetWriterCustomTextView {
-        let textView = PlanetWriterCustomTextView(text: text, isEditable: isEditable, font: font)
+        let textView = PlanetWriterCustomTextView(text: text, font: font)
         textView.delegate = context.coordinator
         setupNotifications(forTextView: textView)
         return textView
@@ -123,7 +121,8 @@ class PlanetWriterCustomTextView: NSView {
         t.delegate = self.delegate
         t.drawsBackground = true
         t.font = self.font
-        t.isEditable = self.isEditable
+        t.string = self.text
+        t.isEditable = true
         t.isHorizontallyResizable = false
         t.isVerticallyResizable = true
         t.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
@@ -135,7 +134,6 @@ class PlanetWriterCustomTextView: NSView {
         return t
     }()
 
-    private var isEditable: Bool
     private var font: NSFont?
 
     private var lastOffset: Float = 0
@@ -152,9 +150,8 @@ class PlanetWriterCustomTextView: NSView {
         }
     }
 
-    init(text: String, isEditable: Bool, font: NSFont?) {
+    init(text: String, font: NSFont?) {
         self.font = font
-        self.isEditable = isEditable
         self.text = text
         super.init(frame: .zero)
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { t in

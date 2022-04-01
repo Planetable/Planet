@@ -98,7 +98,7 @@ struct PlanetWriterView: View {
                     }
                 if isPreviewOpen {
                     previewView
-                        .frame(minWidth: 300,
+                        .frame(minWidth: 400,
                                maxWidth: .infinity,
                                minHeight: 300,
                                maxHeight: .infinity)
@@ -157,7 +157,7 @@ struct PlanetWriterView: View {
             }
             .padding(16)
         }
-        .frame(minWidth: 620)
+        .frame(minWidth: 720)
         .onReceive(NotificationCenter.default.publisher(for: .closeWriterWindow, object: nil)) { n in
             guard let id = n.object as? UUID else { return }
             guard id == self.articleID else { return }

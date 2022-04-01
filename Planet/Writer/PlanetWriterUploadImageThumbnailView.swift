@@ -89,7 +89,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
         var filePath: URL?
         if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID {
             if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
-                if let planetArticlePath = PlanetManager.shared.articlePath(articleID: articleID, planetID: planetID) {
+                if let planetArticlePath = PlanetWriterManager.shared.articlePath(articleID: articleID, planetID: planetID) {
                     if FileManager.default.fileExists(atPath: planetArticlePath.appendingPathComponent(filename).path) {
                         filePath = planetArticlePath.appendingPathComponent(filename)
                     }
@@ -98,7 +98,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
         }
 
         // if not exists, find in draft directory:
-        let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
+        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: articleID)
         let draftFilePath = draftPath.appendingPathComponent(filename)
         if filePath == nil, FileManager.default.fileExists(atPath: draftFilePath.path) {
             filePath = draftFilePath
@@ -143,7 +143,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
         // find in planet directory:
         if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID {
             if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
-                if let planetArticlePath = PlanetManager.shared.articlePath(articleID: articleID, planetID: planetID) {
+                if let planetArticlePath = PlanetWriterManager.shared.articlePath(articleID: articleID, planetID: planetID) {
                     if FileManager.default.fileExists(atPath: planetArticlePath.appendingPathComponent(filename).path) {
                         if let img = NSImage(contentsOf: planetArticlePath.appendingPathComponent(filename)), let resizedImg = img.imageResize(size) {
                             return Image(nsImage: resizedImg)
@@ -154,7 +154,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
         }
 
         // if not exists, find in draft directory:
-        let draftPath = PlanetManager.shared.articleDraftPath(articleID: articleID)
+        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: articleID)
         let imagePath = draftPath.appendingPathComponent(filename)
         if FileManager.default.fileExists(atPath: imagePath.path) {
             if let img = NSImage(contentsOf: imagePath), let resizedImg = img.imageResize(size) {
