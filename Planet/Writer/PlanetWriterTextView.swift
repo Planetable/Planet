@@ -118,6 +118,7 @@ class PlanetWriterCustomTextView: NSView {
 
         let t = PlanetWriterEditorTextView(frame: .zero, textContainer: textContainer)
         t.autoresizingMask = .width
+        t.textContainerInset = NSSize(width: 10, height: 10)
         t.backgroundColor = NSColor.clear
         t.delegate = self.delegate
         t.drawsBackground = true

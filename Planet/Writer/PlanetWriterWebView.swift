@@ -79,11 +79,8 @@ class PlanetWriterWebViewHelper: NSObject, WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
-        debugPrint("webView deciding policy for action: \(navigationAction)")
-
         preferences.preferredContentMode = .desktop
         preferences.allowsContentJavaScript = true
-
         if navigationAction.navigationType == .linkActivated {
             if let url = navigationAction.request.url {
                 let components = URLComponents(url: url, resolvingAgainstBaseURL: false)

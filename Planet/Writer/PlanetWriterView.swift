@@ -83,7 +83,6 @@ struct PlanetWriterView: View {
                            maxWidth: .infinity,
                            minHeight: 300,
                            maxHeight: .infinity)
-                    .padding(10)
                     .onChange(of: content) { newValue in
                         htmlContent = PlanetWriterManager.shared.renderHTML(fromContent: newValue)
                         Task.init(priority: .utility) {
@@ -159,7 +158,6 @@ struct PlanetWriterView: View {
             .padding(16)
         }
         .frame(minWidth: 620)
-        .padding(0)
         .onReceive(NotificationCenter.default.publisher(for: .closeWriterWindow, object: nil)) { n in
             guard let id = n.object as? UUID else { return }
             guard id == self.articleID else { return }
