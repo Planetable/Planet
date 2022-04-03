@@ -555,7 +555,9 @@ class PlanetManager: NSObject {
             // And pin the IPNS
             let currentFeedSHA256 = planet.feedSHA256 ?? ""
             if currentFeedSHA256 != dataSHA256 {
-                PlanetDataController.shared.updatePlanetFeedSHA256(forID: id, feedSHA256: dataSHA256)
+                DispatchQueue.main.async {
+                    PlanetDataController.shared.updatePlanetFeedSHA256(forID: id, feedSHA256: dataSHA256)
+                }
                 debugPrint("Feed SHA256 has changed, pinning: \(planet)")
                 if let IPFSContent = planet.IPFSContent {
                     PlanetManager.shared.pin(IPFSContent)
