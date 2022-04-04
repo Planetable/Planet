@@ -71,6 +71,16 @@ struct PlanetArticleListView: View {
                                             Text(article.isRead == false ? "Mark as Read" : "Mark as Unread")
                                         }
                                     }
+                                    
+                                    Button {
+                                        if article.isStarred == false {
+                                            PlanetDataController.shared.updateArticleStarStatus(article: article, starred: true)
+                                        } else {
+                                            PlanetDataController.shared.updateArticleStarStatus(article: article, starred: false)
+                                        }
+                                    } label: {
+                                        Text(article.isStarred == false ? "Mark as Starred" : "Mark as Unstarred")
+                                    }
 
                                     Button {
                                         PlanetDataController.shared.copyPublicLinkOfArticle(article)

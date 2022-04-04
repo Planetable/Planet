@@ -353,6 +353,18 @@ class PlanetDataController: NSObject {
             debugPrint("Read: failed to update article read status: \(a), error: \(error)")
         }
     }
+    
+    func updateArticleStarStatus(article: PlanetArticle, starred: Bool = true) {
+        let ctx = persistentContainer.viewContext
+        guard let a = getArticle(id: article.id!) else { return }
+        a.isStarred = starred
+        do {
+            try ctx.save()
+            debugPrint("Starred: article star status updated: \(a.isStarred)")
+        } catch {
+            debugPrint("Starred: failed to update article star status: \(a), error: \(error)")
+        }
+    }
 
     func fixPlanet(_ planet: Planet) async {
         let articles = getArticles(byPlanetID: planet.id!)

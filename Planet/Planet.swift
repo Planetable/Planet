@@ -126,7 +126,7 @@ extension Planet {
             if name != nil {
                 return "Planet Type 0: \(name!)"
             } else {
-                return "Planet Type 0: \(id?.uuidString)"
+                return "Planet Type 0: \(String(describing: id?.uuidString))"
             }
             case .ens:
                 return "Planet Type 1: \(name!)"
@@ -168,9 +168,9 @@ extension Planet {
         get {
             switch type {
             case .planet:
-                return "/ipns/\(ipns)"
+                return "/ipns/\(String(describing: ipns))"
             case .ens:
-                return "/ipfs/\(ipfs)"
+                return "/ipfs/\(String(describing: ipfs))"
             default:
                 return nil
             }
@@ -220,6 +220,7 @@ class PlanetArticle: NSManagedObject, Codable {
         case id
         case created
         case read
+        case starred
         case title
         case content
         case planetID
@@ -237,6 +238,7 @@ class PlanetArticle: NSManagedObject, Codable {
         id = try container.decode(UUID.self, forKey: .id)
         created = try container.decode(Date.self, forKey: .created)
         read = try container.decode(Date.self, forKey: .read)
+        starred = try container.decode(Date.self, forKey: .starred)
         title = try container.decode(String.self, forKey: .title)
         content = try container.decode(String.self, forKey: .content)
         link = try container.decode(String.self, forKey: .link)
@@ -248,6 +250,7 @@ class PlanetArticle: NSManagedObject, Codable {
         try container.encode(id, forKey: .id)
         try container.encode(created, forKey: .created)
         try container.encode(read, forKey: .read)
+        try container.encode(starred, forKey: .starred)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
         try container.encode(link, forKey: .link)
@@ -264,6 +267,20 @@ class PlanetArticle: NSManagedObject, Codable {
                 read = Date()
             } else {
                 read = nil
+            }
+        }
+    }
+    
+    var isStarred: Bool {
+        get {
+            return starred != nil
+        }
+
+        set {
+            if newValue {
+                starred = Date()
+            } else {
+                starred = nil
             }
         }
     }

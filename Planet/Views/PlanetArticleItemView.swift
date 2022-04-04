@@ -13,13 +13,23 @@ struct PlanetArticleItemView: View {
     var body: some View {
         HStack {
             VStack {
-                Circle()
-                    .fill(article.isRead ? Color.clear : Color.blue)
-                    .frame(width: 8, height: 8)
-                    .padding(.top, 4)
-                    .padding(.bottom, 4)
-                    .padding(.leading, 4)
-                    .padding(.trailing, 4)
+                if (article.isStarred) {
+                    Image(systemName: "star.fill")
+                        .foregroundColor(article.isStarred ? Color.yellow : Color.clear)
+                        .frame(width: 8, height: 8)
+                        .padding(.top, 4)
+                        .padding(.bottom, 4)
+                        .padding(.leading, 4)
+                        .padding(.trailing, 4)
+                } else {
+                    Circle()
+                        .fill(article.isRead ? Color.clear : Color.blue)
+                        .frame(width: 8, height: 8)
+                        .padding(.top, 4)
+                        .padding(.bottom, 4)
+                        .padding(.leading, 4)
+                        .padding(.trailing, 4)
+                }
                 Spacer()
             }
             VStack(alignment: .leading, spacing: 4) {
