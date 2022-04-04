@@ -119,12 +119,11 @@
 		2A09A35D27C257E40003A0B5 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				6A0FB8A627FBAFFD008E203D /* List */,
+				6A0FB8A527FBAFDF008E203D /* Sidebar */,
 				2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */,
-				2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */,
 				2A441BA927C34FCC0008A694 /* PlanetAboutView.swift */,
 				2A780CF827C76EF0007DC36A /* PlanetAvatarView.swift */,
-				6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */,
-				2A09A36027C2582B0003A0B5 /* PlanetArticleListView.swift */,
 				2AF1318627C7CDAF007792FE /* PlanetArticleView.swift */,
 				2AE07DD927C9F4EA00377651 /* SimplePlanetArticleView.swift */,
 				2A441BB127C4DDDE0008A694 /* Create & Follow Planet */,
@@ -227,6 +226,23 @@
 				2AF4003A27F232B2005DF1A9 /* PlanetWriterHelper.swift */,
 			);
 			path = Writer;
+			sourceTree = "<group>";
+		};
+		6A0FB8A527FBAFDF008E203D /* Sidebar */ = {
+			isa = PBXGroup;
+			children = (
+				2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */,
+			);
+			path = Sidebar;
+			sourceTree = "<group>";
+		};
+		6A0FB8A627FBAFFD008E203D /* List */ = {
+			isa = PBXGroup;
+			children = (
+				6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */,
+				2A09A36027C2582B0003A0B5 /* PlanetArticleListView.swift */,
+			);
+			path = List;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
