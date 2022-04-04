@@ -86,7 +86,8 @@ struct PlanetSidebarView: View {
                     Spacer()
                 })
                 {
-
+                    SmartFeedView(feedType: .today)
+                    SmartFeedView(feedType: .starred)
                 }
                 Section(header:
                             HStack {

@@ -15,7 +15,7 @@ struct PlanetArticleItemView: View {
             VStack {
                 if (article.isStarred) {
                     Image(systemName: "star.fill")
-                        .foregroundColor(article.isStarred ? Color.yellow : Color.clear)
+                        .renderingMode(.original)
                         .frame(width: 8, height: 8)
                         .padding(.top, 4)
                         .padding(.bottom, 4)
