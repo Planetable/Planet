@@ -9,7 +9,7 @@ import SwiftUI
 
 
 struct PlanetAvatarView: View {
-    var planet: Planet
+    @ObservedObject var planet: Planet
     var size: CGSize
     var inEditMode: Bool = false
     

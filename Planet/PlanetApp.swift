@@ -32,7 +32,7 @@ struct PlanetApp: App {
                     Text(planetStore.currentPlanetVersion)
                     Divider()
                 }
-                
+
                 Button {
                     PlanetManager.shared.publishLocalPlanets()
                 } label: {
@@ -46,9 +46,9 @@ struct PlanetApp: App {
                     Text("Update Following Planets")
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
-                
+
                 Divider()
-                
+
                 Button {
                     planetStore.isImportingPlanet = true
                 } label: {
@@ -65,7 +65,7 @@ struct PlanetApp: App {
                 .keyboardShortcut("e", modifiers: [.command, .shift])
 
                 Divider()
-                
+
                 Button {
                     PlanetDataController.shared.resetDatabase()
                 } label: {
@@ -108,14 +108,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         PlanetDataController.shared.reportDatabaseStatus()
         PlanetManager.shared.setup()
     }
-    
+
     func applicationWillTerminate(_ notification: Notification) {
     }
-    
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
     }
-    
+
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         PlanetDataController.shared.reportDatabaseStatus()
         PlanetDataController.shared.saveContext()
