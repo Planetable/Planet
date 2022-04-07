@@ -14,6 +14,10 @@ enum SmartFeedType: Int32 {
     case custom = 3
 }
 
+let SMART_FEED_ITEM_SIZE: CGFloat = 18
+let SMART_FEED_ITEM_PADDING: CGFloat = 2
+
+
 struct SmartFeedView: View {
     var feedType: SmartFeedType
     
@@ -21,46 +25,50 @@ struct SmartFeedView: View {
         HStack(spacing: 4) {
             switch (feedType) {
             case .today:
-                Image(systemName: "questionmark.circle.fill")
-                    .foregroundColor(Color.black)
-                    .frame(width: 14, height: 14)
-                    .padding(.top, 4)
-                    .padding(.bottom, 4)
-                    .padding(.leading, 4)
-                    .padding(.trailing, 4)
+                Image(systemName: "sun.max.fill")
+                    .resizable()
+                    .foregroundColor(Color.orange)
+                    .frame(width: SMART_FEED_ITEM_SIZE, height: SMART_FEED_ITEM_SIZE)
+                    .padding(.top, SMART_FEED_ITEM_PADDING)
+                    .padding(.bottom, SMART_FEED_ITEM_PADDING)
+                    .padding(.leading, SMART_FEED_ITEM_PADDING)
+                    .padding(.trailing, SMART_FEED_ITEM_PADDING)
                 Text("Today")
                     .font(.body)
                     .foregroundColor(.primary)
             case .unread:
-                Image(systemName: "questionmark.circle.fill")
-                    .foregroundColor(Color.black)
-                    .frame(width: 14, height: 14)
-                    .padding(.top, 4)
-                    .padding(.bottom, 4)
-                    .padding(.leading, 4)
-                    .padding(.trailing, 4)
+                Image(systemName: "circle.inset.filled")
+                    .resizable()
+                    .foregroundColor(Color.blue)
+                    .frame(width: SMART_FEED_ITEM_SIZE, height: SMART_FEED_ITEM_SIZE)
+                    .padding(.top, SMART_FEED_ITEM_PADDING)
+                    .padding(.bottom, SMART_FEED_ITEM_PADDING)
+                    .padding(.leading, SMART_FEED_ITEM_PADDING)
+                    .padding(.trailing, SMART_FEED_ITEM_PADDING)
                 Text("Unread")
                     .font(.body)
                     .foregroundColor(.primary)
             case .starred:
                 Image(systemName: "star.fill")
+                    .resizable()
                     .renderingMode(.original)
-                    .frame(width: 14, height: 14)
-                    .padding(.top, 4)
-                    .padding(.bottom, 4)
-                    .padding(.leading, 4)
-                    .padding(.trailing, 4)
+                    .frame(width: SMART_FEED_ITEM_SIZE, height: SMART_FEED_ITEM_SIZE)
+                    .padding(.top, SMART_FEED_ITEM_PADDING)
+                    .padding(.bottom, SMART_FEED_ITEM_PADDING)
+                    .padding(.leading, SMART_FEED_ITEM_PADDING)
+                    .padding(.trailing, SMART_FEED_ITEM_PADDING)
                 Text("Starred")
                     .font(.body)
                     .foregroundColor(.primary)
             case .custom:
                 Image(systemName: "questionmark.circle.fill")
-                    .foregroundColor(Color.black)
-                    .frame(width: 14, height: 14)
-                    .padding(.top, 4)
-                    .padding(.bottom, 4)
-                    .padding(.leading, 4)
-                    .padding(.trailing, 4)
+                    .resizable()
+                    .foregroundColor(Color.primary)
+                    .frame(width: SMART_FEED_ITEM_SIZE, height: SMART_FEED_ITEM_SIZE)
+                    .padding(.top, SMART_FEED_ITEM_PADDING)
+                    .padding(.bottom, SMART_FEED_ITEM_PADDING)
+                    .padding(.leading, SMART_FEED_ITEM_PADDING)
+                    .padding(.trailing, SMART_FEED_ITEM_PADDING)
                 Text("Custom")
                     .font(.body)
                     .foregroundColor(.primary)

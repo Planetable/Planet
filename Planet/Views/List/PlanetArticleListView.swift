@@ -8,12 +8,20 @@
 import SwiftUI
 
 
+enum ArticleListType: Int32 {
+    case planet = 0
+    case today = 1
+    case unread = 2
+    case starred = 3
+}
+
 struct PlanetArticleListView: View {
     @EnvironmentObject private var planetStore: PlanetStore
     @Environment(\.managedObjectContext) private var context
 
-    var planetID: UUID
+    var planetID: UUID?
     var articles: FetchedResults<PlanetArticle>
+    var type: ArticleListType = .planet
 
     @State private var isShowingConfirmation = false
     @State private var dialogDetail: PlanetArticle?
@@ -21,16 +29,42 @@ struct PlanetArticleListView: View {
     var body: some View {
         VStack {
             if articles.filter({ aa in
-                if let id = aa.planetID {
-                    return id == planetID
-                }
-                return false
-            }).count > 0 {
-                List(articles.filter({ a in
-                    if let id = a.planetID {
+                switch(type) {
+                case .planet:
+                    if let id = aa.planetID {
                         return id == planetID
                     }
                     return false
+                case .today:
+                    return false
+                case .unread:
+                    return false
+                case .starred:
+                    if aa.isStarred {
+                        return true
+                    } else {
+                        return false
+                    }
+                }
+            }).count > 0 {
+                List(articles.filter({ a in
+                    switch(type) {
+                    case .planet:
+                        if let id = a.planetID {
+                            return id == planetID
+                        }
+                        return false
+                    case .today:
+                        return false
+                    case .unread:
+                        return false
+                    case .starred:
+                        if a.isStarred {
+                            return true
+                        } else {
+                            return false
+                        }
+                    }
                 })) { article in
                     if let articleID = article.id {
                         NavigationLink(destination: PlanetArticleView(article: article)
@@ -133,7 +167,7 @@ struct PlanetArticleListView: View {
     private func articleStatus() -> String {
         guard articleIsMine() == false else { return "" }
         guard planetStore.currentPlanet != nil, planetStore.currentPlanet.name != "" else { return "" }
-        let status = PlanetDataController.shared.getArticleStatus(byPlanetID: planetID)
+        let status = PlanetDataController.shared.getArticleStatus(byPlanetID: planetID!)
         if status.total == 0 {
             return "No articles yet."
         }

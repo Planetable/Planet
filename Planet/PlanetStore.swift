@@ -48,12 +48,20 @@ class PlanetStore: ObservableObject {
             debugPrint("[Current Planet Version] \(currentPlanetVersion)")
         }
     }
+    
+    @Published var selectedSmartFeedType: SmartFeedType? {
+        didSet {
+            debugPrint("Selected Smart Feed Type: \(selectedSmartFeedType)")
+        }
+    }
+    
     @Published var currentPlanet: Planet! {
         didSet {
             debugPrint("[Current Planet] \(currentPlanet)")
             NotificationCenter.default.post(name: .updateAvatar, object: nil)
         }
     }
+    
     @Published var selectedPlanet: String! {
         didSet {
             if let selectedPlanet = selectedPlanet {

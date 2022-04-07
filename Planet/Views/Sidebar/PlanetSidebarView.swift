@@ -87,7 +87,19 @@ struct PlanetSidebarView: View {
                 })
                 {
                     SmartFeedView(feedType: .today)
-                    SmartFeedView(feedType: .starred)
+                    SmartFeedView(feedType: .unread)
+                    
+                    NavigationLink(destination: PlanetArticleListView(planetID: nil, articles: articles, type: .starred)
+                        .environmentObject(planetStore)
+                        .environment(\.managedObjectContext, context)
+                        .frame(minWidth: 200)
+                        .toolbar {
+                            ToolbarItemGroup {
+                                Spacer()
+                            }
+                        }, tag: SmartFeedType.starred, selection: $planetStore.selectedSmartFeedType) {
+                            SmartFeedView(feedType: .starred)
+                        }
                 }
                 Section(header:
                             HStack {
