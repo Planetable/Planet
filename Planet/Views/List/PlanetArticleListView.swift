@@ -38,7 +38,11 @@ struct PlanetArticleListView: View {
                 case .today:
                     return false
                 case .unread:
-                    return false
+                    if aa.isRead {
+                        return false
+                    } else {
+                        return true
+                    }
                 case .starred:
                     if aa.isStarred {
                         return true
@@ -57,7 +61,11 @@ struct PlanetArticleListView: View {
                     case .today:
                         return false
                     case .unread:
-                        return false
+                        if a.isRead {
+                            return false
+                        } else {
+                            return true
+                        }
                     case .starred:
                         if a.isStarred {
                             return true
@@ -165,6 +173,7 @@ struct PlanetArticleListView: View {
     }
 
     private func articleStatus() -> String {
+        if planetID == nil { return "" }
         guard articleIsMine() == false else { return "" }
         guard planetStore.currentPlanet != nil, planetStore.currentPlanet.name != "" else { return "" }
         let status = PlanetDataController.shared.getArticleStatus(byPlanetID: planetID!)
