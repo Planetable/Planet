@@ -29,50 +29,10 @@ struct PlanetArticleListView: View {
     var body: some View {
         VStack {
             if articles.filter({ aa in
-                switch(type) {
-                case .planet:
-                    if let id = aa.planetID {
-                        return id == planetID
-                    }
-                    return false
-                case .today:
-                    return false
-                case .unread:
-                    if aa.isRead {
-                        return false
-                    } else {
-                        return true
-                    }
-                case .starred:
-                    if aa.isStarred {
-                        return true
-                    } else {
-                        return false
-                    }
-                }
+                return isArticleIncluded(aa)
             }).count > 0 {
                 List(articles.filter({ a in
-                    switch(type) {
-                    case .planet:
-                        if let id = a.planetID {
-                            return id == planetID
-                        }
-                        return false
-                    case .today:
-                        return false
-                    case .unread:
-                        if a.isRead {
-                            return false
-                        } else {
-                            return true
-                        }
-                    case .starred:
-                        if a.isStarred {
-                            return true
-                        } else {
-                            return false
-                        }
-                    }
+                    return isArticleIncluded(a)
                 })) { article in
                     if let articleID = article.id {
                         NavigationLink(destination: PlanetArticleView(article: article)
@@ -163,6 +123,41 @@ struct PlanetArticleListView: View {
             }
         }
 
+    }
+    
+    private func isArticleIncluded(_ a: PlanetArticle) -> Bool {
+        switch(type) {
+        case .planet:
+            if let id = a.planetID {
+                return id == planetID
+            }
+            return false
+        case .today:
+            let t = Int32(Date().timeIntervalSince1970)
+            let today = t - (t % 86400)
+            let ts = Int32(a.created!.timeIntervalSince1970)
+            if ts > today {
+                return true
+            } else {
+                return false
+            }
+        case .unread:
+            if a.isRead {
+                if a.readElapsed < 60 {
+                    return true
+                } else {
+                    return false
+                }
+            } else {
+                return true
+            }
+        case .starred:
+            if a.isStarred {
+                return true
+            } else {
+                return false
+            }
+        }
     }
 
     private func articleIsMine() -> Bool {

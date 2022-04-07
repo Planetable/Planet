@@ -271,6 +271,18 @@ class PlanetArticle: NSManagedObject, Codable {
         }
     }
     
+    var readElapsed: Int32 {
+        get {
+            if read == nil {
+                return 0
+            } else {
+                let now = Date()
+                let diff = now.timeIntervalSince1970 - read!.timeIntervalSince1970
+                return Int32(diff)
+            }
+        }
+    }
+    
     var isStarred: Bool {
         get {
             return starred != nil
