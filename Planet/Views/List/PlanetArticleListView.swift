@@ -106,7 +106,7 @@ struct PlanetArticleListView: View {
             }
         }
         .navigationTitle(
-            planetStore.currentPlanet == nil ? "Planet" : planetStore.currentPlanet.name ?? "Planet"
+            Text(navigationTitle())
         )
         .navigationSubtitle(
             Text(articleStatus())
@@ -165,6 +165,19 @@ struct PlanetArticleListView: View {
             return true
         }
         return false
+    }
+    
+    private func navigationTitle() -> String {
+        switch(type) {
+        case .planet:
+            return planetStore.currentPlanet == nil ? "Planet" : planetStore.currentPlanet.name ?? "Planet"
+        case .today:
+            return "Today"
+        case .unread:
+            return "Unread"
+        case .starred:
+            return "Starred"
+        }
     }
 
     private func articleStatus() -> String {
