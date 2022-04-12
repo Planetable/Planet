@@ -114,17 +114,17 @@ class PlanetWriterManager: NSObject {
     // MARK: -
     @MainActor
     func launchWriter(forPlanet planet: Planet) {
-        let articleID = planet.id!
+        let draftPlanetID = planet.id!
 
-        if PlanetStore.shared.writerIDs.contains(articleID) {
+        if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
             DispatchQueue.main.async {
-                PlanetStore.shared.activeWriterID = articleID
+                PlanetStore.shared.activeWriterID = draftPlanetID
             }
             return
         }
 
-        let writerView = PlanetWriterView(articleID: articleID)
-        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 720, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
+        let writerView = PlanetWriterView(draftPlanetID: draftPlanetID)
+        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 720, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, draftPlanetID: draftPlanetID)
         writerWindow.center()
         writerWindow.contentView = NSHostingView(rootView: writerView)
         writerWindow.makeKeyAndOrderFront(nil)
@@ -141,7 +141,7 @@ class PlanetWriterManager: NSObject {
             return
         }
         let writerView = PlanetWriterEditView(articleID: articleID, title: article.title ?? "", content: article.content ?? "")
-        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 600, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, articleID: articleID)
+        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 600, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, draftPlanetID: articleID)
         writerWindow.center()
         writerWindow.contentView = NSHostingView(rootView: writerView)
         writerWindow.makeKeyAndOrderFront(nil)

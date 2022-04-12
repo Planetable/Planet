@@ -13,7 +13,7 @@ import Ink
 
 
 struct PlanetWriterView: View {
-    var articleID: UUID
+    var draftPlanetID: UUID
 
     var isEditing: Bool = false
 
@@ -74,7 +74,7 @@ struct PlanetWriterView: View {
 
             Divider()
 
-            let writerView = PlanetWriterTextView(text: $content, selectedRanges: $selectedRanges, writerID: articleID)
+            let writerView = PlanetWriterTextView(text: $content, selectedRanges: $selectedRanges, writerID: draftPlanetID)
             let previewView = PlanetWriterPreviewView(url: previewPath)
 
             HSplitView {
@@ -86,7 +86,7 @@ struct PlanetWriterView: View {
                     .onChange(of: content) { newValue in
                         htmlContent = PlanetWriterManager.shared.renderHTML(fromContent: newValue)
                         Task.init(priority: .utility) {
-                            if let path = PlanetWriterManager.shared.renderPreview(content: htmlContent, forDocument: articleID) {
+                            if let path = PlanetWriterManager.shared.renderPreview(content: htmlContent, forDocument: draftPlanetID) {
                                 if previewPath != path {
                                     previewPath = path
                                 }
@@ -124,7 +124,7 @@ struct PlanetWriterView: View {
                             }
 
                         ForEach(Array(sourceFiles), id: \.self) { fileURL in
-                            PlanetWriterUploadImageThumbnailView(articleID: articleID, fileURL: fileURL, sourceFiles: $sourceFiles)
+                            PlanetWriterUploadImageThumbnailView(articleID: draftPlanetID, fileURL: fileURL, sourceFiles: $sourceFiles)
                         }
                     }
                 }
@@ -160,17 +160,17 @@ struct PlanetWriterView: View {
         .frame(minWidth: 720)
         .onReceive(NotificationCenter.default.publisher(for: .closeWriterWindow, object: nil)) { n in
             guard let id = n.object as? UUID else { return }
-            guard id == self.articleID else { return }
+            guard id == self.draftPlanetID else { return }
             self.closeAction()
         }
     }
 
     private func closeAction() {
         DispatchQueue.main.async {
-            if PlanetStore.shared.writerIDs.contains(articleID) {
-                PlanetStore.shared.writerIDs.remove(articleID)
+            if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
+                PlanetStore.shared.writerIDs.remove(draftPlanetID)
             }
-            if PlanetStore.shared.activeWriterID == articleID {
+            if PlanetStore.shared.activeWriterID == draftPlanetID {
                 PlanetStore.shared.activeWriterID = .init()
             }
         }
@@ -179,7 +179,7 @@ struct PlanetWriterView: View {
 
     private func saveAction() {
         // make sure current new article id equals to the planet id first, then generate new article id.
-        let planetID = articleID
+        let planetID = draftPlanetID
         let createdArticleID = UUID()
 
         PlanetWriterManager.shared.setupArticlePath(articleID: createdArticleID, planetID: planetID)
@@ -190,10 +190,10 @@ struct PlanetWriterView: View {
         PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: planetID, title: title, content: content)
 
         DispatchQueue.main.async {
-            if PlanetStore.shared.writerIDs.contains(articleID) {
-                PlanetStore.shared.writerIDs.remove(articleID)
+            if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
+                PlanetStore.shared.writerIDs.remove(draftPlanetID)
             }
-            if PlanetStore.shared.activeWriterID == articleID {
+            if PlanetStore.shared.activeWriterID == draftPlanetID {
                 PlanetStore.shared.activeWriterID = .init()
             }
             PlanetStore.shared.selectedArticle = createdArticleID.uuidString
@@ -203,12 +203,12 @@ struct PlanetWriterView: View {
     }
 
     private func updateAction() {
-        PlanetDataController.shared.updateArticle(withID: articleID, title: title, content: content)
+        PlanetDataController.shared.updateArticle(withID: draftPlanetID, title: title, content: content)
         DispatchQueue.main.async {
-            if PlanetStore.shared.writerIDs.contains(articleID) {
-                PlanetStore.shared.writerIDs.remove(articleID)
+            if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
+                PlanetStore.shared.writerIDs.remove(draftPlanetID)
             }
-            if PlanetStore.shared.activeWriterID == articleID {
+            if PlanetStore.shared.activeWriterID == draftPlanetID {
                 PlanetStore.shared.activeWriterID = .init()
             }
         }
@@ -228,15 +228,15 @@ struct PlanetWriterView: View {
 
     private func uploadFile(fileURL url: URL) async {
         debugPrint("uploading file: \(url) ...")
-        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: articleID)
+        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: draftPlanetID)
         let fileName = url.lastPathComponent
         let targetPath = draftPath.appendingPathComponent(fileName)
         do {
             try FileManager.default.copyItem(at: url, to: targetPath)
             debugPrint("uploaded: \(targetPath)")
-            if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID {
+            if let planetID = PlanetDataController.shared.getArticle(id: draftPlanetID)?.planetID {
                 if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
-                    if let planetArticlePath = PlanetWriterManager.shared.articlePath(articleID: articleID, planetID: planetID) {
+                    if let planetArticlePath = PlanetWriterManager.shared.articlePath(articleID: draftPlanetID, planetID: planetID) {
                         try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
                         debugPrint("uploaded to planet article path: \(planetArticlePath.appendingPathComponent(fileName))")
                     }
@@ -248,7 +248,7 @@ struct PlanetWriterView: View {
     }
 
     private func copyDraft(toTargetPath targetPath: URL) {
-        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: articleID)
+        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: draftPlanetID)
         do {
             let contentsToCopy: [URL] = try FileManager.default.contentsOfDirectory(at: draftPath, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]).filter({ u in
                 // MARK: TODO: ignore files that not used in article:
@@ -266,7 +266,7 @@ struct PlanetWriterView: View {
     }
 
     private func removeDraft() {
-        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: articleID)
+        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: draftPlanetID)
         do {
             try FileManager.default.removeItem(at: draftPath)
         } catch {

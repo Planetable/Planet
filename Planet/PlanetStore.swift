@@ -106,7 +106,7 @@ class PlanetStore: ObservableObject {
             DispatchQueue.main.async {
                 for w in NSApp.windows {
                     guard w is PlanetWriterWindow else { continue }
-                    if (w as! PlanetWriterWindow).articleID == self.activeWriterID, w.canBecomeKey {
+                    if (w as! PlanetWriterWindow).draftPlanetID == self.activeWriterID, w.canBecomeKey {
                         w.makeKeyAndOrderFront(nil)
                     }
                 }
@@ -119,7 +119,7 @@ class PlanetStore: ObservableObject {
             DispatchQueue.main.async {
                 for w in NSApp.windows {
                     guard w is PlanetWriterWindow else { continue }
-                    if !self.writerIDs.contains((w as! PlanetWriterWindow).articleID) {
+                    if !self.writerIDs.contains((w as! PlanetWriterWindow).draftPlanetID) {
                         w.orderOut(nil)
                     }
                 }
