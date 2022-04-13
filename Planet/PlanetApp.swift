@@ -32,6 +32,14 @@ struct PlanetApp: App {
                     Text(planetStore.currentPlanetVersion)
                     Divider()
                 }
+                
+                Button {
+                    TemplateBrowserManager.shared.launchTemplateBrowser()
+                } label: {
+                    Text("Template Browser")
+                }
+                
+                Divider()
 
                 Button {
                     PlanetManager.shared.publishLocalPlanets()
