@@ -29,8 +29,8 @@ struct PlanetArticleView: View {
                                 self.planetStore.currentArticle = nil
                                 self.planetStore.selectedArticle = UUID().uuidString
                                 self.planetStore.isAlert = true
-                                self.planetStore.alertTitle = "Failed to load article"
-                                self.planetStore.alertMessage = "Please try again later."
+                                PlanetManager.shared.alertTitle = "Failed to load article"
+                                PlanetManager.shared.alertMessage = "Please try again later."
                             }
                         }
                     }
@@ -46,8 +46,8 @@ struct PlanetArticleView: View {
                                         self.planetStore.currentArticle = nil
                                         self.planetStore.selectedArticle = UUID().uuidString
                                         self.planetStore.isAlert = true
-                                        self.planetStore.alertTitle = "Failed to load article"
-                                        self.planetStore.alertMessage = "Please try again later."
+                                        PlanetManager.shared.alertTitle = "Failed to load article"
+                                        PlanetManager.shared.alertMessage = "Please try again later."
                                     }
                                 }
                             }

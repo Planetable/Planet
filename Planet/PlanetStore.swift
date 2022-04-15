@@ -15,40 +15,16 @@ import Combine
 class PlanetStore: ObservableObject {
     static let shared: PlanetStore = .init()
     
-    let timer = Timer.publish(every: 5, tolerance: 1, on: .main, in: .common).autoconnect()
-    let indicatorTimer = Timer.publish(every: 1.25, tolerance: 0.25, on: .main, in: .common).autoconnect()
+    let indicatorTimer = Timer.publish(every: 1.25, tolerance: 0.25, on: .current, in: .default).autoconnect()
 
-    @Published var daemonIsOnline: Bool = false
-    @Published var peersCount: Int = 0
-    
     @Published var isCreatingPlanet: Bool = false
     @Published var isEditingPlanet: Bool = false
     @Published var isFollowingPlanet: Bool = false
     @Published var isShowingPlanetInfo: Bool = false
-    
     @Published var isImportingPlanet: Bool = false
-    @Published var importPath: URL!
     @Published var isExportingPlanet: Bool = false
-    @Published var exportPath: URL!
-    
     @Published var isAlert: Bool = false
-    @Published var alertTitle: String = ""
-    @Published var alertMessage: String = ""
-    
-    @Published var templatePaths: [URL] = []
-    
-    @Published var publishingPlanets: Set<UUID> = Set()
-    @Published var updatingPlanets: Set<UUID> = Set()
-    
-    @Published var lastPublishedDates: [UUID: Date] = [:]
-    @Published var lastUpdatedDates: [UUID: Date] = [:]
 
-    @Published var currentPlanetVersion: String = "" {
-        didSet {
-            debugPrint("[Current Planet Version] \(currentPlanetVersion)")
-        }
-    }
-    
     @Published var selectedSmartFeedType: SmartFeedType? {
         didSet {
             debugPrint("Selected Smart Feed Type: \(selectedSmartFeedType)")
@@ -85,6 +61,7 @@ class PlanetStore: ObservableObject {
             debugPrint("[Current Article] \(currentArticle)")
         }
     }
+
     @Published var selectedArticle: String! {
         didSet {
             if let selectedArticle = selectedArticle {
