@@ -12,7 +12,6 @@ import Stencil
 import PathKit
 import Ink
 
-
 class PlanetManager: NSObject {
     static let shared: PlanetManager = PlanetManager()
 
@@ -21,7 +20,7 @@ class PlanetManager: NSObject {
     private var statusTimer: Timer?
 
     private var unitTesting: Bool = {
-        return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }()
 
     private var commandQueue: OperationQueue = {
@@ -86,6 +85,12 @@ class PlanetManager: NSObject {
         }
     }
 
+    var ipfsGateway: String {
+        get {
+            "http://127.0.0.1:\(gatewayPort)"
+        }
+    }
+
     var currentPlanetVersion: String = ""
     var importPath: URL!
     var exportPath: URL!
@@ -98,9 +103,9 @@ class PlanetManager: NSObject {
 
         loadTemplates()
 
-        publishTimer = Timer.scheduledTimer(timeInterval: 600, target: self, selector: #selector(publishLocalPlanets), userInfo: nil, repeats: true)
-        feedTimer = Timer.scheduledTimer(timeInterval: 300, target: self, selector: #selector(updateFollowingPlanets), userInfo: nil, repeats: true)
-        statusTimer = Timer .scheduledTimer(timeInterval: 5, target: self, selector: #selector(updatePlanetStatus), userInfo: nil, repeats: true)
+        publishTimer = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { [self] timer in publishLocalPlanets() }
+        feedTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [self] timer in updateFollowingPlanets() }
+        statusTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [self] timer in updatePlanetStatus() }
 
         Task.init(priority: .utility) {
             guard await verifyIPFSOnlineStatus() else { return }
@@ -139,16 +144,32 @@ class PlanetManager: NSObject {
     }
 
     func checkDaemonStatus() async -> Bool {
-        guard apiPort != "" else { return false }
-        let status = await verifyPortOnlineStatus(port: apiPort, suffix: "/webui")
-        DispatchQueue.main.async {
+        let status: Bool
+
+        if apiPort != "" {
+            let url = URL(string: "http://127.0.0.1:\(apiPort)/webui")!
+            let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 1)
+            do {
+                let (_, response) = try await URLSession.shared.data(for: request)
+                if let res = response as? HTTPURLResponse, res.statusCode == 200 {
+                    status = true
+                } else {
+                    status = false
+                }
+            } catch {
+                status = false
+            }
+        } else {
+            status = false
+        }
+        await MainActor.run {
             PlanetStatusViewModel.shared.daemonIsOnline = status
         }
         return status
     }
 
     func checkPeersStatus() async -> Int {
-        let request = serverURL(path: "swarm/peers")
+        let request = apiRequest(path: "swarm/peers")
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
             let decoder = JSONDecoder()
@@ -160,17 +181,9 @@ class PlanetManager: NSObject {
         return 0
     }
 
-    func checkPublishingStatus(planetID id: UUID) -> Bool {
-        return PlanetStatusViewModel.shared.publishingPlanets.contains(id)
-    }
-
-    func checkUpdatingStatus(planetID id: UUID) -> Bool {
-        return PlanetStatusViewModel.shared.updatingPlanets.contains(id)
-    }
-
     func generateKeys() async -> (keyName: String?, keyID: String?) {
         let uuid = UUID()
-        let checkKeyExistsRequest = serverURL(path: "key/list")
+        let checkKeyExistsRequest = apiRequest(path: "key/list")
         do {
             let (data, _) = try await URLSession.shared.data(for: checkKeyExistsRequest)
             do {
@@ -192,7 +205,7 @@ class PlanetManager: NSObject {
                 if keyExists {
                     return (keyName, keyID)
                 } else {
-                    let generateKeyRequest = serverURL(path: "key/gen", args: ["arg": uuid.uuidString])
+                    let generateKeyRequest = apiRequest(path: "key/gen", args: ["arg": uuid.uuidString])
                     do {
                         let (data, _) = try await URLSession.shared.data(for: generateKeyRequest)
                         let genKey = try decoder.decode(PlanetKey.self, from: data)
@@ -223,7 +236,7 @@ class PlanetManager: NSObject {
     }
 
     func ipfsVersion() async -> String {
-        let checkKeyExistsRequest = serverURL(path: "version")
+        let checkKeyExistsRequest = apiRequest(path: "version")
         do {
             let (data, _) = try await URLSession.shared.data(for: checkKeyExistsRequest)
             let decoder = JSONDecoder()
@@ -238,7 +251,7 @@ class PlanetManager: NSObject {
     }
 
     func deleteKey(withName name: String) async {
-        let checkKeyExistsRequest = serverURL(path: "key/rm", args: ["arg": name])
+        let checkKeyExistsRequest = apiRequest(path: "key/rm", args: ["arg": name])
         do {
             let (_, _) = try await URLSession.shared.data(for: checkKeyExistsRequest)
         } catch {
@@ -284,26 +297,6 @@ class PlanetManager: NSObject {
     }
 
     // MARK: - Planet & Planet Article -
-    func setupDirectory(forPlanet planet: Planet) {
-        if !planet.isMyPlanet() {
-            Task.init(priority: .background) {
-                await update(planet)
-            }
-        } else {
-            debugPrint("about setup directory for planet: \(planet) ...")
-            let planetPath = planetsPath().appendingPathComponent(planet.id!.uuidString)
-            if !FileManager.default.fileExists(atPath: planetPath.path) {
-                debugPrint("setup directory for planet: \(planet), path: \(planetPath)")
-                do {
-                    try FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true, attributes: nil)
-                } catch {
-                    debugPrint("failed to create planet path at \(planetPath), error: \(error)")
-                    return
-                }
-            }
-        }
-    }
-
     func destroyDirectory(fromPlanet planetUUID: UUID) {
         debugPrint("about to destroy directory from planet: \(planetUUID) ...")
         let planetPath = planetsPath().appendingPathComponent(planetUUID.uuidString)
@@ -327,28 +320,21 @@ class PlanetManager: NSObject {
     func articleURL(article: PlanetArticle) -> URL? {
         guard let articleID = article.id, let planetID = article.planetID else { return nil }
         guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!) else { return nil }
-        let ipns = planet.ipns
         if planet.isMyPlanet() {
             let articlePath = planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
-            if !FileManager.default.fileExists(atPath: articlePath.path) {
-                Task.init(priority: .background) {
-                    PlanetDataController.shared.removeArticle(article)
-                }
-                return nil
-            }
             return articlePath
         } else {
             debugPrint("Trying to get article URL")
             let urlString: String = {
                 switch (planet.type) {
                     case .planet:
-                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.link!)/index.html"
+                        return "\(ipfsGateway)/ipns/\(planet.ipns!)/\(article.link!)/index.html"
                     case .ens:
-                        return "http://127.0.0.1:\(gatewayPort)/ipfs/\(planet.ipfs!)\(article.link!)"
+                        return "\(ipfsGateway)/ipfs/\(planet.ipfs!)\(article.link!)"
                     case .dns:
                         return article.link!
                     default:
-                        return "http://127.0.0.1:\(gatewayPort)/ipns/\(ipns!)/\(article.link!)/index.html"
+                        return "\(ipfsGateway)/ipns/\(planet.ipns!)/\(article.link!)/index.html"
                 }
             }()
             debugPrint("Article URL string: \(urlString)")
@@ -357,7 +343,7 @@ class PlanetManager: NSObject {
     }
 
     func articleReadStatus(article: PlanetArticle) -> Bool {
-        return article.read != nil
+        article.read != nil
     }
 
     func renderArticleToDirectory(fromArticle article: PlanetArticle, templateIndex: Int = 0, force: Bool = false) async {
@@ -404,35 +390,24 @@ class PlanetManager: NSObject {
     }
 
     func pin(_ endpoint: String) {
-        let pinRequest = serverURL(path: "pin/add", args: ["arg": endpoint], timeout: 120)
+        let pinRequest = apiRequest(path: "pin/add", args: ["arg": endpoint], timeout: 120)
         URLSession.shared.dataTask(with: pinRequest) { data, response, error in
-            debugPrint("pinned: \(response).")
+            debugPrint("pinned: \(String(describing: response)).")
         }.resume()
     }
 
-    func publishForPlanet(planet: Planet) async {
-        guard let id = planet.id, let keyName = planet.keyName, keyName != "" else { return }
-        let now = Date()
-        let planetPath = planetsPath().appendingPathComponent(id.uuidString)
-        guard FileManager.default.fileExists(atPath: planetPath.path) else { return }
-        let publishingStatus = checkPublishingStatus(planetID: id)
-        guard publishingStatus == false else {
-            debugPrint("planet \(planet) is still publishing, abort.")
+    @MainActor func publish(_ planet: Planet) async {
+        guard !planet.isPublishing else {
             return
         }
-        DispatchQueue.main.async {
-            PlanetStatusViewModel.shared.publishingPlanets.insert(id)
-        }
+        planet.isPublishing = true
         defer {
-            DispatchQueue.main.async {
-                PlanetStatusViewModel.shared.publishingPlanets.remove(id)
-                let published: Date = Date()
-                PlanetStatusViewModel.shared.lastPublishedDates[id] = published
-                DispatchQueue.global(qos: .background).async {
-                    UserDefaults.standard.set(published, forKey: "PlanetLastPublished" + "-" + id.uuidString)
-                }
-            }
+            planet.isPublishing = false
         }
+
+        guard let id = planet.id, let keyName = planet.keyName, keyName != "" else { return }
+        let planetPath = planetsPath().appendingPathComponent(id.uuidString)
+        guard FileManager.default.fileExists(atPath: planetPath.path) else { return }
         debugPrint("publishing for planet: \(planet), with key name: \(keyName) ...")
 
         // update planet.json
@@ -445,12 +420,24 @@ class PlanetManager: NSObject {
             }
         }
         let articles = PlanetDataController.shared.getArticles(byPlanetID: id)
-        let feedArticles: [PlanetFeedArticle] = articles.map() { t in
-            let feedArticle: PlanetFeedArticle = PlanetFeedArticle(id: t.id!, created: t.created!, title: t.title ?? "", content: t.content ?? "", link: "/\(t.id!)/")
-            return feedArticle
+        let feedArticles: [PlanetFeedArticle] = articles.map { t in
+            PlanetFeedArticle(
+                    id: t.id!,
+                    created: t.created!,
+                    title: t.title ?? "",
+                    content: t.content ?? "",
+                    link: "/\(t.id!)/"
+            )
         }
-        // TODO: Fix updated: now or it would change CID every time
-        let feed = PlanetFeed(id: id, ipns: planet.ipns!, created: planet.created!, updated: now, name: planet.name ?? "", about: planet.about ?? "", articles: feedArticles)
+        let feed = PlanetFeed(
+                id: id,
+                ipns: planet.ipns!,
+                created: planet.created!,
+                updated: planet.lastUpdated!,
+                name: planet.name,
+                about: planet.about,
+                articles: feedArticles
+        )
         do {
             let encoder = JSONEncoder()
             let data = try encoder.encode(feed)
@@ -466,7 +453,7 @@ class PlanetManager: NSObject {
             let result = try runCommand(command: .ipfsAddDirectory(target: _ipfsPath(), config: _configPath(), directory: planetPath))
             if let result = result["result"] as? [String], let cid: String = result.first {
                 planetCID = cid
-                debugPrint("Planet CID: \(planet.name) - \(cid)")
+                debugPrint("Planet CID: \(String(describing: planet.name)) - \(cid)")
             }
         } catch {
             debugPrint("failed to add planet directory at: \(planetPath), error: \(error)")
@@ -479,7 +466,7 @@ class PlanetManager: NSObject {
         // publish
         do {
             let decoder = JSONDecoder()
-            let (data, _) = try await URLSession.shared.data(for: serverURL(path: "name/publish", args: [
+            let (data, _) = try await URLSession.shared.data(for: apiRequest(path: "name/publish", args: [
                 "arg": planetCID!,
                 "allow-offline": "1",
                 "key": keyName,
@@ -494,22 +481,28 @@ class PlanetManager: NSObject {
         } catch {
             debugPrint("failed to publish planet: \(planet), at path: \(planetPath), error: \(error)")
         }
+
+        planet.lastPublished = Date()
     }
 
-    func update(_ planet: Planet) async {
+    @MainActor func update(_ planet: Planet) async throws {
+        guard !planet.isUpdating else {
+            return
+        }
+        planet.isUpdating = true
+        defer {
+            planet.isUpdating = false
+        }
+
         if planet.type == .ens {
             debugPrint("Going to update Type 1 ENS planet: \(planet.ens!)")
-            Task.init(priority: .background) {
-                await PlanetDataController.shared.checkUpdateForPlanetENS(planet: planet)
-            }
+            try await PlanetDataController.shared.updateENSPlanet(planet: planet)
             return
         }
 
         if planet.type == .dns {
             debugPrint("Going to update Type 3 DNS planet: \(planet.dns!)")
-            Task.init(priority: .background) {
-                await PlanetDataController.shared.checkUpdateForPlanetDNS(planet: planet)
-            }
+            try await PlanetDataController.shared.updateDNSPlanet(planet: planet)
             return
         }
 
@@ -518,39 +511,17 @@ class PlanetManager: NSObject {
 
         guard
             let id = planet.id,
-            let name = planet.name,
+            let _ = planet.name,
             let ipns = planet.ipns,
             ipns.count == "k51qzi5uqu5dioq5on1s4oc3wg2t13w03xxsq32b1qovi61b6oi8pcyep2gsyf".count
-            else { return }
-
-        // make sure you do not follow your own planet on the same Mac.
-        guard !PlanetDataController.shared.getLocalIPNSs().contains(ipns) else {
-            debugPrint("cannot follow your own planet on the same machine, abort.")
-            PlanetDataController.shared.removePlanet(planet)
+            else {
+            // incomplete or corrupted planet info, skip
+            // TODO: investigate if it's possible to have incomplete planet info
             return
-        }
-
-        let updatingStatus = checkUpdatingStatus(planetID: id)
-        guard updatingStatus == false else {
-            debugPrint("planet \(planet) is still been updating, abort.")
-            return
-        }
-        DispatchQueue.main.async {
-            PlanetStatusViewModel.shared.updatingPlanets.insert(id)
-        }
-        defer {
-            DispatchQueue.main.async {
-                PlanetStatusViewModel.shared.updatingPlanets.remove(id)
-                let updated: Date = Date()
-                PlanetStatusViewModel.shared.lastUpdatedDates[id] = updated
-                DispatchQueue.global(qos: .background).async {
-                    UserDefaults.standard.set(updated, forKey: "PlanetLastUpdated" + "-" + id.uuidString)
-                }
-            }
         }
 
         debugPrint("updating for planet: \(planet) ...")
-        let prefix = "http://127.0.0.1" + ":" + gatewayPort + "/" + "ipns" + "/" + ipns + "/"
+        let prefix = "\(ipfsGateway)/ipns/\(ipns)/"
         let ipnsString = prefix + "planet.json"
         let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         do {
@@ -561,9 +532,7 @@ class PlanetManager: NSObject {
             // And pin the IPNS
             let currentFeedSHA256 = planet.feedSHA256 ?? ""
             if currentFeedSHA256 != dataSHA256 {
-                DispatchQueue.main.async {
-                    PlanetDataController.shared.updatePlanetFeedSHA256(forID: id, feedSHA256: dataSHA256)
-                }
+                planet.feedSHA256 = currentFeedSHA256
                 debugPrint("Feed SHA256 has changed, pinning: \(planet)")
                 if let IPFSContent = planet.IPFSContent {
                     PlanetManager.shared.pin(IPFSContent)
@@ -573,73 +542,75 @@ class PlanetManager: NSObject {
             }
             let decoder = JSONDecoder()
             let feed: PlanetFeed = try decoder.decode(PlanetFeed.self, from: data)
-            guard feed.name != "" else { return }
+            guard feed.name != "" else {
+                throw PlanetError.PlanetFeedError
+            }
 
             debugPrint("got following planet feed: \(feed)")
-
-            PlanetDataController.shared.updatePlanetMetadata(forID: id, name: feed.name, about: feed.about, ipns: feed.ipns)
+            if let name = feed.name, name != "" {
+                planet.name = name
+            }
+            if let about = feed.about, about != "" {
+                planet.about = about
+            }
+            planet.ipns = ipns
 
             // update planet articles if needed.
             var articlesToCreate: [PlanetFeedArticle] = []
             var articlesToUpdate: [PlanetFeedArticle] = []
-            for a in feed.articles {
-                guard let articleLink = a.link else { continue }
-                let existing = PlanetDataController.shared.getArticle(link: articleLink, planetID: id)
-                if existing == nil {
-                    articlesToCreate.append(a)
-                } else {
-                    if existing!.title != a.title {
-                        articlesToUpdate.append(a)
+            for article in feed.articles {
+                guard let articleLink = article.link else { continue }
+                if let existing = PlanetDataController.shared.getArticle(link: articleLink, planetID: id) {
+                    if existing.title != article.title {
+                        articlesToUpdate.append(article)
                     }
+                } else {
+                    articlesToCreate.append(article)
                 }
             }
             debugPrint("planet articles count to create: \(articlesToCreate.count)")
             debugPrint("planet articles count to update: \(articlesToUpdate.count)")
-            if articlesToCreate.count > 0 {
-                await PlanetDataController.shared.batchCreateArticles(articles: articlesToCreate, planetID: id)
-            }
-            if articlesToUpdate.count > 0 {
-                await PlanetDataController.shared.batchUpdateArticles(articles: articlesToUpdate, planetID: id)
-            }
+            PlanetDataController.shared.batchCreateArticles(articles: articlesToCreate, planetID: id)
+            PlanetDataController.shared.batchUpdateArticles(articles: articlesToUpdate, planetID: id)
 
             // update planet avatar if needed.
             let avatarString = prefix + "/" + "avatar.png"
             let avatarRequest = URLRequest(url: URL(string: avatarString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
             let (avatarData, _) = try await URLSession.shared.data(for: avatarRequest)
-            let image = NSImage(data: avatarData)
-            PlanetDataController.shared.updatePlanetAvatar(forID: id, image: image)
+            if let image = NSImage(data: avatarData) {
+                PlanetDataController.shared.updatePlanetAvatar(planet: planet, image: image)
+            }
         } catch {
-            debugPrint("failed to get feed: \(error)")
+            throw PlanetError.PlanetFeedError
         }
 
+        planet.lastUpdated = Date()
+        PlanetDataController.shared.save()
         debugPrint("done updating.")
     }
 
-    @objc
     func publishLocalPlanets() {
         Task.init(priority: .background) {
-            guard await checkDaemonStatus() else { return }
+            guard PlanetStatusViewModel.shared.daemonIsOnline else { return }
             let planets = PlanetDataController.shared.getLocalPlanets()
             debugPrint("publishing local planets: \(planets) ...")
-            for p in planets {
-                await publishForPlanet(planet: p)
+            for planet in planets {
+                await publish(planet)
             }
         }
     }
 
-    @objc
     func updateFollowingPlanets() {
         Task.init(priority: .background) {
-            guard await checkDaemonStatus() else { return }
+            guard PlanetStatusViewModel.shared.daemonIsOnline else { return }
             let planets = PlanetDataController.shared.getFollowingPlanets()
             debugPrint("updating following planets: \(planets) ...")
-            for p in planets {
-                await update(p)
+            for planet in planets {
+                try await update(planet)
             }
         }
     }
 
-    @objc
     func updatePlanetStatus() {
         Task.init(priority: .background) {
             await checkDaemonStatus()
@@ -649,35 +620,65 @@ class PlanetManager: NSObject {
         }
     }
 
+    @MainActor func followPlanet(url: String) async throws -> Planet {
+        let processed: String
+        if url.hasPrefix("planet://") {
+            processed = url.replacingOccurrences(of: "planet://", with: "")
+        } else {
+            processed = url
+        }
+
+        let followingIPNS = PlanetDataController.shared.getFollowingPlanets().compactMap { planet in
+            planet.ipns
+        }
+        if followingIPNS.contains(processed) {
+           throw PlanetError.FollowExistingPlanetError
+        }
+
+        let planet: Planet?
+        if processed.hasSuffix(".eth") {
+            planet = PlanetDataController.shared.createPlanet(ens: processed)
+        } else if processed.hasPrefix("https://") {
+            planet = PlanetDataController.shared.createPlanet(endpoint: processed)
+        } else {
+            let localIPNS = PlanetDataController.shared.getLocalPlanets().compactMap { planet in
+                planet.ipns
+            }
+            guard !localIPNS.contains(processed) else {
+                throw PlanetError.FollowLocalPlanetError
+            }
+            planet = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processed)
+        }
+
+        guard let planet = planet else {
+            throw PlanetError.InvalidPlanetURLError
+        }
+        PlanetStore.shared.pendingFollowingPlanet = planet
+        defer {
+            PlanetStore.shared.pendingFollowingPlanet = nil
+        }
+        try await update(planet)
+        PlanetDataController.shared.save()
+        return planet
+    }
+
     // MARK: -
     @MainActor
     func importCurrentPlanet() {
-        guard let importPath = importPath else {
-            DispatchQueue.main.async {
-                PlanetStore.shared.isAlert = true
-                self.alertTitle = "Failed to Import Planet"
-                self.alertMessage = "Please choose a planet data file to import."
-            }
+        guard let importPath = PlanetManager.shared.importPath else {
+            alert(title: "Failed to Import Planet", message: "Please choose a planet data file to import.")
             return
         }
 
         let importPlanetInfoPath = importPath.appendingPathComponent("planet.json")
         guard FileManager.default.fileExists(atPath: importPlanetInfoPath.path) else {
-            DispatchQueue.main.async {
-                PlanetStore.shared.isAlert = true
-                self.alertTitle = "Failed to Import Planet"
-                self.alertMessage = "The planet data file is damaged."
-            }
+            alert(title: "Failed to Import Planet", message: "The planet data file is damaged.")
             return
         }
 
         let importPlanetKeyPath = importPath.appendingPathComponent("planet.key")
         guard FileManager.default.fileExists(atPath: importPlanetKeyPath.path) else {
-            DispatchQueue.main.async {
-                PlanetStore.shared.isAlert = true
-                self.alertTitle = "Failed to Import Planet"
-                self.alertMessage = "The planet data file is damaged."
-            }
+            alert(title: "Failed to Import Planet", message: "The planet data file is damaged.")
             return
         }
 
@@ -687,16 +688,12 @@ class PlanetManager: NSObject {
             let planetInfo = try decoder.decode(PlanetFeed.self, from: planetInfoData)
 
             if PlanetDataController.shared.getPlanet(id: planetInfo.id) != nil {
-                DispatchQueue.main.async {
-                    PlanetStore.shared.isAlert = true
-                    self.alertTitle = "Failed to Import Planet"
-                    self.alertMessage = "The planet '\(planetInfo.name)' exists."
-                }
+                alert(title: "Failed to Import Planet", message: "The planet '\(String(describing: planetInfo.name))' exists.")
                 return
             }
 
             let planetDirectories = try FileManager.default.contentsOfDirectory(at: importPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter({ u in
-                return u.hasDirectoryPath
+                u.hasDirectoryPath
             })
 
             // import planet key if needed
@@ -707,7 +704,9 @@ class PlanetManager: NSObject {
             try runCommand(command: .ipfsImportKey(target: targetPath, config: configPath, keyName: importPlanetKeyName, targetPath: importPlanetKeyPath))
 
             // create planet
-            let _ = PlanetDataController.shared.createPlanet(withID: planetInfo.id, name: planetInfo.name, about: planetInfo.about, keyName: planetInfo.id.uuidString, keyID: planetInfo.ipns, ipns: planetInfo.ipns)
+            if let planetName = planetInfo.name {
+                let _ = PlanetDataController.shared.createPlanet(withID: planetInfo.id, name: planetName, about: planetInfo.about ?? "", keyName: planetInfo.id.uuidString, keyID: planetInfo.ipns, ipns: planetInfo.ipns)
+            }
 
             // create planet directory if needed
             let targetPlanetPath = planetsPath().appendingPathComponent(planetInfo.id.uuidString)
@@ -741,47 +740,34 @@ class PlanetManager: NSObject {
                 }
             }
 
-            DispatchQueue.main.async {
-                PlanetStore.shared.isAlert = true
-                self.alertTitle = "Planet Imported"
-                self.alertMessage = "\(planetInfo.name)"
-            }
+            alert(title: "Planet Imported", message: "\(String(describing: planetInfo.name))")
         } catch {
-            DispatchQueue.main.async {
-                PlanetStore.shared.isAlert = true
-                self.alertTitle = "Failed to Import Planet"
-                self.alertMessage = error.localizedDescription
-            }
+            alert(title: "Failed to Import Planet", message: error.localizedDescription)
         }
+        PlanetDataController.shared.save()
     }
 
     @MainActor
     func exportCurrentPlanet() {
-        guard let planet = PlanetStore.shared.currentPlanet, planet.isMyPlanet(), let planetID = planet.id, let planetName = planet.name, let planetKeyName = planet.keyName else {
-            DispatchQueue.main.async {
-                PlanetStore.shared.isAlert = true
-                self.alertTitle = "Failed to Export Planet"
-                self.alertMessage = "Unable to prepare for current selected planet, please make sure the planet you selected is ready to export then try again."
-            }
+        guard let planet = PlanetStore.shared.currentPlanet,
+              planet.isMyPlanet(), let planetID = planet.id,
+              let planetName = planet.name,
+              let planetKeyName = planet.keyName else {
+            alert(
+                    title: "Failed to Export Planet",
+                    message: "Unable to prepare for current selected planet, please make sure the planet you selected is ready to export then try again."
+            )
             return
         }
 
-        guard let exportPath = exportPath else {
-            DispatchQueue.main.async {
-                PlanetStore.shared.isAlert = true
-                self.alertTitle = "Failed to Export Planet"
-                self.alertMessage = "Please choose the export path then try again."
-            }
+        guard let exportPath = PlanetManager.shared.exportPath else {
+            alert(title: "Failed to Export Planet", message: "Please choose the export path then try again.")
             return
         }
 
         let exportPlanetPath = exportPath.appendingPathComponent("\(planetName.sanitized()).planet")
         guard FileManager.default.fileExists(atPath: exportPlanetPath.path) == false else {
-            DispatchQueue.main.async {
-                PlanetStore.shared.isAlert = true
-                self.alertTitle = "Failed to Export Planet"
-                self.alertMessage = "Export path exists, please choose another export path then try again."
-            }
+            alert(title: "Failed to Export Planet", message: "Export path exists, please choose another export path then try again.")
             return
         }
 
@@ -789,11 +775,7 @@ class PlanetManager: NSObject {
         do {
             try FileManager.default.copyItem(at: currentPlanetPath, to: exportPlanetPath)
         } catch {
-            DispatchQueue.main.async {
-                PlanetStore.shared.isAlert = true
-                self.alertTitle = "Failed to Export Planet"
-                self.alertMessage = error.localizedDescription
-            }
+            alert(title: "Failed to Export Planet", message: error.localizedDescription)
             return
         }
 
@@ -808,6 +790,12 @@ class PlanetManager: NSObject {
         }
 
         NSWorkspace.shared.activateFileViewerSelecting([exportPlanetPath])
+    }
+
+    @MainActor func alert(title: String, message: String? = nil) {
+        PlanetStore.shared.isAlert = true
+        alertTitle = title
+        alertMessage = message ?? ""
     }
 
     // MARK: - Private -
@@ -858,22 +846,8 @@ class PlanetManager: NSObject {
         }
     }
 
-    private func verifyPortOnlineStatus(port: String, suffix: String = "/") async -> Bool {
-        let url = URL(string: "http://127.0.0.1:" + port + suffix)!
-        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 1)
-        do {
-            let (_, response) = try await URLSession.shared.data(for: request)
-            if let res = response as? HTTPURLResponse, res.statusCode == 200 {
-                return true
-            }
-        } catch {}
-        return false
-    }
-
-    private func serverURL(path: String, args: [String: String] = [:], timeout: TimeInterval = 5) -> URLRequest {
-        var urlPath: String = "http://127.0.0.1" + ":" + apiPort + "/" + "api" + "/" + "v0"
-        urlPath += "/" + path
-        var url: URL = URL(string: urlPath)!
+    private func apiRequest(path: String, args: [String: String] = [:], timeout: TimeInterval = 5) -> URLRequest {
+        var url: URL = URL(string: "http://127.0.0.1:\(apiPort)/api/v0/\(path)")!
         if args != [:] {
             url = url.appendingQueryParameters(args)
         }
@@ -883,7 +857,7 @@ class PlanetManager: NSObject {
     }
 
     private func terminateDaemon(forceSkip: Bool = false) {
-        let request = serverURL(path: "shutdown")
+        let request = apiRequest(path: "shutdown")
         URLSession.shared.dataTask(with: request) { data, response, error in
         }.resume()
     }
@@ -903,9 +877,6 @@ class PlanetManager: NSObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 Task.init(priority: .utility) {
                     let s = await self.checkDaemonStatus()
-                    DispatchQueue.main.async {
-                        PlanetStatusViewModel.shared.daemonIsOnline = s
-                    }
                     if !s {
                         DispatchQueue.global().async {
                             self.launchDaemon()
@@ -977,7 +948,7 @@ class PlanetManager: NSObject {
     }
 
     private func getInternalPortsInformationFromConfig() async -> (String?, String?) {
-        let request = serverURL(path: "config/show")
+        let request = apiRequest(path: "config/show")
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
             let decoder = JSONDecoder()
@@ -1007,7 +978,7 @@ class PlanetManager: NSObject {
     }
 
     private func _applicationSupportPath() -> URL? {
-        return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
     }
 
     private func _basePath() -> URL {

@@ -10,7 +10,7 @@ import SwiftUI
 
 struct CreatePlanetView: View {
     @EnvironmentObject private var planetStore: PlanetStore
-    
+
     @Environment(\.dismiss) private var dismiss
 
     @State private var planetName: String = ""
@@ -26,7 +26,7 @@ struct CreatePlanetView: View {
                 .background(.clear)
 
             Divider()
-            
+
             HStack {
                 VStack(spacing: 15) {
                     HStack {
@@ -35,7 +35,7 @@ struct CreatePlanetView: View {
                             Spacer()
                         }
                         .frame(width: 50)
-                        
+
                         TextField("", text: $planetName)
                             .textFieldStyle(.roundedBorder)
                     }
@@ -48,10 +48,10 @@ struct CreatePlanetView: View {
                                 Spacer()
                             }
                             .frame(width: 50)
-                            
+
                             Spacer()
                         }
-                        
+
                         VStack {
                             TextEditor(text: $planetDescription)
                                 .font(.system(size: 13, weight: .regular, design: .default))
@@ -63,16 +63,16 @@ struct CreatePlanetView: View {
                                     RoundedRectangle(cornerRadius: 6)
                                         .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
                                 )
-                            
+
                             Spacer()
                         }
                     }
                 }
             }
             .padding(.horizontal, 16)
-            
+
             Divider()
-            
+
             HStack {
                 Button {
                     dismiss()
@@ -82,7 +82,7 @@ struct CreatePlanetView: View {
                 .keyboardShortcut(.escape, modifiers: [])
 
                 Spacer()
-                
+
                 Button {
                     dismiss()
                     Task.init(priority: .utility) {
@@ -94,9 +94,14 @@ struct CreatePlanetView: View {
                             return
                         }
                         if keyName != "" && keyID != "" {
-                            DispatchQueue.main.async {
-                                let _ = PlanetDataController.shared.createPlanet(withID: UUID(uuidString: keyName)!, name: self.planetName, about: self.planetDescription, keyName: keyName, keyID: keyID, ipns: keyID)
-                            }
+                            let _ = PlanetDataController.shared.createPlanet(
+                                    withID: UUID(uuidString: keyName)!,
+                                    name: planetName, about: planetDescription,
+                                    keyName: keyName,
+                                    keyID: keyID,
+                                    ipns: keyID
+                            )
+                            PlanetDataController.shared.save()
                         }
                     }
                 } label: {

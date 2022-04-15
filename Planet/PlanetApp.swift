@@ -89,15 +89,19 @@ struct PlanetApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        return true
+        true
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first else { return }
         if url.absoluteString.hasPrefix("planet://") {
             let ipns = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
-            guard !PlanetDataController.shared.getFollowingIPNSs().contains(ipns) else { return }
-            PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: ipns)
+            let followingIPNS = PlanetDataController.shared.getFollowingPlanets().compactMap { planet in
+                planet.ipns
+            }
+            guard !followingIPNS.contains(ipns) else { return }
+            let _ = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: ipns)
+            PlanetDataController.shared.save()
         } else if url.lastPathComponent.hasSuffix(".planet") {
             DispatchQueue.main.async {
                 PlanetManager.shared.importPath = url
@@ -112,7 +116,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        PlanetDataController.shared.reportDatabaseStatus()
+        PlanetDataController.shared.cleanupDatabase()
         PlanetManager.shared.setup()
     }
 
@@ -124,8 +128,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        PlanetDataController.shared.reportDatabaseStatus()
-        PlanetDataController.shared.saveContext()
+        PlanetDataController.shared.cleanupDatabase()
+        PlanetDataController.shared.save()
         PlanetManager.shared.cleanup()
         DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
              NSApplication.shared.reply(toApplicationShouldTerminate: true)

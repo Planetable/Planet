@@ -109,13 +109,13 @@ struct PlanetAboutView: View {
                         Button {
                             dismiss()
                             Task.init {
-                                await PlanetManager.shared.publishForPlanet(planet: planet)
+                                await PlanetManager.shared.publish(planet)
                             }
                         } label: {
-                            Text(statusViewModel.publishingPlanets.contains(planet.id!) ? "Publishing" : "Publish")
+                            Text(planet.isPublishing ? "Publishing" : "Publish")
                         }
-                        .disabled(statusViewModel.publishingPlanets.contains(planet.id!))
-                        
+                        .disabled(planet.isPublishing)
+
                         Spacer()
 
                         Button {
@@ -126,9 +126,10 @@ struct PlanetAboutView: View {
                         }
 
                         Button {
-                            dismiss()
                             Task.init {
-                                PlanetDataController.shared.removePlanet(planet)
+                                await PlanetDataController.shared.remove(planet)
+                                PlanetDataController.shared.save()
+                                dismiss()
                             }
                         } label: {
                             Text("Delete")
@@ -144,21 +145,22 @@ struct PlanetAboutView: View {
                         }
 
                         Button {
-                            dismiss()
                             Task.init {
-                                await PlanetManager.shared.update(planet)
+                                try await PlanetManager.shared.update(planet)
+                                dismiss()
                             }
                         } label: {
-                            Text(statusViewModel.updatingPlanets.contains(planet.id!) ? "Updating" : "Update")
+                            Text(planet.isUpdating ? "Updating" : "Update")
                         }
-                        .disabled(statusViewModel.updatingPlanets.contains(planet.id!))
+                        .disabled(planet.isUpdating)
 
                         Spacer()
 
                         Button {
-                            dismiss()
                             Task.init {
-                                PlanetDataController.shared.removePlanet(planet)
+                                await PlanetDataController.shared.remove(planet)
+                                PlanetDataController.shared.save()
+                                dismiss()
                             }
                         } label: {
                             Text("Unfollow")
@@ -200,23 +202,15 @@ struct PlanetAboutView: View {
     }
 
     private func lastUpdatedStatus() -> String {
-        if let id = planet.id {
-            if let updated = statusViewModel.lastUpdatedDates[id] {
-                return "Updated " + updated.relativeDateDescription()
-            } else if let updated = UserDefaults.standard.object(forKey: "PlanetLastUpdated" + "-" + id.uuidString) as? Date {
-                return "Updated " + updated.relativeDateDescription()
-            }
+        if let updated = planet.lastUpdated {
+            return "Updated " + updated.relativeDateDescription()
         }
         return "Never Updated"
     }
 
     private func lastPublishedStatus() -> String {
-        if let id = planet.id {
-            if let published = statusViewModel.lastPublishedDates[id] {
-                return "Published " + published.relativeDateDescription()
-            } else if let published = UserDefaults.standard.object(forKey: "PlanetLastPublished" + "-" + id.uuidString) as? Date {
-                return "Published " + published.relativeDateDescription()
-            }
+        if let published = planet.lastPublished {
+            return "Published " + published.relativeDateDescription()
         }
         return "Never Published"
     }

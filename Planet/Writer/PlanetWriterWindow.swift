@@ -10,22 +10,19 @@ import SwiftUI
 
 
 class PlanetWriterWindow: NSWindow {
-    var draftPlanetID: UUID
-    
-    init(rect: NSRect, maskStyle style: NSWindow.StyleMask, backingType: NSWindow.BackingStoreType, deferMode flag: Bool, draftPlanetID id: UUID) {
-        draftPlanetID = id
+    var writerID: UUID
+
+    init(rect: NSRect, maskStyle style: NSWindow.StyleMask, backingType: NSWindow.BackingStoreType, deferMode flag: Bool, writerID id: UUID) {
+        writerID = id
         super.init(contentRect: rect, styleMask: style, backing: backingType, defer: flag)
         self.titleVisibility = .visible
         self.isMovableByWindowBackground = true
         self.titlebarAppearsTransparent = true
-        self.title = "Writer " + draftPlanetID.uuidString.prefix(4)
+        self.title = "Writer " + writerID.uuidString.prefix(4)
         self.delegate = self
         self.isReleasedWhenClosed = false
-        
-        DispatchQueue.main.async {
-            PlanetStore.shared.activeWriterID = id
-            PlanetStore.shared.writerIDs.insert(id)
-        }
+        PlanetStore.shared.writerIDs.insert(id)
+        PlanetStore.shared.activeWriterID = id
     }
 }
 
@@ -36,6 +33,6 @@ extension PlanetWriterWindow: NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        NotificationCenter.default.post(name: .closeWriterWindow, object: draftPlanetID)
+        NotificationCenter.default.post(name: .closeWriterWindow, object: writerID)
     }
 }

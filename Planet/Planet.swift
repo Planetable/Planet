@@ -15,8 +15,8 @@ struct PlanetFeed: Codable, Hashable {
     let ipns: String
     let created: Date
     let updated: Date
-    let name: String
-    let about: String
+    let name: String?
+    let about: String?
     let articles: [PlanetFeedArticle]
 }
 
@@ -59,6 +59,9 @@ class Planet: NSManagedObject, Codable {
         case id
         case typeValue
         case created
+        case lastUpdated
+        case lastPublished
+        case softDeleted
         case name
         case about
         case ipns
@@ -84,6 +87,9 @@ class Planet: NSManagedObject, Codable {
         id = try container.decode(UUID.self, forKey: .id)
         typeValue = try container.decode(Int32.self, forKey: .typeValue)
         created = try container.decode(Date.self, forKey: .created)
+        lastUpdated = try container.decode(Date.self, forKey: .lastUpdated)
+        lastPublished = try container.decode(Date.self, forKey: .lastPublished)
+        softDeleted = try container.decode(Date.self, forKey: .softDeleted)
         name = try container.decode(String.self, forKey: .name)
         about = try container.decode(String.self, forKey: .about)
         ipns = try container.decode(String.self, forKey: .ipns)
@@ -103,6 +109,9 @@ class Planet: NSManagedObject, Codable {
         try container.encode(id, forKey: .id)
         try container.encode(typeValue, forKey: .typeValue)
         try container.encode(created, forKey: .created)
+        try container.encode(lastUpdated, forKey: .lastUpdated)
+        try container.encode(lastPublished, forKey: .lastPublished)
+        try container.encode(softDeleted, forKey: .softDeleted)
         try container.encode(name, forKey: .name)
         try container.encode(about, forKey: .about)
         try container.encode(ipns, forKey: .ipns)
@@ -123,8 +132,8 @@ extension Planet {
     override public var description: String {
         switch type {
             case .planet:
-            if name != nil {
-                return "Planet Type 0: \(name!)"
+            if let name = name {
+                return "Planet Type 0: \(name)"
             } else {
                 return "Planet Type 0: \(String(describing: id?.uuidString))"
             }
@@ -212,6 +221,32 @@ extension Planet {
         let g = gs[c]
         return g
     }
+
+    @MainActor var isUpdating: Bool {
+        get {
+            PlanetStatusViewModel.shared.updatingPlanets.contains(id!)
+        }
+        set {
+            if newValue {
+                PlanetStatusViewModel.shared.updatingPlanets.insert(id!)
+            } else {
+                PlanetStatusViewModel.shared.updatingPlanets.remove(id!)
+            }
+        }
+    }
+
+    @MainActor var isPublishing: Bool {
+        get {
+            PlanetStatusViewModel.shared.publishingPlanets.contains(id!)
+        }
+        set {
+            if newValue {
+                PlanetStatusViewModel.shared.publishingPlanets.insert(id!)
+            } else {
+                PlanetStatusViewModel.shared.publishingPlanets.remove(id!)
+            }
+        }
+    }
 }
 
 
@@ -225,6 +260,7 @@ class PlanetArticle: NSManagedObject, Codable {
         case content
         case planetID
         case link
+        case softDeleted
     }
 
     required convenience init(from decoder: Decoder) throws {
@@ -243,6 +279,7 @@ class PlanetArticle: NSManagedObject, Codable {
         content = try container.decode(String.self, forKey: .content)
         link = try container.decode(String.self, forKey: .link)
         planetID = try container.decode(UUID.self, forKey: .planetID)
+        softDeleted = try container.decode(Date.self, forKey: .softDeleted)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -255,11 +292,12 @@ class PlanetArticle: NSManagedObject, Codable {
         try container.encode(content, forKey: .content)
         try container.encode(link, forKey: .link)
         try container.encode(planetID, forKey: .planetID)
+        try container.encode(softDeleted, forKey: .softDeleted)
     }
 
     var isRead: Bool {
         get {
-            return read != nil
+            read != nil
         }
 
         set {
@@ -270,7 +308,7 @@ class PlanetArticle: NSManagedObject, Codable {
             }
         }
     }
-    
+
     var readElapsed: Int32 {
         get {
             if read == nil {
@@ -282,10 +320,10 @@ class PlanetArticle: NSManagedObject, Codable {
             }
         }
     }
-    
+
     var isStarred: Bool {
         get {
-            return starred != nil
+            starred != nil
         }
 
         set {

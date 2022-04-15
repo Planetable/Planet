@@ -27,84 +27,76 @@ struct PlanetArticleListView: View {
     @State private var dialogDetail: PlanetArticle?
 
     var body: some View {
-        VStack {
-            if articles.filter({ aa in
-                return isArticleIncluded(aa)
-            }).count > 0 {
-                List(articles.filter({ a in
-                    return isArticleIncluded(a)
-                })) { article in
-                    if let articleID = article.id {
+        VStack(content: {
+            if !articles.filter(isArticleIncluded).isEmpty {
+                List(articles.filter(isArticleIncluded)) { article in
+                    if article.id != nil {
                         NavigationLink(destination: PlanetArticleView(article: article)
-                            .environmentObject(planetStore)
-                            .frame(minWidth: 320), tag: articleID.uuidString, selection: $planetStore.selectedArticle) {
-                                PlanetArticleItemView(article: article)
-                            }
-                            .contextMenu {
-                                VStack {
-                                    if articleIsMine() {
-                                        Button {
-                                            PlanetWriterManager.shared.launchWriter(forArticle: article)
-                                        } label: {
-                                            Text("Edit Article")
-                                        }
-                                        Button {
-                                            isShowingConfirmation = true
-                                            dialogDetail = article
-                                        } label: {
-                                            Text("Delete Article")
-                                        }
-
-                                        Divider()
-
-                                        Button {
-                                            PlanetDataController.shared.refreshArticle(article)
-                                        } label: {
-                                            Text("Refresh")
-                                        }
-                                    } else {
-                                        Button {
-                                            if article.isRead == false {
-                                                PlanetDataController.shared.updateArticleReadStatus(article: article, read: true)
-                                            } else {
-                                                PlanetDataController.shared.updateArticleReadStatus(article: article, read: false)
-                                            }
-                                        } label: {
-                                            Text(article.isRead == false ? "Mark as Read" : "Mark as Unread")
-                                        }
-                                    }
-                                    
+                        .environmentObject(planetStore)
+                        .frame(minWidth: 320), tag: article, selection: $planetStore.currentArticle) {
+                            PlanetArticleItemView(article: article)
+                        }
+                        .contextMenu {
+                            VStack {
+                                if articleIsMine() {
                                     Button {
-                                        if article.isStarred == false {
-                                            PlanetDataController.shared.updateArticleStarStatus(article: article, starred: true)
-                                        } else {
-                                            PlanetDataController.shared.updateArticleStarStatus(article: article, starred: false)
-                                        }
+                                        PlanetWriterManager.shared.launchWriter(forArticle: article)
                                     } label: {
-                                        Text(article.isStarred == false ? "Mark as Starred" : "Mark as Unstarred")
+                                        Text("Edit Article")
+                                    }
+                                    Button {
+                                        isShowingConfirmation = true
+                                        dialogDetail = article
+                                    } label: {
+                                        Text("Delete Article")
                                     }
 
-                                    Button {
-                                        PlanetDataController.shared.copyPublicLinkOfArticle(article)
-                                    } label: {
-                                        Text("Copy Public Link")
-                                    }
+                                    Divider()
 
                                     Button {
-                                        PlanetDataController.shared.openInBrowser(article)
+                                        Task.init {
+                                            await PlanetDataController.shared.refreshArticle(article)
+                                        }
                                     } label: {
-                                        Text("Open in Browser")
+                                        Text("Refresh")
+                                    }
+                                } else {
+                                    Button {
+                                        article.isRead = !article.isRead
+                                        PlanetDataController.shared.save()
+                                    } label: {
+                                        Text(article.isRead ? "Mark as Unread" : "Mark as Read")
                                     }
                                 }
+
+                                Button {
+                                    article.isStarred = !article.isStarred
+                                    PlanetDataController.shared.save()
+                                } label: {
+                                    Text(article.isStarred ? "Mark as Unstarred" : "Mark as Starred")
+                                }
+
+                                Button {
+                                    PlanetDataController.shared.copyPublicLinkOfArticle(article)
+                                } label: {
+                                    Text("Copy Public Link")
+                                }
+
+                                Button {
+                                    PlanetDataController.shared.openInBrowser(article)
+                                } label: {
+                                    Text("Open in Browser")
+                                }
                             }
+                        }
 
                     }
                 }
             } else {
                 Text("No Planet Selected")
-                    .foregroundColor(.secondary)
+                .foregroundColor(.secondary)
             }
-        }
+        })
         .navigationTitle(
             Text(navigationTitle())
         )
@@ -122,10 +114,12 @@ struct PlanetArticleListView: View {
                 Text("Delete")
             }
         }
-
     }
-    
+
     private func isArticleIncluded(_ a: PlanetArticle) -> Bool {
+        if a.softDeleted != nil {
+            return false
+        }
         switch(type) {
         case .planet:
             if let id = a.planetID {
@@ -136,27 +130,11 @@ struct PlanetArticleListView: View {
             let t = Int32(Date().timeIntervalSince1970)
             let today = t - (t % 86400)
             let ts = Int32(a.created!.timeIntervalSince1970)
-            if ts > today {
-                return true
-            } else {
-                return false
-            }
+            return ts > today
         case .unread:
-            if a.isRead {
-                if a.readElapsed < 60 {
-                    return true
-                } else {
-                    return false
-                }
-            } else {
-                return true
-            }
+            return !a.isRead || a.readElapsed < 60
         case .starred:
-            if a.isStarred {
-                return true
-            } else {
-                return false
-            }
+            return a.isStarred
         }
     }
 
@@ -166,11 +144,14 @@ struct PlanetArticleListView: View {
         }
         return false
     }
-    
+
     private func navigationTitle() -> String {
         switch(type) {
         case .planet:
-            return planetStore.currentPlanet == nil ? "Planet" : planetStore.currentPlanet.name ?? "Planet"
+            if let planet = planetStore.currentPlanet, let name = planet.name {
+                return name
+            }
+            return "Planet"
         case .today:
             return "Today"
         case .unread:
@@ -183,7 +164,7 @@ struct PlanetArticleListView: View {
     private func articleStatus() -> String {
         if planetID == nil { return "" }
         guard articleIsMine() == false else { return "" }
-        guard planetStore.currentPlanet != nil, planetStore.currentPlanet.name != "" else { return "" }
+        guard planetStore.currentPlanet != nil, planetStore.currentPlanet!.name != "" else { return "" }
         let status = PlanetDataController.shared.getArticleStatus(byPlanetID: planetID!)
         if status.total == 0 {
             return "No articles yet."

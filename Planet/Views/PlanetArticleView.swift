@@ -18,20 +18,16 @@ struct PlanetArticleView: View {
 
     var body: some View {
         VStack {
-            if let id = planetStore.selectedArticle, article.id != nil, id == article.id!.uuidString {
+            if let currentArticleID = planetStore.currentArticle?.id, let id = article.id, id == currentArticleID {
                 SimplePlanetArticleView(url: $url)
                     .task(priority: .utility) {
                         if let urlPath = PlanetManager.shared.articleURL(article: article) {
                             url = urlPath
-                            await PlanetDataController.shared.updateArticleReadStatus(article: article)
+                            article.isRead = true
+                            PlanetDataController.shared.save()
                         } else {
-                            DispatchQueue.main.async {
-                                self.planetStore.currentArticle = nil
-                                self.planetStore.selectedArticle = UUID().uuidString
-                                self.planetStore.isAlert = true
-                                PlanetManager.shared.alertTitle = "Failed to load article"
-                                PlanetManager.shared.alertMessage = "Please try again later."
-                            }
+                            planetStore.currentArticle = nil
+                            PlanetManager.shared.alert(title: "Failed to load article", message: "Please try again later.")
                         }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .refreshArticle, object: nil)) { n in
@@ -42,13 +38,8 @@ struct PlanetArticleView: View {
                                     let now = Int(Date().timeIntervalSince1970)
                                     url = URL(string: urlPath.absoluteString + "?\(now)")!
                                 } else {
-                                    DispatchQueue.main.async {
-                                        self.planetStore.currentArticle = nil
-                                        self.planetStore.selectedArticle = UUID().uuidString
-                                        self.planetStore.isAlert = true
-                                        PlanetManager.shared.alertTitle = "Failed to load article"
-                                        PlanetManager.shared.alertMessage = "Please try again later."
-                                    }
+                                    planetStore.currentArticle = nil
+                                    PlanetManager.shared.alert(title: "Failed to load article", message: "Please try again later.")
                                 }
                             }
                         }

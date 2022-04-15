@@ -8,13 +8,12 @@
 import Foundation
 import Cocoa
 import SwiftUI
-import Combine
 
 
 @MainActor
 class PlanetStore: ObservableObject {
     static let shared: PlanetStore = .init()
-    
+
     let indicatorTimer = Timer.publish(every: 1.25, tolerance: 0.25, on: .current, in: .default).autoconnect()
 
     @Published var isCreatingPlanet: Bool = false
@@ -27,78 +26,40 @@ class PlanetStore: ObservableObject {
 
     @Published var selectedSmartFeedType: SmartFeedType? {
         didSet {
-            debugPrint("Selected Smart Feed Type: \(selectedSmartFeedType)")
-        }
-    }
-    
-    @Published var currentPlanet: Planet! {
-        didSet {
-            debugPrint("[Current Planet] \(currentPlanet)")
-            NotificationCenter.default.post(name: .updateAvatar, object: nil)
-        }
-    }
-    
-    @Published var selectedPlanet: String! {
-        didSet {
-            if let selectedPlanet = selectedPlanet {
-                DispatchQueue.global(qos: .utility).async {
-                    if let targetPlanet = PlanetDataController.shared.getPlanet(id: UUID(uuidString: selectedPlanet)!) {
-                        DispatchQueue.main.async {
-                            self.currentPlanet = targetPlanet
-                        }
-                        return
-                    }
-                }
-            }
-            DispatchQueue.main.async {
-                self.currentPlanet = nil
-            }
-        }
-    }
-    
-    @Published var currentArticle: PlanetArticle! {
-        didSet {
-            debugPrint("[Current Article] \(currentArticle)")
+            debugPrint("Selected Smart Feed Type: \(String(describing: selectedSmartFeedType))")
         }
     }
 
-    @Published var selectedArticle: String! {
+    @Published var currentPlanet: Planet? {
         didSet {
-            if let selectedArticle = selectedArticle {
-                if let targetArticle = PlanetDataController.shared.getArticle(id: UUID(uuidString: selectedArticle)!) {
-                    DispatchQueue.main.async {
-                        self.currentArticle = targetArticle
-                    }
-                    return
-                }
-            }
-            DispatchQueue.main.async {
-                self.currentArticle = nil
-            }
+            debugPrint("[Current Planet] \(String(describing: currentPlanet))")
+            NotificationCenter.default.post(name: .updateAvatar, object: nil)
         }
     }
-    
+
+    @Published var pendingFollowingPlanet: Planet?
+
+    @Published var currentArticle: PlanetArticle? {
+        didSet {
+            debugPrint("[Current Article] \(String(describing: currentArticle))")
+        }
+    }
+
     @Published var activeWriterID: UUID = .init() {
         didSet {
-            DispatchQueue.main.async {
-                for w in NSApp.windows {
-                    guard w is PlanetWriterWindow else { continue }
-                    if (w as! PlanetWriterWindow).draftPlanetID == self.activeWriterID, w.canBecomeKey {
-                        w.makeKeyAndOrderFront(nil)
-                    }
+            for w in NSApp.windows {
+                if let w = w as? PlanetWriterWindow, w.writerID == activeWriterID, w.canBecomeKey {
+                    w.makeKeyAndOrderFront(nil)
                 }
             }
         }
     }
-    
+
     @Published var writerIDs: Set<UUID> = Set() {
         didSet {
-            DispatchQueue.main.async {
-                for w in NSApp.windows {
-                    guard w is PlanetWriterWindow else { continue }
-                    if !self.writerIDs.contains((w as! PlanetWriterWindow).draftPlanetID) {
-                        w.orderOut(nil)
-                    }
+            for w in NSApp.windows {
+                if let w = w as? PlanetWriterWindow, !writerIDs.contains(w.writerID) {
+                    w.orderOut(nil)
                 }
             }
         }

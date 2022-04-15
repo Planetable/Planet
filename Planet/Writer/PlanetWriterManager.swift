@@ -50,9 +50,9 @@ class PlanetWriterManager: NSObject {
         }
     }
 
-    func createArticle(withArticleID id: UUID, forPlanet planetID: UUID, title: String, content: String) {
+    func createArticle(withArticleID id: UUID, forPlanet planetID: UUID, title: String, content: String) -> PlanetArticle {
         let dataController = PlanetDataController.shared
-        guard let planet = dataController.getPlanet(id: planetID) else { return }
+        let planet = dataController.getPlanet(id: planetID)!
         let context = dataController.persistentContainer.newBackgroundContext()
         let article = PlanetArticle(context: context)
         article.id = id
@@ -61,12 +61,9 @@ class PlanetWriterManager: NSObject {
         article.content = content
         article.link = "/\(id.uuidString)/"
         article.created = Date()
-        if planet.isMyPlanet() {
-            article.isRead = true
-        }
-        do {
-            try context.save()
-            if planet.isMyPlanet(), let articlePath = articlePath(articleID: id, planetID: planetID) {
+        article.isRead = planet.isMyPlanet()
+        if planet.isMyPlanet(), let articlePath = articlePath(articleID: id, planetID: planetID) {
+            do {
                 // render article with default template
                 let html = renderHTML(fromContent: content)
                 let output = try outputEnv.renderTemplate(name: articleTemplateName, context: ["article": article, "content_html": html])
@@ -78,15 +75,17 @@ class PlanetWriterManager: NSObject {
                 let encoder = JSONEncoder()
                 let data = try encoder.encode(article)
                 try data.write(to: articleJSONPath)
-
-                // publish
-                Task.init(priority: .background) {
-                    await PlanetManager.shared.publishForPlanet(planet: planet)
-                }
+            } catch {
+                debugPrint("failed to save article: \(article): error: \(error)")
             }
-        } catch {
-            debugPrint("failed to create new article: \(article), error: \(error)")
+
+            // publish
+            Task.init(priority: .background) {
+                await PlanetManager.shared.publish(planet)
+            }
         }
+
+        return article
     }
 
     func articlePath(articleID: UUID, planetID: UUID) -> URL? {
@@ -114,17 +113,23 @@ class PlanetWriterManager: NSObject {
     // MARK: -
     @MainActor
     func launchWriter(forPlanet planet: Planet) {
-        let draftPlanetID = planet.id!
+        // Launch writer to create a new article of a planet
+        // writerID == planet.id
+        let id = planet.id!
 
-        if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
-            DispatchQueue.main.async {
-                PlanetStore.shared.activeWriterID = draftPlanetID
-            }
+        if PlanetStore.shared.writerIDs.contains(id) {
+            PlanetStore.shared.activeWriterID = id
             return
         }
 
-        let writerView = PlanetWriterView(draftPlanetID: draftPlanetID)
-        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 720, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, draftPlanetID: draftPlanetID)
+        let writerView = PlanetWriterView(draftPlanetID: id)
+        let writerWindow = PlanetWriterWindow(
+                rect: NSMakeRect(0, 0, 720, 480),
+                maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView],
+                backingType: .buffered,
+                deferMode: false,
+                writerID: id
+        )
         writerWindow.center()
         writerWindow.contentView = NSHostingView(rootView: writerView)
         writerWindow.makeKeyAndOrderFront(nil)
@@ -132,16 +137,22 @@ class PlanetWriterManager: NSObject {
 
     @MainActor
     func launchWriter(forArticle article: PlanetArticle) {
-        let articleID = article.id!
+        // Launch writer to edit an existing article
+        // writerID == article.id
+        let id = article.id!
 
-        if PlanetStore.shared.writerIDs.contains(articleID) {
-            DispatchQueue.main.async {
-                PlanetStore.shared.activeWriterID = articleID
-            }
+        if PlanetStore.shared.writerIDs.contains(id) {
+            PlanetStore.shared.activeWriterID = id
             return
         }
-        let writerView = PlanetWriterEditView(articleID: articleID, title: article.title ?? "", content: article.content ?? "")
-        let writerWindow = PlanetWriterWindow(rect: NSMakeRect(0, 0, 600, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false, draftPlanetID: articleID)
+        let writerView = PlanetWriterEditView(articleID: id, title: article.title ?? "", content: article.content ?? "")
+        let writerWindow = PlanetWriterWindow(
+                rect: NSMakeRect(0, 0, 600, 480),
+                maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView],
+                backingType: .buffered,
+                deferMode: false,
+                writerID: id
+        )
         writerWindow.center()
         writerWindow.contentView = NSHostingView(rootView: writerView)
         writerWindow.makeKeyAndOrderFront(nil)
@@ -193,5 +204,4 @@ class PlanetWriterManager: NSObject {
         }
         return contentPath
     }
-
 }

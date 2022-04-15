@@ -24,7 +24,7 @@ struct PlanetMainView: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .navigation) {
                         Spacer()
-                        
+
                         Button(action: toggleSidebar) {
                             Image(systemName: "sidebar.left")
                                 .help("Toggle Sidebar")
@@ -37,28 +37,22 @@ struct PlanetMainView: View {
                         PlanetManager.shared.importCurrentPlanet()
                         return
                     }
-                    DispatchQueue.main.async {
-                        self.planetStore.isAlert = true
-                        PlanetManager.shared.alertTitle = "Failed to Import Planet"
-                        PlanetManager.shared.alertMessage = "Please try again."
-                        PlanetManager.shared.importPath = nil
-                    }
+                    PlanetManager.shared.importPath = nil
+                    PlanetManager.shared.alert(title: "Failed to Import Planet", message: "Please try again.")
                 })
-            
+
             Text("No Planet Selected")
                 .foregroundColor(.secondary)
                 .frame(minWidth: 200)
-            
+
             Text("No Article Selected")
                 .foregroundColor(.secondary)
                 .frame(minWidth: 320)
         }
         .alert(isPresented: $planetStore.isAlert) {
             Alert(title: Text(PlanetManager.shared.alertTitle), message: Text(PlanetManager.shared.alertMessage), dismissButton: Alert.Button.cancel(Text("OK"), action: {
-                DispatchQueue.main.async {
-                    PlanetManager.shared.alertTitle = ""
-                    PlanetManager.shared.alertMessage = ""
-                }
+                PlanetManager.shared.alertTitle = ""
+                PlanetManager.shared.alertMessage = ""
             }))
         }
         .fileImporter(isPresented: $planetStore.isExportingPlanet, allowedContentTypes: [.directory], allowsMultipleSelection: false, onCompletion: { result in
@@ -67,14 +61,11 @@ struct PlanetMainView: View {
                 PlanetManager.shared.exportCurrentPlanet()
                 return
             }
-            DispatchQueue.main.async {
-                PlanetManager.shared.alertTitle = "Failed to Export Planet"
-                PlanetManager.shared.alertMessage = "Please try again."
-                PlanetManager.shared.exportPath = nil
-            }
+            PlanetManager.shared.exportPath = nil
+            PlanetManager.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
         })
         .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
-            
+
         } content: {
             if let planet = planetStore.currentPlanet {
                 PlanetAboutView(planet: planet)
@@ -82,7 +73,7 @@ struct PlanetMainView: View {
             }
         }
         .sheet(isPresented: $planetStore.isEditingPlanet) {
-            
+
         } content: {
             if let planet = planetStore.currentPlanet {
                 EditPlanetView(planet: planet)
@@ -90,7 +81,7 @@ struct PlanetMainView: View {
             }
         }
     }
-    
+
     private func toggleSidebar() {
         NSApp.keyWindow?.firstResponder?
             .tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
