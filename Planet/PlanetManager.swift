@@ -38,7 +38,7 @@ class PlanetManager: NSObject {
         return q
     }()
 
-    private var apiPort: String = "" {
+    var apiPort: String = "" {
         didSet {
             guard apiPort != "" else { return }
             debugPrint("api port updated.")
@@ -70,7 +70,7 @@ class PlanetManager: NSObject {
         }
     }
 
-    private var swarmPort: String = "" {
+    var swarmPort: String = "" {
         didSet {
             guard swarmPort != "" else { return }
             debugPrint("swarm port updated.")
@@ -85,6 +85,13 @@ class PlanetManager: NSObject {
             }
         }
     }
+
+    var currentPlanetVersion: String = ""
+    var importPath: URL!
+    var exportPath: URL!
+    var alertTitle: String = ""
+    var alertMessage: String = ""
+    var templatePaths: [URL] = []
 
     func setup() {
         debugPrint("Planet Manager Setup")
@@ -127,9 +134,7 @@ class PlanetManager: NSObject {
             } catch {
                 debugPrint("failed to copy template file: \(error)")
             }
-            DispatchQueue.main.async {
-                PlanetStore.shared.templatePaths.append(targetPath)
-            }
+            templatePaths.append(targetPath)
         }
     }
 
@@ -137,31 +142,30 @@ class PlanetManager: NSObject {
         guard apiPort != "" else { return false }
         let status = await verifyPortOnlineStatus(port: apiPort, suffix: "/webui")
         DispatchQueue.main.async {
-            PlanetStore.shared.daemonIsOnline = status
+            PlanetStatusViewModel.shared.daemonIsOnline = status
         }
         return status
     }
 
     func checkPeersStatus() async -> Int {
-        guard await PlanetStore.shared.daemonIsOnline else { return 0}
         let request = serverURL(path: "swarm/peers")
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
             let decoder = JSONDecoder()
             let peers = try decoder.decode(PlanetPeers.self, from: data)
             DispatchQueue.main.async {
-                PlanetStore.shared.peersCount = peers.peers?.count ?? 0
+                PlanetStatusViewModel.shared.peersCount = peers.peers?.count ?? 0
             }
         } catch {}
         return 0
     }
 
-    func checkPublishingStatus(planetID id: UUID) async -> Bool {
-        return await PlanetStore.shared.publishingPlanets.contains(id)
+    func checkPublishingStatus(planetID id: UUID) -> Bool {
+        return PlanetStatusViewModel.shared.publishingPlanets.contains(id)
     }
 
-    func checkUpdatingStatus(planetID id: UUID) async -> Bool {
-        return await PlanetStore.shared.updatingPlanets.contains(id)
+    func checkUpdatingStatus(planetID id: UUID) -> Bool {
+        return PlanetStatusViewModel.shared.updatingPlanets.contains(id)
     }
 
     func generateKeys() async -> (keyName: String?, keyID: String?) {
@@ -224,7 +228,6 @@ class PlanetManager: NSObject {
             let (data, _) = try await URLSession.shared.data(for: checkKeyExistsRequest)
             let decoder = JSONDecoder()
             let info: PlanetIPFSVersionInfo = try decoder.decode(PlanetIPFSVersionInfo.self, from: data)
-            debugPrint("got ipfs version: \(info)")
             if let version = info.version, let system = info.system {
                 return version + " " + system
             }
@@ -369,7 +372,7 @@ class PlanetManager: NSObject {
                 return
             }
         }
-        let templatePath = await PlanetStore.shared.templatePaths[templateIndex]
+        let templatePath = templatePaths[templateIndex]
         // render html
         let loader = FileSystemLoader(paths: [Path(templatePath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader)
@@ -412,19 +415,19 @@ class PlanetManager: NSObject {
         let now = Date()
         let planetPath = planetsPath().appendingPathComponent(id.uuidString)
         guard FileManager.default.fileExists(atPath: planetPath.path) else { return }
-        let publishingStatus = await checkPublishingStatus(planetID: id)
+        let publishingStatus = checkPublishingStatus(planetID: id)
         guard publishingStatus == false else {
             debugPrint("planet \(planet) is still publishing, abort.")
             return
         }
         DispatchQueue.main.async {
-            PlanetStore.shared.publishingPlanets.insert(id)
+            PlanetStatusViewModel.shared.publishingPlanets.insert(id)
         }
         defer {
             DispatchQueue.main.async {
-                PlanetStore.shared.publishingPlanets.remove(id)
+                PlanetStatusViewModel.shared.publishingPlanets.remove(id)
                 let published: Date = Date()
-                PlanetStore.shared.lastPublishedDates[id] = published
+                PlanetStatusViewModel.shared.lastPublishedDates[id] = published
                 DispatchQueue.global(qos: .background).async {
                     UserDefaults.standard.set(published, forKey: "PlanetLastPublished" + "-" + id.uuidString)
                 }
@@ -527,19 +530,19 @@ class PlanetManager: NSObject {
             return
         }
 
-        let updatingStatus = await checkUpdatingStatus(planetID: id)
+        let updatingStatus = checkUpdatingStatus(planetID: id)
         guard updatingStatus == false else {
             debugPrint("planet \(planet) is still been updating, abort.")
             return
         }
         DispatchQueue.main.async {
-            PlanetStore.shared.updatingPlanets.insert(id)
+            PlanetStatusViewModel.shared.updatingPlanets.insert(id)
         }
         defer {
             DispatchQueue.main.async {
-                PlanetStore.shared.updatingPlanets.remove(id)
+                PlanetStatusViewModel.shared.updatingPlanets.remove(id)
                 let updated: Date = Date()
-                PlanetStore.shared.lastUpdatedDates[id] = updated
+                PlanetStatusViewModel.shared.lastUpdatedDates[id] = updated
                 DispatchQueue.global(qos: .background).async {
                     UserDefaults.standard.set(updated, forKey: "PlanetLastUpdated" + "-" + id.uuidString)
                 }
@@ -649,11 +652,11 @@ class PlanetManager: NSObject {
     // MARK: -
     @MainActor
     func importCurrentPlanet() {
-        guard let importPath = PlanetStore.shared.importPath else {
+        guard let importPath = importPath else {
             DispatchQueue.main.async {
                 PlanetStore.shared.isAlert = true
-                PlanetStore.shared.alertTitle = "Failed to Import Planet"
-                PlanetStore.shared.alertMessage = "Please choose a planet data file to import."
+                self.alertTitle = "Failed to Import Planet"
+                self.alertMessage = "Please choose a planet data file to import."
             }
             return
         }
@@ -662,8 +665,8 @@ class PlanetManager: NSObject {
         guard FileManager.default.fileExists(atPath: importPlanetInfoPath.path) else {
             DispatchQueue.main.async {
                 PlanetStore.shared.isAlert = true
-                PlanetStore.shared.alertTitle = "Failed to Import Planet"
-                PlanetStore.shared.alertMessage = "The planet data file is damaged."
+                self.alertTitle = "Failed to Import Planet"
+                self.alertMessage = "The planet data file is damaged."
             }
             return
         }
@@ -672,8 +675,8 @@ class PlanetManager: NSObject {
         guard FileManager.default.fileExists(atPath: importPlanetKeyPath.path) else {
             DispatchQueue.main.async {
                 PlanetStore.shared.isAlert = true
-                PlanetStore.shared.alertTitle = "Failed to Import Planet"
-                PlanetStore.shared.alertMessage = "The planet data file is damaged."
+                self.alertTitle = "Failed to Import Planet"
+                self.alertMessage = "The planet data file is damaged."
             }
             return
         }
@@ -686,8 +689,8 @@ class PlanetManager: NSObject {
             if PlanetDataController.shared.getPlanet(id: planetInfo.id) != nil {
                 DispatchQueue.main.async {
                     PlanetStore.shared.isAlert = true
-                    PlanetStore.shared.alertTitle = "Failed to Import Planet"
-                    PlanetStore.shared.alertMessage = "The planet '\(planetInfo.name)' exists."
+                    self.alertTitle = "Failed to Import Planet"
+                    self.alertMessage = "The planet '\(planetInfo.name)' exists."
                 }
                 return
             }
@@ -740,14 +743,14 @@ class PlanetManager: NSObject {
 
             DispatchQueue.main.async {
                 PlanetStore.shared.isAlert = true
-                PlanetStore.shared.alertTitle = "Planet Imported"
-                PlanetStore.shared.alertMessage = "\(planetInfo.name)"
+                self.alertTitle = "Planet Imported"
+                self.alertMessage = "\(planetInfo.name)"
             }
         } catch {
             DispatchQueue.main.async {
                 PlanetStore.shared.isAlert = true
-                PlanetStore.shared.alertTitle = "Failed to Import Planet"
-                PlanetStore.shared.alertMessage = error.localizedDescription
+                self.alertTitle = "Failed to Import Planet"
+                self.alertMessage = error.localizedDescription
             }
         }
     }
@@ -757,17 +760,17 @@ class PlanetManager: NSObject {
         guard let planet = PlanetStore.shared.currentPlanet, planet.isMyPlanet(), let planetID = planet.id, let planetName = planet.name, let planetKeyName = planet.keyName else {
             DispatchQueue.main.async {
                 PlanetStore.shared.isAlert = true
-                PlanetStore.shared.alertTitle = "Failed to Export Planet"
-                PlanetStore.shared.alertMessage = "Unable to prepare for current selected planet, please make sure the planet you selected is ready to export then try again."
+                self.alertTitle = "Failed to Export Planet"
+                self.alertMessage = "Unable to prepare for current selected planet, please make sure the planet you selected is ready to export then try again."
             }
             return
         }
 
-        guard let exportPath = PlanetStore.shared.exportPath else {
+        guard let exportPath = exportPath else {
             DispatchQueue.main.async {
                 PlanetStore.shared.isAlert = true
-                PlanetStore.shared.alertTitle = "Failed to Export Planet"
-                PlanetStore.shared.alertMessage = "Please choose the export path then try again."
+                self.alertTitle = "Failed to Export Planet"
+                self.alertMessage = "Please choose the export path then try again."
             }
             return
         }
@@ -776,8 +779,8 @@ class PlanetManager: NSObject {
         guard FileManager.default.fileExists(atPath: exportPlanetPath.path) == false else {
             DispatchQueue.main.async {
                 PlanetStore.shared.isAlert = true
-                PlanetStore.shared.alertTitle = "Failed to Export Planet"
-                PlanetStore.shared.alertMessage = "Export path exists, please choose another export path then try again."
+                self.alertTitle = "Failed to Export Planet"
+                self.alertMessage = "Export path exists, please choose another export path then try again."
             }
             return
         }
@@ -788,8 +791,8 @@ class PlanetManager: NSObject {
         } catch {
             DispatchQueue.main.async {
                 PlanetStore.shared.isAlert = true
-                PlanetStore.shared.alertTitle = "Failed to Export Planet"
-                PlanetStore.shared.alertMessage = error.localizedDescription
+                self.alertTitle = "Failed to Export Planet"
+                self.alertMessage = error.localizedDescription
             }
             return
         }
@@ -901,7 +904,7 @@ class PlanetManager: NSObject {
                 Task.init(priority: .utility) {
                     let s = await self.checkDaemonStatus()
                     DispatchQueue.main.async {
-                        PlanetStore.shared.daemonIsOnline = s
+                        PlanetStatusViewModel.shared.daemonIsOnline = s
                     }
                     if !s {
                         DispatchQueue.global().async {
@@ -912,10 +915,7 @@ class PlanetManager: NSObject {
                             self.publishLocalPlanets()
                             self.updateFollowingPlanets()
                         }
-                        let version = await self.ipfsVersion()
-                        DispatchQueue.main.async {
-                            PlanetStore.shared.currentPlanetVersion = version
-                        }
+                        self.currentPlanetVersion = await self.ipfsVersion()
                     }
                 }
             }
@@ -945,7 +945,7 @@ class PlanetManager: NSObject {
             }
 
             DispatchQueue.main.async {
-                PlanetStore.shared.daemonIsOnline = status
+                PlanetStatusViewModel.shared.daemonIsOnline = status
             }
         }
     }

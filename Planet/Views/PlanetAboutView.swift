@@ -66,6 +66,8 @@ struct PlanetAboutView: View {
 
     @Environment(\.dismiss) private var dismiss
 
+    @ObservedObject private var statusViewModel: PlanetStatusViewModel = PlanetStatusViewModel.shared
+
     var planet: Planet
 
     @State private var isSharing = false
@@ -110,9 +112,9 @@ struct PlanetAboutView: View {
                                 await PlanetManager.shared.publishForPlanet(planet: planet)
                             }
                         } label: {
-                            Text(planetStore.publishingPlanets.contains(planet.id!) ? "Publishing" : "Publish")
+                            Text(statusViewModel.publishingPlanets.contains(planet.id!) ? "Publishing" : "Publish")
                         }
-                        .disabled(planetStore.publishingPlanets.contains(planet.id!))
+                        .disabled(statusViewModel.publishingPlanets.contains(planet.id!))
                         
                         Spacer()
 
@@ -147,9 +149,9 @@ struct PlanetAboutView: View {
                                 await PlanetManager.shared.update(planet)
                             }
                         } label: {
-                            Text(planetStore.updatingPlanets.contains(planet.id!) ? "Updating" : "Update")
+                            Text(statusViewModel.updatingPlanets.contains(planet.id!) ? "Updating" : "Update")
                         }
-                        .disabled(planetStore.updatingPlanets.contains(planet.id!))
+                        .disabled(statusViewModel.updatingPlanets.contains(planet.id!))
 
                         Spacer()
 
@@ -199,7 +201,7 @@ struct PlanetAboutView: View {
 
     private func lastUpdatedStatus() -> String {
         if let id = planet.id {
-            if let updated = planetStore.lastUpdatedDates[id] {
+            if let updated = statusViewModel.lastUpdatedDates[id] {
                 return "Updated " + updated.relativeDateDescription()
             } else if let updated = UserDefaults.standard.object(forKey: "PlanetLastUpdated" + "-" + id.uuidString) as? Date {
                 return "Updated " + updated.relativeDateDescription()
@@ -210,7 +212,7 @@ struct PlanetAboutView: View {
 
     private func lastPublishedStatus() -> String {
         if let id = planet.id {
-            if let published = planetStore.lastPublishedDates[id] {
+            if let published = statusViewModel.lastPublishedDates[id] {
                 return "Published " + published.relativeDateDescription()
             } else if let published = UserDefaults.standard.object(forKey: "PlanetLastPublished" + "-" + id.uuidString) as? Date {
                 return "Published " + published.relativeDateDescription()

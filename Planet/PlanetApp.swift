@@ -28,56 +28,55 @@ struct PlanetApp: App {
             CommandGroup(replacing: .newItem) {
             }
             CommandMenu("Planet") {
-                if planetStore.currentPlanetVersion != "" {
-                    Text(planetStore.currentPlanetVersion)
+                Group {
+                    Button {
+                        TemplateBrowserManager.shared.launchTemplateBrowser()
+                    } label: {
+                        Text("Template Browser")
+                    }
+
+                    Divider()
+
+                    Button {
+                        PlanetManager.shared.publishLocalPlanets()
+                    } label: {
+                        Text("Publish My Planets")
+                    }
+                    .keyboardShortcut("p", modifiers: [.command, .shift])
+
+                    Button {
+                        PlanetManager.shared.updateFollowingPlanets()
+                    } label: {
+                        Text("Update Following Planets")
+                    }
+                    .keyboardShortcut("r", modifiers: [.command, .shift])
+
                     Divider()
                 }
-                
-                Button {
-                    TemplateBrowserManager.shared.launchTemplateBrowser()
-                } label: {
-                    Text("Template Browser")
-                }
-                
-                Divider()
 
-                Button {
-                    PlanetManager.shared.publishLocalPlanets()
-                } label: {
-                    Text("Publish My Planets")
-                }
-                .keyboardShortcut("p", modifiers: [.command, .shift])
+                Group {
+                    Button {
+                        planetStore.isImportingPlanet = true
+                    } label: {
+                        Text("Import Planet")
+                    }
+                    .keyboardShortcut("i", modifiers: [.command, .shift])
 
-                Button {
-                    PlanetManager.shared.updateFollowingPlanets()
-                } label: {
-                    Text("Update Following Planets")
-                }
-                .keyboardShortcut("r", modifiers: [.command, .shift])
+                    Button {
+                        guard planetStore.currentPlanet != nil else { return }
+                        planetStore.isExportingPlanet = true
+                    } label: {
+                        Text("Export Planet")
+                    }
+                    .keyboardShortcut("e", modifiers: [.command, .shift])
 
-                Divider()
+                    Divider()
 
-                Button {
-                    planetStore.isImportingPlanet = true
-                } label: {
-                    Text("Import Planet")
-                }
-                .keyboardShortcut("i", modifiers: [.command, .shift])
-
-                Button {
-                    guard planetStore.currentPlanet != nil else { return }
-                    planetStore.isExportingPlanet = true
-                } label: {
-                    Text("Export Planet")
-                }
-                .keyboardShortcut("e", modifiers: [.command, .shift])
-
-                Divider()
-
-                Button {
-                    PlanetDataController.shared.resetDatabase()
-                } label: {
-                    Text("Reset Database")
+                    Button {
+                        PlanetDataController.shared.resetDatabase()
+                    } label: {
+                        Text("Reset Database")
+                    }
                 }
             }
             SidebarCommands()
@@ -101,7 +100,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: ipns)
         } else if url.lastPathComponent.hasSuffix(".planet") {
             DispatchQueue.main.async {
-                PlanetStore.shared.importPath = url
+                PlanetManager.shared.importPath = url
                 PlanetManager.shared.importCurrentPlanet()
             }
         }

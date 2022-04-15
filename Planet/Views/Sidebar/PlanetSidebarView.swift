@@ -77,6 +77,8 @@ struct PlanetSidebarView: View {
     @FetchRequest(sortDescriptors: [SortDescriptor(\.created, order: .reverse)], animation: Animation.easeInOut) var articles: FetchedResults<PlanetArticle>
     @Environment(\.managedObjectContext) private var context
 
+    @ObservedObject private var statusViewModel: PlanetStatusViewModel = PlanetStatusViewModel.shared
+
     var body: some View {
         VStack {
             List {
@@ -152,7 +154,7 @@ struct PlanetSidebarView: View {
                                         Spacer()
                                         PlanetSidebarLoadingIndicatorView()
                                             .environmentObject(planetStore)
-                                            .opacity(planetStore.publishingPlanets.contains(planet.id!) ? 1.0 : 0.0)
+                                            .opacity(statusViewModel.publishingPlanets.contains(planet.id!) ? 1.0 : 0.0)
                                     }
                                 }
                             }
@@ -166,7 +168,7 @@ struct PlanetSidebarView: View {
                                         Text("New Article")
                                     }
 
-                                    if !planetStore.publishingPlanets.contains(planet.id!) {
+                                    if !statusViewModel.publishingPlanets.contains(planet.id!) {
                                         Button {
                                             Task.init {
                                                 await PlanetManager.shared.publishForPlanet(planet: planet)
@@ -239,7 +241,7 @@ struct PlanetSidebarView: View {
                                 VStack {
                                     HStack (spacing: 4) {
                                         if planet.name == nil || planet.name == "" {
-                                            Text(planetStore.updatingPlanets.contains(planet.id!) ? "Waiting for planet..." : "Unknown Planet")
+                                            Text(statusViewModel.updatingPlanets.contains(planet.id!) ? "Waiting for planet..." : "Unknown Planet")
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
                                         } else {
@@ -249,7 +251,7 @@ struct PlanetSidebarView: View {
                                                 .foregroundColor(.primary)
                                         }
                                         Spacer()
-                                        if planetStore.updatingPlanets.contains(planet.id!) {
+                                        if statusViewModel.updatingPlanets.contains(planet.id!) {
                                             PlanetSidebarLoadingIndicatorView()
                                                 .environmentObject(planetStore)
                                         }
@@ -258,7 +260,7 @@ struct PlanetSidebarView: View {
                             }
                             .contextMenu(menuItems: {
                                 VStack {
-                                    if !planetStore.updatingPlanets.contains(planet.id!) {
+                                    if !statusViewModel.updatingPlanets.contains(planet.id!) {
                                         Button {
                                             Task.init {
                                                 await PlanetManager.shared.update(planet)
@@ -307,8 +309,8 @@ struct PlanetSidebarView: View {
             HStack (spacing: 6) {
                 Circle()
                     .frame(width: 11, height: 11, alignment: .center)
-                    .foregroundColor((planetStore.daemonIsOnline && planetStore.peersCount > 0) ? Color.green : Color.red)
-                Text(planetStore.peersCount == 0 ? "Offline" : "Online (\(planetStore.peersCount))")
+                    .foregroundColor((statusViewModel.daemonIsOnline && statusViewModel.peersCount > 0) ? Color.green : Color.red)
+                Text(statusViewModel.peersCount == 0 ? "Offline" : "Online (\(statusViewModel.peersCount))")
                     .font(.body)
 
                 Spacer()
@@ -339,7 +341,7 @@ struct PlanetSidebarView: View {
                 .menuStyle(BorderlessButtonMenuStyle(showsMenuIndicator: false))
             }
             .onTapGesture {
-                guard planetStore.daemonIsOnline == false else { return }
+                guard statusViewModel.daemonIsOnline == false else { return }
                 PlanetManager.shared.relaunchDaemon()
             }
             .frame(height: 44)
@@ -378,3 +380,5 @@ struct PlanetSidebarView_Previews: PreviewProvider {
         PlanetSidebarView()
     }
 }
+
+
