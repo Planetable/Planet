@@ -97,7 +97,7 @@ struct PlanetSidebarView: View {
                         }, tag: SmartFeedType.today, selection: $planetStore.selectedSmartFeedType) {
                             SmartFeedView(feedType: .today)
                         }
-                    
+
                     NavigationLink(destination: PlanetArticleListView(planetID: nil, articles: articles, type: .unread)
                         .environmentObject(planetStore)
                         .environment(\.managedObjectContext, context)
@@ -109,7 +109,7 @@ struct PlanetSidebarView: View {
                         }, tag: SmartFeedType.unread, selection: $planetStore.selectedSmartFeedType) {
                             SmartFeedView(feedType: .unread)
                         }
-                    
+
                     NavigationLink(destination: PlanetArticleListView(planetID: nil, articles: articles, type: .starred)
                         .environmentObject(planetStore)
                         .environment(\.managedObjectContext, context)
