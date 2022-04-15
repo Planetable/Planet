@@ -462,6 +462,7 @@ class PlanetManager: NSObject {
             let result = try runCommand(command: .ipfsAddDirectory(target: _ipfsPath(), config: _configPath(), directory: planetPath))
             if let result = result["result"] as? [String], let cid: String = result.first {
                 planetCID = cid
+                debugPrint("Planet CID: \(planet.name) - \(cid)")
             }
         } catch {
             debugPrint("failed to add planet directory at: \(planetPath), error: \(error)")
