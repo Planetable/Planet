@@ -446,6 +446,7 @@ class PlanetManager: NSObject {
             let feedArticle: PlanetFeedArticle = PlanetFeedArticle(id: t.id!, created: t.created!, title: t.title ?? "", content: t.content ?? "", link: "/\(t.id!)/")
             return feedArticle
         }
+        // TODO: Fix updated: now or it would change CID every time
         let feed = PlanetFeed(id: id, ipns: planet.ipns!, created: planet.created!, updated: now, name: planet.name ?? "", about: planet.about ?? "", articles: feedArticles)
         do {
             let encoder = JSONEncoder()
