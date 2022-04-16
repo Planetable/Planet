@@ -557,22 +557,23 @@ class PlanetManager: NSObject {
             planet.ipns = ipns
 
             // update planet articles if needed.
-            var articlesToCreate: [PlanetFeedArticle] = []
-            var articlesToUpdate: [PlanetFeedArticle] = []
+            var createArticleCount = 0
+            var updateArticleCount = 0
             for article in feed.articles {
                 guard let articleLink = article.link else { continue }
                 if let existing = PlanetDataController.shared.getArticle(link: articleLink, planetID: id) {
                     if existing.title != article.title {
-                        articlesToUpdate.append(article)
+                        existing.title = article.title
+                        existing.link = articleLink
+                        updateArticleCount += 1
                     }
                 } else {
-                    articlesToCreate.append(article)
+                    let _ = PlanetDataController.shared.createArticle(article, planetID: id)
+                    createArticleCount += 1
                 }
             }
-            debugPrint("planet articles count to create: \(articlesToCreate.count)")
-            debugPrint("planet articles count to update: \(articlesToUpdate.count)")
-            PlanetDataController.shared.batchCreateArticles(articles: articlesToCreate, planetID: id)
-            PlanetDataController.shared.batchUpdateArticles(articles: articlesToUpdate, planetID: id)
+            debugPrint("planet articles count to create: \(createArticleCount)")
+            debugPrint("planet articles count to update: \(updateArticleCount)")
 
             // update planet avatar if needed.
             let avatarString = prefix + "/" + "avatar.png"

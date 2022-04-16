@@ -279,25 +279,15 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func batchUpdateArticles(articles: [PlanetFeedArticle], planetID: UUID) {
-        for article in articles {
-            if let articleModel = PlanetDataController.shared.getArticle(id: article.id) {
-                articleModel.title = article.title
-                articleModel.link = article.link ?? "/\(articleModel.id!)/"
-            }
-        }
-    }
-
-    func batchCreateArticles(articles: [PlanetFeedArticle], planetID: UUID) {
-        let ctx = persistentContainer.viewContext
-        for article in articles {
-            let articleModel = PlanetArticle(context: ctx)
-            articleModel.id = UUID()
-            articleModel.planetID = planetID
-            articleModel.title = article.title
-            articleModel.link = article.link
-            articleModel.created = article.created
-        }
+    func createArticle(_ article: PlanetFeedArticle, planetID: UUID, context: NSManagedObjectContext? = nil) -> PlanetArticle {
+        let ctx = context ?? persistentContainer.viewContext
+        let articleModel = PlanetArticle(context: ctx)
+        articleModel.id = UUID()
+        articleModel.planetID = planetID
+        articleModel.title = article.title
+        articleModel.link = article.link
+        articleModel.created = article.created
+        return articleModel
     }
 
     func batchImportArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
