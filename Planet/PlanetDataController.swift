@@ -496,6 +496,9 @@ class PlanetDataController: NSObject {
     @MainActor func removeArticle(_ article: PlanetArticle) {
         article.softDeleted = Date()
         PlanetStore.shared.currentArticle = nil
+        Task {
+            await PlanetManager.shared.destroyArticleDirectory(planetUUID: article.planetID!, articleUUID: article.id!)
+        }
     }
 
     func cleanupDatabase() {

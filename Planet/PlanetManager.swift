@@ -307,7 +307,7 @@ class PlanetManager: NSObject {
         }
     }
 
-    func destroyArticleDirectory(planetUUID: UUID, articleUUID: UUID) {
+    func destroyArticleDirectory(planetUUID: UUID, articleUUID: UUID) async {
         debugPrint("about to destroy directory from article: \(articleUUID) ...")
         let articlePath = planetsPath().appendingPathComponent(planetUUID.uuidString).appendingPathComponent(articleUUID.uuidString)
         do {
