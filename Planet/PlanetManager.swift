@@ -328,7 +328,7 @@ class PlanetManager: NSObject {
             let urlString: String = {
                 switch (planet.type) {
                     case .planet:
-                        return "\(ipfsGateway)/ipns/\(planet.ipns!)/\(article.link!)/index.html"
+                        return "\(ipfsGateway)/ipns/\(planet.ipns!)\(article.link!)index.html"
                     case .ens:
                         return "\(ipfsGateway)/ipfs/\(planet.ipfs!)\(article.link!)"
                     case .dns:
