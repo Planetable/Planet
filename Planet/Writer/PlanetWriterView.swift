@@ -180,6 +180,7 @@ struct PlanetWriterView: View {
         }
 
         let article = PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: draftPlanetID, title: title, content: content)
+        PlanetDataController.shared.save()
 
         if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
             PlanetStore.shared.writerIDs.remove(draftPlanetID)

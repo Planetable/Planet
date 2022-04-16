@@ -53,7 +53,7 @@ class PlanetWriterManager: NSObject {
     func createArticle(withArticleID id: UUID, forPlanet planetID: UUID, title: String, content: String) -> PlanetArticle {
         let dataController = PlanetDataController.shared
         let planet = dataController.getPlanet(id: planetID)!
-        let context = dataController.persistentContainer.newBackgroundContext()
+        let context = dataController.persistentContainer.viewContext
         let article = PlanetArticle(context: context)
         article.id = id
         article.planetID = planetID

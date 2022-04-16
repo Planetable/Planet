@@ -390,6 +390,7 @@ class PlanetManager: NSObject {
     }
 
     func pin(_ endpoint: String) {
+        debugPrint("pinning \(endpoint) ...")
         let pinRequest = apiRequest(path: "pin/add", args: ["arg": endpoint], timeout: 120)
         URLSession.shared.dataTask(with: pinRequest) { data, response, error in
             debugPrint("pinned: \(String(describing: response)).")
