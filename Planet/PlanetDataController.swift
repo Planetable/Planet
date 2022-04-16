@@ -127,6 +127,9 @@ class PlanetDataController: NSObject {
                 throw PlanetError.IPFSError
             }
             debugPrint("IPFS content OK: \(url)")
+            if let IPFSContent = planet.IPFSContent {
+                PlanetManager.shared.pin(IPFSContent)
+            }
             // Try detect if there is a feed
             // The better way would be to parse the HTML and check if it has a feed
             let feedURL = URL(string: "\(PlanetManager.shared.ipfsGateway)/ipfs/\(ipfs)/feed.xml")!

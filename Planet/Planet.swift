@@ -179,6 +179,7 @@ extension Planet {
             case .planet:
                 return "/ipns/\(ipns!)"
             case .ens:
+                // TODO: .ens Content Hash could also carry IPNS or domain name
                 return "/ipfs/\(ipfs!)"
             default:
                 return nil
