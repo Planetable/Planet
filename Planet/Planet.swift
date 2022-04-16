@@ -177,9 +177,9 @@ extension Planet {
         get {
             switch type {
             case .planet:
-                return "/ipns/\(String(describing: ipns))"
+                return "/ipns/\(ipns!)"
             case .ens:
-                return "/ipfs/\(String(describing: ipfs))"
+                return "/ipfs/\(ipfs!)"
             default:
                 return nil
             }
