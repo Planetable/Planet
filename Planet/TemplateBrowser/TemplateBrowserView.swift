@@ -9,7 +9,10 @@ import SwiftUI
 
 struct TemplateBrowserView: View {
     var body: some View {
-        Text("Template Browser")
+        NavigationView {
+            TemplateBrowserSidebar()
+            Text("Hello World")
+        }
     }
 }
 
