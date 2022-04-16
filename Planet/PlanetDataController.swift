@@ -187,7 +187,6 @@ class PlanetDataController: NSObject {
                 }
                 debugPrint("Atom Feed: Found \(articles.count) articles")
             case let .rss(feed):        // Really Simple Syndication Feed
-                var articles: [PlanetFeedArticle] = []
                 for item in feed.items! {
                     guard let itemLink = URL(string: item.link!) else {
                         continue
@@ -212,7 +211,6 @@ class PlanetDataController: NSObject {
                         PlanetDataController.shared.updatePlanetAvatar(planet: planet, image: image)
                     }
                 }
-                var articles: [PlanetFeedArticle] = []
                 for item in feed.items! {
                     guard let itemLink = URL(string: item.url!) else {
                         continue

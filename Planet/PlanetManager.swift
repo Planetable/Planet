@@ -498,92 +498,91 @@ class PlanetManager: NSObject {
         if planet.type == .ens {
             debugPrint("Going to update Type 1 ENS planet: \(planet.ens!)")
             try await PlanetDataController.shared.updateENSPlanet(planet: planet)
-            return
-        }
-
-        if planet.type == .dns {
+        } else if planet.type == .dns {
             debugPrint("Going to update Type 3 DNS planet: \(planet.dns!)")
             try await PlanetDataController.shared.updateDNSPlanet(planet: planet)
+            planet.lastUpdated = Date()
+            PlanetDataController.shared.save()
             return
-        }
+        } else {
+            // The rest of the logic is for Type 0 Planet
+            // TODO: encapsulate this logic into a function
 
-        // The rest of the logic is for Type 0 Planet
-        // TODO: encapsulate this logic into a function
-
-        guard
-            let id = planet.id,
-            let _ = planet.name,
-            let ipns = planet.ipns,
-            ipns.count == "k51qzi5uqu5dioq5on1s4oc3wg2t13w03xxsq32b1qovi61b6oi8pcyep2gsyf".count
-            else {
-            // incomplete or corrupted planet info, skip
-            // TODO: investigate if it's possible to have incomplete planet info
-            return
-        }
-
-        debugPrint("updating for planet: \(planet) ...")
-        let prefix = "\(ipfsGateway)/ipns/\(ipns)/"
-        let ipnsString = prefix + "planet.json"
-        let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
-        do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let dataSHA256 = data.sha256().toHexString()
-            debugPrint("Feed SHA256: \(dataSHA256)")
-            // If feed SHA256 has changed, write the latest to planet
-            // And pin the IPNS
-            let currentFeedSHA256 = planet.feedSHA256 ?? ""
-            if currentFeedSHA256 != dataSHA256 {
-                planet.feedSHA256 = currentFeedSHA256
-                debugPrint("Feed SHA256 has changed, pinning: \(planet)")
-                if let IPFSContent = planet.IPFSContent {
-                    PlanetManager.shared.pin(IPFSContent)
-                }
-            } else {
-                debugPrint("Feed SHA256 has not changed, skip pinning: \(planet)")
-            }
-            let decoder = JSONDecoder()
-            let feed: PlanetFeed = try decoder.decode(PlanetFeed.self, from: data)
-            guard feed.name != "" else {
-                throw PlanetError.PlanetFeedError
+            guard
+                let id = planet.id,
+                let _ = planet.name,
+                let ipns = planet.ipns,
+                ipns.count == "k51qzi5uqu5dioq5on1s4oc3wg2t13w03xxsq32b1qovi61b6oi8pcyep2gsyf".count
+                else {
+                // incomplete or corrupted planet info, skip
+                // TODO: investigate if it's possible to have incomplete planet info
+                return
             }
 
-            debugPrint("got following planet feed: \(feed)")
-            if let name = feed.name, name != "" {
-                planet.name = name
-            }
-            if let about = feed.about, about != "" {
-                planet.about = about
-            }
-            planet.ipns = ipns
-
-            // update planet articles if needed.
-            var createArticleCount = 0
-            var updateArticleCount = 0
-            for article in feed.articles {
-                guard let articleLink = article.link else { continue }
-                if let existing = PlanetDataController.shared.getArticle(link: articleLink, planetID: id) {
-                    if existing.title != article.title {
-                        existing.title = article.title
-                        existing.link = articleLink
-                        updateArticleCount += 1
+            debugPrint("updating for planet: \(planet) ...")
+            let prefix = "\(ipfsGateway)/ipns/\(ipns)/"
+            let ipnsString = prefix + "planet.json"
+            let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+            do {
+                let (data, _) = try await URLSession.shared.data(for: request)
+                let dataSHA256 = data.sha256().toHexString()
+                debugPrint("Feed SHA256: \(dataSHA256)")
+                // If feed SHA256 has changed, write the latest to planet
+                // And pin the IPNS
+                let currentFeedSHA256 = planet.feedSHA256 ?? ""
+                if currentFeedSHA256 != dataSHA256 {
+                    planet.feedSHA256 = currentFeedSHA256
+                    debugPrint("Feed SHA256 has changed, pinning: \(planet)")
+                    if let IPFSContent = planet.IPFSContent {
+                        PlanetManager.shared.pin(IPFSContent)
                     }
                 } else {
-                    let _ = PlanetDataController.shared.createArticle(article, planetID: id)
-                    createArticleCount += 1
+                    debugPrint("Feed SHA256 has not changed, skip pinning: \(planet)")
                 }
-            }
-            debugPrint("planet articles count to create: \(createArticleCount)")
-            debugPrint("planet articles count to update: \(updateArticleCount)")
+                let decoder = JSONDecoder()
+                let feed: PlanetFeed = try decoder.decode(PlanetFeed.self, from: data)
+                guard feed.name != "" else {
+                    throw PlanetError.PlanetFeedError
+                }
 
-            // update planet avatar if needed.
-            let avatarString = prefix + "/" + "avatar.png"
-            let avatarRequest = URLRequest(url: URL(string: avatarString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
-            let (avatarData, _) = try await URLSession.shared.data(for: avatarRequest)
-            if let image = NSImage(data: avatarData) {
-                PlanetDataController.shared.updatePlanetAvatar(planet: planet, image: image)
+                debugPrint("got following planet feed: \(feed)")
+                if let name = feed.name, name != "" {
+                    planet.name = name
+                }
+                if let about = feed.about, about != "" {
+                    planet.about = about
+                }
+                planet.ipns = ipns
+
+                // update planet articles if needed.
+                var createArticleCount = 0
+                var updateArticleCount = 0
+                for article in feed.articles {
+                    guard let articleLink = article.link else { continue }
+                    if let existing = PlanetDataController.shared.getArticle(link: articleLink, planetID: id) {
+                        if existing.title != article.title {
+                            existing.title = article.title
+                            existing.link = articleLink
+                            updateArticleCount += 1
+                        }
+                    } else {
+                        let _ = PlanetDataController.shared.createArticle(article, planetID: id)
+                        createArticleCount += 1
+                    }
+                }
+                debugPrint("planet articles count to create: \(createArticleCount)")
+                debugPrint("planet articles count to update: \(updateArticleCount)")
+
+                // update planet avatar if needed.
+                let avatarString = prefix + "/" + "avatar.png"
+                let avatarRequest = URLRequest(url: URL(string: avatarString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+                let (avatarData, _) = try await URLSession.shared.data(for: avatarRequest)
+                if let image = NSImage(data: avatarData) {
+                    PlanetDataController.shared.updatePlanetAvatar(planet: planet, image: image)
+                }
+            } catch {
+                throw PlanetError.PlanetFeedError
             }
-        } catch {
-            throw PlanetError.PlanetFeedError
         }
 
         planet.lastUpdated = Date()
