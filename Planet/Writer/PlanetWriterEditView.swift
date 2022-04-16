@@ -65,13 +65,13 @@ struct PlanetWriterEditView: View {
         Task.init {
             let article = try await PlanetDataController.shared.updateArticle(withID: articleID, title: title, content: content)
             PlanetDataController.shared.save()
-            await PlanetDataController.shared.refreshArticle(article)
             if PlanetStore.shared.writerIDs.contains(articleID) {
                 PlanetStore.shared.writerIDs.remove(articleID)
             }
             if PlanetStore.shared.activeWriterID == articleID {
                 PlanetStore.shared.activeWriterID = .init()
             }
+            await PlanetDataController.shared.refreshArticle(article)
         }
     }
 
