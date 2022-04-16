@@ -38,10 +38,8 @@ struct FollowPlanetView: View {
                             .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
                     )
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-
-            Spacer()
+            .padding(.all, 16)
+            .frame(width: 480)
 
             Divider()
 
@@ -55,28 +53,25 @@ struct FollowPlanetView: View {
 
                 Spacer()
 
-                Button {
-                    dismiss()
-                    if PlanetDataController.shared.getFollowingIPNSs().contains(processedEndpoint()) {
-                        return
+                if PlanetStore.shared.pendingFollowingPlanet != nil {
+                    HStack {
+                        ProgressView()
+                        .progressViewStyle(.circular)
+                        .scaleEffect(0.5, anchor: .center)
                     }
-                    // If endpoint ends with .eth, create it as a Type 1 ENS Planet
-                    if processedEndpoint().hasSuffix(".eth") {
-                        if let planet = PlanetDataController.shared.createPlanetENS(ens: processedEndpoint()) {
-                            Task.init(priority: .background) {
-                                await PlanetDataController.shared.checkUpdateForPlanetENS(planet: planet)
-                            }
-                        }
-                    } else {
-                        // If endpoint starts with https://, create it as a Type 3 Planet
-                        if processedEndpoint().hasPrefix("https://") {
-                            PlanetDataController.shared.createPlanet(endpoint: processedEndpoint())
-                        } else {
-                            if let planet = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processedEndpoint()) {
-                                Task.init(priority: .background) {
-                                    await PlanetManager.shared.update(planet)
-                                }
-                            }
+                    .padding(.horizontal, 4)
+                    .frame(height: 10)
+                }
+
+                Button {
+                    Task {
+                        do {
+                            let _ = try await PlanetManager.shared.followPlanet(url: endpoint)
+                            PlanetDataController.shared.save()
+                            dismiss()
+                        } catch {
+                            // TODO: the alert is currently not displaying above follow planet window
+                            // PlanetManager.shared.alert(title: "Unable to follow Planet")
                         }
                     }
                 } label: {
@@ -86,14 +81,7 @@ struct FollowPlanetView: View {
             .padding(16)
         }
         .padding(0)
-        .frame(width: 480, height: 260, alignment: .center)
-    }
-
-    private func processedEndpoint() -> String {
-        if endpoint.hasPrefix("planet://") {
-            endpoint = endpoint.replacingOccurrences(of: "planet://", with: "")
-        }
-        return endpoint
+        .frame(alignment: .center)
     }
 }
 

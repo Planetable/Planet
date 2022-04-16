@@ -28,56 +28,55 @@ struct PlanetApp: App {
             CommandGroup(replacing: .newItem) {
             }
             CommandMenu("Planet") {
-                if planetStore.currentPlanetVersion != "" {
-                    Text(planetStore.currentPlanetVersion)
+                Group {
+                    Button {
+                        TemplateBrowserManager.shared.launchTemplateBrowser()
+                    } label: {
+                        Text("Template Browser")
+                    }
+
+                    Divider()
+
+                    Button {
+                        PlanetManager.shared.publishLocalPlanets()
+                    } label: {
+                        Text("Publish My Planets")
+                    }
+                    .keyboardShortcut("p", modifiers: [.command, .shift])
+
+                    Button {
+                        PlanetManager.shared.updateFollowingPlanets()
+                    } label: {
+                        Text("Update Following Planets")
+                    }
+                    .keyboardShortcut("r", modifiers: [.command, .shift])
+
                     Divider()
                 }
 
-                Button {
-                    TemplateBrowserManager.shared.launchTemplateBrowser()
-                } label: {
-                    Text("Template Browser")
-                }
+                Group {
+                    Button {
+                        planetStore.isImportingPlanet = true
+                    } label: {
+                        Text("Import Planet")
+                    }
+                    .keyboardShortcut("i", modifiers: [.command, .shift])
 
-                Divider()
+                    Button {
+                        guard planetStore.currentPlanet != nil else { return }
+                        planetStore.isExportingPlanet = true
+                    } label: {
+                        Text("Export Planet")
+                    }
+                    .keyboardShortcut("e", modifiers: [.command, .shift])
 
-                Button {
-                    PlanetManager.shared.publishLocalPlanets()
-                } label: {
-                    Text("Publish My Planets")
-                }
-                .keyboardShortcut("p", modifiers: [.command, .shift])
+                    Divider()
 
-                Button {
-                    PlanetManager.shared.updateFollowingPlanets()
-                } label: {
-                    Text("Update Following Planets")
-                }
-                .keyboardShortcut("r", modifiers: [.command, .shift])
-
-                Divider()
-
-                Button {
-                    planetStore.isImportingPlanet = true
-                } label: {
-                    Text("Import Planet")
-                }
-                .keyboardShortcut("i", modifiers: [.command, .shift])
-
-                Button {
-                    guard planetStore.currentPlanet != nil else { return }
-                    planetStore.isExportingPlanet = true
-                } label: {
-                    Text("Export Planet")
-                }
-                .keyboardShortcut("e", modifiers: [.command, .shift])
-
-                Divider()
-
-                Button {
-                    PlanetDataController.shared.resetDatabase()
-                } label: {
-                    Text("Reset Database")
+                    Button {
+                        PlanetDataController.shared.resetDatabase()
+                    } label: {
+                        Text("Reset Database")
+                    }
                 }
             }
             SidebarCommands()
@@ -90,18 +89,22 @@ struct PlanetApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        return true
+        true
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first else { return }
         if url.absoluteString.hasPrefix("planet://") {
             let ipns = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
-            guard !PlanetDataController.shared.getFollowingIPNSs().contains(ipns) else { return }
-            PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: ipns)
+            let followingIPNS = PlanetDataController.shared.getFollowingPlanets().compactMap { planet in
+                planet.ipns
+            }
+            guard !followingIPNS.contains(ipns) else { return }
+            let _ = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: ipns)
+            PlanetDataController.shared.save()
         } else if url.lastPathComponent.hasSuffix(".planet") {
             DispatchQueue.main.async {
-                PlanetStore.shared.importPath = url
+                PlanetManager.shared.importPath = url
                 PlanetManager.shared.importCurrentPlanet()
             }
         }
@@ -113,7 +116,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        PlanetDataController.shared.reportDatabaseStatus()
+        PlanetDataController.shared.cleanupDatabase()
         PlanetManager.shared.setup()
     }
 
@@ -125,8 +128,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        PlanetDataController.shared.reportDatabaseStatus()
-        PlanetDataController.shared.saveContext()
+        PlanetDataController.shared.cleanupDatabase()
+        PlanetDataController.shared.save()
         PlanetManager.shared.cleanup()
         DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
              NSApplication.shared.reply(toApplicationShouldTerminate: true)

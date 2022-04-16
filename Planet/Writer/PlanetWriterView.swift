@@ -26,11 +26,7 @@ struct PlanetWriterView: View {
     @State private var isToolBoxOpen: Bool = true
     @State private var isPreviewOpen: Bool = true
 
-    @State private var selection = "".endIndex..<"".endIndex
-    @State private var selectedRanges: [NSValue] = [] {
-        didSet {
-        }
-    }
+    @State private var selectedRanges: [NSValue] = []
     @State private var sourceFiles: Set<URL> = Set() {
         didSet {
             Task.init(priority: .utility) {
@@ -159,52 +155,46 @@ struct PlanetWriterView: View {
         }
         .frame(minWidth: 720)
         .onReceive(NotificationCenter.default.publisher(for: .closeWriterWindow, object: nil)) { n in
-            guard let id = n.object as? UUID else { return }
-            guard id == self.draftPlanetID else { return }
-            self.closeAction()
+            guard let id = n.object as? UUID, id == draftPlanetID else { return }
+            closeAction()
         }
     }
 
-    private func closeAction() {
-        DispatchQueue.main.async {
-            if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
-                PlanetStore.shared.writerIDs.remove(draftPlanetID)
-            }
-            if PlanetStore.shared.activeWriterID == draftPlanetID {
-                PlanetStore.shared.activeWriterID = .init()
-            }
+    @MainActor private func closeAction() {
+        if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
+            PlanetStore.shared.writerIDs.remove(draftPlanetID)
+        }
+        if PlanetStore.shared.activeWriterID == draftPlanetID {
+            PlanetStore.shared.activeWriterID = .init()
         }
         removeDraft()
     }
 
-    private func saveAction() {
+    @MainActor private func saveAction() {
         // make sure current new article id equals to the planet id first, then generate new article id.
-        let planetID = draftPlanetID
         let createdArticleID = UUID()
 
-        PlanetWriterManager.shared.setupArticlePath(articleID: createdArticleID, planetID: planetID)
-        if let targetPath = PlanetWriterManager.shared.articlePath(articleID: createdArticleID, planetID: planetID) {
+        PlanetWriterManager.shared.setupArticlePath(articleID: createdArticleID, planetID: draftPlanetID)
+        if let targetPath = PlanetWriterManager.shared.articlePath(articleID: createdArticleID, planetID: draftPlanetID) {
             copyDraft(toTargetPath: targetPath)
         }
 
-        PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: planetID, title: title, content: content)
+        let article = PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: draftPlanetID, title: title, content: content)
 
-        DispatchQueue.main.async {
-            if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
-                PlanetStore.shared.writerIDs.remove(draftPlanetID)
-            }
-            if PlanetStore.shared.activeWriterID == draftPlanetID {
-                PlanetStore.shared.activeWriterID = .init()
-            }
-            PlanetStore.shared.selectedArticle = createdArticleID.uuidString
+        if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
+            PlanetStore.shared.writerIDs.remove(draftPlanetID)
         }
+        if PlanetStore.shared.activeWriterID == draftPlanetID {
+            PlanetStore.shared.activeWriterID = .init()
+        }
+        PlanetStore.shared.currentArticle = article
 
         removeDraft()
     }
 
-    private func updateAction() {
-        PlanetDataController.shared.updateArticle(withID: draftPlanetID, title: title, content: content)
-        DispatchQueue.main.async {
+    @MainActor private func updateAction() {
+        Task.init {
+            try await PlanetDataController.shared.updateArticle(withID: draftPlanetID, title: title, content: content)
             if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
                 PlanetStore.shared.writerIDs.remove(draftPlanetID)
             }
@@ -234,13 +224,12 @@ struct PlanetWriterView: View {
         do {
             try FileManager.default.copyItem(at: url, to: targetPath)
             debugPrint("uploaded: \(targetPath)")
-            if let planetID = PlanetDataController.shared.getArticle(id: draftPlanetID)?.planetID {
-                if let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet() {
-                    if let planetArticlePath = PlanetWriterManager.shared.articlePath(articleID: draftPlanetID, planetID: planetID) {
-                        try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
-                        debugPrint("uploaded to planet article path: \(planetArticlePath.appendingPathComponent(fileName))")
-                    }
-                }
+            if let planetID = PlanetDataController.shared.getArticle(id: draftPlanetID)?.planetID,
+               let planet = PlanetDataController.shared.getPlanet(id: planetID),
+               planet.isMyPlanet(),
+               let planetArticlePath = PlanetWriterManager.shared.articlePath(articleID: planetID, planetID: planetID) {
+                try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
+                debugPrint("uploaded to planet article path: \(planetArticlePath.appendingPathComponent(fileName))")
             }
         } catch {
             debugPrint("failed to upload file: \(url), to target path: \(targetPath), error: \(error)")
@@ -250,15 +239,14 @@ struct PlanetWriterView: View {
     private func copyDraft(toTargetPath targetPath: URL) {
         let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: draftPlanetID)
         do {
-            let contentsToCopy: [URL] = try FileManager.default.contentsOfDirectory(at: draftPath, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]).filter({ u in
+            let contentsToCopy: [URL] = try FileManager.default
+            .contentsOfDirectory(at: draftPath, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+            .filter { u in
                 // MARK: TODO: ignore files that not used in article:
-                return u.lastPathComponent != "preview.html"
-            })
+                 u.lastPathComponent != "preview.html"
+            }
             for u in contentsToCopy {
-                do {
-                    try FileManager.default.copyItem(at: u, to: targetPath.appendingPathComponent(u.lastPathComponent))
-                } catch {
-                }
+                try? FileManager.default.copyItem(at: u, to: targetPath.appendingPathComponent(u.lastPathComponent))
             }
         } catch {
             debugPrint("failed to copy files from draft path: \(draftPath), error: \(error)")

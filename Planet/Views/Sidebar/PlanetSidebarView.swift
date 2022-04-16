@@ -17,9 +17,9 @@ struct PlanetSidebarLoadingIndicatorView: View {
     var body: some View {
         VStack {
             Image(systemName: hourglass)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 12, height: 12, alignment: .center)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 12, height: 12, alignment: .center)
         }
         .padding(0)
         .onReceive(planetStore.indicatorTimer) { t in
@@ -27,12 +27,12 @@ struct PlanetSidebarLoadingIndicatorView: View {
                 timerState = 0
             }
             switch timerState {
-                case 1:
-                    hourglass = "hourglass"
-                case 2:
-                    hourglass = "hourglass.tophalf.filled"
-                default:
-                    hourglass = "hourglass.bottomhalf.filled"
+            case 1:
+                hourglass = "hourglass"
+            case 2:
+                hourglass = "hourglass.tophalf.filled"
+            default:
+                hourglass = "hourglass.bottomhalf.filled"
             }
             timerState += 1
         }
@@ -49,9 +49,9 @@ struct PlanetSidebarToolbarButtonView: View {
             planetStore.isShowingPlanetInfo = true
         } label: {
             Image(systemName: "info.circle")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 16, height: 16, alignment: .center)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 16, height: 16, alignment: .center)
         }
         .disabled(planetStore.currentPlanet == nil)
 
@@ -61,11 +61,11 @@ struct PlanetSidebarToolbarButtonView: View {
             }
         } label: {
             Image(systemName: "square.and.pencil")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 16, height: 16, alignment: .center)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 16, height: 16, alignment: .center)
         }
-        .disabled(planetStore.currentPlanet == nil || !planetStore.currentPlanet.isMyPlanet())
+        .disabled(planetStore.currentPlanet == nil || !planetStore.currentPlanet!.isMyPlanet())
     }
 }
 
@@ -73,243 +73,258 @@ struct PlanetSidebarToolbarButtonView: View {
 struct PlanetSidebarView: View {
     @EnvironmentObject private var planetStore: PlanetStore
 
-    @FetchRequest(sortDescriptors: [SortDescriptor(\.created, order: .reverse)], animation: Animation.easeInOut) var planets: FetchedResults<Planet>
-    @FetchRequest(sortDescriptors: [SortDescriptor(\.created, order: .reverse)], animation: Animation.easeInOut) var articles: FetchedResults<PlanetArticle>
+    @FetchRequest(
+            sortDescriptors: [SortDescriptor(\.created, order: .reverse)],
+            predicate: NSPredicate(format: "softDeleted == nil"),
+            animation: Animation.easeInOut
+    ) var planets: FetchedResults<Planet>
+    @FetchRequest(
+            sortDescriptors: [SortDescriptor(\.created, order: .reverse)],
+            predicate: NSPredicate(format: "softDeleted == nil"),
+            animation: Animation.easeInOut
+    ) var articles: FetchedResults<PlanetArticle>
     @Environment(\.managedObjectContext) private var context
+
+    @ObservedObject private var statusViewModel: PlanetStatusViewModel = PlanetStatusViewModel.shared
 
     var body: some View {
         VStack {
             List {
                 Section(header:
-                            HStack {
+                HStack {
                     Text("Smart Feeds")
                     Spacer()
-                })
-                {
+                }) {
                     NavigationLink(destination: PlanetArticleListView(planetID: nil, articles: articles, type: .today)
-                        .environmentObject(planetStore)
-                        .environment(\.managedObjectContext, context)
-                        .frame(minWidth: 200)
-                        .toolbar {
-                            ToolbarItemGroup {
-                                Spacer()
-                            }
-                        }, tag: SmartFeedType.today, selection: $planetStore.selectedSmartFeedType) {
-                            SmartFeedView(feedType: .today)
+                    .environmentObject(planetStore)
+                    .environment(\.managedObjectContext, context)
+                    .frame(minWidth: 200)
+                    .toolbar {
+                        ToolbarItemGroup {
+                            Spacer()
                         }
+                    }, tag: SmartFeedType.today, selection: $planetStore.selectedSmartFeedType) {
+                        SmartFeedView(feedType: .today)
+                    }
 
                     NavigationLink(destination: PlanetArticleListView(planetID: nil, articles: articles, type: .unread)
-                        .environmentObject(planetStore)
-                        .environment(\.managedObjectContext, context)
-                        .frame(minWidth: 200)
-                        .toolbar {
-                            ToolbarItemGroup {
-                                Spacer()
-                            }
-                        }, tag: SmartFeedType.unread, selection: $planetStore.selectedSmartFeedType) {
-                            SmartFeedView(feedType: .unread)
+                    .environmentObject(planetStore)
+                    .environment(\.managedObjectContext, context)
+                    .frame(minWidth: 200)
+                    .toolbar {
+                        ToolbarItemGroup {
+                            Spacer()
                         }
+                    }, tag: SmartFeedType.unread, selection: $planetStore.selectedSmartFeedType) {
+                        SmartFeedView(feedType: .unread)
+                    }
 
                     NavigationLink(destination: PlanetArticleListView(planetID: nil, articles: articles, type: .starred)
-                        .environmentObject(planetStore)
-                        .environment(\.managedObjectContext, context)
-                        .frame(minWidth: 200)
-                        .toolbar {
-                            ToolbarItemGroup {
-                                Spacer()
-                            }
-                        }, tag: SmartFeedType.starred, selection: $planetStore.selectedSmartFeedType) {
-                            SmartFeedView(feedType: .starred)
+                    .environmentObject(planetStore)
+                    .environment(\.managedObjectContext, context)
+                    .frame(minWidth: 200)
+                    .toolbar {
+                        ToolbarItemGroup {
+                            Spacer()
                         }
+                    }, tag: SmartFeedType.starred, selection: $planetStore.selectedSmartFeedType) {
+                        SmartFeedView(feedType: .starred)
+                    }
                 }
                 Section(header:
-                            HStack {
+                HStack {
                     Text("My Planets")
                     Spacer()
-                }
-                ) {
-                    ForEach(planets.filter({ p in
-                        return (p.keyName != nil && p.keyID != nil)
-                    }), id: \.id) { planet in
-                        NavigationLink(destination: PlanetArticleListView(planetID: planet.id!, articles: articles)
-                            .environmentObject(planetStore)
-                            .environment(\.managedObjectContext, context)
-                            .frame(minWidth: 200)
-                            .toolbar {
-                                ToolbarItemGroup {
-                                    Spacer()
-                                    PlanetSidebarToolbarButtonView()
+                }) {
+                    ForEach(planets.filter { p in
+                        p.keyName != nil && p.keyID != nil
+                    }, id: \.id) { planet in
+                        NavigationLink(
+                                destination: PlanetArticleListView(planetID: planet.id!, articles: articles)
+                                .environmentObject(planetStore)
+                                .environment(\.managedObjectContext, context)
+                                .frame(minWidth: 200)
+                                .toolbar {
+                                    ToolbarItemGroup {
+                                        Spacer()
+                                        PlanetSidebarToolbarButtonView()
                                         .environmentObject(planetStore)
                                         .environment(\.managedObjectContext, context)
-                                }
-                            }, tag: planet.id!.uuidString, selection: $planetStore.selectedPlanet) {
-                                VStack {
-                                    HStack (spacing: 4) {
-                                        PlanetAvatarView(planet: planet, size: CGSize(width: 24, height: 24))
-                                        Text(planet.name ?? "")
-                                            .font(.body)
-                                            .foregroundColor(.primary)
-                                        Spacer()
-                                        PlanetSidebarLoadingIndicatorView()
-                                            .environmentObject(planetStore)
-                                            .opacity(planetStore.publishingPlanets.contains(planet.id!) ? 1.0 : 0.0)
                                     }
+                                },
+                                tag: planet,
+                                selection: $planetStore.currentPlanet
+                        ) {
+                            VStack {
+                                HStack(spacing: 4) {
+                                    PlanetAvatarView(planet: planet, size: CGSize(width: 24, height: 24))
+                                    Text(planet.name ?? "")
+                                    .font(.body)
+                                    .foregroundColor(.primary)
+                                    Spacer()
+                                    PlanetSidebarLoadingIndicatorView()
+                                    .environmentObject(planetStore)
+                                            .opacity(planet.isPublishing ? 1.0 : 0.0)
                                 }
                             }
-                            .contextMenu(menuItems: {
-                                VStack {
-                                    Button {
-                                        if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
-                                            PlanetWriterManager.shared.launchWriter(forPlanet: planet)
-                                        }
-                                    } label: {
-                                        Text("New Article")
+                        }
+                        .contextMenu(menuItems: {
+                            VStack {
+                                Button {
+                                    if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
+                                        PlanetWriterManager.shared.launchWriter(forPlanet: planet)
                                     }
+                                } label: {
+                                    Text("New Article")
+                                }
 
-                                    if !planetStore.publishingPlanets.contains(planet.id!) {
-                                        Button {
-                                            Task.init {
-                                                await PlanetManager.shared.publishForPlanet(planet: planet)
-                                            }
-                                        } label: {
-                                            Text("Publish Planet")
-                                        }
-                                    } else {
-                                        Button {
-                                        } label: {
-                                            Text("Publishing...")
-                                        }
-                                        .disabled(true)
-                                    }
-
-                                    Button {
-                                        copyPlanetIPNSAction(planet: planet)
-                                    } label: {
-                                        Text("Copy IPNS")
-                                    }
-
-                                    Divider()
-
-                                    Button {
-                                        if let keyName = planet.keyName, keyName != "" {
-                                            Task.init(priority: .background) {
-                                                await PlanetManager.shared.deleteKey(withName: keyName)
-                                            }
-                                        }
-                                        PlanetDataController.shared.removePlanet(planet)
-                                    } label: {
-                                        Text("Delete Planet")
-                                    }
-
-                                    Divider()
-
+                                if !planet.isPublishing {
                                     Button {
                                         Task.init {
-                                            await PlanetDataController.shared.fixPlanet(planet)
+                                            await PlanetManager.shared.publish(planet)
                                         }
                                     } label: {
-                                        Text("Fix Planet")
+                                        Text("Publish Planet")
                                     }
+                                } else {
+                                    Button {
+                                    } label: {
+                                        Text("Publishing...")
+                                    }
+                                    .disabled(true)
                                 }
-                            })
+
+                                Button {
+                                    copyPlanetIPNSAction(planet: planet)
+                                } label: {
+                                    Text("Copy IPNS")
+                                }
+
+                                Divider()
+
+                                Button {
+                                    Task.init {
+                                        if let keyName = planet.keyName, keyName != "" {
+                                            await PlanetManager.shared.deleteKey(withName: keyName)
+                                        }
+                                        await PlanetDataController.shared.remove(planet)
+                                        PlanetDataController.shared.save()
+                                    }
+                                } label: {
+                                    Text("Delete Planet")
+                                }
+
+                                Divider()
+
+                                Button {
+                                    Task.init {
+                                        await PlanetDataController.shared.fixPlanet(planet)
+                                    }
+                                } label: {
+                                    Text("Fix Planet")
+                                }
+                            }
+                        })
                     }
                 }
 
                 Section(header:
-                            HStack {
+                HStack {
                     Text("Following Planets")
                     Spacer()
                 }
                 ) {
-                    ForEach(planets.filter({ p in
-                        return (p.keyName == nil && p.keyID == nil)
-                    }), id: \.id) { planet in
+                    ForEach(planets.filter { p in
+                        p.keyName == nil && p.keyID == nil
+                    }, id: \.id) { planet in
                         NavigationLink(destination: PlanetArticleListView(planetID: planet.id!, articles: articles)
-                            .environmentObject(planetStore)
-                            .environment(\.managedObjectContext, context)
-                            .frame(minWidth: 200)
-                            .toolbar {
-                                ToolbarItemGroup {
+                        .environmentObject(planetStore)
+                        .environment(\.managedObjectContext, context)
+                        .frame(minWidth: 200)
+                        .toolbar {
+                            ToolbarItemGroup {
+                                Spacer()
+                                PlanetSidebarToolbarButtonView()
+                                .environmentObject(planetStore)
+                                .environment(\.managedObjectContext, context)
+                            }
+                        }, tag: planet, selection: $planetStore.currentPlanet) {
+                            VStack {
+                                HStack(spacing: 4) {
+                                    if planet.name == nil || planet.name == "" {
+                                        Text(planet.isUpdating ? "Waiting for planet..." : "Unknown Planet")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    } else {
+                                        PlanetAvatarView(planet: planet, size: CGSize(width: 24, height: 24))
+                                        Text(planet.name ?? "")
+                                        .font(.body)
+                                        .foregroundColor(.primary)
+                                    }
                                     Spacer()
-                                    PlanetSidebarToolbarButtonView()
+                                    if planet.isUpdating {
+                                        PlanetSidebarLoadingIndicatorView()
                                         .environmentObject(planetStore)
-                                        .environment(\.managedObjectContext, context)
+                                    }
                                 }
-                            }, tag: planet.id!.uuidString, selection: $planetStore.selectedPlanet) {
-                                VStack {
-                                    HStack (spacing: 4) {
-                                        if planet.name == nil || planet.name == "" {
-                                            Text(planetStore.updatingPlanets.contains(planet.id!) ? "Waiting for planet..." : "Unknown Planet")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        } else {
-                                            PlanetAvatarView(planet: planet, size: CGSize(width: 24, height: 24))
-                                            Text(planet.name ?? "")
-                                                .font(.body)
-                                                .foregroundColor(.primary)
+                                .badge(PlanetDataController.shared.getArticleStatus(byPlanetID: planet.id!).unread)
+                            }
+                        }
+                        .contextMenu(menuItems: {
+                            VStack {
+                                if !planet.isUpdating {
+                                    Button {
+                                        Task.init {
+                                            try await PlanetManager.shared.update(planet)
                                         }
-                                        Spacer()
-                                        if planetStore.updatingPlanets.contains(planet.id!) {
-                                            PlanetSidebarLoadingIndicatorView()
-                                                .environmentObject(planetStore)
+                                    } label: {
+                                        Text("Check for update")
+                                    }
+                                } else {
+                                    Button {
+                                    } label: {
+                                        Text("Updating...")
+                                    }
+                                    .disabled(true)
+                                }
+
+                                if articles.count > 0 {
+                                    Button {
+                                        let _ = articles.map { article in
+                                            article.isRead = true
                                         }
-                                    }.badge(PlanetDataController.shared.getArticleStatus(byPlanetID: planet.id!).unread)
+                                        PlanetDataController.shared.save()
+                                    } label: {
+                                        Text("Mark All as Read")
+                                    }
+                                }
+
+                                Button {
+                                    copyPlanetIPNSAction(planet: planet)
+                                } label: {
+                                    Text("Copy IPNS")
+                                }
+
+                                Divider()
+
+                                Button {
+                                    unfollowPlanetAction(planet: planet)
+                                } label: {
+                                    Text("Unfollow")
                                 }
                             }
-                            .contextMenu(menuItems: {
-                                VStack {
-                                    if !planetStore.updatingPlanets.contains(planet.id!) {
-                                        Button {
-                                            Task.init {
-                                                await PlanetManager.shared.update(planet)
-                                            }
-                                        } label: {
-                                            Text("Check for update")
-                                        }
-                                    } else {
-                                        Button {
-                                        } label: {
-                                            Text("Updating...")
-                                        }
-                                        .disabled(true)
-                                    }
-
-                                    if articles.count > 0 {
-                                        Button {
-                                            let _ = articles.map() { a in
-                                                PlanetDataController.shared.updateArticleReadStatus(article: a, read: true)
-                                            }
-                                        } label: {
-                                            Text("Mark All as Read")
-                                        }
-                                    }
-
-                                    Button {
-                                        copyPlanetIPNSAction(planet: planet)
-                                    } label: {
-                                        Text("Copy IPNS")
-                                    }
-
-                                    Divider()
-
-                                    Button {
-                                        unfollowPlanetAction(planet: planet)
-                                    } label: {
-                                        Text("Unfollow")
-                                    }
-                                }
-                            })
+                        })
                     }
                 }
             }
             .listStyle(.sidebar)
 
-            HStack (spacing: 6) {
+            HStack(spacing: 6) {
                 Circle()
-                    .frame(width: 11, height: 11, alignment: .center)
-                    .foregroundColor((planetStore.daemonIsOnline && planetStore.peersCount > 0) ? Color.green : Color.red)
-                Text(planetStore.peersCount == 0 ? "Offline" : "Online (\(planetStore.peersCount))")
-                    .font(.body)
+                .frame(width: 11, height: 11, alignment: .center)
+                .foregroundColor((statusViewModel.daemonIsOnline && statusViewModel.peersCount > 0) ? Color.green : Color.red)
+                Text(statusViewModel.peersCount == 0 ? "Offline" : "Online (\(statusViewModel.peersCount))")
+                .font(.body)
 
                 Spacer()
 
@@ -330,16 +345,19 @@ struct PlanetSidebarView: View {
                     }
                 } label: {
                     Image(systemName: "plus.app")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 24, height: 24, alignment: .center)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 24, height: 24, alignment: .center)
                 }
                 .padding(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 0))
                 .frame(width: 24, height: 24, alignment: .center)
-                .menuStyle(BorderlessButtonMenuStyle(showsMenuIndicator: false))
+                .menuStyle(BorderlessButtonMenuStyle())
+                .menuIndicator(.hidden)
             }
             .onTapGesture {
-                guard planetStore.daemonIsOnline == false else { return }
+                guard !statusViewModel.daemonIsOnline else {
+                    return
+                }
                 PlanetManager.shared.relaunchDaemon()
             }
             .frame(height: 44)
@@ -351,21 +369,26 @@ struct PlanetSidebarView: View {
         .sheet(isPresented: $planetStore.isFollowingPlanet) {
         } content: {
             FollowPlanetView()
-                .environmentObject(planetStore)
+            .environmentObject(planetStore)
         }
         .sheet(isPresented: $planetStore.isCreatingPlanet) {
         } content: {
             CreatePlanetView()
-                .environmentObject(planetStore)
+            .environmentObject(planetStore)
         }
     }
 
     private func unfollowPlanetAction(planet: Planet) {
-        PlanetDataController.shared.removePlanet(planet)
+        Task.init {
+            await PlanetDataController.shared.remove(planet)
+            PlanetDataController.shared.save()
+        }
     }
 
     private func copyPlanetIPNSAction(planet: Planet) {
-        guard let ipns = planet.ipns else { return }
+        guard let ipns = planet.ipns else {
+            return
+        }
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(ipns, forType: .string)

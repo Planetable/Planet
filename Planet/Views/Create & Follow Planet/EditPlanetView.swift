@@ -12,12 +12,12 @@ struct EditPlanetView: View {
     @EnvironmentObject private var planetStore: PlanetStore
 
     @Environment(\.dismiss) private var dismiss
-    
+
     var planet: Planet
-    
+
     @State private var planetName: String = ""
     @State private var planetDescription: String = ""
-    
+
     var body: some View {
         VStack(spacing: 0) {
             Text("Edit Planet")
@@ -28,7 +28,7 @@ struct EditPlanetView: View {
                 .background(.clear)
 
             Divider()
-            
+
             HStack {
                 VStack(spacing: 15) {
                     HStack {
@@ -37,9 +37,9 @@ struct EditPlanetView: View {
                             Spacer()
                         }
                         .frame(width: 50)
-                        
+
                         TextField("", text: $planetName)
-                            .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(.roundedBorder)
                     }
                     .padding(.top, 16)
 
@@ -50,10 +50,10 @@ struct EditPlanetView: View {
                                 Spacer()
                             }
                             .frame(width: 50)
-                            
+
                             Spacer()
                         }
-                        
+
                         VStack {
                             TextEditor(text: $planetDescription)
                                 .font(.system(size: 13, weight: .regular, design: .default))
@@ -65,16 +65,16 @@ struct EditPlanetView: View {
                                     RoundedRectangle(cornerRadius: 6)
                                         .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
                                 )
-                            
+
                             Spacer()
                         }
                     }
                 }
             }
             .padding(.horizontal, 16)
-            
+
             Divider()
-            
+
             HStack {
                 Button {
                     dismiss()
@@ -84,15 +84,18 @@ struct EditPlanetView: View {
                 .keyboardShortcut(.escape, modifiers: [])
 
                 Spacer()
-                
+
                 Button {
-                    dismiss()
-                    guard let id = planet.id else { return }
-                    PlanetDataController.shared.updatePlanet(withID: id, name: planetName, about: planetDescription)
+                    Task.init {
+                        PlanetDataController.shared.updatePlanet(planet: planet, name: planetName, about: planetDescription)
+                        await PlanetManager.shared.publish(planet)
+                        PlanetDataController.shared.save()
+                        dismiss()
+                    }
                 } label: {
                     Text("Save")
                 }
-                .disabled(planetName.count > 0 ? false : true)
+                .disabled(planetName.isEmpty)
             }
             .padding(16)
         }
