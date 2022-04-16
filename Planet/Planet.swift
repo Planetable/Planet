@@ -334,6 +334,16 @@ class PlanetArticle: NSManagedObject, Codable {
             }
         }
     }
+
+    var isMine: Bool {
+        get {
+            if let planet = PlanetDataController.shared.getPlanet(id: planetID!) {
+                return planet.keyID != nil && planet.keyID != nil
+            } else {
+                return false
+            }
+        }
+    }
 }
 
 

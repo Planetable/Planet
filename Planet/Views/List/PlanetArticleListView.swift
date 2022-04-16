@@ -38,7 +38,7 @@ struct PlanetArticleListView: View {
                         }
                         .contextMenu {
                             VStack {
-                                if articleIsMine() {
+                                if article.isMine {
                                     Button {
                                         PlanetWriterManager.shared.launchWriter(forArticle: article)
                                     } label: {
