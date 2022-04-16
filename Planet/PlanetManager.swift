@@ -433,7 +433,7 @@ class PlanetManager: NSObject {
                 id: id,
                 ipns: planet.ipns!,
                 created: planet.created!,
-                updated: planet.lastUpdated!,
+                updated: planet.lastUpdated ?? planet.created ?? Date(),
                 name: planet.name,
                 about: planet.about,
                 articles: feedArticles
