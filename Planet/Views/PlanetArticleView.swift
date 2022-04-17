@@ -19,7 +19,7 @@ struct PlanetArticleView: View {
     var body: some View {
         VStack {
             if let currentArticleID = planetStore.currentArticle?.id, let id = article.id, id == currentArticleID {
-                SimplePlanetArticleView(url: $url)
+                PlanetArticleWebView(url: $url)
                     .task(priority: .utility) {
                         if let urlPath = PlanetManager.shared.articleURL(article: article) {
                             url = urlPath
