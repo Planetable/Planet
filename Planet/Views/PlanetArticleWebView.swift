@@ -1,5 +1,5 @@
 //
-//  PlanetArticleView.swift
+//  PlanetArticleWebView.swift
 //  Planet
 //
 //  Created by Kai on 2/26/22.
