@@ -705,9 +705,12 @@ class PlanetManager: NSObject {
             try runCommand(command: .ipfsImportKey(target: targetPath, config: configPath, keyName: importPlanetKeyName, targetPath: importPlanetKeyPath))
 
             // create planet
-            if let planetName = planetInfo.name {
-                let _ = PlanetDataController.shared.createPlanet(withID: planetInfo.id, name: planetName, about: planetInfo.about ?? "", keyName: planetInfo.id.uuidString, keyID: planetInfo.ipns, ipns: planetInfo.ipns)
+            guard let planetName = planetInfo.name else {
+                alert(title: "Failed to Import Planet", message: "The planet is invalid: missing planet name.")
+                return
             }
+
+            let _ = PlanetDataController.shared.createPlanet(withID: planetInfo.id, name: planetName, about: planetInfo.about ?? "", keyName: planetInfo.id.uuidString, keyID: planetInfo.ipns, ipns: planetInfo.ipns)
 
             // create planet directory if needed
             let targetPlanetPath = planetsPath().appendingPathComponent(planetInfo.id.uuidString)
@@ -741,7 +744,7 @@ class PlanetManager: NSObject {
                 }
             }
 
-            alert(title: "Planet Imported", message: "\(String(describing: planetInfo.name))")
+            alert(title: "Planet Imported", message: planetName)
         } catch {
             alert(title: "Failed to Import Planet", message: error.localizedDescription)
         }

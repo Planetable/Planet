@@ -208,6 +208,9 @@ struct PlanetSidebarView: View {
                                             await PlanetManager.shared.deleteKey(withName: keyName)
                                         }
                                         await PlanetDataController.shared.remove(planet)
+                                        if let planetID = planet.id {
+                                            PlanetManager.shared.destroyDirectory(fromPlanet: planetID)
+                                        }
                                         PlanetDataController.shared.save()
                                     }
                                 } label: {
