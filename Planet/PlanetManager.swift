@@ -275,7 +275,9 @@ class PlanetManager: NSObject {
         let imageURL = _avatarPath(forPlanetID: id, isEditing: isEditing)
         let targetImage = resizedAvatarImage(image: image)
         targetImage.imageSave(imageURL)
-        NotificationCenter.default.post(name: .updateAvatar, object: nil)
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .updateAvatar, object: nil)
+        }
     }
 
     func removeAvatar(forPlanet planet: Planet) {
