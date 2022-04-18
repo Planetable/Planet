@@ -256,7 +256,9 @@ class PlanetDataController: NSObject {
                 try FileManager.default.removeItem(at: avatarPath)
             }
             image.imageSave(avatarPath)
-            NotificationCenter.default.post(name: .updateAvatar, object: nil)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .updateAvatar, object: nil)
+            }
         } catch {
             debugPrint("Planet Avatar failed to update: \(error)")
         }
