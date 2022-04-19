@@ -54,6 +54,7 @@
 		6A5E63AA2807297000FB1E84 /* TemplateBrowserWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63A92807297000FB1E84 /* TemplateBrowserWindow.swift */; };
 		6A5E63AC28072AD400FB1E84 /* TemplateBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */; };
 		6A5F3971280785A700386029 /* TemplateBrowserSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F3970280785A700386029 /* TemplateBrowserSidebar.swift */; };
+		7211454FA6F933028B1A6F34 /* GoIPFSGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */; };
 		72114F25F504270EB29068C9 /* PlanetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211404DFC1B4D23F84EA279 /* PlanetError.swift */; };
 		BBBCF0B8280077DC008F172F /* HTTPURLResponse+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBCF0B7280077DC008F172F /* HTTPURLResponse+Extension.swift */; };
 		BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */ = {isa = PBXBuildFile; productRef = BBFE51EB27F3AABC0055A51A /* ENSKit */; };
@@ -113,6 +114,7 @@
 		6AA2BC3227DC09AE00AC96B5 /* Planet v3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v3.xcdatamodel"; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 		7211404DFC1B4D23F84EA279 /* PlanetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetError.swift; sourceTree = "<group>"; };
+		72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GoIPFSGateway.swift; sourceTree = "<group>"; };
 		BBBCF0B7280077DC008F172F /* HTTPURLResponse+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HTTPURLResponse+Extension.swift"; sourceTree = "<group>"; };
 		BBC60A1A2803931C007A42D0 /* Planet v5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v5.xcdatamodel"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -214,6 +216,7 @@
 				2AC4995C27BB758B00F1C2D1 /* Extensions.swift */,
 				6A276F5727E5B40400898A73 /* Data+sha256.swift */,
 				BBBCF0B7280077DC008F172F /* HTTPURLResponse+Extension.swift */,
+				72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -328,8 +331,8 @@
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
-				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */,
-				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */,
+				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */,
+				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */,
 				2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */,
 				BBFE51EA27F3AABC0055A51A /* XCRemoteSwiftPackageReference "ENSKit" */,
 			);
@@ -403,6 +406,7 @@
 				6A5E63AC28072AD400FB1E84 /* TemplateBrowserView.swift in Sources */,
 				2AC4996027BB945800F1C2D1 /* PlanetDataController.swift in Sources */,
 				72114F25F504270EB29068C9 /* PlanetError.swift in Sources */,
+				7211454FA6F933028B1A6F34 /* GoIPFSGateway.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -618,7 +622,7 @@
 				minimumVersion = 9.0.0;
 			};
 		};
-		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
+		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
 			requirement = {
@@ -626,7 +630,7 @@
 				kind = branch;
 			};
 		};
-		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */ = {
+		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/johnsundell/ink.git";
 			requirement = {
@@ -652,12 +656,12 @@
 		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
+			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */;
 			productName = Stencil;
 		};
 		6A0172EA27C9FD5F006154B7 /* Ink */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */;
+			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */;
 			productName = Ink;
 		};
 		BBFE51EB27F3AABC0055A51A /* ENSKit */ = {

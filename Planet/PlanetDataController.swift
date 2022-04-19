@@ -24,6 +24,9 @@ class PlanetDataController: NSObject {
     let titles = ["Hello and Welcome", "Hello World", "New Content Here!"]
     let contents = ["No content yet.", "This is a demo content.", "Hello from planet demo."]
 
+    // let enskit = ENSKit(jsonrpcClient: InfuraEthereumAPI(url: URL(string: "https://mainnet.infura.io/v3/<projectid>")!))
+    let enskit = ENSKit(ipfsClient: GoIPFSGateway())
+
     var persistentContainer: NSPersistentContainer
 
     override init() {
@@ -105,7 +108,6 @@ class PlanetDataController: NSObject {
             // planet is not of ENS type
             throw PlanetError.InternalError
         }
-        let enskit = ENSKit(/* jsonrpcClient: InfuraEthereumAPI(url: URL("https://mainnet.infura.io/v3/<projectid>")! */)
         let result = try await enskit.resolve(name: ens)
         debugPrint("ENSKit.resolve(\(ens)) => \(String(describing: result))")
         if let contentHash = result,
