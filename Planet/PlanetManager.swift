@@ -40,12 +40,9 @@ class PlanetManager: NSObject {
     var apiPort: String = "" {
         didSet {
             guard apiPort != "" else { return }
-            debugPrint("api port updated.")
             commandQueue.addOperation {
                 do {
-                    // update api port.
-                    let result = try runCommand(command: .ipfsUpdateAPIPort(target: self._ipfsPath(), config: self._configPath(), port: self.apiPort))
-                    debugPrint("update api port command result: \(result)")
+                    let _ = try runCommand(command: .ipfsUpdateAPIPort(target: self._ipfsPath(), config: self._configPath(), port: self.apiPort))
                 } catch {
                     debugPrint("failed to update api port: \(error)")
                 }
@@ -56,12 +53,9 @@ class PlanetManager: NSObject {
     var gatewayPort: String = "" {
         didSet {
             guard gatewayPort != "" else { return }
-            debugPrint("gateway port updated.")
             commandQueue.addOperation {
                 do {
-                    // update gateway port.
-                    let result = try runCommand(command: .ipfsUpdateGatewayPort(target: self._ipfsPath(), config: self._configPath(), port: self.gatewayPort))
-                    debugPrint("update gateway port command result: \(result)")
+                    let _ = try runCommand(command: .ipfsUpdateGatewayPort(target: self._ipfsPath(), config: self._configPath(), port: self.gatewayPort))
                 } catch {
                     debugPrint("failed to update gateway port: \(error)")
                 }
@@ -72,12 +66,9 @@ class PlanetManager: NSObject {
     var swarmPort: String = "" {
         didSet {
             guard swarmPort != "" else { return }
-            debugPrint("swarm port updated.")
             commandQueue.addOperation {
                 do {
-                    // update swarm port
-                    let result = try runCommand(command: .ipfsUpdateSwarmPort(target: self._ipfsPath(), config: self._configPath(), port: self.swarmPort))
-                    debugPrint("update swarm port command result: \(result)")
+                    let _ = try runCommand(command: .ipfsUpdateSwarmPort(target: self._ipfsPath(), config: self._configPath(), port: self.swarmPort))
                 } catch {
                     debugPrint("failed to update swarm port: \(error)")
                 }
@@ -109,7 +100,7 @@ class PlanetManager: NSObject {
 
         Task.init(priority: .utility) {
             guard await verifyIPFSOnlineStatus() else { return }
-            await updateInternalPorts()
+            updateInternalPorts()
             launchDaemon()
         }
     }
@@ -812,9 +803,7 @@ class PlanetManager: NSObject {
             do {
                 let lists = try FileManager.default.contentsOfDirectory(atPath: configPath.path)
                 if lists.count >= 6 {
-                    let result = try runCommand(command: .ipfsGetID(target: targetPath, config: configPath))
-                    debugPrint("init command result: \(result)")
-                    debugPrint("command status: ready.")
+                    let _ = try runCommand(command: .ipfsGetID(target: targetPath, config: configPath))
                     return true
                 }
             } catch {}
@@ -824,11 +813,8 @@ class PlanetManager: NSObject {
                 do {
                     try data.data.write(to: targetPath, options: .atomic)
                     try FileManager.default.setAttributes([.posixPermissions: 755], ofItemAtPath: targetPath.path)
-                    var result = try runCommand(command: .ipfsInit(target: targetPath, config: configPath))
-                    debugPrint("init command result: \(result)")
-                    result = try runCommand(command: .ipfsGetID(target: targetPath, config: configPath))
-                    debugPrint("id command result: \(result)")
-                    debugPrint("command status: ready.")
+                    let _ = try runCommand(command: .ipfsInit(target: targetPath, config: configPath))
+                    let _ = try runCommand(command: .ipfsGetID(target: targetPath, config: configPath))
                     return true
                 } catch {}
             }
@@ -850,6 +836,29 @@ class PlanetManager: NSObject {
         } catch {
             return true
         }
+    }
+
+    private func isPortOpen(port: UInt16) -> Bool {
+        let socketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0)
+        if socketFileDescriptor == -1 {
+            return false
+        }
+        var addr = sockaddr_in()
+        let sizeOfSockkAddr = MemoryLayout<sockaddr_in>.size
+        addr.sin_len = __uint8_t(sizeOfSockkAddr)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = Int(OSHostByteOrder()) == OSLittleEndian ? _OSSwapInt16(port) : port
+        addr.sin_addr = in_addr(s_addr: inet_addr("0.0.0.0"))
+        addr.sin_zero = (0, 0, 0, 0, 0, 0, 0, 0)
+        var bind_addr = sockaddr()
+        memcpy(&bind_addr, &addr, Int(sizeOfSockkAddr))
+        if Darwin.bind(socketFileDescriptor, &bind_addr, socklen_t(sizeOfSockkAddr)) == -1 {
+            return false
+        }
+        if listen(socketFileDescriptor, SOMAXCONN ) == -1 {
+            return false
+        }
+        return true
     }
 
     private func apiRequest(path: String, args: [String: String] = [:], timeout: TimeInterval = 5) -> URLRequest {
@@ -927,30 +936,29 @@ class PlanetManager: NSObject {
         }
     }
 
-    private func updateInternalPorts() async {
-        debugPrint("updating internal ports ...")
-        debugPrint("updating swarm port in range(4001, 4011) ...")
+    private func updateInternalPorts() {
         for p in 4001...4011 {
-            if await verifyPortAvailability(port: String(p)) {
+            if isPortOpen(port: UInt16(p)) {
                 swarmPort = String(p)
                 break
             }
         }
-        debugPrint("updating api port in range(5981, 5991) ...")
         for p in 5981...5991 {
-            if await verifyPortAvailability(port: String(p)) {
+            if isPortOpen(port: UInt16(p)) {
                 apiPort = String(p)
                 break
             }
         }
-        debugPrint("updating gateway port in range(18181, 18191) ...")
         for p in 18181...18191 {
-            if await verifyPortAvailability(port: String(p)) {
+            if isPortOpen(port: UInt16(p)) {
                 gatewayPort = String(p)
                 break
             }
         }
-        debugPrint("internal ports updated: api \(apiPort), gateway \(gatewayPort), swarm \(swarmPort)")
+        guard swarmPort != "", apiPort != "", gatewayPort != "" else {
+            fatalError("IPFS internal ports not ready, api port: \(apiPort), gateway port: \(gatewayPort), swarm port: \(swarmPort), abort.")
+        }
+        debugPrint("IPFS internal ports updated: api port: \(apiPort), gateway port: \(gatewayPort), swarm port: \(swarmPort)")
     }
 
     private func getInternalPortsInformationFromConfig() async -> (String?, String?) {
