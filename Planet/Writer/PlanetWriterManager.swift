@@ -196,12 +196,4 @@ class PlanetWriterManager: NSObject {
         }
         return contentPath
     }
-
-    private func _templatesPath() -> URL {
-        let contentPath = _basePath().appendingPathComponent("templates", isDirectory: true)
-        if !FileManager.default.fileExists(atPath: contentPath.path) {
-            try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
-        }
-        return contentPath
-    }
 }
