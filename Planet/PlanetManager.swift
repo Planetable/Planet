@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Cocoa
 import SwiftUI
 import Stencil
 import PathKit
@@ -99,7 +98,7 @@ class PlanetManager: NSObject {
         statusTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [self] timer in updatePlanetStatus() }
 
         Task.init(priority: .utility) {
-            guard await verifyIPFSOnlineStatus() else { return }
+            guard verifyIPFSOnlineStatus() else { return }
             updateInternalPorts()
             launchDaemon()
         }
@@ -651,7 +650,15 @@ class PlanetManager: NSObject {
         defer {
             PlanetStore.shared.pendingFollowingPlanet = nil
         }
-        try await update(planet)
+        do {
+            try await update(planet)
+        } catch PlanetError.PlanetFeedError, PlanetError.InvalidPlanetURLError {
+            await PlanetDataController.shared.remove(planet)
+            alert(title: "Unable to follow planet", message: "The URL provided is not a planet.")
+        } catch {
+            await PlanetDataController.shared.remove(planet)
+            alert(title: "Failed to follow planet")
+        }
         PlanetDataController.shared.save()
         return planet
     }
@@ -796,7 +803,7 @@ class PlanetManager: NSObject {
     }
 
     // MARK: - Private -
-    private func verifyIPFSOnlineStatus() async -> Bool {
+    private func verifyIPFSOnlineStatus() -> Bool {
         let targetPath = _ipfsPath()
         let configPath = _configPath()
         if FileManager.default.fileExists(atPath: targetPath.path) && FileManager.default.fileExists(atPath: configPath.path) {

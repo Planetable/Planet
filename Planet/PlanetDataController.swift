@@ -136,6 +136,8 @@ class PlanetDataController: NSObject {
             // The better way would be to parse the HTML and check if it has a feed
             let feedURL = URL(string: "\(PlanetManager.shared.ipfsGateway)/ipfs/\(ipfs)/feed.xml")!
             try await parsePlanetFeed(planet: planet, feedURL: feedURL)
+        } else {
+            throw PlanetError.InvalidPlanetURLError
         }
 
         let avatarResult = try await enskit.avatar(name: ens)
