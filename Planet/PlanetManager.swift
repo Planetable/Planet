@@ -613,7 +613,7 @@ class PlanetManager: NSObject {
         }
     }
 
-    @MainActor func followPlanet(url: String) async throws -> Planet {
+    @MainActor func followPlanet(url: String) async throws {
         let processed: String
         if url.hasPrefix("planet://") {
             processed = url.replacingOccurrences(of: "planet://", with: "")
@@ -621,11 +621,9 @@ class PlanetManager: NSObject {
             processed = url
         }
 
-        let followingIPNS = PlanetDataController.shared.getFollowingPlanets().compactMap { planet in
-            planet.ipns
-        }
-        if followingIPNS.contains(processed) {
-           throw PlanetError.FollowExistingPlanetError
+        if PlanetDataController.shared.planetExists(planetURL: processed) {
+            alert(title: "Failed to follow planet", message: "You are already following this planet.")
+            return
         }
 
         let planet: Planet?
@@ -660,7 +658,6 @@ class PlanetManager: NSObject {
             alert(title: "Failed to follow planet")
         }
         PlanetDataController.shared.save()
-        return planet
     }
 
     // MARK: -

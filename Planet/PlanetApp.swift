@@ -95,12 +95,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first else { return }
         if url.absoluteString.hasPrefix("planet://") {
-            let ipns = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
-            let followingIPNS = PlanetDataController.shared.getFollowingPlanets().compactMap { planet in
-                planet.ipns
-            }
-            guard !followingIPNS.contains(ipns) else { return }
-            let _ = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: ipns)
+            let url = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
+            guard !PlanetDataController.shared.planetExists(planetURL: url) else { return }
+            // TODO: can this URL be .eth or even a feed?
+            let _ = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: url)
             PlanetDataController.shared.save()
         } else if url.lastPathComponent.hasSuffix(".planet") {
             DispatchQueue.main.async {

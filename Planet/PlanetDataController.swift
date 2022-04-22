@@ -490,6 +490,24 @@ class PlanetDataController: NSObject {
         return Set()
     }
 
+    func planetExists(planetURL: String, context: NSManagedObjectContext? = nil) -> Bool {
+        let request: NSFetchRequest<Planet> = Planet.fetchRequest()
+        let notDeleted = NSPredicate(format: "softDeleted == nil")
+        let sameIPNS = NSPredicate(format: "ipns == %@", planetURL as CVarArg)
+        let sameENS = NSPredicate(format: "ens == %@", planetURL as CVarArg)
+        let sameDNS = NSPredicate(format: "dns == %@", planetURL as CVarArg)
+        let conflict = NSCompoundPredicate(orPredicateWithSubpredicates: [sameIPNS, sameENS, sameDNS])
+        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [notDeleted, conflict])
+        request.predicate = predicate
+        let ctx = context ?? persistentContainer.viewContext
+        do {
+            return try ctx.fetch(request).count > 0
+        } catch {
+            debugPrint("failed to check planet exists: \(error)")
+        }
+        return false
+    }
+
     @MainActor func removeArticle(_ article: PlanetArticle) {
         article.softDeleted = Date()
         PlanetStore.shared.currentArticle = nil
