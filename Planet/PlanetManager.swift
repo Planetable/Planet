@@ -358,7 +358,7 @@ class PlanetManager: NSObject {
         let result = parser.parse(article.content!)
         let content_html = result.html
         var context: [String: Any]
-        context = ["article": article, "content_html": content_html]
+        context = ["article": article, "created_date": article.created!.ISO8601Format(), "content_html": content_html]
         let templateName = templatePath.lastPathComponent
         let articleIndexPagePath = articlePath.appendingPathComponent("index.html")
         do {

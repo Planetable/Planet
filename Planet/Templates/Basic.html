@@ -65,10 +65,20 @@
       color: var(--foreground-color);
     }
     </style>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const fmt = new Intl.DateTimeFormat(undefined, {
+          dateStyle: "long",
+          timeStyle: "medium",
+        });
+        const date = new Date("{{ created_date }}");
+        document.querySelector(".date").innerText = fmt.format(date);
+      });
+    </script>
   </head>
   <body>
   <h1>{{ article.title }}</h1>
-    <div class="date">{{ article.created }}</div>
+    <div class="date"></div>
     <div class="content">
       {{ content_html }}
     </div>
