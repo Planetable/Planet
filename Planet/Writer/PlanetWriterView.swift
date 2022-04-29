@@ -37,6 +37,13 @@ struct PlanetWriterView: View {
         }
     }
 
+    @ObservedObject private var viewModel: PlanetWriterViewModel
+
+    init(withPlanetID planetID: UUID) {
+        draftPlanetID = planetID
+        _viewModel = ObservedObject(wrappedValue: PlanetWriterViewModel.shared)
+    }
+
     var body: some View {
         VStack (spacing: 0) {
             HStack (spacing: 0) {
@@ -127,6 +134,7 @@ struct PlanetWriterView: View {
                 .frame(height: 44)
                 .frame(maxWidth: .infinity)
                 .background(Color.secondary.opacity(0.03))
+                .onDrop(of: [.fileURL], delegate: viewModel)
             }
 
             Divider()

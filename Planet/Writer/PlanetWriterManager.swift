@@ -122,7 +122,7 @@ class PlanetWriterManager: NSObject {
             return
         }
 
-        let writerView = PlanetWriterView(draftPlanetID: id)
+        let writerView = PlanetWriterView(withPlanetID: id)
         let writerWindow = PlanetWriterWindow(
                 rect: NSMakeRect(0, 0, 720, 480),
                 maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView],

@@ -16,4 +16,19 @@ class PlanetWriterEditorTextView: NSTextView {
     override var readablePasteboardTypes: [NSPasteboard.PasteboardType] {
         return [.string]
     }
+
+    override var acceptableDragTypes: [NSPasteboard.PasteboardType] {
+        return [.fileURL]
+    }
+
+    override func draggingEnded(_ sender: NSDraggingInfo) {
+        let pboard = sender.draggingPasteboard
+        if let urls = pboard.readObjects(forClasses: [NSURL.self], options: [:]) as? [URL] {
+            debugPrint("got urls: \(urls)")
+        }
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        return NSDragOperation.copy
+    }
 }
