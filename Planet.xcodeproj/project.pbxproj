@@ -10,6 +10,7 @@
 		2A09A35C27C257D60003A0B5 /* PlanetMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */; };
 		2A09A35F27C2581F0003A0B5 /* PlanetSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */; };
 		2A09A36127C2582B0003A0B5 /* PlanetArticleListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A36027C2582B0003A0B5 /* PlanetArticleListView.swift */; };
+		2A129CD3281D4F7D009443DC /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A129CD2281D4F7D009443DC /* Credits.rtf */; };
 		2A2E33F227F4A93B0093F405 /* PlanetWriterUploadImageThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2E33F127F4A93B0093F405 /* PlanetWriterUploadImageThumbnailView.swift */; };
 		2A441BAA27C34FCC0008A694 /* PlanetAboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BA927C34FCC0008A694 /* PlanetAboutView.swift */; };
 		2A441BAC27C40AAC0008A694 /* PlanetWriterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAB27C40AAC0008A694 /* PlanetWriterWindow.swift */; };
@@ -64,6 +65,7 @@
 		2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetMainView.swift; sourceTree = "<group>"; };
 		2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSidebarView.swift; sourceTree = "<group>"; };
 		2A09A36027C2582B0003A0B5 /* PlanetArticleListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleListView.swift; sourceTree = "<group>"; };
+		2A129CD2281D4F7D009443DC /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		2A2E33F127F4A93B0093F405 /* PlanetWriterUploadImageThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterUploadImageThumbnailView.swift; sourceTree = "<group>"; };
 		2A441BA927C34FCC0008A694 /* PlanetAboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAboutView.swift; sourceTree = "<group>"; };
 		2A441BAB27C40AAC0008A694 /* PlanetWriterWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterWindow.swift; sourceTree = "<group>"; };
@@ -198,6 +200,7 @@
 				2AC4996727BB981200F1C2D1 /* Planet.xcconfig */,
 				2AC4997227BC0EBA00F1C2D1 /* Planet.xcdatamodeld */,
 				2AC4994E27BB6E7600F1C2D1 /* Preview Content */,
+				2A129CD2281D4F7D009443DC /* Credits.rtf */,
 			);
 			path = Planet;
 			sourceTree = "<group>";
@@ -331,8 +334,8 @@
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
-				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */,
-				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */,
+				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */,
+				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */,
 				2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */,
 				BBFE51EA27F3AABC0055A51A /* XCRemoteSwiftPackageReference "ENSKit" */,
 			);
@@ -353,6 +356,7 @@
 				2AF4006A27F37C27005DF1A9 /* WriterBasicPlaceholder.html in Resources */,
 				2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */,
 				2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */,
+				2A129CD3281D4F7D009443DC /* Credits.rtf in Resources */,
 				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
 				6A0172E827C9EE05006154B7 /* Basic.html in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
@@ -546,7 +550,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Planet/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2022 Planetable";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -576,7 +580,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Planet/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2022 Planetable";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -622,7 +626,7 @@
 				minimumVersion = 9.0.0;
 			};
 		};
-		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */ = {
+		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
 			requirement = {
@@ -630,7 +634,7 @@
 				kind = branch;
 			};
 		};
-		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */ = {
+		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/johnsundell/ink.git";
 			requirement = {
@@ -656,12 +660,12 @@
 		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */;
+			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
 			productName = Stencil;
 		};
 		6A0172EA27C9FD5F006154B7 /* Ink */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */;
+			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */;
 			productName = Ink;
 		};
 		BBFE51EB27F3AABC0055A51A /* ENSKit */ = {
