@@ -66,7 +66,7 @@ class PlanetWriterManager: NSObject {
             do {
                 // render article with default template
                 let html = renderHTML(fromContent: content)
-                let output = try outputEnv.renderTemplate(name: articleTemplateName, context: ["article": article, "content_html": html])
+                let output = try outputEnv.renderTemplate(name: articleTemplateName, context: ["article": article, "created_date": article.created!.ISO8601Format(), "content_html": html])
                 let articleIndexPath = articlePath.appendingPathComponent("index.html")
                 try output.data(using: .utf8)?.write(to: articleIndexPath)
 
