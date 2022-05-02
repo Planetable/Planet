@@ -9,12 +9,23 @@ import SwiftUI
 
 
 struct PlanetAvatarView: View {
-    @ObservedObject var planet: Planet
     var size: CGSize
     var inEditMode: Bool = false
-    
+    @ObservedObject var planet: Planet
+
     @State private var updatedAvatarImage: NSImage!
     @State private var isChoosingAvatarImage: Bool = false
+    @ObservedObject private var avatarViewModel: PlanetAvatarViewModel
+
+    init(planet: Planet, size: CGSize, inEditMode: Bool = false) {
+        self.planet = planet
+        self.size = size
+        self.inEditMode = inEditMode
+        _avatarViewModel = ObservedObject(wrappedValue: PlanetAvatarViewModel.shared)
+        if let img = PlanetManager.shared.avatar(forPlanet: planet) {
+            _updatedAvatarImage = State(wrappedValue: img)
+        }
+    }
 
     var body: some View {
         VStack {
@@ -44,13 +55,6 @@ struct PlanetAvatarView: View {
                 PlanetManager.shared.updateAvatar(forPlanet: planet, image: targetImage, isEditing: inEditMode)
                 DispatchQueue.main.async {
                     self.updatedAvatarImage = targetImage
-                }
-            }
-        }
-        .onAppear {
-            if let img = PlanetManager.shared.avatar(forPlanet: planet) {
-                DispatchQueue.main.async {
-                    self.updatedAvatarImage = img
                 }
             }
         }
@@ -86,6 +90,7 @@ struct PlanetAvatarView: View {
                 }
             }
         }
+        .onDrop(of: [.fileURL], delegate: avatarViewModel)
     }
 }
 
