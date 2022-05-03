@@ -118,7 +118,7 @@ class PlanetManager: NSObject {
 
     // MARK: - General -
     func loadTemplates() {
-        let templatePath = _templatesPath()
+        let templatePath = templatesPath()
         if let sourcePath = Bundle.main.url(forResource: "Basic", withExtension: "html") {
             let targetPath = templatePath.appendingPathComponent("basic.html")
             do {
@@ -1051,7 +1051,7 @@ class PlanetManager: NSObject {
         return contentPath
     }
 
-    private func _templatesPath() -> URL {
+    func templatesPath() -> URL {
         let contentPath = _basePath().appendingPathComponent("templates", isDirectory: true)
         if !FileManager.default.fileExists(atPath: contentPath.path) {
             try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)

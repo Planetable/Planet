@@ -14,7 +14,7 @@ class TemplateBrowserManager: NSObject {
     
     @MainActor
     func launchTemplateBrowser() {
-        let browserView = TemplateBrowserView()
+        let browserView = TemplateBrowserView().environmentObject(TemplateBrowserStore())
         let browserWindow = TemplateBrowserWindow(rect: NSMakeRect(0, 0, 720, 480), maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView], backingType: .buffered, deferMode: false)
         browserWindow.center()
         browserWindow.contentView = NSHostingView(rootView: browserView)
