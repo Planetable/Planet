@@ -193,3 +193,12 @@ extension NSImage {
         }
     }
 }
+
+extension FileManager {
+    func listSubdirectories(url: URL) throws -> [URL] {
+        let files = try contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [])
+        return files.filter { fileURL in
+            fileURL.hasDirectoryPath
+        }
+    }
+}

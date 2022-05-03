@@ -8,13 +8,15 @@
 import SwiftUI
 
 struct TemplateBrowserSidebar: View {
+    @EnvironmentObject var store: TemplateBrowserStore
+    @Binding var selection: Template.ID?
+    
     var body: some View {
-        Text("Sidebar")
-    }
-}
-
-struct TemplateBrowserSidebar_Previews: PreviewProvider {
-    static var previews: some View {
-        TemplateBrowserSidebar()
+        List(selection: $selection) {
+            ForEach(store.templates, id: \.id) { template in
+                Text(template.name)
+            }
+        }
+        .frame(minWidth: 200)
     }
 }

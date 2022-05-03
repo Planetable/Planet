@@ -54,19 +54,18 @@ class PlanetWriterManager: NSObject {
         let planet = dataController.getPlanet(id: planetID)!
         let context = dataController.persistentContainer.viewContext
         let article = PlanetArticle(context: context)
-        let now = Date()
         article.id = id
         article.planetID = planetID
         article.title = title
         article.content = content
         article.link = "/\(id.uuidString)/"
-        article.created = now
+        article.created = Date()
         article.isRead = planet.isMyPlanet()
         if planet.isMyPlanet(), let articlePath = articlePath(articleID: id, planetID: planetID) {
             do {
                 // render article with default template
                 let html = renderHTML(fromContent: content)
-                let output = try outputEnv.renderTemplate(name: articleTemplateName, context: ["article": article, "created_date": now.ISO8601Format(), "content_html": html])
+                let output = try outputEnv.renderTemplate(name: articleTemplateName, context: ["article": article, "created_date": article.created!.ISO8601Format(), "content_html": html])
                 let articleIndexPath = articlePath.appendingPathComponent("index.html")
                 try output.data(using: .utf8)?.write(to: articleIndexPath)
 
