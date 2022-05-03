@@ -54,18 +54,19 @@ class PlanetWriterManager: NSObject {
         let planet = dataController.getPlanet(id: planetID)!
         let context = dataController.persistentContainer.viewContext
         let article = PlanetArticle(context: context)
+        let now = Date()
         article.id = id
         article.planetID = planetID
         article.title = title
         article.content = content
         article.link = "/\(id.uuidString)/"
-        article.created = Date()
+        article.created = now
         article.isRead = planet.isMyPlanet()
         if planet.isMyPlanet(), let articlePath = articlePath(articleID: id, planetID: planetID) {
             do {
                 // render article with default template
                 let html = renderHTML(fromContent: content)
-                let output = try outputEnv.renderTemplate(name: articleTemplateName, context: ["article": article, "content_html": html])
+                let output = try outputEnv.renderTemplate(name: articleTemplateName, context: ["article": article, "created_date": now.ISO8601Format(), "content_html": html])
                 let articleIndexPath = articlePath.appendingPathComponent("index.html")
                 try output.data(using: .utf8)?.write(to: articleIndexPath)
 
@@ -257,7 +258,6 @@ class PlanetWriterManager: NSObject {
             try FileManager.default.copyItem(at: url, to: targetPath)
             if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID, let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet(), let planetArticlePath = articlePath(articleID: planetID, planetID: planetID) {
                 try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
-                debugPrint("uploaded to planet article path: \(planetArticlePath.appendingPathComponent(fileName))")
             }
         } catch {
             debugPrint("failed to upload file: \(url), to target path: \(targetPath), error: \(error)")
