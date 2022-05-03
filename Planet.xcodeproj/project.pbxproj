@@ -196,8 +196,8 @@
 		2AC4994727BB6E7500F1C2D1 /* Planet */ = {
 			isa = PBXGroup;
 			children = (
-				6A5E63A62807269400FB1E84 /* TemplateBrowser */,
 				2AC4996927BB987B00F1C2D1 /* Info.plist */,
+				6A5E63A62807269400FB1E84 /* TemplateBrowser */,
 				2AC4996D27BB9F2200F1C2D1 /* Templates */,
 				2AC4995E27BB759000F1C2D1 /* Helper */,
 				2AC4995927BB756300F1C2D1 /* Planet.swift */,
