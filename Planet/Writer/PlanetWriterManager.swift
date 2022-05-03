@@ -36,7 +36,6 @@ class PlanetWriterManager: NSObject {
     }
 
     func renderPreview(content: String, forDocument id: UUID) -> URL? {
-        debugPrint("rendering preview: \(content), document id: \(id) ...")
         do {
             let output = try previewEnv.renderTemplate(name: writerTemplateName, context: ["content_html": content])
             let draftPath = articleDraftPath(articleID: id)
@@ -111,6 +110,12 @@ class PlanetWriterManager: NSObject {
     }
 
     // MARK: -
+    @MainActor
+    func processUploadings(_ urls: [URL]) {
+        guard let planet = PlanetStore.shared.currentPlanet else { return }
+        debugPrint("processing urls: \(urls)")
+    }
+
     @MainActor
     func launchWriter(forPlanet planet: Planet) {
         // Launch writer to create a new article of a planet

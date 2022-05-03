@@ -39,8 +39,7 @@ class PlanetWriterEditorTextView: NSTextView {
             guard PlanetWriterViewModel.shared.validateDragginInfo(sequenceNumber: sequenceNumber, location: NSPoint(x: offsetX, y: offsetY)) else { return }
             let pboard = sender.draggingPasteboard
             if let urls = pboard.readObjects(forClasses: [NSURL.self], options: [:]) as? [URL] {
-                // MARK: TODO: process image files.
-                debugPrint("text view got urls: \(urls)")
+                PlanetWriterManager.shared.processUploadings(urls)
             }
         }
     }

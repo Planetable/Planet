@@ -64,7 +64,7 @@ extension PlanetWriterViewModel: DropDelegate {
     func performDrop(info: DropInfo) -> Bool {
         let providers = info.itemProviders(for: [.fileURL])
         let supportedExtensions: [String] = ["png", "jpeg", "gif", "tiff", "jpg"]
-        Task.detached {
+        Task { @MainActor in
             var urls: [URL] = []
             for provider in providers {
                 let item = try? await provider.loadItem(forTypeIdentifier: kUTTypeFileURL as String, options: nil)
@@ -72,8 +72,7 @@ extension PlanetWriterViewModel: DropDelegate {
                     urls.append(url)
                 }
             }
-            // MARK: TODO: process image files.
-            debugPrint("uploading zone got urls: \(urls)")
+            PlanetWriterManager.shared.processUploadings(urls)
         }
         return true
     }

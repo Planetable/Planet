@@ -169,7 +169,8 @@ struct PlanetWriterView: View {
         }
     }
 
-    @MainActor private func closeAction() {
+    @MainActor
+    private func closeAction() {
         if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
             PlanetStore.shared.writerIDs.remove(draftPlanetID)
         }
@@ -179,7 +180,8 @@ struct PlanetWriterView: View {
         removeDraft()
     }
 
-    @MainActor private func saveAction() {
+    @MainActor
+    private func saveAction() {
         // make sure current new article id equals to the planet id first, then generate new article id.
         let createdArticleID = UUID()
 
@@ -202,7 +204,8 @@ struct PlanetWriterView: View {
         removeDraft()
     }
 
-    @MainActor private func updateAction() {
+    @MainActor
+    private func updateAction() {
         Task.init {
             try await PlanetDataController.shared.updateArticle(withID: draftPlanetID, title: title, content: content)
             if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
