@@ -39,8 +39,16 @@ class PlanetWriterEditorTextView: NSTextView {
             guard PlanetWriterViewModel.shared.validateDragginInfo(sequenceNumber: sequenceNumber, location: NSPoint(x: offsetX, y: offsetY)) else { return }
             let pboard = sender.draggingPasteboard
             if let urls = pboard.readObjects(forClasses: [NSURL.self], options: [:]) as? [URL] {
-                PlanetWriterManager.shared.processUploadings(urls)
+                PlanetWriterManager.shared.processUploadings(urls: urls, insertURLs: true)
             }
         }
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        return .copy
+    }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        return true
     }
 }

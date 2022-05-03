@@ -27,15 +27,16 @@ struct PlanetWriterView: View {
     @State private var isPreviewOpen: Bool = true
 
     @State private var selectedRanges: [NSValue] = []
-    @State private var sourceFiles: Set<URL> = Set() {
-        didSet {
-            Task.init(priority: .utility) {
-                for s in sourceFiles {
-                    await uploadFile(fileURL: s)
-                }
-            }
-        }
-    }
+
+//    @State private var sourceFiles: Set<URL> = Set() {
+//        didSet {
+//            Task.init(priority: .utility) {
+//                for s in sourceFiles {
+//                    await uploadFile(fileURL: s)
+//                }
+//            }
+//        }
+//    }
 
     @ObservedObject private var viewModel: PlanetWriterViewModel
 
@@ -121,14 +122,17 @@ struct PlanetWriterView: View {
                             .opacity(0.5)
                             .onTapGesture {
                                 if let urls: [URL] = uploadImagesAction() {
-                                    for u in urls {
-                                        sourceFiles.insert(u)
+                                    Task { @MainActor in
+                                        PlanetWriterManager.shared.processUploadings(urls: urls)
                                     }
                                 }
                             }
 
-                        ForEach(Array(sourceFiles), id: \.self) { fileURL in
-                            PlanetWriterUploadImageThumbnailView(articleID: draftPlanetID, fileURL: fileURL, sourceFiles: $sourceFiles)
+                        if let uploadings: Set<URL> = viewModel.uploadings[draftPlanetID] {
+                            ForEach(Array(uploadings), id: \.self) { fileURL in
+                                PlanetWriterUploadImageThumbnailView(articleID: draftPlanetID, fileURL: fileURL)
+                                    .environmentObject(viewModel)
+                            }
                         }
                     }
                 }
@@ -177,7 +181,7 @@ struct PlanetWriterView: View {
         if PlanetStore.shared.activeWriterID == draftPlanetID {
             PlanetStore.shared.activeWriterID = .init()
         }
-        removeDraft()
+        PlanetWriterManager.shared.removeDraft(articleID: draftPlanetID)
     }
 
     @MainActor
@@ -187,7 +191,7 @@ struct PlanetWriterView: View {
 
         PlanetWriterManager.shared.setupArticlePath(articleID: createdArticleID, planetID: draftPlanetID)
         if let targetPath = PlanetWriterManager.shared.articlePath(articleID: createdArticleID, planetID: draftPlanetID) {
-            copyDraft(toTargetPath: targetPath)
+            PlanetWriterManager.shared.copyDraft(articleID: draftPlanetID, toTargetPath: targetPath)
         }
 
         let article = PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: draftPlanetID, title: title, content: content)
@@ -200,8 +204,7 @@ struct PlanetWriterView: View {
             PlanetStore.shared.activeWriterID = .init()
         }
         PlanetStore.shared.currentArticle = article
-
-        removeDraft()
+        PlanetWriterManager.shared.removeDraft(articleID: draftPlanetID)
     }
 
     @MainActor
@@ -227,51 +230,5 @@ struct PlanetWriterView: View {
         openPanel.prompt = "Choose"
         let response = openPanel.runModal()
         return response == .OK ? openPanel.urls : nil
-    }
-
-    private func uploadFile(fileURL url: URL) async {
-        debugPrint("uploading file: \(url) ...")
-        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: draftPlanetID)
-        let fileName = url.lastPathComponent
-        let targetPath = draftPath.appendingPathComponent(fileName)
-        do {
-            try FileManager.default.copyItem(at: url, to: targetPath)
-            debugPrint("uploaded: \(targetPath)")
-            if let planetID = PlanetDataController.shared.getArticle(id: draftPlanetID)?.planetID,
-               let planet = PlanetDataController.shared.getPlanet(id: planetID),
-               planet.isMyPlanet(),
-               let planetArticlePath = PlanetWriterManager.shared.articlePath(articleID: planetID, planetID: planetID) {
-                try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
-                debugPrint("uploaded to planet article path: \(planetArticlePath.appendingPathComponent(fileName))")
-            }
-        } catch {
-            debugPrint("failed to upload file: \(url), to target path: \(targetPath), error: \(error)")
-        }
-    }
-
-    private func copyDraft(toTargetPath targetPath: URL) {
-        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: draftPlanetID)
-        do {
-            let contentsToCopy: [URL] = try FileManager.default
-            .contentsOfDirectory(at: draftPath, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
-            .filter { u in
-                // MARK: TODO: ignore files that not used in article:
-                 u.lastPathComponent != "preview.html"
-            }
-            for u in contentsToCopy {
-                try? FileManager.default.copyItem(at: u, to: targetPath.appendingPathComponent(u.lastPathComponent))
-            }
-        } catch {
-            debugPrint("failed to copy files from draft path: \(draftPath), error: \(error)")
-        }
-    }
-
-    private func removeDraft() {
-        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: draftPlanetID)
-        do {
-            try FileManager.default.removeItem(at: draftPath)
-        } catch {
-            debugPrint("failed to remove draft path: \(draftPath), error: \(error)")
-        }
     }
 }

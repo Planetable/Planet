@@ -23,6 +23,8 @@ private struct PlanetWriterDraggingValidation {
 class PlanetWriterViewModel: ObservableObject {
     static let shared = PlanetWriterViewModel()
 
+    @Published private(set) var uploadings: [UUID: Set<URL>] = [:]
+
     private var draggingInfo: [Int: PlanetWriterDraggingValidation] = [:]
 
     @MainActor
@@ -38,6 +40,21 @@ class PlanetWriterViewModel: ObservableObject {
             return validation == current
         }
         return true
+    }
+
+    @MainActor
+    func updateUploadings(articleID: UUID, urls: [URL]) async {
+        if uploadings[articleID] == nil {
+            uploadings[articleID] = Set<URL>()
+        }
+        for u in urls {
+            uploadings[articleID]?.insert(u)
+        }
+    }
+
+    @MainActor
+    func removeUploadings(articleID: UUID, url: URL) {
+        uploadings[articleID]?.remove(url)
     }
 }
 
@@ -72,7 +89,7 @@ extension PlanetWriterViewModel: DropDelegate {
                     urls.append(url)
                 }
             }
-            PlanetWriterManager.shared.processUploadings(urls)
+            PlanetWriterManager.shared.processUploadings(urls: urls)
         }
         return true
     }

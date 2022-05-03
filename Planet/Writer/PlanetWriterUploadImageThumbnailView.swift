@@ -9,9 +9,11 @@ import SwiftUI
 
 
 struct PlanetWriterUploadImageThumbnailView: View {
+    @EnvironmentObject private var viewModel: PlanetWriterViewModel
+
     var articleID: UUID
     var fileURL: URL
-    @Binding var sourceFiles: Set<URL>
+
     @State private var isShowingPlusIcon: Bool = false
 
     var body: some View {
@@ -19,8 +21,9 @@ struct PlanetWriterUploadImageThumbnailView: View {
             thumbnailFromFile()
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 40, height: 40, alignment: .center)
-                .padding(.top, 2)
+                .frame(width: 36, height: 36, alignment: .center)
+                .padding(.vertical, 4)
+                .cornerRadius(4)
 
             VStack {
                 Spacer()
@@ -72,7 +75,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
         let filename = fileURL.lastPathComponent
         let fileExtension = fileURL.pathExtension
         let isImage: Bool
-        if ["jpg", "jpeg", "png", "pdf", "tiff", "gif"].contains(fileExtension) {
+        if ["jpg", "jpeg", "png", "tiff", "gif"].contains(fileExtension) {
             isImage = true
         } else {
             isImage = false
@@ -97,12 +100,13 @@ struct PlanetWriterUploadImageThumbnailView: View {
     }
 
     private func deleteFile() {
-        debugPrint("deleting file: \(fileURL)")
         let uploaded = getUploadedFile()
         guard let filePath = uploaded.uploadURL else { return }
         do {
             try FileManager.default.removeItem(at: filePath)
-            sourceFiles.remove(fileURL)
+            Task { @MainActor in
+                viewModel.removeUploadings(articleID: articleID, url: fileURL)
+            }
         } catch {
             debugPrint("failed to delete uploaded file: \(fileURL), error: \(error)")
         }
@@ -113,7 +117,6 @@ struct PlanetWriterUploadImageThumbnailView: View {
     }
 
     private func insertFile() {
-        debugPrint("inserting file: \(fileURL) ...")
         let uploaded = getUploadedFile()
         guard let filePath = uploaded.uploadURL else { return }
         let filename = filePath.lastPathComponent

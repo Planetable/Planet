@@ -109,11 +109,43 @@ class PlanetWriterManager: NSObject {
         return path
     }
 
+    func copyDraft(articleID: UUID, toTargetPath targetPath: URL) {
+        let draftPath = articleDraftPath(articleID: articleID)
+        do {
+            let contentsToCopy: [URL] = try FileManager.default
+                .contentsOfDirectory(at: draftPath, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+                .filter { u in
+                    // MARK: TODO: ignore files that not used in article:
+                    u.lastPathComponent != "preview.html"
+                }
+            for u in contentsToCopy {
+                try? FileManager.default.copyItem(at: u, to: targetPath.appendingPathComponent(u.lastPathComponent))
+            }
+        } catch {
+            debugPrint("failed to copy files from draft path: \(draftPath), error: \(error)")
+        }
+    }
+
+    func removeDraft(articleID: UUID) {
+        let draftPath = articleDraftPath(articleID: articleID)
+        do {
+            try FileManager.default.removeItem(at: draftPath)
+        } catch {
+            debugPrint("failed to remove draft path: \(draftPath), error: \(error)")
+        }
+    }
+
     // MARK: -
     @MainActor
-    func processUploadings(_ urls: [URL]) {
-        guard let planet = PlanetStore.shared.currentPlanet else { return }
-        debugPrint("processing urls: \(urls)")
+    func processUploadings(urls: [URL], insertURLs: Bool = false) {
+        guard let planetID = PlanetStore.shared.currentPlanet?.id else { return }
+        debugPrint("processing urls: \(urls), for planet: \(planetID)")
+        Task.init {
+            for u in urls {
+                await _uploadFile(articleID: planetID, fileURL: u)
+            }
+            await PlanetWriterViewModel.shared.updateUploadings(articleID: planetID, urls: urls)
+        }
     }
 
     @MainActor
@@ -200,5 +232,20 @@ class PlanetWriterManager: NSObject {
             try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
         }
         return contentPath
+    }
+
+    private func _uploadFile(articleID: UUID, fileURL url: URL) async {
+        let draftPath = articleDraftPath(articleID: articleID)
+        let fileName = url.lastPathComponent
+        let targetPath = draftPath.appendingPathComponent(fileName)
+        do {
+            try FileManager.default.copyItem(at: url, to: targetPath)
+            if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID, let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet(), let planetArticlePath = articlePath(articleID: planetID, planetID: planetID) {
+                try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
+                debugPrint("uploaded to planet article path: \(planetArticlePath.appendingPathComponent(fileName))")
+            }
+        } catch {
+            debugPrint("failed to upload file: \(url), to target path: \(targetPath), error: \(error)")
+        }
     }
 }
