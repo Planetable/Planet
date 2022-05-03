@@ -158,6 +158,7 @@
 		2A1DA20A282030820039C3EF /* View Models */ = {
 			isa = PBXGroup;
 			children = (
+				2A5EA54A281A84BE002FAC54 /* PlanetWriterViewModel.swift */,
 				2A1DA2082820307D0039C3EF /* PlanetAvatarViewModel.swift */,
 			);
 			path = "View Models";
@@ -256,7 +257,6 @@
 				2AF4003527F22E87005DF1A9 /* PlanetWriterManager.swift */,
 				2A441BAB27C40AAC0008A694 /* PlanetWriterWindow.swift */,
 				2A441BAD27C40BD30008A694 /* PlanetWriterView.swift */,
-				2A5EA54A281A84BE002FAC54 /* PlanetWriterViewModel.swift */,
 				2AF4003827F2321F005DF1A9 /* PlanetWriterTextView.swift */,
 				2AF4003C27F23575005DF1A9 /* PlanetWriterEditorTextView.swift */,
 				2A89D9DD27F7258A002EDA22 /* PlanetWriterEditView.swift */,

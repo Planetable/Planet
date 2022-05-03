@@ -99,6 +99,7 @@ struct PlanetWriterView: View {
                     .onChange(of: selectedRanges) { [selectedRanges] newValue in
                         debugPrint("Ranges: \(selectedRanges) -->> \(newValue)")
                     }
+                    .onDrop(of: [.fileURL], delegate: viewModel)
                 if isPreviewOpen {
                     previewView
                         .frame(minWidth: 400,

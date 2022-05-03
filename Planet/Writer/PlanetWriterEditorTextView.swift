@@ -21,14 +21,27 @@ class PlanetWriterEditorTextView: NSTextView {
         return [.fileURL]
     }
 
-    override func draggingEnded(_ sender: NSDraggingInfo) {
-        let pboard = sender.draggingPasteboard
-        if let urls = pboard.readObjects(forClasses: [NSURL.self], options: [:]) as? [URL] {
-            debugPrint("got urls: \(urls)")
+    override func draggingExited(_ sender: NSDraggingInfo?) {
+        guard let sender = sender, let _ = PlanetStore.shared.currentPlanet else {
+            return
+        }
+        Task { @MainActor in
+            PlanetWriterViewModel.shared.updateDraggingInfo(sequenceNumber: sender.draggingSequenceNumber, location: sender.draggingLocation)
         }
     }
 
-    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
-        return NSDragOperation.copy
+    override func draggingEnded(_ sender: NSDraggingInfo) {
+        guard let _ = PlanetStore.shared.currentPlanet else { return }
+        let sequenceNumber = sender.draggingSequenceNumber
+        let offsetX = sender.draggingLocation.x
+        let offsetY = sender.draggingLocation.y
+        Task { @MainActor in
+            guard PlanetWriterViewModel.shared.validateDragginInfo(sequenceNumber: sequenceNumber, location: NSPoint(x: offsetX, y: offsetY)) else { return }
+            let pboard = sender.draggingPasteboard
+            if let urls = pboard.readObjects(forClasses: [NSURL.self], options: [:]) as? [URL] {
+                // MARK: TODO: process image files.
+                debugPrint("text view got urls: \(urls)")
+            }
+        }
     }
 }

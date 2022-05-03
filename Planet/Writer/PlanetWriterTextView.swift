@@ -211,6 +211,4 @@ class PlanetWriterCustomTextView: NSView {
         let range = NSRange(location: textView.string.count, length: 0)
         textView.selectedRanges = [NSValue(range: range)]
     }
-
-    // MARK: - Drop Operations
 }
