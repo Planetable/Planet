@@ -73,14 +73,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
 
     private func getUploadedFile() -> (isImage: Bool, uploadURL: URL?) {
         let filename = fileURL.lastPathComponent
-        let fileExtension = fileURL.pathExtension
-        let isImage: Bool
-        if ["jpg", "jpeg", "png", "tiff", "gif"].contains(fileExtension) {
-            isImage = true
-        } else {
-            isImage = false
-        }
-
+        let isImage = PlanetWriterManager.shared.uploadingIsImageFile(fileURL: fileURL)
         var filePath: URL?
         if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID,
            let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet(),

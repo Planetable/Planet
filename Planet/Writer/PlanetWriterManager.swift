@@ -135,6 +135,17 @@ class PlanetWriterManager: NSObject {
         }
     }
 
+    func uploadingIsImageFile(fileURL url: URL) -> Bool {
+        let fileExtension = url.pathExtension
+        let isImage: Bool
+        if ["jpg", "jpeg", "png", "tiff", "gif"].contains(fileExtension) {
+            isImage = true
+        } else {
+            isImage = false
+        }
+        return isImage
+    }
+
     // MARK: -
     @MainActor
     func processUploadings(urls: [URL], insertURLs: Bool = false) {
@@ -145,6 +156,10 @@ class PlanetWriterManager: NSObject {
                 await _uploadFile(articleID: planetID, fileURL: u)
             }
             await PlanetWriterViewModel.shared.updateUploadings(articleID: planetID, urls: urls)
+            guard insertURLs else { return }
+            for u in urls {
+                await _insertFile(articleID: planetID, fileURL: u)
+            }
         }
     }
 
@@ -246,6 +261,16 @@ class PlanetWriterManager: NSObject {
             }
         } catch {
             debugPrint("failed to upload file: \(url), to target path: \(targetPath), error: \(error)")
+        }
+    }
+
+    private func _insertFile(articleID: UUID, fileURL url: URL) async {
+        let filename = url.lastPathComponent
+        let isImage = uploadingIsImageFile(fileURL: url)
+        let c: String = (isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
+        let n: Notification.Name = Notification.Name.notification(notification: .insertText, forID: articleID)
+        await MainActor.run {
+            NotificationCenter.default.post(name: n, object: c)
         }
     }
 }
