@@ -25,18 +25,7 @@ struct PlanetWriterView: View {
 
     @State private var isToolBoxOpen: Bool = true
     @State private var isPreviewOpen: Bool = true
-
     @State private var selectedRanges: [NSValue] = []
-
-//    @State private var sourceFiles: Set<URL> = Set() {
-//        didSet {
-//            Task.init(priority: .utility) {
-//                for s in sourceFiles {
-//                    await uploadFile(fileURL: s)
-//                }
-//            }
-//        }
-//    }
 
     @ObservedObject private var viewModel: PlanetWriterViewModel
 
@@ -129,7 +118,10 @@ struct PlanetWriterView: View {
                             }
 
                         if let uploadings: Set<URL> = viewModel.uploadings[draftPlanetID] {
-                            ForEach(Array(uploadings), id: \.self) { fileURL in
+                            ForEach(Array(uploadings).sorted { a, b in
+                                // MARK: TODO: order by uploading date.
+                                return true
+                            }, id: \.self) { fileURL in
                                 PlanetWriterUploadImageThumbnailView(articleID: draftPlanetID, fileURL: fileURL)
                                     .environmentObject(viewModel)
                             }

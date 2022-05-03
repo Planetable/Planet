@@ -18,12 +18,11 @@ struct PlanetWriterUploadImageThumbnailView: View {
 
     var body: some View {
         ZStack {
-            thumbnailFromFile()
+            thumbnailFromFile(forTargetHeight: 40)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 36, height: 36, alignment: .center)
                 .padding(.vertical, 4)
-                .cornerRadius(4)
+                .frame(width: 40, height: 40, alignment: .center)
 
             VStack {
                 Spacer()
@@ -118,30 +117,38 @@ struct PlanetWriterUploadImageThumbnailView: View {
         NotificationCenter.default.post(name: n, object: c)
     }
 
-    private func thumbnailFromFile() -> Image {
+    private func thumbnailFromFile(forTargetHeight targetHeight: CGFloat) -> Image {
         // check file locations
-        let size = NSSize(width: 80, height: 80)
         let filename = fileURL.lastPathComponent
-
         // find in planet directory:
         if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID,
            let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet(),
            let planetArticlePath = PlanetWriterManager.shared.articlePath(articleID: articleID, planetID: planetID),
            FileManager.default.fileExists(atPath: planetArticlePath.appendingPathComponent(filename).path),
-           let img = NSImage(contentsOf: planetArticlePath.appendingPathComponent(filename)),
-           let resizedImg = img.imageResize(size) {
-            return Image(nsImage: resizedImg)
+           let img = NSImage(contentsOf: planetArticlePath.appendingPathComponent(filename)) {
+            let size = scaledThumbnailSize(size: img.size, forHeight: targetHeight*2)
+            if let resizedImg = img.imageResize(size) {
+                return Image(nsImage: resizedImg)
+            }
         }
 
         // if not exists, find in draft directory:
         let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: articleID)
         let imagePath = draftPath.appendingPathComponent(filename)
         if FileManager.default.fileExists(atPath: imagePath.path),
-           let img = NSImage(contentsOf: imagePath),
-           let resizedImg = img.imageResize(size) {
-            return Image(nsImage: resizedImg)
+           let img = NSImage(contentsOf: imagePath) {
+            let size = scaledThumbnailSize(size: img.size, forHeight: targetHeight*2)
+            if let resizedImg = img.imageResize(size) {
+                return Image(nsImage: resizedImg)
+            }
         }
 
         return Image(systemName: "questionmark.app.dashed")
+    }
+
+    private func scaledThumbnailSize(size: NSSize, forHeight height: CGFloat) -> NSSize {
+        let ratio = height / size.height
+        let newWidth = size.width * ratio
+        return NSSize(width: newWidth, height: height)
     }
 }
