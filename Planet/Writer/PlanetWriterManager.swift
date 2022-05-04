@@ -36,7 +36,6 @@ class PlanetWriterManager: NSObject {
     }
 
     func renderPreview(content: String, forDocument id: UUID) -> URL? {
-        debugPrint("rendering preview: \(content), document id: \(id) ...")
         do {
             let output = try previewEnv.renderTemplate(name: writerTemplateName, context: ["content_html": content])
             let draftPath = articleDraftPath(articleID: id)
@@ -110,7 +109,60 @@ class PlanetWriterManager: NSObject {
         return path
     }
 
+    func copyDraft(articleID: UUID, toTargetPath targetPath: URL) {
+        let draftPath = articleDraftPath(articleID: articleID)
+        do {
+            let contentsToCopy: [URL] = try FileManager.default
+                .contentsOfDirectory(at: draftPath, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+                .filter { u in
+                    // MARK: TODO: ignore files that not used in article:
+                    u.lastPathComponent != "preview.html"
+                }
+            for u in contentsToCopy {
+                try? FileManager.default.copyItem(at: u, to: targetPath.appendingPathComponent(u.lastPathComponent))
+            }
+        } catch {
+            debugPrint("failed to copy files from draft path: \(draftPath), error: \(error)")
+        }
+    }
+
+    func removeDraft(articleID: UUID) {
+        let draftPath = articleDraftPath(articleID: articleID)
+        do {
+            try FileManager.default.removeItem(at: draftPath)
+        } catch {
+            debugPrint("failed to remove draft path: \(draftPath), error: \(error)")
+        }
+    }
+
+    func uploadingIsImageFile(fileURL url: URL) -> Bool {
+        let fileExtension = url.pathExtension
+        let isImage: Bool
+        if ["jpg", "jpeg", "png", "tiff", "gif"].contains(fileExtension) {
+            isImage = true
+        } else {
+            isImage = false
+        }
+        return isImage
+    }
+
     // MARK: -
+    @MainActor
+    func processUploadings(urls: [URL], insertURLs: Bool = false) {
+        guard let planetID = PlanetStore.shared.currentPlanet?.id else { return }
+        debugPrint("processing urls: \(urls), for planet: \(planetID)")
+        Task.init {
+            for u in urls {
+                await _uploadFile(articleID: planetID, fileURL: u)
+            }
+            await PlanetWriterViewModel.shared.updateUploadings(articleID: planetID, urls: urls)
+            guard insertURLs else { return }
+            for u in urls {
+                await _insertFile(articleID: planetID, fileURL: u)
+            }
+        }
+    }
+
     @MainActor
     func launchWriter(forPlanet planet: Planet) {
         // Launch writer to create a new article of a planet
@@ -122,7 +174,7 @@ class PlanetWriterManager: NSObject {
             return
         }
 
-        let writerView = PlanetWriterView(draftPlanetID: id)
+        let writerView = PlanetWriterView(withPlanetID: id)
         let writerWindow = PlanetWriterWindow(
                 rect: NSMakeRect(0, 0, 720, 480),
                 maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView],
@@ -195,5 +247,29 @@ class PlanetWriterManager: NSObject {
             try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
         }
         return contentPath
+    }
+
+    private func _uploadFile(articleID: UUID, fileURL url: URL) async {
+        let draftPath = articleDraftPath(articleID: articleID)
+        let fileName = url.lastPathComponent
+        let targetPath = draftPath.appendingPathComponent(fileName)
+        do {
+            try FileManager.default.copyItem(at: url, to: targetPath)
+            if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID, let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet(), let planetArticlePath = articlePath(articleID: planetID, planetID: planetID) {
+                try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
+            }
+        } catch {
+            debugPrint("failed to upload file: \(url), to target path: \(targetPath), error: \(error)")
+        }
+    }
+
+    private func _insertFile(articleID: UUID, fileURL url: URL) async {
+        let filename = url.lastPathComponent
+        let isImage = uploadingIsImageFile(fileURL: url)
+        let c: String = (isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
+        let n: Notification.Name = Notification.Name.notification(notification: .insertText, forID: articleID)
+        await MainActor.run {
+            NotificationCenter.default.post(name: n, object: c)
+        }
     }
 }
