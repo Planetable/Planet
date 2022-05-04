@@ -336,6 +336,15 @@ class PlanetDataController: NSObject {
         }
         return article
     }
+    
+    @discardableResult
+    func updateArticleLink(withID id: UUID, link: String) async throws -> PlanetArticle {
+        guard let article = getArticle(id: id) else {
+            throw PlanetError.InternalError
+        }
+        article.link = link
+        return article
+    }
 
     func refreshArticle(_ article: PlanetArticle) async {
         guard let planet = getPlanet(id: article.planetID!), planet.isMyPlanet() else {
@@ -344,6 +353,14 @@ class PlanetDataController: NSObject {
 
         await PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
         if let id = article.id {
+            if article.link == nil {
+                do {
+                    try await self.updateArticleLink(withID: id, link: "/\(id)/")
+                    PlanetDataController.shared.save()
+                } catch {
+                    debugPrint("Failed to update article link: \(article)")
+                }
+            }
             debugPrint("about to refresh article: \(article) ...")
             NotificationCenter.default.post(name: .refreshArticle, object: id)
         }
