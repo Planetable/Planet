@@ -56,6 +56,11 @@ class PlanetWriterViewModel: ObservableObject {
     func removeUploadings(articleID: UUID, url: URL) {
         uploadings[articleID]?.remove(url)
     }
+
+    @MainActor
+    func removeAllUploadings(articleID: UUID) {
+        uploadings[articleID]?.removeAll()
+    }
 }
 
 

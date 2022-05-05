@@ -112,11 +112,11 @@ class PlanetWriterManager: NSObject {
     func copyDraft(articleID: UUID, toTargetPath targetPath: URL) {
         let draftPath = articleDraftPath(articleID: articleID)
         do {
+            let previewContent = try String(contentsOf: draftPath.appendingPathComponent("preview.html"), encoding: .utf8)
             let contentsToCopy: [URL] = try FileManager.default
                 .contentsOfDirectory(at: draftPath, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
                 .filter { u in
-                    // MARK: TODO: ignore files that not used in article:
-                    u.lastPathComponent != "preview.html"
+                    _validateDraftFileToCopy(inArticlePreviewContent: previewContent, fileURL: u)
                 }
             for u in contentsToCopy {
                 try? FileManager.default.copyItem(at: u, to: targetPath.appendingPathComponent(u.lastPathComponent))
@@ -132,6 +132,11 @@ class PlanetWriterManager: NSObject {
             try FileManager.default.removeItem(at: draftPath)
         } catch {
             debugPrint("failed to remove draft path: \(draftPath), error: \(error)")
+        }
+        Task.detached(priority: .background) {
+            await MainActor.run {
+                PlanetWriterViewModel.shared.removeAllUploadings(articleID: articleID)
+            }
         }
     }
 
@@ -150,7 +155,6 @@ class PlanetWriterManager: NSObject {
     @MainActor
     func processUploadings(urls: [URL], insertURLs: Bool = false) {
         guard let planetID = PlanetStore.shared.currentPlanet?.id else { return }
-        debugPrint("processing urls: \(urls), for planet: \(planetID)")
         Task.init {
             for u in urls {
                 await _uploadFile(articleID: planetID, fileURL: u)
@@ -271,5 +275,18 @@ class PlanetWriterManager: NSObject {
         await MainActor.run {
             NotificationCenter.default.post(name: n, object: c)
         }
+    }
+
+    private func _validateDraftFileToCopy(inArticlePreviewContent content: String, fileURL url: URL) -> Bool {
+        let filename = url.lastPathComponent
+        // ingore preview.html
+        if filename.lowercased() == "preview.html" {
+            return false
+        }
+        // ignore files not in article
+        if !content.contains(filename) {
+            return false
+        }
+        return true
     }
 }
