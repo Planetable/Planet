@@ -119,8 +119,7 @@ struct PlanetWriterView: View {
 
                         if let uploadings: Set<URL> = viewModel.uploadings[draftPlanetID] {
                             ForEach(Array(uploadings).sorted { a, b in
-                                // MARK: TODO: order by uploading date.
-                                return true
+                                return PlanetWriterManager.shared.uploadingCreationDate(fileURL: a) < PlanetWriterManager.shared.uploadingCreationDate(fileURL: b)
                             }, id: \.self) { fileURL in
                                 PlanetWriterUploadImageThumbnailView(articleID: draftPlanetID, fileURL: fileURL)
                                     .environmentObject(viewModel)

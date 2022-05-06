@@ -151,6 +151,13 @@ class PlanetWriterManager: NSObject {
         return isImage
     }
 
+    func uploadingCreationDate(fileURL url: URL) -> Date {
+        if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path), let modifiedDate = attrs[.modificationDate] as? Date {
+            return modifiedDate
+        }
+        return Date()
+    }
+
     // MARK: -
     @MainActor
     func processUploadings(urls: [URL], insertURLs: Bool = false) {
