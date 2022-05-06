@@ -71,7 +71,7 @@ class Planet: NSManagedObject, Codable {
         case dnslink
         case feedTypeValue
         case feedAddress
-        case feedSHA256
+        case latestCID
         case keyID
         case keyName
     }
@@ -99,7 +99,7 @@ class Planet: NSManagedObject, Codable {
         dns = try container.decode(String.self, forKey: .dns)
         feedTypeValue = try container.decode(Int32.self, forKey: .feedTypeValue)
         feedAddress = try container.decode(String.self, forKey: .feedAddress)
-        feedSHA256 = try container.decode(String.self, forKey: .feedSHA256)
+        latestCID = try container.decode(String.self, forKey: .latestCID)
         keyID = try container.decode(String.self, forKey: .keyID)
         keyName = try container.decode(String.self, forKey: .keyName)
     }
@@ -121,7 +121,7 @@ class Planet: NSManagedObject, Codable {
         try container.encode(dns, forKey: .dns)
         try container.encode(feedTypeValue, forKey: .feedTypeValue)
         try container.encode(feedAddress, forKey: .feedAddress)
-        try container.encode(feedSHA256, forKey: .feedSHA256)
+        try container.encode(latestCID, forKey: .latestCID)
         try container.encode(keyID, forKey: .keyID)
         try container.encode(keyName, forKey: .keyName)
     }

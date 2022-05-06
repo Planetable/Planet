@@ -91,14 +91,19 @@ extension PlanetCommand {
         let cmd = PlanetCommand(command: target.path, arguments: ["config", "Addresses.Swarm", "[\"/ip4/0.0.0.0/tcp/\(port)\", \"/ip6/::/tcp/\(port)\", \"/ip4/0.0.0.0/udp/\(port)/quic\", \"/ip6/::/udp/\(port)/quic\"]", "--json"], configPath: config.path)
         return cmd
     }
-    
+
     static func ipfsExportKey(target: URL, config: URL, keyName: String, targetPath: URL) -> PlanetCommand {
         let cmd = PlanetCommand(command: target.path, arguments: ["key", "export", keyName, "-o", targetPath.path], configPath: config.path)
         return cmd
     }
-    
+
     static func ipfsImportKey(target: URL, config: URL, keyName: String, targetPath: URL) -> PlanetCommand {
         let cmd = PlanetCommand(command: target.path, arguments: ["key", "import", keyName, targetPath.path], configPath: config.path)
+        return cmd
+    }
+
+    static func ipfsResolveIPNS(target: URL, config: URL, ipns: String) -> PlanetCommand {
+        let cmd = PlanetCommand(command: target.path, arguments: ["name", "resolve", ipns], configPath: config.path)
         return cmd
     }
 

@@ -127,6 +127,7 @@
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 		7211404DFC1B4D23F84EA279 /* PlanetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetError.swift; sourceTree = "<group>"; };
 		72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GoIPFSGateway.swift; sourceTree = "<group>"; };
+		BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v6.xcdatamodel"; sourceTree = "<group>"; };
 		BBBCF0B7280077DC008F172F /* HTTPURLResponse+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HTTPURLResponse+Extension.swift"; sourceTree = "<group>"; };
 		BBC60A1A2803931C007A42D0 /* Planet v5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v5.xcdatamodel"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -707,13 +708,14 @@
 		2AC4997227BC0EBA00F1C2D1 /* Planet.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */,
 				BBC60A1A2803931C007A42D0 /* Planet v5.xcdatamodel */,
 				6A0FB8A427FBA3A3008E203D /* Planet v4.xcdatamodel */,
 				6AA2BC3227DC09AE00AC96B5 /* Planet v3.xcdatamodel */,
 				6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */,
 				2AC4997327BC0EBA00F1C2D1 /* Planet.xcdatamodel */,
 			);
-			currentVersion = BBC60A1A2803931C007A42D0 /* Planet v5.xcdatamodel */;
+			currentVersion = BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */;
 			path = Planet.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

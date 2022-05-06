@@ -511,26 +511,41 @@ class PlanetManager: NSObject {
                 return
             }
 
-            debugPrint("updating for planet: \(planet) ...")
-            let prefix = "\(ipfsGateway)/ipns/\(ipns)/"
-            let ipnsString = prefix + "planet.json"
-            let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+            // check if IPNS has latest CID changes
+            debugPrint("Check if planet \(planet) has update...")
             do {
-                let (data, _) = try await URLSession.shared.data(for: request)
-                let dataSHA256 = data.sha256().toHexString()
-                debugPrint("Feed SHA256: \(dataSHA256)")
-                // If feed SHA256 has changed, write the latest to planet
-                // And pin the IPNS
-                let currentFeedSHA256 = planet.feedSHA256 ?? ""
-                if currentFeedSHA256 != dataSHA256 {
-                    planet.feedSHA256 = currentFeedSHA256
-                    debugPrint("Feed SHA256 has changed, pinning: \(planet)")
-                    if let IPFSContent = planet.IPFSContent {
-                        PlanetManager.shared.pin(IPFSContent)
+                let result = try runCommand(command: .ipfsResolveIPNS(target: _ipfsPath(), config: _configPath(), ipns: ipns))
+                if let latestCID = result["Path"] as? String {
+                    if latestCID == planet.latestCID {
+                        // no update, return
+                        debugPrint("Planet \(planet) has no update")
+                        return
                     }
+                    debugPrint("Planet \(planet) has update, CID changed from \(planet.latestCID ?? "nil") to \(latestCID)")
+                    planet.latestCID = latestCID
+                    pin(latestCID)
                 } else {
-                    debugPrint("Feed SHA256 has not changed, skip pinning: \(planet)")
+                    debugPrint("ipfs name resolve \(ipns) has returned an unknown result: \(result)")
                 }
+            } catch {
+                // command will fail if daemon is not online or IPNS has expired
+                // see https://docs.ipfs.io/reference/cli/#ipfs-name-resolve about IPNS name lifetime
+                debugPrint("Unable to check if planet \(planet) has update, skip updating")
+                if planet.latestCID == nil {
+                    // IPFS has never fetched any version of planet feed
+                    throw PlanetError.IPFSError
+                }
+                // IPFS has fetched planet feed before
+                // if IPNS name has expired, it is likely there is no change, skip update
+                return
+            }
+
+            debugPrint("updating for planet: \(planet) ...")
+            do {
+                let prefix = "\(ipfsGateway)/ipns/\(ipns)/"
+                let ipnsString = prefix + "planet.json"
+                let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+                let (data, _) = try await URLSession.shared.data(for: request)
                 let decoder = JSONDecoder()
                 let feed: PlanetFeed = try decoder.decode(PlanetFeed.self, from: data)
                 guard feed.name != "" else {
