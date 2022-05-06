@@ -178,6 +178,12 @@ class PlanetWriterManager: NSObject {
             return
         }
 
+        Task.detached(priority: .background) {
+            await MainActor.run {
+                PlanetWriterViewModel.shared.removeAllUploadings(articleID: id)
+            }
+        }
+
         let writerView = PlanetWriterView(withPlanetID: id)
         let writerWindow = PlanetWriterWindow(
                 rect: NSMakeRect(0, 0, 720, 480),
