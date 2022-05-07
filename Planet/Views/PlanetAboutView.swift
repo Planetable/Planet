@@ -146,7 +146,9 @@ struct PlanetAboutView: View {
 
                         Button {
                             Task.init {
-                                try await PlanetManager.shared.update(planet)
+                                planet.isUpdating = true
+                                try? await PlanetManager.shared.update(planet)
+                                planet.isUpdating = false
                                 dismiss()
                             }
                         } label: {

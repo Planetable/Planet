@@ -278,7 +278,9 @@ struct PlanetSidebarView: View {
                                 if !planet.isUpdating {
                                     Button {
                                         Task.init {
-                                            try await PlanetManager.shared.update(planet)
+                                            planet.isUpdating = true
+                                            try? await PlanetManager.shared.update(planet)
+                                            planet.isUpdating = false
                                         }
                                     } label: {
                                         Text("Check for update")

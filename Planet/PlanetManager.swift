@@ -478,15 +478,7 @@ class PlanetManager: NSObject {
         planet.lastPublished = Date()
     }
 
-    @MainActor func update(_ planet: Planet) async throws {
-        guard !planet.isUpdating else {
-            return
-        }
-        planet.isUpdating = true
-        defer {
-            planet.isUpdating = false
-        }
-
+    func update(_ planet: Planet) async throws {
         if planet.type == .ens {
             debugPrint("Going to update Type 1 ENS planet: \(planet.ens!)")
             try await PlanetDataController.shared.updateENSPlanet(planet: planet)
@@ -614,7 +606,13 @@ class PlanetManager: NSObject {
             let planets = PlanetDataController.shared.getFollowingPlanets()
             debugPrint("updating following planets: \(planets) ...")
             for planet in planets {
-                try await update(planet)
+                await MainActor.run {
+                    planet.isUpdating = true
+                }
+                try? await update(planet)
+                await MainActor.run {
+                    planet.isUpdating = false
+                }
             }
         }
     }
@@ -628,7 +626,7 @@ class PlanetManager: NSObject {
         }
     }
 
-    @MainActor func followPlanet(url: String) async throws {
+    func followPlanet(url: String) async throws {
         let processed: String
         if url.hasPrefix("planet://") {
             processed = url.replacingOccurrences(of: "planet://", with: "")
@@ -637,7 +635,7 @@ class PlanetManager: NSObject {
         }
 
         if PlanetDataController.shared.planetExists(planetURL: processed) {
-            alert(title: "Failed to follow planet", message: "You are already following this planet.")
+            await alert(title: "Failed to follow planet", message: "You are already following this planet.")
             return
         }
 
@@ -659,18 +657,19 @@ class PlanetManager: NSObject {
         guard let planet = planet else {
             throw PlanetError.InvalidPlanetURLError
         }
-        PlanetStore.shared.pendingFollowingPlanet = planet
-        defer {
-            PlanetStore.shared.pendingFollowingPlanet = nil
+
+        await MainActor.run {
+            PlanetStore.shared.pendingFollowingPlanet = planet
         }
+
         do {
             try await update(planet)
         } catch PlanetError.PlanetFeedError, PlanetError.InvalidPlanetURLError {
             await PlanetDataController.shared.remove(planet)
-            alert(title: "Unable to follow planet", message: "The URL provided is not a planet.")
+            await alert(title: "Unable to follow planet", message: "The URL provided is not a planet.")
         } catch {
             await PlanetDataController.shared.remove(planet)
-            alert(title: "Failed to follow planet")
+            await alert(title: "Failed to follow planet")
         }
         PlanetDataController.shared.save()
     }

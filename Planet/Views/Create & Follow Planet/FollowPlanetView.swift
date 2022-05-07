@@ -67,6 +67,7 @@ struct FollowPlanetView: View {
                     Task {
                         do {
                             try await PlanetManager.shared.followPlanet(url: endpoint)
+                            PlanetStore.shared.pendingFollowingPlanet = nil
                             PlanetDataController.shared.save()
                             dismiss()
                         } catch {
