@@ -66,13 +66,7 @@ extension PlanetCommand {
     }
 
     static func ipfsAddDirectory(target: URL, config: URL, directory: URL) -> PlanetCommand {
-        var params: [String] = []
-        params.append("add")
-        params.append("-r")
-        params.append(directory.path)
-        params.append("--cid-version")
-        params.append("1")
-        params.append("--quieter")
+        let params = ["add", "-r",  "--quieter", "--cid-version=1", directory.path]
         let cmd = PlanetCommand(command: target.path, arguments: params, configPath: config.path)
         return cmd
     }

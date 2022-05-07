@@ -463,7 +463,8 @@ class PlanetManager: NSObject {
                 "arg": planetCID!,
                 "allow-offline": "1",
                 "key": keyName,
-                "quieter": "1"
+                "quieter": "1",
+                "lifetime": "168h",
             ], timeout: 600))
             let published = try decoder.decode(PlanetPublished.self, from: data)
             if let planetIPNS = published.name {
