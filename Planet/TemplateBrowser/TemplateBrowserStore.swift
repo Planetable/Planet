@@ -11,7 +11,7 @@ class TemplateBrowserStore: ObservableObject {
     @Published var templates: [Template] = []
     
     init() {
-        let templatesPath = PlanetManager.shared.templatesPath()
+        let templatesPath = PlanetManager.shared.templatesPath
         do {
             let directories = try FileManager.default.listSubdirectories(url: templatesPath)
             for directory in directories {

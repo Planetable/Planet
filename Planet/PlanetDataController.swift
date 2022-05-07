@@ -103,6 +103,87 @@ class PlanetDataController: NSObject {
 
     // MARK: - Update Planet -
 
+    // type 0
+    func updateNativePlanet(planet: Planet) async throws {
+        guard let id = planet.id,
+              let _ = planet.name,
+              let ipns = planet.ipns,
+              ipns.count == "k51qzi5uqu5dioq5on1s4oc3wg2t13w03xxsq32b1qovi61b6oi8pcyep2gsyf".count
+        else {
+            // incomplete or corrupted planet info, skip
+            // TODO: investigate if it's possible to have incomplete planet info
+            return
+        }
+
+        // check if IPNS has latest CID changes
+        debugPrint("Check if planet \(planet) has update...")
+        let result = try runCommand(command: .ipfsResolveIPNS(
+                target: PlanetManager.shared.ipfsPath,
+                config: PlanetManager.shared.ipfsConfigPath,
+                ipns: ipns
+        ))
+        guard let latestCID = result["Path"] as? String else {
+            debugPrint("ipfs name resolve \(ipns) has returned an unknown result: \(result)")
+            throw PlanetError.IPFSError
+        }
+        if latestCID == planet.latestCID {
+            // no update, return
+            debugPrint("Planet \(planet) has no update")
+            return
+        }
+        debugPrint("Planet \(planet) has update, CID changed from \(planet.latestCID ?? "nil") to \(latestCID)")
+        // let prefix = "\(PlanetManager.shared.ipfsGateway)/ipns/\(ipns)/"
+        let prefix = "\(PlanetManager.shared.ipfsGateway)\(latestCID)"
+        let ipnsString = prefix + "/planet.json"
+        let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let decoder = JSONDecoder()
+        let feed: PlanetFeed = try decoder.decode(PlanetFeed.self, from: data)
+        guard feed.name != "" else {
+            throw PlanetError.PlanetFeedError
+        }
+
+        debugPrint("got following planet feed: \(feed)")
+        if let name = feed.name, name != "" {
+            planet.name = name
+        }
+        if let about = feed.about, about != "" {
+            planet.about = about
+        }
+        planet.ipns = ipns
+
+        // update planet articles if needed.
+        var createArticleCount = 0
+        var updateArticleCount = 0
+        for article in feed.articles {
+            guard let articleLink = article.link else { continue }
+            if let existing = getArticle(link: articleLink, planetID: id) {
+                if existing.title != article.title {
+                    existing.title = article.title
+                    existing.link = articleLink
+                    updateArticleCount += 1
+                }
+            } else {
+                let _ = createArticle(article, planetID: id)
+                createArticleCount += 1
+            }
+        }
+        debugPrint("planet articles count to create: \(createArticleCount)")
+        debugPrint("planet articles count to update: \(updateArticleCount)")
+
+        // update planet avatar if needed.
+        let avatarString = prefix + "/avatar.png"
+        let avatarRequest = URLRequest(url: URL(string: avatarString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+        let (avatarData, _) = try await URLSession.shared.data(for: avatarRequest)
+        if let image = NSImage(data: avatarData) {
+            updatePlanetAvatar(planet: planet, image: image)
+        }
+
+        PlanetManager.shared.pin(latestCID)
+        planet.latestCID = latestCID
+        planet.lastUpdated = Date()
+    }
+
     func updateENSPlanet(planet: Planet) async throws {
         guard let ens = planet.ens else {
             // planet is not of ENS type
@@ -251,7 +332,7 @@ class PlanetDataController: NSObject {
 
     func updatePlanetAvatar(planet: Planet, image: NSImage) {
         do {
-            let planetPath = PlanetManager.shared.planetsPath().appendingPathComponent(planet.id!.uuidString)
+            let planetPath = PlanetManager.shared.planetsPath.appendingPathComponent(planet.id!.uuidString)
             if !FileManager.default.fileExists(atPath: planetPath.path) {
                 try FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true, attributes: nil)
             }
@@ -337,7 +418,7 @@ class PlanetDataController: NSObject {
         }
         return article
     }
-    
+
     @discardableResult
     func updateArticleLink(withID id: UUID, link: String) async throws -> PlanetArticle {
         guard let article = getArticle(id: id) else {

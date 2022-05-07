@@ -41,7 +41,7 @@ class PlanetManager: NSObject {
             guard apiPort != "" else { return }
             commandQueue.addOperation {
                 do {
-                    let _ = try runCommand(command: .ipfsUpdateAPIPort(target: self._ipfsPath(), config: self._configPath(), port: self.apiPort))
+                    let _ = try runCommand(command: .ipfsUpdateAPIPort(target: self.ipfsPath, config: self.ipfsConfigPath, port: self.apiPort))
                 } catch {
                     debugPrint("failed to update api port: \(error)")
                 }
@@ -54,7 +54,7 @@ class PlanetManager: NSObject {
             guard gatewayPort != "" else { return }
             commandQueue.addOperation {
                 do {
-                    let _ = try runCommand(command: .ipfsUpdateGatewayPort(target: self._ipfsPath(), config: self._configPath(), port: self.gatewayPort))
+                    let _ = try runCommand(command: .ipfsUpdateGatewayPort(target: self.ipfsPath, config: self.ipfsConfigPath, port: self.gatewayPort))
                 } catch {
                     debugPrint("failed to update gateway port: \(error)")
                 }
@@ -67,7 +67,7 @@ class PlanetManager: NSObject {
             guard swarmPort != "" else { return }
             commandQueue.addOperation {
                 do {
-                    let _ = try runCommand(command: .ipfsUpdateSwarmPort(target: self._ipfsPath(), config: self._configPath(), port: self.swarmPort))
+                    let _ = try runCommand(command: .ipfsUpdateSwarmPort(target: self.ipfsPath, config: self.ipfsConfigPath, port: self.swarmPort))
                 } catch {
                     debugPrint("failed to update swarm port: \(error)")
                 }
@@ -118,7 +118,7 @@ class PlanetManager: NSObject {
 
     // MARK: - General -
     func loadTemplates() {
-        let templatePath = templatesPath()
+        let templatePath = templatesPath
         if let sourcePath = Bundle.main.url(forResource: "Basic", withExtension: "html") {
             let targetPath = templatePath.appendingPathComponent("basic.html")
             do {
@@ -218,7 +218,7 @@ class PlanetManager: NSObject {
     }
 
     func ipfsENVPath() -> URL {
-        let envPath = _ipfsENVPath()
+        let envPath = ipfsEnvPath
         if !FileManager.default.fileExists(atPath: envPath.path) {
             try? FileManager.default.createDirectory(at: envPath, withIntermediateDirectories: true, attributes: nil)
         }
@@ -291,7 +291,7 @@ class PlanetManager: NSObject {
     // MARK: - Planet & Planet Article -
     func destroyDirectory(fromPlanet planetUUID: UUID) {
         debugPrint("about to destroy directory from planet: \(planetUUID) ...")
-        let planetPath = planetsPath().appendingPathComponent(planetUUID.uuidString)
+        let planetPath = planetsPath.appendingPathComponent(planetUUID.uuidString)
         do {
             try FileManager.default.removeItem(at: planetPath)
         } catch {
@@ -301,7 +301,7 @@ class PlanetManager: NSObject {
 
     func destroyArticleDirectory(planetUUID: UUID, articleUUID: UUID) async {
         debugPrint("about to destroy directory from article: \(articleUUID) ...")
-        let articlePath = planetsPath().appendingPathComponent(planetUUID.uuidString).appendingPathComponent(articleUUID.uuidString)
+        let articlePath = planetsPath.appendingPathComponent(planetUUID.uuidString).appendingPathComponent(articleUUID.uuidString)
         do {
             try FileManager.default.removeItem(at: articlePath)
         } catch {
@@ -313,7 +313,7 @@ class PlanetManager: NSObject {
         guard let articleID = article.id, let planetID = article.planetID else { return nil }
         guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!) else { return nil }
         if planet.isMyPlanet() {
-            let articlePath = planetsPath().appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
+            let articlePath = planetsPath.appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
             return articlePath
         } else {
             debugPrint("Trying to get article URL")
@@ -340,7 +340,7 @@ class PlanetManager: NSObject {
 
     func renderArticleToDirectory(fromArticle article: PlanetArticle, templateIndex: Int = 0, force: Bool = false) async {
         debugPrint("about to render article: \(article)")
-        let planetPath = planetsPath().appendingPathComponent(article.planetID!.uuidString)
+        let planetPath = planetsPath.appendingPathComponent(article.planetID!.uuidString)
         let articlePath = planetPath.appendingPathComponent(article.id!.uuidString)
         if !FileManager.default.fileExists(atPath: articlePath.path) {
             do {
@@ -399,7 +399,7 @@ class PlanetManager: NSObject {
         }
 
         guard let id = planet.id, let keyName = planet.keyName, keyName != "" else { return }
-        let planetPath = planetsPath().appendingPathComponent(id.uuidString)
+        let planetPath = planetsPath.appendingPathComponent(id.uuidString)
         guard FileManager.default.fileExists(atPath: planetPath.path) else { return }
         debugPrint("publishing for planet: \(planet), with key name: \(keyName) ...")
 
@@ -443,7 +443,7 @@ class PlanetManager: NSObject {
         // add planet directory
         var planetCID: String?
         do {
-            let result = try runCommand(command: .ipfsAddDirectory(target: _ipfsPath(), config: _configPath(), directory: planetPath))
+            let result = try runCommand(command: .ipfsAddDirectory(target: ipfsPath, config: ipfsConfigPath, directory: planetPath))
             if let result = result["result"] as? [String], let cid: String = result.first {
                 planetCID = cid
                 debugPrint("Planet CID: \(String(describing: planet.name)) - \(cid)")
@@ -485,106 +485,9 @@ class PlanetManager: NSObject {
         } else if planet.type == .dns {
             debugPrint("Going to update Type 3 DNS planet: \(planet.dns!)")
             try await PlanetDataController.shared.updateDNSPlanet(planet: planet)
-            planet.lastUpdated = Date()
-            PlanetDataController.shared.save()
-            return
         } else {
-            // The rest of the logic is for Type 0 Planet
-            // TODO: encapsulate this logic into a function
-
-            guard
-                let id = planet.id,
-                let _ = planet.name,
-                let ipns = planet.ipns,
-                ipns.count == "k51qzi5uqu5dioq5on1s4oc3wg2t13w03xxsq32b1qovi61b6oi8pcyep2gsyf".count
-                else {
-                // incomplete or corrupted planet info, skip
-                // TODO: investigate if it's possible to have incomplete planet info
-                return
-            }
-
-            // check if IPNS has latest CID changes
-            debugPrint("Check if planet \(planet) has update...")
-            do {
-                let result = try runCommand(command: .ipfsResolveIPNS(target: _ipfsPath(), config: _configPath(), ipns: ipns))
-                if let latestCID = result["Path"] as? String {
-                    if latestCID == planet.latestCID {
-                        // no update, return
-                        debugPrint("Planet \(planet) has no update")
-                        return
-                    }
-                    debugPrint("Planet \(planet) has update, CID changed from \(planet.latestCID ?? "nil") to \(latestCID)")
-                    planet.latestCID = latestCID
-                    pin(latestCID)
-                } else {
-                    debugPrint("ipfs name resolve \(ipns) has returned an unknown result: \(result)")
-                }
-            } catch {
-                // command will fail if daemon is not online or IPNS has expired
-                // see https://docs.ipfs.io/reference/cli/#ipfs-name-resolve about IPNS name lifetime
-                debugPrint("Unable to check if planet \(planet) has update, skip updating")
-                if planet.latestCID == nil {
-                    // IPFS has never fetched any version of planet feed
-                    throw PlanetError.IPFSError
-                }
-                // IPFS has fetched planet feed before
-                // if IPNS name has expired, it is likely there is no change, skip update
-                return
-            }
-
-            debugPrint("updating for planet: \(planet) ...")
-            do {
-                let prefix = "\(ipfsGateway)/ipns/\(ipns)/"
-                let ipnsString = prefix + "planet.json"
-                let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
-                let (data, _) = try await URLSession.shared.data(for: request)
-                let decoder = JSONDecoder()
-                let feed: PlanetFeed = try decoder.decode(PlanetFeed.self, from: data)
-                guard feed.name != "" else {
-                    throw PlanetError.PlanetFeedError
-                }
-
-                debugPrint("got following planet feed: \(feed)")
-                if let name = feed.name, name != "" {
-                    planet.name = name
-                }
-                if let about = feed.about, about != "" {
-                    planet.about = about
-                }
-                planet.ipns = ipns
-
-                // update planet articles if needed.
-                var createArticleCount = 0
-                var updateArticleCount = 0
-                for article in feed.articles {
-                    guard let articleLink = article.link else { continue }
-                    if let existing = PlanetDataController.shared.getArticle(link: articleLink, planetID: id) {
-                        if existing.title != article.title {
-                            existing.title = article.title
-                            existing.link = articleLink
-                            updateArticleCount += 1
-                        }
-                    } else {
-                        let _ = PlanetDataController.shared.createArticle(article, planetID: id)
-                        createArticleCount += 1
-                    }
-                }
-                debugPrint("planet articles count to create: \(createArticleCount)")
-                debugPrint("planet articles count to update: \(updateArticleCount)")
-
-                // update planet avatar if needed.
-                let avatarString = prefix + "/" + "avatar.png"
-                let avatarRequest = URLRequest(url: URL(string: avatarString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
-                let (avatarData, _) = try await URLSession.shared.data(for: avatarRequest)
-                if let image = NSImage(data: avatarData) {
-                    PlanetDataController.shared.updatePlanetAvatar(planet: planet, image: image)
-                }
-            } catch {
-                throw PlanetError.PlanetFeedError
-            }
+            try await PlanetDataController.shared.updateNativePlanet(planet: planet)
         }
-
-        planet.lastUpdated = Date()
         PlanetDataController.shared.save()
         debugPrint("done updating.")
     }
@@ -709,8 +612,8 @@ class PlanetManager: NSObject {
             })
 
             // import planet key if needed
-            let targetPath = _ipfsPath()
-            let configPath = _configPath()
+            let targetPath = ipfsPath
+            let configPath = ipfsConfigPath
             let importPlanetKeyName = planetInfo.id.uuidString
             let importPlanetKeyPath = importPath.appendingPathComponent("planet.key")
             try runCommand(command: .ipfsImportKey(target: targetPath, config: configPath, keyName: importPlanetKeyName, targetPath: importPlanetKeyPath))
@@ -724,7 +627,7 @@ class PlanetManager: NSObject {
             let _ = PlanetDataController.shared.createPlanet(withID: planetInfo.id, name: planetName, about: planetInfo.about ?? "", keyName: planetInfo.id.uuidString, keyID: planetInfo.ipns, ipns: planetInfo.ipns)
 
             // create planet directory if needed
-            let targetPlanetPath = planetsPath().appendingPathComponent(planetInfo.id.uuidString)
+            let targetPlanetPath = planetsPath.appendingPathComponent(planetInfo.id.uuidString)
             if !FileManager.default.fileExists(atPath: targetPlanetPath.path) {
                 try FileManager.default.createDirectory(at: targetPlanetPath, withIntermediateDirectories: true, attributes: nil)
             }
@@ -786,7 +689,7 @@ class PlanetManager: NSObject {
             return
         }
 
-        let currentPlanetPath = planetsPath().appendingPathComponent(planetID.uuidString)
+        let currentPlanetPath = planetsPath.appendingPathComponent(planetID.uuidString)
         do {
             try FileManager.default.copyItem(at: currentPlanetPath, to: exportPlanetPath)
         } catch {
@@ -794,8 +697,8 @@ class PlanetManager: NSObject {
             return
         }
 
-        let targetPath = _ipfsPath()
-        let configPath = _configPath()
+        let targetPath = ipfsPath
+        let configPath = ipfsConfigPath
         let exportPlanetKeyPath = exportPlanetPath.appendingPathComponent("planet.key")
         do {
             try runCommand(command: .ipfsExportKey(target: targetPath, config: configPath, keyName: planetKeyName, targetPath: exportPlanetKeyPath))
@@ -815,8 +718,8 @@ class PlanetManager: NSObject {
 
     // MARK: - Private -
     private func verifyIPFSOnlineStatus() -> Bool {
-        let targetPath = _ipfsPath()
-        let configPath = _configPath()
+        let targetPath = ipfsPath
+        let configPath = ipfsConfigPath
         if FileManager.default.fileExists(atPath: targetPath.path) && FileManager.default.fileExists(atPath: configPath.path) {
             do {
                 let lists = try FileManager.default.contentsOfDirectory(atPath: configPath.path)
@@ -898,12 +801,12 @@ class PlanetManager: NSObject {
     private func launchDaemon() {
         Task.init(priority: .utility) {
             guard await checkDaemonStatus() == false else { return }
-            commandDaemonQueue.addOperation {
+            commandDaemonQueue.addOperation { [self] in
                 do {
-                    let _ = try runCommand(command: .ipfsLaunchDaemon(target: self._ipfsPath(), config: self._configPath()))
+                    let _ = try runCommand(command: .ipfsLaunchDaemon(target: ipfsPath, config: ipfsConfigPath))
                 } catch {
                     debugPrint("failed to launch daemon: \(error). will try to start daemon again after 3 seconds.")
-                    let _ = try? runCommand(command: .ipfsTerminateDaemon(target: self._ipfsPath(), config: self._configPath()))
+                    let _ = try? runCommand(command: .ipfsTerminateDaemon(target: ipfsPath, config: ipfsConfigPath))
                 }
             }
 
@@ -1013,12 +916,8 @@ class PlanetManager: NSObject {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
     }
 
-    private func _basePath() -> URL {
-#if DEBUG
+    var basePath: URL {
         let bundleID = Bundle.main.bundleIdentifier! + ".v03"
-#else
-        let bundleID = Bundle.main.bundleIdentifier! + ".v03"
-#endif
         let path: URL
         if let p = _applicationSupportPath() {
             path = p.appendingPathComponent(bundleID, isDirectory: true)
@@ -1032,41 +931,39 @@ class PlanetManager: NSObject {
     }
 
     func _avatarPath(forPlanetID id: UUID, isEditing: Bool = false) -> URL {
-        let path = planetsPath().appendingPathComponent(id.uuidString)
+        let path = planetsPath.appendingPathComponent(id.uuidString)
         if !FileManager.default.fileExists(atPath: path.path) {
             try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
         }
         return path.appendingPathComponent("avatar.png")
     }
 
-    private func _ipfsPath() -> URL {
-        let ipfsPath = _basePath().appendingPathComponent("ipfs", isDirectory: false)
-        return ipfsPath
+    var ipfsPath: URL {
+        basePath.appendingPathComponent("ipfs", isDirectory: false)
     }
 
-    private func _ipfsENVPath() -> URL {
-        let envPath = _basePath().appendingPathComponent(".ipfs", isDirectory: true)
-        return envPath
+    var ipfsEnvPath: URL {
+        basePath.appendingPathComponent(".ipfs", isDirectory: true)
     }
 
-    private func _configPath() -> URL {
-        let configPath = _basePath().appendingPathComponent("config", isDirectory: true)
+    var ipfsConfigPath: URL {
+        let configPath = basePath.appendingPathComponent("config", isDirectory: true)
         if !FileManager.default.fileExists(atPath: configPath.path) {
             try? FileManager.default.createDirectory(at: configPath, withIntermediateDirectories: true, attributes: nil)
         }
         return configPath
     }
 
-    func planetsPath() -> URL {
-        let contentPath = _basePath().appendingPathComponent("planets", isDirectory: true)
+    var planetsPath: URL {
+        let contentPath = basePath.appendingPathComponent("planets", isDirectory: true)
         if !FileManager.default.fileExists(atPath: contentPath.path) {
             try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
         }
         return contentPath
     }
 
-    func templatesPath() -> URL {
-        let contentPath = _basePath().appendingPathComponent("templates", isDirectory: true)
+    var templatesPath: URL {
+        let contentPath = basePath.appendingPathComponent("templates", isDirectory: true)
         if !FileManager.default.fileExists(atPath: contentPath.path) {
             try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
         }
