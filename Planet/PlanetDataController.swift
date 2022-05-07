@@ -179,11 +179,12 @@ class PlanetDataController: NSObject {
             var articles: [PlanetFeedArticle] = []
             switch feed {
             case let .atom(feed):       // Atom Syndication Format Feed
+                PlanetDataController.shared.updatePlanet(planet: planet, name: feed.title, about: feed.subtitle?.value)
                 for entry in feed.entries! {
                     guard let entryURL = URL(string: entry.links![0].attributes!.href!) else {
                         continue
                     }
-                    let entryLink = "\(entryURL.scheme!)://\(entryURL.host!)\(entryURL.path)"
+                    let entryLink = entry.links![0].attributes!.href!
                     guard let entryTitle = entry.title else {
                         continue
                     }

@@ -19,7 +19,6 @@ class TemplateBrowserManager: NSObject {
         for window in windows {
             if window is TemplateBrowserWindow {
                 foundExisting = true
-                window.center()
                 window.makeKeyAndOrderFront(nil)
             }
         }
