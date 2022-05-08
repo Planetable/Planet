@@ -13,13 +13,17 @@ import Ink
 
 
 struct PlanetWriterView: View {
-    var draftPlanetID: UUID
+    var targetID: UUID
+    var isEditing: Bool
 
-    var isEditing: Bool = false
+    var originalPlanetID: UUID
+    var originalTitle: String
+    var originalContent: String
+    var originalUploadings: [URL]
 
-    @State var title: String = ""
-    @State var content: String = ""
-    @State var htmlContent: String = ""
+    @State private var title: String = ""
+    @State private var content: String = ""
+    @State private var htmlContent: String = ""
 
     @State private var previewPath: URL!
 
@@ -29,8 +33,13 @@ struct PlanetWriterView: View {
 
     @ObservedObject private var viewModel: PlanetWriterViewModel
 
-    init(withPlanetID planetID: UUID) {
-        draftPlanetID = planetID
+    init(withID id: UUID, inEditMode editMode: Bool = false, articleTitle: String = "", articleContent: String = "", planetID: UUID = UUID()) {
+        targetID = id
+        isEditing = editMode
+        originalPlanetID = planetID
+        originalTitle = articleTitle
+        originalContent = articleContent
+        originalUploadings = PlanetWriterManager.shared.uploadedFiles(fromArticle: id, planetID: planetID)
         _viewModel = ObservedObject(wrappedValue: PlanetWriterViewModel.shared)
     }
 
@@ -67,11 +76,8 @@ struct PlanetWriterView: View {
 
             Divider()
 
-            let writerView = PlanetWriterTextView(text: $content, selectedRanges: $selectedRanges, writerID: draftPlanetID)
-            let previewView = PlanetWriterPreviewView(url: previewPath)
-
             HSplitView {
-                writerView
+                PlanetWriterTextView(text: $content, selectedRanges: $selectedRanges, writerID: targetID)
                     .frame(minWidth: 300,
                            maxWidth: .infinity,
                            minHeight: 300,
@@ -79,9 +85,17 @@ struct PlanetWriterView: View {
                     .onChange(of: content) { newValue in
                         htmlContent = PlanetWriterManager.shared.renderHTML(fromContent: newValue)
                         Task.init(priority: .utility) {
-                            if let path = PlanetWriterManager.shared.renderPreview(content: htmlContent, forDocument: draftPlanetID) {
-                                if previewPath != path {
-                                    previewPath = path
+                            if isEditing {
+                                if let path = PlanetWriterManager.shared.renderEditPreview(content: htmlContent, forDocument: targetID, planetID: originalPlanetID) {
+                                    if previewPath != path {
+                                        previewPath = path
+                                    }
+                                }
+                            } else {
+                                if let path = PlanetWriterManager.shared.renderPreview(content: htmlContent, forDocument: targetID) {
+                                    if previewPath != path {
+                                        previewPath = path
+                                    }
                                 }
                             }
                         }
@@ -91,7 +105,7 @@ struct PlanetWriterView: View {
                     }
                     .onDrop(of: [.fileURL], delegate: viewModel)
                 if isPreviewOpen {
-                    previewView
+                    PlanetWriterPreviewView(url: previewPath)
                         .frame(minWidth: 400,
                                maxWidth: .infinity,
                                minHeight: 300,
@@ -112,16 +126,16 @@ struct PlanetWriterView: View {
                             .onTapGesture {
                                 if let urls: [URL] = uploadImagesAction() {
                                     Task { @MainActor in
-                                        PlanetWriterManager.shared.processUploadings(urls: urls)
+                                        PlanetWriterManager.shared.processUploadings(urls: urls, targetID: targetID, inEditMode: isEditing)
                                     }
                                 }
                             }
 
-                        if let uploadings: Set<URL> = viewModel.uploadings[draftPlanetID] {
+                        if let uploadings: Set<URL> = viewModel.uploadings[targetID] {
                             ForEach(Array(uploadings).sorted { a, b in
                                 return PlanetWriterManager.shared.uploadingCreationDate(fileURL: a) < PlanetWriterManager.shared.uploadingCreationDate(fileURL: b)
                             }, id: \.self) { fileURL in
-                                PlanetWriterUploadImageThumbnailView(articleID: draftPlanetID, fileURL: fileURL)
+                                PlanetWriterUploadImageThumbnailView(articleID: targetID, fileURL: fileURL)
                                     .environmentObject(viewModel)
                             }
                         }
@@ -137,7 +151,7 @@ struct PlanetWriterView: View {
 
             HStack {
                 Button {
-                    closeAction()
+                    cancelAction()
                 } label: {
                     Text("Cancel")
                 }
@@ -159,20 +173,68 @@ struct PlanetWriterView: View {
         }
         .frame(minWidth: 720)
         .onReceive(NotificationCenter.default.publisher(for: .closeWriterWindow, object: nil)) { n in
-            guard let id = n.object as? UUID, id == draftPlanetID else { return }
-            closeAction()
+            guard let id = n.object as? UUID, id == targetID else { return }
+            cancelAction()
+        }
+        .task {
+            guard isEditing else { return }
+            title = originalTitle
+            content = originalContent
+            selectedRanges = [NSValue(range: NSRange(location: content.count - 1, length: 0))]
+            let c: Notification.Name = Notification.Name.notification(notification: .clearText, forID: targetID)
+            let n: Notification.Name = Notification.Name.notification(notification: .insertText, forID: targetID)
+            await MainActor.run {
+                NotificationCenter.default.post(name: c, object: nil)
+                NotificationCenter.default.post(name: n, object: originalContent)
+            }
+            await viewModel.updateUploadings(articleID: targetID, urls: originalUploadings)
+
+            debugPrint("Edit Mode: \(title) -> \(content), uploadings: \(originalUploadings)")
+            debugPrint("View Model: active id: \(viewModel.activeTargetID), editings: \(viewModel.editings), uploadings: \(viewModel.uploadings)")
+
         }
     }
 
     @MainActor
-    private func closeAction() {
-        if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
-            PlanetStore.shared.writerIDs.remove(draftPlanetID)
+    private func cancelAction() {
+        if PlanetStore.shared.writerIDs.contains(targetID) {
+            PlanetStore.shared.writerIDs.remove(targetID)
         }
-        if PlanetStore.shared.activeWriterID == draftPlanetID {
+        if PlanetStore.shared.activeWriterID == targetID {
             PlanetStore.shared.activeWriterID = .init()
         }
-        PlanetWriterManager.shared.removeDraft(articleID: draftPlanetID)
+        PlanetWriterManager.shared.removeDraft(articleID: targetID)
+        PlanetWriterViewModel.shared.removeEditings(articleID: targetID)
+
+        guard isEditing else { return }
+
+        // remove preview.html
+        if let targetPath = PlanetWriterManager.shared.articlePath(articleID: targetID, planetID: originalPlanetID) {
+            let previewPath = targetPath.appendingPathComponent("preview.html")
+            try? FileManager.default.removeItem(at: previewPath)
+        }
+
+        let uploadings = PlanetWriterManager.shared.uploadedFiles(fromArticle: targetID, planetID: originalPlanetID).sorted { a, b in
+            return a.path < b.path
+        }
+        let originals = originalUploadings.sorted { a, b in
+            return a.path < b.path
+        }
+        if uploadings.elementsEqual(originals) {
+            debugPrint("No need to add or remove uploadings.")
+            return
+        }
+
+        var added: [URL] = []
+        for uploading in uploadings {
+            if !originals.contains(uploading) {
+
+            }
+        }
+        debugPrint("Continue adding or removing uploadings.")
+        // remove added uploadings
+        // recover removed uploadings
+
     }
 
     @MainActor
@@ -180,32 +242,33 @@ struct PlanetWriterView: View {
         // make sure current new article id equals to the planet id first, then generate new article id.
         let createdArticleID = UUID()
 
-        PlanetWriterManager.shared.setupArticlePath(articleID: createdArticleID, planetID: draftPlanetID)
-        if let targetPath = PlanetWriterManager.shared.articlePath(articleID: createdArticleID, planetID: draftPlanetID) {
-            PlanetWriterManager.shared.copyDraft(articleID: draftPlanetID, toTargetPath: targetPath)
+        PlanetWriterManager.shared.setupArticlePath(articleID: createdArticleID, planetID: targetID)
+        if let targetPath = PlanetWriterManager.shared.articlePath(articleID: createdArticleID, planetID: targetID) {
+            PlanetWriterManager.shared.copyDraft(articleID: targetID, toTargetPath: targetPath)
         }
 
-        let article = PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: draftPlanetID, title: title, content: content)
+        let article = PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: targetID, title: title, content: content)
         PlanetDataController.shared.save()
 
-        if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
-            PlanetStore.shared.writerIDs.remove(draftPlanetID)
+        if PlanetStore.shared.writerIDs.contains(targetID) {
+            PlanetStore.shared.writerIDs.remove(targetID)
         }
-        if PlanetStore.shared.activeWriterID == draftPlanetID {
+        if PlanetStore.shared.activeWriterID == targetID {
             PlanetStore.shared.activeWriterID = .init()
         }
         PlanetStore.shared.currentArticle = article
-        PlanetWriterManager.shared.removeDraft(articleID: draftPlanetID)
+        PlanetWriterManager.shared.removeDraft(articleID: targetID)
     }
 
     @MainActor
     private func updateAction() {
+        // MARK: TODO: update edit.
         Task.init {
-            try await PlanetDataController.shared.updateArticle(withID: draftPlanetID, title: title, content: content)
-            if PlanetStore.shared.writerIDs.contains(draftPlanetID) {
-                PlanetStore.shared.writerIDs.remove(draftPlanetID)
+            try await PlanetDataController.shared.updateArticle(withID: targetID, title: title, content: content)
+            if PlanetStore.shared.writerIDs.contains(targetID) {
+                PlanetStore.shared.writerIDs.remove(targetID)
             }
-            if PlanetStore.shared.activeWriterID == draftPlanetID {
+            if PlanetStore.shared.activeWriterID == targetID {
                 PlanetStore.shared.activeWriterID = .init()
             }
         }

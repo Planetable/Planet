@@ -59,19 +59,19 @@ class PlanetWriterWebViewHelper: NSObject, WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        debugPrint("webView did loaded!")
+//        debugPrint("webView did loaded!")
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        debugPrint("webView did start provisional navigation.")
+//        debugPrint("webView did start provisional navigation.")
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-        debugPrint("webView did commit.")
+//        debugPrint("webView did commit.")
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        debugPrint("webView did failed provisional navigation.")
+//        debugPrint("webView did failed provisional navigation.")
     }
 
     func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {

@@ -25,6 +25,13 @@ class PlanetWriterViewModel: ObservableObject {
 
     @Published private(set) var uploadings: [UUID: Set<URL>] = [:]
 
+    // [ArticleUUID: PlanetUUID]
+    // ArticleUUID == PlanetUUID: Creating Article
+    // ArticleUUID != PlanetUUID: Editing Article
+    @Published private(set) var editings: [UUID: UUID] = [:]
+
+    @Published private(set) var activeTargetID: UUID = UUID()
+
     private var draggingInfo: [Int: PlanetWriterDraggingValidation] = [:]
 
     @MainActor
@@ -61,6 +68,25 @@ class PlanetWriterViewModel: ObservableObject {
     func removeAllUploadings(articleID: UUID) {
         uploadings[articleID]?.removeAll()
     }
+
+    @MainActor
+    func updateEditings(articleID: UUID, planetID: UUID) {
+        if editings[articleID] == nil {
+            editings[articleID] = UUID()
+        }
+        editings[articleID] = planetID
+    }
+
+    @MainActor
+    func removeEditings(articleID: UUID) {
+        editings.removeValue(forKey: articleID)
+    }
+
+    @MainActor
+    func updateActiveID(articleID: UUID) {
+        guard activeTargetID != articleID else { return }
+        activeTargetID = articleID
+    }
 }
 
 
@@ -69,10 +95,7 @@ extension PlanetWriterViewModel: DropDelegate {
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        if let planet = PlanetStore.shared.currentPlanet, planet.isMyPlanet() {
-            return DropProposal(operation: .copy)
-        }
-        return nil
+        return DropProposal(operation: .copy)
     }
 
     func dropExited(info: DropInfo) {
@@ -94,7 +117,9 @@ extension PlanetWriterViewModel: DropDelegate {
                     urls.append(url)
                 }
             }
-            PlanetWriterManager.shared.processUploadings(urls: urls)
+            if let activeID = editings[activeTargetID] {
+                PlanetWriterManager.shared.processUploadings(urls: urls, targetID: activeTargetID, inEditMode: activeID != activeTargetID)
+            }
         }
         return true
     }

@@ -112,7 +112,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
         let uploaded = getUploadedFile()
         guard let filePath = uploaded.uploadURL else { return }
         let filename = filePath.lastPathComponent
-        let c: String = (uploaded.isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
+        let c: String = (uploaded.isImage ? "\n" : "") + (uploaded.isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
         let n: Notification.Name = Notification.Name.notification(notification: .insertText, forID: articleID)
         NotificationCenter.default.post(name: n, object: c)
     }

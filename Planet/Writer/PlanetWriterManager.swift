@@ -49,6 +49,20 @@ class PlanetWriterManager: NSObject {
         }
     }
 
+    func renderEditPreview(content: String, forDocument id: UUID, planetID: UUID) -> URL? {
+        do {
+            let output = try previewEnv.renderTemplate(name: writerTemplateName, context: ["content_html": content])
+            let path = articlePath(articleID: id, planetID: planetID)!
+            let targetPath = path.appendingPathComponent("preview.html")
+            try output.data(using: .utf8)?.write(to: targetPath)
+            NotificationCenter.default.post(name: .reloadPage, object: targetPath)
+            return targetPath
+        } catch {
+            debugPrint("failed to render preview: \(content), error: \(error)")
+            return nil
+        }
+    }
+
     func createArticle(withArticleID id: UUID, forPlanet planetID: UUID, title: String, content: String) -> PlanetArticle {
         let dataController = PlanetDataController.shared
         let planet = dataController.getPlanet(id: planetID)!
@@ -158,18 +172,31 @@ class PlanetWriterManager: NSObject {
         return Date()
     }
 
+    func uploadedFiles(fromArticle articleID: UUID, planetID: UUID) -> [URL] {
+        let excludedFileNames: [String] = ["index.html", "preview.html", "article.json"]
+        if let articlePath = articlePath(articleID: articleID, planetID: planetID) {
+            if let articleContents = try? FileManager.default.contentsOfDirectory(at: articlePath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter({ u in
+                !u.hasDirectoryPath
+            }) {
+                return articleContents.filter({ u in
+                    !excludedFileNames.contains(u.lastPathComponent)
+                })
+            }
+        }
+        return []
+    }
+
     // MARK: -
     @MainActor
-    func processUploadings(urls: [URL], insertURLs: Bool = false) {
-        guard let planetID = PlanetStore.shared.currentPlanet?.id else { return }
+    func processUploadings(urls: [URL], targetID: UUID, insertURLs: Bool = false, inEditMode editMode: Bool = false) {
         Task.init {
             for u in urls {
-                await _uploadFile(articleID: planetID, fileURL: u)
+                await _uploadFile(articleID: targetID, fileURL: u, inEditMode: editMode)
             }
-            await PlanetWriterViewModel.shared.updateUploadings(articleID: planetID, urls: urls)
+            await PlanetWriterViewModel.shared.updateUploadings(articleID: targetID, urls: urls)
             guard insertURLs else { return }
             for u in urls {
-                await _insertFile(articleID: planetID, fileURL: u)
+                await _insertFile(articleID: targetID, fileURL: u)
             }
         }
     }
@@ -178,20 +205,21 @@ class PlanetWriterManager: NSObject {
     func launchWriter(forPlanet planet: Planet) {
         // Launch writer to create a new article of a planet
         // writerID == planet.id
-        let id = planet.id!
+        guard let id = planet.id else { return }
 
         if PlanetStore.shared.writerIDs.contains(id) {
             PlanetStore.shared.activeWriterID = id
             return
         }
 
-        Task.detached(priority: .background) {
+        Task.detached(priority: .utility) {
             await MainActor.run {
                 PlanetWriterViewModel.shared.removeAllUploadings(articleID: id)
+                PlanetWriterViewModel.shared.updateEditings(articleID: id, planetID: id)
             }
         }
 
-        let writerView = PlanetWriterView(withPlanetID: id)
+        let writerView = PlanetWriterView(withID: id)
         let writerWindow = PlanetWriterWindow(
                 rect: NSMakeRect(0, 0, 720, 480),
                 maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView],
@@ -208,15 +236,23 @@ class PlanetWriterManager: NSObject {
     func launchWriter(forArticle article: PlanetArticle) {
         // Launch writer to edit an existing article
         // writerID == article.id
-        let id = article.id!
+        guard let id = article.id, let planetID = article.planetID else { return }
 
         if PlanetStore.shared.writerIDs.contains(id) {
             PlanetStore.shared.activeWriterID = id
             return
         }
-        let writerView = PlanetWriterEditView(articleID: id, title: article.title ?? "", content: article.content ?? "")
+
+        Task.detached(priority: .utility) {
+            await MainActor.run {
+                PlanetWriterViewModel.shared.removeAllUploadings(articleID: id)
+                PlanetWriterViewModel.shared.updateEditings(articleID: id, planetID: planetID)
+            }
+        }
+
+        let writerView = PlanetWriterView(withID: id, inEditMode: true, articleTitle: article.title ?? "", articleContent: article.content ?? "", planetID: planetID)
         let writerWindow = PlanetWriterWindow(
-                rect: NSMakeRect(0, 0, 600, 480),
+                rect: NSMakeRect(0, 0, 720, 480),
                 maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView],
                 backingType: .buffered,
                 deferMode: false,
@@ -228,7 +264,6 @@ class PlanetWriterManager: NSObject {
     }
 
     // MARK: -
-
     var draftPath: URL {
         let contentPath = PlanetManager.shared.basePath.appendingPathComponent("drafts", isDirectory: true)
         if !FileManager.default.fileExists(atPath: contentPath.path) {
@@ -237,24 +272,35 @@ class PlanetWriterManager: NSObject {
         return contentPath
     }
 
-    private func _uploadFile(articleID: UUID, fileURL url: URL) async {
-        let draftPath = articleDraftPath(articleID: articleID)
+    private func _uploadFile(articleID: UUID, fileURL url: URL, inEditMode editMode: Bool = false) async {
         let fileName = url.lastPathComponent
-        let targetPath = draftPath.appendingPathComponent(fileName)
-        do {
-            try FileManager.default.copyItem(at: url, to: targetPath)
-            if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID, let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet(), let planetArticlePath = articlePath(articleID: planetID, planetID: planetID) {
-                try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
+        if editMode {
+            if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID, let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet(), let planetArticlePath = articlePath(articleID: articleID, planetID: planetID) {
+                let targetPath = planetArticlePath.appendingPathComponent(fileName)
+                do {
+                    try FileManager.default.copyItem(at: url, to: targetPath)
+                } catch {
+                    debugPrint("failed to upload file: \(url), to target path: \(targetPath), error: \(error)")
+                }
             }
-        } catch {
-            debugPrint("failed to upload file: \(url), to target path: \(targetPath), error: \(error)")
+        } else {
+            let draftPath = articleDraftPath(articleID: articleID)
+            let targetPath = draftPath.appendingPathComponent(fileName)
+            do {
+                try FileManager.default.copyItem(at: url, to: targetPath)
+                if let planetID = PlanetDataController.shared.getArticle(id: articleID)?.planetID, let planet = PlanetDataController.shared.getPlanet(id: planetID), planet.isMyPlanet(), let planetArticlePath = articlePath(articleID: articleID, planetID: planetID) {
+                    try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
+                }
+            } catch {
+                debugPrint("failed to upload file: \(url), to target path: \(targetPath), error: \(error)")
+            }
         }
     }
 
     private func _insertFile(articleID: UUID, fileURL url: URL) async {
         let filename = url.lastPathComponent
         let isImage = uploadingIsImageFile(fileURL: url)
-        let c: String = (isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
+        let c: String = (isImage ? "\n" : "") + (isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
         let n: Notification.Name = Notification.Name.notification(notification: .insertText, forID: articleID)
         await MainActor.run {
             NotificationCenter.default.post(name: n, object: c)
