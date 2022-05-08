@@ -37,7 +37,7 @@ extension PlanetAvatarViewModel: DropDelegate {
             let item = try? await provider.loadItem(forTypeIdentifier: kUTTypeFileURL as String, options: nil)
             if let data = item as? Data, let url = URL(dataRepresentation: data, relativeTo: nil), supportedExtensions.contains(url.pathExtension), let planet = await PlanetStore.shared.currentPlanet, planet.isMyPlanet(), let img = NSImage(contentsOf: url) {
                 let targetImage = PlanetManager.shared.resizedAvatarImage(image: img)
-                PlanetManager.shared.updateAvatar(forPlanet: planet, image: targetImage)
+                planet.updateAvatar(image: targetImage)
             }
         }
         return true

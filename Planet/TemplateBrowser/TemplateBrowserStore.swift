@@ -9,9 +9,9 @@ import Foundation
 
 class TemplateBrowserStore: ObservableObject {
     @Published var templates: [Template] = []
-    
+
     init() {
-        let templatesPath = PlanetManager.shared.templatesPath
+        let templatesPath = URLUtils.templatesPath
         do {
             let directories = try FileManager.default.listSubdirectories(url: templatesPath)
             for directory in directories {
@@ -23,7 +23,7 @@ class TemplateBrowserStore: ObservableObject {
             debugPrint("Failed to load templates")
         }
     }
-    
+
     subscript(templateID: Template.ID?) -> Template? {
         get {
             if let id = templateID {

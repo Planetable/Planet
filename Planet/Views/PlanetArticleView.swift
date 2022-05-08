@@ -21,7 +21,7 @@ struct PlanetArticleView: View {
             if let currentArticleID = planetStore.currentArticle?.id, let id = article.id, id == currentArticleID {
                 PlanetArticleWebView(url: $url)
                     .task(priority: .utility) {
-                        if let urlPath = PlanetManager.shared.articleURL(article: article) {
+                        if let urlPath = await PlanetManager.shared.articleURL(article: article) {
                             url = urlPath
                             article.isRead = true
                             PlanetDataController.shared.save()
@@ -34,7 +34,7 @@ struct PlanetArticleView: View {
                         if let articleID = n.object as? UUID, let currentArticleID = article.id {
                             guard articleID == currentArticleID else { return }
                             Task.init(priority: .background) {
-                                if let urlPath = PlanetManager.shared.articleURL(article: article) {
+                                if let urlPath = await PlanetManager.shared.articleURL(article: article) {
                                     let now = Int(Date().timeIntervalSince1970)
                                     url = URL(string: urlPath.absoluteString + "?\(now)")!
                                 } else {

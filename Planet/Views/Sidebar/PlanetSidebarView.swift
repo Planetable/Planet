@@ -181,7 +181,11 @@ struct PlanetSidebarView: View {
                                 if !planet.isPublishing {
                                     Button {
                                         Task.init {
-                                            await PlanetManager.shared.publish(planet)
+                                            planet.isPublishing = true
+                                            do {
+                                                try await PlanetManager.shared.publish(planet)
+                                            } catch {}
+                                            planet.isPublishing = false
                                         }
                                     } label: {
                                         Text("Publish Planet")
@@ -205,7 +209,7 @@ struct PlanetSidebarView: View {
                                 Button {
                                     Task.init {
                                         if let keyName = planet.keyName, keyName != "" {
-                                            await PlanetManager.shared.deleteKey(withName: keyName)
+                                            try IPFSCommand.deleteKey(name: keyName).run()
                                         }
                                         await PlanetDataController.shared.remove(planet)
                                         if let planetID = planet.id {
@@ -275,23 +279,16 @@ struct PlanetSidebarView: View {
                         }
                         .contextMenu(menuItems: {
                             VStack {
-                                if !planet.isUpdating {
-                                    Button {
-                                        Task.init {
-                                            planet.isUpdating = true
-                                            try? await PlanetManager.shared.update(planet)
-                                            planet.isUpdating = false
-                                        }
-                                    } label: {
-                                        Text("Check for update")
+                                Button {
+                                    Task.init {
+                                        planet.isUpdating = true
+                                        try? await PlanetManager.shared.update(planet)
+                                        planet.isUpdating = false
                                     }
-                                } else {
-                                    Button {
-                                    } label: {
-                                        Text("Updating...")
-                                    }
-                                    .disabled(true)
+                                } label: {
+                                    Text(planet.isUpdating ? "Updating..." : "Check for update")
                                 }
+                                .disabled(planet.isUpdating)
 
                                 if articles.count > 0 {
                                     Button {
@@ -358,12 +355,6 @@ struct PlanetSidebarView: View {
                 .frame(width: 24, height: 24, alignment: .center)
                 .menuStyle(BorderlessButtonMenuStyle())
                 .menuIndicator(.hidden)
-            }
-            .onTapGesture {
-                guard !statusViewModel.daemonIsOnline else {
-                    return
-                }
-                PlanetManager.shared.relaunchDaemon()
             }
             .frame(height: 44)
             .padding(.leading, 16)

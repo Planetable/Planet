@@ -32,7 +32,6 @@
 		2AC4995D27BB758B00F1C2D1 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4995C27BB758B00F1C2D1 /* Extensions.swift */; };
 		2AC4996027BB945800F1C2D1 /* PlanetDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4995F27BB945800F1C2D1 /* PlanetDataController.swift */; };
 		2AC4996227BB97A200F1C2D1 /* PlanetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4996127BB97A200F1C2D1 /* PlanetManager.swift */; };
-		2AC4996427BB97D300F1C2D1 /* PlanetCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4996327BB97D300F1C2D1 /* PlanetCommand.swift */; };
 		2AC4996627BB97F000F1C2D1 /* PlanetConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4996527BB97F000F1C2D1 /* PlanetConfiguration.swift */; };
 		2AC4996C27BB99DC00F1C2D1 /* Stencil in Frameworks */ = {isa = PBXBuildFile; productRef = 2AC4996B27BB99DC00F1C2D1 /* Stencil */; };
 		2AC4997127BB9F2200F1C2D1 /* TemplateTON.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AC4996F27BB9F2200F1C2D1 /* TemplateTON.html */; };
@@ -51,7 +50,6 @@
 		6A0172E827C9EE05006154B7 /* Basic.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A0172E727C9EE05006154B7 /* Basic.html */; };
 		6A0172EB27C9FD5F006154B7 /* Ink in Frameworks */ = {isa = PBXBuildFile; productRef = 6A0172EA27C9FD5F006154B7 /* Ink */; };
 		6A0FB8A827FBB129008E203D /* SmartFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0FB8A727FBB129008E203D /* SmartFeedView.swift */; };
-		6A276F5827E5B40400898A73 /* Data+sha256.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A276F5727E5B40400898A73 /* Data+sha256.swift */; };
 		6A2B9BE627ED24A00005467C /* PlanetArticleItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */; };
 		6A5E63A8280726AB00FB1E84 /* TemplateBrowserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63A7280726AB00FB1E84 /* TemplateBrowserManager.swift */; };
 		6A5E63AA2807297000FB1E84 /* TemplateBrowserWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63A92807297000FB1E84 /* TemplateBrowserWindow.swift */; };
@@ -60,9 +58,16 @@
 		6A6A146628215587009644B6 /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A146528215587009644B6 /* Template.swift */; };
 		6A6A1468282159DC009644B6 /* TemplateBrowserStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A1467282159DC009644B6 /* TemplateBrowserStore.swift */; };
 		6ABAB91828215FF30014F209 /* TemplatePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */; };
+		721141766BD5007724F8E7D6 /* fs-repo-migrations-arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 721149DE3028BBB04DB108B5 /* fs-repo-migrations-arm64 */; };
+		7211431A5867D4CF2960EC39 /* IPFSCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114270D79DBC89703262B9 /* IPFSCommand.swift */; };
+		72114509730D9D97178E0E82 /* IPFSState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721148C9E7BCB6F1BC539F57 /* IPFSState.swift */; };
+		72114526A36207759470E32B /* ipfs-arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 721146EB04A767526D0870E7 /* ipfs-arm64 */; };
+		7211453BC07C2E4A588D1618 /* URLUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143ED3BE78AB9D7C6C9A2 /* URLUtils.swift */; };
 		7211454FA6F933028B1A6F34 /* GoIPFSGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */; };
+		721148F88BE8ABCC52FEB501 /* IPFSDaemon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */; };
+		721149F1D60D3E4390673218 /* fs-repo-migrations-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 72114516610CA8411A2106F4 /* fs-repo-migrations-amd64 */; };
+		72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 7211456357838C0FE5DEECD0 /* ipfs-amd64 */; };
 		72114F25F504270EB29068C9 /* PlanetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211404DFC1B4D23F84EA279 /* PlanetError.swift */; };
-		BBBCF0B8280077DC008F172F /* HTTPURLResponse+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBCF0B7280077DC008F172F /* HTTPURLResponse+Extension.swift */; };
 		BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */ = {isa = PBXBuildFile; productRef = BBFE51EB27F3AABC0055A51A /* ENSKit */; };
 /* End PBXBuildFile section */
 
@@ -94,7 +99,6 @@
 		2AC4995C27BB758B00F1C2D1 /* Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		2AC4995F27BB945800F1C2D1 /* PlanetDataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDataController.swift; sourceTree = "<group>"; };
 		2AC4996127BB97A200F1C2D1 /* PlanetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetManager.swift; sourceTree = "<group>"; };
-		2AC4996327BB97D300F1C2D1 /* PlanetCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetCommand.swift; sourceTree = "<group>"; };
 		2AC4996527BB97F000F1C2D1 /* PlanetConfiguration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetConfiguration.swift; sourceTree = "<group>"; };
 		2AC4996727BB981200F1C2D1 /* Planet.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Planet.xcconfig; sourceTree = "<group>"; };
 		2AC4996927BB987B00F1C2D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -114,7 +118,6 @@
 		6A0172E727C9EE05006154B7 /* Basic.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Basic.html; sourceTree = "<group>"; };
 		6A0FB8A427FBA3A3008E203D /* Planet v4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v4.xcdatamodel"; sourceTree = "<group>"; };
 		6A0FB8A727FBB129008E203D /* SmartFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartFeedView.swift; sourceTree = "<group>"; };
-		6A276F5727E5B40400898A73 /* Data+sha256.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+sha256.swift"; sourceTree = "<group>"; };
 		6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleItemView.swift; sourceTree = "<group>"; };
 		6A5E63A7280726AB00FB1E84 /* TemplateBrowserManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserManager.swift; sourceTree = "<group>"; };
 		6A5E63A92807297000FB1E84 /* TemplateBrowserWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserWindow.swift; sourceTree = "<group>"; };
@@ -126,9 +129,16 @@
 		6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePreviewView.swift; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 		7211404DFC1B4D23F84EA279 /* PlanetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetError.swift; sourceTree = "<group>"; };
+		72114270D79DBC89703262B9 /* IPFSCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSCommand.swift; sourceTree = "<group>"; };
+		721143ED3BE78AB9D7C6C9A2 /* URLUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLUtils.swift; sourceTree = "<group>"; };
+		72114516610CA8411A2106F4 /* fs-repo-migrations-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "fs-repo-migrations-amd64"; path = "Planet/IPFS/go-ipfs-executables/fs-repo-migrations-amd64"; sourceTree = "<group>"; };
+		7211456357838C0FE5DEECD0 /* ipfs-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-amd64"; sourceTree = "<group>"; };
 		72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GoIPFSGateway.swift; sourceTree = "<group>"; };
+		721146EB04A767526D0870E7 /* ipfs-arm64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-arm64"; sourceTree = "<group>"; };
+		721148C9E7BCB6F1BC539F57 /* IPFSState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSState.swift; sourceTree = "<group>"; };
+		721149DE3028BBB04DB108B5 /* fs-repo-migrations-arm64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "fs-repo-migrations-arm64"; path = "Planet/IPFS/go-ipfs-executables/fs-repo-migrations-arm64"; sourceTree = "<group>"; };
+		72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSDaemon.swift; sourceTree = "<group>"; };
 		BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v6.xcdatamodel"; sourceTree = "<group>"; };
-		BBBCF0B7280077DC008F172F /* HTTPURLResponse+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HTTPURLResponse+Extension.swift"; sourceTree = "<group>"; };
 		BBC60A1A2803931C007A42D0 /* Planet v5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v5.xcdatamodel"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -186,6 +196,8 @@
 			children = (
 				2AC4994727BB6E7500F1C2D1 /* Planet */,
 				2AC4994627BB6E7500F1C2D1 /* Products */,
+				72114516610CA8411A2106F4 /* fs-repo-migrations-amd64 */,
+				721149DE3028BBB04DB108B5 /* fs-repo-migrations-arm64 */,
 			);
 			sourceTree = "<group>";
 		};
@@ -208,7 +220,6 @@
 				2AC4995827BB756300F1C2D1 /* PlanetStore.swift */,
 				2AC4995F27BB945800F1C2D1 /* PlanetDataController.swift */,
 				2AC4996127BB97A200F1C2D1 /* PlanetManager.swift */,
-				2AC4996327BB97D300F1C2D1 /* PlanetCommand.swift */,
 				2AC4996527BB97F000F1C2D1 /* PlanetConfiguration.swift */,
 				2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */,
 				2A732308280983380040BDBD /* PlanetStatusViewModel.swift */,
@@ -222,6 +233,7 @@
 				2AC4997227BC0EBA00F1C2D1 /* Planet.xcdatamodeld */,
 				2AC4994E27BB6E7600F1C2D1 /* Preview Content */,
 				2A129CD2281D4F7D009443DC /* Credits.rtf */,
+				72114ABE784F27251FE3A0BD /* IPFS */,
 			);
 			path = Planet;
 			sourceTree = "<group>";
@@ -238,9 +250,8 @@
 			isa = PBXGroup;
 			children = (
 				2AC4995C27BB758B00F1C2D1 /* Extensions.swift */,
-				6A276F5727E5B40400898A73 /* Data+sha256.swift */,
-				BBBCF0B7280077DC008F172F /* HTTPURLResponse+Extension.swift */,
 				72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */,
+				721143ED3BE78AB9D7C6C9A2 /* URLUtils.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -307,6 +318,26 @@
 			path = TemplateBrowser;
 			sourceTree = "<group>";
 		};
+		721141137EDE4A3E5706D234 /* go-ipfs-executables */ = {
+			isa = PBXGroup;
+			children = (
+				7211456357838C0FE5DEECD0 /* ipfs-amd64 */,
+				721146EB04A767526D0870E7 /* ipfs-arm64 */,
+			);
+			path = "go-ipfs-executables";
+			sourceTree = "<group>";
+		};
+		72114ABE784F27251FE3A0BD /* IPFS */ = {
+			isa = PBXGroup;
+			children = (
+				721148C9E7BCB6F1BC539F57 /* IPFSState.swift */,
+				72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */,
+				72114270D79DBC89703262B9 /* IPFSCommand.swift */,
+				721141137EDE4A3E5706D234 /* go-ipfs-executables */,
+			);
+			path = IPFS;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -358,8 +389,8 @@
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
-				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */,
-				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */,
+				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */,
+				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */,
 				2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */,
 				BBFE51EA27F3AABC0055A51A /* XCRemoteSwiftPackageReference "ENSKit" */,
 			);
@@ -385,6 +416,10 @@
 				6A0172E827C9EE05006154B7 /* Basic.html in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
 				2AC4997127BB9F2200F1C2D1 /* TemplateTON.html in Resources */,
+				72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */,
+				72114526A36207759470E32B /* ipfs-arm64 in Resources */,
+				721149F1D60D3E4390673218 /* fs-repo-migrations-amd64 in Resources */,
+				721141766BD5007724F8E7D6 /* fs-repo-migrations-arm64 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -405,7 +440,6 @@
 				2A1DA2092820307D0039C3EF /* PlanetAvatarViewModel.swift in Sources */,
 				2A780CF927C76EF0007DC36A /* PlanetAvatarView.swift in Sources */,
 				2AC4996227BB97A200F1C2D1 /* PlanetManager.swift in Sources */,
-				2AC4996427BB97D300F1C2D1 /* PlanetCommand.swift in Sources */,
 				2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */,
 				2AC4995D27BB758B00F1C2D1 /* Extensions.swift in Sources */,
 				6ABAB91828215FF30014F209 /* TemplatePreviewView.swift in Sources */,
@@ -417,7 +451,6 @@
 				2A09A35F27C2581F0003A0B5 /* PlanetSidebarView.swift in Sources */,
 				2AF1318727C7CDAF007792FE /* PlanetArticleView.swift in Sources */,
 				2A89D9DE27F7258A002EDA22 /* PlanetWriterEditView.swift in Sources */,
-				6A276F5827E5B40400898A73 /* Data+sha256.swift in Sources */,
 				2AC4995A27BB756400F1C2D1 /* PlanetStore.swift in Sources */,
 				2A441BAC27C40AAC0008A694 /* PlanetWriterWindow.swift in Sources */,
 				2AF4003927F2321F005DF1A9 /* PlanetWriterTextView.swift in Sources */,
@@ -434,12 +467,15 @@
 				6A6A146628215587009644B6 /* Template.swift in Sources */,
 				6A2B9BE627ED24A00005467C /* PlanetArticleItemView.swift in Sources */,
 				2A7D1BF427CA1B0A00D3C091 /* EditPlanetView.swift in Sources */,
-				BBBCF0B8280077DC008F172F /* HTTPURLResponse+Extension.swift in Sources */,
 				2AF4006427F37992005DF1A9 /* PlanetWriterPreviewView.swift in Sources */,
 				6A5E63AC28072AD400FB1E84 /* TemplateBrowserView.swift in Sources */,
 				2AC4996027BB945800F1C2D1 /* PlanetDataController.swift in Sources */,
 				72114F25F504270EB29068C9 /* PlanetError.swift in Sources */,
 				7211454FA6F933028B1A6F34 /* GoIPFSGateway.swift in Sources */,
+				72114509730D9D97178E0E82 /* IPFSState.swift in Sources */,
+				721148F88BE8ABCC52FEB501 /* IPFSDaemon.swift in Sources */,
+				7211431A5867D4CF2960EC39 /* IPFSCommand.swift in Sources */,
+				7211453BC07C2E4A588D1618 /* URLUtils.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -655,7 +691,7 @@
 				minimumVersion = 9.0.0;
 			};
 		};
-		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
+		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
 			requirement = {
@@ -663,7 +699,7 @@
 				kind = branch;
 			};
 		};
-		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */ = {
+		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/johnsundell/ink.git";
 			requirement = {
@@ -689,12 +725,12 @@
 		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
+			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */;
 			productName = Stencil;
 		};
 		6A0172EA27C9FD5F006154B7 /* Ink */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */;
+			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */;
 			productName = Ink;
 		};
 		BBFE51EB27F3AABC0055A51A /* ENSKit */ = {

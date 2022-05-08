@@ -129,8 +129,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         PlanetDataController.shared.cleanupDatabase()
         PlanetDataController.shared.save()
         PlanetManager.shared.cleanup()
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
-             NSApplication.shared.reply(toApplicationShouldTerminate: true)
+        Task.init {
+            await IPFSDaemon.shared.shutdownDaemon()
+            await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
     }

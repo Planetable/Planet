@@ -80,7 +80,17 @@ class PlanetWriterManager: NSObject {
 
             // publish
             Task.init(priority: .background) {
-                await PlanetManager.shared.publish(planet)
+                if !(await planet.isPublishing) {
+                    await MainActor.run {
+                        planet.isPublishing = true
+                    }
+                    do {
+                        try await PlanetManager.shared.publish(planet)
+                    } catch {}
+                    await MainActor.run {
+                        planet.isPublishing = false
+                    }
+                }
             }
         }
 
@@ -88,7 +98,7 @@ class PlanetWriterManager: NSObject {
     }
 
     func articlePath(articleID: UUID, planetID: UUID) -> URL? {
-        let path = PlanetManager.shared.planetsPath.appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString)
+        let path = URLUtils.planetsPath.appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString)
         if FileManager.default.fileExists(atPath: path.path) {
             return path
         }
@@ -96,7 +106,7 @@ class PlanetWriterManager: NSObject {
     }
 
     func setupArticlePath(articleID: UUID, planetID: UUID) {
-        let path = PlanetManager.shared.planetsPath.appendingPathComponent(planetID.uuidString)
+        let path = URLUtils.planetsPath.appendingPathComponent(planetID.uuidString)
         try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
         try? FileManager.default.createDirectory(at: path.appendingPathComponent(articleID.uuidString), withIntermediateDirectories: true, attributes: nil)
     }
@@ -230,7 +240,7 @@ class PlanetWriterManager: NSObject {
     // MARK: -
 
     var draftPath: URL {
-        let contentPath = PlanetManager.shared.basePath.appendingPathComponent("drafts", isDirectory: true)
+        let contentPath = URLUtils.basePath.appendingPathComponent("drafts", isDirectory: true)
         if !FileManager.default.fileExists(atPath: contentPath.path) {
             try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
         }

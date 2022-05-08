@@ -84,25 +84,23 @@ struct CreatePlanetView: View {
                 Spacer()
 
                 Button {
-                    dismiss()
-                    Task.init(priority: .utility) {
-                        let (keyName, keyID) = await PlanetManager.shared.generateKeys()
-                        guard let keyName = keyName else {
-                            return
-                        }
-                        guard let keyID = keyID else {
-                            return
-                        }
-                        if keyName != "" && keyID != "" {
+                    Task.init {
+                        do {
+                            let id = UUID()
+                            let key = try await IPFSDaemon.shared.generateKey(name: id.uuidString)
                             let _ = PlanetDataController.shared.createPlanet(
-                                    withID: UUID(uuidString: keyName)!,
-                                    name: planetName, about: planetDescription,
-                                    keyName: keyName,
-                                    keyID: keyID,
-                                    ipns: keyID
+                                withID: id,
+                                name: planetName,
+                                about: planetDescription,
+                                keyName: id.uuidString,
+                                keyID: key,
+                                ipns: key
                             )
                             PlanetDataController.shared.save()
+                        } catch {
+                            PlanetManager.shared.alert(title: "Failed to create planet")
                         }
+                        dismiss()
                     }
                 } label: {
                     Text("Create")
