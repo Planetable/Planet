@@ -5,4 +5,5 @@ import os
     static let shared = IPFSState()
 
     @Published var online = false
+    @Published var peers = 0
 }

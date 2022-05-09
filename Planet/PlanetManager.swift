@@ -49,10 +49,6 @@ class PlanetManager: NSObject {
 
         publishTimer = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { [self] timer in publishLocalPlanets() }
         feedTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [self] timer in updateFollowingPlanets() }
-
-        Task.init {
-            await IPFSDaemon.shared.launchDaemon()
-        }
     }
 
     func cleanup() {
@@ -85,7 +81,7 @@ class PlanetManager: NSObject {
             let decoder = JSONDecoder()
             let peers = try decoder.decode(PlanetPeers.self, from: data)
             await MainActor.run {
-                PlanetStatusViewModel.shared.peersCount = peers.peers?.count ?? 0
+                IPFSState.shared.peers = peers.peers?.count ?? 0
             }
         } catch {}
         return 0
@@ -297,7 +293,6 @@ class PlanetManager: NSObject {
 
     func publishLocalPlanets() {
         Task.init(priority: .background) {
-            guard PlanetStatusViewModel.shared.daemonIsOnline else { return }
             let planets = PlanetDataController.shared.getLocalPlanets()
             debugPrint("publishing local planets: \(planets) ...")
             for planet in planets {
@@ -319,7 +314,6 @@ class PlanetManager: NSObject {
 
     func updateFollowingPlanets() {
         Task.init(priority: .background) {
-            guard PlanetStatusViewModel.shared.daemonIsOnline else { return }
             let planets = PlanetDataController.shared.getFollowingPlanets()
             debugPrint("updating following planets: \(planets) ...")
             for planet in planets {
@@ -333,15 +327,6 @@ class PlanetManager: NSObject {
                     }
                 }
             }
-        }
-    }
-
-    func updatePlanetStatus() {
-        Task.init(priority: .background) {
-            await IPFSDaemon.shared.updateOnlineStatus()
-        }
-        Task.init(priority: .background) {
-            await checkPeersStatus()
         }
     }
 

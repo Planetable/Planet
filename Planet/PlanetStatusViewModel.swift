@@ -12,8 +12,6 @@ import Combine
 
 class PlanetStatusViewModel: ObservableObject {
     static let shared = PlanetStatusViewModel()
-    @Published var daemonIsOnline: Bool = false
-    @Published var peersCount: Int = 0
     @Published var publishingPlanets: Set<UUID> = Set()
     @Published var updatingPlanets: Set<UUID> = Set()
     @Published var lastPublishedDates: [UUID: Date] = [:]

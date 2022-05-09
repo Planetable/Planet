@@ -72,6 +72,7 @@ struct PlanetSidebarToolbarButtonView: View {
 
 struct PlanetSidebarView: View {
     @EnvironmentObject private var planetStore: PlanetStore
+    @EnvironmentObject var ipfs: IPFSState
 
     @FetchRequest(
             sortDescriptors: [SortDescriptor(\.created, order: .reverse)],
@@ -324,8 +325,8 @@ struct PlanetSidebarView: View {
             HStack(spacing: 6) {
                 Circle()
                 .frame(width: 11, height: 11, alignment: .center)
-                .foregroundColor((statusViewModel.daemonIsOnline && statusViewModel.peersCount > 0) ? Color.green : Color.red)
-                Text(statusViewModel.peersCount == 0 ? "Offline" : "Online (\(statusViewModel.peersCount))")
+                .foregroundColor(ipfs.online ? Color.green : Color.red)
+                Text(ipfs.online ? "Online (\(ipfs.peers))" : "Offline")
                 .font(.body)
 
                 Spacer()

@@ -101,15 +101,6 @@ class IPFSDaemon {
         } else {
             fatalError("Unable to find open gateway port for IPFS")
         }
-
-        Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [self] timer in
-            Task.init {
-                await updateOnlineStatus()
-                if !(await IPFSState.shared.online) {
-                    launchDaemon()
-                }
-            }
-        }
     }
 
     // Reference: https://stackoverflow.com/a/65162953
