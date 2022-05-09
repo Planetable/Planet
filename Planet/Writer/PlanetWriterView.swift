@@ -203,8 +203,10 @@ struct PlanetWriterView: View {
         if PlanetStore.shared.activeWriterID == targetID {
             PlanetStore.shared.activeWriterID = .init()
         }
-        PlanetWriterManager.shared.removeDraft(articleID: targetID)
-        PlanetWriterViewModel.shared.removeEditings(articleID: targetID)
+        defer {
+            PlanetWriterManager.shared.removeDraft(articleID: targetID)
+            PlanetWriterViewModel.shared.removeEditings(articleID: targetID)
+        }
 
         guard isEditing else { return }
 
@@ -225,16 +227,33 @@ struct PlanetWriterView: View {
             return
         }
 
-        var added: [URL] = []
+        // remove added uploadings, recover removed uploadings.
+        var added: Set<URL> = Set<URL>()
         for uploading in uploadings {
             if !originals.contains(uploading) {
-
+                added.insert(uploading)
             }
         }
-        debugPrint("Continue adding or removing uploadings.")
-        // remove added uploadings
-        // recover removed uploadings
-
+        var removed: Set<URL> = Set<URL>()
+        for original in originals {
+            if !uploadings.contains(original) {
+                removed.insert(original)
+            }
+        }
+        for add in added {
+            do {
+                try FileManager.default.removeItem(at: add)
+            } catch {
+                debugPrint("failed to delete added file: \(add), article: \(targetID), error: \(error)")
+            }
+        }
+        for remove in removed {
+            do {
+                try PlanetWriterManager.shared.recoverDeletedUploading(articleID: targetID, planetID: originalPlanetID, fileURL: remove)
+            } catch {
+                debugPrint("failed to recover deleted file: \(remove), article: \(targetID), error: \(error)")
+            }
+        }
     }
 
     @MainActor

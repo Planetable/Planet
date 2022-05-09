@@ -20,6 +20,8 @@ class PlanetWriterManager: NSObject {
     var articleTemplateName: String
     var writerTemplateName: String
 
+    let backupFileQueue: DispatchQueue
+
     override init() {
         let basicTemplatePath = Bundle.main.url(forResource: "Basic", withExtension: "html")!
         let previewTemplatePath = Bundle.main.url(forResource: "WriterBasic", withExtension: "html")!
@@ -27,6 +29,7 @@ class PlanetWriterManager: NSObject {
         outputEnv = Environment(loader: FileSystemLoader(paths: [Path(basicTemplatePath.path)]))
         writerTemplateName = previewTemplatePath.path
         articleTemplateName = basicTemplatePath.path
+        backupFileQueue = DispatchQueue.init(label: "planet.writer.backup.queue")
     }
 
     func renderHTML(fromContent c: String) -> String {
@@ -151,6 +154,29 @@ class PlanetWriterManager: NSObject {
             await MainActor.run {
                 PlanetWriterViewModel.shared.removeAllUploadings(articleID: articleID)
             }
+        }
+    }
+
+    func backupUploading(articleID: UUID, fileURL url: URL) throws {
+        let draftPath = articleDraftPath(articleID: articleID)
+        let targetPath = draftPath.appendingPathComponent(url.lastPathComponent)
+        do {
+            try FileManager.default.copyItem(at: url, to: targetPath)
+        } catch {
+            debugPrint("failed to backup file \(url) to \(targetPath), article: \(articleID), error: \(error)")
+        }
+    }
+    
+    func recoverDeletedUploading(articleID: UUID, planetID: UUID, fileURL url: URL) throws {
+        let draftPath = articleDraftPath(articleID: articleID)
+        guard let articlePath = articlePath(articleID: articleID, planetID: planetID) else { return }
+        let filename = url.lastPathComponent
+        let backupPath = draftPath.appendingPathComponent(filename)
+        let targetPath = articlePath.appendingPathComponent(filename)
+        do {
+            try FileManager.default.moveItem(at: backupPath, to: targetPath)
+        } catch {
+            debugPrint("failed to recover file \(targetPath), from \(backupPath), article: \(articleID), planet: \(planetID), error: \(error)")
         }
     }
 
