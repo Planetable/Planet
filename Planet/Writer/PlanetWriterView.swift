@@ -188,8 +188,6 @@ struct PlanetWriterView: View {
                 NotificationCenter.default.post(name: n, object: originalContent)
             }
             await viewModel.updateUploadings(articleID: targetID, urls: originalUploadings)
-            debugPrint("Edit Mode: \(title) -> \(content), uploadings: \(originalUploadings)")
-            debugPrint("View Model: active id: \(viewModel.activeTargetID), editings: \(viewModel.editings), uploadings: \(viewModel.uploadings)")
         }
     }
 
@@ -279,7 +277,6 @@ struct PlanetWriterView: View {
 
     @MainActor
     private func updateAction() {
-        // MARK: TODO: update edit.
         Task.init {
             try await PlanetDataController.shared.updateArticle(withID: targetID, title: title, content: content)
             if PlanetStore.shared.writerIDs.contains(targetID) {
@@ -289,7 +286,9 @@ struct PlanetWriterView: View {
                 PlanetStore.shared.activeWriterID = .init()
             }
         }
+
         defer {
+            // remove draft
             PlanetWriterManager.shared.removeDraft(articleID: targetID)
             PlanetWriterViewModel.shared.removeEditings(articleID: targetID)
         }
@@ -311,8 +310,6 @@ struct PlanetWriterView: View {
 
         // publish
         PlanetManager.shared.publishLocalPlanets()
-
-        // remove draft
     }
 
     private func uploadImagesAction() -> [URL]? {
