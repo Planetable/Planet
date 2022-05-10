@@ -146,6 +146,15 @@ struct IPFSCommand {
         ])
     }
 
+    static func setPeers(peersJSON: String) -> IPFSCommand {
+        IPFSCommand(arguments: [
+            "config",
+            "Peering.Peers",
+            peersJSON,
+            "--json"
+        ])
+    }
+
     static func generateKey(name: String) -> IPFSCommand {
         IPFSCommand(arguments: ["key", "gen", name])
     }
@@ -163,7 +172,7 @@ struct IPFSCommand {
     }
 
     static func launchDaemon() -> IPFSCommand {
-        IPFSCommand(arguments: ["daemon", "--enable-namesys-pubsub", "--enable-pubsub-experiment", "--migrate=true"])
+        IPFSCommand(arguments: ["daemon", "--enable-namesys-pubsub", "--enable-pubsub-experiment"])
     }
 
     static func shutdownDaemon() -> IPFSCommand {

@@ -1,5 +1,6 @@
 import Foundation
 import os
+import SwiftyJSON
 
 @globalActor actor IPFSActor {
     static let shared: IPFSActor = .init()
@@ -100,6 +101,28 @@ class IPFSDaemon {
             gatewayPort = port
         } else {
             fatalError("Unable to find open gateway port for IPFS")
+        }
+
+        // add peering
+        // peers from https://docs.ipfs.io/how-to/peering-with-content-providers/#content-provider-list
+        // adding Cloudflare and ProtocolLabs
+        // last updated: 2022-05-09
+        logger.info("Setting peers")
+        let peers = JSON([
+            ["ID": "QmcfgsJsMtx6qJb74akCw1M24X1zFwgGo11h1cuhwQjtJP", "Addrs": ["/ip6/2606:4700:60::6/tcp/4009", "/ip4/172.65.0.13/tcp/4009"]],
+            ["ID": "QmUEMvxS2e7iDrereVYc5SWPauXPyNwxcy9BXZrC1QTcHE", "Addrs": ["/dns/cluster0.fsn.dwebops.pub"]],
+            ["ID": "QmNSYxZAiJHeLdkBg38roksAR9So7Y5eojks1yjEcUtZ7i", "Addrs": ["/dns/cluster1.fsn.dwebops.pub"]],
+            ["ID": "QmUd6zHcbkbcs7SMxwLs48qZVX3vpcM8errYS7xEczwRMA", "Addrs": ["/dns/cluster2.fsn.dwebops.pub"]],
+            ["ID": "QmbVWZQhCGrS7DhgLqWbgvdmKN7JueKCREVanfnVpgyq8x", "Addrs": ["/dns/cluster3.fsn.dwebops.pub"]],
+            ["ID": "QmdnXwLrC8p1ueiq2Qya8joNvk3TVVDAut7PrikmZwubtR", "Addrs": ["/dns/cluster4.fsn.dwebops.pub"]],
+            ["ID": "12D3KooWCRscMgHgEo3ojm8ovzheydpvTEqsDtq7Vby38cMHrYjt", "Addrs": ["/dns4/nft-storage-am6.nft.dwebops.net/tcp/18402"]],
+            ["ID": "12D3KooWQtpvNvUYFzAo1cRYkydgk15JrMSHp6B6oujqgYSnvsVm", "Addrs": ["/dns4/nft-storage-dc13.nft.dwebops.net/tcp/18402"]],
+            ["ID": "12D3KooWQcgCwNCTYkyLXXQSZuL5ry1TzpM8PRe9dKddfsk1BxXZ", "Addrs": ["/dns4/nft-storage-sv15.nft.dwebops.net/tcp/18402"]],
+        ])
+        guard let result = try? IPFSCommand.setPeers(peersJSON: String(data: peers.rawData(), encoding: .utf8)!).run(),
+              result.ret == 0
+        else {
+            fatalError("Unable to set peers for IPFS")
         }
     }
 
