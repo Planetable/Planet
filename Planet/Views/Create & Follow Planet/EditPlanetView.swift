@@ -88,7 +88,14 @@ struct EditPlanetView: View {
                 Button {
                     Task.init {
                         PlanetDataController.shared.updatePlanet(planet: planet, name: planetName, about: planetDescription)
-                        await PlanetManager.shared.publish(planet)
+                        if !planet.isPublishing {
+                            planet.isPublishing = true
+                            do {
+                                try await PlanetManager.shared.publish(planet)
+                            } catch {}
+                            planet.isPublishing = false
+                        }
+
                         PlanetDataController.shared.save()
                         dismiss()
                     }

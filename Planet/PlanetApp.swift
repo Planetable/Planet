@@ -12,15 +12,18 @@ import SwiftUI
 struct PlanetApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject var planetStore: PlanetStore
+    @StateObject var ipfs: IPFSState
 
     init() {
         self._planetStore = StateObject(wrappedValue: PlanetStore.shared)
+        self._ipfs = StateObject(wrappedValue: IPFSState.shared)
     }
 
     var body: some Scene {
         WindowGroup {
             PlanetMainView()
                 .environmentObject(planetStore)
+                .environmentObject(ipfs)
                 .environment(\.managedObjectContext, PlanetDataController.shared.persistentContainer.viewContext)
         }
         .handlesExternalEvents(matching: Set(arrayLiteral: "Planet"))
@@ -116,6 +119,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         PlanetDataController.shared.cleanupDatabase()
         PlanetManager.shared.setup()
+        Task.init {
+            await IPFSDaemon.shared.launchDaemon()
+            await MainActor.run {
+                let _ = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { timer in
+                    Task.init {
+                        await IPFSDaemon.shared.updateOnlineStatus()
+                        // TODO: move API calls into IPFSDaemon
+                        let _ = await PlanetManager.shared.checkPeersStatus()
+                        if !(IPFSState.shared.online) {
+                            await IPFSDaemon.shared.launchDaemon()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -129,8 +147,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         PlanetDataController.shared.cleanupDatabase()
         PlanetDataController.shared.save()
         PlanetManager.shared.cleanup()
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
-             NSApplication.shared.reply(toApplicationShouldTerminate: true)
+        Task.init {
+            await IPFSDaemon.shared.shutdownDaemon()
+            await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
     }

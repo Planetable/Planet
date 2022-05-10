@@ -7,37 +7,75 @@
 
 import Foundation
 import Cocoa
+import CommonCrypto
 import SwiftUI
 
+extension Data {
+    private func digest(input : NSData) -> NSData {
+        let digestLength = Int(CC_SHA256_DIGEST_LENGTH)
+        var hash = [UInt8](repeating: 0, count: digestLength)
+        CC_SHA256(input.bytes, UInt32(input.length), &hash)
+        return NSData(bytes: hash, length: digestLength)
+    }
 
+    private func hexStringFromData(input: NSData) -> String {
+        var bytes = [UInt8](repeating: 0, count: input.length)
+        input.getBytes(&bytes, length: input.length)
+
+        var hexString = ""
+        for byte in bytes {
+            hexString += String(format:"%02x", UInt8(byte))
+        }
+
+        return hexString
+    }
+
+    func logFormat(encoding: String.Encoding = .utf8) -> String {
+        String(data: self, encoding: encoding) ?? String(describing: self)
+    }
+}
+
+public extension String {
+
+}
 extension String {
     static let currentUUIDKey: String = "PlanetCurrentUUIDKey"
     static let settingsLaunchOptionKey = "PlanetUserDefaultsLaunchOptionKey"
-    
+
     func sanitized() -> String {
         // see for ressoning on charachrer sets https://superuser.com/a/358861
         let invalidCharacters = CharacterSet(charactersIn: "\\/:*?\"<>|")
             .union(.newlines)
             .union(.illegalCharacters)
             .union(.controlCharacters)
-        
-        return self
-            .components(separatedBy: invalidCharacters)
-            .joined(separator: "")
+
+        return components(separatedBy: invalidCharacters).joined(separator: "")
     }
-    
+
     mutating func sanitize() -> Void {
-        self = self.sanitized()
+        self = sanitized()
     }
-    
+
     func whitespaceCondenced() -> String {
-        return self.components(separatedBy: .whitespacesAndNewlines)
+        components(separatedBy: .whitespacesAndNewlines)
             .filter { !$0.isEmpty }
             .joined(separator: " ")
     }
-    
+
     mutating func condenceWhitespace() -> Void {
-        self = self.whitespaceCondenced()
+        self = whitespaceCondenced()
+    }
+
+    func sha256() -> String {
+        data(using: .utf8)!.sha256().toHexString()
+    }
+
+    func toDate() -> Date? {
+        ISO8601DateFormatter().date(from: self)
+    }
+
+    func trim() -> String {
+        trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
@@ -59,14 +97,14 @@ extension Date {
         format.timeStyle = .medium
         return format.string(from: self)
     }
-    
+
     func shortDateDescription() -> String {
         let format = DateFormatter()
         format.dateStyle = .none
         format.timeStyle = .medium
         return format.string(from: self)
     }
-    
+
     func mmddyyyy() -> String {
         let format = DateFormatter()
         format.dateStyle = .medium
@@ -107,7 +145,6 @@ extension Dictionary : URLQueryParameterStringConvertible {
         }
         return parts.joined(separator: "&")
     }
-    
 }
 
 
@@ -158,7 +195,6 @@ extension Color {
     }
 }
 
-
 extension NSImage {
     func imageResize(_ newSize: NSSize) -> NSImage? {
         autoreleasepool {
@@ -200,5 +236,29 @@ extension FileManager {
         return files.filter { fileURL in
             fileURL.hasDirectoryPath
         }
+    }
+}
+
+extension HTTPURLResponse {
+    var ok: Bool {
+        statusCode >= 200 && statusCode < 300
+    }
+}
+
+extension ProcessInfo {
+    // Reference: https://developer.apple.com/forums/thread/652667
+    var machineHardwareName: String? {
+        var sysinfo = utsname()
+        let result = uname(&sysinfo)
+        guard result == EXIT_SUCCESS else { return nil }
+        let data = Data(bytes: &sysinfo.machine, count: Int(_SYS_NAMELEN))
+        guard let identifier = String(bytes: data, encoding: .ascii) else { return nil }
+        return identifier.trimmingCharacters(in: .controlCharacters)
+    }
+}
+
+extension Task where Success == Never, Failure == Never {
+    static func sleep(seconds: UInt64) async throws {
+        try await sleep(nanoseconds: seconds * NSEC_PER_SEC)
     }
 }

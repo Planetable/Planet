@@ -187,6 +187,14 @@ extension Planet {
         }
     }
 
+    var avatarPath: URL {
+        let path = URLUtils.planetsPath.appendingPathComponent(id!.uuidString)
+        if !FileManager.default.fileExists(atPath: path.path) {
+            try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
+        }
+        return path.appendingPathComponent("avatar.png")
+    }
+
     func generateAvatarName() -> String {
         guard let name = name else {
             return ""
@@ -199,6 +207,25 @@ extension Planet {
         } else {
             return name.prefix(1).capitalized
         }
+    }
+
+    func updateAvatar(image: NSImage, isEditing: Bool = false) {
+        let targetImage = PlanetManager.shared.resizedAvatarImage(image: image)
+        targetImage.imageSave(avatarPath)
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .updateAvatar, object: nil)
+        }
+    }
+
+    func removeAvatar() {
+        try? FileManager.default.removeItem(at: avatarPath)
+    }
+
+    func avatar() -> NSImage? {
+        if FileManager.default.fileExists(atPath: avatarPath.path) {
+            return NSImage(contentsOf: avatarPath)
+        }
+        return nil
     }
 
     var gradients: [Gradient] {

@@ -109,7 +109,11 @@ struct PlanetAboutView: View {
                         Button {
                             dismiss()
                             Task.init {
-                                await PlanetManager.shared.publish(planet)
+                                planet.isPublishing = true
+                                do {
+                                    try await PlanetManager.shared.publish(planet)
+                                } catch {}
+                                planet.isPublishing = false
                             }
                         } label: {
                             Text(planet.isPublishing ? "Publishing" : "Publish")
@@ -215,11 +219,5 @@ struct PlanetAboutView: View {
             return "Published " + published.relativeDateDescription()
         }
         return "Never Published"
-    }
-}
-
-struct PlanetAboutView_Previews: PreviewProvider {
-    static var previews: some View {
-        PlanetAboutView(planet: Planet())
     }
 }

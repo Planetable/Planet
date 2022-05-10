@@ -22,7 +22,7 @@ struct PlanetAvatarView: View {
         self.size = size
         self.inEditMode = inEditMode
         _avatarViewModel = ObservedObject(wrappedValue: PlanetAvatarViewModel.shared)
-        if let img = PlanetManager.shared.avatar(forPlanet: planet) {
+        if let img = planet.avatar() {
             _updatedAvatarImage = State(wrappedValue: img)
         }
     }
@@ -52,14 +52,14 @@ struct PlanetAvatarView: View {
         .fileImporter(isPresented: $isChoosingAvatarImage, allowedContentTypes: [.png, .jpeg, .tiff], allowsMultipleSelection: false) { result in
             if let urls = try? result.get(), let url = urls.first, let img = NSImage(contentsOf: url) {
                 let targetImage = PlanetManager.shared.resizedAvatarImage(image: img)
-                PlanetManager.shared.updateAvatar(forPlanet: planet, image: targetImage, isEditing: inEditMode)
+                planet.updateAvatar(image: targetImage, isEditing: inEditMode)
                 DispatchQueue.main.async {
                     self.updatedAvatarImage = targetImage
                 }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .updateAvatar, object: nil)) { _ in
-            if let img = PlanetManager.shared.avatar(forPlanet: planet) {
+            if let img = planet.avatar() {
                 DispatchQueue.main.async {
                     self.updatedAvatarImage = img
                 }
@@ -79,7 +79,7 @@ struct PlanetAvatarView: View {
                     }
 
                     Button {
-                        PlanetManager.shared.removeAvatar(forPlanet: planet)
+                        planet.removeAvatar()
                         NotificationCenter.default.post(name: .updateAvatar, object: nil)
                         DispatchQueue.main.async {
                             self.updatedAvatarImage = nil

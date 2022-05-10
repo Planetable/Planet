@@ -117,23 +117,15 @@ class PlanetDataController: NSObject {
 
         // check if IPNS has latest CID changes
         debugPrint("Check if planet \(planet) has update...")
-        let result = try runCommand(command: .ipfsResolveIPNS(
-                target: PlanetManager.shared.ipfsPath,
-                config: PlanetManager.shared.ipfsConfigPath,
-                ipns: ipns
-        ))
-        guard let latestCID = result["Path"] as? String else {
-            debugPrint("ipfs name resolve \(ipns) has returned an unknown result: \(result)")
-            throw PlanetError.IPFSError
-        }
+        let latestCID = try await IPFSDaemon.shared.resolveIPNS(ipns: ipns)
         if latestCID == planet.latestCID {
             // no update, return
             debugPrint("Planet \(planet) has no update")
             return
         }
         debugPrint("Planet \(planet) has update, CID changed from \(planet.latestCID ?? "nil") to \(latestCID)")
-        // let prefix = "\(PlanetManager.shared.ipfsGateway)/ipns/\(ipns)/"
-        let prefix = "\(PlanetManager.shared.ipfsGateway)\(latestCID)"
+        // let prefix = "\(IPFSDaemon.shared.gateway)/ipns/\(ipns)/"
+        let prefix = "\(await IPFSDaemon.shared.gateway)\(latestCID)"
         let ipnsString = prefix + "/planet.json"
         let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         let (data, _) = try await URLSession.shared.data(for: request)
@@ -179,7 +171,7 @@ class PlanetDataController: NSObject {
             updatePlanetAvatar(planet: planet, image: image)
         }
 
-        PlanetManager.shared.pin(latestCID)
+        await PlanetManager.shared.pin(latestCID)
         planet.latestCID = latestCID
         planet.lastUpdated = Date()
     }
@@ -197,7 +189,7 @@ class PlanetDataController: NSObject {
             let s = contentHash.absoluteString
             let ipfs = String(s.suffix(from: s.index(s.startIndex, offsetBy: 7)))
             planet.ipfs = ipfs
-            let url = URL(string: "\(PlanetManager.shared.ipfsGateway)/ipfs/\(ipfs)")!
+            let url = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(ipfs)")!
             debugPrint("Trying to access IPFS content: \(url)")
             do {
                 let (_, response) = try await URLSession.shared.data(from: url)
@@ -211,11 +203,11 @@ class PlanetDataController: NSObject {
             }
             debugPrint("IPFS content OK: \(url)")
             if let IPFSContent = planet.IPFSContent {
-                PlanetManager.shared.pin(IPFSContent)
+                await PlanetManager.shared.pin(IPFSContent)
             }
             // Try detect if there is a feed
             // The better way would be to parse the HTML and check if it has a feed
-            let feedURL = URL(string: "\(PlanetManager.shared.ipfsGateway)/ipfs/\(ipfs)/feed.xml")!
+            let feedURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(ipfs)/feed.xml")!
             try await parsePlanetFeed(planet: planet, feedURL: feedURL)
         } else {
             throw PlanetError.InvalidPlanetURLError
@@ -224,7 +216,7 @@ class PlanetDataController: NSObject {
         let avatarResult = try await enskit.avatar(name: ens)
         debugPrint("ENSKit.avatar(\(ens)) => \(String(describing: avatarResult))")
         if let avatar = avatarResult, let image = NSImage(data: avatar) {
-            PlanetManager.shared.updateAvatar(forPlanet: planet, image: image)
+            planet.updateAvatar(image: image)
         }
     }
 
@@ -332,7 +324,7 @@ class PlanetDataController: NSObject {
 
     func updatePlanetAvatar(planet: Planet, image: NSImage) {
         do {
-            let planetPath = PlanetManager.shared.planetsPath.appendingPathComponent(planet.id!.uuidString)
+            let planetPath = URLUtils.planetsPath.appendingPathComponent(planet.id!.uuidString)
             if !FileManager.default.fileExists(atPath: planetPath.path) {
                 try FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true, attributes: nil)
             }
@@ -475,8 +467,10 @@ class PlanetDataController: NSObject {
             article.softDeleted = Date()
         }
         await MainActor.run {
-            PlanetStore.shared.currentPlanet = nil
-            PlanetStore.shared.currentArticle = nil
+            if PlanetStore.shared.currentPlanet == planet {
+                PlanetStore.shared.currentPlanet = nil
+                PlanetStore.shared.currentArticle = nil
+            }
         }
     }
 
