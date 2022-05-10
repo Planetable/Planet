@@ -21,7 +21,7 @@ struct PlanetArticleView: View {
             if let currentArticleID = planetStore.currentArticle?.id, let id = article.id, id == currentArticleID {
                 PlanetArticleWebView(url: $url, targetID: id)
                     .task(priority: .utility) {
-                        if let urlPath = PlanetManager.shared.articleURL(article: article) {
+                        if let urlPath = await PlanetManager.shared.articleURL(article: article) {
                             let now = Int(Date().timeIntervalSince1970)
                             url = URL(string: urlPath.absoluteString + "?\(now)")!
                             article.isRead = true
