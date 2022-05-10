@@ -19,29 +19,16 @@ struct PlanetArticleView: View {
     var body: some View {
         VStack {
             if let currentArticleID = planetStore.currentArticle?.id, let id = article.id, id == currentArticleID {
-                PlanetArticleWebView(url: $url)
+                PlanetArticleWebView(url: $url, targetID: id)
                     .task(priority: .utility) {
                         if let urlPath = PlanetManager.shared.articleURL(article: article) {
-                            url = urlPath
+                            let now = Int(Date().timeIntervalSince1970)
+                            url = URL(string: urlPath.absoluteString + "?\(now)")!
                             article.isRead = true
                             PlanetDataController.shared.save()
                         } else {
                             planetStore.currentArticle = nil
                             PlanetManager.shared.alert(title: "Failed to load article", message: "Please try again later.")
-                        }
-                    }
-                    .onReceive(NotificationCenter.default.publisher(for: .refreshArticle, object: nil)) { n in
-                        if let articleID = n.object as? UUID, let currentArticleID = article.id {
-                            guard articleID == currentArticleID else { return }
-                            Task.init(priority: .background) {
-                                if let urlPath = PlanetManager.shared.articleURL(article: article) {
-                                    let now = Int(Date().timeIntervalSince1970)
-                                    url = URL(string: urlPath.absoluteString + "?\(now)")!
-                                } else {
-                                    planetStore.currentArticle = nil
-                                    PlanetManager.shared.alert(title: "Failed to load article", message: "Please try again later.")
-                                }
-                            }
                         }
                     }
             } else {

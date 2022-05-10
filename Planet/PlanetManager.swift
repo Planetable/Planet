@@ -369,6 +369,7 @@ class PlanetManager: NSObject {
             debugPrint("failed to render article: \(error), at path: \(articleIndexPagePath)")
             return
         }
+        
         // save article.json
         let articleJSONPath = articlePath.appendingPathComponent("article.json")
         do {
@@ -381,8 +382,8 @@ class PlanetManager: NSObject {
         }
 
         // refresh
-        NotificationCenter.default.post(name: .refreshArticle, object: article.id!)
-        debugPrint("article \(article.id), rendered and refreshed at: \(articlePath)")
+        let refreshNotification = Notification.Name.notification(notification: .refreshArticle, forID: article.id!)
+        NotificationCenter.default.post(name: refreshNotification, object: nil)
     }
 
     func pin(_ endpoint: String) {
