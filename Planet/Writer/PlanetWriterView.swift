@@ -188,10 +188,8 @@ struct PlanetWriterView: View {
                 NotificationCenter.default.post(name: n, object: originalContent)
             }
             await viewModel.updateUploadings(articleID: targetID, urls: originalUploadings)
-
             debugPrint("Edit Mode: \(title) -> \(content), uploadings: \(originalUploadings)")
             debugPrint("View Model: active id: \(viewModel.activeTargetID), editings: \(viewModel.editings), uploadings: \(viewModel.uploadings)")
-
         }
     }
 
@@ -291,6 +289,33 @@ struct PlanetWriterView: View {
                 PlanetStore.shared.activeWriterID = .init()
             }
         }
+        defer {
+            PlanetWriterManager.shared.removeDraft(articleID: targetID)
+            PlanetWriterViewModel.shared.removeEditings(articleID: targetID)
+        }
+
+        // save updated article
+        guard let article = PlanetDataController.shared.getArticle(id: targetID) else { return }
+        article.title = title
+        article.content = content
+        PlanetDataController.shared.save()
+
+        // preview.html -> index.html
+        if let targetPath = PlanetWriterManager.shared.articlePath(articleID: targetID, planetID: originalPlanetID) {
+            let previewPath = targetPath.appendingPathComponent("preview.html")
+            let indexPath = targetPath.appendingPathComponent("index.html")
+            do {
+                try FileManager.default.removeItem(at: indexPath)
+                try FileManager.default.moveItem(at: previewPath, to: indexPath)
+            } catch {
+                debugPrint("failed to creating index.html, error: \(error)")
+            }
+        }
+
+        // render and publish article again
+        PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
+
+        // remove draft
     }
 
     private func uploadImagesAction() -> [URL]? {

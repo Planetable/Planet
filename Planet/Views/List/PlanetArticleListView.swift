@@ -54,9 +54,7 @@ struct PlanetArticleListView: View {
                                     Divider()
 
                                     Button {
-                                        Task.init {
-                                            await PlanetDataController.shared.refreshArticle(article)
-                                        }
+                                        PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
                                     } label: {
                                         Text("Refresh")
                                     }
