@@ -50,14 +50,6 @@ struct PlanetArticleListView: View {
                                     } label: {
                                         Text("Delete Article")
                                     }
-
-                                    Divider()
-
-                                    Button {
-                                        PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
-                                    } label: {
-                                        Text("Refresh")
-                                    }
                                 } else {
                                     Button {
                                         article.isRead = !article.isRead

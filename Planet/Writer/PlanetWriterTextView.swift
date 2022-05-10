@@ -20,7 +20,7 @@ struct PlanetWriterTextView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> PlanetWriterCustomTextView {
-        let textView = PlanetWriterCustomTextView(text: text, font: font)
+        let textView = PlanetWriterCustomTextView(text: text, writerID: writerID, font: font)
         textView.delegate = context.coordinator
         setupNotifications(forTextView: textView)
         return textView
@@ -149,13 +149,15 @@ class PlanetWriterCustomTextView: NSView {
         }
     }
 
-    init(text: String, font: NSFont?) {
+    init(text: String, writerID: UUID, font: NSFont?) {
         self.font = font
         self.text = text
         super.init(frame: .zero)
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { t in
             guard let scroller = self.scrollView.verticalScroller, self.lastOffset != scroller.floatValue else { return }
-            NotificationCenter.default.post(name: .scrollPage, object: NSNumber(value: scroller.floatValue))
+            let scrollNotification = Notification.Name.notification(notification: .scrollPage, forID: writerID)
+            NotificationCenter.default.post(name: scrollNotification, object: NSNumber(value: scroller.floatValue))
+            debugPrint("scrolling page to \(scroller.floatValue), writer: \(writerID)")
             self.lastOffset = scroller.floatValue
         }
     }

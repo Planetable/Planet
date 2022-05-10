@@ -44,7 +44,8 @@ class PlanetWriterManager: NSObject {
             let draftPath = articleDraftPath(articleID: id)
             let targetPath = draftPath.appendingPathComponent("preview.html")
             try output.data(using: .utf8)?.write(to: targetPath)
-            NotificationCenter.default.post(name: .reloadPage, object: targetPath)
+            let reloadNotification = Notification.Name.notification(notification: .reloadPage, forID: id)
+            NotificationCenter.default.post(name: reloadNotification, object: targetPath)
             return targetPath
         } catch {
             debugPrint("failed to render preview: \(content), error: \(error)")
@@ -58,7 +59,8 @@ class PlanetWriterManager: NSObject {
             let path = articlePath(articleID: id, planetID: planetID)!
             let targetPath = path.appendingPathComponent("preview.html")
             try output.data(using: .utf8)?.write(to: targetPath)
-            NotificationCenter.default.post(name: .reloadPage, object: targetPath)
+            let reloadNotification = Notification.Name.notification(notification: .reloadPage, forID: id)
+            NotificationCenter.default.post(name: reloadNotification, object: targetPath)
             return targetPath
         } catch {
             debugPrint("failed to render preview: \(content), error: \(error)")

@@ -105,7 +105,7 @@ struct PlanetWriterView: View {
                     }
                     .onDrop(of: [.fileURL], delegate: viewModel)
                 if isPreviewOpen {
-                    PlanetWriterPreviewView(url: previewPath)
+                    PlanetWriterPreviewView(url: previewPath, targetID: targetID)
                         .frame(minWidth: 400,
                                maxWidth: .infinity,
                                minHeight: 300,
@@ -300,20 +300,17 @@ struct PlanetWriterView: View {
         article.content = content
         PlanetDataController.shared.save()
 
-        // preview.html -> index.html
+        // render
+        PlanetManager.shared.renderArticle(article)
+
+        // remove preview.html
         if let targetPath = PlanetWriterManager.shared.articlePath(articleID: targetID, planetID: originalPlanetID) {
             let previewPath = targetPath.appendingPathComponent("preview.html")
-            let indexPath = targetPath.appendingPathComponent("index.html")
-            do {
-                try FileManager.default.removeItem(at: indexPath)
-                try FileManager.default.moveItem(at: previewPath, to: indexPath)
-            } catch {
-                debugPrint("failed to creating index.html, error: \(error)")
-            }
+            try? FileManager.default.removeItem(at: previewPath)
         }
 
-        // render and publish article again
-        PlanetManager.shared.renderArticleToDirectory(fromArticle: article)
+        // publish
+        PlanetManager.shared.publishLocalPlanets()
 
         // remove draft
     }

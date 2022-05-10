@@ -10,10 +10,11 @@ import SwiftUI
 
 struct PlanetWriterPreviewView: View {
     var url: URL!
+    var targetID: UUID
 
     var body: some View {
         VStack {
-            PlanetWriterWebView(url: url == nil ? Bundle.main.url(forResource: "WriterBasicPlaceholder", withExtension: "html")! : url)
+            PlanetWriterWebView(url: url == nil ? Bundle.main.url(forResource: "WriterBasicPlaceholder", withExtension: "html")! : url, targetID: targetID)
         }
     }
 }

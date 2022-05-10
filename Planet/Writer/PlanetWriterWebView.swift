@@ -14,6 +14,7 @@ struct PlanetWriterWebView: NSViewRepresentable {
 
     @State private var previousState: Any!
     var url: URL
+    var targetID: UUID
     @State var offset: CGFloat = 0
 
     let navigationHelper = PlanetWriterWebViewHelper()
@@ -22,13 +23,15 @@ struct PlanetWriterWebView: NSViewRepresentable {
         let webview = WKWebView()
         webview.navigationDelegate = navigationHelper
         webview.loadFileRequest(URLRequest(url: url), allowingReadAccessTo: url)
-        NotificationCenter.default.addObserver(forName: .reloadPage, object: nil, queue: .main) { n in
+        let reloadNotification = Notification.Name.notification(notification: .reloadPage, forID: targetID)
+        NotificationCenter.default.addObserver(forName: reloadNotification, object: nil, queue: .main) { n in
             guard let targetPath = n.object as? URL else { return }
             debugPrint("reloading url: \(targetPath)")
             webview.loadFileRequest(URLRequest(url: targetPath), allowingReadAccessTo: targetPath)
             self.executeJSActions(withWebView: webview, js: "refreshPreview();")
         }
-        NotificationCenter.default.addObserver(forName: .scrollPage, object: nil, queue: .main) { n in
+        let scrollNotification = Notification.Name.notification(notification: .scrollPage, forID: targetID)
+        NotificationCenter.default.addObserver(forName: scrollNotification, object: nil, queue: .main) { n in
             guard let offset = n.object as? NSNumber else { return }
             debugPrint("scrolling to offset: \(offset.floatValue)")
             self.executeJSActions(withWebView: webview, js: "scrollPosition(\(offset.floatValue));")
@@ -46,7 +49,7 @@ struct PlanetWriterWebView: NSViewRepresentable {
             if let error = error {
                 debugPrint("failed to evaluate js: \(error)")
             } else {
-                debugPrint("js evaluated.")
+                debugPrint("js evaluated: \(js)")
             }
         }
     }

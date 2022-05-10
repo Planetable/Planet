@@ -338,7 +338,7 @@ class PlanetManager: NSObject {
         article.read != nil
     }
 
-    func renderArticleToDirectory(fromArticle article: PlanetArticle, templateIndex: Int = 0) {
+    func renderArticle(_ article: PlanetArticle) {
         debugPrint("about to render article: \(article)")
         let planetPath = planetsPath.appendingPathComponent(article.planetID!.uuidString)
         let articlePath = planetPath.appendingPathComponent(article.id!.uuidString)
@@ -350,7 +350,8 @@ class PlanetManager: NSObject {
                 return
             }
         }
-        let templatePath = templatePaths[templateIndex]
+        // MARK: TODO: Choose Template [legacy]
+        let templatePath = templatePaths[0]
         // render html
         let loader = FileSystemLoader(paths: [Path(templatePath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader)
@@ -378,9 +379,10 @@ class PlanetManager: NSObject {
             debugPrint("failed to save article summary json: \(error), at: \(articleJSONPath)")
             return
         }
+
         // refresh
         NotificationCenter.default.post(name: .refreshArticle, object: article.id!)
-        debugPrint("article \(article) rendered at: \(articlePath).")
+        debugPrint("article \(article.id), rendered and refreshed at: \(articlePath)")
     }
 
     func pin(_ endpoint: String) {
