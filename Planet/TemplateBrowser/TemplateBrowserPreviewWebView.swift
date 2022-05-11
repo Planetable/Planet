@@ -48,10 +48,10 @@ class TemplateBrowserPreviewWebViewHelper: NSObject, WKNavigationDelegate {
         completionHandler(.performDefaultHandling, nil)
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
-        preferences.preferredContentMode = .desktop
-        preferences.allowsContentJavaScript = true
-        return (.allow, preferences)
-    }
+//    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
+//        preferences.preferredContentMode = .desktop
+//        preferences.allowsContentJavaScript = true
+//        return (.allow, preferences)
+//    }
 }
 
