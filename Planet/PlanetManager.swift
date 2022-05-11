@@ -292,7 +292,9 @@ class PlanetManager: NSObject {
         } else {
             try await PlanetDataController.shared.updateNativePlanet(planet: planet)
         }
-        PlanetDataController.shared.save()
+        DispatchQueue.main.sync {
+            PlanetDataController.shared.save()
+        }
         debugPrint("done updating.")
     }
 
