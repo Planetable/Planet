@@ -2,13 +2,30 @@
 <html>
     <head>
         <style>
+            :root {
+              --background-color: transparent;
+              --foreground-color: #000;
+              --foreground-secondary-color: #666;
+              --border-color: #e2e2e2;
+            }
+
+            @media (prefers-color-scheme: dark) {
+              :root {
+                --background-color: #1c1c1e;
+                --foreground-color: #fff;
+                --foreground-secondary-color: #adadaf;
+                --border-color: #2b2b2d;
+              }
+            }
+            
             html, body, .container {
+                background-color: var(--background-color);
                 height: 98%;
             }
 
             .loader {
-                border: 2px solid #f3f3f3;
-                border-top: 2px solid #000000;
+                border: 2px solid var(--border-color);
+                border-top: 2px solid var(--foreground-color);
                 border-radius: 50%;
                 width: 30px;
                 height: 30px;
