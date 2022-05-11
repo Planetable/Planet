@@ -50,16 +50,6 @@ struct PlanetArticleListView: View {
                                     } label: {
                                         Text("Delete Article")
                                     }
-
-                                    Divider()
-
-                                    Button {
-                                        Task.init {
-                                            await PlanetDataController.shared.refreshArticle(article)
-                                        }
-                                    } label: {
-                                        Text("Refresh")
-                                    }
                                 } else {
                                     Button {
                                         article.isRead = !article.isRead

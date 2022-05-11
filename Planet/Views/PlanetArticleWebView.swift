@@ -12,12 +12,18 @@ import WebKit
 struct PlanetArticleWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
     @Binding var url: URL
+    var targetID: UUID
     let navigationHelper = PlanetWriterWebViewHelper()
 
     func makeNSView(context: Context) -> WKWebView {
         let webview = WKWebView()
         webview.navigationDelegate = navigationHelper
         webview.load(URLRequest(url: url))
+        let refreshNotification = Notification.Name.notification(notification: .refreshArticle, forID: targetID)
+        NotificationCenter.default.addObserver(forName: refreshNotification, object: nil, queue: .main, using: { n in
+            debugPrint("reloading article at: \(url)")
+            webview.reload()
+        })
         return webview
     }
 
@@ -33,19 +39,15 @@ class PlanetArticleWebViewHelper: NSObject, WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        debugPrint("webView did loaded!")
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        debugPrint("webView did start provisional navigation.")
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-        debugPrint("webView did commit.")
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        debugPrint("webView did failed provisional navigation.")
     }
 
     func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {

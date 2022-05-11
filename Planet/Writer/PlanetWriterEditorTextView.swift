@@ -22,11 +22,12 @@ class PlanetWriterEditorTextView: NSTextView {
     }
 
     override func draggingExited(_ sender: NSDraggingInfo?) {
-        guard let sender = sender, let _ = PlanetStore.shared.currentPlanet else {
-            return
-        }
+        guard let sender = sender else { return }
         Task { @MainActor in
-            PlanetWriterViewModel.shared.updateDraggingInfo(sequenceNumber: sender.draggingSequenceNumber, location: sender.draggingLocation)
+            let activeTargetID = PlanetWriterViewModel.shared.activeTargetID
+            if let _ = PlanetWriterViewModel.shared.editings[activeTargetID] {
+                PlanetWriterViewModel.shared.updateDraggingInfo(sequenceNumber: sender.draggingSequenceNumber, location: sender.draggingLocation)
+            }
         }
     }
 
@@ -39,7 +40,10 @@ class PlanetWriterEditorTextView: NSTextView {
             guard PlanetWriterViewModel.shared.validateDragginInfo(sequenceNumber: sequenceNumber, location: NSPoint(x: offsetX, y: offsetY)) else { return }
             let pboard = sender.draggingPasteboard
             if let urls = pboard.readObjects(forClasses: [NSURL.self], options: [:]) as? [URL] {
-                PlanetWriterManager.shared.processUploadings(urls: urls, insertURLs: true)
+                let activeTargetID = PlanetWriterViewModel.shared.activeTargetID
+                if let activeID = PlanetWriterViewModel.shared.editings[activeTargetID] {
+                    PlanetWriterManager.shared.processUploadings(urls: urls, targetID: activeTargetID, insertURLs: true, inEditMode: activeID != activeTargetID)
+                }
             }
         }
     }

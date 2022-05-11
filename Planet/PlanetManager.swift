@@ -151,7 +151,7 @@ class PlanetManager: NSObject {
         article.read != nil
     }
 
-    func renderArticleToDirectory(fromArticle article: PlanetArticle, templateIndex: Int = 0, force: Bool = false) async {
+    func renderArticle(_ article: PlanetArticle) {
         debugPrint("about to render article: \(article)")
         let planetPath = URLUtils.planetsPath.appendingPathComponent(article.planetID!.uuidString)
         let articlePath = planetPath.appendingPathComponent(article.id!.uuidString)
@@ -163,7 +163,8 @@ class PlanetManager: NSObject {
                 return
             }
         }
-        let templatePath = templatePaths[templateIndex]
+        // MARK: TODO: Choose Template [legacy]
+        let templatePath = templatePaths[0]
         // render html
         let loader = FileSystemLoader(paths: [Path(templatePath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader)
@@ -181,6 +182,7 @@ class PlanetManager: NSObject {
             debugPrint("failed to render article: \(error), at path: \(articleIndexPagePath)")
             return
         }
+        
         // save article.json
         let articleJSONPath = articlePath.appendingPathComponent("article.json")
         do {
@@ -191,7 +193,10 @@ class PlanetManager: NSObject {
             debugPrint("failed to save article summary json: \(error), at: \(articleJSONPath)")
             return
         }
-        debugPrint("article \(article) rendered at: \(articlePath).")
+
+        // refresh
+        let refreshNotification = Notification.Name.notification(notification: .refreshArticle, forID: article.id!)
+        NotificationCenter.default.post(name: refreshNotification, object: nil)
     }
 
     func pin(_ endpoint: String) async {

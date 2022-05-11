@@ -23,6 +23,11 @@ class PlanetWriterWindow: NSWindow {
         self.isReleasedWhenClosed = false
         PlanetStore.shared.writerIDs.insert(id)
         PlanetStore.shared.activeWriterID = id
+        Task.detached(priority: .utility) {
+            await MainActor.run {
+                PlanetWriterViewModel.shared.updateActiveID(articleID: self.writerID)
+            }
+        }
     }
 }
 
@@ -34,5 +39,13 @@ extension PlanetWriterWindow: NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         NotificationCenter.default.post(name: .closeWriterWindow, object: writerID)
+    }
+
+    func windowDidBecomeKey(_ notification: Notification) {
+        Task.detached(priority: .utility) {
+            await MainActor.run {
+                PlanetWriterViewModel.shared.updateActiveID(articleID: self.writerID)
+            }
+        }
     }
 }

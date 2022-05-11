@@ -92,27 +92,42 @@ struct PlanetWriterUploadImageThumbnailView: View {
     }
 
     private func deleteFile() {
+        // if in edit mode, backup a copy in draft/[article_uuid] for recovery
         let uploaded = getUploadedFile()
         guard let filePath = uploaded.uploadURL else { return }
-        do {
-            try FileManager.default.removeItem(at: filePath)
-            Task { @MainActor in
-                viewModel.removeUploadings(articleID: articleID, url: fileURL)
+        let draftPath = PlanetWriterManager.shared.articleDraftPath(articleID: articleID)
+        if draftPath.path != filePath.deletingLastPathComponent().path {
+            PlanetWriterManager.shared.backupFileQueue.async {
+                do {
+                    try PlanetWriterManager.shared.backupUploading(articleID: articleID, fileURL: filePath)
+                } catch {
+                    debugPrint("failed to backup uploading: \(filePath), article: \(articleID), error: \(error)")
+                }
             }
-        } catch {
-            debugPrint("failed to delete uploaded file: \(fileURL), error: \(error)")
         }
-        let filename = filePath.lastPathComponent
-        let c: String = (uploaded.isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
-        let n: Notification.Name = Notification.Name.notification(notification: .removeText, forID: articleID)
-        NotificationCenter.default.post(name: n, object: c)
+        PlanetWriterManager.shared.backupFileQueue.async {
+            do {
+                try FileManager.default.removeItem(at: filePath)
+                Task { @MainActor in
+                    viewModel.removeUploadings(articleID: articleID, url: fileURL)
+                }
+                let filename = filePath.lastPathComponent
+                let c: String = (uploaded.isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
+                let n: Notification.Name = Notification.Name.notification(notification: .removeText, forID: articleID)
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: n, object: c)
+                }
+            } catch {
+                debugPrint("failed to delete uploaded file: \(fileURL), error: \(error)")
+            }
+        }
     }
 
     private func insertFile() {
         let uploaded = getUploadedFile()
         guard let filePath = uploaded.uploadURL else { return }
         let filename = filePath.lastPathComponent
-        let c: String = (uploaded.isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
+        let c: String = (uploaded.isImage ? "\n" : "") + (uploaded.isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
         let n: Notification.Name = Notification.Name.notification(notification: .insertText, forID: articleID)
         NotificationCenter.default.post(name: n, object: c)
     }
