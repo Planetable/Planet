@@ -41,4 +41,6 @@ struct Template: Codable, Identifiable, Hashable {
             return nil
         }
     }
+    
+    // TODO: render func goes here
 }
