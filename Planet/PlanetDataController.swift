@@ -286,10 +286,14 @@ class PlanetDataController: NSObject {
                 PlanetDataController.shared.updatePlanet(planet: planet, name: feed.title, about: feed.description)
                 // Fetch feed avatar if any
                 if let imageURL = feed.icon {
-                    let url = URL(string: imageURL)!
-                    let data = try! Data(contentsOf: url)
-                    if let image = NSImage(data: data) {
-                        PlanetDataController.shared.updatePlanetAvatar(planet: planet, image: image)
+                    do {
+                        let url = URL(string: imageURL)!
+                        let data = try Data(contentsOf: url)
+                        if let image = NSImage(data: data) {
+                            PlanetDataController.shared.updatePlanetAvatar(planet: planet, image: image)
+                        }
+                    } catch {
+                        debugPrint("Failed to fetch avatar: \(planet)")
                     }
                 }
                 for item in feed.items! {
