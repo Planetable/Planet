@@ -14,47 +14,28 @@ import Ink
 class PlanetManager: NSObject {
     static let shared: PlanetManager = PlanetManager()
 
-    private var publishTimer: Timer?
-    private var feedTimer: Timer?
-
     private var unitTesting: Bool = {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }()
 
-    private var commandQueue: OperationQueue = {
-        let q = OperationQueue()
-        q.maxConcurrentOperationCount = 1
-        q.qualityOfService = .utility
-        return q
-    }()
-
-    private var commandDaemonQueue: OperationQueue = {
-        let q = OperationQueue()
-        q.maxConcurrentOperationCount = 2
-        q.qualityOfService = .background
-        return q
-    }()
-
-    var currentPlanetVersion: String = ""
     var importPath: URL!
     var exportPath: URL!
     var alertTitle: String = ""
     var alertMessage: String = ""
     var templatePaths: [URL] = []
 
-    func setup() {
+    override init() {
+        super.init()
         debugPrint("Planet Manager Setup")
 
+        RunLoop.main.add(Timer(timeInterval: 600, repeats: true) { [self] timer in
+            publishLocalPlanets()
+        }, forMode: .common)
+        RunLoop.main.add(Timer(timeInterval: 300, repeats: true) { [self] timer in
+            updateFollowingPlanets()
+        }, forMode: .common)
+
         loadTemplates()
-
-        publishTimer = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { [self] timer in publishLocalPlanets() }
-        feedTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [self] timer in updateFollowingPlanets() }
-    }
-
-    func cleanup() {
-        debugPrint("Planet Manager Cleanup")
-        publishTimer?.invalidate()
-        feedTimer?.invalidate()
     }
 
     // MARK: - General -
@@ -72,19 +53,6 @@ class PlanetManager: NSObject {
             }
             templatePaths.append(targetPath)
         }
-    }
-
-    func checkPeersStatus() async -> Int {
-        let request = await apiRequest(path: "swarm/peers")
-        do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let decoder = JSONDecoder()
-            let peers = try decoder.decode(PlanetPeers.self, from: data)
-            await MainActor.run {
-                IPFSState.shared.peers = peers.peers?.count ?? 0
-            }
-        } catch {}
-        return 0
     }
 
     func resizedAvatarImage(image: NSImage) -> NSImage {
@@ -182,7 +150,7 @@ class PlanetManager: NSObject {
             debugPrint("failed to render article: \(error), at path: \(articleIndexPagePath)")
             return
         }
-        
+
         // save article.json
         let articleJSONPath = articlePath.appendingPathComponent("article.json")
         do {
@@ -201,10 +169,12 @@ class PlanetManager: NSObject {
 
     func pin(_ endpoint: String) async {
         debugPrint("pinning \(endpoint) ...")
-        let pinRequest = await apiRequest(path: "pin/add", args: ["arg": endpoint], timeout: 120)
-        URLSession.shared.dataTask(with: pinRequest) { data, response, error in
-            debugPrint("pinned: \(String(describing: response)).")
-        }.resume()
+        do {
+            try await IPFSDaemon.shared.api(path: "pin/add", args: ["arg": endpoint], timeout: 120)
+            debugPrint("pinned \(endpoint)")
+        } catch {
+            debugPrint("failed to pin \(endpoint)")
+        }
     }
 
     func publish(_ planet: Planet) async throws {
@@ -262,13 +232,13 @@ class PlanetManager: NSObject {
         // publish
         do {
             let decoder = JSONDecoder()
-            let (data, _) = try await URLSession.shared.data(for: apiRequest(path: "name/publish", args: [
+            let data = try await IPFSDaemon.shared.api(path: "name/publish", args: [
                 "arg": planetCID,
                 "allow-offline": "1",
                 "key": keyName,
                 "quieter": "1",
                 "lifetime": "168h",
-            ], timeout: 600))
+            ], timeout: 600)
             let published = try decoder.decode(PlanetPublished.self, from: data)
             if let planetIPNS = published.name {
                 debugPrint("planet: \(planet) is published: \(planetIPNS)")
@@ -520,20 +490,9 @@ class PlanetManager: NSObject {
         alertMessage = message ?? ""
     }
 
-    private func apiRequest(path: String, args: [String: String] = [:], timeout: TimeInterval = 5) async -> URLRequest {
-        var url: URL = URL(string: "http://127.0.0.1:\(await IPFSDaemon.shared.APIPort)/api/v0/\(path)")!
-        if args != [:] {
-            url = url.appendingQueryParameters(args)
-        }
-        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: timeout)
-        request.httpMethod = "POST"
-        return request
-    }
-
     private func getInternalPortsInformationFromConfig() async -> (String?, String?) {
-        let request = await apiRequest(path: "config/show")
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
+            let data = try await IPFSDaemon.shared.api(path: "config/show")
             let decoder = JSONDecoder()
             let config: PlanetConfig = try decoder.decode(PlanetConfig.self, from: data)
             if let api = config.addresses?.api, let gateway = config.addresses?.gateway {

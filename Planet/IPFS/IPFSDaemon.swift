@@ -164,7 +164,7 @@ class IPFSDaemon {
         logger.info("Launching daemon")
         do {
             // perform a shutdown to clean possible lock file before launch daemon
-            // the result of shutdown can be safely discarded
+            // the result of shutdown can be safely ignored
             try IPFSCommand.shutdownDaemon().run()
 
             try IPFSCommand.launchDaemon().run(
@@ -218,6 +218,7 @@ class IPFSDaemon {
         let url = URL(string: "http://127.0.0.1:\(APIPort)/webui")!
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 1)
         let online: Bool
+        let peers: Int
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
             if let res = response as? HTTPURLResponse, res.statusCode == 200 {
@@ -228,9 +229,22 @@ class IPFSDaemon {
         } catch {
             online = false
         }
-        logger.info("Daemon \(online ? "online" : "offline")")
+        if online {
+            do {
+                let data = try await IPFSDaemon.shared.api(path: "swarm/peers")
+                let decoder = JSONDecoder()
+                let swarmPeers = try decoder.decode(PlanetPeers.self, from: data)
+                peers = swarmPeers.peers?.count ?? 0
+            } catch {
+                peers = 0
+            }
+        } else {
+            peers = 0
+        }
+        logger.info("Daemon \(online ? "online (\(peers))" : "offline")")
         await MainActor.run {
             IPFSState.shared.online = online
+            IPFSState.shared.peers = peers
         }
     }
 
@@ -263,7 +277,7 @@ class IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError()
+        throw IPFSDaemonError.IPFSCLIError
     }
 
     @IPFSActor func addDirectory(url: URL) throws -> String {
@@ -295,7 +309,7 @@ class IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError()
+        throw IPFSDaemonError.IPFSCLIError
     }
 
     @IPFSActor func getFileCID(url: URL) throws -> String {
@@ -327,7 +341,7 @@ class IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError()
+        throw IPFSDaemonError.IPFSCLIError
     }
 
     @IPFSActor func publish(key: String, cid: String) throws {
@@ -357,7 +371,7 @@ class IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError()
+        throw IPFSDaemonError.IPFSCLIError
     }
 
     @IPFSActor func resolveIPNS(ipns: String) throws -> String {
@@ -389,7 +403,7 @@ class IPFSDaemon {
                     """
             )
         }
-        throw IPFSDaemonError()
+        throw IPFSDaemonError.IPFSCLIError
     }
 
     func getFile(ipns: String, path: String = "") async throws -> Data {
@@ -408,7 +422,29 @@ class IPFSDaemon {
         }
         return data
     }
+
+    @discardableResult func api(
+            path: String,
+            args: [String: String] = [:],
+            timeout: TimeInterval = 5
+    ) async throws -> Data {
+        var url: URL = URL(string: "http://127.0.0.1:\(APIPort)/api/v0/\(path)")!
+        if !args.isEmpty {
+            url = url.appendingQueryParameters(args)
+        }
+        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: timeout)
+        request.httpMethod = "POST"
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.ok
+        else {
+            throw IPFSDaemonError.IPFSAPIError
+        }
+        return data
+    }
 }
 
-struct IPFSDaemonError: Error {
+enum IPFSDaemonError: Error {
+    case IPFSCLIError
+    case IPFSAPIError
 }

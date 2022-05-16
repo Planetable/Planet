@@ -12,18 +12,15 @@ import SwiftUI
 struct PlanetApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject var planetStore: PlanetStore
-    @StateObject var ipfs: IPFSState
 
     init() {
         self._planetStore = StateObject(wrappedValue: PlanetStore.shared)
-        self._ipfs = StateObject(wrappedValue: IPFSState.shared)
     }
 
     var body: some Scene {
         WindowGroup {
             PlanetMainView()
                 .environmentObject(planetStore)
-                .environmentObject(ipfs)
                 .environment(\.managedObjectContext, PlanetDataController.shared.persistentContainer.viewContext)
         }
         .handlesExternalEvents(matching: Set(arrayLiteral: "Planet"))
@@ -31,55 +28,51 @@ struct PlanetApp: App {
             CommandGroup(replacing: .newItem) {
             }
             CommandMenu("Planet") {
-                Group {
-                    Button {
-                        TemplateBrowserManager.shared.launchTemplateBrowser()
-                    } label: {
-                        Text("Template Browser")
-                    }
-
-                    Divider()
-
-                    Button {
-                        PlanetManager.shared.publishLocalPlanets()
-                    } label: {
-                        Text("Publish My Planets")
-                    }
-                    .keyboardShortcut("p", modifiers: [.command, .shift])
-
-                    Button {
-                        PlanetManager.shared.updateFollowingPlanets()
-                    } label: {
-                        Text("Update Following Planets")
-                    }
-                    .keyboardShortcut("r", modifiers: [.command, .shift])
-
-                    Divider()
+                Button {
+                    TemplateBrowserManager.shared.launchTemplateBrowser()
+                } label: {
+                    Text("Template Browser")
                 }
 
-                Group {
-                    Button {
-                        planetStore.isImportingPlanet = true
-                    } label: {
-                        Text("Import Planet")
-                    }
-                    .keyboardShortcut("i", modifiers: [.command, .shift])
+                Divider()
 
-                    Button {
-                        guard planetStore.currentPlanet != nil else { return }
-                        planetStore.isExportingPlanet = true
-                    } label: {
-                        Text("Export Planet")
-                    }
-                    .keyboardShortcut("e", modifiers: [.command, .shift])
+                Button {
+                    PlanetManager.shared.publishLocalPlanets()
+                } label: {
+                    Text("Publish My Planets")
+                }
+                .keyboardShortcut("p", modifiers: [.command, .shift])
 
-                    Divider()
+                Button {
+                    PlanetManager.shared.updateFollowingPlanets()
+                } label: {
+                    Text("Update Following Planets")
+                }
+                .keyboardShortcut("r", modifiers: [.command, .shift])
 
-                    Button {
-                        PlanetDataController.shared.resetDatabase()
-                    } label: {
-                        Text("Reset Database")
-                    }
+                Divider()
+
+                Button {
+                    planetStore.isImportingPlanet = true
+                } label: {
+                    Text("Import Planet")
+                }
+                .keyboardShortcut("i", modifiers: [.command, .shift])
+
+                Button {
+                    guard planetStore.currentPlanet != nil else { return }
+                    planetStore.isExportingPlanet = true
+                } label: {
+                    Text("Export Planet")
+                }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
+
+                Divider()
+
+                Button {
+                    PlanetDataController.shared.resetDatabase()
+                } label: {
+                    Text("Reset Database")
                 }
             }
             SidebarCommands()
@@ -118,22 +111,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         PlanetDataController.shared.cleanupDatabase()
-        PlanetManager.shared.setup()
-        Task.init {
-            await IPFSDaemon.shared.launchDaemon()
-            await MainActor.run {
-                let _ = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { timer in
-                    Task.init {
-                        await IPFSDaemon.shared.updateOnlineStatus()
-                        // TODO: move API calls into IPFSDaemon
-                        let _ = await PlanetManager.shared.checkPeersStatus()
-                        if !(IPFSState.shared.online) {
-                            await IPFSDaemon.shared.launchDaemon()
-                        }
-                    }
-                }
-            }
-        }
+        let _ = PlanetManager.shared
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -146,7 +124,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         PlanetDataController.shared.cleanupDatabase()
         PlanetDataController.shared.save()
-        PlanetManager.shared.cleanup()
         Task.init {
             await IPFSDaemon.shared.shutdownDaemon()
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)

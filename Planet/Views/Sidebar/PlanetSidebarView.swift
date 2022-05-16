@@ -72,7 +72,11 @@ struct PlanetSidebarToolbarButtonView: View {
 
 struct PlanetSidebarView: View {
     @EnvironmentObject private var planetStore: PlanetStore
-    @EnvironmentObject var ipfs: IPFSState
+    @StateObject var ipfs: IPFSState
+
+    init() {
+        self._ipfs = StateObject.init(wrappedValue: IPFSState.shared)
+    }
 
     @FetchRequest(
             sortDescriptors: [SortDescriptor(\.created, order: .reverse)],
