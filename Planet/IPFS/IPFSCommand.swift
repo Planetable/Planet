@@ -126,7 +126,7 @@ struct IPFSCommand {
     }
 
     static func publish(key: String, cid: String) -> IPFSCommand {
-        IPFSCommand(arguments: ["name", "publish", cid, "-k", key, "--allow-offline"])
+        IPFSCommand(arguments: ["name", "publish", cid, "-k", key, "--lifetime", "168h", "--allow-offline"])
     }
 
     static func updateAPIPort(port: UInt16) -> IPFSCommand {
