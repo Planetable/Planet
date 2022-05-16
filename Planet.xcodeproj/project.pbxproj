@@ -58,14 +58,14 @@
 		6A6A146628215587009644B6 /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A146528215587009644B6 /* Template.swift */; };
 		6A6A1468282159DC009644B6 /* TemplateBrowserStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A1467282159DC009644B6 /* TemplateBrowserStore.swift */; };
 		6ABAB91828215FF30014F209 /* TemplatePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */; };
-		721141766BD5007724F8E7D6 /* fs-repo-migrations-arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 721149DE3028BBB04DB108B5 /* fs-repo-migrations-arm64 */; };
 		7211431A5867D4CF2960EC39 /* IPFSCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114270D79DBC89703262B9 /* IPFSCommand.swift */; };
+		721144F70CBCCFAA04277BA4 /* fs-repo-migrations-arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 721145901046AC768CEAE31C /* fs-repo-migrations-arm64 */; };
 		72114509730D9D97178E0E82 /* IPFSState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721148C9E7BCB6F1BC539F57 /* IPFSState.swift */; };
 		72114526A36207759470E32B /* ipfs-arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 721146EB04A767526D0870E7 /* ipfs-arm64 */; };
 		7211453BC07C2E4A588D1618 /* URLUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143ED3BE78AB9D7C6C9A2 /* URLUtils.swift */; };
 		7211454FA6F933028B1A6F34 /* GoIPFSGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */; };
 		721148F88BE8ABCC52FEB501 /* IPFSDaemon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */; };
-		721149F1D60D3E4390673218 /* fs-repo-migrations-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 72114516610CA8411A2106F4 /* fs-repo-migrations-amd64 */; };
+		721149FFE57BBAB8F4F4B25D /* fs-repo-migrations-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 72114395F7CD359BE260F77C /* fs-repo-migrations-amd64 */; };
 		72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 7211456357838C0FE5DEECD0 /* ipfs-amd64 */; };
 		72114F25F504270EB29068C9 /* PlanetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211404DFC1B4D23F84EA279 /* PlanetError.swift */; };
 		BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */ = {isa = PBXBuildFile; productRef = BBFE51EB27F3AABC0055A51A /* ENSKit */; };
@@ -130,13 +130,13 @@
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 		7211404DFC1B4D23F84EA279 /* PlanetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetError.swift; sourceTree = "<group>"; };
 		72114270D79DBC89703262B9 /* IPFSCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSCommand.swift; sourceTree = "<group>"; };
+		72114395F7CD359BE260F77C /* fs-repo-migrations-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fs-repo-migrations-amd64"; sourceTree = "<group>"; };
 		721143ED3BE78AB9D7C6C9A2 /* URLUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLUtils.swift; sourceTree = "<group>"; };
-		72114516610CA8411A2106F4 /* fs-repo-migrations-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "fs-repo-migrations-amd64"; path = "Planet/IPFS/go-ipfs-executables/fs-repo-migrations-amd64"; sourceTree = "<group>"; };
 		7211456357838C0FE5DEECD0 /* ipfs-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-amd64"; sourceTree = "<group>"; };
+		721145901046AC768CEAE31C /* fs-repo-migrations-arm64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fs-repo-migrations-arm64"; sourceTree = "<group>"; };
 		72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GoIPFSGateway.swift; sourceTree = "<group>"; };
 		721146EB04A767526D0870E7 /* ipfs-arm64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-arm64"; sourceTree = "<group>"; };
 		721148C9E7BCB6F1BC539F57 /* IPFSState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSState.swift; sourceTree = "<group>"; };
-		721149DE3028BBB04DB108B5 /* fs-repo-migrations-arm64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "fs-repo-migrations-arm64"; path = "Planet/IPFS/go-ipfs-executables/fs-repo-migrations-arm64"; sourceTree = "<group>"; };
 		72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSDaemon.swift; sourceTree = "<group>"; };
 		BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v6.xcdatamodel"; sourceTree = "<group>"; };
 		BBC60A1A2803931C007A42D0 /* Planet v5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v5.xcdatamodel"; sourceTree = "<group>"; };
@@ -196,8 +196,6 @@
 			children = (
 				2AC4994727BB6E7500F1C2D1 /* Planet */,
 				2AC4994627BB6E7500F1C2D1 /* Products */,
-				72114516610CA8411A2106F4 /* fs-repo-migrations-amd64 */,
-				721149DE3028BBB04DB108B5 /* fs-repo-migrations-arm64 */,
 			);
 			sourceTree = "<group>";
 		};
@@ -323,6 +321,8 @@
 			children = (
 				7211456357838C0FE5DEECD0 /* ipfs-amd64 */,
 				721146EB04A767526D0870E7 /* ipfs-arm64 */,
+				72114395F7CD359BE260F77C /* fs-repo-migrations-amd64 */,
+				721145901046AC768CEAE31C /* fs-repo-migrations-arm64 */,
 			);
 			path = "go-ipfs-executables";
 			sourceTree = "<group>";
@@ -389,8 +389,8 @@
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
-				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */,
-				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */,
+				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */,
+				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */,
 				2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */,
 				BBFE51EA27F3AABC0055A51A /* XCRemoteSwiftPackageReference "ENSKit" */,
 			);
@@ -418,8 +418,8 @@
 				2AC4997127BB9F2200F1C2D1 /* TemplateTON.html in Resources */,
 				72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */,
 				72114526A36207759470E32B /* ipfs-arm64 in Resources */,
-				721149F1D60D3E4390673218 /* fs-repo-migrations-amd64 in Resources */,
-				721141766BD5007724F8E7D6 /* fs-repo-migrations-arm64 in Resources */,
+				721149FFE57BBAB8F4F4B25D /* fs-repo-migrations-amd64 in Resources */,
+				721144F70CBCCFAA04277BA4 /* fs-repo-migrations-arm64 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -691,7 +691,7 @@
 				minimumVersion = 9.0.0;
 			};
 		};
-		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
+		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
 			requirement = {
@@ -699,7 +699,7 @@
 				kind = branch;
 			};
 		};
-		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */ = {
+		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/johnsundell/ink.git";
 			requirement = {
@@ -725,12 +725,12 @@
 		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
+			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */;
 			productName = Stencil;
 		};
 		6A0172EA27C9FD5F006154B7 /* Ink */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */;
+			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */;
 			productName = Ink;
 		};
 		BBFE51EB27F3AABC0055A51A /* ENSKit */ = {
