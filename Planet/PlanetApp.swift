@@ -112,6 +112,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         PlanetDataController.shared.cleanupDatabase()
         let _ = PlanetManager.shared
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(appDidWakeUpAction), name: NSWorkspace.didWakeNotification, object: nil)
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(appWillSleepAction), name: NSWorkspace.willSleepNotification, object: nil)
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -129,5 +131,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
+    }
+}
+
+
+extension AppDelegate {
+    @objc
+    private func appDidWakeUpAction() {
+        // Reactivate timers
+    }
+
+    @objc
+    private func appWillSleepAction() {
+        // Invalidate timers
+
+        // Pause media playback if needed.
+        NotificationCenter.default.post(name: .pauseMedia, object: nil)
     }
 }

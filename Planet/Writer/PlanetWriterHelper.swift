@@ -16,6 +16,7 @@ extension Notification.Name {
     static let moveCursorEnd = Notification.Name("PlanetWriterMoveCursorEndNotification")
     static let reloadPage = Notification.Name("PlanetWriterReloadWebpageAtPathNotification")
     static let scrollPage = Notification.Name("PlanetWriterUpdateWebpatePositionNotification")
+    static let pauseMedia = Notification.Name("PlanetWriterPauseMediaNotification")
     static func notification(notification: Notification.Name, forID id: UUID) -> Notification.Name {
         return Notification.Name(notification.rawValue + "-" + id.uuidString)
     }

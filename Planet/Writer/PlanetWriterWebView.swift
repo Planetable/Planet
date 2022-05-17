@@ -20,7 +20,9 @@ struct PlanetWriterWebView: NSViewRepresentable {
     let navigationHelper = PlanetWriterWebViewHelper()
 
     func makeNSView(context: Context) -> WKWebView {
-        let webview = WKWebView()
+        let config = WKWebViewConfiguration()
+        config.allowsAirPlayForMediaPlayback = false
+        let webview = WKWebView(frame: .zero, configuration: config)
         webview.navigationDelegate = navigationHelper
         webview.loadFileRequest(URLRequest(url: url), allowingReadAccessTo: url)
         let reloadNotification = Notification.Name.notification(notification: .reloadPage, forID: targetID)
@@ -35,6 +37,12 @@ struct PlanetWriterWebView: NSViewRepresentable {
             guard let offset = n.object as? NSNumber else { return }
             debugPrint("scrolling to offset: \(offset.floatValue)")
             self.executeJSActions(withWebView: webview, js: "scrollPosition(\(offset.floatValue));")
+        }
+        NotificationCenter.default.addObserver(forName: .pauseMedia, object: nil, queue: .main) { _ in
+            debugPrint("about to pause media in writer webview: \(webview)")
+            webview.pauseAllMediaPlayback {
+                debugPrint("media paused in writer webview: \(webview)")
+            }
         }
         return webview
     }

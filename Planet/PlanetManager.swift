@@ -14,10 +14,6 @@ import Ink
 class PlanetManager: NSObject {
     static let shared: PlanetManager = PlanetManager()
 
-    private var unitTesting: Bool = {
-        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-    }()
-
     var importPath: URL!
     var exportPath: URL!
     var alertTitle: String = ""

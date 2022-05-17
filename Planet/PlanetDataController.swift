@@ -21,9 +21,6 @@ enum PublicGateway: String {
 class PlanetDataController: NSObject {
     static let shared: PlanetDataController = .init()
 
-    let titles = ["Hello and Welcome", "Hello World", "New Content Here!"]
-    let contents = ["No content yet.", "This is a demo content.", "Hello from planet demo."]
-
     // let enskit = ENSKit(jsonrpcClient: InfuraEthereumAPI(url: URL(string: "https://mainnet.infura.io/v3/<projectid>")!))
     let enskit = ENSKit(ipfsClient: GoIPFSGateway())
 
