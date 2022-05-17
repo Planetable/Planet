@@ -9,31 +9,61 @@ import SwiftUI
 import WebKit
 
 
+class PlanetWebViewHelper: NSObject {
+    static let shared = PlanetWebViewHelper()
+
+    override init() {
+        debugPrint("Planet Web View Init.")
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    deinit {
+        debugPrint("Planet Web View Deinit.")
+    }
+
+    func cleanCookies() {
+        HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
+        WKWebsiteDataStore.default().fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
+            for record in records {
+                WKWebsiteDataStore.default().removeData(ofTypes: record.dataTypes, for: [record], completionHandler: {})
+            }
+        }
+    }
+}
+
+
 struct PlanetArticleWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
+
+    static var wv: WKWebView!
+
     @Binding var url: URL
     var targetID: UUID
     let navigationHelper = PlanetWriterWebViewHelper()
 
     func makeNSView(context: Context) -> WKWebView {
-        let config = WKWebViewConfiguration()
-        config.allowsAirPlayForMediaPlayback = false
-        config.mediaTypesRequiringUserActionForPlayback = .all
-        let webview = WKWebView(frame: .zero, configuration: config)
-        webview.navigationDelegate = navigationHelper
-        webview.load(URLRequest(url: url))
+        if Self.wv == nil || Self.wv.url != url {
+            let config = WKWebViewConfiguration()
+            config.mediaTypesRequiringUserActionForPlayback = .all
+            config.allowsAirPlayForMediaPlayback = false
+            Self.wv = WKWebView(frame: .zero, configuration: config)
+            Self.wv.navigationDelegate = navigationHelper
+            Self.wv.load(URLRequest(url: url))
+        }
+
         let refreshNotification = Notification.Name.notification(notification: .refreshArticle, forID: targetID)
         NotificationCenter.default.addObserver(forName: refreshNotification, object: nil, queue: .main, using: { n in
             debugPrint("reloading article at: \(url)")
-            webview.reload()
+            Self.wv.reload()
         })
         NotificationCenter.default.addObserver(forName: .pauseMedia, object: nil, queue: .main) { _ in
-            debugPrint("about to pause media in article webview: \(webview)")
-            webview.pauseAllMediaPlayback {
-                debugPrint("media paused in article webview: \(webview)")
-            }
+            Self.wv.pauseAllMediaPlayback()
         }
-        return webview
+
+        return Self.wv
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
