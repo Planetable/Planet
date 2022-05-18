@@ -306,10 +306,32 @@ struct PlanetSidebarView: View {
                                     }
                                 }
 
-                                Button {
-                                    copyPlanetIPNSAction(planet: planet)
-                                } label: {
-                                    Text("Copy IPNS")
+                                switch (planet.type) {
+                                case .planet:
+                                    Button {
+                                        copyPlanetIPNSAction(planet: planet)
+                                    } label: {
+                                        Text("Copy IPNS")
+                                    }
+                                case .ens:
+                                    Button {
+                                        copyPlanetENSAction(planet: planet)
+                                    } label: {
+                                        Text("Copy ENS")
+                                    }
+                                case .dnslink:
+                                    // This scenario is not ready yet
+                                    Button {
+                                        copyPlanetIPNSAction(planet: planet)
+                                    } label: {
+                                        Text("Copy URL")
+                                    }
+                                case .dns:
+                                    Button {
+                                        copyPlanetDNSAction(planet: planet)
+                                    } label: {
+                                        Text("Copy URL")
+                                    }
                                 }
 
                                 Divider()
@@ -393,6 +415,24 @@ struct PlanetSidebarView: View {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(ipns, forType: .string)
+    }
+
+    private func copyPlanetENSAction(planet: Planet) {
+        guard let ens = planet.ens else {
+            return
+        }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(ens, forType: .string)
+    }
+
+    private func copyPlanetDNSAction(planet: Planet) {
+        guard let feedAddress = planet.feedAddress else {
+            return
+        }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(feedAddress, forType: .string)
     }
 }
 
