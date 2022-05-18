@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta content="True" name="HandheldFriendly">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#fff">
+    <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
+    <link rel="stylesheet" href="../assets/style.css">
+    <title>{{ article.title }}</title>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const fmt = new Intl.DateTimeFormat(undefined, {
+          dateStyle: "long",
+          timeStyle: "medium",
+        });
+        const date = new Date("{{ created_date }}");
+        document.querySelector(".date").innerText = fmt.format(date);
+      });
+    </script>
+  </head>
+  <body>
+    <div class="wrapper">
+    <div class="main">
+    <h1>{{ article.title }}</h1>
+    <div class="date"></div>
+    <div class="content">
+      {{ content_html }}
+    </div>
+    </div>
+    </div>
+  </body>
+</html>

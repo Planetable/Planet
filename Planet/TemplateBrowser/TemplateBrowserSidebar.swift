@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct TemplateBrowserSidebar: View {
-    @EnvironmentObject var store: TemplateBrowserStore
+    @StateObject var store = TemplateBrowserStore.shared
     @Binding var selection: Template.ID?
-    
+
     var body: some View {
         List(selection: $selection) {
             ForEach(store.templates, id: \.id) { template in

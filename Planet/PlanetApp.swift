@@ -112,6 +112,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         PlanetDataController.shared.cleanupDatabase()
         let _ = PlanetManager.shared
+        TemplateBrowserStore.shared.loadTemplates()
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(appDidWakeUpAction), name: NSWorkspace.didWakeNotification, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(appWillSleepAction), name: NSWorkspace.willSleepNotification, object: nil)
     }

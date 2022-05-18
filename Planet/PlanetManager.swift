@@ -18,7 +18,6 @@ class PlanetManager: NSObject {
     var exportPath: URL!
     var alertTitle: String = ""
     var alertMessage: String = ""
-    var templatePaths: [URL] = []
 
     override init() {
         super.init()
@@ -30,24 +29,43 @@ class PlanetManager: NSObject {
         RunLoop.main.add(Timer(timeInterval: 300, repeats: true) { [self] timer in
             updateFollowingPlanets()
         }, forMode: .common)
-
-        loadTemplates()
     }
 
     // MARK: - General -
     func loadTemplates() {
-        let templatePath = URLUtils.templatesPath
-        if let sourcePath = Bundle.main.url(forResource: "Basic", withExtension: "html") {
-            let targetPath = templatePath.appendingPathComponent("basic.html")
+        var defaultTemplates = ["basic", "plain"]
+        for name in defaultTemplates {
+            let sourcePath = Bundle.main.url(forResource: name, withExtension: nil)!
+            let targetPath = URLUtils.templatesPath.appendingPathComponent(name, isDirectory: true)
+            let bundleMetadata = sourcePath.appendingPathComponent("template.json", isDirectory: false)
+            let existingMetadata = targetPath.appendingPathComponent("template.json", isDirectory: false)
+            var copy = false
             do {
-                if FileManager.default.fileExists(atPath: targetPath.path) {
-                    try? FileManager.default.removeItem(at: targetPath)
+                if FileManager.default.fileExists(atPath: targetPath.path),
+                   FileManager.default.fileExists(atPath: existingMetadata.path) {
+                    let bundleData = try Data(contentsOf: bundleMetadata)
+                    let bundleTemplate = try JSONDecoder().decode(Template.self, from: bundleData)
+                    let existingData = try Data(contentsOf: existingMetadata)
+                    let existingTemplate = try JSONDecoder().decode(Template.self, from: existingData)
+                    if bundleTemplate.version != existingTemplate.version {
+                        copy = true
+                    }
+                } else {
+                    copy = true
                 }
-                try FileManager.default.copyItem(at: sourcePath, to: targetPath)
             } catch {
-                debugPrint("failed to copy template file: \(error)")
+                copy = true
             }
-            templatePaths.append(targetPath)
+            if copy {
+                // override existing template
+                do {
+                    // don't complain if there is no existing folder
+                    try? FileManager.default.removeItem(at: targetPath)
+                    try FileManager.default.copyItem(at: sourcePath, to: targetPath)
+                } catch {
+                    debugPrint("failed to copy template file: \(error)")
+                }
+            }
         }
     }
 
@@ -127,23 +145,15 @@ class PlanetManager: NSObject {
                 return
             }
         }
-        // MARK: TODO: Choose Template [legacy]
-        let templatePath = templatePaths[0]
-        // render html
-        let loader = FileSystemLoader(paths: [Path(templatePath.deletingLastPathComponent().path)])
-        let environment = Environment(loader: loader)
-        let parser = MarkdownParser()
-        let result = parser.parse(article.content!)
-        let content_html = result.html
-        var context: [String: Any]
-        context = ["article": article, "created_date": article.created!.ISO8601Format(), "content_html": content_html]
-        let templateName = templatePath.lastPathComponent
         let articleIndexPagePath = articlePath.appendingPathComponent("index.html")
+
+        // TODO: Choose Template
+        let template = TemplateBrowserStore.shared.templates[0]
         do {
-            let output: String = try environment.renderTemplate(name: templateName, context: context)
+            let output = try template.render(article: article)
             try output.data(using: .utf8)?.write(to: articleIndexPagePath)
         } catch {
-            debugPrint("failed to render article: \(error), at path: \(articleIndexPagePath)")
+            debugPrint("failed to render article: \(error))")
             return
         }
 

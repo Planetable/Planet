@@ -33,7 +33,6 @@
 		2AC4996227BB97A200F1C2D1 /* PlanetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4996127BB97A200F1C2D1 /* PlanetManager.swift */; };
 		2AC4996627BB97F000F1C2D1 /* PlanetConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4996527BB97F000F1C2D1 /* PlanetConfiguration.swift */; };
 		2AC4996C27BB99DC00F1C2D1 /* Stencil in Frameworks */ = {isa = PBXBuildFile; productRef = 2AC4996B27BB99DC00F1C2D1 /* Stencil */; };
-		2AC4997127BB9F2200F1C2D1 /* TemplateTON.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AC4996F27BB9F2200F1C2D1 /* TemplateTON.html */; };
 		2AC4997427BC0EBA00F1C2D1 /* Planet.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4997227BC0EBA00F1C2D1 /* Planet.xcdatamodeld */; };
 		2AE07DDA27C9F4EA00377651 /* PlanetArticleWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE07DD927C9F4EA00377651 /* PlanetArticleWebView.swift */; };
 		2AF1318727C7CDAF007792FE /* PlanetArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF1318627C7CDAF007792FE /* PlanetArticleView.swift */; };
@@ -66,6 +65,7 @@
 		7211454FA6F933028B1A6F34 /* GoIPFSGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */; };
 		721148F88BE8ABCC52FEB501 /* IPFSDaemon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */; };
 		721149FFE57BBAB8F4F4B25D /* fs-repo-migrations-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 72114395F7CD359BE260F77C /* fs-repo-migrations-amd64 */; };
+		72114AC0A14DFA105DADD05E /* plain in Resources */ = {isa = PBXBuildFile; fileRef = 721145238463EBB7E1955FBA /* plain */; };
 		72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 7211456357838C0FE5DEECD0 /* ipfs-amd64 */; };
 		72114F25F504270EB29068C9 /* PlanetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211404DFC1B4D23F84EA279 /* PlanetError.swift */; };
 		BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */ = {isa = PBXBuildFile; productRef = BBFE51EB27F3AABC0055A51A /* ENSKit */; };
@@ -101,7 +101,6 @@
 		2AC4996527BB97F000F1C2D1 /* PlanetConfiguration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetConfiguration.swift; sourceTree = "<group>"; };
 		2AC4996727BB981200F1C2D1 /* Planet.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Planet.xcconfig; sourceTree = "<group>"; };
 		2AC4996927BB987B00F1C2D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		2AC4996F27BB9F2200F1C2D1 /* TemplateTON.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = TemplateTON.html; sourceTree = "<group>"; };
 		2AC4997327BC0EBA00F1C2D1 /* Planet.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Planet.xcdatamodel; sourceTree = "<group>"; };
 		2AE07DD927C9F4EA00377651 /* PlanetArticleWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleWebView.swift; sourceTree = "<group>"; };
 		2AF1318627C7CDAF007792FE /* PlanetArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleView.swift; sourceTree = "<group>"; };
@@ -132,6 +131,7 @@
 		72114270D79DBC89703262B9 /* IPFSCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSCommand.swift; sourceTree = "<group>"; };
 		72114395F7CD359BE260F77C /* fs-repo-migrations-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fs-repo-migrations-amd64"; sourceTree = "<group>"; };
 		721143ED3BE78AB9D7C6C9A2 /* URLUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLUtils.swift; sourceTree = "<group>"; };
+		721145238463EBB7E1955FBA /* plain */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = folder; path = plain; sourceTree = "<group>"; };
 		7211456357838C0FE5DEECD0 /* ipfs-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-amd64"; sourceTree = "<group>"; };
 		721145901046AC768CEAE31C /* fs-repo-migrations-arm64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fs-repo-migrations-arm64"; sourceTree = "<group>"; };
 		72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GoIPFSGateway.swift; sourceTree = "<group>"; };
@@ -257,12 +257,12 @@
 		2AC4996D27BB9F2200F1C2D1 /* Templates */ = {
 			isa = PBXGroup;
 			children = (
-				2AC4996F27BB9F2200F1C2D1 /* TemplateTON.html */,
 				2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */,
 				6A0172E727C9EE05006154B7 /* Basic.html */,
 				2A69F04327E0F5D800141DC0 /* BasicPreview.html */,
 				2AF4006727F37C27005DF1A9 /* WriterBasic.html */,
 				2AF4006827F37C27005DF1A9 /* WriterBasicPlaceholder.html */,
+				721145238463EBB7E1955FBA /* plain */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -415,11 +415,11 @@
 				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
 				6A0172E827C9EE05006154B7 /* Basic.html in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
-				2AC4997127BB9F2200F1C2D1 /* TemplateTON.html in Resources */,
 				72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */,
 				72114526A36207759470E32B /* ipfs-arm64 in Resources */,
 				721149FFE57BBAB8F4F4B25D /* fs-repo-migrations-amd64 in Resources */,
 				721144F70CBCCFAA04277BA4 /* fs-repo-migrations-arm64 in Resources */,
+				72114AC0A14DFA105DADD05E /* plain in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

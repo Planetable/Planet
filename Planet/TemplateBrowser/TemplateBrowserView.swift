@@ -8,20 +8,19 @@
 import SwiftUI
 
 struct TemplateBrowserView: View {
-    @EnvironmentObject var store: TemplateBrowserStore
+    @StateObject var store = TemplateBrowserStore.shared
     @AppStorage("TemplateBrowserView.selectedTemplateID") private var selectedTemplateID: Template.ID?
+
+    var template: Template? {
+        store[selectedTemplateID]
+    }
 
     var body: some View {
         NavigationView {
             TemplateBrowserSidebar(selection: $selectedTemplateID)
             TemplatePreviewView(templateId: $selectedTemplateID)
+                .navigationTitle(template?.name ?? "Template Browser")
         }
-    }
-}
-
-extension TemplateBrowserView {
-    var template: Template? {
-        store[selectedTemplateID]
     }
 }
 
