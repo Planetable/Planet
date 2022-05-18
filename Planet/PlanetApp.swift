@@ -12,9 +12,12 @@ import SwiftUI
 struct PlanetApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject var planetStore: PlanetStore
+    @StateObject var templateStore: TemplateBrowserStore
+    @Environment(\.openURL) private var openURL
 
     init() {
         self._planetStore = StateObject(wrappedValue: PlanetStore.shared)
+        self._templateStore = StateObject(wrappedValue: TemplateBrowserStore.shared)
     }
 
     var body: some Scene {
@@ -29,7 +32,10 @@ struct PlanetApp: App {
             }
             CommandMenu("Planet") {
                 Button {
-                    TemplateBrowserManager.shared.launchTemplateBrowser()
+//                    TemplateBrowserManager.shared.launchTemplateBrowser()
+                    if let url = URL(string: "planet://Template") {
+                        openURL(url)
+                    }
                 } label: {
                     Text("Template Browser")
                 }
@@ -79,6 +85,15 @@ struct PlanetApp: App {
             TextEditingCommands()
             TextFormattingCommands()
         }
+
+        WindowGroup("Planet Templates") {
+            TemplateBrowserView()
+                .environmentObject(templateStore)
+                .frame(minWidth: 720, minHeight: 480)
+                .handlesExternalEvents(preferring: Set(arrayLiteral: "Template"), allowing: Set(arrayLiteral: "Template"))
+        }
+        .handlesExternalEvents(matching: Set(arrayLiteral: "Template"))
+
     }
 }
 

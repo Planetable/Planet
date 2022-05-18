@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct TemplateBrowserView: View {
-    @StateObject var store = TemplateBrowserStore.shared
+    @EnvironmentObject var templateStore: TemplateBrowserStore
     @AppStorage("TemplateBrowserView.selectedTemplateID") private var selectedTemplateID: Template.ID?
 
     var template: Template? {
-        store[selectedTemplateID]
+        templateStore[selectedTemplateID]
     }
 
     var body: some View {
@@ -20,6 +20,12 @@ struct TemplateBrowserView: View {
             TemplateBrowserSidebar(selection: $selectedTemplateID)
             TemplatePreviewView(templateId: $selectedTemplateID)
                 .navigationTitle(template?.name ?? "Template Browser")
+                .navigationSubtitle(template?.author ?? "")
+                .toolbar {
+                    ToolbarItemGroup(placement: .navigation) {
+                        Spacer()
+                    }
+                }
         }
     }
 }
