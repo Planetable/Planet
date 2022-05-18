@@ -11,7 +11,9 @@ struct Template: Codable, Identifiable, Hashable {
     var name: String
     var id: String { "\(name)" }
     var description: String
-
+    var path: URL?
+    var blogPath: URL?
+    
     enum CodingKeys: String, CodingKey {
         case name
         case description
@@ -22,7 +24,7 @@ struct Template: Codable, Identifiable, Hashable {
         if FileManager.default.fileExists(atPath: templateInfoPath.path) {
             let blogPath = url.appendingPathComponent("templates").appendingPathComponent("blog.html")
             if FileManager.default.fileExists(atPath: blogPath.path) {
-                
+                self.blogPath = blogPath
             } else {
                 debugPrint("Directory has no blog.html: \(url.path)")
                 return nil
@@ -33,6 +35,7 @@ struct Template: Codable, Identifiable, Hashable {
                 let template = try decoder.decode(Template.self, from: data)
                 self.name = template.name
                 self.description = template.description
+                self.path = url
             } catch {
                 debugPrint("Failed to load template info for \(url.lastPathComponent)")
                 return nil

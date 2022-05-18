@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+import Stencil
+import PathKit
+import Ink
 
 struct TemplatePreviewView: View {
     @EnvironmentObject var store: TemplateBrowserStore
@@ -49,7 +52,6 @@ extension TemplatePreviewView {
 
     func render(_ template: Template) -> URL? {
         let title: String = "Template Preview \(template.name)"
-        let content: String = "Hello World \(template.name)"
 
         let templateFolder: URL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(template.name)
         let assetsFolderPath: URL = templateFolder.appendingPathComponent("assets")
@@ -63,8 +65,23 @@ extension TemplatePreviewView {
         }
 
         let articlePath: URL = articleFolderPath.appendingPathComponent("blog.html")
-        let output: String = content
+
+        // template.path is the URL of the root directory of the template
+        let templateBlogPath = template.blogPath!
+        // render html
+        let loader = FileSystemLoader(paths: [Path(templateBlogPath.deletingLastPathComponent().path)])
+        let environment = Environment(loader: loader)
+        let article = PlanetArticlePlaceholder(title: title, content: "Demo Article Content")
+
+        let parser = MarkdownParser()
+        let result = parser.parse(article.content)
+        let content_html = result.html
+        var context: [String: Any]
+
+        context = ["article": article, "created_date": article.created.ISO8601Format(), "content_html": content_html]
+        let templateName = templateBlogPath.lastPathComponent
         do {
+            let output: String = try environment.renderTemplate(name: templateName, context: context)
             try output.data(using: .utf8)?.write(to: articlePath)
             debugPrint("Preview article path: \(articlePath)")
             return articlePath

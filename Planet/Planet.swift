@@ -277,6 +277,30 @@ extension Planet {
     }
 }
 
+struct PlanetArticlePlaceholder: Codable, Identifiable, Hashable {
+    var id: UUID
+    var created: Date
+    var read: Date
+    var starred: Date
+    var title: String
+    var content: String
+    var planetID: UUID
+    var link: String
+    var softDeleted: Date
+
+    init(title: String, content: String) {
+        self.id = UUID()
+        self.created = Date()
+        self.read = Date()
+        self.starred = Date()
+        self.title = title
+        self.content = content
+        self.planetID = UUID()
+        self.link = "/\(self.id)/"
+        self.softDeleted = Date()
+    }
+}
+
 
 class PlanetArticle: NSManagedObject, Codable {
     enum CodingKeys: CodingKey {
@@ -373,7 +397,6 @@ class PlanetArticle: NSManagedObject, Codable {
         }
     }
 }
-
 
 // MARK: - Unfinished Models -
 struct PlanetIPFSVersionInfo: Codable {
