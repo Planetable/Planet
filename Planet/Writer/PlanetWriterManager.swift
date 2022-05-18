@@ -80,6 +80,7 @@ class PlanetWriterManager: NSObject {
         article.link = "/\(id.uuidString)/"
         article.created = Date()
         article.isRead = planet.isMyPlanet()
+        dataController.save()
         if planet.isMyPlanet(), let articlePath = articlePath(articleID: id, planetID: planetID) {
             do {
                 // render article with default template
@@ -178,7 +179,7 @@ class PlanetWriterManager: NSObject {
             debugPrint("failed to backup file \(url) to \(targetPath), article: \(articleID), error: \(error)")
         }
     }
-    
+
     func recoverDeletedUploading(articleID: UUID, planetID: UUID, fileURL url: URL) throws {
         let draftPath = articleDraftPath(articleID: articleID)
         guard let articlePath = articlePath(articleID: articleID, planetID: planetID) else { return }

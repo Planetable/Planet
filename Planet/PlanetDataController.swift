@@ -68,6 +68,7 @@ class PlanetDataController: NSObject {
         planet.keyName = keyName
         planet.keyID = keyID
         planet.ipns = ipns
+        save(context: ctx)
         return planet
     }
 
@@ -80,6 +81,7 @@ class PlanetDataController: NSObject {
         planet.name = ens
         planet.about = ""
         planet.ens = ens
+        save(context: ctx)
         return planet
     }
 
@@ -95,6 +97,7 @@ class PlanetDataController: NSObject {
         planet.about = ""
         planet.dns = url.host
         planet.feedAddress = endpoint
+        save(context: ctx)
         return planet
     }
 
@@ -369,6 +372,7 @@ class PlanetDataController: NSObject {
         articleModel.title = article.title
         articleModel.link = article.link
         articleModel.created = article.created
+        save(context: ctx)
         return articleModel
     }
 
@@ -381,6 +385,7 @@ class PlanetDataController: NSObject {
             a.title = article.title
             a.link = article.link
             a.created = article.created
+            save(context: ctx)
         }
     }
 
@@ -395,6 +400,7 @@ class PlanetDataController: NSObject {
                 newArticle.title = article.title
                 newArticle.link = article.link
                 newArticle.created = article.created
+                save(context: ctx)
             }
         }
     }
