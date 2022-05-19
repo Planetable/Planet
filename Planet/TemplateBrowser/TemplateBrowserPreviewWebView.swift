@@ -11,18 +11,26 @@ import WebKit
 
 struct TemplateBrowserPreviewWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
+
+    static var wv: WKWebView!
+
     @Binding var url: URL
     let navigationHelper = TemplateBrowserPreviewWebViewHelper()
 
     func makeNSView(context: Context) -> WKWebView {
-        let webview = WKWebView()
-        webview.navigationDelegate = navigationHelper
-        webview.load(URLRequest(url: url))
-        return webview
+        if Self.wv == nil || Self.wv.url != url {
+            let config = WKWebViewConfiguration()
+            Self.wv = WKWebView(frame: .zero, configuration: config)
+            Self.wv.navigationDelegate = navigationHelper
+            Self.wv.load(URLRequest(url: url))
+        }
+        return Self.wv
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
-        nsView.load(URLRequest(url: url))
+        if Self.wv.url != url {
+            nsView.load(URLRequest(url: url))
+        }
     }
 }
 
