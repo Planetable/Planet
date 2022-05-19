@@ -26,6 +26,10 @@ struct TemplatePreviewView: View {
                     if let newTemplate = store[newTemplateId] {
                         preview(newTemplate)
                     }
+                }.onReceive(NotificationCenter.default.publisher(for: .refreshTemplatePreview, object: nil)) { _ in
+                    if let template = store[templateId] {
+                        preview(template)
+                    }
                 }
         } else {
             Text("No Template Selected")

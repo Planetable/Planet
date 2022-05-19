@@ -20,12 +20,30 @@ struct TemplateBrowserView: View {
             TemplateBrowserSidebar(selection: $selectedTemplateID)
             TemplatePreviewView(templateId: $selectedTemplateID)
                 .navigationTitle(template?.name ?? "Template Browser")
-                .navigationSubtitle(template?.author ?? "")
+                .navigationSubtitle(navigationSubtitle())
                 .toolbar {
-                    ToolbarItemGroup(placement: .navigation) {
+                    ToolbarItemGroup(placement: .primaryAction) {
                         Spacer()
+
+                        Button {
+                            refresh()
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                        }
                     }
                 }
+        }
+    }
+
+    private func refresh() {
+        NotificationCenter.default.post(name: .refreshTemplatePreview, object: nil)
+    }
+
+    private func navigationSubtitle() -> String {
+        if let template = template {
+            return "\(template.author) · Version \(template.version)"
+        } else {
+            return ""
         }
     }
 }

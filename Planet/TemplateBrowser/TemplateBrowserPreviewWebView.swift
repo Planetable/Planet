@@ -18,6 +18,10 @@ struct TemplateBrowserPreviewWebView: NSViewRepresentable {
         let webview = WKWebView()
         webview.navigationDelegate = navigationHelper
         webview.load(URLRequest(url: url))
+        let refreshNotification: Notification.Name = .refreshTemplatePreview
+        NotificationCenter.default.addObserver(forName: refreshNotification, object: nil, queue: .main) { n in
+            webview.load(URLRequest(url: url))
+        }
         return webview
     }
 
@@ -55,3 +59,6 @@ class TemplateBrowserPreviewWebViewHelper: NSObject, WKNavigationDelegate {
 //    }
 }
 
+extension Notification.Name {
+    static let refreshTemplatePreview = Notification.Name("TemplateBrowserRefreshPreviewNotification")
+}
