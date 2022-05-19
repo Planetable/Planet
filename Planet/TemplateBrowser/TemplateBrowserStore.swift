@@ -6,44 +6,43 @@
 //
 
 import Foundation
+import PlanetSiteTemplates
 
 class TemplateBrowserStore: ObservableObject {
-    static let bundledTemplates = ["plain"]
-
     static let shared = TemplateBrowserStore()
 
     @Published var templates: [Template] = []
 
     func loadTemplates() {
-        templates.removeAll()
-        var templatesToCopy = TemplateBrowserStore.bundledTemplates
         do {
             let directories = try FileManager.default.listSubdirectories(url: URLUtils.templatesPath)
+            var templatesMapping: [String: Template] = [:]
             for directory in directories {
-                if var template = Template.from(url: directory) {
-                    let directoryName = directory.lastPathComponent
-                    if templatesToCopy.contains(directoryName) {
-                        let bundledDirectory = Bundle.main.url(forResource: directoryName, withExtension: nil)!
-                        let bundledTemplate = Template.from(url: bundledDirectory)!
-                        if template.version != bundledTemplate.version {
-                            try FileManager.default.removeItem(at: directory)
-                            try FileManager.default.copyItem(at: bundledDirectory, to: directory)
-                            template = Template.from(url: directory)!
-                        }
-                        templatesToCopy.removeAll { name in
-                            name == directoryName
-                        }
-                    }
-                    templates.append(template)
+                if let template = Template.from(url: directory) {
+                    templatesMapping[template.name] = template
                 }
             }
-            for name in templatesToCopy {
-                let bundledDirectory = Bundle.main.url(forResource: name, withExtension: nil)!
-                let directory = URLUtils.templatesPath.appendingPathComponent(name, isDirectory: true)
-                try FileManager.default.copyItem(at: bundledDirectory, to: directory)
-                let template = Template.from(url: directory)!
-                templates.append(template)
+            for builtInTemplate in PlanetSiteTemplates.builtInTemplates {
+                if let existingTemplate = templatesMapping[builtInTemplate.name] {
+                    if builtInTemplate.version != existingTemplate.version {
+                        let source = builtInTemplate.base!
+                        let directoryName = source.lastPathComponent
+                        let destination = URLUtils.templatesPath.appendingPathComponent(directoryName, isDirectory: true)
+                        try FileManager.default.removeItem(at: destination)
+                        try FileManager.default.copyItem(at: source, to: destination)
+                        let newTemplate = Template.from(url: destination)!
+                        templatesMapping[newTemplate.name] = newTemplate
+                    }
+                } else {
+                    let source = builtInTemplate.base!
+                    let directoryName = source.lastPathComponent
+                    let destination = URLUtils.templatesPath.appendingPathComponent(directoryName, isDirectory: true)
+                    try FileManager.default.copyItem(at: source, to: destination)
+                    let newTemplate = Template.from(url: destination)!
+                    templatesMapping[newTemplate.name] = newTemplate
+                }
             }
+            templates = Array(templatesMapping.values)
             templates.sort { t1, t2 in
                 t1.name < t2.name
             }

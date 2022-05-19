@@ -64,6 +64,15 @@
       }
     },
     {
+      "identity" : "planetsitetemplates",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:Planetable/PlanetSiteTemplates.git",
+      "state" : {
+        "revision" : "6450062656e2f1bc8b20ee3d334eaa1737b26fb9",
+        "version" : "0.1.0"
+      }
+    },
+    {
       "identity" : "spectre",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kylef/Spectre.git",
