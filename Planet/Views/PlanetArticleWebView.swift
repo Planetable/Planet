@@ -67,7 +67,9 @@ struct PlanetArticleWebView: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
-        nsView.load(URLRequest(url: url))
+        if Self.wv.url != url {
+            nsView.load(URLRequest(url: url))
+        }
     }
 }
 
