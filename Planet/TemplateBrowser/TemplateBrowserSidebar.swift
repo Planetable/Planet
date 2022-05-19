@@ -16,6 +16,14 @@ struct TemplateBrowserSidebar: View {
             ForEach(store.templates, id: \.id) { template in
                 Text(template.name)
                 .contextMenu {
+                    if hasVSCode() {
+                        Button {
+                            openVSCode(template)
+                        } label: {
+                            Text("Open in VSCode")
+                        }
+                    }
+
                     Button(action: {
                         revealInFinder(template)
                     }) {
@@ -27,8 +35,29 @@ struct TemplateBrowserSidebar: View {
         .frame(minWidth: 200)
     }
 
+    private func hasVSCode() -> Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.microsoft.VSCode") != nil
+    }
+
+    private func openVSCode(_ template: Template) {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.microsoft.VSCode")
+        else { return }
+
+        let url = URL(fileURLWithPath: template.path.path)
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
+    }
+
     private func revealInFinder(_ template: Template) {
         let url = URL(fileURLWithPath: template.path.path)
         NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path)
+    }
+
+    private func openConfiguration() -> NSWorkspace.OpenConfiguration {
+        let conf = NSWorkspace.OpenConfiguration()
+        conf.hidesOthers = false
+        conf.hides = false
+        conf.activates = true
+        return conf
     }
 }
