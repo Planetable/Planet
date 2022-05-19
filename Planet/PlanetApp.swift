@@ -32,13 +32,13 @@ struct PlanetApp: App {
             }
             CommandMenu("Planet") {
                 Button {
-//                    TemplateBrowserManager.shared.launchTemplateBrowser()
                     if let url = URL(string: "planet://Template") {
                         openURL(url)
                     }
                 } label: {
                     Text("Template Browser")
                 }
+                .keyboardShortcut("l", modifiers: [.command, .shift])
 
                 Divider()
 
@@ -72,14 +72,6 @@ struct PlanetApp: App {
                     Text("Export Planet")
                 }
                 .keyboardShortcut("e", modifiers: [.command, .shift])
-
-                Divider()
-
-                Button {
-                    PlanetDataController.shared.resetDatabase()
-                } label: {
-                    Text("Reset Database")
-                }
             }
             SidebarCommands()
             TextEditingCommands()
