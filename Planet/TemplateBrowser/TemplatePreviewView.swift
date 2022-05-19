@@ -40,7 +40,10 @@ struct TemplatePreviewView: View {
         debugPrint("New Template: \(template.name)")
         if let newURL = template.renderPreview() {
             debugPrint("New Template Preview URL: \(newURL)")
-            url = newURL
+            // trigger refresh even when URL is the same
+            url = newURL.appendingQueryParameters(
+                ["t": "\(Date().timeIntervalSince1970)"]
+            )
         }
     }
 }
