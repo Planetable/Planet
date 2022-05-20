@@ -710,7 +710,7 @@
 		};
 		BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:Planetable/PlanetSiteTemplates.git";
+			repositoryURL = "https://github.com/Planetable/PlanetSiteTemplates.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 0.1.0;
