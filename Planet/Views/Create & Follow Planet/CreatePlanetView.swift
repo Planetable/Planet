@@ -13,8 +13,9 @@ struct CreatePlanetView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State private var planetName: String = ""
-    @State private var planetDescription: String = ""
+    @State private var name: String = ""
+    @State private var about: String = ""
+    @State private var templateName: String = "Plain"
 
     var body: some View {
         VStack (spacing: 0) {
@@ -27,47 +28,53 @@ struct CreatePlanetView: View {
 
             Divider()
 
-            HStack {
-                VStack(spacing: 15) {
+            VStack(spacing: 15) {
+                HStack {
                     HStack {
-                        HStack {
-                            Text("Name")
-                            Spacer()
-                        }
-                        .frame(width: 50)
-
-                        TextField("", text: $planetName)
-                            .textFieldStyle(.roundedBorder)
+                        Text("Name")
+                        Spacer()
                     }
-                    .padding(.top, 16)
+                    .frame(width: 70)
 
-                    HStack {
-                        VStack {
-                            HStack {
-                                Text("About")
-                                Spacer()
-                            }
-                            .frame(width: 50)
-
-                            Spacer()
-                        }
-
-                        VStack {
-                            TextEditor(text: $planetDescription)
-                                .font(.system(size: 13, weight: .regular, design: .default))
-                                .lineSpacing(8)
-                                .disableAutocorrection(true)
-                                .cornerRadius(6)
-                                .frame(height: 80)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
-                                )
-
-                            Spacer()
-                        }
-                    }
+                    TextField("", text: $name)
+                        .textFieldStyle(.roundedBorder)
                 }
+                .padding(.top, 16)
+
+                HStack(alignment: .top) {
+                    HStack {
+                        Text("About")
+                        Spacer()
+                    }
+                    .frame(width: 70)
+
+                    TextEditor(text: $about)
+                        .font(.system(size: 13, weight: .regular, design: .default))
+                        .lineSpacing(8)
+                        .disableAutocorrection(true)
+                        .cornerRadius(6)
+                        .frame(height: 80)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
+                        )
+                }
+
+                Picker(selection: $templateName) {
+                    ForEach(TemplateBrowserStore.shared.templates) { template in
+                        Text(template.name)
+                            .tag(template.name)
+                    }
+                } label: {
+                    HStack {
+                        Text("Template")
+                        Spacer()
+                    }
+                    .frame(width: 70)
+                }
+                .pickerStyle(.menu)
+
+                Spacer()
             }
             .padding(.horizontal, 16)
 
@@ -90,11 +97,12 @@ struct CreatePlanetView: View {
                             let key = try await IPFSDaemon.shared.generateKey(name: id.uuidString)
                             let _ = PlanetDataController.shared.createPlanet(
                                 withID: id,
-                                name: planetName,
-                                about: planetDescription,
+                                name: name,
+                                about: about,
                                 keyName: id.uuidString,
                                 keyID: key,
-                                ipns: key
+                                ipns: key,
+                                templateName: templateName
                             )
                             PlanetDataController.shared.save()
                         } catch {
@@ -105,7 +113,7 @@ struct CreatePlanetView: View {
                 } label: {
                     Text("Create")
                 }
-                .disabled(planetName.count > 0 ? false : true)
+                .disabled(name.count > 0 ? false : true)
             }
             .padding(16)
         }

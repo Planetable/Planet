@@ -49,14 +49,16 @@ class PlanetDataController: NSObject {
 
     // MARK: - Create Planet -
 
+    // create an owned planet
     func createPlanet(
-            withID id: UUID,
-            name: String,
-            about: String,
-            keyName: String?,
-            keyID: String?,
-            ipns: String?,
-            context: NSManagedObjectContext? = nil
+        withID id: UUID,
+        name: String,
+        about: String,
+        keyName: String?,
+        keyID: String?,
+        ipns: String?,
+        templateName: String?,
+        context: NSManagedObjectContext? = nil
     ) -> Planet? {
         let ctx = context ?? persistentContainer.viewContext
         let planet = Planet(context: ctx)
@@ -68,7 +70,32 @@ class PlanetDataController: NSObject {
         planet.keyName = keyName
         planet.keyID = keyID
         planet.ipns = ipns
+        planet.templateName = templateName ?? "Plain"
         save(context: ctx)
+
+        try? FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
+        return planet
+    }
+
+    // create a following planet
+    func createPlanet(
+            withID id: UUID,
+            name: String,
+            about: String,
+            ipns: String?,
+            context: NSManagedObjectContext? = nil
+    ) -> Planet? {
+        let ctx = context ?? persistentContainer.viewContext
+        let planet = Planet(context: ctx)
+        planet.id = id
+        planet.type = .planet
+        planet.created = Date()
+        planet.name = name.sanitized()
+        planet.about = about
+        planet.ipns = ipns
+        save(context: ctx)
+
+        try? FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
         return planet
     }
 
@@ -82,6 +109,8 @@ class PlanetDataController: NSObject {
         planet.about = ""
         planet.ens = ens
         save(context: ctx)
+
+        try? FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
         return planet
     }
 
@@ -98,6 +127,8 @@ class PlanetDataController: NSObject {
         planet.dns = url.host
         planet.feedAddress = endpoint
         save(context: ctx)
+
+        try? FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
         return planet
     }
 

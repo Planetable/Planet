@@ -101,7 +101,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let url = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
             guard !PlanetDataController.shared.planetExists(planetURL: url) else { return }
             // TODO: can this URL be .eth or even a feed?
-            let _ = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: url)
+            let _ = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", ipns: url)
             PlanetDataController.shared.save()
         } else if url.lastPathComponent.hasSuffix(".planet") {
             DispatchQueue.main.async {

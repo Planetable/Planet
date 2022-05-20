@@ -15,8 +15,9 @@ struct EditPlanetView: View {
 
     var planet: Planet
 
-    @State private var planetName: String = ""
-    @State private var planetDescription: String = ""
+    @State private var name: String = ""
+    @State private var about: String = ""
+    @State private var templateName: String = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,47 +30,53 @@ struct EditPlanetView: View {
 
             Divider()
 
-            HStack {
-                VStack(spacing: 15) {
+            VStack(spacing: 15) {
+                HStack(alignment: .top) {
                     HStack {
-                        HStack {
-                            Text("Name")
-                            Spacer()
-                        }
-                        .frame(width: 50)
+                        Text("Name")
+                        Spacer()
+                    }
+                    .frame(width: 70)
 
-                        TextField("", text: $planetName)
+                    TextField("", text: $name)
                         .textFieldStyle(.roundedBorder)
-                    }
-                    .padding(.top, 16)
-
-                    HStack {
-                        VStack {
-                            HStack {
-                                Text("About")
-                                Spacer()
-                            }
-                            .frame(width: 50)
-
-                            Spacer()
-                        }
-
-                        VStack {
-                            TextEditor(text: $planetDescription)
-                                .font(.system(size: 13, weight: .regular, design: .default))
-                                .lineSpacing(8)
-                                .disableAutocorrection(true)
-                                .cornerRadius(6)
-                                .frame(height: 80)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
-                                )
-
-                            Spacer()
-                        }
-                    }
                 }
+                .padding(.top, 16)
+
+                HStack(alignment: .top) {
+                    HStack {
+                        Text("About")
+                        Spacer()
+                    }
+                    .frame(width: 70)
+
+                    TextEditor(text: $about)
+                        .font(.system(size: 13, weight: .regular, design: .default))
+                        .lineSpacing(8)
+                        .disableAutocorrection(true)
+                        .cornerRadius(6)
+                        .frame(height: 80)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
+                        )
+                }
+
+                Picker(selection: $templateName) {
+                    ForEach(TemplateBrowserStore.shared.templates) { template in
+                        Text(template.name)
+                            .tag(template.name)
+                    }
+                } label: {
+                    HStack {
+                        Text("Template")
+                        Spacer()
+                    }
+                    .frame(width: 70)
+                }
+                .pickerStyle(.menu)
+
+                Spacer()
             }
             .padding(.horizontal, 16)
 
@@ -86,8 +93,22 @@ struct EditPlanetView: View {
                 Spacer()
 
                 Button {
+                    if !name.isEmpty {
+                        planet.name = name
+                    }
+                    planet.about = about
+                    planet.templateName = templateName
+                    try? FileManager.default.removeItem(at: planet.assetsPath)
+
+                    // re-render all articles
+                    let articles = PlanetDataController.shared.getArticles(byPlanetID: planet.id!)
+                    for article in articles {
+                        try? PlanetManager.shared.renderArticle(article)
+                    }
+                    PlanetDataController.shared.save()
+                    dismiss()
+
                     Task.init {
-                        PlanetDataController.shared.updatePlanet(planet: planet, name: planetName, about: planetDescription)
                         if !planet.isPublishing {
                             planet.isPublishing = true
                             do {
@@ -95,22 +116,20 @@ struct EditPlanetView: View {
                             } catch {}
                             planet.isPublishing = false
                         }
-
-                        PlanetDataController.shared.save()
-                        dismiss()
                     }
                 } label: {
                     Text("Save")
                 }
-                .disabled(planetName.isEmpty)
+                .disabled(name.isEmpty)
             }
             .padding(16)
         }
         .padding(0)
         .frame(width: 480, height: 300, alignment: .center)
         .task {
-            planetName = planet.name ?? ""
-            planetDescription = planet.about ?? ""
+            name = planet.name ?? ""
+            about = planet.about ?? ""
+            templateName = planet.templateName ?? "Plain"
         }
     }
 }

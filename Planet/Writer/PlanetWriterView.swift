@@ -300,7 +300,11 @@ struct PlanetWriterView: View {
         PlanetDataController.shared.save()
 
         // render
-        PlanetManager.shared.renderArticle(article)
+        do {
+            try PlanetManager.shared.renderArticle(article)
+        } catch {
+            debugPrint("Error rendering article: \(error)")
+        }
 
         // remove preview.html
         if let targetPath = PlanetWriterManager.shared.articlePath(articleID: targetID, planetID: originalPlanetID) {

@@ -32,43 +32,6 @@ class PlanetManager: NSObject {
     }
 
     // MARK: - General -
-    func loadTemplates() {
-        var defaultTemplates = ["basic", "plain"]
-        for name in defaultTemplates {
-            let sourcePath = Bundle.main.url(forResource: name, withExtension: nil)!
-            let targetPath = URLUtils.templatesPath.appendingPathComponent(name, isDirectory: true)
-            let bundleMetadata = sourcePath.appendingPathComponent("template.json", isDirectory: false)
-            let existingMetadata = targetPath.appendingPathComponent("template.json", isDirectory: false)
-            var copy = false
-            do {
-                if FileManager.default.fileExists(atPath: targetPath.path),
-                   FileManager.default.fileExists(atPath: existingMetadata.path) {
-                    let bundleData = try Data(contentsOf: bundleMetadata)
-                    let bundleTemplate = try JSONDecoder().decode(Template.self, from: bundleData)
-                    let existingData = try Data(contentsOf: existingMetadata)
-                    let existingTemplate = try JSONDecoder().decode(Template.self, from: existingData)
-                    if bundleTemplate.version != existingTemplate.version {
-                        copy = true
-                    }
-                } else {
-                    copy = true
-                }
-            } catch {
-                copy = true
-            }
-            if copy {
-                // override existing template
-                do {
-                    // don't complain if there is no existing folder
-                    try? FileManager.default.removeItem(at: targetPath)
-                    try FileManager.default.copyItem(at: sourcePath, to: targetPath)
-                } catch {
-                    debugPrint("failed to copy template file: \(error)")
-                }
-            }
-        }
-    }
-
     func resizedAvatarImage(image: NSImage) -> NSImage {
         let targetImage: NSImage
         let targetImageSize = CGSize(width: 144, height: 144)
@@ -133,40 +96,25 @@ class PlanetManager: NSObject {
         article.read != nil
     }
 
-    func renderArticle(_ article: PlanetArticle) {
-        debugPrint("about to render article: \(article)")
-        let planetPath = URLUtils.planetsPath.appendingPathComponent(article.planetID!.uuidString)
-        let articlePath = planetPath.appendingPathComponent(article.id!.uuidString)
-        if !FileManager.default.fileExists(atPath: articlePath.path) {
-            do {
-                try FileManager.default.createDirectory(at: articlePath, withIntermediateDirectories: true, attributes: nil)
-            } catch {
-                debugPrint("failed to create article path: \(articlePath), error: \(error)")
-                return
-            }
+    func renderArticle(_ article: PlanetArticle) throws {
+        debugPrint("rendering article: \(article)")
+        let planet = PlanetDataController.shared.getPlanet(id: article.planetID!)!
+        if !FileManager.default.fileExists(atPath: article.basePath.path) {
+            try FileManager.default.createDirectory(at: article.basePath, withIntermediateDirectories: true)
         }
-        let articleIndexPagePath = articlePath.appendingPathComponent("index.html")
 
-        // TODO: Choose Template
-        let template = TemplateBrowserStore.shared.templates[0]
-        do {
-            let output = try template.render(article: article)
-            try output.data(using: .utf8)?.write(to: articleIndexPagePath)
-        } catch {
-            debugPrint("failed to render article: \(error))")
-            return
+        let template = TemplateBrowserStore.shared[planet.templateName ?? "Plain"]!
+        if !FileManager.default.fileExists(atPath: planet.assetsPath.path) {
+            try FileManager.default.copyItem(at: template.assetsPath, to: planet.assetsPath)
         }
+
+        let output = try template.render(article: article)
+        try output.data(using: .utf8)?.write(to: article.indexPath)
 
         // save article.json
-        let articleJSONPath = articlePath.appendingPathComponent("article.json")
-        do {
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(article)
-            try data.write(to: articleJSONPath)
-        } catch {
-            debugPrint("failed to save article summary json: \(error), at: \(articleJSONPath)")
-            return
-        }
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(article)
+        try data.write(to: article.metadataPath)
 
         // refresh
         let refreshNotification = Notification.Name.notification(notification: .refreshArticle, forID: article.id!)
@@ -336,7 +284,7 @@ class PlanetManager: NSObject {
             guard !localIPNS.contains(processed) else {
                 throw PlanetError.FollowLocalPlanetError
             }
-            planet = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", keyName: nil, keyID: nil, ipns: processed)
+            planet = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", ipns: processed)
         }
 
         guard let planet = planet else {
@@ -404,7 +352,15 @@ class PlanetManager: NSObject {
             try IPFSCommand.importKey(name: keyName, target: keyPath).run()
 
             // create planet
-            let _ = PlanetDataController.shared.createPlanet(withID: planetInfo.id, name: planetName, about: planetInfo.about ?? "", keyName: planetInfo.id.uuidString, keyID: planetInfo.ipns, ipns: planetInfo.ipns)
+            let _ = PlanetDataController.shared.createPlanet(
+                withID: planetInfo.id,
+                name: planetName,
+                about: planetInfo.about ?? "",
+                keyName: planetInfo.id.uuidString,
+                keyID: planetInfo.ipns,
+                ipns: planetInfo.ipns,
+                templateName: "Plain"
+            )
 
             // create planet directory if needed
             let targetPlanetPath = URLUtils.planetsPath.appendingPathComponent(planetInfo.id.uuidString)

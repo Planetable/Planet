@@ -74,6 +74,7 @@ class Planet: NSManagedObject, Codable {
         case latestCID
         case keyID
         case keyName
+        case templateName
     }
 
     required convenience init(from decoder: Decoder) throws {
@@ -102,6 +103,7 @@ class Planet: NSManagedObject, Codable {
         latestCID = try container.decode(String.self, forKey: .latestCID)
         keyID = try container.decode(String.self, forKey: .keyID)
         keyName = try container.decode(String.self, forKey: .keyName)
+        templateName = try container.decode(String.self, forKey: .templateName)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -124,6 +126,7 @@ class Planet: NSManagedObject, Codable {
         try container.encode(latestCID, forKey: .latestCID)
         try container.encode(keyID, forKey: .keyID)
         try container.encode(keyName, forKey: .keyName)
+        try container.encode(templateName, forKey: .templateName)
     }
 }
 
@@ -187,12 +190,16 @@ extension Planet {
         }
     }
 
+    var basePath: URL {
+        URLUtils.planetsPath.appendingPathComponent(id!.uuidString, isDirectory: true)
+    }
+
     var avatarPath: URL {
-        let path = URLUtils.planetsPath.appendingPathComponent(id!.uuidString)
-        if !FileManager.default.fileExists(atPath: path.path) {
-            try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
-        }
-        return path.appendingPathComponent("avatar.png")
+        basePath.appendingPathComponent("avatar.png", isDirectory: false)
+    }
+
+    var assetsPath: URL {
+        basePath.appendingPathComponent("assets", isDirectory: true)
     }
 
     func generateAvatarName() -> String {
@@ -395,6 +402,19 @@ class PlanetArticle: NSManagedObject, Codable {
                 return false
             }
         }
+    }
+
+    var basePath: URL {
+        URLUtils.planetsPath.appendingPathComponent(planetID!.uuidString, isDirectory: true)
+            .appendingPathComponent(id!.uuidString, isDirectory: true)
+    }
+
+    var indexPath: URL {
+        basePath.appendingPathComponent("index.html", isDirectory: false)
+    }
+
+    var metadataPath: URL {
+        basePath.appendingPathComponent("article.json", isDirectory: false)
     }
 }
 

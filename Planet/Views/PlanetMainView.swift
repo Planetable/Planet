@@ -65,16 +65,12 @@ struct PlanetMainView: View {
             PlanetManager.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
         })
         .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
-
-        } content: {
             if let planet = planetStore.currentPlanet {
                 PlanetAboutView(planet: planet)
                     .environmentObject(planetStore)
             }
         }
         .sheet(isPresented: $planetStore.isEditingPlanet) {
-
-        } content: {
             if let planet = planetStore.currentPlanet {
                 EditPlanetView(planet: planet)
                     .environmentObject(planetStore)

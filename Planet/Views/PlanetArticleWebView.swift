@@ -47,7 +47,6 @@ struct PlanetArticleWebView: NSViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
         if Self.wv == nil || Self.wv.url != url {
             let config = WKWebViewConfiguration()
-            config.mediaTypesRequiringUserActionForPlayback = .all
             config.allowsAirPlayForMediaPlayback = false
             Self.wv = WKWebView(frame: .zero, configuration: config)
             Self.wv.navigationDelegate = navigationHelper
@@ -55,10 +54,10 @@ struct PlanetArticleWebView: NSViewRepresentable {
         }
 
         let refreshNotification = Notification.Name.notification(notification: .refreshArticle, forID: targetID)
-        NotificationCenter.default.addObserver(forName: refreshNotification, object: nil, queue: .main, using: { n in
+        NotificationCenter.default.addObserver(forName: refreshNotification, object: nil, queue: .main) { _ in
             debugPrint("reloading article at: \(url)")
             Self.wv.reload()
-        })
+        }
         NotificationCenter.default.addObserver(forName: .pauseMedia, object: nil, queue: .main) { _ in
             Self.wv.pauseAllMediaPlayback()
         }
