@@ -103,6 +103,10 @@ struct PlanetWriterView: View {
                     .onChange(of: selectedRanges) { [selectedRanges] newValue in
                         debugPrint("Ranges: \(selectedRanges) -->> \(newValue)")
                     }
+                    .onReceive(NotificationCenter.default.publisher(for: Notification.Name.notification(notification: .rerenderPage, forID: targetID))) { n in
+                        guard let deletedContent = n.object as? String else { return }
+                        content = content.replacingOccurrences(of: deletedContent, with: "")
+                    }
                     .onDrop(of: [.fileURL], delegate: viewModel)
                 if isPreviewOpen {
                     PlanetWriterPreviewView(url: previewPath, targetID: targetID)

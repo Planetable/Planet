@@ -113,9 +113,11 @@ struct PlanetWriterUploadImageThumbnailView: View {
                 }
                 let filename = filePath.lastPathComponent
                 let c: String = (uploaded.isImage ? "!" : "") + "[\(filename)]" + "(" + filename + ")"
-                let n: Notification.Name = Notification.Name.notification(notification: .removeText, forID: articleID)
+                let removeNotification: Notification.Name = Notification.Name.notification(notification: .removeText, forID: articleID)
+                let rerenderNotification = Notification.Name.notification(notification: .rerenderPage, forID: articleID)
                 DispatchQueue.main.async {
-                    NotificationCenter.default.post(name: n, object: c)
+                    NotificationCenter.default.post(name: removeNotification, object: c)
+                    NotificationCenter.default.post(name: rerenderNotification, object: c)
                 }
             } catch {
                 debugPrint("failed to delete uploaded file: \(fileURL), error: \(error)")
