@@ -12,23 +12,21 @@ import WebKit
 struct TemplateBrowserPreviewWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
 
-    static var wv: WKWebView!
+    private let wv: WKWebView = WKWebView()
 
     @Binding var url: URL
     let navigationHelper = TemplateBrowserPreviewWebViewHelper()
 
     func makeNSView(context: Context) -> WKWebView {
-        if Self.wv == nil || Self.wv.url != url {
-            let config = WKWebViewConfiguration()
-            Self.wv = WKWebView(frame: .zero, configuration: config)
-            Self.wv.navigationDelegate = navigationHelper
-            Self.wv.load(URLRequest(url: url))
-        }
-        return Self.wv
+        wv.navigationDelegate = navigationHelper
+        wv.load(URLRequest(url: url))
+        return wv
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
-        if Self.wv.url != url {
+        if nsView.url != url {
+            debugPrint("nsView.url: \(nsView.url)")
+            debugPrint("url: \(url)")
             nsView.load(URLRequest(url: url))
         }
     }
