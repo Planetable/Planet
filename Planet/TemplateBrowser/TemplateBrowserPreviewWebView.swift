@@ -12,13 +12,16 @@ import WebKit
 struct TemplateBrowserPreviewWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
 
-    private let wv: WKWebView = WKWebView()
+    private let wv: WKWebView = WKWebView(frame: CGRect.zero, configuration: WKWebViewConfiguration())
 
     @Binding var url: URL
-    let navigationHelper = TemplateBrowserPreviewWebViewHelper()
+    let navigationHelper = TemplateBrowserPreviewWebViewHelper.shared
 
     func makeNSView(context: Context) -> WKWebView {
         wv.navigationDelegate = navigationHelper
+        if navigationHelper.waitingForFirstReload {
+            wv.isHidden = true
+        }
         wv.load(URLRequest(url: url))
         return wv
     }
@@ -34,11 +37,25 @@ struct TemplateBrowserPreviewWebView: NSViewRepresentable {
 
 
 class TemplateBrowserPreviewWebViewHelper: NSObject, WKNavigationDelegate {
+    static let shared = TemplateBrowserPreviewWebViewHelper()
+    
+    var waitingForFirstReload: Bool = true
+    
     func webView(_ webView: WKWebView, shouldAllowDeprecatedTLSFor challenge: URLAuthenticationChallenge) async -> Bool {
         return true
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        if waitingForFirstReload {
+            assert(webView.isHidden)
+            waitingForFirstReload = false
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                webView.isHidden = false
+            }
+        } else {
+            
+        }
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
