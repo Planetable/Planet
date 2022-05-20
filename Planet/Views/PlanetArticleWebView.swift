@@ -38,35 +38,31 @@ class PlanetWebViewHelper: NSObject {
 struct PlanetArticleWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
 
-    static var wv: WKWebView!
+    private let wv: WKWebView = WKWebView(frame: CGRect.zero, configuration: WKWebViewConfiguration())
 
     @Binding var url: URL
     var targetID: UUID
     let navigationHelper = PlanetWriterWebViewHelper()
 
     func makeNSView(context: Context) -> WKWebView {
-        if Self.wv == nil || Self.wv.url != url {
-            let config = WKWebViewConfiguration()
-            config.allowsAirPlayForMediaPlayback = false
-            Self.wv = WKWebView(frame: .zero, configuration: config)
-            Self.wv.navigationDelegate = navigationHelper
-            Self.wv.load(URLRequest(url: url))
-        }
+        wv.navigationDelegate = navigationHelper
+        wv.setValue(false, forKey: "drawsBackground")
+        wv.load(URLRequest(url: url))
 
         let refreshNotification = Notification.Name.notification(notification: .refreshArticle, forID: targetID)
         NotificationCenter.default.addObserver(forName: refreshNotification, object: nil, queue: .main) { _ in
             debugPrint("reloading article at: \(url)")
-            Self.wv.reload()
+            wv.reload()
         }
         NotificationCenter.default.addObserver(forName: .pauseMedia, object: nil, queue: .main) { _ in
-            Self.wv.pauseAllMediaPlayback()
+            wv.pauseAllMediaPlayback()
         }
 
-        return Self.wv
+        return wv
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
-        if Self.wv.url != url {
+        if nsView.url != url {
             nsView.load(URLRequest(url: url))
         }
     }
