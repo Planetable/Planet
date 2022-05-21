@@ -29,13 +29,10 @@ struct PlanetArticleListView: View {
     var body: some View {
         VStack(content: {
             if !articles.filter(isArticleIncluded).isEmpty {
-                List(selection: $planetStore.currentArticle) {
-                    ForEach(articles.filter(isArticleIncluded), id: \.id) { article in
+                List(articles.filter(isArticleIncluded), id: \.self, selection: $planetStore.currentArticle) { article in
                         if article.id != nil {
                             PlanetArticleItemView(article: article)
-                            .onTapGesture {
-                                planetStore.currentArticle = article
-                            }
+                            .contentShape(Rectangle())
                             .contextMenu {
                                 VStack {
                                     if article.isMine {
@@ -80,7 +77,7 @@ struct PlanetArticleListView: View {
                                 }
                             }
                         }
-                    }
+
                 }
             } else {
                 Text("No Planet Selected")

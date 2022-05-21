@@ -9,7 +9,7 @@ import SwiftUI
 
 struct PlanetArticleItemView: View {
     @ObservedObject var article: PlanetArticle
-    
+
     var body: some View {
         HStack {
             VStack {
@@ -37,11 +37,13 @@ struct PlanetArticleItemView: View {
                     Text(article.title ?? "")
                         .font(.headline)
                         .foregroundColor(.primary)
+                    Spacer()
                 }
                 HStack {
                     Text(article.created?.mmddyyyy() ?? "")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                    Spacer()
                 }
             }
         }

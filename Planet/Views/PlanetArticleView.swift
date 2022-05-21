@@ -18,20 +18,7 @@ struct PlanetArticleView: View {
 
     var body: some View {
         VStack {
-                PlanetArticleWebView(url: $url)
-
-
-                //    .task(priority: .utility) {
-                //        if let urlPath = await PlanetManager.shared.articleURL(article: article!) {
-                //            let now = Int(Date().timeIntervalSince1970)
-                //            url = URL(string: urlPath.absoluteString + "?\(now)")!
-                //            article!.isRead = true
-                //            PlanetDataController.shared.save()
-                //        } else {
-                //            planetStore.currentArticle = nil
-                //            PlanetManager.shared.alert(title: "Failed to load article", message: "Please try again later.")
-                //        }
-                //    }
+            PlanetArticleWebView(url: $url)
         }
         .onChange(of: planetStore.currentArticle) { newArticle in
             Task.init {
@@ -43,6 +30,9 @@ struct PlanetArticleView: View {
 
                         NotificationCenter.default.post(name: .loadArticle, object: nil)
                     }
+                } else {
+                    url = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
+                    NotificationCenter.default.post(name: .loadArticle, object: nil)
                 }
             }
         }
