@@ -19,7 +19,7 @@ struct PlanetArticleView: View {
     var body: some View {
         VStack {
                 PlanetArticleWebView(url: $url)
-                
+
 
                 //    .task(priority: .utility) {
                 //        if let urlPath = await PlanetManager.shared.articleURL(article: article!) {

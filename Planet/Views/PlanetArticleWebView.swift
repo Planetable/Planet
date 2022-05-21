@@ -38,14 +38,13 @@ class PlanetWebViewHelper: NSObject {
 struct PlanetArticleWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
 
-    let navigationHelper = PlanetArticleWebViewHelper.shared
-    let wv = WKWebView()
-    
     @Binding var url: URL
 
     func makeNSView(context: Context) -> WKWebView {
+        let wv = WKWebView()
+
         debugPrint("makeNSView")
-        wv.navigationDelegate = navigationHelper
+        // wv.navigationDelegate = PlanetArticleWebViewHelper.shared
         wv.setValue(false, forKey: "drawsBackground")
         wv.load(URLRequest(url: url))
 
