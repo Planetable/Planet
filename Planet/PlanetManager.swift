@@ -117,8 +117,7 @@ class PlanetManager: NSObject {
         try data.write(to: article.metadataPath)
 
         // refresh
-        let refreshNotification = Notification.Name.notification(notification: .refreshArticle, forID: article.id!)
-        NotificationCenter.default.post(name: refreshNotification, object: nil)
+        NotificationCenter.default.post(name: .refreshArticle, object: nil)
     }
 
     func pin(_ endpoint: String) async {
