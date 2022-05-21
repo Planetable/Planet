@@ -725,7 +725,7 @@
 			repositoryURL = "https://github.com/Planetable/ENSKit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.3.0;
+				minimumVersion = 0.3.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
