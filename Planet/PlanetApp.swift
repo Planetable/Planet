@@ -152,8 +152,5 @@ extension AppDelegate {
     @objc
     private func appWillSleepAction() {
         // Invalidate timers
-
-        // Pause media playback if needed.
-        NotificationCenter.default.post(name: .pauseMedia, object: nil)
     }
 }

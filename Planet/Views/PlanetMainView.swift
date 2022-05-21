@@ -43,10 +43,15 @@ struct PlanetMainView: View {
 
             Text("No Planet Selected")
                 .foregroundColor(.secondary)
+                .font(.system(size: 14, weight: .regular))
                 .frame(minWidth: 200)
 
-            Text("No Article Selected")
-                .foregroundColor(.secondary)
+            //Text("No Article Selected")
+            //    .foregroundColor(.secondary)
+            //    .frame(minWidth: 320)
+
+            PlanetArticleView()
+                .environmentObject(planetStore)
                 .frame(minWidth: 320)
         }
         .alert(isPresented: $planetStore.isAlert) {

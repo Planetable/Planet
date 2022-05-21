@@ -29,57 +29,57 @@ struct PlanetArticleListView: View {
     var body: some View {
         VStack(content: {
             if !articles.filter(isArticleIncluded).isEmpty {
-                List(articles.filter(isArticleIncluded)) { article in
-                    if article.id != nil {
-                        NavigationLink(destination: PlanetArticleView(article: article)
-                        .environmentObject(planetStore)
-                        .frame(minWidth: 320), tag: article, selection: $planetStore.currentArticle) {
+                List(selection: $planetStore.currentArticle) {
+                    ForEach(articles.filter(isArticleIncluded), id: \.id) { article in
+                        if article.id != nil {
                             PlanetArticleItemView(article: article)
-                        }
-                        .contextMenu {
-                            VStack {
-                                if article.isMine {
-                                    Button {
-                                        PlanetWriterManager.shared.launchWriter(forArticle: article)
-                                    } label: {
-                                        Text("Edit Article")
+                            .onTapGesture {
+                                planetStore.currentArticle = article
+                            }
+                            .contextMenu {
+                                VStack {
+                                    if article.isMine {
+                                        Button {
+                                            PlanetWriterManager.shared.launchWriter(forArticle: article)
+                                        } label: {
+                                            Text("Edit Article")
+                                        }
+                                        Button {
+                                            isShowingConfirmation = true
+                                            dialogDetail = article
+                                        } label: {
+                                            Text("Delete Article")
+                                        }
+                                    } else {
+                                        Button {
+                                            article.isRead = !article.isRead
+                                            PlanetDataController.shared.save()
+                                        } label: {
+                                            Text(article.isRead ? "Mark as Unread" : "Mark as Read")
+                                        }
                                     }
+
                                     Button {
-                                        isShowingConfirmation = true
-                                        dialogDetail = article
-                                    } label: {
-                                        Text("Delete Article")
-                                    }
-                                } else {
-                                    Button {
-                                        article.isRead = !article.isRead
+                                        article.isStarred = !article.isStarred
                                         PlanetDataController.shared.save()
                                     } label: {
-                                        Text(article.isRead ? "Mark as Unread" : "Mark as Read")
+                                        Text(article.isStarred ? "Mark as Unstarred" : "Mark as Starred")
                                     }
-                                }
 
-                                Button {
-                                    article.isStarred = !article.isStarred
-                                    PlanetDataController.shared.save()
-                                } label: {
-                                    Text(article.isStarred ? "Mark as Unstarred" : "Mark as Starred")
-                                }
+                                    Button {
+                                        PlanetDataController.shared.copyPublicLinkOfArticle(article)
+                                    } label: {
+                                        Text("Copy Public Link")
+                                    }
 
-                                Button {
-                                    PlanetDataController.shared.copyPublicLinkOfArticle(article)
-                                } label: {
-                                    Text("Copy Public Link")
-                                }
-
-                                Button {
-                                    PlanetDataController.shared.openInBrowser(article)
-                                } label: {
-                                    Text("Open in Browser")
+                                    Button {
+                                        PlanetDataController.shared.openInBrowser(article)
+                                    } label: {
+                                        Text("Open in Browser")
+                                    }
                                 }
                             }
                         }
-
                     }
                 }
             } else {

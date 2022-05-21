@@ -38,38 +38,40 @@ class PlanetWebViewHelper: NSObject {
 struct PlanetArticleWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
 
-    private let wv: WKWebView = WKWebView(frame: CGRect.zero, configuration: WKWebViewConfiguration())
-
+    let navigationHelper = PlanetArticleWebViewHelper.shared
+    let wv = WKWebView()
+    
     @Binding var url: URL
-    var targetID: UUID
-    let navigationHelper = PlanetWriterWebViewHelper()
 
     func makeNSView(context: Context) -> WKWebView {
+        debugPrint("makeNSView")
         wv.navigationDelegate = navigationHelper
         wv.setValue(false, forKey: "drawsBackground")
         wv.load(URLRequest(url: url))
 
-        let refreshNotification = Notification.Name.notification(notification: .refreshArticle, forID: targetID)
-        NotificationCenter.default.addObserver(forName: refreshNotification, object: nil, queue: .main) { _ in
+        NotificationCenter.default.addObserver(forName: .refreshArticle, object: nil, queue: .main) { _ in
             debugPrint("reloading article at: \(url)")
             wv.reload()
         }
-        NotificationCenter.default.addObserver(forName: .pauseMedia, object: nil, queue: .main) { _ in
-            wv.pauseAllMediaPlayback()
+
+        NotificationCenter.default.addObserver(forName: .loadArticle, object: nil, queue: .main) { _ in
+            if wv.url != url {
+                debugPrint("loading article at: \(url)")
+                wv.load(URLRequest(url: url))
+            }
         }
 
         return wv
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
-        if nsView.url != url {
-            nsView.load(URLRequest(url: url))
-        }
     }
 }
 
 
 class PlanetArticleWebViewHelper: NSObject, WKNavigationDelegate {
+    static let shared = PlanetArticleWebViewHelper()
+
     func webView(_ webView: WKWebView, shouldAllowDeprecatedTLSFor challenge: URLAuthenticationChallenge) async -> Bool {
         return true
     }
@@ -93,7 +95,6 @@ class PlanetArticleWebViewHelper: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
         preferences.preferredContentMode = .desktop
         preferences.allowsContentJavaScript = true
-        // MARK: TODO: Add more navigation link process logic.
         if navigationAction.navigationType == .linkActivated {
             if let url = navigationAction.request.url {
                 let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
