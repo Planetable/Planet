@@ -18,11 +18,13 @@ struct PlanetWriterUploadImageThumbnailView: View {
 
     var body: some View {
         ZStack {
-            thumbnailFromFile(forTargetHeight: 40)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .padding(.vertical, 4)
-                .frame(width: 40, height: 40, alignment: .center)
+            if let imageView = thumbnailFromFile(forTargetHeight: 40) {
+                imageView
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .padding(.vertical, 4)
+                    .frame(width: 40, height: 40, alignment: .center)
+            }
 
             VStack {
                 Spacer()
@@ -134,7 +136,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
         NotificationCenter.default.post(name: n, object: c)
     }
 
-    private func thumbnailFromFile(forTargetHeight targetHeight: CGFloat) -> Image {
+    private func thumbnailFromFile(forTargetHeight targetHeight: CGFloat) -> Image? {
         // check file locations
         let filename = fileURL.lastPathComponent
         // find in planet directory:
@@ -160,7 +162,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
             }
         }
 
-        return Image(systemName: "questionmark.app.dashed")
+        return nil
     }
 
     private func scaledThumbnailSize(size: NSSize, forHeight height: CGFloat) -> NSSize {
