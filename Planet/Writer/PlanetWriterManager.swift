@@ -82,20 +82,11 @@ class PlanetWriterManager: NSObject {
         article.isRead = planet.isMyPlanet()
         dataController.save()
         if planet.isMyPlanet(), let articlePath = articlePath(articleID: id, planetID: planetID) {
+            // render
             do {
-                // render article with default template
-                let html = renderHTML(fromContent: content)
-                let output = try outputEnv.renderTemplate(name: articleTemplateName, context: ["article": article, "created_date": article.created!.ISO8601Format(), "content_html": html])
-                let articleIndexPath = articlePath.appendingPathComponent("index.html")
-                try output.data(using: .utf8)?.write(to: articleIndexPath)
-
-                // generate article.json
-                let articleJSONPath = articlePath.appendingPathComponent("article.json")
-                let encoder = JSONEncoder()
-                let data = try encoder.encode(article)
-                try data.write(to: articleJSONPath)
+                try PlanetManager.shared.renderArticle(article)
             } catch {
-                debugPrint("failed to save article: \(article): error: \(error)")
+                debugPrint("Error rendering article: \(error)")
             }
 
             // publish

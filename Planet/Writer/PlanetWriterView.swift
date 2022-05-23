@@ -266,7 +266,7 @@ struct PlanetWriterView: View {
         }
 
         let article = PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: targetID, title: title, content: content)
-        PlanetDataController.shared.save()
+        PlanetStore.shared.currentArticle = article
 
         if PlanetStore.shared.writerIDs.contains(targetID) {
             PlanetStore.shared.writerIDs.remove(targetID)
@@ -274,7 +274,6 @@ struct PlanetWriterView: View {
         if PlanetStore.shared.activeWriterID == targetID {
             PlanetStore.shared.activeWriterID = .init()
         }
-        PlanetStore.shared.currentArticle = article
         PlanetWriterManager.shared.removeDraft(articleID: targetID)
     }
 
@@ -305,6 +304,8 @@ struct PlanetWriterView: View {
         // render
         do {
             try PlanetManager.shared.renderArticle(article)
+            // refresh
+            NotificationCenter.default.post(name: .refreshArticle, object: nil)
         } catch {
             debugPrint("Error rendering article: \(error)")
         }

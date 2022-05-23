@@ -115,9 +115,6 @@ class PlanetManager: NSObject {
         let encoder = JSONEncoder()
         let data = try encoder.encode(article)
         try data.write(to: article.metadataPath)
-
-        // refresh
-        NotificationCenter.default.post(name: .refreshArticle, object: nil)
     }
 
     func pin(_ endpoint: String) async {
