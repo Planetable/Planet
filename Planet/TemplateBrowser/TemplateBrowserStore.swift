@@ -25,13 +25,17 @@ class TemplateBrowserStore: ObservableObject {
             for builtInTemplate in PlanetSiteTemplates.builtInTemplates {
                 if let existingTemplate = templatesMapping[builtInTemplate.name] {
                     if builtInTemplate.version != existingTemplate.version {
-                        let source = builtInTemplate.base!
-                        let directoryName = source.lastPathComponent
-                        let destination = URLUtils.templatesPath.appendingPathComponent(directoryName, isDirectory: true)
-                        try FileManager.default.removeItem(at: destination)
-                        try FileManager.default.copyItem(at: source, to: destination)
-                        let newTemplate = Template.from(url: destination)!
-                        templatesMapping[newTemplate.name] = newTemplate
+                        if existingTemplate.hasGitRepo {
+                            debugPrint("Skip updating built-in template \(existingTemplate.name) because it has a git repo")
+                        } else {
+                            let source = builtInTemplate.base!
+                            let directoryName = source.lastPathComponent
+                            let destination = URLUtils.templatesPath.appendingPathComponent(directoryName, isDirectory: true)
+                            try FileManager.default.removeItem(at: destination)
+                            try FileManager.default.copyItem(at: source, to: destination)
+                            let newTemplate = Template.from(url: destination)!
+                            templatesMapping[newTemplate.name] = newTemplate
+                        }
                     }
                 } else {
                     let source = builtInTemplate.base!

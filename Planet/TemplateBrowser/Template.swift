@@ -26,6 +26,11 @@ struct Template: Codable, Identifiable, Hashable {
         path.appendingPathComponent("assets", isDirectory: true)
     }
 
+    var hasGitRepo: Bool {
+        let gitPath = path.appendingPathComponent(".git", isDirectory: true)
+        return FileManager.default.fileExists(atPath: gitPath.path)
+    }
+
     enum CodingKeys: String, CodingKey {
         case name
         case description
