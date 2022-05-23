@@ -107,7 +107,6 @@ struct PlanetWriterView: View {
                         guard let deletedContent = n.object as? String else { return }
                         content = content.replacingOccurrences(of: deletedContent, with: "")
                     }
-                    .onDrop(of: [.fileURL], delegate: viewModel)
                 if isPreviewOpen {
                     PlanetWriterPreviewView(url: previewPath, targetID: targetID)
                         .frame(minWidth: 400,
