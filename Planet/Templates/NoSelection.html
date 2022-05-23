@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+:root {
+  --body-background-color: transparent;
+  --foreground-secondary-color: #787575;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --body-background-color: transparent;
+    --foreground-secondary-color: #9c9898;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  background-color: var(--body-background-color);
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.main {
+  font-family: system-ui;
+  font-size: 14px;
+  text-align: center;
+  margin: auto;
+}
+
+.secondary {
+  color: var(--foreground-secondary-color);
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="main">
+    <span class="secondary">No Selection</span>
+  </div>
+</div>
+</body>
+</html>

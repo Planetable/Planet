@@ -38,71 +38,77 @@ class PlanetWebViewHelper: NSObject {
 struct PlanetArticleWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
 
-    private let wv: WKWebView = WKWebView(frame: CGRect.zero, configuration: WKWebViewConfiguration())
-
     @Binding var url: URL
-    var targetID: UUID
-    let navigationHelper = PlanetWriterWebViewHelper()
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
 
     func makeNSView(context: Context) -> WKWebView {
-        wv.navigationDelegate = navigationHelper
+        let wv = WKWebView()
+
+        debugPrint("makeNSView")
+        wv.navigationDelegate = context.coordinator
         wv.setValue(false, forKey: "drawsBackground")
         wv.load(URLRequest(url: url))
 
-        let refreshNotification = Notification.Name.notification(notification: .refreshArticle, forID: targetID)
-        NotificationCenter.default.addObserver(forName: refreshNotification, object: nil, queue: .main) { _ in
+        NotificationCenter.default.addObserver(forName: .refreshArticle, object: nil, queue: .main) { _ in
             debugPrint("reloading article at: \(url)")
             wv.reload()
         }
-        NotificationCenter.default.addObserver(forName: .pauseMedia, object: nil, queue: .main) { _ in
-            wv.pauseAllMediaPlayback()
+
+        NotificationCenter.default.addObserver(forName: .loadArticle, object: nil, queue: .main) { _ in
+            if wv.url != url {
+                debugPrint("loading article at: \(url)")
+                wv.load(URLRequest(url: url))
+            }
         }
 
         return wv
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
-        if nsView.url != url {
-            nsView.load(URLRequest(url: url))
+    }
+
+    class Coordinator: NSObject, WKNavigationDelegate {
+        let parent: PlanetArticleWebView
+
+        init(_ parent: PlanetArticleWebView) {
+            self.parent = parent
         }
-    }
-}
 
+        func webView(_ webView: WKWebView, shouldAllowDeprecatedTLSFor challenge: URLAuthenticationChallenge) async -> Bool {
+            return true
+        }
 
-class PlanetArticleWebViewHelper: NSObject, WKNavigationDelegate {
-    func webView(_ webView: WKWebView, shouldAllowDeprecatedTLSFor challenge: URLAuthenticationChallenge) async -> Bool {
-        return true
-    }
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        }
 
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-    }
+        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        }
 
-    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-    }
+        func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        }
 
-    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-    }
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        }
 
-    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-    }
+        func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+            completionHandler(.performDefaultHandling, nil)
+        }
 
-    func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        completionHandler(.performDefaultHandling, nil)
-    }
-
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
-        preferences.preferredContentMode = .desktop
-        preferences.allowsContentJavaScript = true
-        // MARK: TODO: Add more navigation link process logic.
-        if navigationAction.navigationType == .linkActivated {
-            if let url = navigationAction.request.url {
-                let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-                if components?.scheme == "http" || components?.scheme == "https" {
-                    NSWorkspace.shared.open(url)
-                    return (.cancel, preferences)
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            if navigationAction.navigationType == .linkActivated {
+                if let url = navigationAction.request.url {
+                    let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+                    if components?.scheme == "http" || components?.scheme == "https" {
+                        NSWorkspace.shared.open(url)
+                        decisionHandler(.cancel)
+                        return
+                    }
                 }
             }
+            decisionHandler(.allow)
         }
-        return (.allow, preferences)
     }
 }

@@ -27,7 +27,6 @@ class PlanetStore: ObservableObject {
     @Published var selectedSmartFeedType: SmartFeedType? {
         willSet(newValue) {
             guard newValue != selectedSmartFeedType else { return }
-            NotificationCenter.default.post(name: .pauseMedia, object: nil)
         }
         didSet {
             debugPrint("Selected Smart Feed Type: \(String(describing: selectedSmartFeedType))")
@@ -37,11 +36,9 @@ class PlanetStore: ObservableObject {
     @Published var currentPlanet: Planet? {
         willSet(newValue) {
             guard newValue != currentPlanet else { return }
-            NotificationCenter.default.post(name: .pauseMedia, object: nil)
         }
         didSet {
             debugPrint("[Current Planet] \(String(describing: currentPlanet))")
-            NotificationCenter.default.post(name: .updateAvatar, object: nil)
         }
     }
 
