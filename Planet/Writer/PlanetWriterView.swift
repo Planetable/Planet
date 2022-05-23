@@ -266,7 +266,9 @@ struct PlanetWriterView: View {
         }
 
         let article = PlanetWriterManager.shared.createArticle(withArticleID: createdArticleID, forPlanet: targetID, title: title, content: content)
-        PlanetStore.shared.currentArticle = article
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            PlanetStore.shared.currentArticle = article
+        }
 
         if PlanetStore.shared.writerIDs.contains(targetID) {
             PlanetStore.shared.writerIDs.remove(targetID)
