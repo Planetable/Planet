@@ -169,6 +169,12 @@ class IPFSDaemon {
 
             try IPFSCommand.launchDaemon().run(
                 outHandler: { [self] data in
+                    if let output = String(data: data, encoding: .utf8),
+                       output.contains("Daemon is ready") {
+                        Task.init {
+                            await updateOnlineStatus()
+                        }
+                    }
                     logger.debug("[IPFS stdout]\n\(data.logFormat())")
                 },
                 errHandler: { [self] data in
@@ -177,11 +183,6 @@ class IPFSDaemon {
             )
         } catch {
             fatalError("Cannot run IPFS process")
-        }
-
-        Task.init {
-            try await Task.sleep(seconds: 10)
-            await updateOnlineStatus()
         }
     }
 
