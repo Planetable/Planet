@@ -186,7 +186,7 @@ class IPFSDaemon {
         }
     }
 
-    @IPFSActor func shutdownDaemon() {
+    func shutdownDaemon() {
         logger.info("Shutting down daemon")
         do {
             let (ret, out, err) = try IPFSCommand.shutdownDaemon().run()
