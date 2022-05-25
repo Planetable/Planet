@@ -197,6 +197,10 @@ extension Planet {
     var avatarPath: URL {
         basePath.appendingPathComponent("avatar.png", isDirectory: false)
     }
+    
+    var indexPath: URL {
+        basePath.appendingPathComponent("index.html", isDirectory: false)
+    }
 
     var assetsPath: URL {
         basePath.appendingPathComponent("assets", isDirectory: true)

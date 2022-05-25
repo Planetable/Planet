@@ -38,9 +38,9 @@ struct TemplateBrowserPreviewWebView: NSViewRepresentable {
 
 class TemplateBrowserPreviewWebViewHelper: NSObject, WKNavigationDelegate {
     static let shared = TemplateBrowserPreviewWebViewHelper()
-    
+
     var waitingForFirstReload: Bool = true
-    
+
     func webView(_ webView: WKWebView, shouldAllowDeprecatedTLSFor challenge: URLAuthenticationChallenge) async -> Bool {
         return true
     }
@@ -49,12 +49,12 @@ class TemplateBrowserPreviewWebViewHelper: NSObject, WKNavigationDelegate {
         if waitingForFirstReload {
             assert(webView.isHidden)
             waitingForFirstReload = false
-            
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 webView.isHidden = false
             }
         } else {
-            
+
         }
     }
 

@@ -22,6 +22,12 @@ struct Template: Codable, Identifiable, Hashable {
         path.appendingPathComponent("templates", isDirectory: true)
             .appendingPathComponent("blog.html", isDirectory: false)
     }
+    
+    var indexPath: URL {
+        path.appendingPathComponent("templates", isDirectory: true)
+            .appendingPathComponent("index.html", isDirectory: false)
+    }
+    
     var assetsPath: URL {
         path.appendingPathComponent("assets", isDirectory: true)
     }
@@ -71,13 +77,28 @@ struct Template: Codable, Identifiable, Hashable {
 
         // render stencil template
         let context: [String: Any] = [
+            "assets_prefix": "../",
             "article": article,
+            "page_title": article.title!,
             "created_date": article.created!.ISO8601Format(),
             "content_html": content_html
         ]
         let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader)
         let stencilTemplateName = blogPath.lastPathComponent
+        return try environment.renderTemplate(name: stencilTemplateName, context: context)
+    }
+    
+    func renderIndex(articles: [PlanetArticle], planet: Planet) throws -> String {
+        let context: [String: Any] = [
+            "assets_prefix": "./",
+            "page_title": planet.name!,
+            "page_description": planet.about!,
+            "articles": articles
+        ]
+        let loader = FileSystemLoader(paths: [Path(indexPath.deletingLastPathComponent().path)])
+        let environment = Environment(loader: loader)
+        let stencilTemplateName = indexPath.lastPathComponent
         return try environment.renderTemplate(name: stencilTemplateName, context: context)
     }
 
@@ -116,6 +137,7 @@ struct Template: Codable, Identifiable, Hashable {
 
         // render stencil template
         let context: [String: Any] = [
+            "assets_prefix": "../",
             "article": article,
             "created_date": article.created.ISO8601Format(),
             "content_html": content_html

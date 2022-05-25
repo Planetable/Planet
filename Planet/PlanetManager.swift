@@ -104,10 +104,11 @@ class PlanetManager: NSObject {
         }
 
         let template = TemplateBrowserStore.shared[planet.templateName ?? "Plain"]!
-        if !FileManager.default.fileExists(atPath: planet.assetsPath.path) {
-            try FileManager.default.copyItem(at: template.assetsPath, to: planet.assetsPath)
+        if FileManager.default.fileExists(atPath: planet.assetsPath.path) {
+            try FileManager.default.removeItem(atPath: planet.assetsPath.path)
         }
-
+        try FileManager.default.copyItem(at: template.assetsPath, to: planet.assetsPath)
+        
         let output = try template.render(article: article)
         try output.data(using: .utf8)?.write(to: article.indexPath)
 
@@ -115,6 +116,11 @@ class PlanetManager: NSObject {
         let encoder = JSONEncoder()
         let data = try encoder.encode(article)
         try data.write(to: article.metadataPath)
+        
+        // save index.html
+        let articles = PlanetDataController.shared.getArticles(byPlanetID: article.planetID!)
+        let outputIndex = try template.renderIndex(articles: articles, planet: planet)
+        try outputIndex.data(using: .utf8)?.write(to: planet.indexPath)
     }
 
     func pin(_ endpoint: String) async {
