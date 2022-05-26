@@ -47,7 +47,6 @@ struct PlanetArticleWebView: NSViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
         let wv = WKWebView()
 
-        debugPrint("makeNSView")
         wv.navigationDelegate = context.coordinator
         wv.setValue(false, forKey: "drawsBackground")
         wv.load(URLRequest(url: url))

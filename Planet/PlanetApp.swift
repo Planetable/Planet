@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Sparkle
 
 
 @main
@@ -73,6 +74,13 @@ struct PlanetApp: App {
                 }
                 .keyboardShortcut("e", modifiers: [.command, .shift])
             }
+            CommandGroup(after: .appInfo) {
+                Button {
+                    SUUpdater.shared().checkForUpdates(NSButton())
+                } label: {
+                    Text("Check for Updates")
+                }
+            }
             SidebarCommands()
             TextEditingCommands()
             TextFormattingCommands()
@@ -85,7 +93,6 @@ struct PlanetApp: App {
                 .handlesExternalEvents(preferring: Set(arrayLiteral: "Template"), allowing: Set(arrayLiteral: "Template"))
         }
         .handlesExternalEvents(matching: Set(arrayLiteral: "Template"))
-
     }
 }
 
@@ -120,6 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         PlanetDataController.shared.cleanupDatabase()
         let _ = PlanetManager.shared
         TemplateBrowserStore.shared.loadTemplates()
+        SUUpdater.shared().checkForUpdatesInBackground()
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(appDidWakeUpAction), name: NSWorkspace.didWakeNotification, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(appWillSleepAction), name: NSWorkspace.willSleepNotification, object: nil)
     }

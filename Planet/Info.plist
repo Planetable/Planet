@@ -34,6 +34,8 @@
 	</array>
 	<key>ORGANIZATION_IDENTIFIER_PREFIX</key>
 	<string>$(ORGANIZATION_IDENTIFIER_PREFIX)</string>
+	<key>SUFeedURL</key>
+	<string>https://opensource.v2ex.pro/planet/appcast.xml</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

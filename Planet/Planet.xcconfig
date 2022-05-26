@@ -10,6 +10,7 @@
 
 DEVELOPMENT_TEAM = 3SCMMGZXY8
 CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Development
 ORGANIZATION_IDENTIFIER_PREFIX = com.v2ex
 
 #include? "local.xcconfig"
