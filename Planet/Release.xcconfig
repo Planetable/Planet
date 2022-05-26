@@ -1,0 +1,17 @@
+//
+//  Release.xcconfig
+//  Planet
+//
+//  Created by Kai on 5/26/22.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+
+ORGANIZATION_IDENTIFIER_PREFIX = com.v2ex
+DEVELOPMENT_TEAM = 3SCMMGZXY8
+CODE_SIGN_IDENTITY = Developer ID Application
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO
+OTHER_CODE_SIGN_FLAGS = --timestamp
