@@ -2,3 +2,4 @@
 *.DS_Store
 local.xcconfig
 xcuserdata
+archive/
