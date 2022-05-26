@@ -78,9 +78,9 @@ struct PlanetWriterView: View {
 
             HSplitView {
                 PlanetWriterTextView(text: $content, selectedRanges: $selectedRanges, writerID: targetID)
-                    .frame(minWidth: 300,
+                    .frame(minWidth: PlanetWriterManager.windowMinWidth / 2.0,
                            maxWidth: .infinity,
-                           minHeight: 300,
+                           minHeight: PlanetWriterManager.windowMinHeight,
                            maxHeight: .infinity)
                     .onChange(of: content) { newValue in
                         htmlContent = PlanetWriterManager.shared.renderHTML(fromContent: newValue)
@@ -109,9 +109,9 @@ struct PlanetWriterView: View {
                     }
                 if isPreviewOpen {
                     PlanetWriterPreviewView(url: previewPath, targetID: targetID)
-                        .frame(minWidth: 400,
+                        .frame(minWidth: PlanetWriterManager.windowMinWidth / 2.0,
                                maxWidth: .infinity,
-                               minHeight: 300,
+                               minHeight: PlanetWriterManager.windowMinHeight,
                                maxHeight: .infinity)
                 }
             }
@@ -174,7 +174,7 @@ struct PlanetWriterView: View {
             }
             .padding(16)
         }
-        .frame(minWidth: 720)
+        .frame(minWidth: PlanetWriterManager.windowMinWidth)
         .onReceive(NotificationCenter.default.publisher(for: .closeWriterWindow, object: nil)) { n in
             guard let id = n.object as? UUID, id == targetID else { return }
             cancelAction()

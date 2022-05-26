@@ -85,18 +85,17 @@ class PlanetWriterWebViewHelper: NSObject, WKNavigationDelegate {
         completionHandler(.performDefaultHandling, nil)
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
-        preferences.preferredContentMode = .desktop
-        preferences.allowsContentJavaScript = true
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if navigationAction.navigationType == .linkActivated {
             if let url = navigationAction.request.url {
                 let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
                 if components?.scheme == "http" || components?.scheme == "https" {
                     NSWorkspace.shared.open(url)
-                    return (.cancel, preferences)
+                    decisionHandler(.cancel)
+                    return
                 }
             }
         }
-        return (.allow, preferences)
+        decisionHandler(.allow)
     }
 }

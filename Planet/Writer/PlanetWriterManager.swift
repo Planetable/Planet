@@ -15,6 +15,9 @@ import Ink
 class PlanetWriterManager: NSObject {
     static let shared = PlanetWriterManager()
 
+    static let windowMinWidth: CGFloat = 840
+    static let windowMinHeight: CGFloat = 400
+
     let previewEnv: Stencil.Environment
     let outputEnv: Stencil.Environment
     var articleTemplateName: String
@@ -251,7 +254,7 @@ class PlanetWriterManager: NSObject {
 
         let writerView = PlanetWriterView(withID: id)
         let writerWindow = PlanetWriterWindow(
-                rect: NSMakeRect(0, 0, 720, 480),
+            rect: NSMakeRect(0, 0, Self.windowMinWidth, Self.windowMinHeight),
                 maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView],
                 backingType: .buffered,
                 deferMode: false,
@@ -282,7 +285,7 @@ class PlanetWriterManager: NSObject {
 
         let writerView = PlanetWriterView(withID: id, inEditMode: true, articleTitle: article.title ?? "", articleContent: article.content ?? "", planetID: planetID)
         let writerWindow = PlanetWriterWindow(
-                rect: NSMakeRect(0, 0, 720, 480),
+                rect: NSMakeRect(0, 0, Self.windowMinWidth, Self.windowMinHeight),
                 maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView],
                 backingType: .buffered,
                 deferMode: false,
