@@ -107,7 +107,7 @@ jobs:
           space_name: ${{ secrets.DO_SPACE_NAME }}
           space_region: ${{ secrets.DO_SPACE_REGION }}
           source: Planet.zip
-          out_dir: Planet/${{ env.RELEASE_VERSION }}
+          out_dir: planet/${{ env.RELEASE_VERSION }}
 
       - name: Prepare for Sparkle Appcast
         env:
