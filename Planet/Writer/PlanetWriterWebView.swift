@@ -65,8 +65,8 @@ struct PlanetWriterWebView: NSViewRepresentable {
 
 
 class PlanetWriterWebViewHelper: NSObject, WKNavigationDelegate {
-    func webView(_ webView: WKWebView, shouldAllowDeprecatedTLSFor challenge: URLAuthenticationChallenge) async -> Bool {
-        return true
+    func webView(_ webView: WKWebView, authenticationChallenge challenge: URLAuthenticationChallenge, shouldAllowDeprecatedTLS decisionHandler: @escaping (Bool) -> Void) {
+        decisionHandler(true)
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
