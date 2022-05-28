@@ -10,6 +10,7 @@ import Foundation
 import CoreData
 import FeedKit
 import ENSKit
+import SwiftSoup
 
 
 enum PublicGateway: String {
@@ -276,11 +277,35 @@ class PlanetDataController: NSObject {
                 planet.updateAvatar(image: image)
             }
         } else {
-            debugPrint("planet feed not available in planet \(planet), trying RSS/JSON feed")
+            debugPrint("planet feed not available in planet \(planet), looking for RSS/JSON feed")
+            let homepageURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)")!
+            let (homepageData, homepageResponse) = try await URLSession.shared.data(from: homepageURL)
+            guard let httpResponse = homepageResponse as? HTTPURLResponse,
+                  httpResponse.ok
+            else {
+                throw PlanetError.InvalidPlanetURLError
+            }
 
-            // TODO: fetch HTML, check RSS/JSON feed
-            let feedURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)/feed.xml")!
-            try await parsePlanetFeed(planet: planet, feedURL: feedURL)
+            var feedURL: URL? = nil
+            do {
+                if let homepageHTML = String(data: homepageData, encoding: .utf8) {
+                    let soup = try SwiftSoup.parse(homepageHTML)
+                    if let feedElem = try soup.select("link[rel='alternate']").first(),
+                       let url = try? feedElem.attr("href") {
+                        feedURL = URL(
+                            string: url,
+                            relativeTo: URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)/")!
+                        )
+                    }
+                }
+            } catch {
+                // no feed URL in HTML
+            }
+            if feedURL == nil {
+                feedURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)/feed.xml")!
+            }
+
+            try await parsePlanetFeed(planet: planet, feedURL: feedURL!)
 
             let avatarResult = try await enskit.avatar(name: ens)
             debugPrint("ENSKit.avatar(\(ens)) => \(String(describing: avatarResult))")

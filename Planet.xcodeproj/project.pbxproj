@@ -69,6 +69,7 @@
 		721149FFE57BBAB8F4F4B25D /* fs-repo-migrations-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 72114395F7CD359BE260F77C /* fs-repo-migrations-amd64 */; };
 		72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 7211456357838C0FE5DEECD0 /* ipfs-amd64 */; };
 		72114F25F504270EB29068C9 /* PlanetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211404DFC1B4D23F84EA279 /* PlanetError.swift */; };
+		BB6FC66D28423AF80072C3A1 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = BB6FC66C28423AF80072C3A1 /* SwiftSoup */; };
 		BBC831AB2836239300CE1F67 /* PlanetSiteTemplates in Frameworks */ = {isa = PBXBuildFile; productRef = BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */; };
 		BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */ = {isa = PBXBuildFile; productRef = BBFE51EB27F3AABC0055A51A /* ENSKit */; };
 /* End PBXBuildFile section */
@@ -157,6 +158,7 @@
 				2A43EBA0283FBE2000501018 /* Sparkle in Frameworks */,
 				2AC4996C27BB99DC00F1C2D1 /* Stencil in Frameworks */,
 				6A0172EB27C9FD5F006154B7 /* Ink in Frameworks */,
+				BB6FC66D28423AF80072C3A1 /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -368,6 +370,7 @@
 				BBFE51EB27F3AABC0055A51A /* ENSKit */,
 				BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */,
 				2A43EB9F283FBE2000501018 /* Sparkle */,
+				BB6FC66C28423AF80072C3A1 /* SwiftSoup */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -404,6 +407,7 @@
 				BBFE51EA27F3AABC0055A51A /* XCRemoteSwiftPackageReference "ENSKit" */,
 				BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */,
 				2A43EB9E283FBE2000501018 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -726,6 +730,14 @@
 				minimumVersion = 0.5.1;
 			};
 		};
+		BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.2;
+			};
+		};
 		BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Planetable/PlanetSiteTemplates.git";
@@ -764,6 +776,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */;
 			productName = Ink;
+		};
+		BB6FC66C28423AF80072C3A1 /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
 		};
 		BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */ = {
 			isa = XCSwiftPackageProductDependency;
