@@ -16,4 +16,5 @@ CODE_SIGN_STYLE = Manual
 CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO
 OTHER_CODE_SIGN_FLAGS = --timestamp
 
+#include "versioning.xcconfig"
 #include? "local.xcconfig"
