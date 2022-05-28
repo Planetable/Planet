@@ -19,7 +19,7 @@ jobs:
       
       - name: Set Build Number
         run: |
-          buildNumber=`git rev-list --count main`
+          buildNumber=`git rev-list --count HEAD`
           xcrun agvtool new-version $buildNumber
 
       - name: Fix Package Dependencies
