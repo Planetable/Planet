@@ -5,7 +5,7 @@ on:
     tags: [ release* ]
 
 jobs:
-  master_deploy:
+  release:
     runs-on: self-hosted
 
     strategy:
@@ -16,6 +16,11 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+      
+      - name: Set Build Number
+        run: |
+          buildNumber=`git rev-list --count main`
+          xcrun agvtool new-version $buildNumber
 
       - name: Fix Package Dependencies
         run: xcodebuild -resolvePackageDependencies
