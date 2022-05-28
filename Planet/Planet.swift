@@ -220,10 +220,17 @@ extension Planet {
         }
     }
 
-    func updateAvatar(image: NSImage, isEditing: Bool = false) {
+    func updateAvatar(image: NSImage) {
         let targetImage = PlanetManager.shared.resizedAvatarImage(image: image)
-        targetImage.imageSave(avatarPath)
-        DispatchQueue.main.async {
+        guard let imageData = targetImage.tiffRepresentation else { return }
+        let imageRep = NSBitmapImageRep(data: imageData)
+        let data = imageRep?.representation(using: .png, properties: [:])
+        do {
+            try data?.write(to: avatarPath, options: .atomic)
+        } catch {
+            debugPrint("failed to save planet avatar for \(self): \(error)")
+        }
+        Task.init { @MainActor in
             NotificationCenter.default.post(name: .updateAvatar, object: nil)
         }
     }

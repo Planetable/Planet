@@ -125,6 +125,10 @@ struct IPFSCommand {
         IPFSCommand(arguments: ["name", "resolve", ipns])
     }
 
+    static func pin(cid: String) -> IPFSCommand {
+        IPFSCommand(arguments: ["pin", "add", cid])
+    }
+
     static func publish(key: String, cid: String) -> IPFSCommand {
         IPFSCommand(arguments: ["name", "publish", cid, "-k", key, "--lifetime", "168h", "--allow-offline"])
     }

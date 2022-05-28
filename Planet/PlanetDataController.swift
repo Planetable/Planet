@@ -136,119 +136,162 @@ class PlanetDataController: NSObject {
 
     // type 0
     func updateNativePlanet(planet: Planet) async throws {
-        guard let id = planet.id,
-              let _ = planet.name,
-              let ipns = planet.ipns,
-              ipns.count == "k51qzi5uqu5dioq5on1s4oc3wg2t13w03xxsq32b1qovi61b6oi8pcyep2gsyf".count
-        else {
-            // incomplete or corrupted planet info, skip
-            // TODO: investigate if it's possible to have incomplete planet info
-            return
-        }
-
         // check if IPNS has latest CID changes
-        debugPrint("Check if planet \(planet) has update...")
-        let latestCID = try await IPFSDaemon.shared.resolveIPNS(ipns: ipns)
+        debugPrint("checking update for \(planet)")
+        let latestCID = try await IPFSDaemon.shared.resolveIPNS(ipns: planet.ipns!)
         if latestCID == planet.latestCID {
-            // no update, return
-            debugPrint("Planet \(planet) has no update")
+            // no update
+            debugPrint("planet \(planet) has no update")
             return
         }
-        debugPrint("Planet \(planet) has update, CID changed from \(planet.latestCID ?? "nil") to \(latestCID)")
-        // let prefix = "\(IPFSDaemon.shared.gateway)/ipns/\(ipns)/"
-        let prefix = "\(await IPFSDaemon.shared.gateway)\(latestCID)"
-        let ipnsString = prefix + "/planet.json"
-        let request = URLRequest(url: URL(string: ipnsString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let decoder = JSONDecoder()
-        let feed: PlanetFeed = try decoder.decode(PlanetFeed.self, from: data)
-        guard feed.name != "" else {
+        planet.latestCID = latestCID
+        debugPrint("planet \(planet) CID changed to \(latestCID)")
+
+        let feedURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID)/planet.json")!
+        let metadataRequest = URLRequest(
+            url: feedURL,
+            cachePolicy: .reloadIgnoringLocalCacheData,
+            timeoutInterval: 15
+        )
+        let (feedData, _) = try await URLSession.shared.data(for: metadataRequest)
+        let feed = try JSONDecoder().decode(PlanetFeed.self, from: feedData)
+
+        guard let name = feed.name, let about = feed.about else {
             throw PlanetError.PlanetFeedError
         }
+        debugPrint("updating planet \(planet) with new feed \(feed)")
+        planet.name = name
+        planet.about = about
 
-        debugPrint("got following planet feed: \(feed)")
-        if let name = feed.name, name != "" {
-            planet.name = name
-        }
-        if let about = feed.about, about != "" {
-            planet.about = about
-        }
-        planet.ipns = ipns
-
-        // update planet articles if needed.
+        // update planet articles
         var createArticleCount = 0
         var updateArticleCount = 0
         for article in feed.articles {
             guard let articleLink = article.link else { continue }
-            if let existing = getArticle(link: articleLink, planetID: id) {
+            if let existing = getArticle(link: articleLink, planetID: planet.id!) {
                 if existing.title != article.title {
                     existing.title = article.title
                     existing.link = articleLink
                     updateArticleCount += 1
                 }
             } else {
-                let _ = createArticle(article, planetID: id)
+                let _ = createArticle(article, planetID: planet.id!)
                 createArticleCount += 1
             }
         }
-        debugPrint("planet articles count to create: \(createArticleCount)")
-        debugPrint("planet articles count to update: \(updateArticleCount)")
+        debugPrint("updated \(updateArticleCount) articles, created \(createArticleCount) articles")
 
-        // update planet avatar if needed.
-        let avatarString = prefix + "/avatar.png"
-        let avatarRequest = URLRequest(url: URL(string: avatarString)!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+        // update planet avatar
+        let avatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID)/avatar.png")!
+        let avatarRequest = URLRequest(url: avatarURL, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         let (avatarData, _) = try await URLSession.shared.data(for: avatarRequest)
         if let image = NSImage(data: avatarData) {
-            updatePlanetAvatar(planet: planet, image: image)
+            planet.updateAvatar(image: image)
         }
 
-        await PlanetManager.shared.pin(latestCID)
-        planet.latestCID = latestCID
+        try await IPFSDaemon.shared.pin(cid: latestCID)
         planet.lastUpdated = Date()
     }
 
     func updateENSPlanet(planet: Planet) async throws {
-        guard let ens = planet.ens else {
-            // planet is not of ENS type
-            throw PlanetError.InternalError
+        let ens = planet.ens!
+        let result: URL?
+        do {
+            result = try await enskit.resolve(name: ens)
+        } catch {
+            throw PlanetError.EthereumError
         }
-        let result = try await enskit.resolve(name: ens)
         debugPrint("ENSKit.resolve(\(ens)) => \(String(describing: result))")
-        if let contentHash = result,
-           contentHash.scheme?.lowercased() == "ipfs" {
-            // update content hash
-            let s = contentHash.absoluteString
-            let ipfs = String(s.suffix(from: s.index(s.startIndex, offsetBy: 7)))
-            planet.ipfs = ipfs
-            let url = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(ipfs)")!
-            debugPrint("Trying to access IPFS content: \(url)")
-            do {
-                let (_, response) = try await URLSession.shared.data(from: url)
-                let httpResponse = response as! HTTPURLResponse
-                if !httpResponse.ok {
-                    debugPrint("IPFS content returns \(httpResponse.statusCode): \(url)")
-                    throw PlanetError.IPFSError
-                }
-            } catch {
-                throw PlanetError.IPFSError
-            }
-            debugPrint("IPFS content OK: \(url)")
-            if let IPFSContent = planet.IPFSContent {
-                await PlanetManager.shared.pin(IPFSContent)
-            }
-            // Try detect if there is a feed
-            // The better way would be to parse the HTML and check if it has a feed
-            let feedURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(ipfs)/feed.xml")!
-            try await parsePlanetFeed(planet: planet, feedURL: feedURL)
-        } else {
+        guard let contenthash = result else {
             throw PlanetError.InvalidPlanetURLError
         }
-
-        let avatarResult = try await enskit.avatar(name: ens)
-        debugPrint("ENSKit.avatar(\(ens)) => \(String(describing: avatarResult))")
-        if let avatar = avatarResult, let image = NSImage(data: avatar) {
-            planet.updateAvatar(image: image)
+        var latestCID: String? = nil
+        if contenthash.scheme?.lowercased() == "ipns" {
+            let s = contenthash.absoluteString
+            let ipns = String(s.suffix(from: s.index(s.startIndex, offsetBy: 7)))
+            latestCID = try await IPFSDaemon.shared.resolveIPNS(ipns: ipns)
+        } else if contenthash.scheme?.lowercased() == "ipfs" {
+            let s = contenthash.absoluteString
+            latestCID = "/ipfs/" + String(s.suffix(from: s.index(s.startIndex, offsetBy: 7)))
         }
+
+        if latestCID == nil {
+            // unsupported contenthash multicodec
+            throw PlanetError.InvalidPlanetURLError
+        }
+        if latestCID == planet.latestCID {
+            // no update
+            debugPrint("planet \(planet) has no update")
+            return
+        }
+
+        // detect if a native planet is behind ENS
+        debugPrint("checking existing planet feed in planet \(planet)")
+        var planetFeed: PlanetFeed? = nil
+        let planetFeedURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)/planet.json")!
+        do {
+            let (planetFeedData, planetFeedResponse) = try await URLSession.shared.data(from: planetFeedURL)
+            if let httpResponse = planetFeedResponse as? HTTPURLResponse,
+               httpResponse.ok {
+                planetFeed = try JSONDecoder().decode(PlanetFeed.self, from: planetFeedData)
+            }
+        } catch {
+            // ignore
+        }
+        if let feed = planetFeed {
+            guard let name = feed.name, let about = feed.about else {
+                throw PlanetError.PlanetFeedError
+            }
+            debugPrint("updating planet \(planet) with new feed \(feed)")
+            planet.name = name
+            planet.about = about
+
+            // update planet articles
+            var createArticleCount = 0
+            var updateArticleCount = 0
+            for article in feed.articles {
+                guard let articleLink = article.link else { continue }
+                if let existing = getArticle(link: articleLink, planetID: planet.id!) {
+                    if existing.title != article.title {
+                        existing.title = article.title
+                        existing.link = articleLink
+                        updateArticleCount += 1
+                    }
+                } else {
+                    let _ = createArticle(article, planetID: planet.id!)
+                    createArticleCount += 1
+                }
+            }
+            debugPrint("updated \(updateArticleCount) articles, created \(createArticleCount) articles")
+
+            // update planet avatar
+            let avatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)/avatar.png")!
+            let avatarRequest = URLRequest(
+                url: avatarURL,
+                cachePolicy: .reloadIgnoringLocalCacheData,
+                timeoutInterval: 15
+            )
+            let (avatarData, _) = try await URLSession.shared.data(for: avatarRequest)
+            if let image = NSImage(data: avatarData) {
+                planet.updateAvatar(image: image)
+            }
+        } else {
+            debugPrint("planet feed not available in planet \(planet), trying RSS/JSON feed")
+
+            // TODO: fetch HTML, check RSS/JSON feed
+            let feedURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)/feed.xml")!
+            try await parsePlanetFeed(planet: planet, feedURL: feedURL)
+
+            let avatarResult = try await enskit.avatar(name: ens)
+            debugPrint("ENSKit.avatar(\(ens)) => \(String(describing: avatarResult))")
+            if let avatarData = avatarResult,
+               let image = NSImage(data: avatarData) {
+                planet.updateAvatar(image: image)
+            }
+        }
+
+        try await IPFSDaemon.shared.pin(cid: latestCID!)
+        planet.latestCID = latestCID!
     }
 
     func updateDNSPlanet(planet: Planet) async throws {
@@ -321,7 +364,7 @@ class PlanetDataController: NSObject {
                         let url = URL(string: imageURL)!
                         let data = try Data(contentsOf: url)
                         if let image = NSImage(data: data) {
-                            PlanetDataController.shared.updatePlanetAvatar(planet: planet, image: image)
+                            planet.updateAvatar(image: image)
                         }
                     } catch {
                         debugPrint("Failed to fetch avatar: \(planet)")
@@ -354,26 +397,6 @@ class PlanetDataController: NSObject {
         }
         if let about = about {
             planet.about = about
-        }
-    }
-
-    func updatePlanetAvatar(planet: Planet, image: NSImage) {
-        do {
-            let planetPath = URLUtils.planetsPath.appendingPathComponent(planet.id!.uuidString)
-            if !FileManager.default.fileExists(atPath: planetPath.path) {
-                try FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true, attributes: nil)
-            }
-            let avatarPath = planetPath.appendingPathComponent("avatar.png")
-
-            if FileManager.default.fileExists(atPath: avatarPath.path) {
-                try FileManager.default.removeItem(at: avatarPath)
-            }
-            image.imageSave(avatarPath)
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(name: .updateAvatar, object: nil)
-            }
-        } catch {
-            debugPrint("Planet Avatar failed to update: \(error)")
         }
     }
 

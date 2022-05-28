@@ -353,17 +353,16 @@ class IPFSDaemon {
                 logger.info("Published \(cid) for \(key)")
                 logger.debug("[stdout]\n\(out.logFormat())")
                 return
-            } else {
-                logger.error(
-                    """
-                    Failed to publish \(cid) for \(key): process returned \(ret)
-                    [stdout]
-                    \(out.logFormat())
-                    [stderr]
-                    \(err.logFormat())
-                    """
-                )
             }
+            logger.error(
+                """
+                Failed to publish \(cid) for \(key): process returned \(ret)
+                [stdout]
+                \(out.logFormat())
+                [stderr]
+                \(err.logFormat())
+                """
+            )
         } catch {
             logger.error(
                 """
@@ -398,10 +397,38 @@ class IPFSDaemon {
             }
         } catch {
             logger.error(
-                    """
-                    Failed to resolve IPNS \(ipns): error when running IPFS process, \
-                    cause: \(String(describing: error))
-                    """
+                """
+                Failed to resolve IPNS \(ipns): error when running IPFS process, \
+                cause: \(String(describing: error))
+                """
+            )
+        }
+        throw IPFSDaemonError.IPFSCLIError
+    }
+
+    @IPFSActor func pin(cid: String) async throws {
+        logger.info("Pinning \(cid)")
+        do {
+            let (ret, out, err) = try IPFSCommand.pin(cid: cid).run()
+            if ret == 0 {
+                logger.info("Pinned \(cid)")
+                return
+            }
+            logger.error(
+                """
+                Failed to pin \(cid): process returned \(ret)
+                [stdout]
+                \(out.logFormat())
+                [stderr]
+                \(err.logFormat())
+                """
+            )
+        } catch {
+            logger.error(
+                """
+                Failed to pin \(cid): error when running IPFS process, \
+                cause: \(String(describing: error))
+                """
             )
         }
         throw IPFSDaemonError.IPFSCLIError

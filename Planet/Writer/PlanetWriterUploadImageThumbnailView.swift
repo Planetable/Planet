@@ -146,7 +146,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
            FileManager.default.fileExists(atPath: planetArticlePath.appendingPathComponent(filename).path),
            let img = NSImage(contentsOf: planetArticlePath.appendingPathComponent(filename)) {
             let size = scaledThumbnailSize(size: img.size, forHeight: targetHeight*2)
-            if let resizedImg = img.imageResize(size) {
+            if let resizedImg = img.resize(size) {
                 return Image(nsImage: resizedImg)
             }
         }
@@ -157,7 +157,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
         if FileManager.default.fileExists(atPath: imagePath.path),
            let img = NSImage(contentsOf: imagePath) {
             let size = scaledThumbnailSize(size: img.size, forHeight: targetHeight*2)
-            if let resizedImg = img.imageResize(size) {
+            if let resizedImg = img.resize(size) {
                 return Image(nsImage: resizedImg)
             }
         }

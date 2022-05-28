@@ -125,13 +125,6 @@ struct PlanetArticleListView: View {
         }
     }
 
-    private func articleIsMine() -> Bool {
-        if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
-            return true
-        }
-        return false
-    }
-
     private func navigationTitle() -> String {
         switch(type) {
         case .planet:
@@ -149,9 +142,13 @@ struct PlanetArticleListView: View {
     }
 
     private func articleStatus() -> String {
-        if planetID == nil { return "" }
-        guard articleIsMine() == false else { return "" }
-        guard planetStore.currentPlanet != nil, planetStore.currentPlanet!.name != "" else { return "" }
+        if planetID == nil || planetStore.currentPlanet == nil {
+            return ""
+        }
+        if planetStore.currentPlanet!.isMyPlanet() {
+            return ""
+        }
+
         let status = PlanetDataController.shared.getArticleStatus(byPlanetID: planetID!)
         if status.total == 0 {
             return "No articles yet."

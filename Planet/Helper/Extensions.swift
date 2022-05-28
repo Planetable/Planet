@@ -197,7 +197,7 @@ extension Color {
 }
 
 extension NSImage {
-    func imageResize(_ newSize: NSSize) -> NSImage? {
+    func resize(_ newSize: NSSize) -> NSImage? {
         autoreleasepool {
             if let bitmapRep = NSBitmapImageRep(
                 bitmapDataPlanes: nil, pixelsWide: Int(newSize.width), pixelsHigh: Int(newSize.height),
@@ -214,19 +214,6 @@ extension NSImage {
                 return resizedImage
             }
             return nil
-        }
-    }
-
-    func imageSave(_ filepath: URL) {
-        autoreleasepool {
-            guard let imageData = self.tiffRepresentation else { return }
-            let imageRep = NSBitmapImageRep(data: imageData)
-            let data = imageRep?.representation(using: .png, properties: [:])
-            do {
-                try data?.write(to: filepath, options: .atomic)
-            } catch {
-                debugPrint("[Image Save Error] \(error)")
-            }
         }
     }
 }

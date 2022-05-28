@@ -8,6 +8,7 @@
 enum PlanetError: Error {
     case NetworkError
     case IPFSError
+    case EthereumError
     case PlanetFeedError
     case FollowLocalPlanetError
     case FollowExistingPlanetError

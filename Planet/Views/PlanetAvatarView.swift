@@ -52,7 +52,7 @@ struct PlanetAvatarView: View {
         .fileImporter(isPresented: $isChoosingAvatarImage, allowedContentTypes: [.png, .jpeg, .tiff], allowsMultipleSelection: false) { result in
             if let urls = try? result.get(), let url = urls.first, let img = NSImage(contentsOf: url) {
                 let targetImage = PlanetManager.shared.resizedAvatarImage(image: img)
-                planet.updateAvatar(image: targetImage, isEditing: inEditMode)
+                planet.updateAvatar(image: targetImage)
                 DispatchQueue.main.async {
                     self.updatedAvatarImage = targetImage
                 }

@@ -33,14 +33,12 @@ class PlanetManager: NSObject {
 
     // MARK: - General -
     func resizedAvatarImage(image: NSImage) -> NSImage {
-        let targetImage: NSImage
         let targetImageSize = CGSize(width: 144, height: 144)
         if min(image.size.width, image.size.height) > targetImageSize.width / 2.0 {
-            targetImage = image.imageResize(targetImageSize) ?? image
+            return image.resize(targetImageSize) ?? image
         } else {
-            targetImage = image
+            return image
         }
-        return targetImage
     }
 
     // MARK: - Planet & Planet Article -
@@ -71,7 +69,6 @@ class PlanetManager: NSObject {
             let articlePath = URLUtils.planetsPath.appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
             return articlePath
         } else {
-            debugPrint("Trying to get article URL")
             let urlString: String
             switch (planet.type) {
                 case .planet:
@@ -81,13 +78,17 @@ class PlanetManager: NSObject {
                         urlString = "\(await IPFSDaemon.shared.gateway)/ipns/\(planet.ipns!)\(article.link!)index.html"
                     }
                 case .ens:
-                    urlString = "\(await IPFSDaemon.shared.gateway)/ipfs/\(planet.ipfs!)\(article.link!)"
+                    if let cid = planet.latestCID {
+                        urlString = "\(await IPFSDaemon.shared.gateway)\(cid)\(article.link!)"
+                    } else {
+                        urlString = "\(await IPFSDaemon.shared.gateway)/ipfs/\(planet.ipfs!)\(article.link!)"
+                    }
                 case .dns:
                     urlString = article.link!
                 default:
                     urlString = "\(await IPFSDaemon.shared.gateway)/ipns/\(planet.ipns!)/\(article.link!)/index.html"
             }
-            debugPrint("Article URL string: \(urlString)")
+            debugPrint("article URL: \(urlString)")
             return URL(string: urlString)
         }
     }
