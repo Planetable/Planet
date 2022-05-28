@@ -13,7 +13,7 @@ struct URLUtils {
     }
 
     static var basePath: URL {
-        let bundleID = Bundle.main.bundleIdentifier! + ".v03"
+        let bundleID = Bundle.main.bundleIdentifier!
         let path: URL
         if let p = applicationSupportPath {
             path = p.appendingPathComponent(bundleID, isDirectory: true)
