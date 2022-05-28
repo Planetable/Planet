@@ -1,15 +1,6 @@
 {
   "pins" : [
     {
-      "identity" : "base58swift",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/keefertaylor/Base58Swift.git",
-      "state" : {
-        "revision" : "1c13ea6b07f1584660526f8bde3d4cc150e91acd",
-        "version" : "2.1.14"
-      }
-    },
-    {
       "identity" : "bigint",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/attaswift/BigInt.git",
@@ -23,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/CryptoSwift.git",
       "state" : {
-        "revision" : "4c4662dcff510fe0c74323279711daed16f08528",
-        "version" : "1.5.0"
+        "revision" : "039f56c5d7960f277087a0be51f5eb04ed0ec073",
+        "version" : "1.5.1"
       }
     },
     {
@@ -32,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Planetable/ENSKit",
       "state" : {
-        "revision" : "ed58461e677f48a898bac500be7a2ac6f0b8281a",
-        "version" : "0.3.3"
+        "revision" : "1d4273fc21834bab1fd47b21aed1f2147ed04d6f",
+        "version" : "0.4.1"
       }
     },
     {
