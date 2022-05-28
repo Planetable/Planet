@@ -35,7 +35,7 @@
 	<key>ORGANIZATION_IDENTIFIER_PREFIX</key>
 	<string>$(ORGANIZATION_IDENTIFIER_PREFIX)</string>
 	<key>SUFeedURL</key>
-	<string>https://opensource.v2ex.pro/planet/appcast.xml</string>
+	<string>https://opensource.planetable.xyz/planet/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>ciHPM+QD+p7Rceljd0MT42MfrcVhZchEVJTUW98R3Wk=</string>
 	<key>UTExportedTypeDeclarations</key>
