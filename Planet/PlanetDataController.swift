@@ -145,6 +145,9 @@ class PlanetDataController: NSObject {
             debugPrint("planet \(planet) has no update")
             return
         }
+        Task {
+            try await IPFSDaemon.shared.pin(cid: latestCID)
+        }
         planet.latestCID = latestCID
         debugPrint("planet \(planet) CID changed to \(latestCID)")
 
@@ -189,8 +192,6 @@ class PlanetDataController: NSObject {
         if let image = NSImage(data: avatarData) {
             planet.updateAvatar(image: image)
         }
-
-        try await IPFSDaemon.shared.pin(cid: latestCID)
         planet.lastUpdated = Date()
     }
 
@@ -216,20 +217,24 @@ class PlanetDataController: NSObject {
             latestCID = "/ipfs/" + String(s.suffix(from: s.index(s.startIndex, offsetBy: 7)))
         }
 
-        if latestCID == nil {
+        guard let cid = latestCID else {
             // unsupported contenthash multicodec
             throw PlanetError.InvalidPlanetURLError
         }
-        if latestCID == planet.latestCID {
+        if cid == planet.latestCID {
             // no update
             debugPrint("planet \(planet) has no update")
             return
         }
 
+        Task {
+            try await IPFSDaemon.shared.pin(cid: cid)
+        }
+
         // detect if a native planet is behind ENS
         debugPrint("checking existing planet feed in planet \(planet)")
         var planetFeed: PlanetFeed? = nil
-        let planetFeedURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)/planet.json")!
+        let planetFeedURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(cid)/planet.json")!
         do {
             let (planetFeedData, planetFeedResponse) = try await URLSession.shared.data(from: planetFeedURL)
             if let httpResponse = planetFeedResponse as? HTTPURLResponse,
@@ -266,7 +271,7 @@ class PlanetDataController: NSObject {
             debugPrint("updated \(updateArticleCount) articles, created \(createArticleCount) articles")
 
             // update planet avatar
-            let avatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)/avatar.png")!
+            let avatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(cid)/avatar.png")!
             let avatarRequest = URLRequest(
                 url: avatarURL,
                 cachePolicy: .reloadIgnoringLocalCacheData,
@@ -278,34 +283,8 @@ class PlanetDataController: NSObject {
             }
         } else {
             debugPrint("planet feed not available in planet \(planet), looking for RSS/JSON feed")
-            let homepageURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)")!
-            let (homepageData, homepageResponse) = try await URLSession.shared.data(from: homepageURL)
-            guard let httpResponse = homepageResponse as? HTTPURLResponse,
-                  httpResponse.ok
-            else {
-                throw PlanetError.InvalidPlanetURLError
-            }
-
-            var feedURL: URL? = nil
-            do {
-                if let homepageHTML = String(data: homepageData, encoding: .utf8) {
-                    let soup = try SwiftSoup.parse(homepageHTML)
-                    if let feedElem = try soup.select("link[rel='alternate']").first(),
-                       let url = try? feedElem.attr("href") {
-                        feedURL = URL(
-                            string: url,
-                            relativeTo: URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)/")!
-                        )
-                    }
-                }
-            } catch {
-                // no feed URL in HTML
-            }
-            if feedURL == nil {
-                feedURL = URL(string: "\(await IPFSDaemon.shared.gateway)\(latestCID!)/feed.xml")!
-            }
-
-            try await parsePlanetFeed(planet: planet, feedURL: feedURL!)
+            let url = URL(string: "\(await IPFSDaemon.shared.gateway)\(cid)")!
+            try await parsePlanetFeed(planet: planet, url: url)
 
             let avatarResult = try await enskit.avatar(name: ens)
             debugPrint("ENSKit.avatar(\(ens)) => \(String(describing: avatarResult))")
@@ -315,113 +294,146 @@ class PlanetDataController: NSObject {
             }
         }
 
-        try await IPFSDaemon.shared.pin(cid: latestCID!)
-        planet.latestCID = latestCID!
+        planet.latestCID = cid
     }
 
     func updateDNSPlanet(planet: Planet) async throws {
         if let feedAddress = planet.feedAddress {
             let url = URL(string: feedAddress)!
-            try await parsePlanetFeed(planet: planet, feedURL: url)
+            try await parsePlanetFeed(planet: planet, url: url)
         } else {
             throw PlanetError.InternalError
         }
     }
 
-    func parsePlanetFeed(planet: Planet, feedURL: URL) async throws {
+    func parsePlanetFeed(planet: Planet, url: URL) async throws {
         let feedData: Data
-        do {
-            let (data, response) = try await URLSession.shared.data(from: feedURL)
-            let httpResponse = response as! HTTPURLResponse
-            if !httpResponse.ok {
-                debugPrint("Get feed \(httpResponse.statusCode): \(feedURL)")
-                throw PlanetError.NetworkError
-            }
-            feedData = data
-        } catch {
+
+        guard let (data, response) = try? await URLSession.shared.data(from: url) else {
             throw PlanetError.NetworkError
         }
-
-        guard let id = planet.id else {
-            throw PlanetError.InternalError
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.ok,
+              let mime = httpResponse.mimeType?.lowercased()
+        else {
+            throw PlanetError.PlanetFeedError
         }
+        if mime.contains("application/xml")
+               || mime.contains("application/atom+xml")
+               || mime.contains("application/rss+xml")
+               || mime.contains("application/json")
+               || mime.contains("application/feed+json") {
+            feedData = data
+        } else
+        if mime.contains("text/html") {
+            // parse HTML and find <link rel="alternate">
+            guard let homepageHTML = String(data: data, encoding: .utf8),
+                  let soup = try? SwiftSoup.parse(homepageHTML),
+                  let feedElem = try soup.select("link[rel='alternate']").first(),
+                  let feedElemHref = try? feedElem.attr("href"),
+                  let feedURL = URL.relativeURL(string: feedElemHref, base: url)
+            else {
+                // no <link rel="alternate"> in HTML
+                throw PlanetError.PlanetFeedError
+            }
+            // fetch feed
+            guard let (data, response) = try? await URLSession.shared.data(from: feedURL) else {
+                throw PlanetError.NetworkError
+            }
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.ok
+            else {
+                throw PlanetError.PlanetFeedError
+            }
+            feedData = data
+        } else {
+            throw PlanetError.PlanetFeedError
+        }
+
         let parser = FeedParser(data: feedData)
         switch parser.parse() {
         case .success(let feed):
-            var articles: [PlanetFeedArticle] = []
+            let articles: [PlanetFeedArticle]
             switch feed {
             case let .atom(feed):       // Atom Syndication Format Feed
-                PlanetDataController.shared.updatePlanet(planet: planet, name: feed.title, about: feed.subtitle?.value)
-                for entry in feed.entries! {
-                    guard let entryURL = URL(string: entry.links![0].attributes!.href!) else {
-                        continue
-                    }
-                    let entryLink = entry.links![0].attributes!.href!
-                    guard let entryTitle = entry.title else {
-                        continue
-                    }
-                    let entryContent = entry.content?.attributes?.src ?? ""
-                    let entryPublished = entry.published ?? Date()
-                    let a = PlanetFeedArticle(id: UUID(), created: entryPublished, title: entryTitle, content: entryContent, link: entryLink)
-                    articles.append(a)
+                if let name = feed.title {
+                    planet.name = name
                 }
-                debugPrint("Atom Feed: Found \(articles.count) articles")
+                if let about = feed.subtitle?.value {
+                    planet.about = about
+                }
+                articles = feed.entries?.compactMap { entry in
+                    guard let link = entry.links?[0].attributes?.href,
+                        let title = entry.title
+                    else {
+                        return nil
+                    }
+                    let content = entry.content?.attributes?.src ?? ""
+                    let published = entry.published ?? Date()
+                    return PlanetFeedArticle(
+                        id: UUID(),
+                        created: published,
+                        title: title,
+                        content: content,
+                        link: link
+                    )
+                } ?? []
+                debugPrint("parsed atom feed: \(articles.count) articles")
             case let .rss(feed):        // Really Simple Syndication Feed
-                for item in feed.items! {
-                    guard let itemLink = URL(string: item.link!) else {
-                        continue
+                articles = feed.items?.compactMap { item in
+                    guard let link = item.link,
+                          let linkURL = URL(string: link),
+                          let title = item.title
+                    else {
+                        return nil
                     }
-                    guard let itemTitle = item.title else {
-                        continue
-                    }
-                    let itemDescription = item.description ?? ""
-                    let itemPubdate = item.pubDate ?? Date()
-                    debugPrint("\(itemTitle) \(itemLink.path)")
-                    let a = PlanetFeedArticle(id: UUID(), created: itemPubdate, title: itemTitle, content: itemDescription, link: itemLink.path)
-                    articles.append(a)
-                }
-                debugPrint("RSS: Found \(articles.count) articles")
+                    let description = item.description ?? ""
+                    let published = item.pubDate ?? Date()
+                    return PlanetFeedArticle(
+                        id: UUID(),
+                        created: published,
+                        title: title,
+                        content: description,
+                        link: linkURL.path
+                    )
+                } ?? []
+                debugPrint("parsed RSS feed: \(articles.count) articles")
             case let .json(feed):       // JSON Feed
-                PlanetDataController.shared.updatePlanet(planet: planet, name: feed.title, about: feed.description)
+                if let name = feed.title {
+                    planet.name = name
+                }
+                if let about = feed.description {
+                    planet.about = about
+                }
                 // Fetch feed avatar if any
-                if let imageURL = feed.icon {
-                    do {
-                        let url = URL(string: imageURL)!
-                        let data = try Data(contentsOf: url)
-                        if let image = NSImage(data: data) {
-                            planet.updateAvatar(image: image)
-                        }
-                    } catch {
-                        debugPrint("Failed to fetch avatar: \(planet)")
-                    }
+                if let imageURL = feed.icon,
+                   let url = URL(string: imageURL),
+                   let data = try? Data(contentsOf: url),
+                   let image = NSImage(data: data) {
+                    planet.updateAvatar(image: image)
                 }
-                for item in feed.items! {
-                    guard let itemLink = URL(string: item.url!) else {
-                        continue
+
+                articles = feed.items?.compactMap { item in
+                    guard let url = item.url,
+                          let title = item.title
+                    else {
+                        return nil
                     }
-                    guard let itemTitle = item.title else {
-                        continue
-                    }
-                    let itemContentHTML = item.contentHtml ?? ""
-                    let itemDatePublished = item.datePublished ?? Date()
-                    debugPrint("\(itemTitle) \(itemLink.path)")
-                    let a = PlanetFeedArticle(id: UUID(), created: itemDatePublished, title: itemTitle, content: itemContentHTML, link: item.url!)
-                    articles.append(a)
-                }
-                debugPrint("JSON Feed: Found \(articles.count) articles")
+                    let html = item.contentHtml ?? ""
+                    let published = item.datePublished ?? Date()
+                    return PlanetFeedArticle(
+                        id: UUID(),
+                        created: published,
+                        title: title,
+                        content: html,
+                        link: url
+                    )
+                } ?? []
+                debugPrint("parsed JSON feed: \(articles.count) articles")
             }
-            PlanetDataController.shared.batchCreateFeedArticles(articles: articles, planetID: id)
+            PlanetDataController.shared.batchCreateFeedArticles(articles: articles, planetID: planet.id!)
         case .failure(_):
             throw PlanetError.PlanetFeedError
-        }
-    }
-
-    func updatePlanet(planet: Planet, name: String?, about: String?) {
-        if let name = name {
-            planet.name = name
-        }
-        if let about = about {
-            planet.about = about
         }
     }
 

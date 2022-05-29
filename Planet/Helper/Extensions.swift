@@ -151,8 +151,29 @@ extension Dictionary : URLQueryParameterStringConvertible {
 
 extension URL {
     func appendingQueryParameters(_ parametersDictionary : Dictionary<String, String>) -> URL {
-        let URLString : String = String(format: "%@?%@", self.absoluteString, parametersDictionary.queryParameters)
+        let URLString : String = String(format: "%@?%@", absoluteString, parametersDictionary.queryParameters)
         return URL(string: URLString)!
+    }
+
+    static func relativeURL(string: String, base: URL) -> URL? {
+        // Foundation.URL isn't happy when calculating URL relative to a base URL without a trailing slash
+        let s = base.absoluteString
+        if s.hasSuffix("/") {
+            return URL(string: string, relativeTo: base)
+        }
+        // While browser would usually replace the last path component, in our case we just need to append a slash
+        // Example:
+        // In browser (https://developer.mozilla.org/en-US/docs/Web/API/URL/URL):
+        // > new URL("./feed.json", "https://example.com/ignored")
+        //   URL { href: "https://example.com/feed.json", ... }
+        // Our case:
+        // > URL.relativeURL(
+        // .     string: "./feed.json",
+        // .     relativeTo: "http://localhost:18181/ipfs/QmbKu58pyq3WRgWNDv9Zat39QzB7jpzgZ2iSzaXjwas4MB"
+        // . )
+        //   Foundation.URL = "http://localhost:18181/ipfs/QmbKu58pyq3WRgWNDv9Zat39QzB7jpzgZ2iSzaXjwas4MB/feed.json"
+        let baseWithTrailingSlash = URL(string: s + "/")!
+        return URL(string: string, relativeTo: baseWithTrailingSlash)
     }
 }
 
