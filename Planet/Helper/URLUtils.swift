@@ -12,19 +12,14 @@ struct URLUtils {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
     }
 
-    static var basePath: URL {
-        let bundleID = Bundle.main.bundleIdentifier!
-        let path: URL
-        if let p = applicationSupportPath {
-            path = p.appendingPathComponent(bundleID, isDirectory: true)
-        } else {
-            path = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Planet")
-        }
-        if !FileManager.default.fileExists(atPath: path.path) {
-            try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
-        }
-        return path
-    }
+    static let basePath: URL = {
+        try! FileManager.default.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+    }()
 
     static var planetsPath: URL {
         let contentPath = basePath.appendingPathComponent("planets", isDirectory: true)
