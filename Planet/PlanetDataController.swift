@@ -192,7 +192,6 @@ class PlanetDataController: NSObject {
         if let image = NSImage(data: avatarData) {
             planet.updateAvatar(image: image)
         }
-        planet.lastUpdated = Date()
     }
 
     func updateENSPlanet(planet: Planet) async throws {

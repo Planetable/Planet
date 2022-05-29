@@ -109,7 +109,7 @@ class PlanetManager: NSObject {
             try FileManager.default.removeItem(atPath: planet.assetsPath.path)
         }
         try FileManager.default.copyItem(at: template.assetsPath, to: planet.assetsPath)
-        
+
         let output = try template.render(article: article)
         try output.data(using: .utf8)?.write(to: article.indexPath)
 
@@ -117,7 +117,7 @@ class PlanetManager: NSObject {
         let encoder = JSONEncoder()
         let data = try encoder.encode(article)
         try data.write(to: article.metadataPath)
-        
+
         // save index.html
         let articles = PlanetDataController.shared.getArticles(byPlanetID: article.planetID!)
         let outputIndex = try template.renderIndex(articles: articles, planet: planet)
@@ -219,6 +219,7 @@ class PlanetManager: NSObject {
         } else {
             try await PlanetDataController.shared.updateNativePlanet(planet: planet)
         }
+        planet.lastUpdated = Date()
         PlanetDataController.shared.save()
         debugPrint("done updating.")
     }
