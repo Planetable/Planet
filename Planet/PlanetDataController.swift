@@ -146,7 +146,7 @@ class PlanetDataController: NSObject {
             return
         }
         Task {
-            try await IPFSDaemon.shared.pin(cid: latestCID)
+            try await IPFSDaemon.shared.pin(ipns: planet.ipns!)
         }
         planet.latestCID = latestCID
         debugPrint("planet \(planet) CID changed to \(latestCID)")

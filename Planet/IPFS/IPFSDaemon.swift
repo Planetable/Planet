@@ -433,6 +433,34 @@ class IPFSDaemon {
         }
         throw IPFSDaemonError.IPFSCLIError
     }
+    
+    @IPFSActor func pin(ipns: String) async throws {
+        logger.info("Pinning IPNS \(ipns)")
+        do {
+            let (ret, out, err) = try IPFSCommand.pin(ipns: ipns).run()
+            if ret == 0 {
+                logger.info("Pinned IPNS \(ipns)")
+                return
+            }
+            logger.error(
+                """
+                Failed to pin IPNS \(ipns): process returned \(ret)
+                [stdout]
+                \(out.logFormat())
+                [stderr]
+                \(err.logFormat())
+                """
+            )
+        } catch {
+            logger.error(
+                """
+                Failed to pin IPNS \(ipns): error when running IPFS process, \
+                cause: \(String(describing: error))
+                """
+            )
+        }
+        throw IPFSDaemonError.IPFSCLIError
+    }
 
     func getFile(ipns: String, path: String = "") async throws -> Data {
         logger.info("Getting file from IPNS \(ipns)\(path)")
