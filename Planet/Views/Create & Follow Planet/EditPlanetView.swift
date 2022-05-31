@@ -106,6 +106,7 @@ struct EditPlanetView: View {
                         try? PlanetManager.shared.renderArticle(article)
                     }
                     PlanetDataController.shared.save()
+                    NotificationCenter.default.post(name: .refreshArticle, object: nil)
                     dismiss()
 
                     Task.init {
