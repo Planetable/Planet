@@ -10,7 +10,6 @@
 		2A09A35C27C257D60003A0B5 /* PlanetMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */; };
 		2A09A35F27C2581F0003A0B5 /* PlanetSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */; };
 		2A09A36127C2582B0003A0B5 /* PlanetArticleListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A36027C2582B0003A0B5 /* PlanetArticleListView.swift */; };
-		2A129CD3281D4F7D009443DC /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A129CD2281D4F7D009443DC /* Credits.rtf */; };
 		2A1DA2092820307D0039C3EF /* PlanetAvatarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A1DA2082820307D0039C3EF /* PlanetAvatarViewModel.swift */; };
 		2A2E33F227F4A93B0093F405 /* PlanetWriterUploadImageThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2E33F127F4A93B0093F405 /* PlanetWriterUploadImageThumbnailView.swift */; };
 		2A43EBA0283FBE2000501018 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 2A43EB9F283FBE2000501018 /* Sparkle */; };
@@ -55,6 +54,7 @@
 		6A5E63AA2807297000FB1E84 /* TemplateBrowserWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63A92807297000FB1E84 /* TemplateBrowserWindow.swift */; };
 		6A5E63AC28072AD400FB1E84 /* TemplateBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */; };
 		6A5F3971280785A700386029 /* TemplateBrowserSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F3970280785A700386029 /* TemplateBrowserSidebar.swift */; };
+		6A64D2DE284640A80013EABB /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A64D2DD284640A80013EABB /* Credits.html */; };
 		6A669052282BD6E6009E56E2 /* TemplateBrowserPreviewWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A669051282BD6E6009E56E2 /* TemplateBrowserPreviewWebView.swift */; };
 		6A6A146628215587009644B6 /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A146528215587009644B6 /* Template.swift */; };
 		6A6A1468282159DC009644B6 /* TemplateBrowserStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A1467282159DC009644B6 /* TemplateBrowserStore.swift */; };
@@ -78,7 +78,6 @@
 		2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetMainView.swift; sourceTree = "<group>"; };
 		2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSidebarView.swift; sourceTree = "<group>"; };
 		2A09A36027C2582B0003A0B5 /* PlanetArticleListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleListView.swift; sourceTree = "<group>"; };
-		2A129CD2281D4F7D009443DC /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		2A1DA2082820307D0039C3EF /* PlanetAvatarViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAvatarViewModel.swift; sourceTree = "<group>"; };
 		2A2E33F127F4A93B0093F405 /* PlanetWriterUploadImageThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterUploadImageThumbnailView.swift; sourceTree = "<group>"; };
 		2A43EBA1283FC7A200501018 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
@@ -126,6 +125,7 @@
 		6A5E63A92807297000FB1E84 /* TemplateBrowserWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserWindow.swift; sourceTree = "<group>"; };
 		6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserView.swift; sourceTree = "<group>"; };
 		6A5F3970280785A700386029 /* TemplateBrowserSidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserSidebar.swift; sourceTree = "<group>"; };
+		6A64D2DD284640A80013EABB /* Credits.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = Credits.html; sourceTree = "<group>"; };
 		6A669051282BD6E6009E56E2 /* TemplateBrowserPreviewWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserPreviewWebView.swift; sourceTree = "<group>"; };
 		6A6A146528215587009644B6 /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
 		6A6A1467282159DC009644B6 /* TemplateBrowserStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserStore.swift; sourceTree = "<group>"; };
@@ -238,7 +238,7 @@
 				2AC4996727BB981200F1C2D1 /* Planet.xcconfig */,
 				2AC4997227BC0EBA00F1C2D1 /* Planet.xcdatamodeld */,
 				2AC4994E27BB6E7600F1C2D1 /* Preview Content */,
-				2A129CD2281D4F7D009443DC /* Credits.rtf */,
+				6A64D2DD284640A80013EABB /* Credits.html */,
 				72114ABE784F27251FE3A0BD /* IPFS */,
 				2A43EBA1283FC7A200501018 /* Release.xcconfig */,
 			);
@@ -427,10 +427,10 @@
 				2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */,
 				6A28FDA82838598A00036BA6 /* NoSelection.html in Resources */,
 				2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */,
-				2A129CD3281D4F7D009443DC /* Credits.rtf in Resources */,
 				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
 				6A0172E827C9EE05006154B7 /* Basic.html in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
+				6A64D2DE284640A80013EABB /* Credits.html in Resources */,
 				72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */,
 				72114526A36207759470E32B /* ipfs-arm64 in Resources */,
 				721149FFE57BBAB8F4F4B25D /* fs-repo-migrations-amd64 in Resources */,
