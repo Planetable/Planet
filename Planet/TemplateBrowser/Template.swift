@@ -22,12 +22,12 @@ struct Template: Codable, Identifiable, Hashable {
         path.appendingPathComponent("templates", isDirectory: true)
             .appendingPathComponent("blog.html", isDirectory: false)
     }
-    
+
     var indexPath: URL {
         path.appendingPathComponent("templates", isDirectory: true)
             .appendingPathComponent("index.html", isDirectory: false)
     }
-    
+
     var assetsPath: URL {
         path.appendingPathComponent("assets", isDirectory: true)
     }
@@ -88,7 +88,7 @@ struct Template: Codable, Identifiable, Hashable {
         let stencilTemplateName = blogPath.lastPathComponent
         return try environment.renderTemplate(name: stencilTemplateName, context: context)
     }
-    
+
     func renderIndex(articles: [PlanetArticle], planet: Planet) throws -> String {
         let context: [String: Any] = [
             "assets_prefix": "./",
@@ -103,17 +103,16 @@ struct Template: Codable, Identifiable, Hashable {
     }
 
     func renderPreview() -> URL? {
-        let templateFolder = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(name)
-        let assetsFolderPath = templateFolder.appendingPathComponent("assets", isDirectory: true)
-        if !FileManager.default.fileExists(atPath: assetsFolderPath.path) {
-            do {
-                try FileManager.default.createSymbolicLink(at: assetsFolderPath, withDestinationURL: assetsPath)
-            } catch {
-                debugPrint("Cannot link template preview assets: \(error)")
-            }
+        let templatePreviewDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(name)
+        let assetsPreviewPath = templatePreviewDirectory.appendingPathComponent("assets", isDirectory: true)
+        do {
+            try? FileManager.default.removeItem(at: assetsPreviewPath)
+            try FileManager.default.copyItem(at: assetsPath, to: assetsPreviewPath)
+        } catch {
+            debugPrint("Cannot copy template preview assets: \(error)")
         }
 
-        let articleFolderPath = templateFolder.appendingPathComponent("preview", isDirectory: true)
+        let articleFolderPath = templatePreviewDirectory.appendingPathComponent("preview", isDirectory: true)
         if !FileManager.default.fileExists(atPath: articleFolderPath.path) {
             do {
                 try FileManager.default.createDirectory(
