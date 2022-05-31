@@ -88,6 +88,7 @@ extension Notification.Name {
     static let updateAvatar = Notification.Name("PlanetUpdateAvatarNotification")
     static let publishPlanet = Notification.Name("PlanetPublishPlanetNotification")
     static let loadArticle = Notification.Name("PlanetLoadArticleNotification")
+    static let refreshArticle = Notification.Name("PlanetRefreshArticleNotification")
 }
 
 

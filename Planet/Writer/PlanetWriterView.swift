@@ -310,6 +310,8 @@ struct PlanetWriterView: View {
             debugPrint("Error rendering article: \(error)")
         }
 
+        NotificationCenter.default.post(name: .refreshArticle, object: nil)
+
         // remove preview.html
         if let targetPath = PlanetWriterManager.shared.articlePath(articleID: targetID, planetID: originalPlanetID) {
             let previewPath = targetPath.appendingPathComponent("preview.html")

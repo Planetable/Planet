@@ -65,6 +65,10 @@ class PlanetManager: NSObject {
     func articleURL(article: PlanetArticle) async -> URL? {
         guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!) else { return nil }
         let urlString: String
+        if planet.isMyPlanet() {
+            let articlePath = URLUtils.planetsPath.appendingPathComponent(planet.id!.uuidString).appendingPathComponent(article.id!.uuidString).appendingPathComponent("index.html")
+            return articlePath
+        }
         switch (planet.type) {
             case .planet:
                 if let cid = planet.latestCID {

@@ -49,12 +49,32 @@ struct PlanetArticleWebView: NSViewRepresentable {
 
         wv.navigationDelegate = context.coordinator
         wv.setValue(false, forKey: "drawsBackground")
-        wv.load(URLRequest(url: url))
+        if url.scheme == "file" {
+            wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent().deletingLastPathComponent())
+        } else {
+            wv.load(URLRequest(url: url))
+        }
 
         NotificationCenter.default.addObserver(forName: .loadArticle, object: nil, queue: .main) { _ in
             if wv.url != url {
                 debugPrint("loading article at: \(url)")
-                wv.load(URLRequest(url: url))
+                if url.scheme == "file" {
+                    wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent().deletingLastPathComponent())
+                } else {
+                    wv.load(URLRequest(url: url))
+                }
+
+            }
+        }
+
+        NotificationCenter.default.addObserver(forName: .refreshArticle, object: nil, queue: .main) { _ in
+            debugPrint("refreshing article at: \(url)")
+            if let url = wv.url {
+                if url.scheme == "file" {
+                    wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent().deletingLastPathComponent())
+                } else {
+                    wv.load(URLRequest(url: url))
+                }
             }
         }
 

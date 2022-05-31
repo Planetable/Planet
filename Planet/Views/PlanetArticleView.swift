@@ -38,20 +38,5 @@ struct PlanetArticleView: View {
             url = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
             NotificationCenter.default.post(name: .loadArticle, object: nil)
         }
-        .onReceive(NotificationCenter.default.publisher(for: .publishPlanet)) { _ in
-            Task {
-                if let article = planetStore.currentArticle {
-                    if let articleURL = await PlanetManager.shared.articleURL(article: article) {
-                        url = articleURL
-                        Task { @MainActor in
-                            NotificationCenter.default.post(name: .loadArticle, object: nil)
-                        }
-                    }
-                } else {
-                    url = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
-                    NotificationCenter.default.post(name: .loadArticle, object: nil)
-                }
-            }
-        }
     }
 }
