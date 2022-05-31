@@ -303,15 +303,6 @@ struct PlanetWriterView: View {
         article.content = content
         PlanetDataController.shared.save()
 
-        // render
-        do {
-            try PlanetManager.shared.renderArticle(article)
-            // refresh
-            NotificationCenter.default.post(name: .refreshArticle, object: nil)
-        } catch {
-            debugPrint("Error rendering article: \(error)")
-        }
-
         // remove preview.html
         if let targetPath = PlanetWriterManager.shared.articlePath(articleID: targetID, planetID: originalPlanetID) {
             let previewPath = targetPath.appendingPathComponent("preview.html")

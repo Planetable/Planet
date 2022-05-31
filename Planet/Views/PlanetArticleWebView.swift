@@ -51,11 +51,6 @@ struct PlanetArticleWebView: NSViewRepresentable {
         wv.setValue(false, forKey: "drawsBackground")
         wv.load(URLRequest(url: url))
 
-        NotificationCenter.default.addObserver(forName: .refreshArticle, object: nil, queue: .main) { _ in
-            debugPrint("reloading article at: \(url)")
-            wv.reload()
-        }
-
         NotificationCenter.default.addObserver(forName: .loadArticle, object: nil, queue: .main) { _ in
             if wv.url != url {
                 debugPrint("loading article at: \(url)")

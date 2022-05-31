@@ -86,7 +86,7 @@ extension Notification.Name {
     static let closeWriterWindow = Notification.Name("PlanetCloseWriterWindowNotification")
     static let closeTemplateBrowserWindow = Notification.Name("PlanetCloseTemplateBrowserWindowNotification")
     static let updateAvatar = Notification.Name("PlanetUpdateAvatarNotification")
-    static let refreshArticle = Notification.Name("PlanetRefreshArticleNotification")
+    static let publishPlanet = Notification.Name("PlanetPublishPlanetNotification")
     static let loadArticle = Notification.Name("PlanetLoadArticleNotification")
 }
 

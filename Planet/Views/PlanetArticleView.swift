@@ -12,8 +12,6 @@ import WebKit
 struct PlanetArticleView: View {
     @EnvironmentObject private var planetStore: PlanetStore
 
-    var article: PlanetArticle?
-
     @State private var url: URL = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
 
     var body: some View {
@@ -23,8 +21,8 @@ struct PlanetArticleView: View {
         .onChange(of: planetStore.currentArticle) { newArticle in
             Task.init {
                 if let article = planetStore.currentArticle {
-                    if let urlPath = await PlanetManager.shared.articleURL(article: article) {
-                        url = URL(string: urlPath.absoluteString)!
+                    if let articleURL = await PlanetManager.shared.articleURL(article: article) {
+                        url = articleURL
                         article.isRead = true
                         PlanetDataController.shared.save()
 
@@ -39,6 +37,24 @@ struct PlanetArticleView: View {
         .onChange(of: planetStore.currentPlanet) { newPlanet in
             url = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
             NotificationCenter.default.post(name: .loadArticle, object: nil)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .publishPlanet)) { _ in
+            Task {
+                if let article = planetStore.currentArticle {
+                    if let articleURL = await PlanetManager.shared.articleURL(article: article) {
+                        url = articleURL
+                        article.isRead = true
+
+                        Task { @MainActor in
+                            PlanetDataController.shared.save()
+                            NotificationCenter.default.post(name: .loadArticle, object: nil)
+                        }
+                    }
+                } else {
+                    url = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
+                    NotificationCenter.default.post(name: .loadArticle, object: nil)
+                }
+            }
         }
     }
 }

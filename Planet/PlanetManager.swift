@@ -172,7 +172,10 @@ class PlanetManager: NSObject {
         do {
             cid = try await IPFSDaemon.shared.addDirectory(url: planetPath)
             planet.latestCID = "/ipfs/" + cid
-            PlanetDataController.shared.save()
+            Task { @MainActor in
+                PlanetDataController.shared.save()
+                NotificationCenter.default.post(name: .publishPlanet, object: nil)
+            }
         } catch {
             debugPrint("failed to add planet directory at: \(planetPath), error: \(error)")
             throw PlanetError.IPFSError
