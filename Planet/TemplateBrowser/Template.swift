@@ -81,7 +81,8 @@ struct Template: Codable, Identifiable, Hashable {
             "article": article,
             "page_title": article.title!,
             "created_date": article.created!.ISO8601Format(),
-            "content_html": content_html
+            "content_html": content_html,
+            "build_timestamp": Int(Date().timeIntervalSince1970)
         ]
         let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader)
