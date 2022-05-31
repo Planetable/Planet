@@ -226,6 +226,7 @@ struct PlanetSidebarView: View {
                                     Text("Delete Planet")
                                 }
 
+                                /*
                                 Divider()
 
                                 Button {
@@ -235,6 +236,7 @@ struct PlanetSidebarView: View {
                                 } label: {
                                     Text("Fix Planet")
                                 }
+                                */
                             }
                         })
                     }
