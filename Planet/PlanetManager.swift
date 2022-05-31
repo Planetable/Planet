@@ -63,38 +63,28 @@ class PlanetManager: NSObject {
     }
 
     func articleURL(article: PlanetArticle) async -> URL? {
-        guard let articleID = article.id, let planetID = article.planetID else { return nil }
         guard let planet = PlanetDataController.shared.getPlanet(id: article.planetID!) else { return nil }
-        if planet.isMyPlanet() {
-            let articlePath = URLUtils.planetsPath.appendingPathComponent(planetID.uuidString).appendingPathComponent(articleID.uuidString).appendingPathComponent("index.html")
-            return articlePath
-        } else {
-            let urlString: String
-            switch (planet.type) {
-                case .planet:
-                    if let cid = planet.latestCID {
-                        urlString = "\(await IPFSDaemon.shared.gateway)\(cid)\(article.link!)index.html"
-                    } else {
-                        urlString = "\(await IPFSDaemon.shared.gateway)/ipns/\(planet.ipns!)\(article.link!)index.html"
-                    }
-                case .ens:
-                    if let cid = planet.latestCID {
-                        urlString = "\(await IPFSDaemon.shared.gateway)\(cid)\(article.link!)"
-                    } else {
-                        urlString = "\(await IPFSDaemon.shared.gateway)/ipfs/\(planet.ipfs!)\(article.link!)"
-                    }
-                case .dns:
-                    urlString = article.link!
-                default:
-                    urlString = "\(await IPFSDaemon.shared.gateway)/ipns/\(planet.ipns!)/\(article.link!)/index.html"
-            }
-            debugPrint("article URL: \(urlString)")
-            return URL(string: urlString)
+        let urlString: String
+        switch (planet.type) {
+            case .planet:
+                if let cid = planet.latestCID {
+                    urlString = "\(await IPFSDaemon.shared.gateway)\(cid)\(article.link!)index.html"
+                } else {
+                    urlString = "\(await IPFSDaemon.shared.gateway)/ipns/\(planet.ipns!)\(article.link!)index.html"
+                }
+            case .ens:
+                if let cid = planet.latestCID {
+                    urlString = "\(await IPFSDaemon.shared.gateway)\(cid)\(article.link!)"
+                } else {
+                    urlString = "\(await IPFSDaemon.shared.gateway)/ipfs/\(planet.ipfs!)\(article.link!)"
+                }
+            case .dns:
+                urlString = article.link!
+            default:
+                urlString = "\(await IPFSDaemon.shared.gateway)/ipns/\(planet.ipns!)/\(article.link!)/index.html"
         }
-    }
-
-    func articleReadStatus(article: PlanetArticle) -> Bool {
-        article.read != nil
+        debugPrint("article URL: \(urlString)")
+        return URL(string: urlString)
     }
 
     func renderArticle(_ article: PlanetArticle) throws {
