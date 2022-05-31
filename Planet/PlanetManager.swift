@@ -168,9 +168,11 @@ class PlanetManager: NSObject {
         }
 
         // add planet directory
-        let planetCID: String
+        let cid: String
         do {
-            planetCID = try await IPFSDaemon.shared.addDirectory(url: planetPath)
+            cid = try await IPFSDaemon.shared.addDirectory(url: planetPath)
+            planet.latestCID = "/ipfs/" + cid
+            PlanetDataController.shared.save()
         } catch {
             debugPrint("failed to add planet directory at: \(planetPath), error: \(error)")
             throw PlanetError.IPFSError
@@ -180,7 +182,7 @@ class PlanetManager: NSObject {
         do {
             let decoder = JSONDecoder()
             let data = try await IPFSDaemon.shared.api(path: "name/publish", args: [
-                "arg": planetCID,
+                "arg": cid,
                 "allow-offline": "1",
                 "key": keyName,
                 "quieter": "1",
