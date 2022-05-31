@@ -43,10 +43,7 @@ struct PlanetArticleView: View {
                 if let article = planetStore.currentArticle {
                     if let articleURL = await PlanetManager.shared.articleURL(article: article) {
                         url = articleURL
-                        article.isRead = true
-
                         Task { @MainActor in
-                            PlanetDataController.shared.save()
                             NotificationCenter.default.post(name: .loadArticle, object: nil)
                         }
                     }
