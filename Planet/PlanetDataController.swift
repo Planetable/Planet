@@ -523,7 +523,7 @@ class PlanetDataController: NSObject {
         case .planet:
             return "https://\(gateway.rawValue)/ipns/\(planet.ipns!)\(article.link!)"
         case .ens:
-            return "https://\(gateway.rawValue)/ipfs/\(planet.ipfs!)\(article.link!)"
+            return "https://\(gateway.rawValue)/ipns/\(planet.ens!)\(article.link!)"
         case .dns:
             return "\(article.link!)"
         default:
