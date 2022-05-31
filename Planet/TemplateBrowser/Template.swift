@@ -80,25 +80,27 @@ struct Template: Codable, Identifiable, Hashable {
             "assets_prefix": "../",
             "article": article,
             "page_title": article.title!,
-            "created_date": article.created!.ISO8601Format(),
             "content_html": content_html,
             "build_timestamp": Int(Date().timeIntervalSince1970)
         ]
         let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
-        let environment = Environment(loader: loader)
+        let environment = Environment(loader: loader, extensions: [StencilExtension.get()])
         let stencilTemplateName = blogPath.lastPathComponent
         return try environment.renderTemplate(name: stencilTemplateName, context: context)
     }
 
     func renderIndex(articles: [PlanetArticle], planet: Planet) throws -> String {
+        let sortedArticles = articles.sorted { a1, a2 in
+            a1.created! > a2.created!
+        }
         let context: [String: Any] = [
             "assets_prefix": "./",
             "page_title": planet.name!,
             "page_description": planet.about!,
-            "articles": articles
+            "articles": sortedArticles
         ]
         let loader = FileSystemLoader(paths: [Path(indexPath.deletingLastPathComponent().path)])
-        let environment = Environment(loader: loader)
+        let environment = Environment(loader: loader, extensions: [StencilExtension.get()])
         let stencilTemplateName = indexPath.lastPathComponent
         return try environment.renderTemplate(name: stencilTemplateName, context: context)
     }
@@ -139,11 +141,10 @@ struct Template: Codable, Identifiable, Hashable {
         let context: [String: Any] = [
             "assets_prefix": "../",
             "article": article,
-            "created_date": article.created.ISO8601Format(),
             "content_html": content_html
         ]
         let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
-        let environment = Environment(loader: loader)
+        let environment = Environment(loader: loader, extensions: [StencilExtension.get()])
         let stencilTemplateName = blogPath.lastPathComponent
         do {
             let output: String = try environment.renderTemplate(name: stencilTemplateName, context: context)

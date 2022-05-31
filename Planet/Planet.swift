@@ -197,7 +197,7 @@ extension Planet {
     var avatarPath: URL {
         basePath.appendingPathComponent("avatar.png", isDirectory: false)
     }
-    
+
     var indexPath: URL {
         basePath.appendingPathComponent("index.html", isDirectory: false)
     }
@@ -406,13 +406,7 @@ class PlanetArticle: NSManagedObject, Codable {
     }
 
     var isMine: Bool {
-        get {
-            if let planet = PlanetDataController.shared.getPlanet(id: planetID!) {
-                return planet.keyID != nil && planet.keyID != nil
-            } else {
-                return false
-            }
-        }
+        PlanetDataController.shared.getPlanet(id: planetID!)!.isMyPlanet()
     }
 
     var basePath: URL {
