@@ -480,17 +480,19 @@ class PlanetDataController: NSObject {
     }
 
     func batchCreateFeedArticles(articles: [PlanetFeedArticle], planetID: UUID) {
-        let ctx = persistentContainer.viewContext
-        for article in articles {
-            let a = PlanetDataController.shared.getArticle(link: article.link!, planetID: planetID)
-            if a == nil {
-                let newArticle = PlanetArticle(context: ctx)
-                newArticle.id = UUID()
-                newArticle.planetID = planetID
-                newArticle.title = article.title
-                newArticle.link = article.link
-                newArticle.created = article.created
-                save(context: ctx)
+        Task { @MainActor in
+            let ctx = persistentContainer.viewContext
+            for article in articles {
+                let a = PlanetDataController.shared.getArticle(link: article.link!, planetID: planetID)
+                if a == nil {
+                    let newArticle = PlanetArticle(context: ctx)
+                    newArticle.id = UUID()
+                    newArticle.planetID = planetID
+                    newArticle.title = article.title
+                    newArticle.link = article.link
+                    newArticle.created = article.created
+                    save(context: ctx)
+                }
             }
         }
     }
