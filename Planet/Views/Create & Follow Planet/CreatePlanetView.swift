@@ -16,6 +16,7 @@ struct CreatePlanetView: View {
     @State private var name: String = ""
     @State private var about: String = ""
     @State private var templateName: String = "Plain"
+    @State private var creating = false
 
     var body: some View {
         VStack (spacing: 0) {
@@ -82,6 +83,7 @@ struct CreatePlanetView: View {
 
             HStack {
                 Button {
+                    creating = false
                     dismiss()
                 } label: {
                     Text("Close")
@@ -90,7 +92,18 @@ struct CreatePlanetView: View {
 
                 Spacer()
 
+                if creating {
+                    HStack {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .scaleEffect(0.5, anchor: .center)
+                    }
+                    .padding(.horizontal, 4)
+                    .frame(height: 10)
+                }
+
                 Button {
+                    creating = true
                     Task.init {
                         do {
                             let id = UUID()
@@ -108,12 +121,13 @@ struct CreatePlanetView: View {
                         } catch {
                             PlanetManager.shared.alert(title: "Failed to create planet")
                         }
+                        creating = false
                         dismiss()
                     }
                 } label: {
                     Text("Create")
                 }
-                .disabled(name.count > 0 ? false : true)
+                .disabled(creating || name.isEmpty)
             }
             .padding(16)
         }

@@ -262,7 +262,7 @@ class IPFSDaemon {
         }
     }
 
-    @IPFSActor func generateKey(name: String) throws -> String {
+    func generateKey(name: String) throws -> String {
         logger.info("Generating IPFS keypair for \(name)")
         do {
             let (ret, out, err) = try IPFSCommand.generateKey(name: name).run()
@@ -294,7 +294,7 @@ class IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
-    @IPFSActor func addDirectory(url: URL) throws -> String {
+    func addDirectory(url: URL) throws -> String {
         logger.info("Adding directory \(url.path) to IPFS")
         do {
             let (ret, out, err) = try IPFSCommand.addDirectory(directory: url).run()
@@ -326,7 +326,7 @@ class IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
-    @IPFSActor func getFileCID(url: URL) throws -> String {
+    func getFileCID(url: URL) throws -> String {
         logger.info("Checking file \(url.path) CID")
         do {
             let (ret, out, err) = try IPFSCommand.getFileCID(file: url).run()
@@ -358,7 +358,7 @@ class IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
-    @IPFSActor func publish(key: String, cid: String) throws {
+    func publish(key: String, cid: String) throws {
         logger.info("Publishing \(cid) for \(key)")
         do {
             let (ret, out, err) = try IPFSCommand.publish(key: key, cid: cid).run()
@@ -387,7 +387,7 @@ class IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
-    @IPFSActor func resolveIPNS(ipns: String) throws -> String {
+    func resolveIPNS(ipns: String) throws -> String {
         logger.info("Resolving IPNS \(ipns)")
         do {
             let (ret, out, err) = try IPFSCommand.resolveIPNS(ipns: ipns).run()
@@ -419,7 +419,7 @@ class IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
-    @IPFSActor func pin(cid: String) async throws {
+    func pin(cid: String) async throws {
         logger.info("Pinning \(cid)")
         do {
             let (ret, out, err) = try IPFSCommand.pin(cid: cid).run()
@@ -446,8 +446,8 @@ class IPFSDaemon {
         }
         throw IPFSDaemonError.IPFSCLIError
     }
-    
-    @IPFSActor func pin(ipns: String) async throws {
+
+    func pin(ipns: String) throws {
         logger.info("Pinning IPNS \(ipns)")
         do {
             let (ret, out, err) = try IPFSCommand.pin(ipns: ipns).run()
