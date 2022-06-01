@@ -47,6 +47,7 @@ struct FollowPlanetView: View {
                 Button {
                     if let planet = PlanetStore.shared.pendingFollowingPlanet {
                         planet.softDeleted = Date()
+                        PlanetStore.shared.pendingFollowingPlanet = nil
                         PlanetDataController.shared.save()
                     }
                     dismiss()
