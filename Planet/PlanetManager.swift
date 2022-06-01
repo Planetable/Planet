@@ -301,11 +301,15 @@ class PlanetManager: NSObject {
         do {
             try await update(planet)
         } catch PlanetError.PlanetFeedError, PlanetError.InvalidPlanetURLError {
-            await PlanetDataController.shared.remove(planet)
-            await alert(title: "Unable to follow planet", message: "The URL provided is not a planet.")
+            if planet.softDeleted == nil {
+                await alert(title: "Unable to follow planet", message: "The URL provided is not a planet.")
+                await PlanetDataController.shared.remove(planet)
+            }
         } catch {
-            await PlanetDataController.shared.remove(planet)
-            await alert(title: "Failed to follow planet")
+            if planet.softDeleted == nil {
+                await alert(title: "Failed to follow planet")
+                await PlanetDataController.shared.remove(planet)
+            }
         }
         PlanetDataController.shared.save()
     }

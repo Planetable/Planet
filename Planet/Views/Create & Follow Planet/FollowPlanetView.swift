@@ -45,6 +45,10 @@ struct FollowPlanetView: View {
 
             HStack {
                 Button {
+                    if let planet = PlanetStore.shared.pendingFollowingPlanet {
+                        planet.softDeleted = Date()
+                        PlanetDataController.shared.save()
+                    }
                     dismiss()
                 } label: {
                     Text("Dismiss")
@@ -78,6 +82,7 @@ struct FollowPlanetView: View {
                 } label: {
                     Text("Follow")
                 }
+                .disabled(PlanetStore.shared.pendingFollowingPlanet != nil)
             }
             .padding(16)
         }
