@@ -31,7 +31,7 @@ struct PlanetApp: App {
         .commands {
             CommandGroup(replacing: .newItem) {
             }
-            CommandMenu("Planet") {
+            CommandMenu("Tools") {
                 Button {
                     if let url = URL(string: "planet://Template") {
                         openURL(url)
