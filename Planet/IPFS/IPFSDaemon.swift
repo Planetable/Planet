@@ -178,10 +178,12 @@ class IPFSDaemon {
                         let onboarding = UserDefaults.standard.string(forKey: "PlanetOnboarding")
                         if onboarding == nil {
                             Task {
-                                try await PlanetManager.shared.followPlanet(url: "vitalik.eth")
+                                let planet = PlanetDataController.shared.createPlanet(ens: "vitalik.eth")!
+                                try await PlanetManager.shared.update(planet)
                             }
                             Task {
-                                try await PlanetManager.shared.followPlanet(url: "planetable.eth")
+                                let planet = PlanetDataController.shared.createPlanet(ens: "planetable.eth")!
+                                try await PlanetManager.shared.update(planet)
                             }
                             UserDefaults.standard.set(Date().ISO8601Format(), forKey: "PlanetOnboarding")
                         }

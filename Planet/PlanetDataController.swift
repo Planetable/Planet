@@ -39,12 +39,23 @@ class PlanetDataController: NSObject {
     }
 
     func save(context: NSManagedObjectContext? = nil) {
-        let ctx = context ?? persistentContainer.viewContext
-        guard ctx.hasChanges else { return }
-        do {
-            try ctx.save()
-        } catch {
-            debugPrint("Failed to save persistent container: \(error)")
+        if context == nil {
+            Task { @MainActor in
+                let ctx = persistentContainer.viewContext
+                guard ctx.hasChanges else { return }
+                do {
+                    try ctx.save()
+                } catch {
+                    debugPrint("Failed to save main context: \(error)")
+                }
+            }
+        } else {
+            guard context!.hasChanges else { return }
+            do {
+                try context!.save()
+            } catch {
+                debugPrint("Failed to save given context: \(error)")
+            }
         }
     }
 
@@ -163,7 +174,7 @@ class PlanetDataController: NSObject {
         guard let name = feed.name, let about = feed.about else {
             throw PlanetError.PlanetFeedError
         }
-        debugPrint("updating planet \(planet) with new feed \(feed)")
+        debugPrint("updating planet \(planet) with new feed")
         planet.name = name
         planet.about = about
 
@@ -247,7 +258,7 @@ class PlanetDataController: NSObject {
             guard let name = feed.name, let about = feed.about else {
                 throw PlanetError.PlanetFeedError
             }
-            debugPrint("updating planet \(planet) with new feed \(feed)")
+            debugPrint("updating planet \(planet) with new feed")
             planet.name = name
             planet.about = about
 
