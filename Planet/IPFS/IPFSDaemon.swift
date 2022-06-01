@@ -171,8 +171,18 @@ class IPFSDaemon {
                 outHandler: { [self] data in
                     if let output = String(data: data, encoding: .utf8),
                        output.contains("Daemon is ready") {
-                        Task.init {
+                        Task {
                             await updateOnlineStatus()
+                        }
+                        let onboarding = UserDefaults.standard.string(forKey: "PlanetOnboarding")
+                        if onboarding == nil {
+                            Task {
+                                try await PlanetManager.shared.followPlanet(url: "vitalik.eth")
+                            }
+                            Task {
+                                try await PlanetManager.shared.followPlanet(url: "planetable.eth")
+                            }
+                            UserDefaults.standard.set(Date().ISO8601Format(), forKey: "PlanetOnboarding")
                         }
                     }
                     logger.debug("[IPFS stdout]\n\(data.logFormat())")
