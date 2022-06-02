@@ -50,6 +50,9 @@ class TemplateBrowserStore: ObservableObject {
             templates.sort { t1, t2 in
                 t1.name < t2.name
             }
+            for template in templates {
+                template.prepareTemporaryAssetsForPreview()
+            }
         } catch {
             debugPrint("Failed to load templates: \(error)")
         }

@@ -104,6 +104,28 @@ struct Template: Codable, Identifiable, Hashable {
         let stencilTemplateName = indexPath.lastPathComponent
         return try environment.renderTemplate(name: stencilTemplateName, context: context)
     }
+    
+    func prepareTemporaryAssetsForPreview() {
+        let templatePreviewDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(name)
+        if !FileManager.default.fileExists(atPath: templatePreviewDirectory.path) {
+            do {
+                try FileManager.default.createDirectory(
+                    at: templatePreviewDirectory,
+                    withIntermediateDirectories: true,
+                    attributes: nil
+                )
+            } catch {
+                debugPrint("Failed to create template preview directory: \(error)")
+            }
+        }
+        let assetsPreviewPath = templatePreviewDirectory.appendingPathComponent("assets", isDirectory: true)
+        do {
+            try? FileManager.default.removeItem(at: assetsPreviewPath)
+            try FileManager.default.copyItem(at: assetsPath, to: assetsPreviewPath)
+        } catch {
+            debugPrint("Failed to prepare template preview assets: \(error)")
+        }
+    }
 
     func renderPreview() -> URL? {
         let templatePreviewDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(name)
