@@ -70,9 +70,9 @@ jobs:
           mkdir to-be-signed
           ditto archive/Planet.xcarchive/Products/Applications/Planet.app to-be-signed/Planet.app
 
-      #- name: Codesign with Developer ID
-      #  run: |
-      #    xcrun codesign --options runtime --deep --force --verbose --timestamp --entitlements "Planet/Planet.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework
+      - name: Codesign with Developer ID
+        run: |
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --entitlements "Planet/Planet.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework
 
       - name: Prepare for Notarization
         run: |
