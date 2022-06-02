@@ -73,10 +73,11 @@ jobs:
       - name: Codesign with Developer ID
         run: |
           # xcrun codesign --options runtime --deep --force --verbose --timestamp --entitlements "Planet/Planet.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework
-          codesign -f -s "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" -o runtime to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/org.sparkle-project.InstallerLauncher.xpc
-          codesign -f -s "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" -o runtime to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate
-          codesign -f -s "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" -o runtime to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app
-          codesign -f -s "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" -o runtime to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework
+
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --entitlements "Planet/Planet.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/org.sparkle-project.InstallerLauncher.xpc
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --entitlements "Planet/Planet.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --entitlements "Planet/Planet.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/B/Updater.app
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --entitlements "Planet/Planet.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework
 
       - name: Prepare for Notarization
         run: |
