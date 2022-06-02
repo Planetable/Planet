@@ -209,6 +209,12 @@ struct PlanetSidebarView: View {
                                     Text("Copy IPNS")
                                 }
 
+                                Button {
+                                    openPlanetPublicGatewayAction(planet: planet)
+                                } label: {
+                                    Text("Open in Public Gateway")
+                                }
+
                                 Divider()
 
                                 Button {
@@ -435,6 +441,14 @@ struct PlanetSidebarView: View {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(feedAddress, forType: .string)
+    }
+
+    private func openPlanetPublicGatewayAction(planet: Planet) {
+        guard let ipns = planet.ipns else {
+            return
+        }
+        let url = URL(string: "https://dweb.link/ipns/\(ipns)/")!
+        NSWorkspace.shared.open(url)
     }
 }
 
