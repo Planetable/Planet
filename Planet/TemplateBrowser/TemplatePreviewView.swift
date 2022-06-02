@@ -44,6 +44,8 @@ struct TemplatePreviewView: View {
             url = newURL.appendingQueryParameters(
                 ["t": "\(Date().timeIntervalSince1970)"]
             )
+            
+            NotificationCenter.default.post(name: .loadTemplatePreview, object: nil)
         }
     }
 }
