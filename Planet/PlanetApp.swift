@@ -31,9 +31,9 @@ struct PlanetApp: App {
                     if url.absoluteString.hasPrefix("planet://") {
                         let url = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
                         guard !PlanetDataController.shared.planetExists(planetURL: url) else { return }
-                        // TODO: can this URL be .eth or even a feed?
-                        let _ = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", ipns: url)
-                        PlanetDataController.shared.save()
+                        Task.init {
+                            try await PlanetManager.shared.followPlanet(url: url)
+                        }
                     } else if url.lastPathComponent.hasSuffix(".planet") {
                         DispatchQueue.main.async {
                             PlanetManager.shared.importPath = url
