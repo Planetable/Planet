@@ -328,6 +328,18 @@ class PlanetManager: NSObject {
             return
         }
 
+        let importPlanetAssetsPath = importPath.appendingPathComponent("assets")
+        guard FileManager.default.fileExists(atPath: importPlanetAssetsPath.path) else {
+            alert(title: "Failed to Import Planet", message: "The planet data file is damaged.")
+            return
+        }
+
+        let importPlanetIndexPath = importPath.appendingPathComponent("index.html")
+        guard FileManager.default.fileExists(atPath: importPlanetIndexPath.path) else {
+            alert(title: "Failed to Import Planet", message: "The planet data file is damaged.")
+            return
+        }
+
         let importPlanetKeyPath = importPath.appendingPathComponent("planet.key")
         guard FileManager.default.fileExists(atPath: importPlanetKeyPath.path) else {
             alert(title: "Failed to Import Planet", message: "The planet data file is damaged.")
@@ -377,6 +389,12 @@ class PlanetManager: NSObject {
 
             // copy planet.json
             try FileManager.default.copyItem(at: importPlanetInfoPath, to: targetPlanetPath.appendingPathComponent("planet.json"))
+
+            // copy assets folder
+            try FileManager.default.copyItem(at: importPlanetAssetsPath, to: targetPlanetPath.appendingPathComponent("assets"))
+
+            // copy index.html
+            try FileManager.default.copyItem(at: importPlanetIndexPath, to: targetPlanetPath.appendingPathComponent("index.html"))
 
             // copy avatar.png if exists
             let importPlanetAvatarPath = importPath.appendingPathComponent("avatar.png")
@@ -429,6 +447,13 @@ class PlanetManager: NSObject {
         let exportPlanetPath = exportPath.appendingPathComponent("\(planetName.sanitized()).planet")
         guard FileManager.default.fileExists(atPath: exportPlanetPath.path) == false else {
             alert(title: "Failed to Export Planet", message: "Export path exists, please choose another export path then try again.")
+            return
+        }
+
+        let planetInfoPath = URLUtils.planetsPath.appendingPathComponent(planetID.uuidString).appendingPathComponent("planet.json")
+        let planetIndexPath = URLUtils.planetsPath.appendingPathComponent(planetID.uuidString).appendingPathComponent("index.html")
+        guard FileManager.default.fileExists(atPath: planetInfoPath.path), FileManager.default.fileExists(atPath: planetIndexPath.path) else {
+            alert(title: "Failed to Export Planet", message: "This planet has no articles to export.")
             return
         }
 
