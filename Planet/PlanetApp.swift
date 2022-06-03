@@ -26,6 +26,21 @@ struct PlanetApp: App {
             PlanetMainView()
                 .environmentObject(planetStore)
                 .environment(\.managedObjectContext, PlanetDataController.shared.persistentContainer.viewContext)
+                .handlesExternalEvents(preferring: Set(arrayLiteral: "Planet"), allowing: Set(arrayLiteral: "Planet"))
+                .onOpenURL(perform: { url in
+                    if url.absoluteString.hasPrefix("planet://") {
+                        let url = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
+                        guard !PlanetDataController.shared.planetExists(planetURL: url) else { return }
+                        // TODO: can this URL be .eth or even a feed?
+                        let _ = PlanetDataController.shared.createPlanet(withID: UUID(), name: "", about: "", ipns: url)
+                        PlanetDataController.shared.save()
+                    } else if url.lastPathComponent.hasSuffix(".planet") {
+                        DispatchQueue.main.async {
+                            PlanetManager.shared.importPath = url
+                            PlanetManager.shared.importCurrentPlanet()
+                        }
+                    }
+                })
         }
         .handlesExternalEvents(matching: Set(arrayLiteral: "Planet"))
         .commands {
@@ -99,23 +114,7 @@ struct PlanetApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        true
-    }
-
-    func application(_ application: NSApplication, open urls: [URL]) {
-        guard let url = urls.first else { return }
-        if url.absoluteString.hasPrefix("planet://") {
-            let url = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
-            guard !PlanetDataController.shared.planetExists(planetURL: url) else { return }
-            Task.init {
-                try await PlanetManager.shared.followPlanet(url: url)
-            }
-        } else if url.lastPathComponent.hasSuffix(".planet") {
-            DispatchQueue.main.async {
-                PlanetManager.shared.importPath = url
-                PlanetManager.shared.importCurrentPlanet()
-            }
-        }
+        return false
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
@@ -128,8 +127,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let _ = PlanetManager.shared
         TemplateBrowserStore.shared.loadTemplates()
         SUUpdater.shared().checkForUpdatesInBackground()
-        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(appDidWakeUpAction), name: NSWorkspace.didWakeNotification, object: nil)
-        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(appWillSleepAction), name: NSWorkspace.willSleepNotification, object: nil)
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -147,18 +144,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
-    }
-}
-
-
-extension AppDelegate {
-    @objc
-    private func appDidWakeUpAction() {
-        // Reactivate timers
-    }
-
-    @objc
-    private func appWillSleepAction() {
-        // Invalidate timers
     }
 }

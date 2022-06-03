@@ -350,7 +350,7 @@ class PlanetManager: NSObject {
             }
 
             let planetDirectories = try FileManager.default.contentsOfDirectory(at: importPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter({ u in
-                u.hasDirectoryPath
+                u.hasDirectoryPath && u.lastPathComponent.count == UUID().uuidString.count
             })
 
             // import planet key if needed
