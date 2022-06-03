@@ -74,6 +74,9 @@ struct PlanetSidebarView: View {
     @EnvironmentObject private var planetStore: PlanetStore
     @StateObject var ipfs: IPFSState
 
+    @State private var isShowingConfirmation = false
+    @State private var dialogDetail: Planet?
+
     init() {
         self._ipfs = StateObject.init(wrappedValue: IPFSState.shared)
     }
@@ -218,16 +221,8 @@ struct PlanetSidebarView: View {
                                 Divider()
 
                                 Button {
-                                    Task.init {
-                                        if let keyName = planet.keyName, keyName != "" {
-                                            try IPFSCommand.deleteKey(name: keyName).run()
-                                        }
-                                        await PlanetDataController.shared.remove(planet)
-                                        if let planetID = planet.id {
-                                            PlanetManager.shared.destroyDirectory(fromPlanet: planetID)
-                                        }
-                                        PlanetDataController.shared.save()
-                                    }
+                                    isShowingConfirmation = true
+                                    dialogDetail = planet
                                 } label: {
                                     Text("Delete Planet")
                                 }
@@ -407,6 +402,17 @@ struct PlanetSidebarView: View {
             CreatePlanetView()
             .environmentObject(planetStore)
         }
+        .confirmationDialog(
+            Text("Are you sure you want to delete this planet? This action cannot be undone."),
+            isPresented: $isShowingConfirmation,
+            presenting: dialogDetail
+        ) { detail in
+            Button(role: .destructive) {
+                deletePlanetAction(planet: detail)
+            } label: {
+                Text("Delete")
+            }
+        }
     }
 
     private func unfollowPlanetAction(planet: Planet) {
@@ -449,6 +455,19 @@ struct PlanetSidebarView: View {
         }
         let url = URL(string: "https://dweb.link/ipns/\(ipns)/")!
         NSWorkspace.shared.open(url)
+    }
+
+    private func deletePlanetAction(planet: Planet) {
+        Task.init {
+            if let keyName = planet.keyName, keyName != "" {
+                try IPFSCommand.deleteKey(name: keyName).run()
+            }
+            await PlanetDataController.shared.remove(planet)
+            if let planetID = planet.id {
+                PlanetManager.shared.destroyDirectory(fromPlanet: planetID)
+            }
+            PlanetDataController.shared.save()
+        }
     }
 }
 
