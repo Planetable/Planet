@@ -106,18 +106,7 @@ struct CreatePlanetView: View {
                     creating = true
                     Task.init {
                         do {
-                            let id = UUID()
-                            let key = try await IPFSDaemon.shared.generateKey(name: id.uuidString)
-                            let _ = PlanetDataController.shared.createPlanet(
-                                withID: id,
-                                name: name,
-                                about: about,
-                                keyName: id.uuidString,
-                                keyID: key,
-                                ipns: key,
-                                templateName: templateName
-                            )
-                            PlanetDataController.shared.save()
+                            let _ = try await Planet.createMyPlanet(name: name, about: about, templateName: templateName)
                         } catch {
                             PlanetManager.shared.alert(title: "Failed to create planet")
                         }

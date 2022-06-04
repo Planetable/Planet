@@ -25,22 +25,8 @@ struct PlanetApp: App {
         WindowGroup {
             PlanetMainView()
                 .environmentObject(planetStore)
-                .environment(\.managedObjectContext, PlanetDataController.shared.persistentContainer.viewContext)
+                .environment(\.managedObjectContext, PlanetDataController.shared.viewContext)
                 .handlesExternalEvents(preferring: Set(arrayLiteral: "Planet"), allowing: Set(arrayLiteral: "Planet"))
-                .onOpenURL(perform: { url in
-                    if url.absoluteString.hasPrefix("planet://") {
-                        let url = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
-                        guard !PlanetDataController.shared.planetExists(planetURL: url) else { return }
-                        Task.init {
-                            try await PlanetManager.shared.followPlanet(url: url)
-                        }
-                    } else if url.lastPathComponent.hasSuffix(".planet") {
-                        DispatchQueue.main.async {
-                            PlanetManager.shared.importPath = url
-                            PlanetManager.shared.importCurrentPlanet()
-                        }
-                    }
-                })
         }
         .handlesExternalEvents(matching: Set(arrayLiteral: "Planet"))
         .commands {
@@ -48,9 +34,7 @@ struct PlanetApp: App {
             }
             CommandMenu("Tools") {
                 Button {
-                    if let url = URL(string: "planet://Template") {
-                        openURL(url)
-                    }
+                    openURL(URL(string: "planet://Template")!)
                 } label: {
                     Text("Template Browser")
                 }
@@ -97,7 +81,8 @@ struct PlanetApp: App {
                 }
             }
             SidebarCommands()
-            TextEditingCommands()
+            // disable text edit commands since they currently don't work with writer
+            // TextEditingCommands()
             TextFormattingCommands()
         }
 
@@ -114,7 +99,39 @@ struct PlanetApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        return false
+        true
+    }
+
+    // use AppDelegate lifecycle since View.onOpenURL does not work
+    // Reference: https://developer.apple.com/forums/thread/673822
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let url = urls.first else { return }
+        if url.absoluteString.hasPrefix("planet://") {
+            let url = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
+            guard !PlanetDataController.shared.planetExists(planetURL: url) else { return }
+            Task {
+                try await PlanetManager.shared.followPlanet(url: url)
+            }
+        } else if url.lastPathComponent.hasSuffix(".planet") {
+            do {
+                let planet = try Planet.importMyPlanet(importURL: url)
+                Task { @MainActor in
+                    PlanetStore.shared.currentPlanet = planet
+                }
+                return
+            } catch PlanetError.PlanetExistsError {
+                Task { @MainActor in
+                    PlanetManager.shared.alert(
+                        title: "Failed to Import Planet",
+                        message: "The planet already exists."
+                    )
+                }
+            } catch {
+                Task { @MainActor in
+                    PlanetManager.shared.alert(title: "Failed to Import Planet", message: "Please try again.")
+                }
+            }
+        }
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {

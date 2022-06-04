@@ -94,28 +94,28 @@ class PlanetManager: NSObject {
     func renderArticle(_ article: PlanetArticle) throws {
         debugPrint("rendering article: \(article)")
         let planet = PlanetDataController.shared.getPlanet(id: article.planetID!)!
-        if !FileManager.default.fileExists(atPath: article.basePath.path) {
-            try FileManager.default.createDirectory(at: article.basePath, withIntermediateDirectories: true)
+        if !FileManager.default.fileExists(atPath: article.baseURL.path) {
+            try FileManager.default.createDirectory(at: article.baseURL, withIntermediateDirectories: true)
         }
 
         let template = TemplateBrowserStore.shared[planet.templateName ?? "Plain"]!
-        if FileManager.default.fileExists(atPath: planet.assetsPath.path) {
-            try FileManager.default.removeItem(atPath: planet.assetsPath.path)
+        if FileManager.default.fileExists(atPath: planet.assetsURL.path) {
+            try FileManager.default.removeItem(at: planet.assetsURL)
         }
-        try FileManager.default.copyItem(at: template.assetsPath, to: planet.assetsPath)
+        try FileManager.default.copyItem(at: template.assetsPath, to: planet.assetsURL)
 
         let output = try template.render(article: article)
-        try output.data(using: .utf8)?.write(to: article.indexPath)
+        try output.data(using: .utf8)?.write(to: article.indexURL)
 
         // save article.json
         let encoder = JSONEncoder()
         let data = try encoder.encode(article)
-        try data.write(to: article.metadataPath)
+        try data.write(to: article.infoURL)
 
         // save index.html
         let articles = PlanetDataController.shared.getArticles(byPlanetID: article.planetID!)
         let outputIndex = try template.renderIndex(articles: articles, planet: planet)
-        try outputIndex.data(using: .utf8)?.write(to: planet.indexPath)
+        try outputIndex.data(using: .utf8)?.write(to: planet.indexURL)
     }
 
     func pin(_ endpoint: String) async {
@@ -155,11 +155,11 @@ class PlanetManager: NSObject {
         }
         let feed = PlanetFeed(
                 id: id,
+                name: planet.name!,
+                about: planet.about!,
                 ipns: planet.ipns!,
                 created: planet.created!,
                 updated: planet.lastUpdated ?? planet.created ?? Date(),
-                name: planet.name,
-                about: planet.about,
                 articles: feedArticles
         )
         do {
@@ -196,11 +196,7 @@ class PlanetManager: NSObject {
                 "lifetime": "168h",
             ], timeout: 600)
             let published = try decoder.decode(PlanetPublished.self, from: data)
-            if let planetIPNS = published.name {
-                debugPrint("planet: \(planet) is published: \(planetIPNS)")
-            } else {
-                debugPrint("planet: \(planet) not published: \(published).")
-            }
+            debugPrint("planet: \(planet) is published: \(published.name)")
         } catch {
             debugPrint("failed to publish planet: \(planet), at path: \(planetPath), error: \(error)")
         }
@@ -314,183 +310,9 @@ class PlanetManager: NSObject {
         PlanetDataController.shared.save()
     }
 
-    // MARK: -
-    @MainActor
-    func importCurrentPlanet() {
-        guard let importPath = PlanetManager.shared.importPath else {
-            alert(title: "Failed to Import Planet", message: "Please choose a planet data file to import.")
-            return
-        }
-
-        let importPlanetInfoPath = importPath.appendingPathComponent("planet.json")
-        guard FileManager.default.fileExists(atPath: importPlanetInfoPath.path) else {
-            alert(title: "Failed to Import Planet", message: "The planet data file is damaged.")
-            return
-        }
-
-        let importPlanetAssetsPath = importPath.appendingPathComponent("assets")
-        guard FileManager.default.fileExists(atPath: importPlanetAssetsPath.path) else {
-            alert(title: "Failed to Import Planet", message: "The planet data file is damaged.")
-            return
-        }
-
-        let importPlanetIndexPath = importPath.appendingPathComponent("index.html")
-        guard FileManager.default.fileExists(atPath: importPlanetIndexPath.path) else {
-            alert(title: "Failed to Import Planet", message: "The planet data file is damaged.")
-            return
-        }
-
-        let importPlanetKeyPath = importPath.appendingPathComponent("planet.key")
-        guard FileManager.default.fileExists(atPath: importPlanetKeyPath.path) else {
-            alert(title: "Failed to Import Planet", message: "The planet data file is damaged.")
-            return
-        }
-
-        let decoder = JSONDecoder()
-        do {
-            let planetInfoData = try Data.init(contentsOf: importPlanetInfoPath)
-            let planetInfo = try decoder.decode(PlanetFeed.self, from: planetInfoData)
-
-            guard let planetName = planetInfo.name else {
-                alert(title: "Failed to Import Planet", message: "The planet is invalid: missing planet name.")
-                return
-            }
-
-            guard PlanetDataController.shared.getPlanet(id: planetInfo.id) == nil else {
-                alert(title: "Failed to Import Planet", message: "The planet '\(String(describing: planetInfo.name))' exists.")
-                return
-            }
-
-            let planetDirectories = try FileManager.default.contentsOfDirectory(at: importPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).filter({ u in
-                u.hasDirectoryPath && u.lastPathComponent.count == UUID().uuidString.count
-            })
-
-            // import planet key if needed
-            let keyName = planetInfo.id.uuidString
-            let keyPath = importPath.appendingPathComponent("planet.key")
-            try IPFSCommand.importKey(name: keyName, target: keyPath).run()
-
-            // create planet
-            let _ = PlanetDataController.shared.createPlanet(
-                withID: planetInfo.id,
-                name: planetName,
-                about: planetInfo.about ?? "",
-                keyName: planetInfo.id.uuidString,
-                keyID: planetInfo.ipns,
-                ipns: planetInfo.ipns,
-                templateName: "Plain"
-            )
-
-            // create planet directory if needed
-            let targetPlanetPath = URLUtils.planetsPath.appendingPathComponent(planetInfo.id.uuidString)
-            if !FileManager.default.fileExists(atPath: targetPlanetPath.path) {
-                try FileManager.default.createDirectory(at: targetPlanetPath, withIntermediateDirectories: true, attributes: nil)
-            }
-
-            // copy planet.json
-            try FileManager.default.copyItem(at: importPlanetInfoPath, to: targetPlanetPath.appendingPathComponent("planet.json"))
-
-            // copy assets folder
-            try FileManager.default.copyItem(at: importPlanetAssetsPath, to: targetPlanetPath.appendingPathComponent("assets"))
-
-            // copy index.html
-            try FileManager.default.copyItem(at: importPlanetIndexPath, to: targetPlanetPath.appendingPathComponent("index.html"))
-
-            // copy avatar.png if exists
-            let importPlanetAvatarPath = importPath.appendingPathComponent("avatar.png")
-            if FileManager.default.fileExists(atPath: importPlanetAvatarPath.path) {
-                try FileManager.default.copyItem(at: importPlanetAvatarPath, to: targetPlanetPath.appendingPathComponent("avatar.png"))
-            }
-
-            // import planet directory from feed, ignore publish status.
-            let decoder: JSONDecoder = JSONDecoder()
-            var targetArticles: Set<PlanetFeedArticle> = Set()
-            for planetDirectory in planetDirectories {
-                let articleJSONPath = planetDirectory.appendingPathComponent("article.json")
-                let articleJSONData = try Data(contentsOf: articleJSONPath)
-                let article = try decoder.decode(PlanetFeedArticle.self, from: articleJSONData)
-                try FileManager.default.copyItem(at: planetDirectory, to: targetPlanetPath.appendingPathComponent(planetDirectory.lastPathComponent))
-                targetArticles.insert(article)
-            }
-            if targetArticles.count > 0 {
-                let articles: [PlanetFeedArticle] = Array(targetArticles)
-                Task.init(priority: .background) {
-                    await PlanetDataController.shared.batchImportArticles(articles: articles, planetID: planetInfo.id)
-                }
-            }
-
-            alert(title: "Planet Imported", message: planetName)
-        } catch {
-            alert(title: "Failed to Import Planet", message: error.localizedDescription)
-        }
-        PlanetDataController.shared.save()
-    }
-
-    @MainActor
-    func exportCurrentPlanet() {
-        guard let planet = PlanetStore.shared.currentPlanet,
-              planet.isMyPlanet(), let planetID = planet.id,
-              let planetName = planet.name,
-              let planetKeyName = planet.keyName else {
-            alert(
-                    title: "Failed to Export Planet",
-                    message: "Unable to prepare for current selected planet, please make sure the planet you selected is ready to export then try again."
-            )
-            return
-        }
-
-        guard let exportPath = PlanetManager.shared.exportPath else {
-            alert(title: "Failed to Export Planet", message: "Please choose the export path then try again.")
-            return
-        }
-
-        let exportPlanetPath = exportPath.appendingPathComponent("\(planetName.sanitized()).planet")
-        guard FileManager.default.fileExists(atPath: exportPlanetPath.path) == false else {
-            alert(title: "Failed to Export Planet", message: "Export path exists, please choose another export path then try again.")
-            return
-        }
-
-        let planetInfoPath = URLUtils.planetsPath.appendingPathComponent(planetID.uuidString).appendingPathComponent("planet.json")
-        let planetIndexPath = URLUtils.planetsPath.appendingPathComponent(planetID.uuidString).appendingPathComponent("index.html")
-        guard FileManager.default.fileExists(atPath: planetInfoPath.path), FileManager.default.fileExists(atPath: planetIndexPath.path) else {
-            alert(title: "Failed to Export Planet", message: "This planet has no articles to export.")
-            return
-        }
-
-        let currentPlanetPath = URLUtils.planetsPath.appendingPathComponent(planetID.uuidString)
-        do {
-            try FileManager.default.copyItem(at: currentPlanetPath, to: exportPlanetPath)
-        } catch {
-            alert(title: "Failed to Export Planet", message: error.localizedDescription)
-            return
-        }
-
-        let exportPlanetKeyPath = exportPlanetPath.appendingPathComponent("planet.key")
-        do {
-            try IPFSCommand.exportKey(name: planetKeyName, target: exportPlanetKeyPath).run()
-        } catch {
-            debugPrint("failed to export planet key: \(error)")
-            return
-        }
-
-        NSWorkspace.shared.activateFileViewerSelecting([exportPlanetPath])
-    }
-
     @MainActor func alert(title: String, message: String? = nil) {
         PlanetStore.shared.isAlert = true
         alertTitle = title
         alertMessage = message ?? ""
-    }
-
-    private func getInternalPortsInformationFromConfig() async -> (String?, String?) {
-        do {
-            let data = try await IPFSDaemon.shared.api(path: "config/show")
-            let decoder = JSONDecoder()
-            let config: PlanetConfig = try decoder.decode(PlanetConfig.self, from: data)
-            if let api = config.addresses?.api, let gateway = config.addresses?.gateway {
-                return (api, gateway)
-            }
-        } catch {}
-        return (nil, nil)
     }
 }

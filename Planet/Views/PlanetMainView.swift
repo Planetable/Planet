@@ -31,24 +31,32 @@ struct PlanetMainView: View {
                         }
                     }
                 }
-                .fileImporter(isPresented: $planetStore.isImportingPlanet, allowedContentTypes: [.data, .package], allowsMultipleSelection: false, onCompletion: { result in
-                    if let urls = try? result.get(), let url = urls.first, url.pathExtension == "planet" {
-                        PlanetManager.shared.importPath = url
-                        PlanetManager.shared.importCurrentPlanet()
-                        return
+                .fileImporter(
+                    isPresented: $planetStore.isImportingPlanet,
+                    allowedContentTypes: [.data, .package]
+                ) { result in
+                    if let url = try? result.get(),
+                       url.pathExtension == "planet" {
+                        do {
+                            let planet = try Planet.importMyPlanet(importURL: url)
+                            PlanetStore.shared.currentPlanet = planet
+                            return
+                        } catch PlanetError.PlanetExistsError {
+                            PlanetManager.shared.alert(
+                                title: "Failed to Import Planet",
+                                message: "The planet already exists."
+                            )
+                        } catch {
+                            // use general alert
+                        }
                     }
-                    PlanetManager.shared.importPath = nil
                     PlanetManager.shared.alert(title: "Failed to Import Planet", message: "Please try again.")
-                })
+                }
 
             Text("No Planet Selected")
                 .foregroundColor(.secondary)
                 .font(.system(size: 14, weight: .regular))
                 .frame(minWidth: 200)
-
-            //Text("No Article Selected")
-            //    .foregroundColor(.secondary)
-            //    .frame(minWidth: 320)
 
             PlanetArticleView()
                 .environmentObject(planetStore)
@@ -60,15 +68,24 @@ struct PlanetMainView: View {
                 PlanetManager.shared.alertMessage = ""
             }))
         }
-        .fileImporter(isPresented: $planetStore.isExportingPlanet, allowedContentTypes: [.directory], allowsMultipleSelection: false, onCompletion: { result in
-            if let urls = try? result.get(), let url = urls.first {
-                PlanetManager.shared.exportPath = url
-                PlanetManager.shared.exportCurrentPlanet()
-                return
+        .fileImporter(
+            isPresented: $planetStore.isExportingPlanet,
+            allowedContentTypes: [.directory]
+        ) { result in
+            if let url = try? result.get(),
+               let planet = planetStore.currentPlanet,
+               planet.isMyPlanet() {
+                do {
+                    try planet.export(exportDirectory: url)
+                    return
+                } catch PlanetError.FileExistsError {
+                    PlanetManager.shared.alert(title: "Failed to Export Planet", message: "Please choose another path.")
+                } catch {
+                    // use general alert
+                }
             }
-            PlanetManager.shared.exportPath = nil
             PlanetManager.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
-        })
+        }
         .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
             if let planet = planetStore.currentPlanet {
                 PlanetAboutView(planet: planet)

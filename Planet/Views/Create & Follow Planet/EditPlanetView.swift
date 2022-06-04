@@ -98,7 +98,7 @@ struct EditPlanetView: View {
                     }
                     planet.about = about
                     planet.templateName = templateName
-                    try? FileManager.default.removeItem(at: planet.assetsPath)
+                    try? FileManager.default.removeItem(at: planet.assetsURL)
 
                     // re-render all articles
                     let articles = PlanetDataController.shared.getArticles(byPlanetID: planet.id!)

@@ -1,10 +1,3 @@
-//
-//  PlanetDataController.swift
-//  Planet
-//
-//  Created by Kai on 2/15/22.
-//
-
 import SwiftUI
 import Foundation
 import CoreData
@@ -20,12 +13,16 @@ enum PublicGateway: String {
 }
 
 class PlanetDataController: NSObject {
-    static let shared: PlanetDataController = .init()
+    static let shared = PlanetDataController()
 
     // let enskit = ENSKit(jsonrpcClient: InfuraEthereumAPI(url: URL(string: "https://mainnet.infura.io/v3/<projectid>")!))
     let enskit = ENSKit(ipfsClient: GoIPFSGateway())
 
     var persistentContainer: NSPersistentContainer
+
+    var viewContext: NSManagedObjectContext {
+        persistentContainer.viewContext
+    }
 
     override init() {
         persistentContainer = NSPersistentContainer(name: "Planet")
@@ -39,7 +36,7 @@ class PlanetDataController: NSObject {
     }
 
     func save(context: NSManagedObjectContext? = nil) {
-        if context == nil {
+        if context == nil || context == persistentContainer.viewContext {
             Task { @MainActor in
                 let ctx = persistentContainer.viewContext
                 guard ctx.hasChanges else { return }
@@ -57,36 +54,6 @@ class PlanetDataController: NSObject {
                 debugPrint("Failed to save given context: \(error)")
             }
         }
-    }
-
-    // MARK: - Create Planet -
-
-    // create an owned planet
-    func createPlanet(
-        withID id: UUID,
-        name: String,
-        about: String,
-        keyName: String?,
-        keyID: String?,
-        ipns: String?,
-        templateName: String?,
-        context: NSManagedObjectContext? = nil
-    ) -> Planet? {
-        let ctx = context ?? persistentContainer.viewContext
-        let planet = Planet(context: ctx)
-        planet.id = id
-        planet.type = .planet
-        planet.created = Date()
-        planet.name = name.sanitized()
-        planet.about = about
-        planet.keyName = keyName
-        planet.keyID = keyID
-        planet.ipns = ipns
-        planet.templateName = templateName ?? "Plain"
-        save(context: ctx)
-
-        try? FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
-        return planet
     }
 
     // create a following planet
@@ -107,7 +74,7 @@ class PlanetDataController: NSObject {
         planet.ipns = ipns
         save(context: ctx)
 
-        try? FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: planet.baseURL, withIntermediateDirectories: true)
         return planet
     }
 
@@ -122,7 +89,7 @@ class PlanetDataController: NSObject {
         planet.ens = ens
         save(context: ctx)
 
-        try? FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: planet.baseURL, withIntermediateDirectories: true)
         return planet
     }
 
@@ -140,7 +107,7 @@ class PlanetDataController: NSObject {
         planet.feedAddress = endpoint
         save(context: ctx)
 
-        try? FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: planet.baseURL, withIntermediateDirectories: true)
         return planet
     }
 
@@ -171,12 +138,9 @@ class PlanetDataController: NSObject {
         let (feedData, _) = try await URLSession.shared.data(for: metadataRequest)
         let feed = try JSONDecoder().decode(PlanetFeed.self, from: feedData)
 
-        guard let name = feed.name, let about = feed.about else {
-            throw PlanetError.PlanetFeedError
-        }
         debugPrint("updating planet \(planet) with new feed")
-        planet.name = name
-        planet.about = about
+        planet.name = feed.name
+        planet.about = feed.about
 
         // update planet articles
         var createArticleCount = 0
@@ -255,12 +219,9 @@ class PlanetDataController: NSObject {
             // ignore
         }
         if let feed = planetFeed {
-            guard let name = feed.name, let about = feed.about else {
-                throw PlanetError.PlanetFeedError
-            }
             debugPrint("updating planet \(planet) with new feed")
-            planet.name = name
-            planet.about = about
+            planet.name = feed.name
+            planet.about = feed.about
 
             // update planet articles
             var createArticleCount = 0

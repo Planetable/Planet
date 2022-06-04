@@ -12,11 +12,11 @@ import Cocoa
 
 struct PlanetFeed: Codable, Hashable {
     let id: UUID
+    let name: String
+    let about: String
     let ipns: String
     let created: Date
     let updated: Date
-    let name: String?
-    let about: String?
     let articles: [PlanetFeedArticle]
 }
 
@@ -29,8 +29,6 @@ struct PlanetFeedArticle: Codable, Hashable {
     var link: String?
 }
 
-
-// MARK: - Core Data -
 extension CodingUserInfoKey {
     static let managedObjectContext = CodingUserInfoKey(rawValue: "managedObjectContext")!
 }
@@ -128,10 +126,7 @@ class Planet: NSManagedObject, Codable {
         try container.encode(keyName, forKey: .keyName)
         try container.encode(templateName, forKey: .templateName)
     }
-}
 
-
-extension Planet {
     override public var description: String {
         switch type {
             case .planet:
@@ -147,6 +142,10 @@ extension Planet {
             default:
                 return "Planet Type \(type.rawValue): \(name!)"
         }
+    }
+
+    convenience init() {
+        self.init(context: PlanetDataController.shared.viewContext)
     }
 
     func isMyPlanet() -> Bool {
@@ -190,20 +189,24 @@ extension Planet {
         }
     }
 
-    var basePath: URL {
+    var baseURL: URL {
         URLUtils.planetsPath.appendingPathComponent(id!.uuidString, isDirectory: true)
     }
 
-    var avatarPath: URL {
-        basePath.appendingPathComponent("avatar.png", isDirectory: false)
+    var infoURL: URL {
+        baseURL.appendingPathComponent("planet.json", isDirectory: false)
     }
 
-    var indexPath: URL {
-        basePath.appendingPathComponent("index.html", isDirectory: false)
+    var avatarURL: URL {
+        baseURL.appendingPathComponent("avatar.png", isDirectory: false)
     }
 
-    var assetsPath: URL {
-        basePath.appendingPathComponent("assets", isDirectory: true)
+    var indexURL: URL {
+        baseURL.appendingPathComponent("index.html", isDirectory: false)
+    }
+
+    var assetsURL: URL {
+        baseURL.appendingPathComponent("assets", isDirectory: true)
     }
 
     func generateAvatarName() -> String {
@@ -226,7 +229,7 @@ extension Planet {
         let imageRep = NSBitmapImageRep(data: imageData)
         let data = imageRep?.representation(using: .png, properties: [:])
         do {
-            try data?.write(to: avatarPath, options: .atomic)
+            try data?.write(to: avatarURL, options: .atomic)
         } catch {
             debugPrint("failed to save planet avatar for \(self): \(error)")
         }
@@ -236,12 +239,12 @@ extension Planet {
     }
 
     func removeAvatar() {
-        try? FileManager.default.removeItem(at: avatarPath)
+        try? FileManager.default.removeItem(at: avatarURL)
     }
 
     func avatar() -> NSImage? {
-        if FileManager.default.fileExists(atPath: avatarPath.path) {
-            return NSImage(contentsOf: avatarPath)
+        if FileManager.default.fileExists(atPath: avatarURL.path) {
+            return NSImage(contentsOf: avatarURL)
         }
         return nil
     }
@@ -293,166 +296,133 @@ extension Planet {
             }
         }
     }
-}
 
-struct PlanetArticlePlaceholder: Codable, Identifiable, Hashable {
-    var id: UUID
-    var created: Date
-    var read: Date
-    var starred: Date
-    var title: String
-    var content: String
-    var planetID: UUID
-    var link: String
-    var softDeleted: Date
+    static func createMyPlanet(name: String, about: String, templateName: String) async throws -> Planet {
+        let id = UUID()
+        let key = try await IPFSDaemon.shared.generateKey(name: id.uuidString)
+        let planet = Planet()
+        planet.id = id
+        planet.type = .planet
+        planet.created = Date()
+        planet.name = name.sanitized()
+        planet.about = about
+        // representation of my planet: keyName != nil && keyID != nil
+        // keyName stores name of key in IPFS keystore, which is planet UUID
+        // keyID stores the "k5" public key of IPNS, which is the same as IPNS
+        // TODO: simplify CoreData properties
+        planet.keyName = id.uuidString
+        planet.keyID = key
+        planet.ipns = key
+        planet.templateName = templateName
+        PlanetDataController.shared.save()
 
-    init(title: String, content: String) {
-        self.id = UUID()
-        self.created = Date()
-        self.read = Date()
-        self.starred = Date()
-        self.title = title
-        self.content = content
-        self.planetID = UUID()
-        self.link = "/\(self.id)/"
-        self.softDeleted = Date()
-    }
-}
-
-
-class PlanetArticle: NSManagedObject, Codable {
-    enum CodingKeys: CodingKey {
-        case id
-        case created
-        case read
-        case starred
-        case title
-        case content
-        case planetID
-        case link
-        case softDeleted
+        try? FileManager.default.createDirectory(at: planet.baseURL, withIntermediateDirectories: true)
+        return planet
     }
 
-    required convenience init(from decoder: Decoder) throws {
-        guard let context = decoder.userInfo[.managedObjectContext] as? NSManagedObjectContext else {
-            throw DecoderConfigurationError.missingManagedObjectContext
+    static func importMyPlanet(importURL: URL) throws -> Planet {
+        let infoURL = importURL.appendingPathComponent("planet.json", isDirectory: false)
+        let assetsURL = importURL.appendingPathComponent("assets", isDirectory: true)
+        let indexURL = importURL.appendingPathComponent("index.html", isDirectory: false)
+        let keyURL = importURL.appendingPathComponent("planet.key", isDirectory: false)
+        let avatarURL = importURL.appendingPathComponent("avatar.png", isDirectory: false)
+
+        guard FileManager.default.fileExists(atPath: infoURL.path),
+              FileManager.default.fileExists(atPath: assetsURL.path),
+              FileManager.default.fileExists(atPath: indexURL.path),
+              FileManager.default.fileExists(atPath: keyURL.path)
+        else {
+            throw PlanetError.ImportPlanetError
         }
 
-        self.init(context: context)
-
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        created = try container.decode(Date.self, forKey: .created)
-        read = try container.decode(Date.self, forKey: .read)
-        starred = try container.decode(Date.self, forKey: .starred)
-        title = try container.decode(String.self, forKey: .title)
-        content = try container.decode(String.self, forKey: .content)
-        link = try container.decode(String.self, forKey: .link)
-        planetID = try container.decode(UUID.self, forKey: .planetID)
-        softDeleted = try container.decode(Date.self, forKey: .softDeleted)
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(created, forKey: .created)
-        try container.encode(read, forKey: .read)
-        try container.encode(starred, forKey: .starred)
-        try container.encode(title, forKey: .title)
-        try container.encode(content, forKey: .content)
-        try container.encode(link, forKey: .link)
-        try container.encode(planetID, forKey: .planetID)
-        try container.encode(softDeleted, forKey: .softDeleted)
-    }
-
-    var isRead: Bool {
-        get {
-            read != nil
+        let decoder = JSONDecoder()
+        guard let data = try? Data.init(contentsOf: infoURL),
+              let planetInfo = try? decoder.decode(PlanetFeed.self, from: data)
+        else {
+            throw PlanetError.ImportPlanetError
         }
 
-        set {
-            if newValue {
-                read = Date()
-            } else {
-                read = nil
+        guard PlanetDataController.shared.getPlanet(id: planetInfo.id) == nil else {
+            throw PlanetError.PlanetExistsError
+        }
+
+        do {
+            try IPFSCommand.importKey(name: planetInfo.id.uuidString, target: keyURL).run()
+        } catch {
+            throw PlanetError.ImportPlanetError
+        }
+
+        // create planet
+        let planet = Planet()
+        planet.id = planetInfo.id
+        planet.name = planetInfo.name
+        planet.about = planetInfo.about
+        planet.created = planetInfo.created
+        planet.lastUpdated = planetInfo.updated
+        planet.keyName = planetInfo.id.uuidString
+        planet.keyID = planetInfo.ipns
+        planet.ipns = planetInfo.ipns
+        planet.templateName = "Plain"
+
+        // delete existing local planet file if exists
+        if FileManager.default.fileExists(atPath: planet.baseURL.path) {
+            try? FileManager.default.removeItem(at: planet.baseURL)
+        }
+        do {
+            try FileManager.default.createDirectory(at: planet.baseURL, withIntermediateDirectories: true)
+            try FileManager.default.copyItem(at: infoURL, to: planet.infoURL)
+            try FileManager.default.copyItem(at: assetsURL, to: planet.assetsURL)
+            try FileManager.default.copyItem(at: indexURL, to: planet.indexURL)
+            if FileManager.default.fileExists(atPath: avatarURL.path) {
+                // copy avatar if exists
+                try FileManager.default.copyItem(at: avatarURL, to: planet.avatarURL)
             }
-        }
-    }
-
-    var readElapsed: Int32 {
-        get {
-            if read == nil {
-                return 0
-            } else {
-                let now = Date()
-                let diff = now.timeIntervalSince1970 - read!.timeIntervalSince1970
-                return Int32(diff)
+            // import articles
+            for articleInfo in planetInfo.articles {
+                let articleURL = importURL.appendingPathComponent(articleInfo.id.uuidString, isDirectory: true)
+                if FileManager.default.fileExists(atPath: articleURL.path) {
+                    let article = PlanetArticle()
+                    article.id = articleInfo.id
+                    article.planetID = planet.id
+                    article.title = articleInfo.title
+                    article.link = articleInfo.link
+                    article.created = articleInfo.created
+                    PlanetDataController.shared.save()
+                    try FileManager.default.copyItem(at: articleURL, to: article.baseURL)
+                }
             }
-        }
-    }
-
-    var isStarred: Bool {
-        get {
-            starred != nil
+        } catch {
+            planet.softDeleted = Date()
+            throw PlanetError.ImportPlanetError
         }
 
-        set {
-            if newValue {
-                starred = Date()
-            } else {
-                starred = nil
-            }
+        return planet
+    }
+
+    func export(exportDirectory: URL) throws {
+        let exportURL = exportDirectory.appendingPathComponent("\(name!.sanitized()).planet", isDirectory: true)
+        guard !FileManager.default.fileExists(atPath: exportURL.path) else {
+            throw PlanetError.FileExistsError
         }
-    }
 
-    var isMine: Bool {
-        PlanetDataController.shared.getPlanet(id: planetID!)!.isMyPlanet()
-    }
+        guard isMyPlanet(),
+              FileManager.default.fileExists(atPath: infoURL.path),
+              FileManager.default.fileExists(atPath: indexURL.path)
+        else {
+            throw PlanetError.ExportPlanetError
+        }
 
-    var basePath: URL {
-        URLUtils.planetsPath.appendingPathComponent(planetID!.uuidString, isDirectory: true)
-            .appendingPathComponent(id!.uuidString, isDirectory: true)
-    }
+        do {
+            try FileManager.default.copyItem(at: baseURL, to: exportURL)
+            let keyPath = exportURL.appendingPathComponent("planet.key", isDirectory: false)
+            try IPFSCommand.exportKey(name: id!.uuidString, target: keyPath).run()
+        } catch {
+            throw PlanetError.ExportPlanetError
+        }
 
-    var indexPath: URL {
-        basePath.appendingPathComponent("index.html", isDirectory: false)
-    }
-
-    var metadataPath: URL {
-        basePath.appendingPathComponent("article.json", isDirectory: false)
-    }
-}
-
-// MARK: - Unfinished Models -
-struct PlanetIPFSVersionInfo: Codable {
-    let version: String?
-    let system: String?
-
-    enum CodingKeys: String, CodingKey {
-        case version = "Version"
-        case system = "System"
+        NSWorkspace.shared.activateFileViewerSelecting([exportURL])
     }
 }
-
-struct PlanetKeys: Codable {
-    let keys: [PlanetKey]?
-
-    enum CodingKeys: String, CodingKey {
-        case keys = "Keys"
-    }
-}
-
-
-struct PlanetKey: Codable {
-    let id: String?
-    let name: String?
-
-    enum CodingKeys: String, CodingKey {
-        case id = "Id"
-        case name = "Name"
-    }
-}
-
 
 struct PlanetPeers: Codable {
     let peers: [PlanetPeer]?
@@ -462,7 +432,6 @@ struct PlanetPeers: Codable {
     }
 }
 
-
 struct PlanetPeer: Codable {
     let addr: String?
 
@@ -471,30 +440,9 @@ struct PlanetPeer: Codable {
     }
 }
 
-
-struct PlanetConfig: Codable {
-    let addresses: PlanetConfigAddresses?
-
-    enum CodingKeys: String, CodingKey {
-        case addresses = "Addresses"
-    }
-}
-
-
-struct PlanetConfigAddresses: Codable {
-    let api: String?
-    let gateway: String?
-
-    enum CodingKeys: String, CodingKey {
-        case api = "API"
-        case gateway = "Gateway"
-    }
-}
-
-
 struct PlanetPublished: Codable {
-    let name: String?
-    let value: String?
+    let name: String
+    let value: String
 
     enum CodingKeys: String, CodingKey {
         case name = "Name"

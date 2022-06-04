@@ -10,8 +10,11 @@ enum PlanetError: Error {
     case IPFSError
     case EthereumError
     case PlanetFeedError
+    case PlanetExistsError
+    case ImportPlanetError
+    case ExportPlanetError
+    case FileExistsError
     case FollowLocalPlanetError
-    case FollowExistingPlanetError
     case FollowPlanetVerifyError
     case InvalidPlanetURLError
     case InternalError

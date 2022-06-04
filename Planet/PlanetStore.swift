@@ -38,6 +38,7 @@ class PlanetStore: ObservableObject {
             guard newValue != currentPlanet else { return }
         }
         didSet {
+            currentArticle = nil
             debugPrint("[Current Planet] \(String(describing: currentPlanet))")
         }
     }
