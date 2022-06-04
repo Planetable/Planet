@@ -104,7 +104,7 @@ struct Template: Codable, Identifiable, Hashable {
         let stencilTemplateName = indexPath.lastPathComponent
         return try environment.renderTemplate(name: stencilTemplateName, context: context)
     }
-    
+
     func prepareTemporaryAssetsForPreview() {
         let templatePreviewDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(name)
         if !FileManager.default.fileExists(atPath: templatePreviewDirectory.path) {
@@ -153,7 +153,30 @@ struct Template: Codable, Identifiable, Hashable {
         let articlePath = articleFolderPath.appendingPathComponent("blog.html")
 
         let title: String = "Template Preview \(name)"
-        let article = PlanetArticlePlaceholder(title: title, content: "Demo Article Content")
+        let content: String = """
+Demo Article Content
+
+### List
+
+- Item A
+- Item B
+- Item C
+
+### Code Block
+
+```python
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/")
+def hello_world():
+    return "<p>Hello, World!</p>"
+```
+
+---
+"""
+        let article = PlanetArticlePlaceholder(title: title, content: content)
 
         // render markdown
         let result = MarkdownParser().parse(article.content)
