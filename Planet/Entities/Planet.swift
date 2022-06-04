@@ -383,8 +383,9 @@ class Planet: NSManagedObject, Codable {
                 if FileManager.default.fileExists(atPath: articleURL.path) {
                     let article = PlanetArticle()
                     article.id = articleInfo.id
-                    article.planetID = planet.id
                     article.title = articleInfo.title
+                    article.content = articleInfo.content
+                    article.planetID = planet.id
                     article.link = articleInfo.link
                     article.created = articleInfo.created
                     PlanetDataController.shared.save()
