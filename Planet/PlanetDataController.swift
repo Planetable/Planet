@@ -365,7 +365,7 @@ class PlanetDataController: NSObject {
                         created: published,
                         title: title,
                         content: description,
-                        link: linkURL.path
+                        link: link
                     )
                 } ?? []
                 debugPrint("parsed RSS feed: \(articles.count) articles")
