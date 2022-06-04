@@ -128,16 +128,6 @@ struct PlanetAboutView: View {
                         } label: {
                             Text("Edit")
                         }
-
-                        Button {
-                            Task.init {
-                                await PlanetDataController.shared.remove(planet)
-                                PlanetDataController.shared.save()
-                                dismiss()
-                            }
-                        } label: {
-                            Text("Delete")
-                        }
                     } else {
                         if let ipns = planet.ipns, ipns != "" {
                             Button {
