@@ -46,6 +46,7 @@ struct PlanetMainView: View {
                                 title: "Failed to Import Planet",
                                 message: "The planet already exists."
                             )
+                            return
                         } catch {
                             // use general alert
                         }
@@ -79,7 +80,15 @@ struct PlanetMainView: View {
                     try planet.export(exportDirectory: url)
                     return
                 } catch PlanetError.FileExistsError {
-                    PlanetManager.shared.alert(title: "Failed to Export Planet", message: "Please choose another path.")
+                    PlanetManager.shared.alert(
+                        title: "Failed to Export Planet",
+                        message: """
+                                 There is already an exported Planet in the destination. \
+                                 We do not recommend override your backup. \
+                                 Please choose another destination, or rename your previous backup.
+                                 """
+                    )
+                    return
                 } catch {
                     // use general alert
                 }
