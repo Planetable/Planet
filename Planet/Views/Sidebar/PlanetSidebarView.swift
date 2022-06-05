@@ -418,6 +418,9 @@ struct PlanetSidebarView: View {
     private func unfollowPlanetAction(planet: Planet) {
         Task.init {
             await PlanetDataController.shared.remove(planet)
+            if let planetID = planet.id {
+                PlanetManager.shared.destroyDirectory(fromPlanet: planetID)
+            }
             PlanetDataController.shared.save()
         }
     }
