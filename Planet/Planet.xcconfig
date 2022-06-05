@@ -13,5 +13,6 @@ CODE_SIGN_STYLE = Automatic
 CODE_SIGN_IDENTITY = Apple Development
 ORGANIZATION_IDENTIFIER_PREFIX = xyz.planetable
 
+#include "marketing_version.xcconfig"
 #include "versioning.xcconfig"
 #include? "local.xcconfig"
