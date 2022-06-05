@@ -114,7 +114,15 @@ class PlanetArticle: NSManagedObject, Codable {
     }
 
     var isMine: Bool {
-        PlanetDataController.shared.getPlanet(id: planetID!)!.isMyPlanet()
+        if let aPlanetID = planetID {
+            if let aPlanet = PlanetDataController.shared.getPlanet(id: aPlanetID) {
+                return aPlanet.isMyPlanet()
+            } else {
+                return false
+            }
+        } else {
+            return false
+        }
     }
 
     var baseURL: URL {
