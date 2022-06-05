@@ -58,6 +58,10 @@ class TemplateBrowserStore: ObservableObject {
         }
     }
 
+    func hasTemplate(named name: String) -> Bool {
+        return templates.contains(where: { $0.name == name })
+    }
+
     subscript(templateID: Template.ID?) -> Template? {
         get {
             if let id = templateID {

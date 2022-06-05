@@ -18,6 +18,7 @@ struct PlanetFeed: Codable, Hashable {
     let created: Date
     let updated: Date
     let articles: [PlanetFeedArticle]
+    let templateName: String?
 }
 
 
@@ -362,7 +363,11 @@ class Planet: NSManagedObject, Codable {
         planet.keyName = planetInfo.id.uuidString
         planet.keyID = planetInfo.ipns
         planet.ipns = planetInfo.ipns
-        planet.templateName = "Plain"
+        if let templateName = planetInfo.templateName, TemplateBrowserStore.shared.hasTemplate(named: templateName) {
+            planet.templateName = templateName
+        } else {
+            planet.templateName = "Plain"
+        }
 
         // delete existing local planet file if exists
         if FileManager.default.fileExists(atPath: planet.baseURL.path) {

@@ -160,7 +160,8 @@ class PlanetManager: NSObject {
                 ipns: planet.ipns!,
                 created: planet.created!,
                 updated: planet.lastUpdated ?? planet.created ?? Date(),
-                articles: feedArticles
+                articles: feedArticles,
+                templateName: planet.templateName
         )
         do {
             let encoder = JSONEncoder()
