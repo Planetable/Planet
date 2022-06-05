@@ -351,6 +351,12 @@ class PlanetDataController: NSObject {
                 } ?? []
                 debugPrint("parsed atom feed: \(articles.count) articles")
             case let .rss(feed):        // Really Simple Syndication Feed
+                if let name = feed.title {
+                    planet.name = name
+                }
+                if let about = feed.description {
+                    planet.about = about
+                }
                 articles = feed.items?.compactMap { item in
                     guard let link = item.link,
                           let linkURL = URL(string: link),
