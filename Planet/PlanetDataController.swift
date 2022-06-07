@@ -147,14 +147,15 @@ class PlanetDataController: NSObject {
         var updateArticleCount = 0
         for article in feed.articles {
             guard let articleLink = article.link else { continue }
-            if let existing = getArticle(link: articleLink, planetID: planet.id!) {
+            guard let planetID = planet.id else { continue }
+            if let existing = getArticle(link: articleLink, planetID: planetID) {
                 if existing.title != article.title {
                     existing.title = article.title
                     existing.link = articleLink
                     updateArticleCount += 1
                 }
             } else {
-                let _ = createArticle(article, planetID: planet.id!)
+                let _ = createArticle(article, planetID: planetID)
                 createArticleCount += 1
             }
         }
@@ -170,7 +171,8 @@ class PlanetDataController: NSObject {
     }
 
     func updateENSPlanet(planet: Planet) async throws {
-        let ens = planet.ens!
+        guard let planetID = planet.id else { return }
+        guard let ens = planet.ens else { return }
         let result: URL?
         do {
             result = try await enskit.resolve(name: ens)
@@ -228,14 +230,14 @@ class PlanetDataController: NSObject {
             var updateArticleCount = 0
             for article in feed.articles {
                 guard let articleLink = article.link else { continue }
-                if let existing = getArticle(link: articleLink, planetID: planet.id!) {
+                if let existing = getArticle(link: articleLink, planetID: planetID) {
                     if existing.title != article.title {
                         existing.title = article.title
                         existing.link = articleLink
                         updateArticleCount += 1
                     }
                 } else {
-                    let _ = createArticle(article, planetID: planet.id!)
+                    let _ = createArticle(article, planetID: planetID)
                     createArticleCount += 1
                 }
             }
@@ -432,7 +434,7 @@ class PlanetDataController: NSObject {
         }
     }
 
-    func createArticle(_ article: PlanetFeedArticle, planetID: UUID, context: NSManagedObjectContext? = nil) -> PlanetArticle {
+    func createArticle(_ article: PlanetFeedArticle, planetID: UUID, context: NSManagedObjectContext? = nil) -> PlanetArticle? {
         let ctx = context ?? persistentContainer.viewContext
         let articleModel = PlanetArticle(context: ctx)
         articleModel.id = UUID()
@@ -440,8 +442,14 @@ class PlanetDataController: NSObject {
         articleModel.title = article.title
         articleModel.link = article.link
         articleModel.created = article.created
-        save(context: ctx)
-        return articleModel
+        do {
+            save(context: ctx)
+            debugPrint("Created article: \(articleModel.id!) - \(articleModel.title!)")
+            return articleModel
+        } catch {
+            debugPrint("Failed to create article: \(article.title), error: \(error)")
+            return nil
+        }
     }
 
     func batchImportArticles(articles: [PlanetFeedArticle], planetID: UUID) async {
@@ -591,6 +599,29 @@ class PlanetDataController: NSObject {
             debugPrint("failed to get article: \(error), link: \(link), planetID: \(planetID)")
         }
         return nil
+    }
+
+    func getPlanets() -> [Planet] {
+        let request: NSFetchRequest<Planet> = Planet.fetchRequest()
+        request.predicate = NSPredicate(format: "softDeleted == nil")
+        do {
+            return try persistentContainer.viewContext.fetch(request)
+        } catch {
+            debugPrint("failed to get planets: \(error)")
+            return []
+        }
+    }
+
+    func getArticles() -> [PlanetArticle] {
+        let request: NSFetchRequest<PlanetArticle> = PlanetArticle.fetchRequest()
+        request.returnsObjectsAsFaults = false
+        request.predicate = NSPredicate(format: "softDeleted == nil")
+        do {
+            return try persistentContainer.viewContext.fetch(request)
+        } catch {
+            debugPrint("failed to get articles: \(error)")
+            return []
+        }
     }
 
     func getArticles(byPlanetID id: UUID, context: NSManagedObjectContext? = nil) -> [PlanetArticle] {
