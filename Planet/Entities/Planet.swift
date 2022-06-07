@@ -329,8 +329,6 @@ class Planet: NSManagedObject, Codable {
         let avatarURL = importURL.appendingPathComponent("avatar.png", isDirectory: false)
 
         guard FileManager.default.fileExists(atPath: infoURL.path),
-              FileManager.default.fileExists(atPath: assetsURL.path),
-              FileManager.default.fileExists(atPath: indexURL.path),
               FileManager.default.fileExists(atPath: keyURL.path)
         else {
             throw PlanetError.ImportPlanetError
@@ -350,7 +348,7 @@ class Planet: NSManagedObject, Codable {
         do {
             try IPFSCommand.importKey(name: planetInfo.id.uuidString, target: keyURL).run()
         } catch {
-            throw PlanetError.ImportPlanetError
+            throw PlanetError.IPFSError
         }
 
         // create planet
@@ -376,10 +374,13 @@ class Planet: NSManagedObject, Codable {
         do {
             try FileManager.default.createDirectory(at: planet.baseURL, withIntermediateDirectories: true)
             try FileManager.default.copyItem(at: infoURL, to: planet.infoURL)
-            try FileManager.default.copyItem(at: assetsURL, to: planet.assetsURL)
-            try FileManager.default.copyItem(at: indexURL, to: planet.indexURL)
+            if FileManager.default.fileExists(atPath: assetsURL.path) {
+                try FileManager.default.copyItem(at: assetsURL, to: planet.assetsURL)
+            }
+            if FileManager.default.fileExists(atPath: indexURL.path) {
+                try FileManager.default.copyItem(at: indexURL, to: planet.indexURL)
+            }
             if FileManager.default.fileExists(atPath: avatarURL.path) {
-                // copy avatar if exists
                 try FileManager.default.copyItem(at: avatarURL, to: planet.avatarURL)
             }
             // import articles

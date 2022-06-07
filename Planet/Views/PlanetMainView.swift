@@ -47,11 +47,27 @@ struct PlanetMainView: View {
                                 message: "The planet already exists."
                             )
                             return
-                        } catch {
-                            // use general alert
-                        }
+                        } catch PlanetError.ImportPlanetError {
+                            PlanetManager.shared.alert(
+                                title: "Failed to Import Planet",
+                                message: """
+                                         Please try again. \
+                                         If the problem persists, the planet backup may be corrupted.
+                                         """
+                            )
+                            return
+                        } catch PlanetError.IPFSError {
+                            PlanetManager.shared.alert(
+                                title: "Failed to Import Planet",
+                                message: "There is an error in IPFS. Please try again."
+                            )
+                            return
+                        } catch {}
                     }
-                    PlanetManager.shared.alert(title: "Failed to Import Planet", message: "Please try again.")
+                    PlanetManager.shared.alert(
+                        title: "Failed to Import Planet",
+                        message: " Please try again."
+                    )
                 }
 
             Text("No Planet Selected")
