@@ -1,5 +1,16 @@
 We need to test these paths before release to ensure each version is fully working.
 
+During all tests:
+
+- No crash at all
+- Menu should not be blocked
+
+## Clear the Flag of Onboarding
+
+```
+defaults delete xyz.planetable.Planet PlanetOnboarding
+```
+
 ## Create Planet
 
 - Create a Planet
