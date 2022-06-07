@@ -228,6 +228,8 @@ class PlanetDataController: NSObject {
             // update planet articles
             var createArticleCount = 0
             var updateArticleCount = 0
+
+            var feedArticles: [PlanetFeedArticle] = []
             for article in feed.articles {
                 guard let articleLink = article.link else { continue }
                 if let existing = getArticle(link: articleLink, planetID: planetID) {
@@ -237,9 +239,20 @@ class PlanetDataController: NSObject {
                         updateArticleCount += 1
                     }
                 } else {
-                    let _ = createArticle(article, planetID: planetID)
+                    let feedArticle = PlanetFeedArticle(
+                        id: UUID(),
+                        created: article.created,
+                        title: article.title,
+                        content: article.content,
+                        link: articleLink
+                    )
+                    feedArticles.append(feedArticle)
+                    // let _ = createArticle(article, planetID: planetID)
                     createArticleCount += 1
                 }
+            }
+            if createArticleCount > 0 {
+                PlanetDataController.shared.batchCreateFeedArticles(articles: feedArticles, planetID: planetID)
             }
             debugPrint("updated \(updateArticleCount) articles, created \(createArticleCount) articles")
 
