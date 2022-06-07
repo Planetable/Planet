@@ -83,7 +83,7 @@ struct PlanetWriterView: View {
                            minHeight: PlanetWriterManager.windowMinHeight,
                            maxHeight: .infinity)
                     .onChange(of: content) { newValue in
-                        htmlContent = PlanetWriterManager.shared.renderHTML(fromContent: newValue)
+                        guard let htmlContent = PlanetWriterManager.shared.renderHTML(fromContent: newValue) else { return }
                         Task.init(priority: .utility) {
                             if isEditing {
                                 if let path = PlanetWriterManager.shared.renderEditPreview(content: htmlContent, forDocument: targetID, planetID: originalPlanetID) {

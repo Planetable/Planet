@@ -36,10 +36,14 @@ class PlanetWriterManager: NSObject {
         backupFileQueue = DispatchQueue.init(label: "planet.writer.backup.queue")
     }
 
-    func renderHTML(fromContent c: String) -> String {
-        let parser = MarkdownParser()
-        let output = parser.html(from: c)
-        return output
+    func renderHTML(fromContent c: String) -> String? {
+        do {
+            let parser = MarkdownParser()
+            let output = parser.html(from: c)
+            return output
+        } catch {
+            return nil
+        }
     }
 
     func renderPreview(content: String, forDocument id: UUID) -> URL? {
