@@ -48,6 +48,7 @@
 		6A0FB8A827FBB129008E203D /* SmartFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0FB8A727FBB129008E203D /* SmartFeedView.swift */; };
 		6A28FDA82838598A00036BA6 /* NoSelection.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A28FDA72838598A00036BA6 /* NoSelection.html */; };
 		6A2B9BE627ED24A00005467C /* PlanetArticleItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */; };
+		6A2D6B8D285141A60078F531 /* Saver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2D6B8C285141A60078F531 /* Saver.swift */; };
 		6A5E63A8280726AB00FB1E84 /* TemplateBrowserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63A7280726AB00FB1E84 /* TemplateBrowserManager.swift */; };
 		6A5E63AA2807297000FB1E84 /* TemplateBrowserWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63A92807297000FB1E84 /* TemplateBrowserWindow.swift */; };
 		6A5E63AC28072AD400FB1E84 /* TemplateBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */; };
@@ -122,6 +123,7 @@
 		6A0FB8A727FBB129008E203D /* SmartFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartFeedView.swift; sourceTree = "<group>"; };
 		6A28FDA72838598A00036BA6 /* NoSelection.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = NoSelection.html; sourceTree = "<group>"; };
 		6A2B9BE527ED24A00005467C /* PlanetArticleItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetArticleItemView.swift; sourceTree = "<group>"; };
+		6A2D6B8C285141A60078F531 /* Saver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Saver.swift; sourceTree = "<group>"; };
 		6A5E63A7280726AB00FB1E84 /* TemplateBrowserManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserManager.swift; sourceTree = "<group>"; };
 		6A5E63A92807297000FB1E84 /* TemplateBrowserWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserWindow.swift; sourceTree = "<group>"; };
 		6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserView.swift; sourceTree = "<group>"; };
@@ -268,6 +270,7 @@
 				72114600967CFED3A00E5C50 /* GoIPFSGateway.swift */,
 				721143ED3BE78AB9D7C6C9A2 /* URLUtils.swift */,
 				721142078A61FB753612C8BA /* StencilExtension.swift */,
+				6A2D6B8C285141A60078F531 /* Saver.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -504,6 +507,7 @@
 				2AC4996027BB945800F1C2D1 /* PlanetDataController.swift in Sources */,
 				72114F25F504270EB29068C9 /* PlanetError.swift in Sources */,
 				7211454FA6F933028B1A6F34 /* GoIPFSGateway.swift in Sources */,
+				6A2D6B8D285141A60078F531 /* Saver.swift in Sources */,
 				72114509730D9D97178E0E82 /* IPFSState.swift in Sources */,
 				721148F88BE8ABCC52FEB501 /* IPFSDaemon.swift in Sources */,
 				7211431A5867D4CF2960EC39 /* IPFSCommand.swift in Sources */,

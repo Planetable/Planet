@@ -144,6 +144,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let _ = PlanetManager.shared
         TemplateBrowserStore.shared.loadTemplates()
         SUUpdater.shared().checkForUpdatesInBackground()
+        
+        let saver = Saver.shared
+        saver.savePlanets()
+        saver.migratePublic()
+
     }
 
     func applicationWillTerminate(_ notification: Notification) {
