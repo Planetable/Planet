@@ -22,34 +22,35 @@ struct PlanetWriterWebView: NSViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.allowsAirPlayForMediaPlayback = false
-        let webview = WKWebView(frame: .zero, configuration: config)
-        webview.navigationDelegate = navigationHelper
-        webview.loadFileRequest(URLRequest(url: url), allowingReadAccessTo: url)
+        let wv = WKWebView(frame: .zero, configuration: config)
+        wv.navigationDelegate = navigationHelper
+        wv.setValue(false, forKey: "drawsBackground")
+        wv.loadFileRequest(URLRequest(url: url), allowingReadAccessTo: url)
         let reloadNotification = Notification.Name.notification(notification: .reloadPage, forID: targetID)
         NotificationCenter.default.addObserver(forName: reloadNotification, object: nil, queue: .main) { n in
             guard let targetPath = n.object as? URL else { return }
             debugPrint("reloading url: \(targetPath)")
-            webview.loadFileRequest(URLRequest(url: targetPath), allowingReadAccessTo: targetPath)
-            self.executeJSActions(withWebView: webview, js: "refreshPreview();")
+            wv.loadFileRequest(URLRequest(url: targetPath), allowingReadAccessTo: targetPath)
+            self.executeJSActions(withWebView: wv, js: "refreshPreview();")
         }
         let scrollNotification = Notification.Name.notification(notification: .scrollPage, forID: targetID)
         NotificationCenter.default.addObserver(forName: scrollNotification, object: nil, queue: .main) { n in
             guard let offset = n.object as? NSNumber else { return }
             debugPrint("scrolling to offset: \(offset.floatValue)")
-            self.executeJSActions(withWebView: webview, js: "scrollPosition(\(offset.floatValue));")
+            self.executeJSActions(withWebView: wv, js: "scrollPosition(\(offset.floatValue));")
         }
         NotificationCenter.default.addObserver(forName: .pauseMedia, object: nil, queue: .main) { _ in
-            debugPrint("about to pause media in writer webview: \(webview)")
-            webview.pauseAllMediaPlayback {
-                debugPrint("media paused in writer webview: \(webview)")
+            debugPrint("about to pause media in writer webview: \(wv)")
+            wv.pauseAllMediaPlayback {
+                debugPrint("media paused in writer webview: \(wv)")
             }
         }
-        return webview
+        return wv
     }
 
     func updateNSView(_ webview: WKWebView, context: NSViewRepresentableContext<PlanetWriterWebView>) {
-        debugPrint("update web view (\(webview) with url: \(url)")
-        webview.loadFileRequest(URLRequest(url: url), allowingReadAccessTo: url)
+        // debugPrint("update web view (\(webview) with url: \(url)")
+        // webview.loadFileRequest(URLRequest(url: url), allowingReadAccessTo: url)
     }
 
     private func executeJSActions(withWebView webview: WKWebView, js: String) {
