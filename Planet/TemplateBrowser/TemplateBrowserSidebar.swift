@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TemplateBrowserSidebar: View {
-    @StateObject var store = TemplateBrowserStore.shared
+    @StateObject var store = TemplateStore.shared
     @Binding var selection: Template.ID?
 
     var body: some View {

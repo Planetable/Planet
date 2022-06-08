@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TemplatePreviewView: View {
-    @StateObject var store = TemplateBrowserStore.shared
+    @StateObject var store = TemplateStore.shared
     @Binding var templateId: Template.ID?
 
     @State var url: URL = Bundle.main.url(forResource: "TemplatePlaceholder", withExtension: "html")!
@@ -44,7 +44,7 @@ struct TemplatePreviewView: View {
             url = newURL.appendingQueryParameters(
                 ["t": "\(Date().timeIntervalSince1970)"]
             )
-            
+
             NotificationCenter.default.post(name: .loadTemplatePreview, object: nil)
         }
     }

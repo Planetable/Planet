@@ -1,16 +1,12 @@
-//
-// PlanetError.swift
-//
-//
-// Created by Shu Lyu on 2022-04-07.
-//
-
 enum PlanetError: Error {
+    case PersistenceError
     case NetworkError
     case IPFSError
     case EthereumError
     case PlanetFeedError
     case PlanetExistsError
+    case MissingTemplateError
+    case AvatarError
     case ImportPlanetError
     case ExportPlanetError
     case FileExistsError

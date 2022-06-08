@@ -1,17 +1,17 @@
 import SwiftUI
 
-struct CreatePlanetView: View {
+struct EditMyPlanetView: View {
     @Environment(\.dismiss) var dismiss
 
     @EnvironmentObject var planetStore: PlanetStore
+    @ObservedObject var planet: MyPlanetModel
     @State private var name = ""
     @State private var about = ""
-    @State private var templateName = "Plain"
-    @State private var creating = false
+    @State private var templateName = ""
 
     var body: some View {
-        VStack (spacing: 0) {
-            Text("New Planet")
+        VStack(spacing: 0) {
+            Text("Edit Planet")
                 .frame(height: 34, alignment: .leading)
                 .padding(.bottom, 2)
                 .padding(.horizontal, 16)
@@ -21,7 +21,7 @@ struct CreatePlanetView: View {
             Divider()
 
             VStack(spacing: 15) {
-                HStack {
+                HStack(alignment: .top) {
                     HStack {
                         Text("Name")
                         Spacer()
@@ -74,7 +74,6 @@ struct CreatePlanetView: View {
 
             HStack {
                 Button {
-                    creating = false
                     dismiss()
                 } label: {
                     Text("Close")
@@ -83,41 +82,41 @@ struct CreatePlanetView: View {
 
                 Spacer()
 
-                if creating {
-                    HStack {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .scaleEffect(0.5, anchor: .center)
-                    }
-                    .padding(.horizontal, 4)
-                    .frame(height: 10)
-                }
-
                 Button {
-                    creating = true
+                    if !name.isEmpty {
+                        planet.name = name
+                    }
+                    planet.about = about
+                    planet.templateName = templateName
+                    do {
+                        try planet.save()
+                        try planet.copyTemplateAssets()
+                        try planet.savePublic()
+                    } catch {
+                        // TODO: alert
+                    }
+
                     Task {
                         do {
-                            let planet = try await MyPlanetModel.create(
-                                name: name,
-                                about: about,
-                                templateName: templateName
-                            )
-                            planetStore.myPlanets.insert(planet, at: 0)
-                            try planet.save()
-                            try planet.savePublic()
-                        } catch {
-                            PlanetStore.shared.alert(title: "Failed to create planet")
-                        }
-                        creating = false
-                        dismiss()
+                            try await planet.publish()
+                        } catch {}
                     }
+                    // re-render all articles
+                    NotificationCenter.default.post(name: .refreshArticle, object: nil)
+                    dismiss()
                 } label: {
-                    Text("Create")
+                    Text("Save")
                 }
-                .disabled(creating || name.isEmpty)
+                .disabled(name.isEmpty)
             }
             .padding(16)
         }
+        .padding(0)
         .frame(width: 480, height: 300, alignment: .center)
+        .task {
+            name = planet.name
+            about = planet.about
+            templateName = planet.templateName
+        }
     }
 }

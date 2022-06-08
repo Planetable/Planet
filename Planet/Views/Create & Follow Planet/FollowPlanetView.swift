@@ -1,19 +1,12 @@
-//
-//  FollowPlanetView.swift
-//  Planet
-//
-//  Created by Kai on 1/15/22.
-//
-
 import SwiftUI
 
-
 struct FollowPlanetView: View {
-    @EnvironmentObject private var planetStore: PlanetStore
+    @Environment(\.dismiss) var dismiss
 
-    @Environment(\.dismiss) private var dismiss
-
-    @State private var endpoint: String = "planet://"
+    @EnvironmentObject var planetStore: PlanetStore
+    @State var link = "planet://"
+    @State var isFollowing = false
+    @State var isCancelled = false
 
     var body: some View {
         VStack (spacing: 0) {
@@ -27,7 +20,7 @@ struct FollowPlanetView: View {
             Divider()
 
             HStack {
-                TextEditor(text: $endpoint)
+                TextEditor(text: $link)
                     .font(.system(size: 13, weight: .regular, design: .monospaced))
                     .lineSpacing(4)
                     .disableAutocorrection(true)
@@ -45,11 +38,8 @@ struct FollowPlanetView: View {
 
             HStack {
                 Button {
-                    if let planet = PlanetStore.shared.pendingFollowingPlanet {
-                        planet.softDeleted = Date()
-                        PlanetStore.shared.pendingFollowingPlanet = nil
-                        PlanetDataController.shared.save()
-                    }
+                    isCancelled = true
+                    isFollowing = false
                     dismiss()
                 } label: {
                     Text("Dismiss")
@@ -58,7 +48,7 @@ struct FollowPlanetView: View {
 
                 Spacer()
 
-                if PlanetStore.shared.pendingFollowingPlanet != nil {
+                if isFollowing {
                     HStack {
                         ProgressView()
                         .progressViewStyle(.circular)
@@ -69,33 +59,29 @@ struct FollowPlanetView: View {
                 }
 
                 Button {
+                    isFollowing = true
                     Task {
                         do {
-                            try await PlanetManager.shared.followPlanet(url: endpoint.trim())
-                            PlanetStore.shared.pendingFollowingPlanet = nil
-                            PlanetDataController.shared.save()
-                            dismiss()
+                            let planet = try await FollowingPlanetModel.follow(link: link)
+                            if isCancelled {
+                                planet.delete()
+                                isCancelled = false
+                            } else {
+                                planetStore.followingPlanets.insert(planet, at: 0)
+                            }
                         } catch {
-                            // TODO: the alert is currently not displaying above follow planet window
-                            // PlanetManager.shared.alert(title: "Unable to follow Planet")
+                            // TODO: alert
                         }
+                        isFollowing = false
+                        dismiss()
                     }
                 } label: {
                     Text("Follow")
                 }
-                .disabled(PlanetStore.shared.pendingFollowingPlanet != nil)
+                .disabled(isFollowing)
             }
             .padding(16)
         }
-        .padding(0)
         .frame(alignment: .center)
-    }
-}
-
-struct FollowPlanetView_Previews: PreviewProvider {
-    static var previews: some View {
-        FollowPlanetView()
-            .environmentObject(PlanetStore.shared)
-            .frame(width: 480, height: 260, alignment: .center)
     }
 }

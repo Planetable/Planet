@@ -8,32 +8,30 @@
 import Foundation
 
 struct URLUtils {
-    static var applicationSupportPath: URL? {
-        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-    }
+    static let applicationSupportPath = try! FileManager.default.url(
+        for: .applicationSupportDirectory,
+        in: .userDomainMask,
+        appropriateFor: nil,
+        create: true
+    )
 
-    static let basePath: URL = {
-        try! FileManager.default.url(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask,
-            appropriateFor: nil,
-            create: true
-        )
+
+    static let documentsPath = try! FileManager.default.url(
+        for: .documentDirectory,
+        in: .userDomainMask,
+        appropriateFor: nil,
+        create: true
+    )
+
+    static let legacyPlanetsPath = applicationSupportPath.appendingPathComponent("planets", isDirectory: true)
+
+    static let legacyTemplatesPath = applicationSupportPath.appendingPathComponent("templates", isDirectory: true)
+
+    static let legacyDraftPath = applicationSupportPath.appendingPathComponent("drafts", isDirectory: true)
+
+    static let repoPath: URL = {
+        let url = documentsPath.appendingPathComponent("Planet", isDirectory: true)
+        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
     }()
-
-    static var planetsPath: URL {
-        let contentPath = basePath.appendingPathComponent("planets", isDirectory: true)
-        if !FileManager.default.fileExists(atPath: contentPath.path) {
-            try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
-        }
-        return contentPath
-    }
-
-    static var templatesPath: URL {
-        let contentPath = basePath.appendingPathComponent("templates", isDirectory: true)
-        if !FileManager.default.fileExists(atPath: contentPath.path) {
-            try? FileManager.default.createDirectory(at: contentPath, withIntermediateDirectories: true, attributes: nil)
-        }
-        return contentPath
-    }
 }

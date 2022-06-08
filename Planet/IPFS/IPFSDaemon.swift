@@ -7,6 +7,12 @@ import SwiftyJSON
 }
 
 class IPFSDaemon {
+    static let publicGateways = [
+        "https://dweb.link",
+        "https://ipfs.io",
+        "https://cloudflare-ipfs.com",
+    ]
+
     private static var _shared: IPFSDaemon? = nil
     static var shared: IPFSDaemon {
         get async {
@@ -30,8 +36,7 @@ class IPFSDaemon {
     @IPFSActor init() {
         let repoContents = try! FileManager.default.contentsOfDirectory(
             at: IPFSCommand.IPFSRepositoryURL,
-            includingPropertiesForKeys: nil,
-            options: []
+            includingPropertiesForKeys: nil
         )
         if repoContents.isEmpty {
             logger.info("Initializing IPFS config")
@@ -175,6 +180,18 @@ class IPFSDaemon {
                         Task {
                             await updateOnlineStatus()
                         }
+                        let onboarding = UserDefaults.standard.string(forKey: "PlanetOnboarding")
+                        if onboarding == nil {
+                            Task { @MainActor in
+                                let planet = try await FollowingPlanetModel.follow(link: "vitalik.eth")
+                                PlanetStore.shared.followingPlanets.append(planet)
+                            }
+                            Task { @MainActor in
+                                let planet = try await FollowingPlanetModel.follow(link: "planetable.eth")
+                                PlanetStore.shared.followingPlanets.append(planet)
+                            }
+                            UserDefaults.standard.set(Date().ISO8601Format(), forKey: "PlanetOnboarding")
+                        }
                     }
                     logger.debug("[IPFS stdout]\n\(data.logFormat())")
                 },
@@ -235,7 +252,7 @@ class IPFSDaemon {
             do {
                 let data = try await IPFSDaemon.shared.api(path: "swarm/peers")
                 let decoder = JSONDecoder()
-                let swarmPeers = try decoder.decode(PlanetPeers.self, from: data)
+                let swarmPeers = try decoder.decode(IPFSPeers.self, from: data)
                 peers = swarmPeers.peers?.count ?? 0
             } catch {
                 peers = 0
@@ -346,35 +363,6 @@ class IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
-    func publish(key: String, cid: String) throws {
-        logger.info("Publishing \(cid) for \(key)")
-        do {
-            let (ret, out, err) = try IPFSCommand.publish(key: key, cid: cid).run()
-            if ret == 0 {
-                logger.info("Published \(cid) for \(key)")
-                logger.debug("[stdout]\n\(out.logFormat())")
-                return
-            }
-            logger.error(
-                """
-                Failed to publish \(cid) for \(key): process returned \(ret)
-                [stdout]
-                \(out.logFormat())
-                [stderr]
-                \(err.logFormat())
-                """
-            )
-        } catch {
-            logger.error(
-                """
-                Failed to publish \(cid) for \(key): error when running IPFS process, \
-                cause: \(String(describing: error))
-                """
-            )
-        }
-        throw IPFSDaemonError.IPFSCLIError
-    }
-
     func resolveIPNS(ipns: String) throws -> String {
         logger.info("Resolving IPNS \(ipns)")
         do {
@@ -409,58 +397,12 @@ class IPFSDaemon {
 
     func pin(cid: String) async throws {
         logger.info("Pinning \(cid)")
-        do {
-            let (ret, out, err) = try IPFSCommand.pin(cid: cid).run()
-            if ret == 0 {
-                logger.info("Pinned \(cid)")
-                return
-            }
-            logger.error(
-                """
-                Failed to pin \(cid): process returned \(ret)
-                [stdout]
-                \(out.logFormat())
-                [stderr]
-                \(err.logFormat())
-                """
-            )
-        } catch {
-            logger.error(
-                """
-                Failed to pin \(cid): error when running IPFS process, \
-                cause: \(String(describing: error))
-                """
-            )
-        }
-        throw IPFSDaemonError.IPFSCLIError
+        try await IPFSDaemon.shared.api(path: "pin/add", args: ["arg": cid], timeout: 120)
     }
 
-    func pin(ipns: String) throws {
-        logger.info("Pinning IPNS \(ipns)")
-        do {
-            let (ret, out, err) = try IPFSCommand.pin(ipns: ipns).run()
-            if ret == 0 {
-                logger.info("Pinned IPNS \(ipns)")
-                return
-            }
-            logger.error(
-                """
-                Failed to pin IPNS \(ipns): process returned \(ret)
-                [stdout]
-                \(out.logFormat())
-                [stderr]
-                \(err.logFormat())
-                """
-            )
-        } catch {
-            logger.error(
-                """
-                Failed to pin IPNS \(ipns): error when running IPFS process, \
-                cause: \(String(describing: error))
-                """
-            )
-        }
-        throw IPFSDaemonError.IPFSCLIError
+    func unpin(cid: String) async throws {
+        logger.info("Unpinning \(cid)")
+        try await IPFSDaemon.shared.api(path: "pin/rm", args: ["arg": cid], timeout: 120)
     }
 
     func getFile(ipns: String, path: String = "") async throws -> Data {

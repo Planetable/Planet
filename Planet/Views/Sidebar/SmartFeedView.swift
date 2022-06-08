@@ -7,20 +7,19 @@
 
 import SwiftUI
 
-enum SmartFeedType: Int32 {
-    case today = 0
-    case unread = 1
-    case starred = 2
-    case custom = 3
+enum SmartFeedType: Int {
+    case today
+    case unread
+    case starred
+    case custom
 }
 
-let SMART_FEED_ITEM_SIZE: CGFloat = 18
-let SMART_FEED_ITEM_PADDING: CGFloat = 2
-
-
 struct SmartFeedView: View {
+    let item_size: CGFloat = 18
+    let padding: CGFloat = 2
+
     var feedType: SmartFeedType
-    
+
     var body: some View {
         HStack(spacing: 4) {
             switch (feedType) {
@@ -28,11 +27,8 @@ struct SmartFeedView: View {
                 Image(systemName: "sun.max.fill")
                     .resizable()
                     .foregroundColor(Color.orange)
-                    .frame(width: SMART_FEED_ITEM_SIZE, height: SMART_FEED_ITEM_SIZE)
-                    .padding(.top, SMART_FEED_ITEM_PADDING)
-                    .padding(.bottom, SMART_FEED_ITEM_PADDING)
-                    .padding(.leading, SMART_FEED_ITEM_PADDING)
-                    .padding(.trailing, SMART_FEED_ITEM_PADDING)
+                    .frame(width: item_size, height: item_size)
+                    .padding(.all, padding)
                 Text("Today")
                     .font(.body)
                     .foregroundColor(.primary)
@@ -40,11 +36,8 @@ struct SmartFeedView: View {
                 Image(systemName: "circle.inset.filled")
                     .resizable()
                     .foregroundColor(Color.blue)
-                    .frame(width: SMART_FEED_ITEM_SIZE, height: SMART_FEED_ITEM_SIZE)
-                    .padding(.top, SMART_FEED_ITEM_PADDING)
-                    .padding(.bottom, SMART_FEED_ITEM_PADDING)
-                    .padding(.leading, SMART_FEED_ITEM_PADDING)
-                    .padding(.trailing, SMART_FEED_ITEM_PADDING)
+                    .frame(width: item_size, height: item_size)
+                    .padding(.all, padding)
                 Text("Unread")
                     .font(.body)
                     .foregroundColor(.primary)
@@ -52,11 +45,8 @@ struct SmartFeedView: View {
                 Image(systemName: "star.fill")
                     .resizable()
                     .renderingMode(.original)
-                    .frame(width: SMART_FEED_ITEM_SIZE, height: SMART_FEED_ITEM_SIZE)
-                    .padding(.top, SMART_FEED_ITEM_PADDING)
-                    .padding(.bottom, SMART_FEED_ITEM_PADDING)
-                    .padding(.leading, SMART_FEED_ITEM_PADDING)
-                    .padding(.trailing, SMART_FEED_ITEM_PADDING)
+                    .frame(width: item_size, height: item_size)
+                    .padding(.all, padding)
                 Text("Starred")
                     .font(.body)
                     .foregroundColor(.primary)
@@ -64,22 +54,12 @@ struct SmartFeedView: View {
                 Image(systemName: "questionmark.circle.fill")
                     .resizable()
                     .foregroundColor(Color.primary)
-                    .frame(width: SMART_FEED_ITEM_SIZE, height: SMART_FEED_ITEM_SIZE)
-                    .padding(.top, SMART_FEED_ITEM_PADDING)
-                    .padding(.bottom, SMART_FEED_ITEM_PADDING)
-                    .padding(.leading, SMART_FEED_ITEM_PADDING)
-                    .padding(.trailing, SMART_FEED_ITEM_PADDING)
+                    .frame(width: item_size, height: item_size)
+                    .padding(.all, padding)
                 Text("Custom")
                     .font(.body)
                     .foregroundColor(.primary)
             }
-            
         }
-    }
-}
-
-struct SmartFeedView_Previews: PreviewProvider {
-    static var previews: some View {
-        SmartFeedView(feedType: .starred)
     }
 }
