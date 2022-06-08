@@ -14,7 +14,14 @@ struct TemplateBrowserSidebar: View {
     var body: some View {
         List(selection: $selection) {
             ForEach(store.templates, id: \.id) { template in
-                Text(template.name)
+                HStack {
+                    Text(template.name)
+                    Spacer()
+                    if template.hasGitRepo {
+                        Text("GIT")
+                            .font(.system(size: 8))
+                    }
+                }
                 .contextMenu {
                     if hasVSCode() {
                         Button {
