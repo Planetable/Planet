@@ -253,7 +253,7 @@ class PlanetWriterManager: NSObject {
         let writerView = PlanetWriterView(withID: id)
         let writerWindow = PlanetWriterWindow(
             rect: NSMakeRect(0, 0, Self.windowMinWidth, Self.windowMinHeight),
-                maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView],
+            maskStyle: [.closable, .miniaturizable, .resizable, .titled, .unifiedTitleAndToolbar, .fullSizeContentView],
                 backingType: .buffered,
                 deferMode: false,
                 writerID: id
@@ -284,7 +284,7 @@ class PlanetWriterManager: NSObject {
         let writerView = PlanetWriterView(withID: id, inEditMode: true, articleTitle: article.title ?? "", articleContent: article.content ?? "", planetID: planetID)
         let writerWindow = PlanetWriterWindow(
                 rect: NSMakeRect(0, 0, Self.windowMinWidth, Self.windowMinHeight),
-                maskStyle: [.closable, .miniaturizable, .resizable, .titled, .fullSizeContentView],
+                maskStyle: [.closable, .miniaturizable, .resizable, .titled, .unifiedTitleAndToolbar, .fullSizeContentView],
                 backingType: .buffered,
                 deferMode: false,
                 writerID: id

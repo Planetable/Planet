@@ -17,8 +17,11 @@ class PlanetWriterWindow: NSWindow {
         super.init(contentRect: rect, styleMask: style, backing: backingType, defer: flag)
         self.titleVisibility = .visible
         self.isMovableByWindowBackground = true
-        self.titlebarAppearsTransparent = true
-        self.title = "Writer " + writerID.uuidString.prefix(4)
+        self.titlebarAppearsTransparent = false
+        self.toolbarStyle = .unified
+        let toolbar = NSToolbar()
+        self.toolbar = toolbar
+        // self.title = "Writer " + writerID.uuidString.prefix(4)
         self.delegate = self
         self.isReleasedWhenClosed = false
         PlanetStore.shared.writerIDs.insert(id)

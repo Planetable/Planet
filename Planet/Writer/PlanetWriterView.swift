@@ -27,7 +27,7 @@ struct PlanetWriterView: View {
 
     @State private var previewPath: URL!
 
-    @State private var isToolBoxOpen: Bool = true
+    @State private var isMediaTrayOpen: Bool = true
     @State private var isPreviewOpen: Bool = true
     @State private var selectedRanges: [NSValue] = []
 
@@ -51,27 +51,8 @@ struct PlanetWriterView: View {
                     .padding(.bottom, 2)
                     .padding(.horizontal, 16)
                     .font(.system(size: 15, weight: .regular, design: .default))
-                    .background(.clear)
+                    .background(Color(NSColor.textBackgroundColor))
                     .textFieldStyle(PlainTextFieldStyle())
-
-                Spacer()
-
-                HStack (spacing: 8) {
-                    Button {
-                        isToolBoxOpen.toggle()
-                    } label: {
-                        Label("ToolBox", systemImage: isToolBoxOpen ? "keyboard.fill" : "keyboard")
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    Button {
-                        isPreviewOpen.toggle()
-                    } label: {
-                        Label("Preview", systemImage: isPreviewOpen ? "doc.richtext.fill" : "doc.richtext")
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-                .padding(.trailing, 16)
             }
 
             Divider()
@@ -116,7 +97,7 @@ struct PlanetWriterView: View {
                 }
             }
 
-            if isToolBoxOpen {
+            if isMediaTrayOpen {
                 Divider()
                 ScrollView(.horizontal) {
                     HStack (spacing: 0) {
@@ -144,7 +125,7 @@ struct PlanetWriterView: View {
                         }
                     }
                 }
-                .frame(height: 44)
+                .frame(height: 64)
                 .frame(maxWidth: .infinity)
                 .background(Color.secondary.opacity(0.03))
                 .onDrop(of: [.fileURL], delegate: viewModel)
