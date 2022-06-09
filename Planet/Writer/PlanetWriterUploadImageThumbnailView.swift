@@ -14,16 +14,18 @@ struct PlanetWriterUploadImageThumbnailView: View {
     var articleID: UUID
     var fileURL: URL
 
+    let thumbnailSize: CGFloat = 60
+
     @State private var isShowingPlusIcon: Bool = false
 
     var body: some View {
         ZStack {
-            if let imageView = thumbnailFromFile(forTargetHeight: 40) {
+            if let imageView = thumbnailFromFile(forTargetHeight: thumbnailSize) {
                 imageView
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .padding(.vertical, 4)
-                    .frame(width: 40, height: 40, alignment: .center)
+                    .frame(width: thumbnailSize, height: thumbnailSize, alignment: .center)
             }
 
             VStack {
@@ -62,7 +64,7 @@ struct PlanetWriterUploadImageThumbnailView: View {
             .padding(.top, 2)
             .padding(.trailing, -8)
         }
-        .frame(width: 44, height: 44, alignment: .center)
+        .frame(width: thumbnailSize, height: thumbnailSize, alignment: .center)
         .padding(.leading, 12)
         .padding(.trailing, 8)
         .onHover { isHovering in
