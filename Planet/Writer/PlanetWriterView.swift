@@ -31,6 +31,8 @@ struct PlanetWriterView: View {
     @State private var isPreviewOpen: Bool = true
     @State private var selectedRanges: [NSValue] = []
 
+    @FocusState private var titleFieldIsFocused: Bool
+
     @ObservedObject private var viewModel: PlanetWriterViewModel
 
     init(withID id: UUID, inEditMode editMode: Bool = false, articleTitle: String = "", articleContent: String = "", planetID: UUID = UUID()) {
@@ -53,6 +55,7 @@ struct PlanetWriterView: View {
                     .font(.system(size: 15, weight: .regular, design: .default))
                     .background(Color(NSColor.textBackgroundColor))
                     .textFieldStyle(PlainTextFieldStyle())
+                    .focused($titleFieldIsFocused)
             }
 
             Divider()
@@ -159,6 +162,11 @@ struct PlanetWriterView: View {
         .onReceive(NotificationCenter.default.publisher(for: .closeWriterWindow, object: nil)) { n in
             guard let id = n.object as? UUID, id == targetID else { return }
             cancelAction()
+        }
+        .onAppear() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                titleFieldIsFocused = true
+            }
         }
         .task {
             guard isEditing else { return }
