@@ -39,37 +39,6 @@ struct PlanetSidebarLoadingIndicatorView: View {
     }
 }
 
-
-struct PlanetSidebarToolbarButtonView: View {
-    @EnvironmentObject private var planetStore: PlanetStore
-    @Environment(\.managedObjectContext) private var context
-
-    var body: some View {
-        Button {
-            planetStore.isShowingPlanetInfo = true
-        } label: {
-            Image(systemName: "info.circle")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 16, height: 16, alignment: .center)
-        }
-        .disabled(planetStore.currentPlanet == nil)
-
-        Button {
-            if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
-                PlanetWriterManager.shared.launchWriter(forPlanet: planet)
-            }
-        } label: {
-            Image(systemName: "square.and.pencil")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 16, height: 16, alignment: .center)
-        }
-        .disabled(planetStore.currentPlanet == nil || !planetStore.currentPlanet!.isMyPlanet())
-    }
-}
-
-
 struct PlanetSidebarView: View {
     @EnvironmentObject private var planetStore: PlanetStore
     @StateObject var ipfs: IPFSState
@@ -151,15 +120,8 @@ struct PlanetSidebarView: View {
                                 destination: PlanetArticleListView(planetID: planet.id!, articles: articles)
                                 .environmentObject(planetStore)
                                 .environment(\.managedObjectContext, context)
-                                .frame(minWidth: 200)
-                                .toolbar {
-                                    ToolbarItemGroup {
-                                        Spacer()
-                                        PlanetSidebarToolbarButtonView()
-                                        .environmentObject(planetStore)
-                                        .environment(\.managedObjectContext, context)
-                                    }
-                                },
+                                .frame(minWidth: 300)
+                                ,
                                 tag: planet,
                                 selection: $planetStore.currentPlanet
                         ) {
@@ -255,15 +217,8 @@ struct PlanetSidebarView: View {
                         NavigationLink(destination: PlanetArticleListView(planetID: planet.id!, articles: articles)
                         .environmentObject(planetStore)
                         .environment(\.managedObjectContext, context)
-                        .frame(minWidth: 200)
-                        .toolbar {
-                            ToolbarItemGroup {
-                                Spacer()
-                                PlanetSidebarToolbarButtonView()
-                                .environmentObject(planetStore)
-                                .environment(\.managedObjectContext, context)
-                            }
-                        }, tag: planet, selection: $planetStore.currentPlanet) {
+                        .frame(minWidth: 300)
+                        , tag: planet, selection: $planetStore.currentPlanet) {
                             VStack {
                                 HStack(spacing: 4) {
                                     if planet.name == nil || planet.name == "" {

@@ -22,9 +22,7 @@ struct PlanetMainView: View {
                 .environment(\.managedObjectContext, context)
                 .frame(minWidth: 200)
                 .toolbar {
-                    ToolbarItemGroup(placement: .navigation) {
-                        Spacer()
-
+                    ToolbarItem {
                         Button(action: toggleSidebar) {
                             Image(systemName: "sidebar.left")
                                 .help("Toggle Sidebar")
@@ -73,11 +71,39 @@ struct PlanetMainView: View {
             Text("No Planet Selected")
                 .foregroundColor(.secondary)
                 .font(.system(size: 14, weight: .regular))
-                .frame(minWidth: 200)
+                .frame(minWidth: 200, maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    Color(NSColor.textBackgroundColor)
+                )
+                .toolbar {
+                    Spacer()
+                }
 
             PlanetArticleView()
                 .environmentObject(planetStore)
                 .frame(minWidth: 320)
+                .toolbar {
+                    ToolbarItem() {
+                        Button {
+                            if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
+                                PlanetWriterManager.shared.launchWriter(forPlanet: planet)
+                            }
+                        } label: {
+                            Image(systemName: "square.and.pencil")
+                        }.visibility(
+                            (planetStore.currentPlanet == nil || !planetStore.currentPlanet!.isMyPlanet()) ? .gone : .visible
+                        )
+                    }
+                    
+                    ToolbarItem() {
+                        Button {
+                            planetStore.isShowingPlanetInfo = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                        }
+                        .disabled(planetStore.currentPlanet == nil)
+                    }
+                }
         }
         .alert(isPresented: $planetStore.isAlert) {
             Alert(title: Text(PlanetManager.shared.alertTitle), message: Text(PlanetManager.shared.alertMessage), dismissButton: Alert.Button.cancel(Text("OK"), action: {

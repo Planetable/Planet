@@ -28,6 +28,8 @@ struct PlanetApp: App {
                 .environment(\.managedObjectContext, PlanetDataController.shared.viewContext)
                 .handlesExternalEvents(preferring: Set(arrayLiteral: "Planet"), allowing: Set(arrayLiteral: "Planet"))
         }
+        .windowToolbarStyle(.automatic)
+        .windowStyle(.titleBar)
         .handlesExternalEvents(matching: Set(arrayLiteral: "Planet"))
         .commands {
             CommandGroup(replacing: .newItem) {

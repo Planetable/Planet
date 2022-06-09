@@ -18,6 +18,9 @@ struct PlanetArticleView: View {
         VStack {
             PlanetArticleWebView(url: $url)
         }
+        .background(
+            Color(NSColor.textBackgroundColor)
+        )
         .onChange(of: planetStore.currentArticle) { newArticle in
             Task.init {
                 if let article = planetStore.currentArticle {

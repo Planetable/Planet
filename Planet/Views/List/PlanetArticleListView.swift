@@ -84,6 +84,10 @@ struct PlanetArticleListView: View {
                 .foregroundColor(.secondary)
             }
         })
+        .toolbar {
+            // TODO: Content Type Switcher will go here
+            Spacer()
+        }
         .navigationTitle(
             Text(navigationTitle())
         )
