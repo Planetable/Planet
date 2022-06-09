@@ -10,14 +10,18 @@
     :root {
       --background-color: transparent;
       --foreground-color: #000;
+      --link-color: #336bad;
       --foreground-secondary-color: #666;
+      --border-color: #e2e2e2;
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
         --background-color: transparent;
         --foreground-color: #fff;
+        --link-color: #6699ff;
         --foreground-secondary-color: #adadaf;
+        --border-color: #2b2b2d;
       }
     }
 
@@ -36,6 +40,29 @@
     h1 {
       color: var(--foreground-color);
       font-size: 2em;
+    }
+        
+    hr {
+      border: none;
+      height: 2px;
+      color: var(--border-color);
+      background-color: var(--border-color);
+      margin-top: 1em;
+      margin-bottom: 1em;
+    }
+    
+    a:link, a:visited, a:active {
+      color: var(--link-color);
+      text-decoration: none;
+      line-break: anywhere;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code {
+      line-break: anywhere;
     }
 
     img {
