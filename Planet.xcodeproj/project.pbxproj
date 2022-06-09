@@ -43,7 +43,6 @@
 		2AF4006627F379BF005DF1A9 /* PlanetWriterWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF4006527F379BF005DF1A9 /* PlanetWriterWebView.swift */; };
 		2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF4006727F37C27005DF1A9 /* WriterBasic.html */; };
 		2AF4006A27F37C27005DF1A9 /* WriterBasicPlaceholder.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF4006827F37C27005DF1A9 /* WriterBasicPlaceholder.html */; };
-		6A0172E827C9EE05006154B7 /* Basic.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A0172E727C9EE05006154B7 /* Basic.html */; };
 		6A0172EB27C9FD5F006154B7 /* Ink in Frameworks */ = {isa = PBXBuildFile; productRef = 6A0172EA27C9FD5F006154B7 /* Ink */; };
 		6A0FB8A827FBB129008E203D /* SmartFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0FB8A727FBB129008E203D /* SmartFeedView.swift */; };
 		6A28FDA82838598A00036BA6 /* NoSelection.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A28FDA72838598A00036BA6 /* NoSelection.html */; };
@@ -90,7 +89,6 @@
 		2A441BAF27C4DD980008A694 /* CreatePlanetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreatePlanetView.swift; sourceTree = "<group>"; };
 		2A441BB227C4DF110008A694 /* FollowPlanetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowPlanetView.swift; sourceTree = "<group>"; };
 		2A5EA54A281A84BE002FAC54 /* PlanetWriterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterViewModel.swift; sourceTree = "<group>"; };
-		2A69F04327E0F5D800141DC0 /* BasicPreview.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = BasicPreview.html; sourceTree = "<group>"; };
 		2A732308280983380040BDBD /* PlanetStatusViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetStatusViewModel.swift; sourceTree = "<group>"; };
 		2A780CF827C76EF0007DC36A /* PlanetAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAvatarView.swift; sourceTree = "<group>"; };
 		2A7D1BF327CA1B0A00D3C091 /* EditPlanetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPlanetView.swift; sourceTree = "<group>"; };
@@ -118,7 +116,6 @@
 		2AF4006527F379BF005DF1A9 /* PlanetWriterWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetWriterWebView.swift; sourceTree = "<group>"; };
 		2AF4006727F37C27005DF1A9 /* WriterBasic.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WriterBasic.html; sourceTree = "<group>"; };
 		2AF4006827F37C27005DF1A9 /* WriterBasicPlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WriterBasicPlaceholder.html; sourceTree = "<group>"; };
-		6A0172E727C9EE05006154B7 /* Basic.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Basic.html; sourceTree = "<group>"; };
 		6A0FB8A427FBA3A3008E203D /* Planet v4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v4.xcdatamodel"; sourceTree = "<group>"; };
 		6A0FB8A727FBB129008E203D /* SmartFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartFeedView.swift; sourceTree = "<group>"; };
 		6A28FDA72838598A00036BA6 /* NoSelection.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = NoSelection.html; sourceTree = "<group>"; };
@@ -279,8 +276,6 @@
 			isa = PBXGroup;
 			children = (
 				2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */,
-				6A0172E727C9EE05006154B7 /* Basic.html */,
-				2A69F04327E0F5D800141DC0 /* BasicPreview.html */,
 				2AF4006727F37C27005DF1A9 /* WriterBasic.html */,
 				2AF4006827F37C27005DF1A9 /* WriterBasicPlaceholder.html */,
 				6A28FDA72838598A00036BA6 /* NoSelection.html */,
@@ -449,7 +444,6 @@
 				6A28FDA82838598A00036BA6 /* NoSelection.html in Resources */,
 				2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */,
 				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
-				6A0172E827C9EE05006154B7 /* Basic.html in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
 				6A64D2DE284640A80013EABB /* Credits.html in Resources */,
 				72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */,

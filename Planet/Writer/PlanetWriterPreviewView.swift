@@ -15,6 +15,6 @@ struct PlanetWriterPreviewView: View {
     var body: some View {
         VStack {
             PlanetWriterWebView(url: url == nil ? Bundle.main.url(forResource: "WriterBasicPlaceholder", withExtension: "html")! : url, targetID: targetID)
-        }
+        }.background(Color(NSColor.textBackgroundColor))
     }
 }

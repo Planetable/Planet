@@ -19,31 +19,24 @@ class PlanetWriterManager: NSObject {
     static let windowMinHeight: CGFloat = 400
 
     let previewEnv: Stencil.Environment
-    var articleTemplateName: String
     var writerTemplateName: String
 
     let backupFileQueue: DispatchQueue
 
     override init() {
-        let basicTemplatePath = Bundle.main.url(forResource: "Basic", withExtension: "html")!
         let previewTemplatePath = Bundle.main.url(forResource: "WriterBasic", withExtension: "html")!
         previewEnv = Environment(
             loader: FileSystemLoader(paths: [Path(previewTemplatePath.path)]),
             extensions: [StencilExtension.get()]
         )
         writerTemplateName = previewTemplatePath.path
-        articleTemplateName = basicTemplatePath.path
         backupFileQueue = DispatchQueue.init(label: "planet.writer.backup.queue")
     }
 
     func renderHTML(fromContent c: String) -> String? {
-        do {
-            let parser = MarkdownParser()
-            let output = parser.html(from: c)
-            return output
-        } catch {
-            return nil
-        }
+        let parser = MarkdownParser()
+        let output = parser.html(from: c)
+        return output
     }
 
     func renderPreview(content: String, forDocument id: UUID) -> URL? {
