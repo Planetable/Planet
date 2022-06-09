@@ -331,7 +331,7 @@ struct PlanetSidebarView: View {
                         Label("Follow Planet", systemImage: "plus")
                     }
                 } label: {
-                    Image(systemName: "plus.app")
+                    Image(systemName: "plus")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 24, height: 24, alignment: .center)
