@@ -34,9 +34,13 @@ class PlanetWriterWindow: NSWindow {
             }
         }
     }
-    
+
     @objc func send(_ sender: Any?) {
         NotificationCenter.default.post(name: .sendArticle, object: writerID)
+    }
+
+    @objc func attachPhoto(_ sender: Any?) {
+        NotificationCenter.default.post(name: .attachPhoto, object: writerID)
     }
 }
 
@@ -45,6 +49,7 @@ class PlanetWriterWindow: NSWindow {
 
 extension NSToolbarItem.Identifier {
     static let send = NSToolbarItem.Identifier("send")
+    static let attachPhoto = NSToolbarItem.Identifier("attachPhoto")
 }
 
 
@@ -54,53 +59,57 @@ extension PlanetWriterWindow: NSToolbarDelegate {
         case .send:
             let title = NSLocalizedString("Send", comment: "Send")
             return makeToolbarButton(.send, title, NSImage(systemSymbolName: "paperplane", accessibilityDescription: "Send")!, "send:")
+        case .attachPhoto:
+            let title = NSLocalizedString("Attach Picture", comment: "Attach Picture")
+            return makeToolbarButton(.attachPhoto, title, NSImage(systemSymbolName: "photo.on.rectangle", accessibilityDescription: "Attach Photo")!, "attachPhoto:")
         default:
             return nil
         }
     }
-    
+
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return [
             .send,
             .flexibleSpace
         ]
     }
-    
+
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return [
-            .send
+            .send,
+            .attachPhoto
         ]
     }
-    
+
     func toolbarWillAddItem(_ notification: Notification) {
         guard let item = notification.userInfo?["item"] as? NSToolbarItem else {
             return
         }
     }
-    
+
     func toolbarDidRemoveItem(_ notification: Notification) {
         guard let item = notification.userInfo?["item"] as? NSToolbarItem else {
             return
         }
     }
-    
+
     func makeToolbarButton(_ itemIdentifier: NSToolbarItem.Identifier, _ title: String, _ image: NSImage, _ selector: String) -> NSToolbarItem {
         let toolbarItem = NSToolbarItem(itemIdentifier: itemIdentifier)
         toolbarItem.autovalidates = true
-        
+
         switch itemIdentifier {
         case .send:
             toolbarItem.isNavigational = true
         default:
             toolbarItem.isNavigational = false
         }
-        
+
         let button = NSButton()
         button.bezelStyle = .texturedRounded
         button.image = image
         button.imageScaling = .scaleProportionallyDown
         button.action = Selector((selector))
-        
+
         toolbarItem.view = button
         toolbarItem.toolTip = title
         toolbarItem.label = title

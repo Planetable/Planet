@@ -28,7 +28,7 @@ struct PlanetWriterView: View {
     @State private var previewPath: URL!
 
     @State private var isShowingEmptyTitleAlert: Bool = false
-    @State private var isMediaTrayOpen: Bool = true
+    @State private var isMediaTrayOpen: Bool = false
     @State private var isPreviewOpen: Bool = true
     @State private var selectedRanges: [NSValue] = []
 
@@ -105,20 +105,6 @@ struct PlanetWriterView: View {
                 Divider()
                 ScrollView(.horizontal) {
                     HStack (spacing: 0) {
-                        Image(systemName: "plus.viewfinder")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 30, height: 30, alignment: .center)
-                            .padding(.leading, 16)
-                            .opacity(0.5)
-                            .onTapGesture {
-                                if let urls: [URL] = uploadImagesAction() {
-                                    Task { @MainActor in
-                                        PlanetWriterManager.shared.processUploadings(urls: urls, targetID: targetID, inEditMode: isEditing)
-                                    }
-                                }
-                            }
-
                         if let uploadings: Set<URL> = viewModel.uploadings[targetID] {
                             ForEach(Array(uploadings).sorted { a, b in
                                 return PlanetWriterManager.shared.uploadingCreationDate(fileURL: a) < PlanetWriterManager.shared.uploadingCreationDate(fileURL: b)
@@ -173,6 +159,10 @@ struct PlanetWriterView: View {
             } else {
                 saveAction()
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .attachPhoto, object: nil)) { n in
+            guard let id = n.object as? UUID, id == targetID else { return }
+            attachPhotoAction()
         }
         .onAppear() {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
@@ -254,6 +244,16 @@ struct PlanetWriterView: View {
                 try PlanetWriterManager.shared.recoverDeletedUploading(articleID: targetID, planetID: originalPlanetID, fileURL: remove)
             } catch {
                 debugPrint("failed to recover deleted file: \(remove), article: \(targetID), error: \(error)")
+            }
+        }
+    }
+    
+    @MainActor
+    private func attachPhotoAction() {
+        if let urls: [URL] = uploadImagesAction() {
+            Task { @MainActor in
+                isMediaTrayOpen = true
+                PlanetWriterManager.shared.processUploadings(urls: urls, targetID: targetID, inEditMode: isEditing)
             }
         }
     }
