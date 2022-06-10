@@ -83,9 +83,6 @@ struct PlanetApp: App {
                 }
             }
             SidebarCommands()
-            // disable text edit commands since they currently don't work with writer
-            // TextEditingCommands()
-            TextFormattingCommands()
         }
 
         WindowGroup("Planet Templates") {
