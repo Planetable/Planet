@@ -142,6 +142,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         PlanetDataController.shared.cleanupDatabase()
         let _ = PlanetManager.shared
         TemplateBrowserStore.shared.loadTemplates()
+        
+        if let lastVisitedPlanetID = UserDefaults.standard.string(forKey: "LastVisitedPlanetID") {
+            if let planetID = UUID(uuidString: lastVisitedPlanetID), let planet = PlanetDataController.shared.getPlanet(id: planetID) {
+                Task { @MainActor in
+                    PlanetStore.shared.currentPlanet = planet
+                }
+            }
+        }
+        
         SUUpdater.shared().checkForUpdatesInBackground()
         
         let saver = Saver.shared

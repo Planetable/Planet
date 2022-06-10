@@ -40,6 +40,10 @@ class PlanetStore: ObservableObject {
         didSet {
             currentArticle = nil
             debugPrint("[Current Planet] \(String(describing: currentPlanet))")
+            if let aPlanet = currentPlanet, let planetID = aPlanet.id {
+                debugPrint("Set last visited planet to \(aPlanet)")
+                UserDefaults.standard.set(planetID.uuidString, forKey: "LastVisitedPlanetID")
+            }
         }
     }
 
