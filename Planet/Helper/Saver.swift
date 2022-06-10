@@ -131,4 +131,18 @@ class Saver: NSObject {
             }
         }
     }
+
+    func migrateTemplates() {
+        // Migrate all templates from Application Support
+
+        let templatesDirectory: URL = Saver.applicationSupportDirectory.appendingPathComponent("templates")
+        let newTemplatesDirectory: URL = Saver.documentDirectory.appendingPathComponent("Templates")
+
+        if FileManager.default.fileExists(atPath: templatesDirectory.path) {
+            try? FileManager.default.copyItem(at: templatesDirectory, to: newTemplatesDirectory)
+            debugPrint("Saver: copied templates from \(templatesDirectory) to \(newTemplatesDirectory)")
+        } else {
+            debugPrint("Saver: no templates found in \(templatesDirectory)")
+        }
+    }
 }
