@@ -27,6 +27,7 @@ struct PlanetWriterView: View {
 
     @State private var previewPath: URL!
 
+    @State private var isShowingEmptyTitleAlert: Bool = false
     @State private var isMediaTrayOpen: Bool = true
     @State private var isPreviewOpen: Bool = true
     @State private var selectedRanges: [NSValue] = []
@@ -128,12 +129,13 @@ struct PlanetWriterView: View {
                         }
                     }
                 }
-                .frame(height: 64)
+                .frame(height: 80)
                 .frame(maxWidth: .infinity)
                 .background(Color.secondary.opacity(0.03))
                 .onDrop(of: [.fileURL], delegate: viewModel)
             }
 
+            /*
             Divider()
 
             HStack {
@@ -157,16 +159,28 @@ struct PlanetWriterView: View {
                 .disabled(title.count == 0)
             }
             .padding(16)
+            */
         }
         .frame(minWidth: PlanetWriterManager.windowMinWidth)
         .onReceive(NotificationCenter.default.publisher(for: .closeWriterWindow, object: nil)) { n in
             guard let id = n.object as? UUID, id == targetID else { return }
             cancelAction()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .sendArticle, object: nil)) { n in
+            guard let id = n.object as? UUID, id == targetID else { return }
+            if title.count == 0 {
+                isShowingEmptyTitleAlert = true
+            } else {
+                saveAction()
+            }
+        }
         .onAppear() {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 titleFieldIsFocused = true
             }
+        }
+        .alert("This article has no title. Please enter the title before clicking send.", isPresented: $isShowingEmptyTitleAlert) {
+            Button("OK", role: .cancel) { }
         }
         .task {
             guard isEditing else { return }

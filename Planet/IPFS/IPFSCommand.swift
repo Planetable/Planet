@@ -128,7 +128,7 @@ struct IPFSCommand {
     static func pin(cid: String) -> IPFSCommand {
         IPFSCommand(arguments: ["pin", "add", cid])
     }
-    
+
     static func pin(ipns: String) -> IPFSCommand {
         IPFSCommand(arguments: ["pin", "add", "/ipns/\(ipns)"])
     }
