@@ -157,7 +157,11 @@ struct PlanetWriterView: View {
             if title.count == 0 {
                 isShowingEmptyTitleAlert = true
             } else {
-                saveAction()
+                if isEditing {
+                    updateAction()
+                } else {
+                    saveAction()
+                }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .attachPhoto, object: nil)) { n in
