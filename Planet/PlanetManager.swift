@@ -84,14 +84,21 @@ class PlanetManager: NSObject {
                         let linkURL = URL(string: article.link!)!
                         urlString = "\(await IPFSDaemon.shared.gateway)\(cid)\(linkURL.path)"
                     }
-                    // urlString = "\(await IPFSDaemon.shared.gateway)\(cid)\(article.link!)"
                 } else {
-                    urlString = "\(await IPFSDaemon.shared.gateway)/ipfs/\(planet.ipfs!)\(article.link!)"
+                    if let planetIPFS = planet.ipfs, let articleLink = article.link {
+                        urlString = "\(await IPFSDaemon.shared.gateway)/ipfs/\(planetIPFS)\(articleLink)"
+                    } else {
+                        return nil
+                    }
                 }
             case .dns:
-                urlString = article.link!
+                if let articleLink = article.link {
+                    urlString = articleLink
+                } else {
+                    return nil
+                }
             default:
-                urlString = "\(await IPFSDaemon.shared.gateway)/ipns/\(planet.ipns!)/\(article.link!)/index.html"
+                return nil
         }
         debugPrint("article URL: \(urlString)")
         return URL(string: urlString)
