@@ -35,7 +35,7 @@ class PlanetWriterManager: NSObject {
 
     func renderHTML(fromContent c: String) -> String? {
         let parser = MarkdownParser()
-        let output = parser.html(from: c)
+        let output = parser.html(from: c.trim())
         return output
     }
 
