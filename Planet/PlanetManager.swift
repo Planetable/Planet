@@ -77,12 +77,15 @@ class PlanetManager: NSObject {
                     urlString = "\(await IPFSDaemon.shared.gateway)/ipns/\(planet.ipns!)\(article.link!)index.html"
                 }
             case .ens:
-                if let cid = planet.latestCID {
-                    if article.link!.hasPrefix("/") {
-                        urlString = "\(await IPFSDaemon.shared.gateway)\(cid)\(article.link!)"
+                if let cid = planet.latestCID, let articleLink = article.link {
+                    if articleLink.hasPrefix("/") {
+                        urlString = "\(await IPFSDaemon.shared.gateway)\(cid)\(articleLink)"
                     } else {
-                        let linkURL = URL(string: article.link!)!
-                        urlString = "\(await IPFSDaemon.shared.gateway)\(cid)\(linkURL.path)"
+                        if let linkURL = URL(string: articleLink) {
+                            urlString = "\(await IPFSDaemon.shared.gateway)\(cid)\(linkURL.path)"
+                        } else {
+                            return nil
+                        }
                     }
                 } else {
                     if let planetIPFS = planet.ipfs, let articleLink = article.link {
