@@ -142,7 +142,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         PlanetDataController.shared.cleanupDatabase()
         let _ = PlanetManager.shared
         TemplateBrowserStore.shared.loadTemplates()
-        
+
         if let lastVisitedPlanetID = UserDefaults.standard.string(forKey: "LastVisitedPlanetID") {
             if let planetID = UUID(uuidString: lastVisitedPlanetID), let planet = PlanetDataController.shared.getPlanet(id: planetID) {
                 Task { @MainActor in
@@ -150,12 +150,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
-        
+
         SUUpdater.shared().checkForUpdatesInBackground()
-        
-        let saver = Saver.shared
-        saver.savePlanets()
-        saver.migratePublic()
+
+        // let saver = Saver.shared
+        // saver.savePlanets()
+        // saver.migratePublic()
+        // saver.migrateTemplates()
+
 
     }
 
