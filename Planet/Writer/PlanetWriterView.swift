@@ -169,6 +169,12 @@ struct PlanetWriterView: View {
             attachPhotoAction()
         }
         .onAppear() {
+            if originalUploadings.count > 0 {
+                debugPrint("Writer: open the media tray")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.075) {
+                    isMediaTrayOpen = true
+                }
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 titleFieldIsFocused = true
             }
@@ -251,7 +257,7 @@ struct PlanetWriterView: View {
             }
         }
     }
-    
+
     @MainActor
     private func attachPhotoAction() {
         if let urls: [URL] = uploadImagesAction() {
