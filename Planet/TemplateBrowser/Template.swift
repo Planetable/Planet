@@ -71,12 +71,18 @@ struct Template: Codable, Identifiable, Hashable {
     }
 
     func render(article: PlanetArticle) throws -> String {
+        // get planet
+        guard let planetID = article.planetID else { return "" }
+        guard let planet = PlanetDataController.shared.getPlanet(id: planetID) else { return "" }
+        guard let planetIPNS = planet.ipns else { return "" }
+        
         // render markdown
         let result = MarkdownParser().parse(article.content!)
         let content_html = result.html
 
         // render stencil template
         let context: [String: Any] = [
+            "planet_ipns": planetIPNS,
             "assets_prefix": "../",
             "article": article,
             "page_title": article.title!,
