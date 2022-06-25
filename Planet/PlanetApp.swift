@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Sparkle
+import UserNotifications
 
 
 @main
@@ -178,6 +179,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         SUUpdater.shared().checkForUpdatesInBackground()
 
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .badge]) { granted, error in
+            if let error = error {
+                // Handle the error here.
+            }
+            // Enable or disable features based on the authorization.
+        }
+        
         // let saver = Saver.shared
         // saver.savePlanets()
         // saver.migratePublic()

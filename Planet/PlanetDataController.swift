@@ -4,6 +4,7 @@ import CoreData
 import FeedKit
 import ENSKit
 import SwiftSoup
+import UserNotifications
 
 
 enum PublicGateway: String {
@@ -480,10 +481,12 @@ class PlanetDataController: NSObject {
 
     func batchCreateFeedArticles(articles: [PlanetFeedArticle], planetID: UUID) {
         Task { @MainActor in
+            var newArticles: [PlanetFeedArticle] = []
             let ctx = persistentContainer.viewContext
             for article in articles {
                 let a = PlanetDataController.shared.getArticle(link: article.link!, planetID: planetID)
                 if a == nil {
+                    newArticles.append(article)
                     let newArticle = PlanetArticle(context: ctx)
                     newArticle.id = UUID()
                     newArticle.planetID = planetID
@@ -491,6 +494,29 @@ class PlanetDataController: NSObject {
                     newArticle.link = article.link
                     newArticle.created = article.created
                     save(context: ctx)
+                }
+            }
+            if newArticles.count == 0 { return }
+            guard let planet = PlanetDataController.shared.getPlanet(id: planetID) else { return }
+            let content = UNMutableNotificationContent()
+            if newArticles.count == 1 {
+                content.title = planet.name ?? "Planet"
+                content.body = newArticles[0].title
+            } else {
+                content.title = planet.name ?? "Planet"
+                content.body = "\(newArticles.count) new articles"
+            }
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+            let uuidString = UUID().uuidString
+            let request = UNNotificationRequest(identifier: uuidString,
+                        content: content, trigger: trigger)
+
+            let notificationCenter = UNUserNotificationCenter.current()
+            notificationCenter.add(request) { (error) in
+                if error != nil {
+                    debugPrint("Notification: failed to send notification for the updates from \(planet)")
+                } else {
+                    debugPrint("Notification: sent notification for the updates from \(planet)")
                 }
             }
         }
