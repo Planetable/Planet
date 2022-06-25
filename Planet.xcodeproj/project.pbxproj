@@ -57,6 +57,7 @@
 		6A6A146628215587009644B6 /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A146528215587009644B6 /* Template.swift */; };
 		6A6A1468282159DC009644B6 /* TemplateBrowserStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A1467282159DC009644B6 /* TemplateBrowserStore.swift */; };
 		6ABAB91828215FF30014F209 /* TemplatePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */; };
+		6ADC637E286611E70010F4CD /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADC637D286611E70010F4CD /* OnboardingView.swift */; };
 		7211431A5867D4CF2960EC39 /* IPFSCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114270D79DBC89703262B9 /* IPFSCommand.swift */; };
 		721144F70CBCCFAA04277BA4 /* fs-repo-migrations-arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 721145901046AC768CEAE31C /* fs-repo-migrations-arm64 */; };
 		72114509730D9D97178E0E82 /* IPFSState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721148C9E7BCB6F1BC539F57 /* IPFSState.swift */; };
@@ -133,6 +134,7 @@
 		6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePreviewView.swift; sourceTree = "<group>"; };
 		6AC83749284C9A4D00C0F952 /* versioning.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = versioning.xcconfig; sourceTree = "<group>"; };
 		6AC8374B284C9A8500C0F952 /* marketing_version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = marketing_version.xcconfig; sourceTree = "<group>"; };
+		6ADC637D286611E70010F4CD /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 		7211404DFC1B4D23F84EA279 /* PlanetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetError.swift; sourceTree = "<group>"; };
 		721142078A61FB753612C8BA /* StencilExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StencilExtension.swift; sourceTree = "<group>"; };
@@ -223,6 +225,7 @@
 		2AC4994727BB6E7500F1C2D1 /* Planet */ = {
 			isa = PBXGroup;
 			children = (
+				6ADC637C286611D30010F4CD /* Onboarding */,
 				2AC4996927BB987B00F1C2D1 /* Info.plist */,
 				6A5E63A62807269400FB1E84 /* TemplateBrowser */,
 				2AC4996D27BB9F2200F1C2D1 /* Templates */,
@@ -330,6 +333,14 @@
 				6A669051282BD6E6009E56E2 /* TemplateBrowserPreviewWebView.swift */,
 			);
 			path = TemplateBrowser;
+			sourceTree = "<group>";
+		};
+		6ADC637C286611D30010F4CD /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				6ADC637D286611E70010F4CD /* OnboardingView.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		721141137EDE4A3E5706D234 /* go-ipfs-executables */ = {
@@ -503,6 +514,7 @@
 				7211454FA6F933028B1A6F34 /* GoIPFSGateway.swift in Sources */,
 				6A2D6B8D285141A60078F531 /* Saver.swift in Sources */,
 				72114509730D9D97178E0E82 /* IPFSState.swift in Sources */,
+				6ADC637E286611E70010F4CD /* OnboardingView.swift in Sources */,
 				721148F88BE8ABCC52FEB501 /* IPFSDaemon.swift in Sources */,
 				7211431A5867D4CF2960EC39 /* IPFSCommand.swift in Sources */,
 				7211453BC07C2E4A588D1618 /* URLUtils.swift in Sources */,

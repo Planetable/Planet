@@ -83,6 +83,13 @@ struct PlanetApp: App {
                 }
             }
             SidebarCommands()
+            CommandGroup(replacing: .help) {
+                Button {
+                    openURL(URL(string: "planet://Onboarding")!)
+                } label: {
+                    Text("What's New in Planet")
+                }
+            }
         }
 
         WindowGroup("Planet Templates") {
@@ -92,6 +99,24 @@ struct PlanetApp: App {
                 .handlesExternalEvents(preferring: Set(arrayLiteral: "Template"), allowing: Set(arrayLiteral: "Template"))
         }
         .handlesExternalEvents(matching: Set(arrayLiteral: "Template"))
+        
+        WindowGroup("Onboarding") {
+            OnboardingView()
+                .frame(width: 600, height: 540)
+                .onAppear {
+                    DispatchQueue.main.async {
+                        NSApplication.shared.windows.forEach { window in
+                            if window.title == "Onboarding" {
+                                window.styleMask.subtract(.resizable)
+                                window.styleMask.subtract(.fullScreen)
+                            }
+                        }
+                    }
+                }
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowToolbarStyle(.unifiedCompact)
+        .handlesExternalEvents(matching: Set(arrayLiteral: "Onboarding"))
     }
 }
 
