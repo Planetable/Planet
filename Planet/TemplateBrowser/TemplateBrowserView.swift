@@ -25,14 +25,56 @@ struct TemplateBrowserView: View {
                     ToolbarItemGroup(placement: .primaryAction) {
                         Spacer()
 
+                        if hasVSCode() {
+                            Button {
+                                openVSCode()
+                            } label: {
+                                Image(systemName: "chevron.left.forwardslash.chevron.right")
+                            }.help("Open in VSCode")
+                        }
+
+                        Button {
+                            revealInFinder()
+                        } label: {
+                            Image(systemName: "folder")
+                        }.help("Reveal in Finder")
+
                         Button {
                             refresh()
                         } label: {
                             Image(systemName: "arrow.clockwise")
-                        }
+                        }.help("Refresh")
                     }
                 }
         }
+    }
+
+    private func hasVSCode() -> Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.microsoft.VSCode") != nil
+    }
+
+    private func openVSCode() {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.microsoft.VSCode")
+        else { return }
+        guard let template = template else { return }
+
+        let url = URL(fileURLWithPath: template.path.path)
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
+    }
+
+    private func openConfiguration() -> NSWorkspace.OpenConfiguration {
+        let conf = NSWorkspace.OpenConfiguration()
+        conf.hidesOthers = false
+        conf.hides = false
+        conf.activates = true
+        return conf
+    }
+
+    private func revealInFinder() {
+        guard let template = template else { return }
+        let url = URL(fileURLWithPath: template.path.path)
+        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path)
     }
 
     private func refresh() {
