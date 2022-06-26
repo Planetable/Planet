@@ -38,6 +38,10 @@ class PlanetWriterWindow: NSWindow {
     @objc func send(_ sender: Any?) {
         NotificationCenter.default.post(name: .sendArticle, object: writerID)
     }
+    
+    @objc func attachVideo(_ sender: Any?) {
+        NotificationCenter.default.post(name: .attachVideo, object: writerID)
+    }
 
     @objc func attachPhoto(_ sender: Any?) {
         NotificationCenter.default.post(name: .attachPhoto, object: writerID)
@@ -50,6 +54,7 @@ class PlanetWriterWindow: NSWindow {
 extension NSToolbarItem.Identifier {
     static let send = NSToolbarItem.Identifier("send")
     static let attachPhoto = NSToolbarItem.Identifier("attachPhoto")
+    static let attachVideo = NSToolbarItem.Identifier("attachVideo")
 }
 
 
@@ -60,8 +65,12 @@ extension PlanetWriterWindow: NSToolbarDelegate {
             let title = NSLocalizedString("Send", comment: "Send")
             return makeToolbarButton(.send, title, NSImage(systemSymbolName: "paperplane", accessibilityDescription: "Send")!, "send:")
         case .attachPhoto:
-            let title = NSLocalizedString("Attach Picture", comment: "Attach Picture")
+            let title = NSLocalizedString("Attach Photo", comment: "Attach Photo")
             return makeToolbarButton(.attachPhoto, title, NSImage(systemSymbolName: "photo.on.rectangle", accessibilityDescription: "Attach Photo")!, "attachPhoto:")
+        case .attachVideo:
+            let title = NSLocalizedString("Attach Video", comment: "Attach Video")
+            return makeToolbarButton(.attachVideo, title, NSImage(systemSymbolName: "video.badge.plus", accessibilityDescription: "Attach Video")!, "attachVideo:")
+        
         default:
             return nil
         }
@@ -77,6 +86,7 @@ extension PlanetWriterWindow: NSToolbarDelegate {
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return [
             .send,
+            .attachVideo,
             .attachPhoto
         ]
     }

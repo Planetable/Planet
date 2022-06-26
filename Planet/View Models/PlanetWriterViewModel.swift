@@ -24,6 +24,8 @@ class PlanetWriterViewModel: ObservableObject {
     static let shared = PlanetWriterViewModel()
 
     @Published private(set) var uploadings: [UUID: Set<URL>] = [:]
+    
+    @Published private(set) var attachedVideo: [UUID: URL?] = [:]
 
     // [ArticleUUID: PlanetUUID]
     // ArticleUUID == PlanetUUID: Creating Article
@@ -67,6 +69,17 @@ class PlanetWriterViewModel: ObservableObject {
     @MainActor
     func removeAllUploadings(articleID: UUID) {
         uploadings[articleID]?.removeAll()
+    }
+    
+    @MainActor
+    func attachVideo(articleID: UUID, url: URL) async {
+        attachedVideo[articleID] = url
+        debugPrint("Attach Video: attached \(attachedVideo)")
+    }
+    
+    @MainActor
+    func removeAttachedVideo(articleID: UUID) {
+        attachedVideo[articleID] = nil
     }
 
     @MainActor

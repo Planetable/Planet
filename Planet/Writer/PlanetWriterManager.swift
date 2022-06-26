@@ -158,6 +158,7 @@ class PlanetWriterManager: NSObject {
         Task.detached(priority: .background) {
             await MainActor.run {
                 PlanetWriterViewModel.shared.removeAllUploadings(articleID: articleID)
+                PlanetWriterViewModel.shared.removeAttachedVideo(articleID: articleID)
             }
         }
     }
@@ -229,6 +230,31 @@ class PlanetWriterManager: NSObject {
             for u in urls {
                 await _insertFile(articleID: targetID, fileURL: u)
             }
+        }
+    }
+
+    @MainActor
+    func processAttachedVideo(urls: [URL], targetID: UUID) {
+        Task.init {
+            let url = urls[0]
+            // Copy the video file to the article folder
+            let fileName = url.lastPathComponent
+            let draftPath = articleDraftPath(articleID: targetID)
+            let targetPath = draftPath.appendingPathComponent(fileName)
+            do {
+                try FileManager.default.copyItem(at: url, to: targetPath)
+                if let planetID = PlanetDataController.shared.getArticle(id: targetID)?.planetID,
+                   let planet = PlanetDataController.shared.getPlanet(id: planetID),
+                   planet.isMyPlanet(),
+                   let planetArticlePath = articlePath(articleID: targetID, planetID: planetID) {
+                    try FileManager.default.copyItem(at: targetPath, to: planetArticlePath.appendingPathComponent(fileName))
+                    debugPrint("Attach Video: copied file: \(url) to target path: \(targetPath)")
+                }
+            } catch {
+                debugPrint("Attach Video: failed to copy file: \(url) to target path: \(targetPath), error: \(error)")
+            }
+            // Update the view model
+            await PlanetWriterViewModel.shared.attachVideo(articleID: targetID, url: url)
         }
     }
 

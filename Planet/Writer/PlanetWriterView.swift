@@ -10,6 +10,7 @@ import Stencil
 import PathKit
 import WebKit
 import Ink
+import AVKit
 
 
 struct PlanetWriterView: View {
@@ -48,6 +49,13 @@ struct PlanetWriterView: View {
 
     var body: some View {
         VStack (spacing: 0) {
+            if hasVideo() {
+                HStack {
+                    VideoPlayer(player: AVPlayer(url: viewModel.attachedVideo[targetID]!!))
+                        .frame(height: 400)
+                }
+                Divider()
+            }
             HStack (spacing: 0) {
                 TextField("Title", text: $title)
                     .frame(height: 34, alignment: .leading)
@@ -168,6 +176,10 @@ struct PlanetWriterView: View {
             guard let id = n.object as? UUID, id == targetID else { return }
             attachPhotoAction()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .attachVideo, object: nil)) { n in
+            guard let id = n.object as? UUID, id == targetID else { return }
+            attachVideoAction()
+        }
         .onAppear() {
             if originalUploadings.count > 0 {
                 debugPrint("Writer: open the media tray")
@@ -260,10 +272,20 @@ struct PlanetWriterView: View {
 
     @MainActor
     private func attachPhotoAction() {
-        if let urls: [URL] = uploadImagesAction() {
+        if let urls: [URL] = chooseImagesAction() {
             Task { @MainActor in
                 isMediaTrayOpen = true
                 PlanetWriterManager.shared.processUploadings(urls: urls, targetID: targetID, inEditMode: isEditing)
+            }
+        }
+    }
+
+    @MainActor
+    private func attachVideoAction() {
+        if let urls: [URL] = chooseVideoAction() {
+            Task { @MainActor in
+                PlanetWriterManager.shared.processAttachedVideo(urls: urls, targetID: targetID)
+                debugPrint("Attach Video: \(urls)")
             }
         }
     }
@@ -335,15 +357,35 @@ struct PlanetWriterView: View {
         PlanetManager.shared.publishLocalPlanets()
     }
 
-    private func uploadImagesAction() -> [URL]? {
+    private func chooseImagesAction() -> [URL]? {
         let openPanel = NSOpenPanel()
         openPanel.allowedContentTypes = [.jpeg, .png, .pdf, .tiff, .gif]
         openPanel.allowsMultipleSelection = true
         openPanel.canChooseDirectories = false
         openPanel.canChooseFiles = true
-        openPanel.message = "Please choose images to upload."
+        openPanel.message = "Please choose images"
         openPanel.prompt = "Choose"
         let response = openPanel.runModal()
         return response == .OK ? openPanel.urls : nil
+    }
+
+    private func chooseVideoAction() -> [URL]? {
+        let openPanel = NSOpenPanel()
+        openPanel.allowedContentTypes = [.mpeg4Movie, .quickTimeMovie]
+        openPanel.allowsMultipleSelection = false
+        openPanel.canChooseDirectories = false
+        openPanel.canChooseFiles = true
+        openPanel.message = "Please choose a video"
+        openPanel.prompt = "Choose"
+        let response = openPanel.runModal()
+        return response == .OK ? openPanel.urls : nil
+    }
+
+    private func hasVideo() -> Bool {
+        if let _ = viewModel.attachedVideo[targetID] {
+            return true
+        } else {
+            return false
+        }
     }
 }
