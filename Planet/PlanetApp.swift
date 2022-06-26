@@ -13,20 +13,14 @@ import UserNotifications
 @main
 struct PlanetApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject var planetStore: PlanetStore
-    @StateObject var templateStore: TemplateBrowserStore
+    @StateObject var planetStore = PlanetStore.shared
+    @StateObject var templateStore = TemplateStore.shared
     @Environment(\.openURL) private var openURL
-
-    init() {
-        self._planetStore = StateObject(wrappedValue: PlanetStore.shared)
-        self._templateStore = StateObject(wrappedValue: TemplateBrowserStore.shared)
-    }
 
     var body: some Scene {
         WindowGroup {
             PlanetMainView()
                 .environmentObject(planetStore)
-                .environment(\.managedObjectContext, PlanetDataController.shared.viewContext)
                 .handlesExternalEvents(preferring: Set(arrayLiteral: "Planet"), allowing: Set(arrayLiteral: "Planet"))
         }
         .windowToolbarStyle(.automatic)
@@ -46,14 +40,14 @@ struct PlanetApp: App {
                 Divider()
 
                 Button {
-                    PlanetManager.shared.publishLocalPlanets()
+                    planetStore.publishMyPlanets()
                 } label: {
                     Text("Publish My Planets")
                 }
                 .keyboardShortcut("p", modifiers: [.command, .shift])
 
                 Button {
-                    PlanetManager.shared.updateFollowingPlanets()
+                    planetStore.updateFollowingPlanets()
                 } label: {
                     Text("Update Following Planets")
                 }
@@ -67,14 +61,6 @@ struct PlanetApp: App {
                     Text("Import Planet")
                 }
                 .keyboardShortcut("i", modifiers: [.command, .shift])
-
-                Button {
-                    guard planetStore.currentPlanet != nil else { return }
-                    planetStore.isExportingPlanet = true
-                } label: {
-                    Text("Export Planet")
-                }
-                .keyboardShortcut("e", modifiers: [.command, .shift])
             }
             CommandGroup(after: .appInfo) {
                 Button {
@@ -97,7 +83,10 @@ struct PlanetApp: App {
             TemplateBrowserView()
                 .environmentObject(templateStore)
                 .frame(minWidth: 720, minHeight: 480)
-                .handlesExternalEvents(preferring: Set(arrayLiteral: "Template"), allowing: Set(arrayLiteral: "Template"))
+                .handlesExternalEvents(
+                    preferring: Set(arrayLiteral: "Template"),
+                    allowing: Set(arrayLiteral: "Template")
+                )
         }
         .handlesExternalEvents(matching: Set(arrayLiteral: "Template"))
         
@@ -132,30 +121,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first else { return }
         if url.absoluteString.hasPrefix("planet://") {
-            let url = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
-            guard !PlanetDataController.shared.planetExists(planetURL: url) else { return }
-            Task {
-                try await PlanetManager.shared.followPlanet(url: url)
+            let link = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
+            Task { @MainActor in
+                let planet = try await FollowingPlanetModel.follow(link: link)
+                PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+                try planet.save()
             }
         } else if url.lastPathComponent.hasSuffix(".planet") {
-            do {
-                let planet = try Planet.importMyPlanet(importURL: url)
-                Task { @MainActor in
-                    PlanetStore.shared.currentPlanet = planet
-                }
-                return
-            } catch PlanetError.PlanetExistsError {
-                Task { @MainActor in
-                    PlanetManager.shared.alert(
-                        title: "Failed to Import Planet",
-                        message: "The planet already exists."
-                    )
-                }
-            } catch {
-                Task { @MainActor in
-                    PlanetManager.shared.alert(title: "Failed to Import Planet", message: "Please try again.")
-                }
-            }
+            // TODO: import planet
         }
     }
 
@@ -165,16 +138,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        PlanetDataController.shared.cleanupDatabase()
-        let _ = PlanetManager.shared
-        TemplateBrowserStore.shared.loadTemplates()
+        // let saver = Saver.shared
+        // saver.savePlanets()
+        // saver.migratePublic()
+        Task { @MainActor in
+            TemplateStore.shared.load()
+        }
 
         if let lastVisitedPlanetID = UserDefaults.standard.string(forKey: "LastVisitedPlanetID") {
-            if let planetID = UUID(uuidString: lastVisitedPlanetID), let planet = PlanetDataController.shared.getPlanet(id: planetID) {
-                Task { @MainActor in
-                    PlanetStore.shared.currentPlanet = planet
-                }
-            }
+            // TODO
         }
 
         SUUpdater.shared().checkForUpdatesInBackground()
@@ -199,13 +171,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        return false
+        false
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        PlanetDataController.shared.cleanupDatabase()
-        PlanetDataController.shared.save()
-        Task.init {
+        Task {
+            try await PlanetStore.shared.save()
             await IPFSDaemon.shared.shutdownDaemon()
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }

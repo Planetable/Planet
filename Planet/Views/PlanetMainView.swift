@@ -9,8 +9,7 @@ import SwiftUI
 
 
 struct PlanetMainView: View {
-    @EnvironmentObject private var planetStore: PlanetStore
-    @Environment(\.managedObjectContext) private var context
+    @EnvironmentObject var planetStore: PlanetStore
 
     @State private var isInfoAlert: Bool = false
     @State private var isFollowingAlert: Bool = false
@@ -18,8 +17,6 @@ struct PlanetMainView: View {
     var body: some View {
         NavigationView {
             PlanetSidebarView()
-                .environmentObject(planetStore)
-                .environment(\.managedObjectContext, context)
                 .frame(minWidth: 200)
                 .toolbar {
                     ToolbarItem {
@@ -35,37 +32,16 @@ struct PlanetMainView: View {
                 ) { result in
                     if let url = try? result.get(),
                        url.pathExtension == "planet" {
-                        do {
-                            let planet = try Planet.importMyPlanet(importURL: url)
-                            PlanetStore.shared.currentPlanet = planet
-                            return
-                        } catch PlanetError.PlanetExistsError {
-                            PlanetManager.shared.alert(
-                                title: "Failed to Import Planet",
-                                message: "The planet already exists."
-                            )
-                            return
-                        } catch PlanetError.ImportPlanetError {
-                            PlanetManager.shared.alert(
-                                title: "Failed to Import Planet",
-                                message: """
-                                         Please try again. \
-                                         If the problem persists, the planet backup may be corrupted.
-                                         """
-                            )
-                            return
-                        } catch PlanetError.IPFSError {
-                            PlanetManager.shared.alert(
-                                title: "Failed to Import Planet",
-                                message: "There is an error in IPFS. Please try again."
-                            )
-                            return
-                        } catch {}
+                        Task {
+                            do {
+                                let planet = try await MyPlanetModel.importBackup(from: url)
+                                try planet.save()
+                                PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                            } catch {
+                                PlanetStore.shared.alert(title: "Failed to import planet")
+                            }
+                        }
                     }
-                    PlanetManager.shared.alert(
-                        title: "Failed to Import Planet",
-                        message: " Please try again."
-                    )
                 }
 
             Text("No Planet Selected")
@@ -80,49 +56,68 @@ struct PlanetMainView: View {
                 }
 
             PlanetArticleView()
-                .environmentObject(planetStore)
                 .frame(minWidth: 320)
                 .toolbar {
-                    ToolbarItem() {
+                    ToolbarItem {
                         Button {
-                            if let planet = planetStore.currentPlanet, planet.isMyPlanet() {
-                                PlanetWriterManager.shared.launchWriter(forPlanet: planet)
+                            do {
+                                if case .myPlanet(let planet) = planetStore.selectedView {
+                                    try WriterStore.shared.newArticle(for: planet)
+                                }
+                            } catch {
+                                PlanetStore.shared.alert(title: "Failed to launch writer")
                             }
                         } label: {
                             Image(systemName: "square.and.pencil")
-                        }.visibility(
-                            (planetStore.currentPlanet == nil || !planetStore.currentPlanet!.isMyPlanet()) ? .gone : .visible
-                        )
+                        }
+                            .visibility({ () -> ViewVisibility in
+                                // use closure as workaround for enum with value
+                                if case .myPlanet(_) = planetStore.selectedView {
+                                    return .visible
+                                } else {
+                                    return .gone
+                                }
+                            }())
                     }
-                    
-                    ToolbarItem() {
+
+                    ToolbarItem {
                         Button {
                             planetStore.isShowingPlanetInfo = true
                         } label: {
                             Image(systemName: "info.circle")
                         }
-                        .disabled(planetStore.currentPlanet == nil)
+                            .visibility({ () -> ViewVisibility in
+                                switch planetStore.selectedView {
+                                case .today, .unread, .starred:
+                                    return .gone
+                                default:
+                                    return .visible
+                                }
+                            }())
                     }
                 }
         }
-        .alert(isPresented: $planetStore.isAlert) {
-            Alert(title: Text(PlanetManager.shared.alertTitle), message: Text(PlanetManager.shared.alertMessage), dismissButton: Alert.Button.cancel(Text("OK"), action: {
-                PlanetManager.shared.alertTitle = ""
-                PlanetManager.shared.alertMessage = ""
-            }))
+        .alert(isPresented: $planetStore.isShowingAlert) {
+            Alert(
+                title: Text(PlanetStore.shared.alertTitle),
+                message: Text(PlanetStore.shared.alertMessage),
+                dismissButton: Alert.Button.cancel(Text("OK")) {
+                    PlanetStore.shared.alertTitle = ""
+                    PlanetStore.shared.alertMessage = ""
+                }
+            )
         }
         .fileImporter(
             isPresented: $planetStore.isExportingPlanet,
             allowedContentTypes: [.directory]
         ) { result in
             if let url = try? result.get(),
-               let planet = planetStore.currentPlanet,
-               planet.isMyPlanet() {
+               case .myPlanet(let planet) = planetStore.selectedView {
                 do {
-                    try planet.export(exportDirectory: url)
+                    try planet.exportBackup(to: url)
                     return
                 } catch PlanetError.FileExistsError {
-                    PlanetManager.shared.alert(
+                    PlanetStore.shared.alert(
                         title: "Failed to Export Planet",
                         message: """
                                  There is already an exported Planet in the destination. \
@@ -135,18 +130,19 @@ struct PlanetMainView: View {
                     // use general alert
                 }
             }
-            PlanetManager.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
+            PlanetStore.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
         }
         .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
-            if let planet = planetStore.currentPlanet {
-                PlanetAboutView(planet: planet)
-                    .environmentObject(planetStore)
+            if case .myPlanet(let planet) = planetStore.selectedView {
+                AboutMyPlanetView(planet: planet)
+            } else
+            if case .followingPlanet(let planet) = planetStore.selectedView {
+                AboutFollowingPlanetView(planet: planet)
             }
         }
         .sheet(isPresented: $planetStore.isEditingPlanet) {
-            if let planet = planetStore.currentPlanet {
-                EditPlanetView(planet: planet)
-                    .environmentObject(planetStore)
+            if case .myPlanet(let planet) = planetStore.selectedView {
+                EditMyPlanetView(planet: planet)
             }
         }
     }

@@ -9,28 +9,28 @@ import Foundation
 import Stencil
 import PathKit
 import Ink
+import os
 
-struct Template: Codable, Identifiable, Hashable {
-    var name: String
-    var id: String { "\(name)" }
-    var description: String
-    var path: URL!
-    var author: String
-    var version: String
+class Template: Codable, Identifiable {
+    static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Template")
 
-    var blogPath: URL {
-        path.appendingPathComponent("templates", isDirectory: true)
-            .appendingPathComponent("blog.html", isDirectory: false)
-    }
+    let name: String
+    let description: String
+    var path: URL! = nil
+    let author: String
+    let version: String
 
-    var indexPath: URL {
-        path.appendingPathComponent("templates", isDirectory: true)
-            .appendingPathComponent("index.html", isDirectory: false)
-    }
+    var id: String { name }
 
-    var assetsPath: URL {
-        path.appendingPathComponent("assets", isDirectory: true)
-    }
+    lazy var blogPath = path
+        .appendingPathComponent("templates", isDirectory: true)
+        .appendingPathComponent("blog.html", isDirectory: false)
+
+    lazy var indexPath = path
+        .appendingPathComponent("templates", isDirectory: true)
+        .appendingPathComponent("index.html", isDirectory: false)
+
+    lazy var assetsPath = path.appendingPathComponent("assets", isDirectory: true)
 
     var hasGitRepo: Bool {
         let gitPath = path.appendingPathComponent(".git", isDirectory: true)
@@ -44,50 +44,48 @@ struct Template: Codable, Identifiable, Hashable {
         case version
     }
 
-    static func from(url: URL) -> Template? {
-        let templateInfoPath = url.appendingPathComponent("template.json")
-        if !FileManager.default.fileExists(atPath: templateInfoPath.path) {
+    static func from(path: URL) -> Template? {
+        let directoryName = path.lastPathComponent
+        logger.info("Loading template at \(directoryName)")
+
+        let templateInfoPath = path.appendingPathComponent("template.json")
+        guard FileManager.default.fileExists(atPath: templateInfoPath.path) else {
+            logger.error("Template directory \(directoryName) has no template.json")
             return nil
         }
         var template: Template
         do {
             let data = try Data(contentsOf: templateInfoPath)
-            let decoder = JSONDecoder()
-            template = try decoder.decode(Template.self, from: data)
-            template.path = url
+            template = try JSONDecoder.shared.decode(Template.self, from: data)
+            template.path = path
         } catch {
-            debugPrint("Failed to load template info for \(url.lastPathComponent)")
+            logger.error("Unable to load template.json at \(directoryName)")
             return nil
         }
-        if !FileManager.default.fileExists(atPath: template.blogPath.path) {
-            debugPrint("Directory has no blog.html: \(url.path)")
+        guard FileManager.default.fileExists(atPath: template.blogPath.path) else {
+            logger.error("Template directory \(directoryName) has no blog.html")
             return nil
         }
-        if !FileManager.default.fileExists(atPath: template.assetsPath.path) {
-            debugPrint("Directory has no assets directory: \(url.path)")
+        guard FileManager.default.fileExists(atPath: template.assetsPath.path) else {
+            logger.error("Template directory \(directoryName) has no assets directory")
             return nil
         }
         return template
     }
 
-    func render(article: PlanetArticle) throws -> String {
-        // get planet
-        guard let planetID = article.planetID else { return "" }
-        guard let planet = PlanetDataController.shared.getPlanet(id: planetID) else { return "" }
-        guard let planetIPNS = planet.ipns else { return "" }
-        
+    func render(article: MyArticleModel) throws -> String {
         // render markdown
-        let result = MarkdownParser().parse(article.content!)
+        let result = MarkdownParser().parse(article.content)
         let content_html = result.html
 
         // render stencil template
         let context: [String: Any] = [
-            "planet_ipns": planetIPNS,
+            "planet_ipns": article.planet.ipns,
             "assets_prefix": "../",
             "article": article,
-            "page_title": article.title!,
+            "page_title": article.title,
             "content_html": content_html,
-            "build_timestamp": Int(Date().timeIntervalSince1970)
+            "build_timestamp": Int(Date().timeIntervalSince1970),
         ]
         let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.get()])
@@ -95,15 +93,13 @@ struct Template: Codable, Identifiable, Hashable {
         return try environment.renderTemplate(name: stencilTemplateName, context: context)
     }
 
-    func renderIndex(articles: [PlanetArticle], planet: Planet) throws -> String {
-        let sortedArticles = articles.sorted { a1, a2 in
-            a1.created! > a2.created!
-        }
+    func renderIndex(planet: PublicPlanetModel) throws -> String {
         let context: [String: Any] = [
             "assets_prefix": "./",
-            "page_title": planet.name!,
-            "page_description": planet.about!,
-            "articles": sortedArticles
+            "page_title": planet.name,
+            "page_description": planet.about,
+            "articles": planet.articles,
+            "build_timestamp": Int(Date().timeIntervalSince1970),
         ]
         let loader = FileSystemLoader(paths: [Path(indexPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.get()])
@@ -158,31 +154,35 @@ struct Template: Codable, Identifiable, Hashable {
 
         let articlePath = articleFolderPath.appendingPathComponent("blog.html")
 
-        let title: String = "Template Preview \(name)"
-        let content: String = """
-Demo Article Content
+        let article = PublicArticleModel(
+            link: UUID().uuidString,
+            title: "Template Preview \(name)",
+            content:
+                """
+                Demo Article Content
 
-### List
+                ### List
 
-- Item A
-- Item B
-- Item C
+                - Item A
+                - Item B
+                - Item C
 
-### Code Block
+                ### Code Block
 
-```python
-from flask import Flask
+                ```python
+                from flask import Flask
 
-app = Flask(__name__)
+                app = Flask(__name__)
 
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
-```
+                @app.route("/")
+                def hello_world():
+                    return "<p>Hello, World!</p>"
+                ```
 
----
-"""
-        let article = PlanetArticlePlaceholder(title: title, content: content)
+                ---
+                """,
+            created: Date()
+        )
 
         // render markdown
         let result = MarkdownParser().parse(article.content)

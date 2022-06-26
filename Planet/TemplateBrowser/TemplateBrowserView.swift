@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TemplateBrowserView: View {
-    @EnvironmentObject var templateStore: TemplateBrowserStore
+    @EnvironmentObject var templateStore: TemplateStore
     @AppStorage("TemplateBrowserView.selectedTemplateID") private var selectedTemplateID: Template.ID?
 
     var template: Template? {

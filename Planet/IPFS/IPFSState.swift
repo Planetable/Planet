@@ -8,11 +8,11 @@ import os
     @Published var peers = 0
 
     init() {
-        Task.init {
+        Task {
             await IPFSDaemon.shared.launchDaemon()
         }
         RunLoop.main.add(Timer(timeInterval: 30, repeats: true) { timer in
-            Task.init {
+            Task {
                 await IPFSDaemon.shared.updateOnlineStatus()
                 if !(IPFSState.shared.online) {
                     await IPFSDaemon.shared.launchDaemon()

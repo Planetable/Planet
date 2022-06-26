@@ -16,7 +16,8 @@ struct IPFSCommand {
     }()
 
     static let IPFSRepositoryURL: URL = {
-        let url = URLUtils.basePath.appendingPathComponent("ipfs", isDirectory: true)
+        // ~/Library/Containers/xyz.planetable.Planet/Data/Library/Application\ Support/ipfs/
+        let url = URLUtils.applicationSupportPath.appendingPathComponent("ipfs", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
@@ -113,30 +114,6 @@ struct IPFSCommand {
         IPFSCommand(arguments: ["init"])
     }
 
-    static func addDirectory(directory: URL) -> IPFSCommand {
-        IPFSCommand(arguments: ["add", "-r", directory.path, "--cid-version=1", "--quieter"])
-    }
-
-    static func getFileCID(file: URL) -> IPFSCommand {
-        IPFSCommand(arguments: ["add", file.path, "--cid-version=1", "--only-hash"])
-    }
-
-    static func resolveIPNS(ipns: String) -> IPFSCommand {
-        IPFSCommand(arguments: ["name", "resolve", ipns])
-    }
-
-    static func pin(cid: String) -> IPFSCommand {
-        IPFSCommand(arguments: ["pin", "add", cid])
-    }
-
-    static func pin(ipns: String) -> IPFSCommand {
-        IPFSCommand(arguments: ["pin", "add", "/ipns/\(ipns)"])
-    }
-
-    static func publish(key: String, cid: String) -> IPFSCommand {
-        IPFSCommand(arguments: ["name", "publish", cid, "-k", key, "--lifetime", "168h", "--allow-offline"])
-    }
-
     static func updateAPIPort(port: UInt16) -> IPFSCommand {
         IPFSCommand(arguments: ["config", "Addresses.API", "/ip4/127.0.0.1/tcp/\(port)"])
     }
@@ -163,12 +140,20 @@ struct IPFSCommand {
         ])
     }
 
-    static func generateKey(name: String) -> IPFSCommand {
-        IPFSCommand(arguments: ["key", "gen", name])
+    static func launchDaemon() -> IPFSCommand {
+        IPFSCommand(arguments: ["daemon", "--enable-namesys-pubsub", "--enable-pubsub-experiment"])
     }
 
-    static func deleteKey(name: String) -> IPFSCommand {
-        IPFSCommand(arguments: ["key", "rm", name])
+    static func shutdownDaemon() -> IPFSCommand {
+        IPFSCommand(arguments: ["shutdown"])
+    }
+
+    static func addDirectory(directory: URL) -> IPFSCommand {
+        IPFSCommand(arguments: ["add", "-r", directory.path, "--cid-version=1", "--quieter"])
+    }
+
+    static func getFileCID(file: URL) -> IPFSCommand {
+        IPFSCommand(arguments: ["add", file.path, "--cid-version=1", "--only-hash"])
     }
 
     static func exportKey(name: String, target: URL) -> IPFSCommand {
@@ -179,12 +164,18 @@ struct IPFSCommand {
         IPFSCommand(arguments: ["key", "import", name, target.path])
     }
 
-    static func launchDaemon() -> IPFSCommand {
-        IPFSCommand(arguments: ["daemon", "--enable-namesys-pubsub", "--enable-pubsub-experiment"])
+    // NOTE: IPFS CLI calls internal HTTP API to communicate
+    //       The following commands can be executed by calling HTTP API for easier async await
+    static func resolveIPNS(ipns: String) -> IPFSCommand {
+        IPFSCommand(arguments: ["name", "resolve", ipns])
     }
 
-    static func shutdownDaemon() -> IPFSCommand {
-        IPFSCommand(arguments: ["shutdown"])
+    static func generateKey(name: String) -> IPFSCommand {
+        IPFSCommand(arguments: ["key", "gen", name])
+    }
+
+    static func deleteKey(name: String) -> IPFSCommand {
+        IPFSCommand(arguments: ["key", "rm", name])
     }
 }
 
