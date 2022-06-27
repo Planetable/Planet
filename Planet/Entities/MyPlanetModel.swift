@@ -18,7 +18,7 @@ class MyPlanetModel: PlanetModel, Codable {
     @Published var articles: [MyArticleModel]! = nil
 
     static let myPlanetsPath: URL = {
-        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planets/My/
+        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/My/
         let url = URLUtils.repoPath.appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
@@ -31,12 +31,13 @@ class MyPlanetModel: PlanetModel, Codable {
     lazy var articleDraftsPath = articlesPath.appendingPathComponent("Drafts", isDirectory: true)
 
     static let publicPlanetsPath: URL = {
-        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planets/Public/
+        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Public/
         let url = URLUtils.repoPath.appendingPathComponent("Public", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
     lazy var publicBasePath = Self.publicPlanetsPath.appendingPathComponent(id.uuidString, isDirectory: true)
+    lazy var publicInfoPath = publicBasePath.appendingPathComponent("planet.json", isDirectory: false)
     lazy var publicAvatarPath = publicBasePath.appendingPathComponent("avatar.png", isDirectory: false)
     lazy var publicIndexPath = publicBasePath.appendingPathComponent("index.html", isDirectory: false)
     lazy var publicAssetsPath = publicBasePath.appendingPathComponent("assets", isDirectory: true)
@@ -273,6 +274,9 @@ class MyPlanetModel: PlanetModel, Codable {
         )
         let indexHTML = try template.renderIndex(planet: publicPlanet)
         try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
+
+        let info = try JSONEncoder.shared.encode(publicPlanet)
+        try info.write(to: publicInfoPath)
     }
 
     func publish() async throws {

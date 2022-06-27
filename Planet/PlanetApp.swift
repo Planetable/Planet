@@ -89,7 +89,7 @@ struct PlanetApp: App {
                 )
         }
         .handlesExternalEvents(matching: Set(arrayLiteral: "Template"))
-        
+
         WindowGroup("Onboarding") {
             OnboardingView()
                 .frame(width: 600, height: 540)
@@ -107,6 +107,10 @@ struct PlanetApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unifiedCompact)
         .handlesExternalEvents(matching: Set(arrayLiteral: "Onboarding"))
+
+        WindowGroup("Writer") {
+
+        }
     }
 }
 
@@ -158,7 +162,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             // Enable or disable features based on the authorization.
         }
-        
+
         // let saver = Saver.shared
         // saver.savePlanets()
         // saver.migratePublic()

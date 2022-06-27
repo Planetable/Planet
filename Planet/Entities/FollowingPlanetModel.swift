@@ -26,7 +26,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
     @Published var avatar: NSImage? = nil
 
     static let followingPlanetsPath: URL = {
-        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planets/Following/
+        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Following/
         let url = URLUtils.repoPath.appendingPathComponent("Following", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
