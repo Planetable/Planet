@@ -79,4 +79,16 @@ class CoreDataPersistence: NSObject {
         }
         return Set()
     }
+    
+    func getArticles(byPlanetID id: UUID, context: NSManagedObjectContext? = nil) -> [PlanetArticle] {
+        let request: NSFetchRequest<PlanetArticle> = PlanetArticle.fetchRequest()
+        request.predicate = NSPredicate(format: "planetID == %@ && softDeleted == nil", id as CVarArg)
+        let ctx = context ?? persistentContainer.viewContext
+        do {
+            return try ctx.fetch(request)
+        } catch {
+            debugPrint("failed to get articles: \(error), target uuid: \(id)")
+        }
+        return []
+    }
 }

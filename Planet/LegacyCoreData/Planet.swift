@@ -111,10 +111,11 @@ class Planet: NSManagedObject {
         guard let planetName = name else { return nil }
         guard let planetAbout = about else { return nil }
         guard let planetIPNS = ipns else { return nil }
-        guard let planetCreated = created else { return nil }
+        let planetCreated = created ?? Date()
         let planetUpdated = lastUpdated ?? planetCreated
         let planetLastPublished = lastPublished ?? nil
         guard let planetTemplateName = templateName else { return nil }
+        
         let newModel: MyPlanetModel = MyPlanetModel(
             id: planetID,
             name: planetName,

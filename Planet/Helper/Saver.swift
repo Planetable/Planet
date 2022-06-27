@@ -89,12 +89,18 @@ class Saver: NSObject {
 
             // Save articles
 
-            /*
             let articles = CoreDataPersistence.shared.getArticles(byPlanetID: planetID)
 
             let articlesDirectory = planetURL.appendingPathComponent("Articles", isDirectory: true)
             if FileManager.default.fileExists(atPath: articlesDirectory.path) == false {
                 try? FileManager.default.createDirectory(at: articlesDirectory, withIntermediateDirectories: true, attributes: nil)
+            }
+            
+            if planet.isMyPlanet() {
+                let draftsDirectory = planetURL.appendingPathComponent("Drafts", isDirectory: true)
+                if FileManager.default.fileExists(atPath: draftsDirectory.path) == false {
+                    try? FileManager.default.createDirectory(at: draftsDirectory, withIntermediateDirectories: true, attributes: nil)
+                }
             }
 
             for article in articles {
@@ -105,14 +111,18 @@ class Saver: NSObject {
                 let fileName: String = "\(articleID.uuidString).json"
                 let fileURL = articlesDirectory.appendingPathComponent(fileName)
                 do {
-                    let data = try encoder.encode(article)
+                    var data: Data
+                    if planet.isMyPlanet() {
+                        data = try encoder.encode(article.asNewMyArticle)
+                    } else {
+                        data = try encoder.encode(article.asNewFollowingArticle)
+                    }
                     try data.write(to: fileURL)
                     print("Saver: article saved to \(fileURL)")
                 } catch {
                     print("Saver: failed to save article: \(article) \(error)")
                 }
             }
-            */
         }
     }
 
