@@ -127,8 +127,10 @@ class MyPlanetModel: PlanetModel, Codable {
             at: articleDirectory,
             includingPropertiesForKeys: nil
         )
-        planet.articles = articleFiles.compactMap { try? MyArticleModel.load(from: $0, planet: planet) }
-
+        let articles = articleFiles.compactMap { try? MyArticleModel.load(from: $0, planet: planet) }
+        planet.articles = articles.sorted {
+            $0.created > $1.created
+        }
         return planet
     }
 

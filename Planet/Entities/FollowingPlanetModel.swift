@@ -122,7 +122,10 @@ class FollowingPlanetModel: PlanetModel, Codable {
             at: articleDirectory,
             includingPropertiesForKeys: nil
         )
-        planet.articles = articleFiles.compactMap { try? FollowingArticleModel.load(from: $0, planet: planet) }
+        let articles = articleFiles.compactMap { try? FollowingArticleModel.load(from: $0, planet: planet) }
+        planet.articles = articles.sorted {
+            $0.created > $1.created
+        }
         planet.avatar = NSImage(contentsOf: planet.avatarPath)
         return planet
     }
