@@ -84,9 +84,19 @@ class MyPlanetModel: PlanetModel, Codable {
         try container.encodeIfPresent(lastPublished, forKey: .lastPublished)
     }
 
-    init(id: UUID, name: String, about: String, ipns: String, created: Date, updated: Date, templateName: String) {
+    init(
+        id: UUID,
+        name: String,
+        about: String,
+        ipns: String,
+        created: Date,
+        updated: Date,
+        lastPublished: Date?,
+        templateName: String
+    ) {
         self.ipns = ipns
         self.updated = updated
+        self.lastPublished = lastPublished
         self.templateName = templateName
         super.init(id: id, name: name, about: about, created: created)
     }
@@ -133,6 +143,7 @@ class MyPlanetModel: PlanetModel, Codable {
             ipns: ipns,
             created: now,
             updated: now,
+            lastPublished: nil,
             templateName: templateName
         )
         planet.avatar = nil
@@ -185,6 +196,7 @@ class MyPlanetModel: PlanetModel, Codable {
             ipns: backupPlanet.ipns,
             created: backupPlanet.created,
             updated: backupPlanet.updated,
+            lastPublished: backupPlanet.lastPublished,
             templateName: backupPlanet.templateName
         )
 
@@ -310,6 +322,7 @@ class MyPlanetModel: PlanetModel, Codable {
             ipns: ipns,
             created: created,
             updated: updated,
+            lastPublished: lastPublished,
             templateName: templateName,
             articles: articles.map {
                 BackupArticleModel(
@@ -360,6 +373,7 @@ struct BackupMyPlanetModel: Codable {
     let ipns: String
     let created: Date
     let updated: Date
+    let lastPublished: Date?
     let templateName: String
     let articles: [BackupArticleModel]
 }

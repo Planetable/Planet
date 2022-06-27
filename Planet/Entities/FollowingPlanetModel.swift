@@ -11,7 +11,7 @@ enum PlanetType: Int, Codable {
 }
 
 class FollowingPlanetModel: PlanetModel, Codable {
-    static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "MyPlanet")
+    static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "FollowingPlanet")
 
     let planetType: PlanetType
     let link: String
@@ -146,7 +146,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
             if let planetURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)/planet.json"),
                let (planetData, planetResponse) = try? await URLSession.shared.data(from: planetURL),
                let httpResponse = planetResponse as? HTTPURLResponse,
-               httpResponse.ok ,
+               httpResponse.ok,
                let publicPlanet = try? JSONDecoder.shared.decode(PublicPlanetModel.self, from: planetData) {
 
                 let planet = FollowingPlanetModel(
