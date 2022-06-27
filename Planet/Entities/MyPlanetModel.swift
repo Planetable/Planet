@@ -24,9 +24,9 @@ class MyPlanetModel: PlanetModel, Codable {
         return url
     }()
     lazy var basePath = Self.myPlanetsPath.appendingPathComponent(id.uuidString, isDirectory: true)
-    lazy var infoPath = basePath.appendingPathComponent("Planet.json", isDirectory: false)
+    lazy var infoPath = basePath.appendingPathComponent("planet.json", isDirectory: false)
     lazy var articlesPath = basePath.appendingPathComponent("Articles", isDirectory: true)
-    lazy var avatarPath = basePath.appendingPathComponent("Avatar.png", isDirectory: false)
+    lazy var avatarPath = basePath.appendingPathComponent("avatar.png", isDirectory: false)
     lazy var draftsPath = basePath.appendingPathComponent("Drafts", isDirectory: true)
     lazy var articleDraftsPath = articlesPath.appendingPathComponent("Drafts", isDirectory: true)
 
@@ -96,7 +96,7 @@ class MyPlanetModel: PlanetModel, Codable {
             // directory name is not a UUID
             throw PlanetError.PersistenceError
         }
-        let planetPath = directoryPath.appendingPathComponent("Planet.json", isDirectory: false)
+        let planetPath = directoryPath.appendingPathComponent("planet.json", isDirectory: false)
         let planetData = try Data(contentsOf: planetPath)
         let planet = try JSONDecoder.shared.decode(MyPlanetModel.self, from: planetData)
         guard planet.id == planetID else {

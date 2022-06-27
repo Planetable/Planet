@@ -32,9 +32,9 @@ class FollowingPlanetModel: PlanetModel, Codable {
         return url
     }()
     lazy var basePath = Self.followingPlanetsPath.appendingPathComponent(id.uuidString, isDirectory: true)
-    lazy var infoPath = basePath.appendingPathComponent("Planet.json", isDirectory: false)
+    lazy var infoPath = basePath.appendingPathComponent("planet.json", isDirectory: false)
     lazy var articlesPath = basePath.appendingPathComponent("Articles", isDirectory: true)
-    lazy var avatarPath = basePath.appendingPathComponent("Avatar.png", isDirectory: false)
+    lazy var avatarPath = basePath.appendingPathComponent("avatar.png", isDirectory: false)
 
     var nameInitials: String {
         let initials = name.components(separatedBy: .whitespaces).map { $0.prefix(1).capitalized }.joined()
@@ -110,7 +110,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
             // directory name is not a UUID
             throw PlanetError.PersistenceError
         }
-        let planetPath = directoryPath.appendingPathComponent("Planet.json", isDirectory: false)
+        let planetPath = directoryPath.appendingPathComponent("planet.json", isDirectory: false)
         let planetData = try Data(contentsOf: planetPath)
         let planet = try JSONDecoder.shared.decode(FollowingPlanetModel.self, from: planetData)
         guard planet.id == planetID else {
