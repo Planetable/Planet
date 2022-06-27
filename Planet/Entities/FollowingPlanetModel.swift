@@ -17,7 +17,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
     let link: String
     @Published var cid: String?
     @Published var updated: Date
-    @Published var lastLocalUpdate: Date
+    @Published var lastRetrieved: Date
 
     @Published var isUpdating = false
 
@@ -56,7 +56,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, planetType, name, about, link, cid, created, updated, lastLocalUpdate
+        case id, planetType, name, about, link, cid, created, updated, lastRetrieved
     }
 
     required init(from decoder: Decoder) throws {
@@ -69,7 +69,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
         cid = try container.decode(String?.self, forKey: .cid)
         let created = try container.decode(Date.self, forKey: .created)
         updated = try container.decode(Date.self, forKey: .updated)
-        lastLocalUpdate = try container.decode(Date.self, forKey: .lastLocalUpdate)
+        lastRetrieved = try container.decode(Date.self, forKey: .lastRetrieved)
         super.init(id: id, name: name, about: about, created: created)
     }
 
@@ -83,7 +83,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
         try container.encode(cid, forKey: .cid)
         try container.encode(created, forKey: .created)
         try container.encode(updated, forKey: .updated)
-        try container.encode(lastLocalUpdate, forKey: .lastLocalUpdate)
+        try container.encode(lastRetrieved, forKey: .lastRetrieved)
     }
 
     init(
@@ -95,13 +95,13 @@ class FollowingPlanetModel: PlanetModel, Codable {
         cid: String?,
         created: Date,
         updated: Date,
-        lastLocalUpdate: Date
+        lastRetrieved: Date
     ) {
         self.planetType = planetType
         self.link = link
         self.cid = cid
         self.updated = updated
-        self.lastLocalUpdate = lastLocalUpdate
+        self.lastRetrieved = lastRetrieved
         super.init(id: id, name: name, about: about, created: created)
     }
 
@@ -158,7 +158,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                     cid: cid,
                     created: publicPlanet.created,
                     updated: publicPlanet.updated,
-                    lastLocalUpdate: Date()
+                    lastRetrieved: Date()
                 )
 
                 try FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
@@ -202,7 +202,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                 cid: cid,
                 created: now,
                 updated: now,
-                lastLocalUpdate: now
+                lastRetrieved: now
             )
 
             try FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
@@ -239,7 +239,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                 cid: nil,
                 created: now,
                 updated: now,
-                lastLocalUpdate: now
+                lastRetrieved: now
             )
             try FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
             try FileManager.default.createDirectory(at: planet.articlesPath, withIntermediateDirectories: true)
@@ -286,7 +286,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                 cid: cid,
                 created: publicPlanet.created,
                 updated: publicPlanet.updated,
-                lastLocalUpdate: Date()
+                lastRetrieved: Date()
             )
 
             try FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
@@ -343,7 +343,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                 updated = publicPlanet.updated
                 try updateArticles(publicArticles: publicPlanet.articles, delete: true)
                 cid = newCID
-                lastLocalUpdate = Date()
+                lastRetrieved = Date()
 
                 if let planetAvatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(newCID)/avatar.png"),
                    let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
@@ -397,7 +397,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                     }
 
                     cid = newCID
-                    lastLocalUpdate = Date()
+                    lastRetrieved = Date()
 
                     return
                 }
@@ -415,7 +415,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
             name = feed.name ?? link
             about = feed.about ?? ""
             updated = now
-            lastLocalUpdate = now
+            lastRetrieved = now
 
             if let publicArticles = feed.articles {
                 try updateArticles(publicArticles: publicArticles)
@@ -441,7 +441,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
             name = feed.name ?? link
             about = feed.about ?? ""
             updated = now
-            lastLocalUpdate = now
+            lastRetrieved = now
 
             if let publicArticles = feed.articles {
                 try updateArticles(publicArticles: publicArticles)

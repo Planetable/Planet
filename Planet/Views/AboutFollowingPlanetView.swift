@@ -83,6 +83,6 @@ struct AboutFollowingPlanetView: View {
     }
 
     private func lastUpdatedText() -> String {
-        "Updated " + planet.lastLocalUpdate.relativeDateDescription()
+        "Updated " + planet.lastRetrieved.relativeDateDescription()
     }
 }
