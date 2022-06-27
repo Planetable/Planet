@@ -55,4 +55,28 @@ class CoreDataPersistence: NSObject {
             }
         }
     }
+    
+    func getPlanets() -> [Planet] {
+        let request: NSFetchRequest<Planet> = Planet.fetchRequest()
+        request.predicate = NSPredicate(format: "softDeleted == nil")
+        do {
+            return try persistentContainer.viewContext.fetch(request)
+        } catch {
+            debugPrint("failed to get planets: \(error)")
+            return []
+        }
+    }
+    
+    func getLocalPlanets(context: NSManagedObjectContext? = nil) -> Set<Planet> {
+        let request: NSFetchRequest<Planet> = Planet.fetchRequest()
+        request.predicate = NSPredicate(format: "keyName != nil && keyID != nil && softDeleted == nil")
+        let ctx = context ?? persistentContainer.viewContext
+        do {
+            let planets: [Planet] = try ctx.fetch(request)
+            return Set(planets)
+        } catch {
+            debugPrint("failed to get planets: \(error)")
+        }
+        return Set()
+    }
 }

@@ -68,4 +68,63 @@ class Planet: NSManagedObject {
     var assetsURL: URL {
         baseURL.appendingPathComponent("assets", isDirectory: true)
     }
+    
+    var asNewFollowingPlanet: FollowingPlanetModel? {
+        guard let planetID = id else { return nil }
+        let planetType = type
+        guard let planetName = name else { return nil }
+        guard let planetAbout = about else { return nil }
+        var planetLink: String
+        switch (type) {
+        case .planet:
+            guard let planetIPNS = ipns else { return nil }
+            planetLink = planetIPNS
+        case .ens:
+            guard let planetENS = ens else { return nil }
+            planetLink = planetENS
+        case .dns:
+            guard let planetFeedAddress = feedAddress else { return nil }
+            planetLink = planetFeedAddress
+        default:
+            return nil
+        }
+        let planetCID = latestCID ?? nil
+        let planetCreated = created ?? Date()
+        let planetUpdated = lastUpdated ?? planetCreated
+        let planetLastRetrieved = lastUpdated ?? planetCreated
+        let newModel: FollowingPlanetModel = FollowingPlanetModel(
+            id: planetID,
+            planetType: planetType,
+            name: planetName,
+            about: planetAbout,
+            link: planetLink,
+            cid: planetCID,
+            created: planetCreated,
+            updated: planetUpdated,
+            lastRetrieved: planetLastRetrieved
+        )
+        return newModel
+    }
+    
+    var asNewMyPlanet: MyPlanetModel? {
+        guard let planetID = id else { return nil }
+        guard let planetName = name else { return nil }
+        guard let planetAbout = about else { return nil }
+        guard let planetIPNS = ipns else { return nil }
+        guard let planetCreated = created else { return nil }
+        let planetUpdated = lastUpdated ?? planetCreated
+        let planetLastPublished = lastPublished ?? nil
+        guard let planetTemplateName = templateName else { return nil }
+        let newModel: MyPlanetModel = MyPlanetModel(
+            id: planetID,
+            name: planetName,
+            about: planetAbout,
+            ipns: planetIPNS,
+            created: planetCreated,
+            updated: planetUpdated,
+            lastPublished: planetLastPublished,
+            templateName: planetTemplateName
+        )
+        return newModel
+    }
 }

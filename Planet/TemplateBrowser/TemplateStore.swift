@@ -5,7 +5,7 @@ import PlanetSiteTemplates
 class TemplateStore: ObservableObject {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "TemplateStore")
     static let templatesPath: URL = {
-        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planets/Templates/
+        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Templates/
         let url = URLUtils.repoPath.appendingPathComponent("Templates", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url

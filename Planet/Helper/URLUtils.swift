@@ -34,4 +34,10 @@ struct URLUtils {
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
+
+    static let templatesPath: URL = {
+        let url = repoPath.appendingPathComponent("Templates", isDirectory: true)
+        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }()
 }
