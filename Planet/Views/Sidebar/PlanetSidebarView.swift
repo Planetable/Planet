@@ -271,7 +271,7 @@ struct PlanetSidebarView: View {
         articles.append(contentsOf: planetStore.myPlanets.flatMap { followingPlanet in
             followingPlanet.articles.filter { $0.created.timeIntervalSinceNow > -86400 }
         })
-        articles.sort { $0.created > $1.created }
+        articles.sort { $1.created > $0.created }
         return articles
     }
 
@@ -289,7 +289,7 @@ struct PlanetSidebarView: View {
         articles.append(contentsOf: planetStore.myPlanets.flatMap { followingPlanet in
             followingPlanet.articles.filter { $0.starred != nil }
         })
-        articles.sort { $0.created > $1.created }
+        articles.sort { $1.created > $0.created }
         return articles
     }
 }

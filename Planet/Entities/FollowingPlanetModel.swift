@@ -487,7 +487,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
             articles.removeAll { existingArticleMap[$0.link] != nil }
             existingArticleMap.values.forEach { $0.delete() }
         }
-        articles.sort { $0.created > $1.created }
+        articles.sort { $1.created > $0.created }
         sendNotification(for: newArticles)
     }
 
