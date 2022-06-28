@@ -68,7 +68,7 @@ class Planet: NSManagedObject {
     var assetsURL: URL {
         baseURL.appendingPathComponent("assets", isDirectory: true)
     }
-    
+
     var asNewFollowingPlanet: FollowingPlanetModel? {
         guard let planetID = id else { return nil }
         let planetType = type
@@ -88,7 +88,14 @@ class Planet: NSManagedObject {
         default:
             return nil
         }
-        let planetCID = latestCID ?? nil
+        var planetCID: String? = nil
+        if let cid = latestCID {
+            if cid.starts(with: "/ipfs/") {
+                planetCID = cid.removePrefix(until: 6)
+            } else {
+                planetCID = cid
+            }
+        }
         let planetCreated = created ?? Date()
         let planetUpdated = lastUpdated ?? planetCreated
         let planetLastRetrieved = lastUpdated ?? planetCreated
@@ -105,7 +112,7 @@ class Planet: NSManagedObject {
         )
         return newModel
     }
-    
+
     var asNewMyPlanet: MyPlanetModel? {
         guard let planetID = id else { return nil }
         guard let planetName = name else { return nil }
@@ -115,7 +122,7 @@ class Planet: NSManagedObject {
         let planetUpdated = lastUpdated ?? planetCreated
         let planetLastPublished = lastPublished ?? nil
         guard let planetTemplateName = templateName else { return nil }
-        
+
         let newModel: MyPlanetModel = MyPlanetModel(
             id: planetID,
             name: planetName,
