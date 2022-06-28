@@ -6,15 +6,18 @@
 //
 
 import Foundation
+import os
 
 // A simple program for saving data from Core Data to JSON files on disk
 
 class Saver: NSObject {
     static let shared = Saver()
+    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Saver")
 
     static let applicationSupportDirectory: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+    static let coreDataPath: URL = applicationSupportDirectory.appendingPathComponent("Planet").appendingPathComponent("Planet.sqlite")
     static let documentDirectory: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-    
+
     static let repoDirectory: URL = documentDirectory.appendingPathComponent("Planet", isDirectory: true)
     static let publicDirectory: URL = MyPlanetModel.publicPlanetsPath
 
@@ -23,6 +26,31 @@ class Saver: NSObject {
 
     private override init() {
         super.init()
+    }
+
+    func isMigrationNeeded() -> Bool {
+        if FileManager.default.fileExists(atPath: Saver.coreDataPath.path) {
+            logger.info("found legacy Core Data container at \(Saver.coreDataPath.path)")
+            if let migrationDone = UserDefaults.standard.value(forKey: "CoreDataMigrationDone") as? Bool {
+                if migrationDone {
+                    logger.info("migration has done previously, nothing to do now")
+                    return false
+                } else {
+                    logger.info("migration for legacy Core Data container is needed")
+                    return true
+                }
+            } else {
+                logger.info("no CoreDataMigrationDone flag found, migration for legacy Core Data container is needed")
+                return true
+            }
+        } else {
+            logger.info("no legacy Core Data container found")
+            return false
+        }
+    }
+
+    func setMigrationDoneFlag(flag: Bool) {
+        UserDefaults.standard.set(flag, forKey: "CoreDataMigrationDone")
     }
 
     func prepareAllDirectories() {
@@ -49,7 +77,7 @@ class Saver: NSObject {
 
         for planet in planets {
             guard let planetID = planet.id else {
-                debugPrint("Saver: failed to get planet.id for \(planet)")
+                logger.error("failed to get planet.id for \(planet)")
                 continue
             }
             let fileName: String = "planet.json"
@@ -71,9 +99,9 @@ class Saver: NSObject {
                     data = try encoder.encode(planet.asNewFollowingPlanet)
                 }
                 try data.write(to: fileURL)
-                print("Saver: planet saved to \(fileURL)")
+                logger.info("planet saved to \(fileURL)")
             } catch {
-                print("Saver: failed to save planet: \(planet) \(error)")
+                logger.error("failed to save planet: \(planet)")
             }
 
             // Copy legacy avatar.png over to new directory
@@ -82,9 +110,9 @@ class Saver: NSObject {
             let newAvatarURL: URL = planetURL.appendingPathComponent("avatar.png")
             if FileManager.default.fileExists(atPath: legacyAvatarURL.path) {
                 try? FileManager.default.copyItem(at: legacyAvatarURL, to: newAvatarURL)
-                debugPrint("Saver: copied avatar.png from \(legacyAvatarURL) to \(newAvatarURL)")
+                logger.info("copied avatar.png from \(legacyAvatarURL) to \(newAvatarURL)")
             } else {
-                debugPrint("Saver: no avatar.png found in \(planet)")
+                logger.info("no avatar.png found in \(planet)")
             }
 
             // Save articles
@@ -95,7 +123,7 @@ class Saver: NSObject {
             if FileManager.default.fileExists(atPath: articlesDirectory.path) == false {
                 try? FileManager.default.createDirectory(at: articlesDirectory, withIntermediateDirectories: true, attributes: nil)
             }
-            
+
             if planet.isMyPlanet() {
                 let draftsDirectory = planetURL.appendingPathComponent("Drafts", isDirectory: true)
                 if FileManager.default.fileExists(atPath: draftsDirectory.path) == false {
@@ -133,7 +161,7 @@ class Saver: NSObject {
 
         for planet in planets {
             guard let planetID = planet.id else {
-                debugPrint("Saver: failed to get planet.id from \(planet)")
+                logger.error("failed to get planet.id from \(planet)")
                 continue
             }
 
@@ -142,9 +170,9 @@ class Saver: NSObject {
 
             if FileManager.default.fileExists(atPath: legacyDirectory.path) {
                 try? FileManager.default.copyItem(at: legacyDirectory, to: newDirectory)
-                debugPrint("Saver: copied \(planetID) \(planet) from \(legacyDirectory) to \(newDirectory)")
+                logger.info("copied \(planetID) \(planet) from \(legacyDirectory) to \(newDirectory)")
             } else {
-                debugPrint("Saver: no \(planetID) \(planet) found in \(legacyDirectory)")
+                logger.info("no \(planetID) \(planet) found in \(legacyDirectory)")
             }
         }
     }
@@ -157,9 +185,9 @@ class Saver: NSObject {
 
         if FileManager.default.fileExists(atPath: templatesDirectory.path) {
             try? FileManager.default.copyItem(at: templatesDirectory, to: newTemplatesDirectory)
-            debugPrint("Saver: copied templates from \(templatesDirectory) to \(newTemplatesDirectory)")
+            logger.info("copied templates from \(templatesDirectory) to \(newTemplatesDirectory)")
         } else {
-            debugPrint("Saver: no templates found in \(templatesDirectory)")
+            logger.info("no templates found in \(templatesDirectory)")
         }
     }
 }
