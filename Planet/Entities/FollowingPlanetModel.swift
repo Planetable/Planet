@@ -43,14 +43,14 @@ class FollowingPlanetModel: PlanetModel, Codable {
     var webviewURL: URL? {
         get async {
             if let cid = cid {
-                return URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)")
+                return URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)/\(link)")
             }
             return URL(string: link)
         }
     }
     var browserURL: URL? {
         if let cid = cid {
-            return URL(string: "\(IPFSDaemon.publicGateways[0])/ipfs/\(cid)")
+            return URL(string: "\(IPFSDaemon.publicGateways[0])/ipfs/\(cid)/\(link)")
         }
         return URL(string: link)
     }
