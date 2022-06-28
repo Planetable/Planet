@@ -122,10 +122,8 @@ class FollowingPlanetModel: PlanetModel, Codable {
             at: articleDirectory,
             includingPropertiesForKeys: nil
         )
-        let articles = articleFiles.compactMap { try? FollowingArticleModel.load(from: $0, planet: planet) }
-        planet.articles = articles.sorted {
-            $0.created > $1.created
-        }
+        planet.articles = articleFiles.compactMap { try? FollowingArticleModel.load(from: $0, planet: planet) }
+        planet.articles.sort { $0.created > $1.created }
         planet.avatar = NSImage(contentsOf: planet.avatarPath)
         return planet
     }
@@ -170,6 +168,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                 planet.articles = publicPlanet.articles.map {
                     FollowingArticleModel.from(publicArticle: $0, planet: planet)
                 }
+                planet.articles.sort { $0.created > $1.created }
 
                 // try to find ENS avatar
                 if let data = try? await ENSUtils.shared.avatar(name: link),
@@ -215,6 +214,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                 planet.articles = publicArticles.map {
                     FollowingArticleModel.from(publicArticle: $0, planet: planet)
                 }
+                planet.articles.sort { $0.created > $1.created }
             } else {
                 planet.articles = []
             }
@@ -251,6 +251,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                 planet.articles = publicArticles.map {
                     FollowingArticleModel.from(publicArticle: $0, planet: planet)
                 }
+                planet.articles.sort { $0.created > $1.created }
             } else {
                 planet.articles = []
             }
@@ -298,6 +299,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
             planet.articles = publicPlanet.articles.map {
                 FollowingArticleModel.from(publicArticle: $0, planet: planet)
             }
+            planet.articles.sort { $0.created > $1.created }
 
             if let planetAvatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)/avatar.png"),
                let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
@@ -487,7 +489,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
             articles.removeAll { existingArticleMap[$0.link] != nil }
             existingArticleMap.values.forEach { $0.delete() }
         }
-        articles.sort { $1.created > $0.created }
+        articles.sort { $0.created > $1.created }
         sendNotification(for: newArticles)
     }
 

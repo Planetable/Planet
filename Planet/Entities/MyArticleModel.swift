@@ -2,7 +2,6 @@ import Foundation
 
 class MyArticleModel: ArticleModel, Codable {
     @Published var link: String
-    @Published var starred: Date? = nil
 
     // populated when initializing
     weak var planet: MyPlanetModel! = nil
@@ -30,8 +29,8 @@ class MyArticleModel: ArticleModel, Codable {
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
         let created = try container.decode(Date.self, forKey: .created)
-        starred = try container.decodeIfPresent(Date.self, forKey: .starred)
-        super.init(id: id, title: title, content: content, created: created)
+        let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
+        super.init(id: id, title: title, content: content, created: created, starred: starred)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -44,9 +43,9 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(starred, forKey: .starred)
     }
 
-    init(id: UUID, link: String, title: String, content: String, created: Date) {
+    init(id: UUID, link: String, title: String, content: String, created: Date, starred: Date?) {
         self.link = link
-        super.init(id: id, title: title, content: content, created: created)
+        super.init(id: id, title: title, content: content, created: created, starred: starred)
     }
 
     static func load(from filePath: URL, planet: MyPlanetModel) throws -> MyArticleModel {
@@ -74,7 +73,8 @@ class MyArticleModel: ArticleModel, Codable {
             link: link ?? id.uuidString,
             title: title,
             content: content,
-            created: Date()
+            created: Date(),
+            starred: nil
         )
         article.planet = planet
         try FileManager.default.createDirectory(at: article.publicBasePath, withIntermediateDirectories: true)

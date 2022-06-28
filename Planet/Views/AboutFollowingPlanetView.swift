@@ -46,6 +46,10 @@ struct AboutFollowingPlanetView: View {
                     Button {
                         planetStore.followingPlanets.removeAll { $0.id == planet.id }
                         planet.delete()
+                        if case .followingPlanet(let selectedPlanet) = planetStore.selectedView,
+                           planet == selectedPlanet {
+                            planetStore.selectedView = nil
+                        }
                     } label: {
                         Text("Unfollow")
                     }

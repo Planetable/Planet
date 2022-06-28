@@ -231,7 +231,8 @@ class MyPlanetModel: PlanetModel, Codable {
                     link: backupArticle.link,
                     title: backupArticle.title,
                     content: backupArticle.content,
-                    created: backupArticle.created
+                    created: backupArticle.created,
+                    starred: nil
                 )
                 article.planet = planet
                 do {

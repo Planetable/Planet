@@ -5,12 +5,14 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
     @Published var title: String
     @Published var content: String
     let created: Date
+    @Published var starred: Date? = nil
 
-    init(id: UUID, title: String, content: String, created: Date) {
+    init(id: UUID, title: String, content: String, created: Date, starred: Date?) {
         self.id = id
         self.title = title
         self.content = content
         self.created = created
+        self.starred = starred
     }
 
     func hash(into hasher: inout Hasher) {

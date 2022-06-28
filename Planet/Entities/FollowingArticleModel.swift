@@ -3,7 +3,6 @@ import Foundation
 class FollowingArticleModel: ArticleModel, Codable {
     let link: String
     @Published var read: Date? = nil
-    @Published var starred: Date? = nil
 
     // populated when initializing
     weak var planet: FollowingPlanetModel! = nil
@@ -50,8 +49,8 @@ class FollowingArticleModel: ArticleModel, Codable {
         let content = try container.decode(String.self, forKey: .content)
         let created = try container.decode(Date.self, forKey: .created)
         read = try container.decodeIfPresent(Date.self, forKey: .read)
-        starred = try container.decodeIfPresent(Date.self, forKey: .starred)
-        super.init(id: id, title: title, content: content, created: created)
+        let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
+        super.init(id: id, title: title, content: content, created: created, starred: starred)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -76,8 +75,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     ) {
         self.link = link
         self.read = read
-        self.starred = starred
-        super.init(id: id, title: title, content: content, created: created)
+        super.init(id: id, title: title, content: content, created: created, starred: starred)
     }
 
     static func load(from filePath: URL, planet: FollowingPlanetModel) throws -> FollowingArticleModel {

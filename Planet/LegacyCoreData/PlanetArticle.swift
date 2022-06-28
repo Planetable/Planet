@@ -64,33 +64,35 @@ class PlanetArticle: NSManagedObject {
     var indexURL: URL {
         baseURL.appendingPathComponent("index.html", isDirectory: false)
     }
-    
+
     var asNewMyArticle: MyArticleModel? {
         guard let articleID = id else { return nil }
         let articleLink = link ?? "/\(articleID)/"
         let articleTitle = title ?? ""
         let articleContent = content ?? ""
         let articleCreated = created ?? Date()
-        
+        let articleStarred = starred
+
         let newModel: MyArticleModel = MyArticleModel(
             id: articleID,
             link: articleLink,
             title: articleTitle,
             content: articleContent,
-            created: articleCreated
+            created: articleCreated,
+            starred: articleStarred
         )
         return newModel
     }
-    
+
     var asNewFollowingArticle: FollowingArticleModel? {
         guard let articleID = id else { return nil }
         let articleLink = link ?? "/\(articleID)/"
         let articleTitle = title ?? ""
         let articleContent = content ?? ""
         let articleCreated = created ?? Date()
-        let articleRead = read ?? nil
-        let articleStarred = starred ?? nil
-        
+        let articleRead = read
+        let articleStarred = starred
+
         let newModel: FollowingArticleModel = FollowingArticleModel(
             id: articleID,
             link: articleLink,

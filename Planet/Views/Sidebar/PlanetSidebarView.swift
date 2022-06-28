@@ -12,7 +12,6 @@ struct PlanetSidebarView: View {
     @StateObject var ipfs = IPFSState.shared
 
     @State var isShowingDeleteConfirmation = false
-    @State var planetToBeDeleted: MyPlanetModel? = nil
 
     var body: some View {
         VStack {
@@ -116,10 +115,23 @@ struct PlanetSidebarView: View {
 
                                     Button {
                                         isShowingDeleteConfirmation = true
-                                        planetToBeDeleted = planet
                                     } label: {
                                         Text("Delete Planet")
                                     }
+                                }
+                            }
+                            .confirmationDialog(
+                                Text("Are you sure you want to delete this planet? This action cannot be undone."),
+                                isPresented: $isShowingDeleteConfirmation
+                            ) {
+                                Button(role: .destructive) {
+                                    planet.delete()
+                                    if case .myPlanet(let selectedPlanet) = planetStore.selectedView,
+                                       planet == selectedPlanet {
+                                        planetStore.selectedView = nil
+                                    }
+                                } label: {
+                                    Text("Delete")
                                 }
                             }
                     }
@@ -193,6 +205,10 @@ struct PlanetSidebarView: View {
                                     Button {
                                         planetStore.followingPlanets.removeAll { $0.id == planet.id }
                                         planet.delete()
+                                        if case .followingPlanet(let selectedPlanet) = planetStore.selectedView,
+                                           planet == selectedPlanet {
+                                            planetStore.selectedView = nil
+                                        }
                                     } label: {
                                         Text("Unfollow")
                                     }
@@ -250,17 +266,6 @@ struct PlanetSidebarView: View {
             .sheet(isPresented: $planetStore.isCreatingPlanet) {
                 CreatePlanetView()
             }
-            .confirmationDialog(
-                Text("Are you sure you want to delete this planet? This action cannot be undone."),
-                isPresented: $isShowingDeleteConfirmation,
-                presenting: planetToBeDeleted
-            ) { detail in
-                Button(role: .destructive) {
-                    planetToBeDeleted?.delete()
-                } label: {
-                    Text("Delete")
-                }
-            }
     }
 
     func getTodayArticles() -> [ArticleModel] {
@@ -271,14 +276,16 @@ struct PlanetSidebarView: View {
         articles.append(contentsOf: planetStore.myPlanets.flatMap { followingPlanet in
             followingPlanet.articles.filter { $0.created.timeIntervalSinceNow > -86400 }
         })
-        articles.sort { $1.created > $0.created }
+        articles.sort { $0.created > $1.created }
         return articles
     }
 
     func getUnreadArticles() -> [ArticleModel] {
-        planetStore.followingPlanets.flatMap { followingPlanet in
+        var articles = planetStore.followingPlanets.flatMap { followingPlanet in
             followingPlanet.articles.filter { $0.read == nil }
         }
+        articles.sort { $0.created > $1.created }
+        return articles
     }
 
     func getStarredArticles() -> [ArticleModel] {
@@ -289,7 +296,7 @@ struct PlanetSidebarView: View {
         articles.append(contentsOf: planetStore.myPlanets.flatMap { followingPlanet in
             followingPlanet.articles.filter { $0.starred != nil }
         })
-        articles.sort { $1.created > $0.created }
+        articles.sort { $0.starred! > $1.starred! }
         return articles
     }
 }
