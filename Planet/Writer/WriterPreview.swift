@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct WriterPreview: View {
-    var url: URL?
+    let draft: DraftModel
+    let lastRender: Date
 
     var body: some View {
-        VStack {
-            WriterWebView(url: url ?? Bundle.main.url(forResource: "WriterBasicPlaceholder", withExtension: "html")!)
-        }.background(Color(NSColor.textBackgroundColor))
+        WriterWebView(draft: draft, lastRender: lastRender)
+            .background(Color(NSColor.textBackgroundColor))
+            .frame(minWidth: 320, minHeight: 400)
     }
 }

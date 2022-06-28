@@ -55,7 +55,7 @@ extension Notification.Name {
     static let refreshArticle = Notification.Name("PlanetRefreshArticleNotification")
 }
 
-// Legacy: Writer
+// Writer
 extension Notification.Name {
     static let clearText = Notification.Name("PlanetWriterClearTextNotification")
     static let insertText = Notification.Name("PlanetWriterInsertTextNotification")
@@ -66,8 +66,8 @@ extension Notification.Name {
     static let rerenderPage = Notification.Name("PlanetWriterRerenderWebpageAtPathNotification")
     static let pauseMedia = Notification.Name("PlanetWriterPauseMediaNotification")
 
-    static func notification(notification: Notification.Name, forID id: UUID) -> Notification.Name {
-        Notification.Name(notification.rawValue + "-" + id.uuidString)
+    static func writerNotification(_ notification: Notification.Name, for draft: DraftModel) -> Notification.Name {
+        Notification.Name(notification.rawValue + "-" + draft.id.uuidString)
     }
 }
 

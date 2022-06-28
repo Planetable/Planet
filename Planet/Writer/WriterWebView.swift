@@ -4,26 +4,50 @@ import WebKit
 struct WriterWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
 
-    var url: URL
-    let navigationHelper = PlanetWriterWebViewHelper()
+    let draft: DraftModel
+    let lastRender: Date
+    let navigationHelper = WriterWebViewHelper()
+
+    var url: URL {
+        if let newArticleDraft = draft as? NewArticleDraftModel {
+            return newArticleDraft.previewPath
+        } else
+        if let editArticleDraft = draft as? EditArticleDraftModel {
+            return editArticleDraft.previewPath
+        } else {
+            return Bundle.main.url(forResource: "WriterBasicPlaceholder", withExtension: "html")!
+        }
+    }
 
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.allowsAirPlayForMediaPlayback = false
-        let wv = WKWebView(frame: .zero, configuration: config)
-        wv.navigationDelegate = navigationHelper
-        wv.setValue(false, forKey: "drawsBackground")
-        wv.loadFileRequest(URLRequest(url: url), allowingReadAccessTo: url)
-        return wv
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.navigationDelegate = navigationHelper
+        webView.setValue(false, forKey: "drawsBackground")
+        webView.loadFileURL(url, allowingReadAccessTo: url)
+        NotificationCenter.default.addObserver(
+            forName: .writerNotification(.reloadPage, for: draft),
+            object: nil,
+            queue: .main
+        ) { _ in
+            webView.evaluateJavaScript("saveScroll();") { _, error in
+                if let error = error {
+                    debugPrint("failed to evaluate js: \(error)")
+                }
+                webView.loadFileURL(url, allowingReadAccessTo: url)
+            }
+        }
+        return webView
     }
 
-    func updateNSView(_ webview: WKWebView, context: NSViewRepresentableContext<WriterWebView>) {
-        // debugPrint("update web view (\(webview) with url: \(url)")
-        // webview.loadFileRequest(URLRequest(url: url), allowingReadAccessTo: url)
+    func updateNSView(_ webView: WKWebView, context: Context) {
+        // modify the webview here cannot load/reload the page, i.e. WebKit does not respond to URL change
+        // however, execute JavaScript works
     }
 }
 
-class PlanetWriterWebViewHelper: NSObject, WKNavigationDelegate {
+class WriterWebViewHelper: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView, authenticationChallenge challenge: URLAuthenticationChallenge, shouldAllowDeprecatedTLS decisionHandler: @escaping (Bool) -> Void) {
         decisionHandler(true)
     }
@@ -33,16 +57,15 @@ class PlanetWriterWebViewHelper: NSObject, WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        if navigationAction.navigationType == .linkActivated {
-            if let url = navigationAction.request.url {
-                let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-                if components?.scheme == "http" || components?.scheme == "https" {
-                    NSWorkspace.shared.open(url)
-                    decisionHandler(.cancel)
-                    return
-                }
-            }
+        if navigationAction.navigationType == .linkActivated,
+           let url = navigationAction.request.url,
+           let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+           let scheme = components.scheme?.lowercased(),
+           scheme == "http" || scheme == "https" {
+            NSWorkspace.shared.open(url)
+            decisionHandler(.cancel)
+        } else {
+            decisionHandler(.allow)
         }
-        decisionHandler(.allow)
     }
 }

@@ -2,9 +2,12 @@ import Foundation
 import Stencil
 import PathKit
 import Ink
+import os
 
 @MainActor class WriterStore: ObservableObject {
     static let shared = WriterStore()
+
+    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "WriterStore")
 
     let previewRenderEnv: Stencil.Environment
     let writerTemplateName: String
@@ -18,7 +21,7 @@ import Ink
             loader: FileSystemLoader(paths: [Path(writerTemplatePath.path)]),
             extensions: [StencilExtension.get()]
         )
-        writerTemplateName = writerTemplatePath.lastPathComponent
+        writerTemplateName = writerTemplatePath.path
     }
 
     func newArticle(for planet: MyPlanetModel) throws {
@@ -73,10 +76,17 @@ import Ink
         let content: String
         let previewPath: URL
         if let newArticleDraft = draft as? NewArticleDraftModel {
+            logger.info("Rendering preview for new article draft \(draft.id) of planet \(newArticleDraft.planet.name)")
             content = newArticleDraft.content
             previewPath = newArticleDraft.previewPath
         } else
         if let editArticleDraft = draft as? EditArticleDraftModel {
+            logger.info(
+                """
+                Rendering preview for edit article draft \(draft.id) of \
+                article \(editArticleDraft.article.title) from planet \(editArticleDraft.article.planet.name)
+                """
+            )
             content = editArticleDraft.content
             previewPath = editArticleDraft.previewPath
         } else {
@@ -86,5 +96,6 @@ import Ink
         let html = MarkdownParser().html(from: content.trim())
         let output = try previewRenderEnv.renderTemplate(name: writerTemplateName, context: ["content_html": html])
         try output.data(using: .utf8)?.write(to: previewPath)
+        logger.info("Rendered preview for draft \(draft.id) and saved to \(previewPath)")
     }
 }

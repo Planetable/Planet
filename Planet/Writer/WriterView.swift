@@ -9,11 +9,10 @@ import UniformTypeIdentifiers
 struct WriterView: View {
     @ObservedObject var draft: DraftModel
     @ObservedObject var viewModel: WriterViewModel
-    @State var isShowingEmptyTitleAlert = false
-    @State var selectedRanges: [NSValue] = []
+    @State var lastRender = Date()
     @FocusState var focusTitle: Bool
     var videoPath: URL? {
-        if let attachment = draft.attachments.first { $0.type == .video } {
+        if let attachment = draft.attachments.first(where: { $0.type == .video }) {
             if let newArticleDraft = draft as? NewArticleDraftModel {
                 return newArticleDraft.getAttachmentPath(name: attachment.name)
             } else
@@ -52,24 +51,13 @@ struct WriterView: View {
             Divider()
 
             HSplitView {
-                WriterTextView(draft: draft, text: $draft.content, selectedRanges: $selectedRanges)
-                    .frame(minWidth: 200, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity)
-                    .onChange(of: draft.content) { newValue in
-                        do {
-                            try WriterStore.shared.renderPreview(for: draft)
-                        } catch {
-                            PlanetStore.shared.alert(title: "Failed to render preview")
-                        }
-                        // TODO: refresh
+                WriterTextView(draft: draft, text: $draft.content)
+                    .frame(minWidth: 320, minHeight: 400)
+                    .onChange(of: draft.content) { _ in
+                        try? WriterStore.shared.renderPreview(for: draft)
+                        NotificationCenter.default.post(name: .writerNotification(.reloadPage, for: draft), object: nil)
                     }
-                if let newArticleDraft = draft as? NewArticleDraftModel {
-                    WriterPreview(url: newArticleDraft.previewPath)
-                        .frame(minWidth: 320, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity)
-                } else
-                if let editArticleDraft = draft as? EditArticleDraftModel {
-                    WriterPreview(url: editArticleDraft.previewPath)
-                        .frame(minWidth: 320, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity)
-                }
+                WriterPreview(draft: draft, lastRender: lastRender)
             }
 
             if viewModel.isMediaTrayOpen {
@@ -87,18 +75,20 @@ struct WriterView: View {
             }
         }
             .frame(minWidth: 640)
-                // TODO: notifications???
+            .onChange(of: draft.title) { _ in
+                try? save()
+            }
+            .onChange(of: draft.content) { _ in
+                try? save()
+            }
             .onAppear {
                 if !draft.attachments.isEmpty {
                     viewModel.isMediaTrayOpen = true
                 }
                 Task { @MainActor in
-                    // workaround: wrap in a task to delay focus the title a little
+                    // workaround: wrap in a task to delay focusing the title a little
                     focusTitle = true
                 }
-            }
-            .alert("This article has no title. Please enter the title before clicking send.", isPresented: $isShowingEmptyTitleAlert) {
-                Button("OK", role: .cancel) { }
             }
             .fileImporter(
                 isPresented: $viewModel.isChoosingAttachment,
@@ -110,28 +100,25 @@ struct WriterView: View {
                     if let newArticleDraft = draft as? NewArticleDraftModel {
                         urls.forEach { url in
                             try? newArticleDraft.addAttachment(path: url, type: viewModel.attachmentType)
-                            try? newArticleDraft.save()
                         }
                     } else
                     if let editArticleDraft = draft as? EditArticleDraftModel {
                         urls.forEach { url in
                             try? editArticleDraft.addAttachment(path: url, type: viewModel.attachmentType)
-                            try? editArticleDraft.save()
                         }
                     }
+                    try? save()
                 }
             }
             .onDrop(of: [.fileURL], delegate: dragAndDrop)
     }
-}
 
-class WriterViewModel: ObservableObject {
-    static let imageTypes: [UTType] = [.png, .jpeg, .tiff]
-    static let videoTypes: [UTType] = [.mpeg4Movie, .quickTimeMovie]
-
-    @Published var attachmentType: AttachmentType = .file
-    @Published var isChoosingAttachment = false
-    @Published var allowedContentTypes = imageTypes
-    @Published var allowMultipleSelection = false
-    @Published var isMediaTrayOpen = false
+    func save() throws {
+        if let newArticleDraft = draft as? NewArticleDraftModel {
+            try newArticleDraft.save()
+        } else
+        if let editArticleDraft = draft as? EditArticleDraftModel {
+            try editArticleDraft.save()
+        }
+    }
 }

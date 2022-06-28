@@ -51,17 +51,11 @@ class WriterWindow: NSWindow {
     }
 
     @objc func attachPhoto(_ sender: Any?) {
-        viewModel.attachmentType = .image
-        viewModel.allowedContentTypes = WriterViewModel.imageTypes
-        viewModel.allowMultipleSelection = true
-        viewModel.isChoosingAttachment = true
+        viewModel.chooseImages()
     }
 
     @objc func attachVideo(_ sender: Any?) {
-        viewModel.attachmentType = .video
-        viewModel.allowedContentTypes = WriterViewModel.videoTypes
-        viewModel.allowMultipleSelection = false
-        viewModel.isChoosingAttachment = true
+        viewModel.chooseVideo()
     }
 }
 

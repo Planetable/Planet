@@ -1,3 +1,4 @@
+<!doctype HTML>
 <html>
   <head>
     <meta charset="UTF-8">
@@ -6,7 +7,7 @@
     <meta name="theme-color" content="#fff">
     <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
     <title>Preview</title>
-    <style type="text/css">
+    <style>
     :root {
       --background-color: transparent;
       --foreground-color: #000;
@@ -26,14 +27,14 @@
     }
 
     html {
-      padding: 0px;
-      margin: 0px;
+      padding: 0;
+      margin: 0;
     }
 
     body {
       background-color: var(--background-color);
       padding: 20px;
-      margin: 0px;
+      margin: 0;
       font-family: helvetica neue,Arial,hiragino sans gb,microsoft yahei,sans-serif;
     }
 
@@ -41,7 +42,7 @@
       color: var(--foreground-color);
       font-size: 2em;
     }
-        
+
     hr {
       border: none;
       height: 2px;
@@ -50,7 +51,7 @@
       margin-top: 1em;
       margin-bottom: 1em;
     }
-    
+
     a:link, a:visited, a:active {
       color: var(--link-color);
       text-decoration: none;
@@ -75,25 +76,25 @@
     }
 
     .content {
-      margin: -20px 0px 0px 0px;
+      margin: -20px 0 0 0;
       line-height: 160%;
       font-size: 1em;
       color: var(--foreground-color);
     }
     </style>
     <script>
-        document.addEventListener("DOMContentLoaded", function(event) {
-            var pos = localStorage.getItem('scrollpos');
-            if (pos) window.scrollTo(0, pos);
-        });
-        function refreshPreview() {
-            localStorage.setItem('scrollpos', window.scrollY);
-            location.reload();
-            window.scrollTo(0, document.body.scrollHeight);
+      document.addEventListener("DOMContentLoaded", () => {
+        let pos = localStorage.getItem('scrollpos');
+        if (pos) {
+          window.scrollTo(0, pos);
         }
-        function scrollPosition(positionPercent) {
-            window.scrollTo(0, document.body.scrollHeight * positionPercent);
-        }
+      });
+      function saveScroll() {
+        localStorage.setItem('scrollpos', window.scrollY);
+      }
+      function scrollPosition(positionPercent) {
+        window.scrollTo(0, document.body.scrollHeight * positionPercent);
+      }
     </script>
   </head>
   <body>
@@ -102,4 +103,3 @@
     </div>
   </body>
 </html>
-

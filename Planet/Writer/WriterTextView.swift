@@ -3,7 +3,7 @@ import SwiftUI
 struct WriterTextView: NSViewRepresentable {
     @ObservedObject var draft: DraftModel
     @Binding var text: String
-    @Binding var selectedRanges: [NSValue]
+    @State var selectedRanges: [NSValue] = []
 
     var font: NSFont? = .monospacedSystemFont(ofSize: 14, weight: .regular)
 
@@ -14,6 +14,22 @@ struct WriterTextView: NSViewRepresentable {
     func makeNSView(context: Context) -> WriterCustomTextView {
         let textView = WriterCustomTextView(draft: draft, text: text, font: font)
         textView.delegate = context.coordinator
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.writerNotification(.insertText, for: draft),
+            object: nil,
+            queue: .main
+        ) { notification in
+            guard let text = notification.object as? String else { return }
+            textView.insertTextAtCursor(text: text)
+        }
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.writerNotification(.removeText, for: draft),
+            object: nil,
+            queue: .main
+        ) { notification in
+            guard let text = notification.object as? String else { return }
+            textView.removeTargetText(text: text)
+        }
         return textView
     }
 
@@ -135,6 +151,10 @@ class WriterCustomTextView: NSView {
         range.length = 0
         textView.insertText(text, replacementRange: range)
     }
+
+    func removeTargetText(text: String) {
+        textView.string = textView.string.replacingOccurrences(of: text, with: "")
+    }
 }
 
 class WriterEditorTextView: NSTextView {
@@ -159,7 +179,7 @@ class WriterEditorTextView: NSTextView {
     }
 
     override var acceptableDragTypes: [NSPasteboard.PasteboardType] {
-        [NSPasteboard.PasteboardType.fileURL]
+        [.fileURL]
     }
 
     // TODO: check multiple writer window drag and drop
@@ -184,7 +204,7 @@ class WriterEditorTextView: NSTextView {
                 throw PlanetError.InternalError
             }
         } catch {
-            // TODO: alert
+            // ignore
         }
     }
 
