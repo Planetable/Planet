@@ -89,12 +89,7 @@ class NewArticleDraftModel: DraftModel, Codable {
             try FileManager.default.copyItem(at: sourcePath, to: targetPath)
         }
         planet.articles.insert(article, at: 0)
-        article.planet.updated = Date()
-        try planet.save()
-        try planet.savePublic()
-        Task {
-            try await planet.publish()
-        }
+        planet.finalizeChange()
     }
 
     func save() throws {

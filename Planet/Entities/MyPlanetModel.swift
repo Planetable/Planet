@@ -312,6 +312,15 @@ class MyPlanetModel: PlanetModel, Codable {
         try save()
     }
 
+    func finalizeChange() {
+        Task {
+            updated = Date()
+            try save()
+            try savePublic()
+            try await publish()
+        }
+    }
+
     func exportBackup(to directory: URL) throws {
         let exportPath = directory.appendingPathComponent("\(name.sanitized()).planet", isDirectory: true)
         guard !FileManager.default.fileExists(atPath: exportPath.path) else {

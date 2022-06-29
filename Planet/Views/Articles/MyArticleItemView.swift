@@ -85,8 +85,9 @@ struct MyArticleItemView: View {
                         if PlanetStore.shared.selectedArticle == article {
                             PlanetStore.shared.selectedArticle = nil
                         }
+                        planet.finalizeChange()
                     } else {
-                        // TODO: internal error
+                        PlanetStore.shared.alert(title: "Failed to delete article")
                     }
                 } label: {
                     Text("Delete")

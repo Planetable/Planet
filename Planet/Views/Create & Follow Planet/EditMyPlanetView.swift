@@ -88,18 +88,11 @@ struct EditMyPlanetView: View {
                     }
                     planet.about = about
                     planet.templateName = templateName
-                    do {
+                    Task {
                         try planet.save()
                         try planet.copyTemplateAssets()
                         try planet.savePublic()
-                    } catch {
-                        // TODO: alert
-                    }
-
-                    Task {
-                        do {
-                            try await planet.publish()
-                        } catch {}
+                        try await planet.publish()
                     }
                     // re-render all articles
                     NotificationCenter.default.post(name: .refreshArticle, object: nil)

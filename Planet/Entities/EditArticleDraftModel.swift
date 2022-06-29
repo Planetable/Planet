@@ -142,12 +142,7 @@ class EditArticleDraftModel: DraftModel, Codable {
                 break
             }
         }
-        article.planet.updated = Date()
-        try article.planet.save()
-        try article.planet.savePublic()
-        Task {
-            try await article.planet.publish()
-        }
+        article.planet.finalizeChange()
     }
 
     func save() throws {
