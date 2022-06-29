@@ -30,12 +30,15 @@ class WriterWindow: NSWindow {
 
     @objc func send(_ sender: Any?) {
         do {
+            let planet: MyPlanetModel
             if let newArticleDraft = draft as? NewArticleDraftModel {
+                planet = newArticleDraft.planet
                 try newArticleDraft.saveToArticle()
                 newArticleDraft.planet.drafts.removeAll { $0.id == newArticleDraft.id }
                 try? newArticleDraft.delete()
             } else
             if let editArticleDraft = draft as? EditArticleDraftModel {
+                planet = editArticleDraft.article.planet
                 try editArticleDraft.saveToArticle()
                 editArticleDraft.article.draft = nil
                 try? editArticleDraft.delete()
@@ -44,6 +47,11 @@ class WriterWindow: NSWindow {
             }
             WriterStore.shared.writers.removeValue(forKey: draft)
             WriterStore.shared.setActiveDraft(draft: nil)
+
+            if case .myPlanet(let selectedPlanet) = PlanetStore.shared.selectedView,
+               selectedPlanet == planet {
+                PlanetStore.shared.refreshSelectedArticles()
+            }
             close()
         } catch {
             PlanetStore.shared.alert(title: "Failed to send article")

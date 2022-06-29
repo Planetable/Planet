@@ -44,56 +44,35 @@ struct PlanetMainView: View {
                     }
                 }
 
-            Text("No Planet Selected")
-                .foregroundColor(.secondary)
-                .font(.system(size: 14, weight: .regular))
-                .frame(minWidth: 200, maxWidth: .infinity, maxHeight: .infinity)
-                .background(
-                    Color(NSColor.textBackgroundColor)
-                )
-                .toolbar {
-                    Spacer()
-                }
+            ArticleListView()
 
             PlanetArticleView()
                 .frame(minWidth: 320)
                 .toolbar {
-                    ToolbarItem {
+                    switch planetStore.selectedView {
+                    case .myPlanet(let planet):
                         Button {
                             do {
-                                if case .myPlanet(let planet) = planetStore.selectedView {
-                                    try WriterStore.shared.newArticle(for: planet)
-                                }
+                                try WriterStore.shared.newArticle(for: planet)
                             } catch {
                                 PlanetStore.shared.alert(title: "Failed to launch writer")
                             }
                         } label: {
                             Image(systemName: "square.and.pencil")
                         }
-                            .visibility({ () -> ViewVisibility in
-                                // use closure as workaround for enum with value
-                                if case .myPlanet(_) = planetStore.selectedView {
-                                    return .visible
-                                } else {
-                                    return .gone
-                                }
-                            }())
-                    }
-
-                    ToolbarItem {
                         Button {
                             planetStore.isShowingPlanetInfo = true
                         } label: {
                             Image(systemName: "info.circle")
                         }
-                            .visibility({ () -> ViewVisibility in
-                                switch planetStore.selectedView {
-                                case .today, .unread, .starred:
-                                    return .gone
-                                default:
-                                    return .visible
-                                }
-                            }())
+                    case .followingPlanet:
+                        Button {
+                            planetStore.isShowingPlanetInfo = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                        }
+                    default:
+                        Spacer()
                     }
                 }
         }

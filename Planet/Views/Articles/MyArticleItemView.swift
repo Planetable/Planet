@@ -82,10 +82,14 @@ struct MyArticleItemView: View {
                        let index = planet.articles.firstIndex(of: article) {
                         planet.articles.remove(at: index)
                         article.delete()
+                        planet.finalizeChange()
                         if PlanetStore.shared.selectedArticle == article {
                             PlanetStore.shared.selectedArticle = nil
                         }
-                        planet.finalizeChange()
+                        if let selectedArticles = PlanetStore.shared.selectedArticleList,
+                           selectedArticles.contains(article) {
+                            PlanetStore.shared.refreshSelectedArticles()
+                        }
                     } else {
                         PlanetStore.shared.alert(title: "Failed to delete article")
                     }
