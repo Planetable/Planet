@@ -50,6 +50,7 @@ class Saver: NSObject {
     }
 
     func setMigrationDoneFlag(flag: Bool) {
+        logger.info("set migration done flag to \(flag)")
         UserDefaults.standard.set(flag, forKey: "CoreDataMigrationDone")
     }
 
@@ -68,7 +69,9 @@ class Saver: NSObject {
         }
     }
 
-    func savePlanets() {
+    func savePlanets() -> Int {
+        var migrationErrors: Int = 0
+
         Saver.shared.prepareAllDirectories()
 
         let encoder = JSONEncoder()
@@ -77,6 +80,7 @@ class Saver: NSObject {
 
         for planet in planets {
             guard let planetID = planet.id else {
+                migrationErrors += 1
                 logger.error("failed to get planet.id for \(planet)")
                 continue
             }
@@ -101,6 +105,7 @@ class Saver: NSObject {
                 try data.write(to: fileURL)
                 logger.info("planet saved to \(fileURL)")
             } catch {
+                migrationErrors += 1
                 logger.error("failed to save planet: \(planet)")
             }
 
@@ -133,7 +138,8 @@ class Saver: NSObject {
 
             for article in articles {
                 guard let articleID = article.id else {
-                    debugPrint("Saver: failed to get article.id for \(article)")
+                    migrationErrors += 1
+                    logger.error("failed to get article.id for \(article)")
                     continue
                 }
                 let fileName: String = "\(articleID.uuidString).json"
@@ -146,21 +152,26 @@ class Saver: NSObject {
                         data = try encoder.encode(article.asNewFollowingArticle)
                     }
                     try data.write(to: fileURL)
-                    print("Saver: article saved to \(fileURL)")
+                    logger.info("article saved to \(fileURL)")
                 } catch {
-                    print("Saver: failed to save article: \(article) \(error)")
+                    migrationErrors += 1
+                    logger.error("failed to save article: \(article)")
                 }
             }
         }
+
+        return migrationErrors
     }
 
-    func migratePublic() {
+    func migratePublic() -> Int {
+        var migrationErrors: Int = 0
         // Migrate all files from my planets
 
         let planets = CoreDataPersistence.shared.getLocalPlanets()
 
         for planet in planets {
             guard let planetID = planet.id else {
+                migrationErrors += 1
                 logger.error("failed to get planet.id from \(planet)")
                 continue
             }
@@ -175,19 +186,41 @@ class Saver: NSObject {
                 logger.info("no \(planetID) \(planet) found in \(legacyDirectory)")
             }
         }
+
+        return migrationErrors
     }
 
-    func migrateTemplates() {
-        // Migrate all templates from Application Support
+    func migrateTemplates() -> Int {
+        var migrationErrors: Int = 0
 
-        let templatesDirectory: URL = Saver.applicationSupportDirectory.appendingPathComponent("templates")
+        // Migrate all legacy templates from Application Support
+        
+        let legacyTemplatesDirectory: URL = Saver.applicationSupportDirectory.appendingPathComponent("templates")
         let newTemplatesDirectory: URL = Saver.documentDirectory.appendingPathComponent("Templates")
 
-        if FileManager.default.fileExists(atPath: templatesDirectory.path) {
-            try? FileManager.default.copyItem(at: templatesDirectory, to: newTemplatesDirectory)
-            logger.info("copied templates from \(templatesDirectory) to \(newTemplatesDirectory)")
-        } else {
-            logger.info("no templates found in \(templatesDirectory)")
+        do {
+            if FileManager.default.fileExists(atPath: legacyTemplatesDirectory.path) {
+                let items = try FileManager.default.contentsOfDirectory(
+                    at: legacyTemplatesDirectory,
+                    includingPropertiesForKeys: nil).filter { $0.hasDirectoryPath }
+                for item in items {
+                    // If a folder with the same name is found at the destination, it will skip
+                    let destination = newTemplatesDirectory.appendingPathComponent(item.lastPathComponent, isDirectory: true)
+                    if !FileManager.default.fileExists(atPath: destination.path) {
+                        try? FileManager.default.copyItem(at: item, to: destination)
+                        logger.info("copied legacy template from \(item) to \(destination)")
+                    } else {
+                        logger.info("skipped \(item) because there is already a template with the same name at \(destination)")
+                    }
+                }
+            } else {
+                logger.info("no templates found in \(legacyTemplatesDirectory)")
+            }
+        } catch {
+            migrationErrors += 1
+            logger.info("error occurred during migration of legacy templates")
         }
+
+        return migrationErrors
     }
 }

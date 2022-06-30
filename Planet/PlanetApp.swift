@@ -163,12 +163,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Enable or disable features based on the authorization.
         }
 
-        // let saver = Saver.shared
-        // saver.savePlanets()
-        // saver.migratePublic()
-        // saver.migrateTemplates()
-
-
+        let saver = Saver.shared
+        if saver.isMigrationNeeded() {
+            var migrationErrors: Int = 0
+            migrationErrors = migrationErrors + saver.savePlanets()
+            migrationErrors = migrationErrors + saver.migratePublic()
+            migrationErrors = migrationErrors + saver.migrateTemplates()
+            if migrationErrors == 0 {
+                saver.setMigrationDoneFlag(flag: true)
+            }
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
