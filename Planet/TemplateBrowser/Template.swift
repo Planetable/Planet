@@ -75,6 +75,11 @@ class Template: Codable, Identifiable {
 
     func render(article: MyArticleModel) throws -> String {
         // render markdown
+        let publicArticle = PublicArticleModel(link: article.link,
+                                               title: article.title,
+                                               content: article.content,
+                                               created: article.created)
+
         let result = MarkdownParser().parse(article.content)
         let content_html = result.html
 
@@ -82,8 +87,9 @@ class Template: Codable, Identifiable {
         let context: [String: Any] = [
             "planet_ipns": article.planet.ipns,
             "assets_prefix": "../",
-            "article": article,
-            "page_title": article.title,
+            "article": publicArticle,
+            "article_title": publicArticle.title,
+            "page_title": publicArticle.title,
             "content_html": content_html,
             "build_timestamp": Int(Date().timeIntervalSince1970),
         ]
