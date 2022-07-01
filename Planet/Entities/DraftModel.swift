@@ -14,7 +14,7 @@ enum AttachmentType: String, Codable {
     case file
 }
 
-struct Attachment: Codable {
+struct Attachment: Codable, Equatable {
     let name: String
     var type: AttachmentType
     var status: AttachmentStatus

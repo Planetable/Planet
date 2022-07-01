@@ -79,7 +79,9 @@ class PlanetArticle: NSManagedObject {
             title: articleTitle,
             content: articleContent,
             created: articleCreated,
-            starred: articleStarred
+            starred: articleStarred,
+            hasVideo: false,
+            videoFilename: nil
         )
         return newModel
     }
@@ -100,7 +102,9 @@ class PlanetArticle: NSManagedObject {
             content: articleContent,
             created: articleCreated,
             read: articleRead,
-            starred: articleStarred
+            starred: articleStarred,
+            hasVideo: false,
+            videoFilename: nil
         )
         return newModel
     }

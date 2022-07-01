@@ -2,7 +2,7 @@ import Foundation
 import UniformTypeIdentifiers
 
 class WriterViewModel: ObservableObject {
-    static let imageTypes: [UTType] = [.png, .jpeg, .tiff]
+    static let imageTypes: [UTType] = [.png, .jpeg, .gif, .webP]
     static let videoTypes: [UTType] = [.mpeg4Movie, .quickTimeMovie]
 
     @Published var attachmentType: AttachmentType = .file
@@ -10,6 +10,8 @@ class WriterViewModel: ObservableObject {
     @Published var allowedContentTypes = imageTypes
     @Published var allowMultipleSelection = false
     @Published var isMediaTrayOpen = false
+    @Published var hasVideo: Bool = false
+    @Published var videoPath: URL?
 
     func chooseImages() {
         attachmentType = .image

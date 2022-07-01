@@ -6,13 +6,17 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
     @Published var content: String
     let created: Date
     @Published var starred: Date? = nil
+    @Published var hasVideo: Bool = false
+    @Published var videoFilename: String?
 
-    init(id: UUID, title: String, content: String, created: Date, starred: Date?) {
+    init(id: UUID, title: String, content: String, created: Date, starred: Date?, hasVideo: Bool, videoFilename: String?) {
         self.id = id
         self.title = title
         self.content = content
         self.created = created
         self.starred = starred
+        self.hasVideo = hasVideo
+        self.videoFilename = videoFilename
     }
 
     func hash(into hasher: inout Hasher) {

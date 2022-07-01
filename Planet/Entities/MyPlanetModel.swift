@@ -232,7 +232,9 @@ class MyPlanetModel: PlanetModel, Codable {
                     title: backupArticle.title,
                     content: backupArticle.content,
                     created: backupArticle.created,
-                    starred: nil
+                    starred: nil,
+                    hasVideo: backupArticle.hasVideo,
+                    videoFilename: backupArticle.videoFilename
                 )
                 article.planet = planet
                 do {
@@ -342,7 +344,9 @@ class MyPlanetModel: PlanetModel, Codable {
                     link: $0.link,
                     title: $0.title,
                     content: $0.content,
-                    created: $0.created
+                    created: $0.created,
+                    hasVideo: $0.hasVideo,
+                    videoFilename: $0.videoFilename
                 )
             }
         )

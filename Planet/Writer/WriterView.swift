@@ -11,17 +11,6 @@ struct WriterView: View {
     @ObservedObject var viewModel: WriterViewModel
     @State var lastRender = Date()
     @FocusState var focusTitle: Bool
-    var videoPath: URL? {
-        if let attachment = draft.attachments.first(where: { $0.type == .video }) {
-            if let newArticleDraft = draft as? NewArticleDraftModel {
-                return newArticleDraft.getAttachmentPath(name: attachment.name)
-            } else
-            if let editArticleDraft = draft as? EditArticleDraftModel {
-                return editArticleDraft.getAttachmentPath(name: attachment.name)
-            }
-        }
-        return nil
-    }
     let dragAndDrop: WriterDragAndDrop
 
     init(draft: DraftModel, viewModel: WriterViewModel) {
@@ -32,9 +21,9 @@ struct WriterView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if let videoPath = videoPath {
+            if viewModel.hasVideo, let aVideoPath = viewModel.videoPath {
                 HStack {
-                    VideoPlayer(player: AVPlayer(url: videoPath))
+                    VideoPlayer(player: AVPlayer(url: aVideoPath))
                         .frame(height: 400)
                 }
                 Divider()
@@ -80,6 +69,17 @@ struct WriterView: View {
             }
             .onChange(of: draft.content) { _ in
                 try? save()
+            }
+            .onChange(of: draft.attachments) { _ in
+                if let attachment = draft.attachments.first(where: { $0.type == .video }) {
+                    if let newArticleDraft = draft as? NewArticleDraftModel {
+                        let newVideoPath = newArticleDraft.getAttachmentPath(name: attachment.name)
+                        if newVideoPath != viewModel.videoPath {
+                            viewModel.hasVideo = true
+                            viewModel.videoPath = newVideoPath
+                        }
+                    }
+                }
             }
             .onAppear {
                 if !draft.attachments.isEmpty {
