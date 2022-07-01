@@ -13,6 +13,7 @@ class WriterWindow: NSWindow {
             backing: .buffered,
             defer: false
         )
+        try? WriterStore.shared.renderPreview(for: draft)
         titleVisibility = .visible
         isMovableByWindowBackground = true
         titlebarAppearsTransparent = false
@@ -34,7 +35,7 @@ class WriterWindow: NSWindow {
             if let newArticleDraft = draft as? NewArticleDraftModel {
                 planet = newArticleDraft.planet
                 try newArticleDraft.saveToArticle()
-                newArticleDraft.planet.drafts.removeAll { $0.id == newArticleDraft.id }
+                planet.drafts.removeAll { $0.id == newArticleDraft.id }
                 try? newArticleDraft.delete()
             } else
             if let editArticleDraft = draft as? EditArticleDraftModel {
@@ -42,6 +43,9 @@ class WriterWindow: NSWindow {
                 try editArticleDraft.saveToArticle()
                 editArticleDraft.article.draft = nil
                 try? editArticleDraft.delete()
+                if editArticleDraft.article == PlanetStore.shared.selectedArticle {
+                    NotificationCenter.default.post(name: .loadArticle, object: nil)
+                }
             } else {
                 throw PlanetError.InternalError
             }

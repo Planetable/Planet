@@ -52,7 +52,6 @@ extension Notification.Name {
     static let publishPlanet = Notification.Name("PlanetPublishPlanetNotification")
 
     static let loadArticle = Notification.Name("PlanetLoadArticleNotification")
-    static let refreshArticle = Notification.Name("PlanetRefreshArticleNotification")
 }
 
 // Writer
@@ -62,8 +61,7 @@ extension Notification.Name {
     static let removeText = Notification.Name("PlanetWriterRemoveTextNotification")
     static let moveCursorFront = Notification.Name("PlanetWriterMoveCursorFrontNotification")
     static let moveCursorEnd = Notification.Name("PlanetWriterMoveCursorEndNotification")
-    static let reloadPage = Notification.Name("PlanetWriterReloadWebpageAtPathNotification")
-    static let rerenderPage = Notification.Name("PlanetWriterRerenderWebpageAtPathNotification")
+    static let loadPreview = Notification.Name("PlanetWriterLoadDraftPreviewNotification")
     static let pauseMedia = Notification.Name("PlanetWriterPauseMediaNotification")
 
     static func writerNotification(_ notification: Notification.Name, for draft: DraftModel) -> Notification.Name {

@@ -27,7 +27,7 @@ struct WriterWebView: NSViewRepresentable {
         webView.setValue(false, forKey: "drawsBackground")
         webView.loadFileURL(url, allowingReadAccessTo: url)
         NotificationCenter.default.addObserver(
-            forName: .writerNotification(.reloadPage, for: draft),
+            forName: .writerNotification(.loadPreview, for: draft),
             object: nil,
             queue: .main
         ) { _ in

@@ -55,7 +55,7 @@ struct WriterView: View {
                     .frame(minWidth: 320, minHeight: 400)
                     .onChange(of: draft.content) { _ in
                         try? WriterStore.shared.renderPreview(for: draft)
-                        NotificationCenter.default.post(name: .writerNotification(.reloadPage, for: draft), object: nil)
+                        NotificationCenter.default.post(name: .writerNotification(.loadPreview, for: draft), object: nil)
                     }
                 WriterPreview(draft: draft, lastRender: lastRender)
             }

@@ -5,9 +5,16 @@ struct EditMyPlanetView: View {
 
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var planet: MyPlanetModel
-    @State private var name = ""
-    @State private var about = ""
-    @State private var templateName = ""
+    @State private var name: String
+    @State private var about: String
+    @State private var templateName: String
+
+    init(planet: MyPlanetModel) {
+        self.planet = planet
+        _name = State(wrappedValue: planet.name)
+        _about = State(wrappedValue: planet.about)
+        _templateName = State(wrappedValue: planet.templateName)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -92,10 +99,9 @@ struct EditMyPlanetView: View {
                         try planet.save()
                         try planet.copyTemplateAssets()
                         try planet.savePublic()
+                        NotificationCenter.default.post(name: .loadArticle, object: nil)
                         try await planet.publish()
                     }
-                    // re-render all articles
-                    NotificationCenter.default.post(name: .refreshArticle, object: nil)
                     dismiss()
                 } label: {
                     Text("Save")

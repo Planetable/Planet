@@ -46,7 +46,7 @@ struct PlanetMainView: View {
 
             ArticleListView()
 
-            PlanetArticleView()
+            ArticleView()
                 .frame(minWidth: 320)
                 .toolbar {
                     switch planetStore.selectedView {

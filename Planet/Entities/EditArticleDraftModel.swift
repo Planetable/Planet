@@ -142,6 +142,8 @@ class EditArticleDraftModel: DraftModel, Codable {
                 break
             }
         }
+        article.title = title
+        article.content = content
         article.planet.finalizeChange()
     }
 

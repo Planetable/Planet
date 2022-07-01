@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct PlanetArticleView: View {
+struct ArticleView: View {
     static let noSelectionURL = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
     @EnvironmentObject var planetStore: PlanetStore
 
@@ -8,7 +8,7 @@ struct PlanetArticleView: View {
 
     var body: some View {
         VStack {
-            PlanetArticleWebView(url: $url)
+            ArticleWebView(url: $url)
         }
         .background(
             Color(NSColor.textBackgroundColor)

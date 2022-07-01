@@ -35,7 +35,7 @@ class PlanetWebViewHelper: NSObject {
 }
 
 
-struct PlanetArticleWebView: NSViewRepresentable {
+struct ArticleWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
 
     @Binding var url: URL
@@ -56,25 +56,11 @@ struct PlanetArticleWebView: NSViewRepresentable {
         }
 
         NotificationCenter.default.addObserver(forName: .loadArticle, object: nil, queue: .main) { _ in
-            if wv.url != url {
-                debugPrint("loading article at: \(url)")
-                if url.scheme == "file" {
-                    wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent().deletingLastPathComponent())
-                } else {
-                    wv.load(URLRequest(url: url))
-                }
-
-            }
-        }
-
-        NotificationCenter.default.addObserver(forName: .refreshArticle, object: nil, queue: .main) { _ in
-            debugPrint("refreshing article at: \(url)")
-            if let url = wv.url {
-                if url.scheme == "file" {
-                    wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent().deletingLastPathComponent())
-                } else {
-                    wv.load(URLRequest(url: url))
-                }
+            debugPrint("loading article at: \(url)")
+            if url.isFileURL {
+                wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent().deletingLastPathComponent())
+            } else {
+                wv.load(URLRequest(url: url))
             }
         }
 
@@ -85,9 +71,9 @@ struct PlanetArticleWebView: NSViewRepresentable {
     }
 
     class Coordinator: NSObject, WKNavigationDelegate {
-        let parent: PlanetArticleWebView
+        let parent: ArticleWebView
 
-        init(_ parent: PlanetArticleWebView) {
+        init(_ parent: ArticleWebView) {
             self.parent = parent
         }
 
