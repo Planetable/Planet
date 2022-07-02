@@ -54,7 +54,7 @@ struct WriterView: View {
                 ScrollView(.horizontal) {
                     HStack(spacing: 0) {
                         ForEach(draft.attachments, id: \.name) { attachment in
-                            DraftImageThumbnailView(draft: draft, attachment: attachment)
+                            AttachmentThumbnailView(draft: draft, attachment: attachment)
                         }
                     }
                 }
