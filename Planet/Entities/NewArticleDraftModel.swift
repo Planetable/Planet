@@ -84,6 +84,10 @@ class NewArticleDraftModel: DraftModel, Codable {
     func saveToArticle() throws {
         let article = try MyArticleModel.compose(link: nil, title: title, content: content, planet: planet)
         for attachment in attachments {
+            if attachment.type == .video {
+                article.hasVideo = true
+                article.videoFilename = attachment.name
+            }
             let sourcePath = attachmentsPath.appendingPathComponent(attachment.name, isDirectory: false)
             let targetPath = article.publicBasePath.appendingPathComponent(attachment.name, isDirectory: false)
             try FileManager.default.copyItem(at: sourcePath, to: targetPath)

@@ -72,7 +72,9 @@ struct FeedUtils {
                     link: link,
                     title: title,
                     content: content,
-                    created: created
+                    created: created,
+                    hasVideo: false,
+                    videoFilename: nil
                 )
             }
             return (name, about, nil, articles)
@@ -92,7 +94,9 @@ struct FeedUtils {
                     link: link,
                     title: title,
                     content: description,
-                    created: created
+                    created: created,
+                    hasVideo: false,
+                    videoFilename: nil
                 )
             }
             return (name, about, nil, articles)
@@ -118,7 +122,9 @@ struct FeedUtils {
                     link: url,
                     title: title,
                     content: content,
-                    created: created
+                    created: created,
+                    hasVideo: false,
+                    videoFilename: nil
                 )
             }
             return (name, about, avatar, articles)

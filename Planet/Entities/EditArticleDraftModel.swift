@@ -126,6 +126,10 @@ class EditArticleDraftModel: DraftModel, Codable {
 
     func saveToArticle() throws {
         for attachment in attachments {
+            if attachment.type == .video {
+                article.hasVideo = true
+                article.videoFilename = attachment.name
+            }
             let name = attachment.name
             let targetPath = article.publicBasePath.appendingPathComponent(name, isDirectory: false)
             switch attachment.status {
