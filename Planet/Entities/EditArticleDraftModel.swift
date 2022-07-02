@@ -144,6 +144,9 @@ class EditArticleDraftModel: DraftModel, Codable {
         }
         article.title = title
         article.content = content
+        // workaround: regenerate link from id
+        // this link will come from user input after user specified URL path implementation
+        article.link = "/\(article.id)/"
         article.planet.finalizeChange()
     }
 
