@@ -38,6 +38,7 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
 }
 
 struct PublicArticleModel: Codable {
+    let id: UUID
     let link: String
     let title: String
     let content: String

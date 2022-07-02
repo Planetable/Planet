@@ -154,9 +154,10 @@ class Template: Codable, Identifiable {
         }
 
         let articlePath = articleFolderPath.appendingPathComponent("blog.html")
-
+        let id = UUID()
         let article = PublicArticleModel(
-            link: UUID().uuidString,
+            id: id,
+            link: id.uuidString,
             title: "Template Preview \(name)",
             content:
                 """

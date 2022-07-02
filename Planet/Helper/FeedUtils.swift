@@ -68,6 +68,7 @@ struct FeedUtils {
                 let content = entry.content?.attributes?.src ?? ""
                 let created = entry.published ?? Date()
                 return PublicArticleModel(
+                    id: UUID(),
                     link: link,
                     title: title,
                     content: content,
@@ -87,6 +88,7 @@ struct FeedUtils {
                 let description = item.description ?? ""
                 let created = item.pubDate ?? Date()
                 return PublicArticleModel(
+                    id: UUID(),
                     link: link,
                     title: title,
                     content: description,
@@ -112,6 +114,7 @@ struct FeedUtils {
                 let content = item.contentHtml ?? ""
                 let created = item.datePublished ?? Date()
                 return PublicArticleModel(
+                    id: UUID(),
                     link: url,
                     title: title,
                     content: content,
