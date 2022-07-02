@@ -15,7 +15,7 @@ class FollowingArticleModel: ArticleModel, Codable {
                 return linkURL
             }
             if let cid = planet.cid {
-                return URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)/\(link)")
+                return URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)\(link)")
             }
             if let planetLink = URL(string: planet.link) {
                 return URL(string: link, relativeTo: planetLink)?.absoluteURL
@@ -29,7 +29,7 @@ class FollowingArticleModel: ArticleModel, Codable {
             return linkURL
         }
         if let cid = planet.cid {
-            return URL(string: "\(IPFSDaemon.publicGateways[0])/ipfs/\(cid)/\(link)")
+            return URL(string: "\(IPFSDaemon.publicGateways[0])/ipfs/\(cid)\(link)")
         }
         if let planetLink = URL(string: planet.link) {
             return URL(string: link, relativeTo: planetLink)?.absoluteURL

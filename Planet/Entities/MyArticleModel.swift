@@ -9,13 +9,13 @@ class MyArticleModel: ArticleModel, Codable {
 
     lazy var path = planet.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
     lazy var publicBasePath = planet.publicBasePath.appendingPathComponent(id.uuidString, isDirectory: true)
-    lazy var publicIndexPath = publicBasePath.appendingPathComponent("index.html")
+    lazy var publicIndexPath = publicBasePath.appendingPathComponent("index.html", isDirectory: false)
 
     var publicArticle: PublicArticleModel {
         PublicArticleModel(link: link, title: title, content: content, created: created)
     }
     var browserURL: URL? {
-        URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.ipns)/\(link)/")
+        URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.ipns)\(link)")
     }
 
     enum CodingKeys: String, CodingKey {
@@ -80,7 +80,7 @@ class MyArticleModel: ArticleModel, Codable {
         let id = UUID()
         let article = MyArticleModel(
             id: id,
-            link: link ?? id.uuidString,
+            link: link ?? "/\(id.uuidString)/",
             title: title,
             content: content,
             created: Date(),

@@ -32,10 +32,11 @@ class PlanetModel: Equatable, Identifiable, Hashable, ObservableObject {
 }
 
 struct PublicPlanetModel: Codable {
-    var name: String
-    var about: String
+    let id: UUID
+    let name: String
+    let about: String
     let ipns: String
     let created: Date
-    var updated: Date
-    var articles: [PublicArticleModel]
+    let updated: Date
+    let articles: [PublicArticleModel]
 }

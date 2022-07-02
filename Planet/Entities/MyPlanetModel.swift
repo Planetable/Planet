@@ -287,7 +287,7 @@ class MyPlanetModel: PlanetModel, Codable {
             return publicArticle
         }
         let publicPlanet = PublicPlanetModel(
-            name: name, about: about, ipns: ipns, created: created, updated: updated, articles: publicArticles
+            id: id, name: name, about: about, ipns: ipns, created: created, updated: updated, articles: publicArticles
         )
         let indexHTML = try template.renderIndex(planet: publicPlanet)
         try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
