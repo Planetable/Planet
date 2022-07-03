@@ -1,4 +1,5 @@
 import Foundation
+import UniformTypeIdentifiers
 
 enum AttachmentStatus: String, Codable {
     case new
@@ -12,6 +13,22 @@ enum AttachmentType: String, Codable {
     case video
     case audio
     case file
+
+    static func from(path: URL) -> Self {
+        if let id = try? path.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier,
+           let type = UTType(id) {
+            if type.conforms(to: .video) {
+                return .video
+            }
+            if type.conforms(to: .audio) {
+                return .audio
+            }
+            if type.conforms(to: .image) {
+                return .image
+            }
+        }
+        return .file
+    }
 }
 
 struct Attachment: Codable, Equatable {

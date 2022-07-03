@@ -51,9 +51,9 @@ class EditArticleDraftModel: DraftModel, Codable {
             includingPropertiesForKeys: nil
         )
         let attachments: [Attachment] = publicArticleFiles
-            .map { $0.lastPathComponent }   // get filename
-            .filter { $0 != "index.html" }  // exclude index.html
-            .map { Attachment(name: $0, type: .image, status: .existing) }
+            // exclude index.html, article.json
+            .filter { ["index.html", "article.json"].contains($0.lastPathComponent) }
+            .map { Attachment(name: $0.lastPathComponent, type: AttachmentType.from(path: $0), status: .existing) }
         let draft = EditArticleDraftModel(
             id: UUID(),
             title: article.title,
