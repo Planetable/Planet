@@ -1,5 +1,6 @@
 import Foundation
 import UniformTypeIdentifiers
+import SwiftUI
 
 enum AttachmentStatus: String, Codable {
     case new
@@ -31,10 +32,12 @@ enum AttachmentType: String, Codable {
     }
 }
 
-class Attachment: Codable, Equatable, Hashable {
+class Attachment: Codable, Equatable, Hashable, ObservableObject {
     let name: String
-    var type: AttachmentType
-    var status: AttachmentStatus
+    @Published var type: AttachmentType
+    @Published var status: AttachmentStatus
+
+    @Published var image: NSImage? = nil
 
     // populated when initializing
     unowned var draft: DraftModel! = nil
@@ -83,9 +86,33 @@ class Attachment: Codable, Equatable, Hashable {
         case status
     }
 
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        type = try container.decode(AttachmentType.self, forKey: .type)
+        status = try container.decode(AttachmentStatus.self, forKey: .status)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(type, forKey: .type)
+        try container.encode(status, forKey: .status)
+    }
+
     init(name: String, type: AttachmentType, status: AttachmentStatus) {
         self.name = name
         self.type = type
         self.status = status
+    }
+
+    func loadImage() {
+        if type == .image,
+           let path = path,
+           let image = NSImage(contentsOf: path) {
+            self.image = image
+        } else {
+            image = nil
+        }
     }
 }

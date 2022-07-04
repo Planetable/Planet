@@ -9,7 +9,6 @@ import UniformTypeIdentifiers
 struct WriterView: View {
     @ObservedObject var draft: DraftModel
     @ObservedObject var viewModel: WriterViewModel
-    @State var lastRender = Date()
     @FocusState var focusTitle: Bool
     let dragAndDrop: WriterDragAndDrop
 
@@ -44,9 +43,12 @@ struct WriterView: View {
                     .frame(minWidth: 320, minHeight: 400)
                     .onChange(of: draft.content) { _ in
                         try? WriterStore.shared.renderPreview(for: draft)
-                        NotificationCenter.default.post(name: .writerNotification(.loadPreview, for: draft), object: nil)
+                        NotificationCenter.default.post(
+                            name: .writerNotification(.loadPreview, for: draft),
+                            object: nil
+                        )
                     }
-                WriterPreview(draft: draft, lastRender: lastRender)
+                WriterPreview(draft: draft)
             }
 
             if viewModel.isMediaTrayOpen {
@@ -54,7 +56,9 @@ struct WriterView: View {
                 ScrollView(.horizontal) {
                     HStack(spacing: 0) {
                         ForEach(draft.attachments, id: \.name) { attachment in
-                            AttachmentThumbnailView(draft: draft, attachment: attachment)
+                            if attachment.status != .deleted {
+                                AttachmentThumbnailView(attachment: attachment)
+                            }
                         }
                     }
                 }

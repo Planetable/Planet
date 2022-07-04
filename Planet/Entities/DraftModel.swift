@@ -59,7 +59,6 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         title = try container.decode(String.self, forKey: .title)
         content = try container.decode(String.self, forKey: .content)
         attachments = try container.decode([Attachment].self, forKey: .attachments)
-        attachments.forEach { $0.draft = self }
     }
 
     func encode(to encoder: Encoder) throws {
@@ -83,6 +82,10 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let data = try Data(contentsOf: draftPath)
         let draft = try JSONDecoder.shared.decode(DraftModel.self, from: data)
         draft.target = .myPlanet(Unowned(planet))
+        draft.attachments.forEach { attachment in
+            attachment.draft = draft
+            attachment.loadImage()
+        }
         return draft
     }
 
@@ -91,6 +94,10 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let data = try Data(contentsOf: draftPath)
         let draft = try JSONDecoder.shared.decode(DraftModel.self, from: data)
         draft.target = .article(Unowned(article))
+        draft.attachments.forEach { attachment in
+            attachment.draft = draft
+            attachment.loadImage()
+        }
         return draft
     }
 
@@ -130,6 +137,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                 let filePath = article.publicBasePath.appendingPathComponent(attachment.name, isDirectory: false)
                 let attachmentPath = draft.attachmentsPath.appendingPathComponent(attachment.name, isDirectory: false)
                 try FileManager.default.copyItem(at: filePath, to: attachmentPath)
+                attachment.loadImage()
                 return attachment
             }
 
@@ -154,16 +162,21 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             try FileManager.default.removeItem(at: targetPath)
         }
         try FileManager.default.copyItem(at: path, to: targetPath)
-        if let attachment = attachments.first(where: { $0.name == name }) {
-            switch attachment.status {
+        let attachment: Attachment
+        if let existing = attachments.first(where: { $0.name == name }) {
+            attachment = existing
+            switch existing.status {
             case .deleted, .existing:
-                attachment.status = .overwrite
+                existing.status = .overwrite
             default:
-                let attachment = Attachment(name: name, type: type, status: .new)
-                attachment.draft = self
-                attachments.append(attachment)
+                break
             }
+        } else {
+            attachment = Attachment(name: name, type: type, status: .new)
+            attachment.draft = self
+            attachments.append(attachment)
         }
+        attachment.loadImage()
     }
 
     func deleteAttachment(name: String) {
@@ -174,6 +187,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             default:
                 attachment.status = .deleted
             }
+            attachment.loadImage()
         }
     }
 
@@ -193,6 +207,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             default:
                 break
             }
+            attachment.loadImage()
         }
     }
 

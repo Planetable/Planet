@@ -28,6 +28,7 @@ class WriterDragAndDrop: ObservableObject, DropDelegate {
                    supportedExtensions.contains(path.pathExtension) {
                     try draft.addAttachment(path: path)
                 }
+                try draft.save()
             }
         }
         return true

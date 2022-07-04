@@ -154,6 +154,8 @@ class WriterCustomTextView: NSView {
 
     func removeTargetText(text: String) {
         textView.string = textView.string.replacingOccurrences(of: text, with: "")
+        // replacing string does not trigger on change notification
+
     }
 }
 
@@ -188,8 +190,8 @@ class WriterEditorTextView: NSTextView {
         guard urls.count > 0 else { return }
         urls.forEach { url in
             try? draft.addAttachment(path: url)
-            try? draft.save()
         }
+        try? draft.save()
     }
 
     override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {

@@ -5,7 +5,6 @@ struct WriterWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
 
     let draft: DraftModel
-    let lastRender: Date
     let navigationHelper = WriterWebViewHelper()
 
     func makeNSView(context: Context) -> WKWebView {

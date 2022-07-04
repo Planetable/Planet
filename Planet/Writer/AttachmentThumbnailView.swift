@@ -1,16 +1,13 @@
 import SwiftUI
 
 struct AttachmentThumbnailView: View {
-    @ObservedObject var draft: DraftModel
-    @State var attachmentImage: NSImage?
-    @State var attachment: Attachment
+    @ObservedObject var attachment: Attachment
 
     @State private var isShowingControl = false
 
     var body: some View {
         ZStack {
-            if attachment.type == .image,
-               let image = attachmentImage,
+            if let image = attachment.image,
                let resizedImage = image.resizeSquare(maxLength: 60) {
                 Image(nsImage: resizedImage)
                     .resizable()
@@ -35,12 +32,7 @@ struct AttachmentThumbnailView: View {
                 }
                     .padding(4)
                     .onTapGesture {
-                        if let attachmentMarkdown = getAttachmentMarkdown() {
-                            NotificationCenter.default.post(
-                                name: Notification.Name.writerNotification(.insertText, for: draft),
-                                object: attachmentMarkdown
-                            )
-                        }
+                        insertAttachment()
                     }
             }
 
@@ -53,7 +45,7 @@ struct AttachmentThumbnailView: View {
                         .frame(width: 12, height: 12, alignment: .center)
                         .opacity(isShowingControl ? 1.0 : 0.0)
                         .onTapGesture {
-                            draft.deleteAttachment(name: attachment.name)
+                            deleteAttachment()
                         }
                 }
                 Spacer()
@@ -70,12 +62,6 @@ struct AttachmentThumbnailView: View {
                     isShowingControl = isHovering
                 }
             }
-            .onAppear {
-                // TODO: respond to attachment changes under the same name
-                if let path = attachment.path {
-                    attachmentImage = NSImage(contentsOf: path)
-                }
-            }
     }
 
     func getAttachmentMarkdown() -> String? {
@@ -86,6 +72,25 @@ struct AttachmentThumbnailView: View {
             return "<a href=\"\(attachment.name)\">\(attachment.name)</a>"
         default:
             return nil
+        }
+    }
+
+    func insertAttachment() {
+        if let markdown = getAttachmentMarkdown() {
+            NotificationCenter.default.post(
+                name: .writerNotification(.insertText, for: attachment.draft),
+                object: markdown
+            )
+        }
+    }
+
+    func deleteAttachment() {
+        attachment.draft.deleteAttachment(name: attachment.name)
+        if let markdown = getAttachmentMarkdown() {
+            NotificationCenter.default.post(
+                name: .writerNotification(.removeText, for: attachment.draft),
+                object: markdown
+            )
         }
     }
 }
