@@ -119,7 +119,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         )
         draft.attachments = try publicArticleFiles
             // exclude index.html, article.json
-            .filter { ["index.html", "article.json"].contains($0.lastPathComponent) }
+            .filter { !["index.html", "article.json"].contains($0.lastPathComponent) }
             .map { filePath in
                 let attachment = Attachment(
                     name: filePath.lastPathComponent,
