@@ -8,24 +8,13 @@ struct WriterWebView: NSViewRepresentable {
     let lastRender: Date
     let navigationHelper = WriterWebViewHelper()
 
-    var url: URL {
-        if let newArticleDraft = draft as? NewArticleDraftModel {
-            return newArticleDraft.previewPath
-        } else
-        if let editArticleDraft = draft as? EditArticleDraftModel {
-            return editArticleDraft.previewPath
-        } else {
-            return Bundle.main.url(forResource: "WriterBasicPlaceholder", withExtension: "html")!
-        }
-    }
-
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.allowsAirPlayForMediaPlayback = false
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = navigationHelper
         webView.setValue(false, forKey: "drawsBackground")
-        webView.loadFileURL(url, allowingReadAccessTo: url)
+        webView.loadFileURL(draft.previewPath, allowingReadAccessTo: draft.attachmentsPath)
         NotificationCenter.default.addObserver(
             forName: .writerNotification(.loadPreview, for: draft),
             object: nil,
@@ -35,7 +24,7 @@ struct WriterWebView: NSViewRepresentable {
                 if let error = error {
                     debugPrint("failed to evaluate js: \(error)")
                 }
-                webView.loadFileURL(url, allowingReadAccessTo: url)
+                webView.loadFileURL(draft.previewPath, allowingReadAccessTo: draft.attachmentsPath)
             }
         }
         return webView

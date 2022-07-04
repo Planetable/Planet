@@ -46,7 +46,6 @@
 		6A6A146628215587009644B6 /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A146528215587009644B6 /* Template.swift */; };
 		6A6A1468282159DC009644B6 /* TemplateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A1467282159DC009644B6 /* TemplateStore.swift */; };
 		6ABAB91828215FF30014F209 /* TemplatePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */; };
-		72114037254E9B8011B48332 /* EditArticleDraftModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114A38E7142259F911D626 /* EditArticleDraftModel.swift */; };
 		7211413A9B3CC77620629D22 /* ViewUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143C73AEAD5F0C049DF86 /* ViewUtils.swift */; };
 		721141A84F21A96D57CB6064 /* PlanetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114B8A5400482B2B98BEF7 /* PlanetModel.swift */; };
 		7211421E15A5A630DF93A519 /* AboutMyPlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D264DD084A74B49BF8 /* AboutMyPlanetView.swift */; };
@@ -54,6 +53,7 @@
 		721142A9C5080D3F17D23F1F /* JSONUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114F3CBC160F54087E1537 /* JSONUtils.swift */; };
 		7211431A5867D4CF2960EC39 /* IPFSCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114270D79DBC89703262B9 /* IPFSCommand.swift */; };
 		721144331A990EB4451F1C1F /* MyPlanetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114299E3D896326AFFF5D0 /* MyPlanetModel.swift */; };
+		721144941B29E9E78C05A89D /* Lifetimes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143EEE6936427A9BC9452 /* Lifetimes.swift */; };
 		721144F70CBCCFAA04277BA4 /* fs-repo-migrations-arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 721145901046AC768CEAE31C /* fs-repo-migrations-arm64 */; };
 		72114509730D9D97178E0E82 /* IPFSState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721148C9E7BCB6F1BC539F57 /* IPFSState.swift */; };
 		72114526A36207759470E32B /* ipfs-arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 721146EB04A767526D0870E7 /* ipfs-arm64 */; };
@@ -70,6 +70,7 @@
 		721148D471575905C624EEC7 /* ArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114F5686F5902EE578B3CF /* ArticleModel.swift */; };
 		721148F88BE8ABCC52FEB501 /* IPFSDaemon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */; };
 		72114971F1770E3DAB910F99 /* WriterStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211498D81C1BB38A22D001A /* WriterStore.swift */; };
+		721149AA66E0C018BA60DB5A /* AttachmentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143E2F2DEA3A694022B20 /* AttachmentModel.swift */; };
 		721149FFE57BBAB8F4F4B25D /* fs-repo-migrations-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 72114395F7CD359BE260F77C /* fs-repo-migrations-amd64 */; };
 		72114A3B2AA58EA6B139AEB8 /* FollowingPlanetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114BCC75EE5AAA9D0CA991 /* FollowingPlanetModel.swift */; };
 		72114A48526B9490A72FD92A /* MyArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114BAE1D6E54DD9D1059CB /* MyArticleModel.swift */; };
@@ -78,7 +79,6 @@
 		72114A966288F7CDAF984E3C /* FollowingArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */; };
 		72114AE68D0DEDE11FC82E60 /* CoreDataPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114C0FA779C3B613771E53 /* CoreDataPersistence.swift */; };
 		72114AFCB4EDB617C07192BB /* FollowingPlanetSidebarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211467DFBDA573F4B938B0C /* FollowingPlanetSidebarItem.swift */; };
-		72114B01F7AD3F55E90657CD /* NewArticleDraftModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114518E19B2BCB1412276D /* NewArticleDraftModel.swift */; };
 		72114B6486572E7F6AF5AC62 /* LoadingIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CF288467021C7E9BF40 /* LoadingIndicatorView.swift */; };
 		72114C03242147A247A8B317 /* Runner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114BFBBB1E6F4DB7B0D234 /* Runner.swift */; };
 		72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 7211456357838C0FE5DEECD0 /* ipfs-amd64 */; };
@@ -146,10 +146,11 @@
 		72114299E3D896326AFFF5D0 /* MyPlanetModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyPlanetModel.swift; sourceTree = "<group>"; };
 		72114395F7CD359BE260F77C /* fs-repo-migrations-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fs-repo-migrations-amd64"; sourceTree = "<group>"; };
 		721143C73AEAD5F0C049DF86 /* ViewUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewUtils.swift; sourceTree = "<group>"; };
+		721143E2F2DEA3A694022B20 /* AttachmentModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AttachmentModel.swift; sourceTree = "<group>"; };
 		721143ED3BE78AB9D7C6C9A2 /* URLUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLUtils.swift; sourceTree = "<group>"; };
+		721143EEE6936427A9BC9452 /* Lifetimes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Lifetimes.swift; sourceTree = "<group>"; };
 		721144D264DD084A74B49BF8 /* AboutMyPlanetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AboutMyPlanetView.swift; sourceTree = "<group>"; };
 		721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowingArticleModel.swift; sourceTree = "<group>"; };
-		72114518E19B2BCB1412276D /* NewArticleDraftModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewArticleDraftModel.swift; sourceTree = "<group>"; };
 		7211456357838C0FE5DEECD0 /* ipfs-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-amd64"; sourceTree = "<group>"; };
 		721145901046AC768CEAE31C /* fs-repo-migrations-arm64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fs-repo-migrations-arm64"; sourceTree = "<group>"; };
 		7211459D5283D74D29C8F0DC /* PlanetArticle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetArticle.swift; sourceTree = "<group>"; };
@@ -162,7 +163,6 @@
 		72114939C0E92FC2CFBD5F11 /* OnboardingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		72114982114B99197B3B0756 /* FeedUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedUtils.swift; sourceTree = "<group>"; };
 		7211498D81C1BB38A22D001A /* WriterStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WriterStore.swift; sourceTree = "<group>"; };
-		72114A38E7142259F911D626 /* EditArticleDraftModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditArticleDraftModel.swift; sourceTree = "<group>"; };
 		72114A5CE56CACB595CD70C6 /* IPFSAPIModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSAPIModel.swift; sourceTree = "<group>"; };
 		72114B2B1F05731320A89022 /* WriterViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WriterViewModel.swift; sourceTree = "<group>"; };
 		72114B8A5400482B2B98BEF7 /* PlanetModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetModel.swift; sourceTree = "<group>"; };
@@ -294,6 +294,7 @@
 				72114BFBBB1E6F4DB7B0D234 /* Runner.swift */,
 				721143C73AEAD5F0C049DF86 /* ViewUtils.swift */,
 				7211412C05B18AC06A98BA74 /* MarkdownUtils.swift */,
+				721143EEE6936427A9BC9452 /* Lifetimes.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -415,14 +416,13 @@
 			children = (
 				72114B8A5400482B2B98BEF7 /* PlanetModel.swift */,
 				72114BAE1D6E54DD9D1059CB /* MyArticleModel.swift */,
-				72114A38E7142259F911D626 /* EditArticleDraftModel.swift */,
 				721146E8B821AA2558D6DD3A /* PlanetStore.swift */,
 				72114299E3D896326AFFF5D0 /* MyPlanetModel.swift */,
 				72114BCC75EE5AAA9D0CA991 /* FollowingPlanetModel.swift */,
 				721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */,
 				72114F5686F5902EE578B3CF /* ArticleModel.swift */,
 				72114E45790363ADCC6F7673 /* DraftModel.swift */,
-				72114518E19B2BCB1412276D /* NewArticleDraftModel.swift */,
+				721143E2F2DEA3A694022B20 /* AttachmentModel.swift */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -564,7 +564,6 @@
 				721141A84F21A96D57CB6064 /* PlanetModel.swift in Sources */,
 				72114A48526B9490A72FD92A /* MyArticleModel.swift in Sources */,
 				72114AE68D0DEDE11FC82E60 /* CoreDataPersistence.swift in Sources */,
-				72114037254E9B8011B48332 /* EditArticleDraftModel.swift in Sources */,
 				72114842F65B9DF14A1B3F61 /* PlanetStore.swift in Sources */,
 				721142A9C5080D3F17D23F1F /* JSONUtils.swift in Sources */,
 				721146EC85B1251B2669195C /* ENSUtils.swift in Sources */,
@@ -584,12 +583,13 @@
 				72114971F1770E3DAB910F99 /* WriterStore.swift in Sources */,
 				72114A65C35BF78B1A4B7D81 /* DraftModel.swift in Sources */,
 				721145603D528B27CC6091D1 /* WriterDragAndDrop.swift in Sources */,
-				72114B01F7AD3F55E90657CD /* NewArticleDraftModel.swift in Sources */,
 				72114D4918DAC507F6E3AF7F /* MarkdownUtils.swift in Sources */,
 				72114FE37ADE9340E448FF3E /* WriterViewModel.swift in Sources */,
 				72114683927B9B11EFE02DD4 /* OnboardingView.swift in Sources */,
 				72114717FB02C931CE9E08E9 /* MyPlanetSidebarItem.swift in Sources */,
 				72114AFCB4EDB617C07192BB /* FollowingPlanetSidebarItem.swift in Sources */,
+				721144941B29E9E78C05A89D /* Lifetimes.swift in Sources */,
+				721149AA66E0C018BA60DB5A /* AttachmentModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

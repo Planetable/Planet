@@ -80,7 +80,6 @@ class PlanetArticle: NSManagedObject {
             content: articleContent,
             created: articleCreated,
             starred: articleStarred,
-            hasVideo: false,
             videoFilename: nil
         )
         return newModel
@@ -103,7 +102,6 @@ class PlanetArticle: NSManagedObject {
             created: articleCreated,
             read: articleRead,
             starred: articleStarred,
-            hasVideo: false,
             videoFilename: nil
         )
         return newModel

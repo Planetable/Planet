@@ -65,20 +65,15 @@ struct WriterView: View {
         }
             .frame(minWidth: 640)
             .onChange(of: draft.title) { _ in
-                try? save()
+                try? draft.save()
             }
             .onChange(of: draft.content) { _ in
-                try? save()
+                try? draft.save()
             }
             .onChange(of: draft.attachments) { _ in
                 if let attachment = draft.attachments.first(where: { $0.type == .video }) {
-                    if let newArticleDraft = draft as? NewArticleDraftModel {
-                        let newVideoPath = newArticleDraft.getAttachmentPath(name: attachment.name)
-                        if newVideoPath != viewModel.videoPath {
-                            viewModel.hasVideo = true
-                            viewModel.videoPath = newVideoPath
-                        }
-                    }
+                    viewModel.hasVideo = true
+                    viewModel.videoPath = attachment.path
                 }
             }
             .onAppear {
@@ -97,28 +92,12 @@ struct WriterView: View {
             ) { result in
                 if let urls = try? result.get() {
                     viewModel.isMediaTrayOpen = true
-                    if let newArticleDraft = draft as? NewArticleDraftModel {
-                        urls.forEach { url in
-                            try? newArticleDraft.addAttachment(path: url, type: viewModel.attachmentType)
-                        }
-                    } else
-                    if let editArticleDraft = draft as? EditArticleDraftModel {
-                        urls.forEach { url in
-                            try? editArticleDraft.addAttachment(path: url, type: viewModel.attachmentType)
-                        }
+                    urls.forEach { url in
+                        try? draft.addAttachment(path: url, type: viewModel.attachmentType)
                     }
-                    try? save()
+                    try? draft.save()
                 }
             }
             .onDrop(of: [.fileURL], delegate: dragAndDrop)
-    }
-
-    func save() throws {
-        if let newArticleDraft = draft as? NewArticleDraftModel {
-            try newArticleDraft.save()
-        } else
-        if let editArticleDraft = draft as? EditArticleDraftModel {
-            try editArticleDraft.save()
-        }
     }
 }

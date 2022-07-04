@@ -14,7 +14,7 @@ class MyPlanetModel: PlanetModel, Codable {
 
     // populated when initializing
     @Published var avatar: NSImage? = nil
-    @Published var drafts: [NewArticleDraftModel]! = nil
+    @Published var drafts: [DraftModel]! = nil
     @Published var articles: [MyArticleModel]! = nil
 
     static let myPlanetsPath: URL = {
@@ -120,7 +120,7 @@ class MyPlanetModel: PlanetModel, Codable {
             at: planet.draftsPath,
             includingPropertiesForKeys: nil
         ).filter { $0.hasDirectoryPath }
-        planet.drafts = draftDirectories.compactMap { try? NewArticleDraftModel.load(from: $0, planet: planet) }
+        planet.drafts = draftDirectories.compactMap { try? DraftModel.load(from: $0, planet: planet) }
 
         let articleDirectory = directoryPath.appendingPathComponent("Articles", isDirectory: true)
         let articleFiles = try FileManager.default.contentsOfDirectory(
@@ -233,7 +233,6 @@ class MyPlanetModel: PlanetModel, Codable {
                     content: backupArticle.content,
                     created: backupArticle.created,
                     starred: nil,
-                    hasVideo: backupArticle.hasVideo,
                     videoFilename: backupArticle.videoFilename
                 )
                 article.planet = planet
@@ -345,7 +344,6 @@ class MyPlanetModel: PlanetModel, Codable {
                     title: $0.title,
                     content: $0.content,
                     created: $0.created,
-                    hasVideo: $0.hasVideo,
                     videoFilename: $0.videoFilename
                 )
             }

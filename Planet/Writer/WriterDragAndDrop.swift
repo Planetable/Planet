@@ -26,16 +26,7 @@ class WriterDragAndDrop: ObservableObject, DropDelegate {
                    let data = item as? Data,
                    let path = URL(dataRepresentation: data, relativeTo: nil),
                    supportedExtensions.contains(path.pathExtension) {
-                    if let newArticleDraft = draft as? NewArticleDraftModel {
-                        let type = WriterStore.shared.guessAttachmentType(path: path)
-                        try? newArticleDraft.addAttachment(path: path, type: type)
-                    } else
-                    if let editArticleDraft = draft as? EditArticleDraftModel {
-                        let type = WriterStore.shared.guessAttachmentType(path: path)
-                        try? editArticleDraft.addAttachment(path: path, type: type)
-                    } else {
-                        throw PlanetError.InternalError
-                    }
+                    try draft.addAttachment(path: path)
                 }
             }
         }

@@ -6,16 +6,18 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
     @Published var content: String
     let created: Date
     @Published var starred: Date? = nil
-    @Published var hasVideo: Bool = false
     @Published var videoFilename: String?
 
-    init(id: UUID, title: String, content: String, created: Date, starred: Date?, hasVideo: Bool, videoFilename: String?) {
+    var hasVideo: Bool {
+        videoFilename != nil
+    }
+
+    init(id: UUID, title: String, content: String, created: Date, starred: Date?, videoFilename: String?) {
         self.id = id
         self.title = title
         self.content = content
         self.created = created
         self.starred = starred
-        self.hasVideo = hasVideo
         self.videoFilename = videoFilename
     }
 
@@ -43,6 +45,5 @@ struct PublicArticleModel: Codable {
     let title: String
     let content: String
     let created: Date
-    let hasVideo: Bool
     let videoFilename: String?
 }

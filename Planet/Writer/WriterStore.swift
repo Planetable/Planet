@@ -25,9 +25,9 @@ import os
     }
 
     func newArticle(for planet: MyPlanetModel) throws {
-        let draft: NewArticleDraftModel
+        let draft: DraftModel
         if planet.drafts.isEmpty {
-            draft = try NewArticleDraftModel.create(for: planet)
+            draft = try DraftModel.create(for: planet)
             try draft.save()
             planet.drafts.append(draft)
         } else {
@@ -43,11 +43,11 @@ import os
     }
 
     func editArticle(for article: MyArticleModel) throws {
-        let draft: EditArticleDraftModel
-        if let d = article.draft {
-            draft = d
+        let draft: DraftModel
+        if let articleDraft = article.draft {
+            draft = articleDraft
         } else {
-            draft = try EditArticleDraftModel.create(from: article)
+            draft = try DraftModel.create(from: article)
             try draft.save()
             article.draft = draft
         }
@@ -60,14 +60,6 @@ import os
         }
     }
 
-    func guessAttachmentType(path: URL) -> AttachmentType {
-        let fileExtension = path.pathExtension
-        if ["jpg", "jpeg", "png", "tiff", "gif"].contains(fileExtension) {
-            return .image
-        }
-        return .file
-    }
-
     func setActiveDraft(draft: DraftModel?) {
         activeDraft = draft
     }
@@ -75,23 +67,10 @@ import os
     func renderPreview(for draft: DraftModel) throws {
         let content: String
         let previewPath: URL
-        if let newArticleDraft = draft as? NewArticleDraftModel {
-            logger.info("Rendering preview for new article draft \(draft.id) of planet \(newArticleDraft.planet.name)")
-            content = newArticleDraft.content
-            previewPath = newArticleDraft.previewPath
-        } else
-        if let editArticleDraft = draft as? EditArticleDraftModel {
-            logger.info(
-                """
-                Rendering preview for edit article draft \(draft.id) of \
-                article \(editArticleDraft.article.title) from planet \(editArticleDraft.article.planet.name)
-                """
-            )
-            content = editArticleDraft.content
-            previewPath = editArticleDraft.previewPath
-        } else {
-            throw PlanetError.InternalError
-        }
+
+        logger.info("Rendering preview for draft \(draft.id)")
+        content = draft.content
+        previewPath = draft.previewPath
 
         let html = MarkdownParser().html(from: content.trim())
         let output = try previewRenderEnv.renderTemplate(name: writerTemplateName, context: ["content_html": html])

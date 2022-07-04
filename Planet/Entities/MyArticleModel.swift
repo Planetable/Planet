@@ -4,22 +4,22 @@ class MyArticleModel: ArticleModel, Codable {
     @Published var link: String
 
     // populated when initializing
-    weak var planet: MyPlanetModel! = nil
-    var draft: EditArticleDraftModel? = nil
+    unowned var planet: MyPlanetModel! = nil
+    var draft: DraftModel? = nil
 
     lazy var path = planet.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
     lazy var publicBasePath = planet.publicBasePath.appendingPathComponent(id.uuidString, isDirectory: true)
     lazy var publicIndexPath = publicBasePath.appendingPathComponent("index.html", isDirectory: false)
 
     var publicArticle: PublicArticleModel {
-        PublicArticleModel(id: id, link: link, title: title, content: content, created: created, hasVideo: hasVideo, videoFilename: videoFilename)
+        PublicArticleModel(id: id, link: link, title: title, content: content, created: created, videoFilename: videoFilename)
     }
     var browserURL: URL? {
         URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.ipns)\(link)")
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, created, starred, hasVideo, videoFilename
+        case id, link, title, content, created, starred, videoFilename
     }
 
     required init(from decoder: Decoder) throws {
@@ -30,14 +30,12 @@ class MyArticleModel: ArticleModel, Codable {
         let content = try container.decode(String.self, forKey: .content)
         let created = try container.decode(Date.self, forKey: .created)
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
-        let hasVideo = try container.decodeIfPresent(Bool.self, forKey: .hasVideo) ?? false
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
         super.init(id: id,
                    title: title,
                    content: content,
                    created: created,
                    starred: starred,
-                   hasVideo: hasVideo,
                    videoFilename: videoFilename)
     }
 
@@ -49,13 +47,12 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encode(content, forKey: .content)
         try container.encode(created, forKey: .created)
         try container.encodeIfPresent(starred, forKey: .starred)
-        try container.encodeIfPresent(hasVideo, forKey: .hasVideo)
         try container.encodeIfPresent(videoFilename, forKey: .videoFilename)
     }
 
-    init(id: UUID, link: String, title: String, content: String, created: Date, starred: Date?, hasVideo: Bool, videoFilename: String?) {
+    init(id: UUID, link: String, title: String, content: String, created: Date, starred: Date?, videoFilename: String?) {
         self.link = link
-        super.init(id: id, title: title, content: content, created: created, starred: starred, hasVideo: hasVideo, videoFilename: videoFilename)
+        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename)
     }
 
     static func load(from filePath: URL, planet: MyPlanetModel) throws -> MyArticleModel {
@@ -71,7 +68,7 @@ class MyArticleModel: ArticleModel, Codable {
         article.planet = planet
         let draftPath = planet.articleDraftsPath.appendingPathComponent(id.uuidString, isDirectory: true)
         if FileManager.default.fileExists(atPath: draftPath.path) {
-            article.draft = try EditArticleDraftModel.load(from: draftPath, article: article)
+            article.draft = try DraftModel.load(from: draftPath, article: article)
         }
         return article
     }
@@ -85,7 +82,6 @@ class MyArticleModel: ArticleModel, Codable {
             content: content,
             created: Date(),
             starred: nil,
-            hasVideo: false,
             videoFilename: nil
         )
         article.planet = planet
@@ -110,6 +106,5 @@ struct BackupArticleModel: Codable {
     let title: String
     let content: String
     let created: Date
-    let hasVideo: Bool
     let videoFilename: String?
 }

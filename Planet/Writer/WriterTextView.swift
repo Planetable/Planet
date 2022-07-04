@@ -118,7 +118,7 @@ class WriterCustomTextView: NSView {
     @ObservedObject var draft: DraftModel
     private var font: NSFont?
     private var lastOffset: Float = 0
-    weak var delegate: NSTextViewDelegate?
+    unowned var delegate: NSTextViewDelegate?
     var text: String
     var selectedRanges: [NSValue] = []
 
@@ -186,25 +186,9 @@ class WriterEditorTextView: NSTextView {
     // we probably need to update currently `draggingEntered` window
     override func draggingEnded(_ sender: NSDraggingInfo) {
         guard urls.count > 0 else { return }
-        do {
-            if let newArticleDraft = draft as? NewArticleDraftModel {
-                urls.forEach { url in
-                    let type = WriterStore.shared.guessAttachmentType(path: url)
-                    try? newArticleDraft.addAttachment(path: url, type: type)
-                    try? newArticleDraft.save()
-                }
-            } else
-            if let editArticleDraft = draft as? EditArticleDraftModel {
-                urls.forEach { url in
-                    let type = WriterStore.shared.guessAttachmentType(path: url)
-                    try? editArticleDraft.addAttachment(path: url, type: type)
-                    try? editArticleDraft.save()
-                }
-            } else {
-                throw PlanetError.InternalError
-            }
-        } catch {
-            // ignore
+        urls.forEach { url in
+            try? draft.addAttachment(path: url)
+            try? draft.save()
         }
     }
 

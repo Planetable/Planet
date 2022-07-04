@@ -5,7 +5,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     @Published var read: Date? = nil
 
     // populated when initializing
-    weak var planet: FollowingPlanetModel! = nil
+    unowned var planet: FollowingPlanetModel! = nil
 
     lazy var path = planet.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
     var webviewURL: URL? {
@@ -38,7 +38,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, created, read, starred, hasVideo, videoFilename
+        case id, link, title, content, created, read, starred, videoFilename
     }
 
     required init(from decoder: Decoder) throws {
@@ -50,9 +50,8 @@ class FollowingArticleModel: ArticleModel, Codable {
         let created = try container.decode(Date.self, forKey: .created)
         read = try container.decodeIfPresent(Date.self, forKey: .read)
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
-        let hasVideo = try container.decodeIfPresent(Bool.self, forKey: .hasVideo) ?? false
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
-        super.init(id: id, title: title, content: content, created: created, starred: starred, hasVideo: hasVideo, videoFilename: videoFilename)
+        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -64,7 +63,6 @@ class FollowingArticleModel: ArticleModel, Codable {
         try container.encode(created, forKey: .created)
         try container.encodeIfPresent(read, forKey: .read)
         try container.encodeIfPresent(starred, forKey: .starred)
-        try container.encodeIfPresent(hasVideo, forKey: .hasVideo)
         try container.encodeIfPresent(videoFilename, forKey: .videoFilename)
     }
 
@@ -76,12 +74,11 @@ class FollowingArticleModel: ArticleModel, Codable {
         created: Date,
         read: Date?,
         starred: Date?,
-        hasVideo: Bool,
         videoFilename: String?
     ) {
         self.link = link
         self.read = read
-        super.init(id: id, title: title, content: content, created: created, starred: starred, hasVideo: hasVideo, videoFilename: videoFilename)
+        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename)
     }
 
     static func load(from filePath: URL, planet: FollowingPlanetModel) throws -> FollowingArticleModel {
@@ -107,7 +104,6 @@ class FollowingArticleModel: ArticleModel, Codable {
             created: publicArticle.created,
             read: nil,
             starred: nil,
-            hasVideo: false,
             videoFilename: nil
         )
         article.planet = planet

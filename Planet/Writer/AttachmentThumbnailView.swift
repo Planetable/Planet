@@ -53,12 +53,7 @@ struct AttachmentThumbnailView: View {
                         .frame(width: 12, height: 12, alignment: .center)
                         .opacity(isShowingControl ? 1.0 : 0.0)
                         .onTapGesture {
-                            if let newArticleDraft = draft as? NewArticleDraftModel {
-                                newArticleDraft.deleteAttachment(name: attachment.name)
-                            } else
-                            if let editArticleDraft = draft as? EditArticleDraftModel {
-                                editArticleDraft.deleteAttachment(name: attachment.name)
-                            }
+                            draft.deleteAttachment(name: attachment.name)
                         }
                 }
                 Spacer()
@@ -77,12 +72,7 @@ struct AttachmentThumbnailView: View {
             }
             .onAppear {
                 // TODO: respond to attachment changes under the same name
-                if let newArticleDraft = draft as? NewArticleDraftModel,
-                   let path = newArticleDraft.getAttachmentPath(name: attachment.name) {
-                    attachmentImage = NSImage(contentsOf: path)
-                } else
-                if let editArticleDraft = draft as? EditArticleDraftModel,
-                   let path = editArticleDraft.getAttachmentPath(name: attachment.name) {
+                if let path = attachment.path {
                     attachmentImage = NSImage(contentsOf: path)
                 }
             }
