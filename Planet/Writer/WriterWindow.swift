@@ -61,6 +61,10 @@ class WriterWindow: NSWindow {
         }
     }
 
+    @objc func insertEmoji(_ sender: Any?) {
+        NSApp.orderFrontCharacterPalette(sender)
+    }
+
     @objc func attachPhoto(_ sender: Any?) {
         viewModel.chooseImages()
     }
@@ -72,6 +76,7 @@ class WriterWindow: NSWindow {
 
 extension NSToolbarItem.Identifier {
     static let send = NSToolbarItem.Identifier("send")
+    static let insertEmoji = NSToolbarItem.Identifier("insertEmoji")
     static let attachPhoto = NSToolbarItem.Identifier("attachPhoto")
     static let attachVideo = NSToolbarItem.Identifier("attachVideo")
 }
@@ -90,6 +95,14 @@ extension WriterWindow: NSToolbarDelegate {
                 title: title,
                 image: NSImage(systemSymbolName: "paperplane", accessibilityDescription: "Send")!,
                 selector: "send:"
+            )
+        case .insertEmoji:
+            let title = NSLocalizedString("Insert Emoji", comment: "Insert Emoji")
+            return makeToolbarButton(
+                itemIdentifier: .insertEmoji,
+                title: title,
+                image: NSImage(systemSymbolName: "face.smiling", accessibilityDescription: "Insert Emoji")!,
+                selector: "insertEmoji:"
             )
         case .attachPhoto:
             let title = NSLocalizedString("Attach Photo", comment: "Attach Photo")
@@ -113,11 +126,11 @@ extension WriterWindow: NSToolbarDelegate {
     }
 
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.send, .flexibleSpace]
+        [.send, .insertEmoji, .attachPhoto, .attachVideo, .flexibleSpace]
     }
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.send, .attachPhoto, .attachVideo]
+        [.send, .insertEmoji, .attachPhoto, .attachVideo]
     }
 
     func toolbarWillAddItem(_ notification: Notification) {
@@ -148,13 +161,17 @@ extension WriterWindow: NSToolbarDelegate {
             toolbarItem.isNavigational = false
         }
 
-        let button = NSButton()
-        button.bezelStyle = .texturedRounded
-        button.image = image
-        button.imageScaling = .scaleProportionallyDown
-        button.action = Selector((selector))
+        // let button = NSButton()
+        // button.bezelStyle = .texturedRounded
+        // button.image = image
+        // button.action = Selector((selector))
+        // toolbarItem.view = button
 
-        toolbarItem.view = button
+        toolbarItem.isBordered = true
+        toolbarItem.image = image
+        toolbarItem.action = Selector((selector))
+
+        // toolbarItem.view = button
         toolbarItem.toolTip = title
         toolbarItem.label = title
         return toolbarItem
