@@ -256,7 +256,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         var videoFilename: String? = nil
         for attachment in attachments {
             let name = attachment.name
-            if attachment.type == .video {
+            if attachment.status != .deleted && attachment.type == .video {
                 videoFilename = name
             }
             let targetPath = article.publicBasePath.appendingPathComponent(name, isDirectory: false)

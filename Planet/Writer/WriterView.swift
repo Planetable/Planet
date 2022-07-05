@@ -55,7 +55,7 @@ struct WriterView: View {
                 Divider()
                 ScrollView(.horizontal) {
                     HStack(spacing: 0) {
-                        ForEach(draft.attachments.filter { $0.status != .deleted }, id: \.name) { attachment in
+                        ForEach(draft.attachments, id: \.name) { attachment in
                             AttachmentThumbnailView(attachment: attachment)
                         }
                     }
