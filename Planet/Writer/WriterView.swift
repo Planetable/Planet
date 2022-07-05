@@ -14,8 +14,8 @@ struct WriterView: View {
 
     init(draft: DraftModel, viewModel: WriterViewModel) {
         self.draft = draft
-        dragAndDrop = WriterDragAndDrop(draft: draft)
         self.viewModel = viewModel
+        dragAndDrop = WriterDragAndDrop(draft: draft)
     }
 
     var body: some View {
@@ -84,15 +84,18 @@ struct WriterView: View {
                 } else {
                     viewModel.videoPath = nil
                 }
-            }
-            .onAppear {
                 if !draft.attachments.isEmpty {
                     viewModel.isMediaTrayOpen = true
                 }
+            }
+            .onAppear {
                 if let attachment = draft.attachments.first(where: { $0.type == .video }) {
                     viewModel.videoPath = attachment.path
                 } else {
                     viewModel.videoPath = nil
+                }
+                if !draft.attachments.isEmpty {
+                    viewModel.isMediaTrayOpen = true
                 }
                 Task { @MainActor in
                     // workaround: wrap in a task to delay focusing the title a little

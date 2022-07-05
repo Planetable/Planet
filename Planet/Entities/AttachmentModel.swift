@@ -2,13 +2,6 @@ import Foundation
 import UniformTypeIdentifiers
 import SwiftUI
 
-enum AttachmentStatus: String, Codable {
-    case new
-    case overwrite
-    case existing
-    case deleted
-}
-
 enum AttachmentType: String, Codable {
     case image
     case video
@@ -35,7 +28,6 @@ enum AttachmentType: String, Codable {
 class Attachment: Codable, Equatable, Hashable, ObservableObject {
     let name: String
     @Published var type: AttachmentType
-    @Published var status: AttachmentStatus
 
     @Published var image: NSImage? = nil
 
@@ -53,21 +45,8 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
         }
     }
 
-    var path: URL? {
-        if status == .deleted {
-            return nil
-        }
-        return draft.attachmentsPath.appendingPathComponent(name, isDirectory: false)
-    }
-    var oldPath: URL? {
-        if case .article(let wrapper) = draft.target {
-            let article = wrapper.value
-            let oldPath = article.publicBasePath.appendingPathComponent(name)
-            if FileManager.default.fileExists(atPath: oldPath.path) {
-                return oldPath
-            }
-        }
-        return nil
+    var path: URL {
+        draft.attachmentsPath.appendingPathComponent(name, isDirectory: false)
     }
 
     func hash(into hasher: inout Hasher) {
@@ -82,13 +61,8 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
         if Swift.type(of: lhs) != Swift.type(of: rhs) {
             return false
         }
-        if lhs.name != rhs.name {
-            return false
-        }
-        if lhs.draft != rhs.draft {
-            return false
-        }
-        return true
+        return lhs.name == rhs.name
+            && lhs.draft == rhs.draft
     }
 
     enum CodingKeys: String, CodingKey {
@@ -101,25 +75,21 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
         type = try container.decode(AttachmentType.self, forKey: .type)
-        status = try container.decode(AttachmentStatus.self, forKey: .status)
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(name, forKey: .name)
         try container.encode(type, forKey: .type)
-        try container.encode(status, forKey: .status)
     }
 
-    init(name: String, type: AttachmentType, status: AttachmentStatus) {
+    init(name: String, type: AttachmentType) {
         self.name = name
         self.type = type
-        self.status = status
     }
 
     func loadImage() {
         if type == .image,
-           let path = path,
            let image = NSImage(contentsOf: path) {
             self.image = image
         } else {

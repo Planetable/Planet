@@ -89,6 +89,7 @@
 		BB6FC66D28423AF80072C3A1 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = BB6FC66C28423AF80072C3A1 /* SwiftSoup */; };
 		BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BB99C7062847AC9F001836B2 /* Sparkle */; };
 		BBC831AB2836239300CE1F67 /* PlanetSiteTemplates in Frameworks */ = {isa = PBXBuildFile; productRef = BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */; };
+		BBF7DF38287419FE009A87DE /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBF7DF37287419FE009A87DE /* AVKit.framework */; };
 		BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */ = {isa = PBXBuildFile; productRef = BBFE51EB27F3AABC0055A51A /* ENSKit */; };
 /* End PBXBuildFile section */
 
@@ -182,6 +183,7 @@
 		BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v6.xcdatamodel"; sourceTree = "<group>"; };
 		BBC60A1A2803931C007A42D0 /* Planet v5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v5.xcdatamodel"; sourceTree = "<group>"; };
 		BBC831AC2837075600CE1F67 /* Planet v7.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v7.xcdatamodel"; sourceTree = "<group>"; };
+		BBF7DF37287419FE009A87DE /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -189,6 +191,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BBF7DF38287419FE009A87DE /* AVKit.framework in Frameworks */,
 				BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */,
 				BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */,
 				BBC831AB2836239300CE1F67 /* PlanetSiteTemplates in Frameworks */,
@@ -236,6 +239,7 @@
 			children = (
 				2AC4994727BB6E7500F1C2D1 /* Planet */,
 				2AC4994627BB6E7500F1C2D1 /* Products */,
+				BBF7DF36287419FE009A87DE /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -427,6 +431,14 @@
 			path = Entities;
 			sourceTree = "<group>";
 		};
+		BBF7DF36287419FE009A87DE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				BBF7DF37287419FE009A87DE /* AVKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -481,12 +493,12 @@
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
-				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */,
-				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */,
+				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */,
+				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */,
 				2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */,
 				BBFE51EA27F3AABC0055A51A /* XCRemoteSwiftPackageReference "ENSKit" */,
-				BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */,
-				BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+				BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates.git" */,
+				BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup.git" */,
 				BB99C7052847AC9F001836B2 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
@@ -802,7 +814,7 @@
 				minimumVersion = 9.0.0;
 			};
 		};
-		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
+		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
 			requirement = {
@@ -810,7 +822,7 @@
 				kind = branch;
 			};
 		};
-		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */ = {
+		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/johnsundell/ink.git";
 			requirement = {
@@ -818,7 +830,7 @@
 				minimumVersion = 0.5.1;
 			};
 		};
-		BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+		BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
 			requirement = {
@@ -834,7 +846,7 @@
 				minimumVersion = 2.1.0;
 			};
 		};
-		BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */ = {
+		BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Planetable/PlanetSiteTemplates.git";
 			requirement = {
@@ -860,17 +872,17 @@
 		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
+			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */;
 			productName = Stencil;
 		};
 		6A0172EA27C9FD5F006154B7 /* Ink */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */;
+			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */;
 			productName = Ink;
 		};
 		BB6FC66C28423AF80072C3A1 /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			package = BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup.git" */;
 			productName = SwiftSoup;
 		};
 		BB99C7062847AC9F001836B2 /* Sparkle */ = {
@@ -880,7 +892,7 @@
 		};
 		BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */;
+			package = BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates.git" */;
 			productName = PlanetSiteTemplates;
 		};
 		BBFE51EB27F3AABC0055A51A /* ENSKit */ = {

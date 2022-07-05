@@ -140,11 +140,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             // exclude index.html, article.json
             .filter { !["index.html", "article.json"].contains($0.lastPathComponent) }
             .map { filePath in
-                let attachment = Attachment(
-                    name: filePath.lastPathComponent,
-                    type: AttachmentType.from(filePath),
-                    status: .existing
-                )
+                let attachment = Attachment(name: filePath.lastPathComponent, type: AttachmentType.from(filePath))
                 attachment.draft = draft
                 let filePath = article.publicBasePath.appendingPathComponent(attachment.name, isDirectory: false)
                 let attachmentPath = draft.attachmentsPath.appendingPathComponent(attachment.name, isDirectory: false)
@@ -157,10 +153,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
 
     func hasAttachment(name: String) -> Bool {
-        if let attachment = attachments.first(where: { $0.name == name }) {
-            return attachment.status != .deleted
-        }
-        return false
+        attachments.contains { $0.name == name }
     }
 
     @discardableResult func addAttachment(path: URL) throws -> Attachment {
@@ -174,53 +167,17 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             try FileManager.default.removeItem(at: targetPath)
         }
         try FileManager.default.copyItem(at: path, to: targetPath)
-        let attachment: Attachment
-        if let existing = attachments.first(where: { $0.name == name }) {
-            attachment = existing
-            switch existing.status {
-            case .deleted, .existing:
-                existing.status = .overwrite
-            default:
-                break
-            }
-        } else {
-            attachment = Attachment(name: name, type: type, status: .new)
-            attachment.draft = self
-            attachments.append(attachment)
-        }
+        let attachment = Attachment(name: name, type: type)
+        attachment.draft = self
+        attachments.append(attachment)
         attachment.loadImage()
         return attachment
     }
 
-    func deleteAttachment(name: String) {
+    func deleteAttachment(name: String) throws {
         if let attachment = attachments.first(where: { $0.name == name }) {
-            switch attachment.status {
-            case .new:
-                attachments.removeAll { $0.name == name }
-            default:
-                attachment.status = .deleted
-            }
-            attachment.loadImage()
-        }
-    }
-
-    func revertAttachment(name: String) throws {
-        if let attachment = attachments.first(where: { $0.name == name }) {
-            switch attachment.status {
-            case .deleted, .overwrite:
-                guard let path = attachment.path,
-                      let oldPath = attachment.oldPath else {
-                    throw PlanetError.InternalError
-                }
-                if FileManager.default.fileExists(atPath: path.path) {
-                    try FileManager.default.removeItem(at: oldPath)
-                }
-                try FileManager.default.copyItem(at: oldPath, to: path)
-                attachment.status = .existing
-            default:
-                break
-            }
-            attachment.loadImage()
+            try FileManager.default.removeItem(at: attachment.path)
+            attachments.removeAll { $0.name == name }
         }
     }
 
@@ -248,31 +205,23 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         case .article(let wrapper):
             article = wrapper.value
             planet = article.planet
-            // force reset link
+            // workaround: force reset link
             article.link = "/\(article.id)/"
             article.title = title
             article.content = content
         }
+        try FileManager.default.contentsOfDirectory(at: article.publicBasePath, includingPropertiesForKeys: nil)
+            .forEach { try FileManager.default.removeItem(at: $0) }
         var videoFilename: String? = nil
         for attachment in attachments {
             let name = attachment.name
-            if attachment.status != .deleted && attachment.type == .video {
+            if attachment.type == .video {
                 videoFilename = name
             }
             let targetPath = article.publicBasePath.appendingPathComponent(name, isDirectory: false)
-            switch attachment.status {
-            case .new:
-                let sourcePath = attachmentsPath.appendingPathComponent(name)
-                try FileManager.default.copyItem(at: sourcePath, to: targetPath)
-            case .overwrite:
-                let sourcePath = attachmentsPath.appendingPathComponent(name)
-                try FileManager.default.removeItem(at: targetPath)
-                try FileManager.default.moveItem(at: sourcePath, to: targetPath)
-            case .deleted:
-                try FileManager.default.removeItem(at: targetPath)
-            default:
-                break
-            }
+            // copy attachment to article folder, in case file operation fails, the draft still maintains its integrity
+            // if we found storage is a problem, we can move attachment instead
+            try FileManager.default.copyItem(at: attachment.path, to: targetPath)
         }
         article.videoFilename = videoFilename
         planet.finalizeChange()
