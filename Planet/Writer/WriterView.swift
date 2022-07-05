@@ -20,9 +20,9 @@ struct WriterView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if viewModel.hasVideo, let aVideoPath = viewModel.videoPath {
+            if let videoPath = viewModel.videoPath {
                 HStack {
-                    VideoPlayer(player: AVPlayer(url: aVideoPath))
+                    VideoPlayer(player: AVPlayer(url: videoPath))
                         .frame(height: 400)
                 }
                 Divider()
@@ -66,6 +66,12 @@ struct WriterView: View {
             }
         }
             .frame(minWidth: 640)
+            .alert(
+                "This article has no title. Please enter the title before clicking send.",
+                isPresented: $viewModel.isShowingEmptyTitleAlert
+            ) {
+                Button("OK", role: .cancel) { }
+            }
             .onChange(of: draft.title) { _ in
                 try? draft.save()
             }
@@ -74,8 +80,9 @@ struct WriterView: View {
             }
             .onChange(of: draft.attachments) { _ in
                 if let attachment = draft.attachments.first(where: { $0.type == .video }) {
-                    viewModel.hasVideo = true
                     viewModel.videoPath = attachment.path
+                } else {
+                    viewModel.videoPath = nil
                 }
             }
             .onAppear {
@@ -83,8 +90,9 @@ struct WriterView: View {
                     viewModel.isMediaTrayOpen = true
                 }
                 if let attachment = draft.attachments.first(where: { $0.type == .video }) {
-                    viewModel.hasVideo = true
                     viewModel.videoPath = attachment.path
+                } else {
+                    viewModel.videoPath = nil
                 }
                 Task { @MainActor in
                     // workaround: wrap in a task to delay focusing the title a little
@@ -99,7 +107,7 @@ struct WriterView: View {
                 if let urls = try? result.get() {
                     viewModel.isMediaTrayOpen = true
                     urls.forEach { url in
-                        try? draft.addAttachment(path: url, type: viewModel.attachmentType)
+                        _ = try? draft.addAttachment(path: url, type: viewModel.attachmentType)
                     }
                     try? draft.save()
                 }

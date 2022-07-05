@@ -73,6 +73,7 @@ struct FeedUtils {
                     title: title,
                     content: content,
                     created: created,
+                    hasVideo: false,
                     videoFilename: nil
                 )
             }
@@ -94,6 +95,7 @@ struct FeedUtils {
                     title: title,
                     content: description,
                     created: created,
+                    hasVideo: false,
                     videoFilename: nil
                 )
             }
@@ -121,6 +123,7 @@ struct FeedUtils {
                     title: title,
                     content: content,
                     created: created,
+                    hasVideo: false,
                     videoFilename: nil
                 )
             }

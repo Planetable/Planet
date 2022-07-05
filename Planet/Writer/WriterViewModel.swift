@@ -10,7 +10,7 @@ class WriterViewModel: ObservableObject {
     @Published var allowedContentTypes = imageTypes
     @Published var allowMultipleSelection = false
     @Published var isMediaTrayOpen = false
-    @Published var hasVideo: Bool = false
+    @Published var isShowingEmptyTitleAlert = false
     @Published var videoPath: URL?
 
     func chooseImages() {

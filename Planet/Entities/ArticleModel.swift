@@ -45,5 +45,6 @@ struct PublicArticleModel: Codable {
     let title: String
     let content: String
     let created: Date
+    let hasVideo: Bool?
     let videoFilename: String?
 }

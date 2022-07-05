@@ -184,6 +184,7 @@ class Template: Codable, Identifiable {
                 ---
                 """,
             created: Date(),
+            hasVideo: false,
             videoFilename: nil
         )
 

@@ -30,6 +30,10 @@ class WriterWindow: NSWindow {
     }
 
     @objc func send(_ sender: Any?) {
+        if draft.title.isEmpty {
+            viewModel.isShowingEmptyTitleAlert = true
+            return
+        }
         do {
             try draft.saveToArticle()
 

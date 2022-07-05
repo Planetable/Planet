@@ -12,7 +12,15 @@ class MyArticleModel: ArticleModel, Codable {
     lazy var publicIndexPath = publicBasePath.appendingPathComponent("index.html", isDirectory: false)
 
     var publicArticle: PublicArticleModel {
-        PublicArticleModel(id: id, link: link, title: title, content: content, created: created, videoFilename: videoFilename)
+        PublicArticleModel(
+            id: id,
+            link: link,
+            title: title,
+            content: content,
+            created: created,
+            hasVideo: hasVideo,
+            videoFilename: videoFilename
+        )
     }
     var browserURL: URL? {
         URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.ipns)\(link)")
