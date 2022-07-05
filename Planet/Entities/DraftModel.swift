@@ -1,6 +1,18 @@
 import Foundation
+import Stencil
+import PathKit
+import Ink
+import os
 
 class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
+    static let previewTemplatePath = Bundle.main.url(forResource: "WriterBasic", withExtension: "html")!
+    static let previewRenderEnv = Environment(
+        loader: FileSystemLoader(paths: [Path(previewTemplatePath.path)]),
+        extensions: [StencilExtension.get()]
+    )
+
+    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Draft")
+
     let id: UUID
     @Published var title: String
     @Published var content: String
@@ -209,6 +221,19 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             }
             attachment.loadImage()
         }
+    }
+
+    func renderPreview() throws {
+        logger.info("Rendering preview for draft \(self.id)")
+
+        let html = MarkdownParser().html(from: content.trim())
+        let output = try Self.previewRenderEnv.renderTemplate(
+            name: Self.previewTemplatePath.path,
+            context: ["content_html": html]
+        )
+        try output.data(using: .utf8)?.write(to: previewPath)
+
+        logger.info("Rendered preview for draft \(self.id) and saved to \(self.previewPath)")
     }
 
     func saveToArticle() throws {

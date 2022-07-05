@@ -42,7 +42,7 @@ struct WriterView: View {
                 WriterTextView(draft: draft, text: $draft.content)
                     .frame(minWidth: 320, minHeight: 400)
                     .onChange(of: draft.content) { _ in
-                        try? WriterStore.shared.renderPreview(for: draft)
+                        try? draft.renderPreview()
                         NotificationCenter.default.post(
                             name: .writerNotification(.loadPreview, for: draft),
                             object: nil
@@ -55,10 +55,8 @@ struct WriterView: View {
                 Divider()
                 ScrollView(.horizontal) {
                     HStack(spacing: 0) {
-                        ForEach(draft.attachments, id: \.name) { attachment in
-                            if attachment.status != .deleted {
-                                AttachmentThumbnailView(attachment: attachment)
-                            }
+                        ForEach(draft.attachments.filter { $0.status != .deleted }, id: \.name) { attachment in
+                            AttachmentThumbnailView(attachment: attachment)
                         }
                     }
                 }
@@ -83,6 +81,10 @@ struct WriterView: View {
             .onAppear {
                 if !draft.attachments.isEmpty {
                     viewModel.isMediaTrayOpen = true
+                }
+                if let attachment = draft.attachments.first(where: { $0.type == .video }) {
+                    viewModel.hasVideo = true
+                    viewModel.videoPath = attachment.path
                 }
                 Task { @MainActor in
                     // workaround: wrap in a task to delay focusing the title a little

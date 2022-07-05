@@ -13,7 +13,7 @@ class WriterWindow: NSWindow {
             backing: .buffered,
             defer: false
         )
-        try? WriterStore.shared.renderPreview(for: draft)
+        try? draft.renderPreview()
         titleVisibility = .visible
         isMovableByWindowBackground = true
         titlebarAppearsTransparent = false

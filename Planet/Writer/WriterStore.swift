@@ -1,7 +1,4 @@
 import Foundation
-import Stencil
-import PathKit
-import Ink
 import os
 
 @MainActor class WriterStore: ObservableObject {
@@ -9,20 +6,8 @@ import os
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "WriterStore")
 
-    let previewRenderEnv: Stencil.Environment
-    let writerTemplateName: String
-
     @Published var writers: [DraftModel: WriterWindow] = [:]
     @Published var activeDraft: DraftModel? = nil
-
-    init() {
-        let writerTemplatePath = Bundle.main.url(forResource: "WriterBasic", withExtension: "html")!
-        previewRenderEnv = Environment(
-            loader: FileSystemLoader(paths: [Path(writerTemplatePath.path)]),
-            extensions: [StencilExtension.get()]
-        )
-        writerTemplateName = writerTemplatePath.path
-    }
 
     func newArticle(for planet: MyPlanetModel) throws {
         let draft: DraftModel
@@ -62,19 +47,5 @@ import os
 
     func setActiveDraft(draft: DraftModel?) {
         activeDraft = draft
-    }
-
-    func renderPreview(for draft: DraftModel) throws {
-        let content: String
-        let previewPath: URL
-
-        logger.info("Rendering preview for draft \(draft.id)")
-        content = draft.content
-        previewPath = draft.previewPath
-
-        let html = MarkdownParser().html(from: content.trim())
-        let output = try previewRenderEnv.renderTemplate(name: writerTemplateName, context: ["content_html": html])
-        try output.data(using: .utf8)?.write(to: previewPath)
-        logger.info("Rendered preview for draft \(draft.id) and saved to \(previewPath)")
     }
 }

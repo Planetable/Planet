@@ -18,7 +18,7 @@ enum AttachmentType: String, Codable {
     static func from(_ path: URL) -> Self {
         if let id = try? path.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier,
            let type = UTType(id) {
-            if type.conforms(to: .video) {
+            if type.conforms(to: .movie) || type.conforms(to: .video) {
                 return .video
             }
             if type.conforms(to: .audio) {
