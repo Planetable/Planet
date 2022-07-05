@@ -64,19 +64,8 @@ struct AttachmentThumbnailView: View {
             }
     }
 
-    func getAttachmentMarkdown() -> String? {
-        switch attachment.type {
-        case .image:
-            return "![\(attachment.name)](\(attachment.name))"
-        case .file:
-            return "<a href=\"\(attachment.name)\">\(attachment.name)</a>"
-        default:
-            return nil
-        }
-    }
-
     func insertAttachment() {
-        if let markdown = getAttachmentMarkdown() {
+        if let markdown = attachment.markdown {
             NotificationCenter.default.post(
                 name: .writerNotification(.insertText, for: attachment.draft),
                 object: markdown
@@ -86,7 +75,7 @@ struct AttachmentThumbnailView: View {
 
     func deleteAttachment() {
         attachment.draft.deleteAttachment(name: attachment.name)
-        if let markdown = getAttachmentMarkdown() {
+        if let markdown = attachment.markdown {
             NotificationCenter.default.post(
                 name: .writerNotification(.removeText, for: attachment.draft),
                 object: markdown

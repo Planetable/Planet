@@ -153,9 +153,10 @@ class WriterCustomTextView: NSView {
     }
 
     func removeTargetText(text: String) {
-        textView.string = textView.string.replacingOccurrences(of: text, with: "")
-        // replacing string does not trigger on change notification
-
+        let text = textView.string.replacingOccurrences(of: text, with: "")
+        textView.string = text
+        // replacing string does not sync with draft content
+        draft.content = text
     }
 }
 
@@ -184,12 +185,16 @@ class WriterEditorTextView: NSTextView {
         [.fileURL]
     }
 
-    // TODO: check multiple writer window drag and drop
-    // we probably need to update currently `draggingEntered` window
     override func draggingEnded(_ sender: NSDraggingInfo) {
         guard urls.count > 0 else { return }
         urls.forEach { url in
-            try? draft.addAttachment(path: url)
+            if let attachment = try? draft.addAttachment(path: url),
+               let markdown = attachment.markdown {
+                    NotificationCenter.default.post(
+                        name: .writerNotification(.insertText, for: attachment.draft),
+                        object: markdown
+                    )
+                }
         }
         try? draft.save()
     }
@@ -198,7 +203,7 @@ class WriterEditorTextView: NSTextView {
         if let pasteBoardItems = sender.draggingPasteboard.pasteboardItems {
             urls = pasteBoardItems
                 .compactMap { $0.propertyList(forType: .fileURL) as? String }
-                .map { URL(fileURLWithPath: $0).standardizedFileURL }
+                .map { URL(fileURLWithPath: $0).standardized }
         } else {
             urls = []
         }

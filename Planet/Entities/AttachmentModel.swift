@@ -42,6 +42,17 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
     // populated when initializing
     unowned var draft: DraftModel! = nil
 
+    var markdown: String? {
+        switch type {
+        case .image:
+            return "![\(name)](\(name))"
+        case .file:
+            return "<a href=\"\(name)\">\(name)</a>"
+        default:
+            return nil
+        }
+    }
+
     var path: URL? {
         if status == .deleted {
             return nil

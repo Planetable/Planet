@@ -163,11 +163,11 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         return false
     }
 
-    func addAttachment(path: URL) throws {
+    @discardableResult func addAttachment(path: URL) throws -> Attachment {
         try addAttachment(path: path, type: AttachmentType.from(path))
     }
 
-    func addAttachment(path: URL, type: AttachmentType) throws {
+    @discardableResult func addAttachment(path: URL, type: AttachmentType) throws -> Attachment {
         let name = path.lastPathComponent
         let targetPath = attachmentsPath.appendingPathComponent(name, isDirectory: false)
         if FileManager.default.fileExists(atPath: targetPath.path) {
@@ -189,6 +189,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             attachments.append(attachment)
         }
         attachment.loadImage()
+        return attachment
     }
 
     func deleteAttachment(name: String) {
