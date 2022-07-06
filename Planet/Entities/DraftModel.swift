@@ -167,6 +167,12 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             try FileManager.default.removeItem(at: targetPath)
         }
         try FileManager.default.copyItem(at: path, to: targetPath)
+        if type == .video {
+            // only allow one video attachment
+            attachments.removeAll { $0.type == .video || $0.name == name }
+        } else {
+            attachments.removeAll { $0.name == name }
+        }
         let attachment = Attachment(name: name, type: type)
         attachment.draft = self
         attachments.append(attachment)

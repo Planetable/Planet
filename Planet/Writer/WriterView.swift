@@ -1,5 +1,4 @@
 import SwiftUI
-import AVKit
 import Stencil
 import PathKit
 import WebKit
@@ -20,13 +19,8 @@ struct WriterView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if let videoPath = viewModel.videoPath {
-                HStack {
-                    VideoPlayer(player: AVPlayer(url: videoPath))
-                        .frame(height: 400)
-                }
-                Divider()
-            }
+            WriterVideoView(viewModel: viewModel)
+
             TextField("Title", text: $draft.title)
                 .frame(height: 34, alignment: .leading)
                 .padding(.bottom, 2)
