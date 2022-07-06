@@ -92,7 +92,7 @@ struct PlanetApp: App {
 
         WindowGroup("Onboarding") {
             OnboardingView()
-                .frame(width: 600, height: 540)
+                .frame(width: 720, height: 528)
                 .onAppear {
                     DispatchQueue.main.async {
                         NSApplication.shared.windows.forEach { window in

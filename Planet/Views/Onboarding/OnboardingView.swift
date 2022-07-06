@@ -71,6 +71,9 @@ struct OnboardingView: View {
                 } label: {
                     Text("Continue")
                 }.keyboardShortcut(.defaultAction)
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.roundedRectangle)
+                    .controlSize(.large)
             }
         }
         .padding(.top, 40)
