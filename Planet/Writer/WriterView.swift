@@ -1,8 +1,5 @@
 import SwiftUI
-import Stencil
-import PathKit
 import WebKit
-import Ink
 import UniformTypeIdentifiers
 
 struct WriterView: View {
@@ -19,7 +16,9 @@ struct WriterView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            WriterVideoView(viewModel: viewModel)
+            if let videoPath = viewModel.videoPath {
+                WriterVideoView(videoPath: videoPath)
+            }
 
             TextField("Title", text: $draft.title)
                 .frame(height: 34, alignment: .leading)
