@@ -62,7 +62,6 @@ struct AttachmentThumbnailView: View {
                     isShowingControl = isHovering
                 }
             }
-
     }
 
     func insertAttachment() {
