@@ -375,8 +375,8 @@ class MyPlanetModel: PlanetModel, Codable {
         articles.forEach { try? $0.save() }
     }
 
-    func delete() {
-        try? FileManager.default.removeItem(at: basePath)
+    func delete() throws {
+        try FileManager.default.removeItem(at: basePath)
     }
 }
 

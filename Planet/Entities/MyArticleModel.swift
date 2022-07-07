@@ -76,7 +76,7 @@ class MyArticleModel: ArticleModel, Codable {
         article.planet = planet
         let draftPath = planet.articleDraftsPath.appendingPathComponent(id.uuidString, isDirectory: true)
         if FileManager.default.fileExists(atPath: draftPath.path) {
-            article.draft = try DraftModel.load(from: draftPath, article: article)
+            article.draft = try? DraftModel.load(from: draftPath, article: article)
         }
         return article
     }

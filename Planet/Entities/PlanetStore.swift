@@ -43,7 +43,6 @@ enum PlanetDetailViewType: Hashable {
     @Published var isFollowingPlanet = false
     @Published var isShowingPlanetInfo = false
     @Published var isImportingPlanet = false
-    @Published var isExportingPlanet = false
     @Published var isMigrating = false
     @Published var isShowingAlert = false
     @Published var isAlert = false
@@ -75,11 +74,6 @@ enum PlanetDetailViewType: Hashable {
         logger.info("Found \(followingPlanetDirectories.count) following planets in repo")
         followingPlanets = followingPlanetDirectories.compactMap { try? FollowingPlanetModel.load(from: $0) }
         logger.info("Loaded \(self.followingPlanets.count) following planets")
-    }
-
-    func save() throws {
-        try myPlanets.forEach { try $0.save() }
-        try followingPlanets.forEach { try $0.save() }
     }
 
     func publishMyPlanets() {

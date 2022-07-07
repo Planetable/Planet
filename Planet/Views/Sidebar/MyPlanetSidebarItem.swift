@@ -4,6 +4,7 @@ struct MyPlanetSidebarItem: View {
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var planet: MyPlanetModel
     @State var isShowingDeleteConfirmation = false
+    @State var isExportingPlanet = false
 
     var body: some View {
         HStack(spacing: 4) {
@@ -69,6 +70,12 @@ struct MyPlanetSidebarItem: View {
                         Text("Open in Public Gateway")
                     }
 
+                    Button {
+                        isExportingPlanet = true
+                    } label: {
+                        Text("Export Planet")
+                    }
+
                     Divider()
 
                     Button {
@@ -83,7 +90,7 @@ struct MyPlanetSidebarItem: View {
                 isPresented: $isShowingDeleteConfirmation
             ) {
                 Button(role: .destructive) {
-                    planet.delete()
+                    try? planet.delete()
                     if case .myPlanet(let selectedPlanet) = planetStore.selectedView,
                        planet == selectedPlanet {
                         planetStore.selectedView = nil
@@ -91,6 +98,30 @@ struct MyPlanetSidebarItem: View {
                 } label: {
                     Text("Delete")
                 }
+            }
+            .fileImporter(
+                isPresented: $isExportingPlanet,
+                allowedContentTypes: [.directory]
+            ) { result in
+                if let url = try? result.get() {
+                    do {
+                        try planet.exportBackup(to: url)
+                        return
+                    } catch PlanetError.FileExistsError {
+                        PlanetStore.shared.alert(
+                            title: "Failed to Export Planet",
+                            message: """
+                                     There is already an exported Planet in the destination. \
+                                     We do not recommend override your backup. \
+                                     Please choose another destination, or rename your previous backup.
+                                     """
+                        )
+                        return
+                    } catch {
+                        // use general alert
+                    }
+                }
+                PlanetStore.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
             }
     }
 }

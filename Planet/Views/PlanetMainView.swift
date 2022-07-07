@@ -86,31 +86,6 @@ struct PlanetMainView: View {
                 }
             )
         }
-        .fileImporter(
-            isPresented: $planetStore.isExportingPlanet,
-            allowedContentTypes: [.directory]
-        ) { result in
-            if let url = try? result.get(),
-               case .myPlanet(let planet) = planetStore.selectedView {
-                do {
-                    try planet.exportBackup(to: url)
-                    return
-                } catch PlanetError.FileExistsError {
-                    PlanetStore.shared.alert(
-                        title: "Failed to Export Planet",
-                        message: """
-                                 There is already an exported Planet in the destination. \
-                                 We do not recommend override your backup. \
-                                 Please choose another destination, or rename your previous backup.
-                                 """
-                    )
-                    return
-                } catch {
-                    // use general alert
-                }
-            }
-            PlanetStore.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
-        }
         .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
             if case .myPlanet(let planet) = planetStore.selectedView {
                 AboutMyPlanetView(planet: planet)

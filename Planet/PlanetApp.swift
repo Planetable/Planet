@@ -9,7 +9,6 @@ import SwiftUI
 import Sparkle
 import UserNotifications
 
-
 @main
 struct PlanetApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -193,7 +192,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         Task {
-            try await PlanetStore.shared.save()
             await IPFSDaemon.shared.shutdownDaemon()
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }

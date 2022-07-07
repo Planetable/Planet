@@ -70,22 +70,12 @@ struct WriterView: View {
                 )
             }
             .onChange(of: draft.attachments) { _ in
-                if let attachment = draft.attachments.first(where: { $0.type == .video }) {
-                    viewModel.videoPath = attachment.path
-                } else {
-                    viewModel.videoPath = nil
-                }
                 if !draft.attachments.isEmpty {
                     viewModel.isMediaTrayOpen = true
                 }
                 try? draft.renderPreview()
             }
             .onAppear {
-                if let attachment = draft.attachments.first(where: { $0.type == .video }) {
-                    viewModel.videoPath = attachment.path
-                } else {
-                    viewModel.videoPath = nil
-                }
                 if !draft.attachments.isEmpty {
                     viewModel.isMediaTrayOpen = true
                 }

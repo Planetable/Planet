@@ -9,7 +9,6 @@ import UniformTypeIdentifiers
     @Published var isMediaTrayOpen = false
     @Published var isShowingEmptyTitleAlert = false
     @Published var isShowingClosingWindowConfirmation = false
-    @Published var videoPath: URL?
 
     func chooseImages() {
         attachmentType = .image
