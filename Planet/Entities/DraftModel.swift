@@ -145,6 +145,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                 attachment.draft = draft
                 let filePath = article.publicBasePath.appendingPathComponent(attachment.name, isDirectory: false)
                 let attachmentPath = draft.attachmentsPath.appendingPathComponent(attachment.name, isDirectory: false)
+                if FileManager.default.fileExists(atPath: attachmentPath.path) {
+                    try FileManager.default.removeItem(at: attachmentPath)
+                }
                 try FileManager.default.copyItem(at: filePath, to: attachmentPath)
                 attachment.loadImage()
                 return attachment
