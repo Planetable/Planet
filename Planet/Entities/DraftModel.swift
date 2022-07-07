@@ -8,8 +8,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     static let previewTemplatePath = Bundle.main.url(forResource: "WriterBasic", withExtension: "html")!
     static let previewRenderEnv = Environment(
         loader: FileSystemLoader(paths: [Path(previewTemplatePath.path)]),
-        extensions: [StencilExtension.get()]
+        extensions: [StencilExtension.common]
     )
+    static let previewMarkdownParser = MarkdownParser(modifiers: [InkModifier.draftPreviewImages])
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Draft")
 
@@ -190,7 +191,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     func renderPreview() throws {
         logger.info("Rendering preview for draft \(self.id)")
 
-        let html = MarkdownParser().html(from: content.trim())
+        let html = Self.previewMarkdownParser.html(from: content.trim())
         let output = try Self.previewRenderEnv.renderTemplate(
             name: Self.previewTemplatePath.path,
             context: ["content_html": html]

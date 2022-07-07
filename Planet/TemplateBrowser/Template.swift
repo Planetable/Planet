@@ -89,7 +89,7 @@ class Template: Codable, Identifiable {
             "build_timestamp": Int(Date().timeIntervalSince1970),
         ]
         let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
-        let environment = Environment(loader: loader, extensions: [StencilExtension.get()])
+        let environment = Environment(loader: loader, extensions: [StencilExtension.common])
         let stencilTemplateName = blogPath.lastPathComponent
         return try environment.renderTemplate(name: stencilTemplateName, context: context)
     }
@@ -103,7 +103,7 @@ class Template: Codable, Identifiable {
             "build_timestamp": Int(Date().timeIntervalSince1970),
         ]
         let loader = FileSystemLoader(paths: [Path(indexPath.deletingLastPathComponent().path)])
-        let environment = Environment(loader: loader, extensions: [StencilExtension.get()])
+        let environment = Environment(loader: loader, extensions: [StencilExtension.common])
         let stencilTemplateName = indexPath.lastPathComponent
         return try environment.renderTemplate(name: stencilTemplateName, context: context)
     }
@@ -199,7 +199,7 @@ class Template: Codable, Identifiable {
             "content_html": content_html
         ]
         let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
-        let environment = Environment(loader: loader, extensions: [StencilExtension.get()])
+        let environment = Environment(loader: loader, extensions: [StencilExtension.common])
         let stencilTemplateName = blogPath.lastPathComponent
         do {
             let output: String = try environment.renderTemplate(name: stencilTemplateName, context: context)

@@ -188,7 +188,7 @@ extension WriterWindow: NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        NotificationCenter.default.post(name: .closeWriterWindow, object: draft)
+        WriterStore.shared.writers.removeValue(forKey: draft)
     }
 
     func windowDidBecomeKey(_ notification: Notification) {

@@ -16,8 +16,8 @@ struct WriterView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if let videoPath = viewModel.videoPath {
-                WriterVideoView(videoPath: videoPath)
+            if let attachment = draft.attachments.first(where: {$0.type == .video}) {
+                WriterVideoView(videoAttachment: attachment)
             }
 
             TextField("Title", text: $draft.title)
@@ -34,13 +34,6 @@ struct WriterView: View {
             HSplitView {
                 WriterTextView(draft: draft, text: $draft.content)
                     .frame(minWidth: 320, minHeight: 300)
-                    .onChange(of: draft.content) { _ in
-                        try? draft.renderPreview()
-                        NotificationCenter.default.post(
-                            name: .writerNotification(.loadPreview, for: draft),
-                            object: nil
-                        )
-                    }
                 WriterPreview(draft: draft)
             }
 
@@ -70,6 +63,11 @@ struct WriterView: View {
             }
             .onChange(of: draft.content) { _ in
                 try? draft.save()
+                try? draft.renderPreview()
+                NotificationCenter.default.post(
+                    name: .writerNotification(.loadPreview, for: draft),
+                    object: nil
+                )
             }
             .onChange(of: draft.attachments) { _ in
                 if let attachment = draft.attachments.first(where: { $0.type == .video }) {
@@ -80,6 +78,7 @@ struct WriterView: View {
                 if !draft.attachments.isEmpty {
                     viewModel.isMediaTrayOpen = true
                 }
+                try? draft.renderPreview()
             }
             .onAppear {
                 if let attachment = draft.attachments.first(where: { $0.type == .video }) {
@@ -105,7 +104,23 @@ struct WriterView: View {
                     urls.forEach { url in
                         _ = try? draft.addAttachment(path: url, type: viewModel.attachmentType)
                     }
+                    try? draft.renderPreview()
                     try? draft.save()
+                }
+            }
+            .confirmationDialog(
+                Text("Do you want to save your changes as a draft?"),
+                isPresented: $viewModel.isShowingClosingWindowConfirmation
+            ) {
+                Button {
+                    try? draft.save()
+                } label: {
+                    Text("Save Draft")
+                }
+                Button(role: .destructive) {
+                    try? draft.delete()
+                } label: {
+                    Text("Discard Changes")
                 }
             }
             .onDrop(of: [.fileURL], delegate: dragAndDrop)

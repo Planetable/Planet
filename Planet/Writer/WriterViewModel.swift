@@ -8,6 +8,7 @@ import UniformTypeIdentifiers
     @Published var allowMultipleSelection = false
     @Published var isMediaTrayOpen = false
     @Published var isShowingEmptyTitleAlert = false
+    @Published var isShowingClosingWindowConfirmation = false
     @Published var videoPath: URL?
 
     func chooseImages() {

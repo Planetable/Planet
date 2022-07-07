@@ -186,6 +186,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                     planet.avatar = image
                 }
 
+                try planet.save()
                 return planet
             }
             // did not get published planet file, try to get feed
@@ -225,6 +226,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                 planet.avatar = image
             }
 
+            try planet.save()
             return planet
         } else if link.hasPrefix("https://") {
             guard let feedURL = URL(string: link),
@@ -262,6 +264,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                 planet.avatar = image
             }
 
+            try planet.save()
             return planet
         } else if link.hasPrefix("k") {
             let cidWithPrefix = try await IPFSDaemon.shared.resolveIPNS(ipns: link)
@@ -310,6 +313,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
                 planet.avatar = image
             }
 
+            try planet.save()
             return planet
         }
         throw PlanetError.InvalidPlanetURLError

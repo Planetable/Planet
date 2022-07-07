@@ -190,11 +190,11 @@ class WriterEditorTextView: NSTextView {
         urls.forEach { url in
             if let attachment = try? draft.addAttachment(path: url),
                let markdown = attachment.markdown {
-                    NotificationCenter.default.post(
-                        name: .writerNotification(.insertText, for: attachment.draft),
-                        object: markdown
-                    )
-                }
+                NotificationCenter.default.post(
+                    name: .writerNotification(.insertText, for: attachment.draft),
+                    object: markdown
+                )
+            }
         }
         try? draft.save()
     }

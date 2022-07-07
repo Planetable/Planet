@@ -28,6 +28,7 @@ enum AttachmentType: String, Codable {
 class Attachment: Codable, Equatable, Hashable, ObservableObject {
     let name: String
     @Published var type: AttachmentType
+    let created: Date
 
     @Published var image: NSImage? = nil
 
@@ -51,7 +52,9 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
+        hasher.combine(type)
         hasher.combine(draft)
+        hasher.combine(created)
     }
 
     static func ==(lhs: Attachment, rhs: Attachment) -> Bool {
@@ -63,29 +66,34 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
         }
         return lhs.name == rhs.name
             && lhs.draft == rhs.draft
+            && lhs.type == rhs.type
+            && lhs.created == rhs.created
     }
 
     enum CodingKeys: String, CodingKey {
         case name
         case type
-        case status
+        case created
     }
 
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
         type = try container.decode(AttachmentType.self, forKey: .type)
+        created = try container.decode(Date.self, forKey: .created)
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(name, forKey: .name)
         try container.encode(type, forKey: .type)
+        try container.encode(created, forKey: .created)
     }
 
     init(name: String, type: AttachmentType) {
         self.name = name
         self.type = type
+        created = Date()
     }
 
     func loadImage() {
