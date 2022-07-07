@@ -97,7 +97,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         draft.target = .myPlanet(Unowned(planet))
         draft.attachments.forEach { attachment in
             attachment.draft = draft
-            attachment.loadImage()
+            attachment.loadThumbnail()
         }
         return draft
     }
@@ -109,7 +109,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         draft.target = .article(Unowned(article))
         draft.attachments.forEach { attachment in
             attachment.draft = draft
-            attachment.loadImage()
+            attachment.loadThumbnail()
         }
         return draft
     }
@@ -149,7 +149,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                     try FileManager.default.removeItem(at: attachmentPath)
                 }
                 try FileManager.default.copyItem(at: filePath, to: attachmentPath)
-                attachment.loadImage()
+                attachment.loadThumbnail()
                 return attachment
             }
 
@@ -180,7 +180,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let attachment = Attachment(name: name, type: type)
         attachment.draft = self
         attachments.append(attachment)
-        attachment.loadImage()
+        attachment.loadThumbnail()
         return attachment
     }
 

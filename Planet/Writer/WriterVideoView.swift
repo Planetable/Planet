@@ -9,6 +9,13 @@ struct WriterVideoView: View {
             VideoPlayer(player: AVPlayer(url: videoAttachment.path))
                 .frame(height: 360)
         }
+            .contextMenu {
+                Button {
+                    try? videoAttachment.draft.deleteAttachment(name: videoAttachment.name)
+                } label: {
+                    Text("Delete Video")
+                }
+            }
         Divider()
     }
 }

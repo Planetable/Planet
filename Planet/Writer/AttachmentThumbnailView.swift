@@ -7,18 +7,13 @@ struct AttachmentThumbnailView: View {
 
     var body: some View {
         ZStack {
-            if let image = attachment.image,
-               let resizedImage = image.resizeSquare(maxLength: 60) {
-                Image(nsImage: resizedImage)
+            if let thumbnail = attachment.thumbnail {
+                Image(nsImage: thumbnail)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .padding(.vertical, 4)
                     .frame(width: 60, height: 60, alignment: .center)
             }
-
-            // TODO: when we have all types of thumbnails to show
-            // switch attachment.type {
-            // }
 
             if attachment.type == .image || attachment.type == .file {
                 VStack {
@@ -75,7 +70,6 @@ struct AttachmentThumbnailView: View {
 
     func deleteAttachment() {
         try? attachment.draft.deleteAttachment(name: attachment.name)
-        try? attachment.draft.save()
         if let markdown = attachment.markdown {
             NotificationCenter.default.post(
                 name: .writerNotification(.removeText, for: attachment.draft),

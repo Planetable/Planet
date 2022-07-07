@@ -30,7 +30,7 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
     @Published var type: AttachmentType
     let created: Date
 
-    @Published var image: NSImage? = nil
+    @Published var thumbnail: NSImage? = nil
 
     // populated when initializing
     unowned var draft: DraftModel! = nil
@@ -96,12 +96,12 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
         created = Date()
     }
 
-    func loadImage() {
+    func loadThumbnail() {
         if type == .image,
-           let image = NSImage(contentsOf: path) {
-            self.image = image
+           let image = NSImage(contentsOf: path)?.resizeSquare(maxLength: 60)  {
+            thumbnail = image
         } else {
-            image = nil
+            thumbnail = nil
         }
     }
 }

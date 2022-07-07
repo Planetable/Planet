@@ -41,7 +41,10 @@ struct WriterView: View {
                 Divider()
                 ScrollView(.horizontal) {
                     HStack(spacing: 0) {
-                        ForEach(draft.attachments, id: \.name) { attachment in
+                        ForEach(
+                            draft.attachments.filter { $0.type == .image || $0.type == .file },
+                            id: \.name
+                        ) { attachment in
                             AttachmentThumbnailView(attachment: attachment)
                         }
                     }
@@ -70,13 +73,13 @@ struct WriterView: View {
                 )
             }
             .onChange(of: draft.attachments) { _ in
-                if !draft.attachments.isEmpty {
+                if draft.attachments.contains(where: { $0.type == .image || $0.type == .file }) {
                     viewModel.isMediaTrayOpen = true
                 }
                 try? draft.renderPreview()
             }
             .onAppear {
-                if !draft.attachments.isEmpty {
+                if draft.attachments.contains(where: { $0.type == .image || $0.type == .file }) {
                     viewModel.isMediaTrayOpen = true
                 }
                 Task { @MainActor in
@@ -98,21 +101,21 @@ struct WriterView: View {
                     try? draft.save()
                 }
             }
-            .confirmationDialog(
-                Text("Do you want to save your changes as a draft?"),
-                isPresented: $viewModel.isShowingClosingWindowConfirmation
-            ) {
-                Button {
-                    try? draft.save()
-                } label: {
-                    Text("Save Draft")
-                }
-                Button(role: .destructive) {
-                    try? draft.delete()
-                } label: {
-                    Text("Discard Changes")
-                }
-            }
+            // .confirmationDialog(
+            //     Text("Do you want to save your changes as a draft?"),
+            //     isPresented: $viewModel.isShowingClosingWindowConfirmation
+            // ) {
+            //     Button {
+            //         try? draft.save()
+            //     } label: {
+            //         Text("Save Draft")
+            //     }
+            //     Button(role: .destructive) {
+            //         try? draft.delete()
+            //     } label: {
+            //         Text("Discard Changes")
+            //     }
+            // }
             .onDrop(of: [.fileURL], delegate: dragAndDrop)
     }
 }
