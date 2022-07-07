@@ -33,7 +33,7 @@ struct WriterView: View {
 
             HSplitView {
                 WriterTextView(draft: draft, text: $draft.content)
-                    .frame(minWidth: 320, minHeight: 400)
+                    .frame(minWidth: 320, minHeight: 300)
                     .onChange(of: draft.content) { _ in
                         try? draft.renderPreview()
                         NotificationCenter.default.post(

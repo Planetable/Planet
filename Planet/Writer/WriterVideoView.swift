@@ -7,7 +7,8 @@ struct WriterVideoView: View {
     var body: some View {
         HStack {
             VideoPlayer(player: AVPlayer(url: videoPath))
-                .frame(height: 400)
+                .frame(minHeight: 270, maxHeight: 360)
+                .aspectRatio(16 / 9, contentMode: .fit)
         }
         Divider()
     }
