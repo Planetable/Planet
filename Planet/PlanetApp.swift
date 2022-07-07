@@ -165,12 +165,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let saver = Saver.shared
         if saver.isMigrationNeeded() {
+            Task { @MainActor in
+                PlanetStore.shared.isMigrating = true
+            }
             var migrationErrors: Int = 0
             migrationErrors = migrationErrors + saver.savePlanets()
             migrationErrors = migrationErrors + saver.migratePublic()
             migrationErrors = migrationErrors + saver.migrateTemplates()
             if migrationErrors == 0 {
                 saver.setMigrationDoneFlag(flag: true)
+            }
+            Task { @MainActor in
+                PlanetStore.shared.isMigrating = false
             }
         }
     }

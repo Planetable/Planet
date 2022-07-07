@@ -124,6 +124,9 @@ struct PlanetMainView: View {
                 EditMyPlanetView(planet: planet)
             }
         }
+        .sheet(isPresented: $planetStore.isMigrating) {
+            MigrationProgressView()
+        }
     }
 
     private func toggleSidebar() {

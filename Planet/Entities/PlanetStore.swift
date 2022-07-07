@@ -44,6 +44,7 @@ enum PlanetDetailViewType: Hashable {
     @Published var isShowingPlanetInfo = false
     @Published var isImportingPlanet = false
     @Published var isExportingPlanet = false
+    @Published var isMigrating = false
     @Published var isShowingAlert = false
     @Published var isAlert = false
     @Published var alertTitle: String = ""
