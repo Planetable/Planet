@@ -8,7 +8,7 @@ class WriterWindow: NSWindow {
         self.draft = draft
         viewModel = WriterViewModel()
         super.init(
-            contentRect: NSRect(x: 0, y: 0, width: 400, height: 400),
+            contentRect: NSRect(x: 0, y: 0, width: 400, height: 320),
             styleMask: [.closable, .miniaturizable, .resizable, .titled, .unifiedTitleAndToolbar, .fullSizeContentView],
             backing: .buffered,
             defer: false
