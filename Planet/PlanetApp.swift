@@ -174,6 +174,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             migrationErrors = migrationErrors + saver.migrateTemplates()
             if migrationErrors == 0 {
                 saver.setMigrationDoneFlag(flag: true)
+                Task { @MainActor in
+                    try PlanetStore.shared.load()
+                }
             }
             Task { @MainActor in
                 PlanetStore.shared.isMigrating = false
