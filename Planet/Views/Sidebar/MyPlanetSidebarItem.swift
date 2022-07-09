@@ -95,6 +95,7 @@ struct MyPlanetSidebarItem: View {
                        planet == selectedPlanet {
                         planetStore.selectedView = nil
                     }
+                    PlanetStore.shared.myPlanets.removeAll { $0.id == planet.id }
                 } label: {
                     Text("Delete")
                 }

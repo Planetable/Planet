@@ -2,16 +2,19 @@ import Foundation
 import SwiftUI
 import os
 
-class MyPlanetModel: PlanetModel, Codable {
+class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codable {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "MyPlanet")
 
+    let id: UUID
+    @Published var name: String
+    @Published var about: String
+    let created: Date
     let ipns: String
     @Published var updated: Date
     @Published var templateName: String
     @Published var lastPublished: Date?
 
     @Published var isPublishing = false
-
     // populated when initializing
     @Published var avatar: NSImage? = nil
     @Published var drafts: [DraftModel]! = nil
@@ -53,6 +56,42 @@ class MyPlanetModel: PlanetModel, Codable {
         URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(ipns)/")
     }
 
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(name)
+        hasher.combine(about)
+        hasher.combine(created)
+        hasher.combine(ipns)
+        hasher.combine(updated)
+        hasher.combine(templateName)
+        hasher.combine(lastPublished)
+        hasher.combine(isPublishing)
+        hasher.combine(avatar)
+        hasher.combine(drafts)
+        hasher.combine(articles)
+    }
+
+    static func ==(lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
+        if lhs === rhs {
+            return true
+        }
+        if type(of: lhs) != type(of: rhs) {
+            return false
+        }
+        return lhs.id == rhs.id
+            && lhs.name == rhs.name
+            && lhs.about == rhs.about
+            && lhs.created == rhs.created
+            && lhs.ipns == rhs.ipns
+            && lhs.updated == rhs.updated
+            && lhs.templateName == rhs.templateName
+            && lhs.lastPublished == rhs.lastPublished
+            && lhs.isPublishing == rhs.isPublishing
+            && lhs.avatar == rhs.avatar
+            && lhs.drafts == rhs.drafts
+            && lhs.articles == rhs.articles
+    }
+
     enum CodingKeys: String, CodingKey {
         case id, name, about, ipns, created, updated, templateName, lastPublished
     }
@@ -61,15 +100,14 @@ class MyPlanetModel: PlanetModel, Codable {
     // plus we're doing class inheritance
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let id = try container.decode(UUID.self, forKey: .id)
-        let name = try container.decode(String.self, forKey: .name)
-        let about = try container.decode(String.self, forKey: .about)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        about = try container.decode(String.self, forKey: .about)
         ipns = try container.decode(String.self, forKey: .ipns)
-        let created = try container.decode(Date.self, forKey: .created)
+        created = try container.decode(Date.self, forKey: .created)
         updated = try container.decode(Date.self, forKey: .updated)
         templateName = try container.decode(String.self, forKey: .templateName)
         lastPublished = try container.decodeIfPresent(Date.self, forKey: .lastPublished)
-        super.init(id: id, name: name, about: about, created: created)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -94,11 +132,14 @@ class MyPlanetModel: PlanetModel, Codable {
         lastPublished: Date?,
         templateName: String
     ) {
+        self.id = id
+        self.name = name
+        self.about = about
+        self.created = created
         self.ipns = ipns
         self.updated = updated
         self.lastPublished = lastPublished
         self.templateName = templateName
-        super.init(id: id, name: name, about: about, created: created)
     }
 
     static func load(from directoryPath: URL) throws -> MyPlanetModel {
@@ -153,14 +194,15 @@ class MyPlanetModel: PlanetModel, Codable {
         planet.articles = []
         try FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: planet.articlesPath, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: planet.publicBasePath, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: planet.draftsPath, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: planet.articleDraftsPath, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: planet.publicBasePath, withIntermediateDirectories: true)
         try planet.copyTemplateAssets()
         return planet
     }
 
-    static func importBackup(from path: URL) async throws -> MyPlanetModel {
+    @MainActor static func importBackup(from path: URL) throws -> MyPlanetModel {
+        Self.logger.info("Importing backup from \(path)")
         let backupInfoPath = path.appendingPathComponent("planet.json", isDirectory: false)
         let backupAssetsPath = path.appendingPathComponent("assets", isDirectory: true)
         let backupIndexPath = path.appendingPathComponent("index.html", isDirectory: false)
@@ -170,6 +212,7 @@ class MyPlanetModel: PlanetModel, Codable {
         guard FileManager.default.fileExists(atPath: backupInfoPath.path),
               FileManager.default.fileExists(atPath: backupPrivateKeyPath.path)
         else {
+            Self.logger.info("Planet backup is missing private key for publishing IPNS, abort")
             throw PlanetError.ImportPlanetError
         }
 
@@ -179,8 +222,10 @@ class MyPlanetModel: PlanetModel, Codable {
         else {
             throw PlanetError.ImportPlanetError
         }
+        Self.logger.info("Loaded backup planet info with id \(backupPlanet.id)")
 
-        if await PlanetStore.shared.myPlanets.contains(where: { $0.id == backupPlanet.id }) {
+        if PlanetStore.shared.myPlanets.contains(where: { $0.id == backupPlanet.id }) {
+            Self.logger.info("Planet with id \(backupPlanet.id) already exists, abort")
             throw PlanetError.PlanetExistsError
         }
 
@@ -202,10 +247,12 @@ class MyPlanetModel: PlanetModel, Codable {
             templateName: backupPlanet.templateName
         )
 
-        // delete existing local planet file if exists
+        // delete existing planet files if exists
+        // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
         if FileManager.default.fileExists(atPath: planet.publicBasePath.path) {
-            try? FileManager.default.removeItem(at: planet.publicBasePath)
+            try FileManager.default.removeItem(at: planet.publicBasePath)
         }
+        Self.logger.info("Copying assets from backup planet \(backupPlanet.id)")
         do {
             try FileManager.default.createDirectory(at: planet.publicBasePath, withIntermediateDirectories: true)
             if FileManager.default.fileExists(atPath: backupAssetsPath.path) {
@@ -220,9 +267,11 @@ class MyPlanetModel: PlanetModel, Codable {
         } catch {
             throw PlanetError.ImportPlanetError
         }
+        Self.logger.info("Assets copied from backup planet \(backupPlanet.id)")
 
         planet.avatar = NSImage(contentsOf: planet.avatarPath)
         planet.drafts = []
+        Self.logger.info("Found \(backupPlanet.articles.count) backup articles from backup planet \(backupPlanet.id)")
         planet.articles = backupPlanet.articles.compactMap { backupArticle in
             let backupArticlePath = path.appendingPathComponent(backupArticle.link, isDirectory: true)
             if FileManager.default.fileExists(atPath: backupArticlePath.path) {
@@ -244,6 +293,21 @@ class MyPlanetModel: PlanetModel, Codable {
             }
             return nil
         }
+        Self.logger.info("Regenerated \(planet.articles.count) articles from backup articles for backup planet \(backupPlanet.id)")
+
+        try FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: planet.articlesPath, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: planet.draftsPath, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: planet.articleDraftsPath, withIntermediateDirectories: true)
+
+        if FileManager.default.fileExists(atPath: backupAvatarPath.path) {
+            try FileManager.default.copyItem(at: backupAvatarPath, to: planet.avatarPath)
+        }
+        planet.avatar = NSImage(contentsOf: planet.avatarPath)
+
+        Self.logger.info("Saving imported planet \(planet.id)")
+        try planet.save()
+        try planet.articles.forEach { try $0.save() }
         return planet
     }
 
@@ -296,9 +360,13 @@ class MyPlanetModel: PlanetModel, Codable {
     }
 
     func publish() async throws {
-        isPublishing = true
+        Task { @MainActor in
+            self.isPublishing = true
+        }
         defer {
-            isPublishing = false
+            Task { @MainActor in
+                self.isPublishing = false
+            }
         }
         let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
         let result = try await IPFSDaemon.shared.api(path: "name/publish", args: [
@@ -308,8 +376,11 @@ class MyPlanetModel: PlanetModel, Codable {
             "quieter": "1",
             "lifetime": "168h",
         ], timeout: 600)
-        _ = try JSONDecoder.shared.decode(IPFSPublished.self, from: result)
-        lastPublished = Date()
+        let published = try JSONDecoder.shared.decode(IPFSPublished.self, from: result)
+        Self.logger.info("Published planet \(self.id) to \(published.name)")
+        Task { @MainActor in
+            self.lastPublished = Date()
+        }
         try save()
     }
 
@@ -370,14 +441,23 @@ class MyPlanetModel: PlanetModel, Codable {
     }
 
     func save() throws {
-        let data = try JSONEncoder.shared.encode(self)
-        try data.write(to: infoPath)
-        articles.forEach { try? $0.save() }
+        try JSONEncoder.shared.encode(self).write(to: infoPath)
     }
 
     func delete() throws {
         try FileManager.default.removeItem(at: basePath)
+        // try FileManager.default.removeItem(at: publicBasePath)
     }
+}
+
+struct PublicPlanetModel: Codable {
+    let id: UUID
+    let name: String
+    let about: String
+    let ipns: String
+    let created: Date
+    let updated: Date
+    let articles: [PublicArticleModel]
 }
 
 struct BackupMyPlanetModel: Codable {

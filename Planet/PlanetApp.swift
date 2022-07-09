@@ -106,13 +106,8 @@ struct PlanetApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unifiedCompact)
         .handlesExternalEvents(matching: Set(arrayLiteral: "Onboarding"))
-
-        WindowGroup("Writer") {
-
-        }
     }
 }
-
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -128,10 +123,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 let planet = try await FollowingPlanetModel.follow(link: link)
                 PlanetStore.shared.followingPlanets.insert(planet, at: 0)
-                try planet.save()
             }
         } else if url.lastPathComponent.hasSuffix(".planet") {
-            // TODO: import planet
+            Task { @MainActor in
+                let planet = try MyPlanetModel.importBackup(from: url)
+                PlanetStore.shared.myPlanets.insert(planet, at: 0)
+            }
         }
     }
 

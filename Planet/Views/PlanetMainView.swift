@@ -17,64 +17,10 @@ struct PlanetMainView: View {
     var body: some View {
         NavigationView {
             PlanetSidebarView()
-                .frame(minWidth: 200)
-                .toolbar {
-                    ToolbarItem {
-                        Button(action: toggleSidebar) {
-                            Image(systemName: "sidebar.left")
-                                .help("Toggle Sidebar")
-                        }
-                    }
-                }
-                .fileImporter(
-                    isPresented: $planetStore.isImportingPlanet,
-                    allowedContentTypes: [.data, .package]
-                ) { result in
-                    if let url = try? result.get(),
-                       url.pathExtension == "planet" {
-                        Task {
-                            do {
-                                let planet = try await MyPlanetModel.importBackup(from: url)
-                                try planet.save()
-                                PlanetStore.shared.myPlanets.insert(planet, at: 0)
-                            } catch {
-                                PlanetStore.shared.alert(title: "Failed to import planet")
-                            }
-                        }
-                    }
-                }
 
             ArticleListView()
 
             ArticleView()
-                .frame(minWidth: 320)
-                .toolbar {
-                    switch planetStore.selectedView {
-                    case .myPlanet(let planet):
-                        Button {
-                            do {
-                                try WriterStore.shared.newArticle(for: planet)
-                            } catch {
-                                PlanetStore.shared.alert(title: "Failed to launch writer")
-                            }
-                        } label: {
-                            Image(systemName: "square.and.pencil")
-                        }
-                        Button {
-                            planetStore.isShowingPlanetInfo = true
-                        } label: {
-                            Image(systemName: "info.circle")
-                        }
-                    case .followingPlanet:
-                        Button {
-                            planetStore.isShowingPlanetInfo = true
-                        } label: {
-                            Image(systemName: "info.circle")
-                        }
-                    default:
-                        Spacer()
-                    }
-                }
         }
         .alert(isPresented: $planetStore.isShowingAlert) {
             Alert(
@@ -85,6 +31,20 @@ struct PlanetMainView: View {
                     PlanetStore.shared.alertMessage = ""
                 }
             )
+        }
+        .fileImporter(
+            isPresented: $planetStore.isImportingPlanet,
+            allowedContentTypes: [.data, .package]
+        ) { result in
+            if let url = try? result.get(),
+               url.pathExtension == "planet" {
+                do {
+                    let planet = try MyPlanetModel.importBackup(from: url)
+                    PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                } catch {
+                    PlanetStore.shared.alert(title: "Failed to import planet")
+                }
+            }
         }
         .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
             if case .myPlanet(let planet) = planetStore.selectedView {
@@ -102,11 +62,6 @@ struct PlanetMainView: View {
         .sheet(isPresented: $planetStore.isMigrating) {
             MigrationProgressView()
         }
-    }
-
-    private func toggleSidebar() {
-        NSApp.keyWindow?.firstResponder?
-            .tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
     }
 }
 

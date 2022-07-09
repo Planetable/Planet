@@ -10,9 +10,6 @@ struct ArticleListView: View {
                     Text("No Article")
                         .foregroundColor(.secondary)
                         .font(.system(size: 14, weight: .regular))
-                        .toolbar {
-                            Spacer()
-                        }
                 } else {
                     List(articles, id: \.self, selection: $planetStore.selectedArticle) { article in
                         if let myArticle = article as? MyArticleModel {
@@ -22,20 +19,23 @@ struct ArticleListView: View {
                             FollowingArticleItemView(article: followingArticle)
                         }
                     }
-                        .toolbar {
-                            Spacer()
-                        }
                 }
             } else {
                 Text("No Planet Selected")
                     .foregroundColor(.secondary)
                     .font(.system(size: 14, weight: .regular))
-                    .toolbar {
-                        Spacer()
-                    }
             }
         }
+            .navigationTitle(
+                Text(planetStore.navigationTitle)
+            )
+            .navigationSubtitle(
+                Text(planetStore.navigationSubtitle)
+            )
             .frame(minWidth: 200, maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(NSColor.textBackgroundColor))
+            .toolbar {
+                Text("")
+            }
     }
 }

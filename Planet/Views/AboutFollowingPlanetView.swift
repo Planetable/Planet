@@ -47,7 +47,7 @@ struct AboutFollowingPlanetView: View {
                         planetStore.followingPlanets.removeAll { $0.id == planet.id }
                         planet.delete()
                         if case .followingPlanet(let selectedPlanet) = planetStore.selectedView,
-                           planet == selectedPlanet {
+                           planet.id == selectedPlanet.id {
                             planetStore.selectedView = nil
                         }
                     } label: {

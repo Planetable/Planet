@@ -116,5 +116,19 @@ struct PlanetSidebarView: View {
             .sheet(isPresented: $planetStore.isCreatingPlanet) {
                 CreatePlanetView()
             }
+            .frame(minWidth: 200)
+            .toolbar {
+                ToolbarItem {
+                    Button(action: toggleSidebar) {
+                        Image(systemName: "sidebar.left")
+                            .help("Toggle Sidebar")
+                    }
+                }
+            }
+    }
+
+    private func toggleSidebar() {
+        NSApp.keyWindow?.firstResponder?
+            .tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
     }
 }

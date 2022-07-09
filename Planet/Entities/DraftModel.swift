@@ -234,6 +234,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             try FileManager.default.copyItem(at: attachment.path, to: targetPath)
         }
         article.videoFilename = videoFilename
+        try article.save()
         planet.finalizeChange()
     }
 

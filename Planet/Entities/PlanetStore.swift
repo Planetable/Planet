@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-enum PlanetDetailViewType: Hashable {
+enum PlanetDetailViewType: Hashable, Equatable {
     case today
     case unread
     case starred
@@ -16,7 +16,7 @@ enum PlanetDetailViewType: Hashable {
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PlanetStore")
 
-    @MainActor let indicatorTimer = Timer.publish(every: 1.25, tolerance: 0.25, on: .current, in: .default).autoconnect()
+    let indicatorTimer = Timer.publish(every: 1.25, tolerance: 0.25, on: .current, in: .default).autoconnect()
 
     @Published var myPlanets: [MyPlanetModel] = []
     @Published var followingPlanets: [FollowingPlanetModel] = []
@@ -38,6 +38,9 @@ enum PlanetDetailViewType: Hashable {
         }
     }
 
+    @Published var navigationTitle = "Planet"
+    @Published var navigationSubtitle = ""
+
     @Published var isCreatingPlanet = false
     @Published var isEditingPlanet = false
     @Published var isFollowingPlanet = false
@@ -45,7 +48,6 @@ enum PlanetDetailViewType: Hashable {
     @Published var isImportingPlanet = false
     @Published var isMigrating = false
     @Published var isShowingAlert = false
-    @Published var isAlert = false
     @Published var alertTitle: String = ""
     @Published var alertMessage: String = ""
 
@@ -55,6 +57,13 @@ enum PlanetDetailViewType: Hashable {
         } catch {
             fatalError("Error when accessing planet repo: \(error)")
         }
+
+        RunLoop.main.add(Timer(timeInterval: 600, repeats: true) { [self] timer in
+            publishMyPlanets()
+        }, forMode: .common)
+        RunLoop.main.add(Timer(timeInterval: 300, repeats: true) { [self] timer in
+            updateFollowingPlanets()
+        }, forMode: .common)
     }
 
     func load() throws {
@@ -94,7 +103,7 @@ enum PlanetDetailViewType: Hashable {
     }
 
     func alert(title: String, message: String? = nil) {
-        isAlert = true
+        isShowingAlert = true
         alertTitle = title
         alertMessage = message ?? ""
     }

@@ -10,9 +10,13 @@ enum PlanetType: Int, Codable {
     case dns = 3
 }
 
-class FollowingPlanetModel: PlanetModel, Codable {
+class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codable {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "FollowingPlanet")
 
+    let id: UUID
+    @Published var name: String
+    @Published var about: String
+    let created: Date
     let planetType: PlanetType
     let link: String
     @Published var cid: String?
@@ -55,22 +59,57 @@ class FollowingPlanetModel: PlanetModel, Codable {
         return URL(string: link)
     }
 
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(name)
+        hasher.combine(about)
+        hasher.combine(created)
+        hasher.combine(planetType)
+        hasher.combine(link)
+        hasher.combine(cid)
+        hasher.combine(updated)
+        hasher.combine(lastRetrieved)
+        hasher.combine(isUpdating)
+        hasher.combine(articles)
+        hasher.combine(avatar)
+    }
+
+    static func ==(lhs: FollowingPlanetModel, rhs: FollowingPlanetModel) -> Bool {
+        if lhs === rhs {
+            return true
+        }
+        if type(of: lhs) != type(of: rhs) {
+            return false
+        }
+        return lhs.id == rhs.id
+            && lhs.name == rhs.name
+            && lhs.about == rhs.about
+            && lhs.created == rhs.created
+            && lhs.planetType == rhs.planetType
+            && lhs.link == rhs.link
+            && lhs.cid == rhs.cid
+            && lhs.updated == rhs.updated
+            && lhs.lastRetrieved == rhs.lastRetrieved
+            && lhs.isUpdating == rhs.isUpdating
+            && lhs.articles == rhs.articles
+            && lhs.avatar == rhs.avatar
+    }
+
     enum CodingKeys: String, CodingKey {
         case id, planetType, name, about, link, cid, created, updated, lastRetrieved
     }
 
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let id = try container.decode(UUID.self, forKey: .id)
+        id = try container.decode(UUID.self, forKey: .id)
         planetType = try container.decode(PlanetType.self, forKey: .planetType)
-        let name = try container.decode(String.self, forKey: .name)
-        let about = try container.decode(String.self, forKey: .about)
+        name = try container.decode(String.self, forKey: .name)
+        about = try container.decode(String.self, forKey: .about)
         link = try container.decode(String.self, forKey: .link)
-        cid = try container.decode(String?.self, forKey: .cid)
-        let created = try container.decode(Date.self, forKey: .created)
+        cid = try container.decodeIfPresent(String.self, forKey: .cid)
+        created = try container.decode(Date.self, forKey: .created)
         updated = try container.decode(Date.self, forKey: .updated)
         lastRetrieved = try container.decode(Date.self, forKey: .lastRetrieved)
-        super.init(id: id, name: name, about: about, created: created)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -80,7 +119,7 @@ class FollowingPlanetModel: PlanetModel, Codable {
         try container.encode(name, forKey: .name)
         try container.encode(about, forKey: .about)
         try container.encode(link, forKey: .link)
-        try container.encode(cid, forKey: .cid)
+        try container.encodeIfPresent(cid, forKey: .cid)
         try container.encode(created, forKey: .created)
         try container.encode(updated, forKey: .updated)
         try container.encode(lastRetrieved, forKey: .lastRetrieved)
@@ -97,12 +136,15 @@ class FollowingPlanetModel: PlanetModel, Codable {
         updated: Date,
         lastRetrieved: Date
     ) {
+        self.id = id
+        self.name = name
+        self.about = about
+        self.created = created
         self.planetType = planetType
         self.link = link
         self.cid = cid
         self.updated = updated
         self.lastRetrieved = lastRetrieved
-        super.init(id: id, name: name, about: about, created: created)
     }
 
     static func load(from directoryPath: URL) throws -> FollowingPlanetModel {
