@@ -386,7 +386,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     func finalizeChange() {
         Task {
-            updated = Date()
+            Task { @MainActor in
+                updated = Date()
+            }
             try save()
             try savePublic()
             try await publish()

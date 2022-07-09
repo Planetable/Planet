@@ -359,7 +359,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     func update() async throws {
         Self.logger.info("Updating planet \(self.name)")
-        isUpdating = true
+        Task { @MainActor in
+            isUpdating = true
+        }
         defer {
             Task { @MainActor in
                 isUpdating = false
