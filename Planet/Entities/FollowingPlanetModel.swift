@@ -361,7 +361,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         Self.logger.info("Updating planet \(self.name)")
         isUpdating = true
         defer {
-            isUpdating = false
+            Task { @MainActor in
+                isUpdating = false
+            }
         }
         switch planetType {
         case .planet:
@@ -481,11 +483,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             let feed = try FeedUtils.parseFeed(data: feedData)
             let now = Date()
-            name = feed.name ?? link
-            about = feed.about ?? ""
-            updated = now
-            lastRetrieved = now
-
+            Task { @MainActor in
+                name = feed.name ?? link
+                about = feed.about ?? ""
+                updated = now
+                lastRetrieved = now
+            }
+            
             if let publicArticles = feed.articles {
                 try updateArticles(publicArticles: publicArticles)
             }
@@ -514,8 +518,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             let link = publicArticle.link
             if let article = existingArticleMap[link] {
                 // update
-                article.title = publicArticle.title
-                article.content = publicArticle.content
+                Task { @MainActor in
+                    article.title = publicArticle.title
+                    article.content = publicArticle.content
+                }
                 existingArticleMap.removeValue(forKey: link)
             } else {
                 // created
