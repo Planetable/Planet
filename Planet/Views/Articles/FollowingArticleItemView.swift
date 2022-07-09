@@ -44,6 +44,7 @@ struct FollowingArticleItemView: View {
                         } else {
                             article.read = nil
                         }
+                        try? article.save()
                     } label: {
                         Text(article.read == nil ? "Mark as Read" : "Mark as Unread")
                     }
@@ -53,6 +54,7 @@ struct FollowingArticleItemView: View {
                         } else {
                             article.starred = nil
                         }
+                        try? article.save()
                     } label: {
                         Text(article.starred == nil ? "Star" : "Unstar")
                     }

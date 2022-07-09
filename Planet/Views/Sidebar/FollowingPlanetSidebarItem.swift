@@ -39,7 +39,7 @@ struct FollowingPlanetSidebarItem: View {
                     Button {
                         Task {
                             try await planet.update()
-                            try planet.save()
+                            planetStore.refreshSelectedArticles()
                         }
                     } label: {
                         Text(planet.isUpdating ? "Updating..." : "Check for update")

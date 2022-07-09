@@ -229,6 +229,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }
 
                 try planet.save()
+                try planet.articles.forEach { try $0.save() }
                 return planet
             }
             // did not get published planet file, try to get feed
@@ -269,6 +270,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
 
             try planet.save()
+            try planet.articles.forEach { try $0.save() }
             return planet
         } else if link.hasPrefix("https://") {
             guard let feedURL = URL(string: link),
@@ -307,6 +309,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
 
             try planet.save()
+            try planet.articles.forEach { try $0.save() }
             return planet
         } else if link.hasPrefix("k") {
             let cid = try await IPFSDaemon.shared.resolveIPNS(ipns: link)
@@ -352,6 +355,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
 
             try planet.save()
+            try planet.articles.forEach { try $0.save() }
             return planet
         }
         throw PlanetError.InvalidPlanetURLError
@@ -376,9 +380,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             Task {
                 try await IPFSDaemon.shared.pin(cid: newCID)
-                if let oldCid = cid {
-                    try await IPFSDaemon.shared.unpin(cid: oldCid)
-                }
             }
             let planetURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(newCID)/planet.json")!
             let (planetData, planetResponse) = try await URLSession.shared.data(from: planetURL)
@@ -389,11 +390,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     name = publicPlanet.name
                     about = publicPlanet.about
                     updated = publicPlanet.updated
-                    try updateArticles(publicArticles: publicPlanet.articles, delete: true)
-                    cid = newCID
-                    lastRetrieved = Date()
                 }
-                
+
+                try updateArticles(publicArticles: publicPlanet.articles, delete: true)
+
                 if let planetAvatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(newCID)/avatar.png"),
                    let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
                    let httpResponse = response as? HTTPURLResponse,
@@ -405,6 +405,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     }
                 }
 
+                Task { @MainActor in
+                    cid = newCID
+                    lastRetrieved = Date()
+                }
+
+                try save()
                 return
             }
         case .ens:
@@ -417,9 +423,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             Task {
                 try await IPFSDaemon.shared.pin(cid: newCID)
-                if let oldCid = cid {
-                    try await IPFSDaemon.shared.unpin(cid: oldCid)
-                }
             }
             do {
                 let planetURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(newCID)/planet.json")!
@@ -427,16 +430,20 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 if let httpResponse = planetResponse as? HTTPURLResponse,
                    httpResponse.ok {
                     let publicPlanet = try JSONDecoder.shared.decode(PublicPlanetModel.self, from: planetData)
-                    name = publicPlanet.name
-                    about = publicPlanet.about
-                    updated = publicPlanet.updated
+                    Task { @MainActor in
+                        name = publicPlanet.name
+                        about = publicPlanet.about
+                        updated = publicPlanet.updated
+                    }
 
                     try updateArticles(publicArticles: publicPlanet.articles, delete: true)
 
                     if let data = try? await ENSUtils.shared.avatar(name: link),
                        let image = NSImage(data: data),
                        let _ = try? data.write(to: avatarPath) {
-                        avatar = image
+                        Task { @MainActor in
+                            avatar = image
+                        }
                     } else
                     if let planetAvatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(newCID)/avatar.png"),
                        let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
@@ -444,12 +451,17 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                        httpResponse.ok,
                        let image = NSImage(data: data),
                        let _ = try? data.write(to: avatarPath) {
-                        avatar = image
+                        Task { @MainActor in
+                            avatar = image
+                        }
                     }
 
-                    cid = newCID
-                    lastRetrieved = Date()
+                    Task { @MainActor in
+                        cid = newCID
+                        lastRetrieved = Date()
+                    }
 
+                    try save()
                     return
                 }
             } catch {
@@ -463,10 +475,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             let feed = try FeedUtils.parseFeed(data: feedData)
             let now = Date()
 
-            name = feed.name ?? link
-            about = feed.about ?? ""
-            updated = now
-            lastRetrieved = now
+            Task { @MainActor in
+                name = feed.name ?? link
+                about = feed.about ?? ""
+                updated = now
+                lastRetrieved = now
+            }
 
             if let publicArticles = feed.articles {
                 try updateArticles(publicArticles: publicArticles)
@@ -475,9 +489,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             if let data = feed.avatar,
                let image = NSImage(data: data),
                let _ = try? data.write(to: avatarPath) {
-                avatar = image
+                Task { @MainActor in
+                    avatar = image
+                }
             }
 
+            try save()
             return
         case .dnslink:
             // not implemented yet
@@ -495,7 +512,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 updated = now
                 lastRetrieved = now
             }
-            
+
             if let publicArticles = feed.articles {
                 try updateArticles(publicArticles: publicArticles)
             }
@@ -503,9 +520,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             if let data = feed.avatar,
                let image = NSImage(data: data),
                let _ = try? data.write(to: avatarPath) {
-                avatar = image
+                Task { @MainActor in
+                    avatar = image
+                }
             }
 
+            try save()
             return
         }
         throw PlanetError.PlanetFeedError
@@ -528,18 +548,24 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     article.title = publicArticle.title
                     article.content = publicArticle.content
                 }
+                try article.save()
                 existingArticleMap.removeValue(forKey: link)
             } else {
                 // created
                 newArticles.append(publicArticle)
+                let articleModel = FollowingArticleModel.from(publicArticle: publicArticle, planet: self)
+                try articleModel.save()
                 Task { @MainActor in
-                    articles.append(FollowingArticleModel.from(publicArticle: publicArticle, planet: self))
+                    articles.append(articleModel)
                 }
             }
         }
         if delete {
-            articles.removeAll { existingArticleMap[$0.link] != nil }
-            existingArticleMap.values.forEach { $0.delete() }
+            let deletedArticles = existingArticleMap.values
+            Task { @MainActor in
+                articles.removeAll { deletedArticles.contains($0) }
+            }
+            deletedArticles.forEach { $0.delete() }
         }
         Task { @MainActor in
             articles.sort { $0.created > $1.created }
@@ -570,9 +596,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     func save() throws {
-        let data = try JSONEncoder.shared.encode(self)
-        try data.write(to: infoPath)
-        articles.forEach { try? $0.save() }
+        try JSONEncoder.shared.encode(self).write(to: infoPath)
     }
 
     func delete() {

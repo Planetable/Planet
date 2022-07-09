@@ -34,6 +34,7 @@ struct AboutFollowingPlanetView: View {
                     Button {
                         Task {
                             try await planet.update()
+                            planetStore.refreshSelectedArticles()
                             dismiss()
                         }
                     } label: {

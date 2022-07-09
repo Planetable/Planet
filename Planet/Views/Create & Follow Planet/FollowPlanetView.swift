@@ -70,7 +70,7 @@ struct FollowPlanetView: View {
                                 planetStore.followingPlanets.insert(planet, at: 0)
                             }
                         } catch {
-                            // TODO: alert
+                            PlanetStore.shared.alert(title: "Failed to follow planet")
                         }
                         isFollowing = false
                         dismiss()

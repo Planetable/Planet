@@ -107,12 +107,12 @@ class FollowingArticleModel: ArticleModel, Codable {
             videoFilename: nil
         )
         article.planet = planet
+
         return article
     }
 
     func save() throws {
-        let data = try JSONEncoder.shared.encode(self)
-        try data.write(to: path)
+        try JSONEncoder.shared.encode(self).write(to: path)
     }
 
     func delete() {

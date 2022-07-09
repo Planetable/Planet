@@ -53,6 +53,7 @@ struct MyArticleItemView: View {
                         } else {
                             article.starred = nil
                         }
+                        try? article.save()
                     } label: {
                         Text(article.starred == nil ? "Star" : "Unstar")
                     }

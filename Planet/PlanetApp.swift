@@ -20,11 +20,10 @@ struct PlanetApp: App {
         WindowGroup {
             PlanetMainView()
                 .environmentObject(planetStore)
-                .handlesExternalEvents(preferring: Set(arrayLiteral: "Planet"), allowing: Set(arrayLiteral: "Planet"))
         }
         .windowToolbarStyle(.automatic)
         .windowStyle(.titleBar)
-        .handlesExternalEvents(matching: Set(arrayLiteral: "Planet"))
+        .handlesExternalEvents(matching: Set(arrayLiteral: ""))
         .commands {
             CommandGroup(replacing: .newItem) {
             }
@@ -82,18 +81,14 @@ struct PlanetApp: App {
             TemplateBrowserView()
                 .environmentObject(templateStore)
                 .frame(minWidth: 720, minHeight: 480)
-                .handlesExternalEvents(
-                    preferring: Set(arrayLiteral: "Template"),
-                    allowing: Set(arrayLiteral: "Template")
-                )
         }
-        .handlesExternalEvents(matching: Set(arrayLiteral: "Template"))
+        .handlesExternalEvents(matching: Set(arrayLiteral: "planet://Template"))
 
         WindowGroup("Onboarding") {
             OnboardingView()
                 .frame(width: 720, height: 528)
                 .onAppear {
-                    DispatchQueue.main.async {
+                    Task { @MainActor in
                         NSApplication.shared.windows.forEach { window in
                             if window.title == "Onboarding" {
                                 window.styleMask.subtract(.resizable)
@@ -105,7 +100,7 @@ struct PlanetApp: App {
         }
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unifiedCompact)
-        .handlesExternalEvents(matching: Set(arrayLiteral: "Onboarding"))
+        .handlesExternalEvents(matching: Set(arrayLiteral: "planet://Onboarding"))
     }
 }
 

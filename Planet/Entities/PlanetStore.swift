@@ -86,18 +86,28 @@ enum PlanetDetailViewType: Hashable, Equatable {
     }
 
     func publishMyPlanets() {
-        myPlanets.forEach { myPlanet in
-            Task {
-                try await myPlanet.publish()
+        Task {
+            await withTaskGroup(of: Void.self) { taskGroup in
+                myPlanets.forEach { myPlanet in
+                    taskGroup.addTask {
+                        try? await myPlanet.publish()
+                    }
+                }
             }
         }
     }
 
     func updateFollowingPlanets() {
-        followingPlanets.forEach { followingPlanet in
-            Task {
-                try await followingPlanet.update()
-                try followingPlanet.save()
+        Task {
+            await withTaskGroup(of: Void.self) { taskGroup in
+                followingPlanets.forEach { followingPlanet in
+                    taskGroup.addTask {
+                        try? await followingPlanet.update()
+                    }
+                }
+            }
+            await MainActor.run {
+                refreshSelectedArticles()
             }
         }
     }
