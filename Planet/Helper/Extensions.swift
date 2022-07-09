@@ -30,10 +30,6 @@ extension String {
     func trim() -> String {
         trimmingCharacters(in: .whitespacesAndNewlines)
     }
-
-    func removePrefix(until: Int) -> String {
-        String(suffix(from: index(startIndex, offsetBy: until)))
-    }
 }
 
 extension Notification.Name {

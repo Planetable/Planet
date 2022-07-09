@@ -25,3 +25,11 @@ struct IPFSPublished: Codable {
         case value = "Value"
     }
 }
+
+struct IPFSResolved: Codable {
+    let path: String
+
+    enum CodingKeys: String, CodingKey {
+        case path = "Path"
+    }
+}

@@ -173,7 +173,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     static func follow(link raw: String) async throws -> FollowingPlanetModel {
         let link: String
         if raw.starts(with: "planet://") {
-            link = raw.removePrefix(until: 9)
+            link = String(raw.dropFirst("planet://".count))
         } else {
             link = raw
         }
@@ -309,11 +309,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             try planet.save()
             return planet
         } else if link.hasPrefix("k") {
-            let cidWithPrefix = try await IPFSDaemon.shared.resolveIPNS(ipns: link)
-            guard cidWithPrefix.hasPrefix("/ipfs/") else {
-                throw PlanetError.InvalidPlanetURLError
-            }
-            let cid = cidWithPrefix.removePrefix(until: 6)
+            let cid = try await IPFSDaemon.shared.resolveIPNS(ipns: link)
             Self.logger.info("Follow \(link): CID \(cid)")
             Task {
                 try await IPFSDaemon.shared.pin(cid: cid)
@@ -369,11 +365,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
         switch planetType {
         case .planet:
-            let cidWithPrefix = try await IPFSDaemon.shared.resolveIPNS(ipns: link)
-            guard cidWithPrefix.hasPrefix("/ipfs/") else {
-                throw PlanetError.InvalidPlanetURLError
-            }
-            let newCID = cidWithPrefix.removePrefix(until: 6)
+            let newCID = try await IPFSDaemon.shared.resolveIPNS(ipns: link)
             if cid == newCID {
                 Self.logger.info("Planet \(self.name) has no update")
                 return

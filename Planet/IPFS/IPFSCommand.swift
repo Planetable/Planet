@@ -166,10 +166,6 @@ struct IPFSCommand {
 
     // NOTE: IPFS CLI calls internal HTTP API to communicate
     //       The following commands can be executed by calling HTTP API for easier async await
-    static func resolveIPNS(ipns: String) -> IPFSCommand {
-        IPFSCommand(arguments: ["name", "resolve", ipns])
-    }
-
     static func generateKey(name: String) -> IPFSCommand {
         IPFSCommand(arguments: ["key", "gen", name])
     }

@@ -47,13 +47,10 @@ struct ENSUtils {
             return nil
         }
         if contenthash.scheme?.lowercased() == "ipns" {
-            let ipns = contenthash.absoluteString.removePrefix(until: 7)
-            let cidWithPrefix = try await IPFSDaemon.shared.resolveIPNS(ipns: ipns)
-            if cidWithPrefix.hasPrefix("/ipfs/") {
-                return cidWithPrefix.removePrefix(until: 6)
-            }
+            let ipns = String(contenthash.absoluteString.dropFirst("ipns://".count))
+            return try await IPFSDaemon.shared.resolveIPNS(ipns: ipns)
         } else if contenthash.scheme?.lowercased() == "ipfs" {
-            return contenthash.absoluteString.removePrefix(until: 7)
+            return String(contenthash.absoluteString.dropFirst("ipfs://".count))
         }
         // unsupported contenthash scheme
         return nil

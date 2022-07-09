@@ -91,7 +91,7 @@ class Planet: NSManagedObject {
         var planetCID: String? = nil
         if let cid = latestCID {
             if cid.starts(with: "/ipfs/") {
-                planetCID = cid.removePrefix(until: 6)
+                planetCID = String(cid.dropFirst("/ipfs/".count))
             } else {
                 planetCID = cid
             }

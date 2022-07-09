@@ -363,36 +363,25 @@ class IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
-    func resolveIPNS(ipns: String) throws -> String {
+    func resolveIPNS(ipns: String) async throws -> String {
         logger.info("Resolving IPNS \(ipns)")
         do {
-            let (ret, out, err) = try IPFSCommand.resolveIPNS(ipns: ipns).run()
-            if ret == 0 {
-                if let cid = String(data: out, encoding: .utf8)?.trim() {
-                    logger.info("Resolved IPNS \(ipns) to CID \(cid)")
-                    return cid
-                }
-                logger.error("Failed to resolve IPNS \(ipns): \(String(describing: out))")
-            } else {
-                logger.error(
-                    """
-                    Failed to resolve IPNS \(ipns): process returned \(ret)
-                    [stdout]
-                    \(out.logFormat())
-                    [stderr]
-                    \(err.logFormat())
-                    """
-                )
+            let result = try await api(path: "name/resolve", args: ["arg": ipns])
+            let resolved = try JSONDecoder.shared.decode(IPFSResolved.self, from: result)
+            let cidWithPrefix = resolved.path
+            if cidWithPrefix.starts(with: "/ipfs/") {
+                return String(cidWithPrefix.dropFirst("/ipfs/".count))
             }
+            logger.error("Failed to resolve IPNS \(ipns): unknown result from API call, got \(result.logFormat())")
         } catch {
             logger.error(
                 """
-                Failed to resolve IPNS \(ipns): error when running IPFS process, \
+                Failed to resolve IPNS \(ipns): error when accessing IPFS API, \
                 cause: \(String(describing: error))
                 """
             )
         }
-        throw IPFSDaemonError.IPFSCLIError
+        throw IPFSDaemonError.IPFSAPIError
     }
 
     func pin(cid: String) async throws {
@@ -425,7 +414,7 @@ class IPFSDaemon {
     @discardableResult func api(
             path: String,
             args: [String: String] = [:],
-            timeout: TimeInterval = 5
+            timeout: TimeInterval = 30
     ) async throws -> Data {
         var url: URL = URL(string: "http://127.0.0.1:\(APIPort)/api/v0/\(path)")!
         if !args.isEmpty {
