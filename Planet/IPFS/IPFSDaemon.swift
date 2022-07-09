@@ -299,7 +299,7 @@ class IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
-    func addDirectory(url: URL) throws -> String {
+    @IPFSActor func addDirectory(url: URL) throws -> String {
         logger.info("Adding directory \(url.path) to IPFS")
         do {
             let (ret, out, err) = try IPFSCommand.addDirectory(directory: url).run()
