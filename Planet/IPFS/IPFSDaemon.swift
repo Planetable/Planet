@@ -8,9 +8,9 @@ import SwiftyJSON
 
 class IPFSDaemon {
     static let publicGateways = [
+        "https://cloudflare-ipfs.com",
         "https://dweb.link",
         "https://ipfs.io",
-        "https://cloudflare-ipfs.com",
     ]
 
     private static var _shared: IPFSDaemon? = nil
