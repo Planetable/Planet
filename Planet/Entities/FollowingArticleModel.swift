@@ -10,12 +10,20 @@ class FollowingArticleModel: ArticleModel, Codable {
     lazy var path = planet.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
     var webviewURL: URL? {
         get async {
+            if let cid = planet.cid {
+                if link.hasPrefix("https") || link.hasPrefix("http://") {
+                    if let linkURL = URL(string: link) {
+                        return URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)\(linkURL.path)")
+                    } else {
+                        return nil
+                    }
+                } else {
+                    return URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)\(link)")
+                }
+            }
             if let linkURL = URL(string: link),
                linkURL.scheme?.lowercased() == "https" {
                 return linkURL
-            }
-            if let cid = planet.cid {
-                return URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)\(link)")
             }
             if let planetLink = URL(string: planet.link) {
                 return URL(string: link, relativeTo: planetLink)?.absoluteURL
@@ -24,12 +32,26 @@ class FollowingArticleModel: ArticleModel, Codable {
         }
     }
     var browserURL: URL? {
+        if let cid = planet.cid {
+            if link.hasPrefix("https") || link.hasPrefix("http://") {
+                if let linkURL = URL(string: link) {
+                    if planet.planetType == .ens {
+                        return URL(string: "https://\(planet.link).link\(linkURL.path)")
+                    }
+                    if planet.planetType == .planet {
+                        return URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.link)\(linkURL.path)")
+                    }
+                    return nil
+                } else {
+                    return nil
+                }
+            } else {
+                return URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.link)\(link)")
+            }
+        }
         if let linkURL = URL(string: link),
            linkURL.scheme?.lowercased() == "https" {
             return linkURL
-        }
-        if let cid = planet.cid {
-            return URL(string: "\(IPFSDaemon.publicGateways[0])/ipfs/\(cid)\(link)")
         }
         if let planetLink = URL(string: planet.link) {
             return URL(string: link, relativeTo: planetLink)?.absoluteURL

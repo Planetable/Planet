@@ -8,7 +8,7 @@ import SwiftyJSON
 
 class IPFSDaemon {
     static let publicGateways = [
-        "https://cloudflare-ipfs.com",
+        "https://www.cloudflare-ipfs.com",
         "https://dweb.link",
         "https://ipfs.io",
     ]
