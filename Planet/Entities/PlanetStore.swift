@@ -88,9 +88,12 @@ enum PlanetDetailViewType: Hashable, Equatable {
     func publishMyPlanets() {
         Task {
             await withTaskGroup(of: Void.self) { taskGroup in
-                myPlanets.forEach { myPlanet in
+                for (i, myPlanet) in myPlanets.enumerated() {
                     taskGroup.addTask {
                         try? await myPlanet.publish()
+                    }
+                    if i >= 4 {
+                        await taskGroup.next()
                     }
                 }
             }
@@ -100,9 +103,12 @@ enum PlanetDetailViewType: Hashable, Equatable {
     func updateFollowingPlanets() {
         Task {
             await withTaskGroup(of: Void.self) { taskGroup in
-                followingPlanets.forEach { followingPlanet in
+                for (i, followingPlanet) in followingPlanets.enumerated() {
                     taskGroup.addTask {
                         try? await followingPlanet.update()
+                    }
+                    if i >= 4 {
+                        await taskGroup.next()
                     }
                 }
             }
