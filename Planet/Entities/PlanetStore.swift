@@ -107,7 +107,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
                     taskGroup.addTask {
                         try? await followingPlanet.update()
                     }
-                    if i >= 4 {
+                    if i >= 3 {
                         await taskGroup.next()
                     }
                 }
