@@ -243,7 +243,10 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         Task { @MainActor in
             PlanetStore.shared.selectedView = .myPlanet(planet)
             PlanetStore.shared.refreshSelectedArticles()
-            PlanetStore.shared.selectedArticle = article
+            // wrap it to delay the state change
+            Task { @MainActor in
+                PlanetStore.shared.selectedArticle = article
+            }
         }
     }
 

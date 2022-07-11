@@ -94,7 +94,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
             }
         }
 
-        RunLoop.main.add(Timer(timeInterval: 600, repeats: true) { [self] timer in
+        RunLoop.main.add(Timer(timeInterval: 1800, repeats: true) { [self] timer in
             publishMyPlanets()
         }, forMode: .common)
         RunLoop.main.add(Timer(timeInterval: 300, repeats: true) { [self] timer in

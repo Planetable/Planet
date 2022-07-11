@@ -183,6 +183,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         } else {
             link = raw
         }
+        if let existing = await PlanetStore.shared.followingPlanets.first(where: { $0.link == link }) {
+            await MainActor.run {
+                PlanetStore.shared.selectedView = .followingPlanet(existing)
+            }
+            throw PlanetError.PlanetExistsError
+        }
         if link.hasSuffix(".eth") {
             guard let cid = try await ENSUtils.getCID(ens: link) else {
                 throw PlanetError.InvalidPlanetURLError

@@ -65,14 +65,16 @@ struct FollowPlanetView: View {
                             let planet = try await FollowingPlanetModel.follow(link: link)
                             if isCancelled {
                                 planet.delete()
-                                isCancelled = false
                             } else {
                                 planetStore.followingPlanets.insert(planet, at: 0)
                                 PlanetStore.shared.selectedView = .followingPlanet(planet)
                             }
+                        } catch PlanetError.PlanetExistsError {
+                            // ignore
                         } catch {
                             PlanetStore.shared.alert(title: "Failed to follow planet")
                         }
+                        isCancelled = false
                         isFollowing = false
                         dismiss()
                     }
