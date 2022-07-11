@@ -26,7 +26,7 @@ struct AboutFollowingPlanetView: View {
                 HStack {
                     Button {
                         isSharing = true
-                        planetIPNS = "planet://" + planet.link
+                        planetIPNS = planet.shareLink
                     } label: {
                         Text("Share")
                     }

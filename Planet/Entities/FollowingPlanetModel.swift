@@ -58,6 +58,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
         return URL(string: link)
     }
+    var shareLink: String {
+        if link.starts(with: "https://") {
+            return link
+        }
+        return "planet://\(link)"
+    }
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)

@@ -63,6 +63,13 @@ struct MyPlanetSidebarItem: View {
                     }
 
                     Button {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(planet.ipns, forType: .string)
+                    } label: {
+                        Text("Copy IPNS")
+                    }
+
+                    Button {
                         if let url = planet.browserURL {
                             NSWorkspace.shared.open(url)
                         }

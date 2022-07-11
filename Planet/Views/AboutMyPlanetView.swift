@@ -26,7 +26,7 @@ struct AboutMyPlanetView: View {
                 HStack {
                     Button {
                         isSharing = true
-                        planetIPNS = "planet://" + planet.ipns
+                        planetIPNS = "planet://\(planet.ipns)"
                     } label: {
                         Text("Share")
                     }
