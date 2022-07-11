@@ -46,7 +46,12 @@ class FollowingArticleModel: ArticleModel, Codable {
                     return nil
                 }
             } else {
-                return URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.link)\(link)")
+                if planet.planetType == .ens {
+                    // use eth.limo for ENS
+                    return URL(string: "https://\(planet.link).limo\(link)")
+                } else {
+                    return URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.link)\(link)")
+                }
             }
         }
         if let linkURL = URL(string: link),
