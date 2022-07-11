@@ -36,29 +36,9 @@ class WriterWindow: NSWindow {
         }
         do {
             try draft.saveToArticle()
-
-            // cleanup and sync state
-            let planet: MyPlanetModel
-            switch draft.target! {
-            case .myPlanet(let wrapper):
-                planet = wrapper.value
-                planet.drafts.removeAll { $0.id == draft.id }
-            case .article(let wrapper):
-                let article = wrapper.value
-                planet = article.planet
-                article.draft = nil
-                if article == PlanetStore.shared.selectedArticle {
-                    NotificationCenter.default.post(name: .loadArticle, object: nil)
-                }
-            }
             WriterStore.shared.writers.removeValue(forKey: draft)
             WriterStore.shared.setActiveDraft(draft: nil)
-            try draft.delete()
 
-            if case .myPlanet(let selectedPlanet) = PlanetStore.shared.selectedView,
-               selectedPlanet == planet {
-                PlanetStore.shared.refreshSelectedArticles()
-            }
             close()
         } catch {
             PlanetStore.shared.alert(title: "Failed to send article")

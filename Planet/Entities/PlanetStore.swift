@@ -7,6 +7,21 @@ enum PlanetDetailViewType: Hashable, Equatable {
     case starred
     case myPlanet(MyPlanetModel)
     case followingPlanet(FollowingPlanetModel)
+
+    var stringValue: String {
+        switch self {
+        case .today:
+            return "today"
+        case .unread:
+            return "unread"
+        case .starred:
+            return "starred"
+        case .myPlanet(let planet):
+            return "myPlanet:\(planet.id.uuidString)"
+        case .followingPlanet(let planet):
+            return "followingPlanet:\(planet.id.uuidString)"
+        }
+    }
 }
 
 @MainActor class PlanetStore: ObservableObject {
@@ -25,6 +40,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
             if selectedView != oldValue {
                 refreshSelectedArticles()
                 selectedArticle = nil
+                UserDefaults.standard.set(selectedView?.stringValue, forKey: "lastSelectedView")
             }
         }
     }
@@ -56,6 +72,26 @@ enum PlanetDetailViewType: Hashable, Equatable {
             try load()
         } catch {
             fatalError("Error when accessing planet repo: \(error)")
+        }
+
+        if let lastSelectedView = UserDefaults.standard.string(forKey: "lastSelectedView") {
+            if lastSelectedView.hasPrefix("myPlanet:") {
+                let planetId = UUID(uuidString: String(lastSelectedView.dropFirst("myPlanet:".count)))
+                if let planet = myPlanets.first(where: { $0.id == planetId }) {
+                    selectedView = .myPlanet(planet)
+                }
+            } else if lastSelectedView.hasPrefix("followingPlanet:") {
+                let planetId = UUID(uuidString: String(lastSelectedView.dropFirst("followingPlanet:".count)))
+                if let planet = followingPlanets.first(where: { $0.id == planetId }) {
+                    selectedView = .followingPlanet(planet)
+                }
+            } else if lastSelectedView == "today" {
+                selectedView = .today
+            } else if lastSelectedView == "unread" {
+                selectedView = .unread
+            } else if lastSelectedView == "starred" {
+                selectedView = .starred
+            }
         }
 
         RunLoop.main.add(Timer(timeInterval: 600, repeats: true) { [self] timer in

@@ -118,6 +118,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 let planet = try await FollowingPlanetModel.follow(link: link)
                 PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+                PlanetStore.shared.selectedView = .followingPlanet(planet)
             }
         } else if url.lastPathComponent.hasSuffix(".planet") {
             Task { @MainActor in
@@ -138,10 +139,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // saver.migratePublic()
         Task { @MainActor in
             TemplateStore.shared.load()
-        }
-
-        if let lastVisitedPlanetID = UserDefaults.standard.string(forKey: "LastVisitedPlanetID") {
-            // TODO
         }
 
         SUUpdater.shared().checkForUpdatesInBackground()

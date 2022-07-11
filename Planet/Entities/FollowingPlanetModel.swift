@@ -363,7 +363,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     func update() async throws {
         Self.logger.info("Updating planet \(self.name)")
-        Task { @MainActor in
+        await MainActor.run {
             isUpdating = true
         }
         defer {
@@ -386,13 +386,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             if let httpResponse = planetResponse as? HTTPURLResponse,
                httpResponse.ok {
                 let publicPlanet = try JSONDecoder.shared.decode(PublicPlanetModel.self, from: planetData)
-                Task { @MainActor in
+                await MainActor.run {
                     name = publicPlanet.name
                     about = publicPlanet.about
                     updated = publicPlanet.updated
                 }
 
-                try updateArticles(publicArticles: publicPlanet.articles, delete: true)
+                try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
 
                 if let planetAvatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(newCID)/avatar.png"),
                    let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
@@ -400,12 +400,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                    httpResponse.ok,
                    let image = NSImage(data: data),
                    let _ = try? data.write(to: avatarPath) {
-                    Task { @MainActor in
+                    await MainActor.run {
                         avatar = image
                     }
                 }
 
-                Task { @MainActor in
+                await MainActor.run {
                     cid = newCID
                     lastRetrieved = Date()
                 }
@@ -430,18 +430,18 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 if let httpResponse = planetResponse as? HTTPURLResponse,
                    httpResponse.ok {
                     let publicPlanet = try JSONDecoder.shared.decode(PublicPlanetModel.self, from: planetData)
-                    Task { @MainActor in
+                    await MainActor.run {
                         name = publicPlanet.name
                         about = publicPlanet.about
                         updated = publicPlanet.updated
                     }
 
-                    try updateArticles(publicArticles: publicPlanet.articles, delete: true)
+                    try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
 
                     if let data = try? await ENSUtils.shared.avatar(name: link),
                        let image = NSImage(data: data),
                        let _ = try? data.write(to: avatarPath) {
-                        Task { @MainActor in
+                        await MainActor.run {
                             avatar = image
                         }
                     } else
@@ -451,12 +451,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                        httpResponse.ok,
                        let image = NSImage(data: data),
                        let _ = try? data.write(to: avatarPath) {
-                        Task { @MainActor in
+                        await MainActor.run {
                             avatar = image
                         }
                     }
 
-                    Task { @MainActor in
+                    await MainActor.run {
                         cid = newCID
                         lastRetrieved = Date()
                     }
@@ -475,7 +475,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             let feed = try FeedUtils.parseFeed(data: feedData)
             let now = Date()
 
-            Task { @MainActor in
+            await MainActor.run {
                 name = feed.name ?? link
                 about = feed.about ?? ""
                 updated = now
@@ -483,13 +483,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
 
             if let publicArticles = feed.articles {
-                try updateArticles(publicArticles: publicArticles)
+                try await updateArticles(publicArticles: publicArticles)
             }
 
             if let data = feed.avatar,
                let image = NSImage(data: data),
                let _ = try? data.write(to: avatarPath) {
-                Task { @MainActor in
+                await MainActor.run {
                     avatar = image
                 }
             }
@@ -506,7 +506,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             let feed = try FeedUtils.parseFeed(data: feedData)
             let now = Date()
-            Task { @MainActor in
+            await MainActor.run {
                 name = feed.name ?? link
                 about = feed.about ?? ""
                 updated = now
@@ -514,13 +514,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
 
             if let publicArticles = feed.articles {
-                try updateArticles(publicArticles: publicArticles)
+                try await updateArticles(publicArticles: publicArticles)
             }
 
             if let data = feed.avatar,
                let image = NSImage(data: data),
                let _ = try? data.write(to: avatarPath) {
-                Task { @MainActor in
+                await MainActor.run {
                     avatar = image
                 }
             }
@@ -531,7 +531,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         throw PlanetError.PlanetFeedError
     }
 
-    func updateArticles(publicArticles: [PublicArticleModel], delete: Bool = false) throws {
+    func updateArticles(publicArticles: [PublicArticleModel], delete: Bool = false) async throws {
         // planet file will have all the articles, so delete a planet article if it is no longer presented
         // feed will rollover old articles, so retain the article even if it is not in feed
         var existingArticleMap: [String: FollowingArticleModel] = [:]
@@ -544,7 +544,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             let link = publicArticle.link
             if let article = existingArticleMap[link] {
                 // update
-                Task { @MainActor in
+                await MainActor.run {
                     article.title = publicArticle.title
                     article.content = publicArticle.content
                 }
@@ -555,19 +555,19 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 newArticles.append(publicArticle)
                 let articleModel = FollowingArticleModel.from(publicArticle: publicArticle, planet: self)
                 try articleModel.save()
-                Task { @MainActor in
+                await MainActor.run {
                     articles.append(articleModel)
                 }
             }
         }
         if delete {
             let deletedArticles = existingArticleMap.values
-            Task { @MainActor in
+            await MainActor.run {
                 articles.removeAll { deletedArticles.contains($0) }
             }
             deletedArticles.forEach { $0.delete() }
         }
-        Task { @MainActor in
+        await MainActor.run {
             articles.sort { $0.created > $1.created }
         }
         sendNotification(for: newArticles)

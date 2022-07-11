@@ -360,7 +360,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func publish() async throws {
-        Task { @MainActor in
+        await MainActor.run {
             self.isPublishing = true
         }
         defer {
@@ -386,7 +386,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     func finalizeChange() {
         Task {
-            Task { @MainActor in
+            await MainActor.run {
                 updated = Date()
             }
             try save()

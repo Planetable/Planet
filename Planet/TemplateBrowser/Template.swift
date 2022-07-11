@@ -75,7 +75,7 @@ class Template: Codable, Identifiable {
 
     func render(article: MyArticleModel) throws -> String {
         // render markdown
-        let result = MarkdownParser().parse(article.content)
+        let result = MarkdownParser().parse(article.content.trim())
         let content_html = result.html
 
         // render stencil template

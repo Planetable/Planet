@@ -13,7 +13,6 @@ import os
         let draft: DraftModel
         if planet.drafts.isEmpty {
             draft = try DraftModel.create(for: planet)
-            try draft.save()
             planet.drafts.append(draft)
         } else {
             draft = planet.drafts[0]
@@ -33,7 +32,6 @@ import os
             draft = articleDraft
         } else {
             draft = try DraftModel.create(from: article)
-            try draft.save()
             article.draft = draft
         }
 

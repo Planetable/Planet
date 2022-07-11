@@ -68,6 +68,7 @@ struct FollowPlanetView: View {
                                 isCancelled = false
                             } else {
                                 planetStore.followingPlanets.insert(planet, at: 0)
+                                PlanetStore.shared.selectedView = .followingPlanet(planet)
                             }
                         } catch {
                             PlanetStore.shared.alert(title: "Failed to follow planet")

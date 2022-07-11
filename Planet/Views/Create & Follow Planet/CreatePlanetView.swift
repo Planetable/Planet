@@ -103,6 +103,7 @@ struct CreatePlanetView: View {
                                 templateName: templateName
                             )
                             planetStore.myPlanets.insert(planet, at: 0)
+                            planetStore.selectedView = .myPlanet(planet)
                             try planet.save()
                             try planet.savePublic()
                         } catch {

@@ -180,18 +180,18 @@ class IPFSDaemon {
                         Task {
                             await updateOnlineStatus()
                         }
-                        let onboarding = UserDefaults.standard.string(forKey: "PlanetOnboarding")
-                        if onboarding == nil {
-                            Task { @MainActor in
-                                let planet = try await FollowingPlanetModel.follow(link: "vitalik.eth")
-                                PlanetStore.shared.followingPlanets.append(planet)
-                            }
-                            Task { @MainActor in
-                                let planet = try await FollowingPlanetModel.follow(link: "planetable.eth")
-                                PlanetStore.shared.followingPlanets.append(planet)
-                            }
-                            UserDefaults.standard.set(Date().ISO8601Format(), forKey: "PlanetOnboarding")
-                        }
+                        // let onboarding = UserDefaults.standard.string(forKey: "PlanetOnboarding")
+                        // if onboarding == nil {
+                        //     Task { @MainActor in
+                        //         let planet = try await FollowingPlanetModel.follow(link: "vitalik.eth")
+                        //         PlanetStore.shared.followingPlanets.append(planet)
+                        //     }
+                        //     Task { @MainActor in
+                        //         let planet = try await FollowingPlanetModel.follow(link: "planetable.eth")
+                        //         PlanetStore.shared.followingPlanets.append(planet)
+                        //     }
+                        //     UserDefaults.standard.set(Date().ISO8601Format(), forKey: "PlanetOnboarding")
+                        // }
                     }
                     logger.debug("[IPFS stdout]\n\(data.logFormat())")
                 },

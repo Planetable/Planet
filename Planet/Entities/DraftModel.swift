@@ -118,6 +118,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let draft = DraftModel(id: UUID(), title: "", content: "", attachments: [], target: .myPlanet(Unowned(planet)))
         try FileManager.default.createDirectory(at: draft.basePath, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: draft.attachmentsPath, withIntermediateDirectories: true)
+        try draft.save()
         return draft
     }
 
@@ -153,6 +154,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                 return attachment
             }
 
+        try draft.save()
         return draft
     }
 
@@ -235,15 +237,29 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         }
         article.videoFilename = videoFilename
         try article.save()
+        try delete()
         planet.finalizeChange()
+
+        Task { @MainActor in
+            PlanetStore.shared.selectedView = .myPlanet(planet)
+            PlanetStore.shared.refreshSelectedArticles()
+            PlanetStore.shared.selectedArticle = article
+        }
     }
 
     func save() throws {
-        let data = try JSONEncoder.shared.encode(self)
-        try data.write(to: infoPath)
+        try JSONEncoder.shared.encode(self).write(to: infoPath)
     }
 
     func delete() throws {
+        switch target! {
+        case .myPlanet(let wrapper):
+            let planet = wrapper.value
+            planet.drafts.removeAll { $0.id == id }
+        case .article(let wrapper):
+            let article = wrapper.value
+            article.draft = nil
+        }
         try FileManager.default.removeItem(at: basePath)
     }
 }
