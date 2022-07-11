@@ -73,7 +73,7 @@ class Planet: NSManagedObject {
         guard let planetID = id else { return nil }
         let planetType = type
         guard let planetName = name else { return nil }
-        guard let planetAbout = about else { return nil }
+        let planetAbout = about ?? ""
         var planetLink: String
         switch (type) {
         case .planet:
