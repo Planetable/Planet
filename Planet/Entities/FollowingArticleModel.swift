@@ -36,7 +36,7 @@ class FollowingArticleModel: ArticleModel, Codable {
             if link.hasPrefix("https") || link.hasPrefix("http://") {
                 if let linkURL = URL(string: link) {
                     if planet.planetType == .ens {
-                        return URL(string: "https://\(planet.link).link\(linkURL.path)")
+                        return URL(string: "https://\(planet.link).limo\(linkURL.path)")
                     }
                     if planet.planetType == .planet {
                         return URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.link)\(linkURL.path)")
