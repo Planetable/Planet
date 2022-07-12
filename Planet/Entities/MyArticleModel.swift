@@ -10,6 +10,7 @@ class MyArticleModel: ArticleModel, Codable {
     lazy var path = planet.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
     lazy var publicBasePath = planet.publicBasePath.appendingPathComponent(id.uuidString, isDirectory: true)
     lazy var publicIndexPath = publicBasePath.appendingPathComponent("index.html", isDirectory: false)
+    lazy var publicInfoPath = publicBasePath.appendingPathComponent("article.json", isDirectory: false)
 
     var publicArticle: PublicArticleModel {
         PublicArticleModel(
@@ -97,14 +98,23 @@ class MyArticleModel: ArticleModel, Codable {
         return article
     }
 
-    func save() throws {
-        let data = try JSONEncoder.shared.encode(self)
-        try data.write(to: path)
+    func savePublic() throws {
+        guard let template = planet.template else {
+            throw PlanetError.MissingTemplateError
+        }
+        let articleHTML = try template.render(article: self)
+        try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
+        try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
     }
 
-    func delete() {
-        try? FileManager.default.removeItem(at: path)
-        // try? FileManager.default.removeItem(at: publicBasePath)
+    func save() throws {
+        try JSONEncoder.shared.encode(self).write(to: path)
+    }
+
+    func delete() throws {
+        planet.articles.removeAll { $0.id == id }
+        try FileManager.default.removeItem(at: path)
+        try FileManager.default.removeItem(at: publicBasePath)
     }
 }
 

@@ -79,19 +79,21 @@ struct MyArticleItemView: View {
                 isPresented: $isShowingDeleteConfirmation
             ) {
                 Button(role: .destructive) {
-                    if let planet = article.planet,
-                       let index = planet.articles.firstIndex(of: article) {
-                        planet.articles.remove(at: index)
-                        article.delete()
-                        planet.finalizeChange()
-                        if PlanetStore.shared.selectedArticle == article {
-                            PlanetStore.shared.selectedArticle = nil
+                    do {
+                        if let planet = article.planet {
+                            try article.delete()
+                            planet.updated = Date()
+                            try planet.save()
+                            try planet.savePublic()
+                            if PlanetStore.shared.selectedArticle == article {
+                                PlanetStore.shared.selectedArticle = nil
+                            }
+                            if let selectedArticles = PlanetStore.shared.selectedArticleList,
+                               selectedArticles.contains(article) {
+                                PlanetStore.shared.refreshSelectedArticles()
+                            }
                         }
-                        if let selectedArticles = PlanetStore.shared.selectedArticleList,
-                           selectedArticles.contains(article) {
-                            PlanetStore.shared.refreshSelectedArticles()
-                        }
-                    } else {
+                    } catch {
                         PlanetStore.shared.alert(title: "Failed to delete article")
                     }
                 } label: {

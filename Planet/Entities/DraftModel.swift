@@ -237,9 +237,16 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         }
         article.videoFilename = videoFilename
         try article.save()
+        try article.savePublic()
         try delete()
         try planet.copyTemplateAssets()
-        planet.finalizeChange()
+        planet.updated = Date()
+        try planet.save()
+        try planet.savePublic()
+
+        Task {
+            try await planet.publish()
+        }
 
         Task { @MainActor in
             PlanetStore.shared.selectedView = .myPlanet(planet)

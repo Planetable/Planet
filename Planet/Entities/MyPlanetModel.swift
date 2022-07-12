@@ -343,12 +343,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         guard let template = template else {
             throw PlanetError.MissingTemplateError
         }
-        let publicArticles: [PublicArticleModel] = try articles.map { article in
-            let publicArticle = article.publicArticle
-            let articleHTML = try template.render(article: article)
-            try articleHTML.data(using: .utf8)?.write(to: article.publicIndexPath)
-            return publicArticle
-        }
+        let publicArticles = articles.map { $0.publicArticle }
         let publicPlanet = PublicPlanetModel(
             id: id, name: name, about: about, ipns: ipns, created: created, updated: updated, articles: publicArticles
         )
@@ -382,17 +377,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             self.lastPublished = Date()
         }
         try save()
-    }
-
-    func finalizeChange() {
-        Task {
-            await MainActor.run {
-                updated = Date()
-            }
-            try save()
-            try savePublic()
-            try await publish()
-        }
     }
 
     func exportBackup(to directory: URL) throws {
