@@ -238,6 +238,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         article.videoFilename = videoFilename
         try article.save()
         try delete()
+        try planet.copyTemplateAssets()
         planet.finalizeChange()
 
         Task { @MainActor in
