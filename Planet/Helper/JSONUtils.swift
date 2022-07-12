@@ -23,5 +23,9 @@ extension JSONDecoder {
 }
 
 extension JSONEncoder {
-    static let shared = JSONEncoder()
+    static let shared: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        return encoder
+    }()
 }
