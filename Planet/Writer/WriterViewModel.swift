@@ -12,14 +12,14 @@ import UniformTypeIdentifiers
 
     func chooseImages() {
         attachmentType = .image
-        allowedContentTypes = [.image]
+        allowedContentTypes = [.png, .webP, .jpeg, .gif]
         allowMultipleSelection = true
         isChoosingAttachment = true
     }
 
     func chooseVideo() {
         attachmentType = .video
-        allowedContentTypes = [.video, .movie]
+        allowedContentTypes = [.mpeg4Movie, .quickTimeMovie]
         allowMultipleSelection = false
         isChoosingAttachment = true
     }
