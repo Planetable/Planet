@@ -275,6 +275,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 planet.articles = []
             }
 
+            if let data = try? await ENSUtils.shared.avatar(name: link),
+               let image = NSImage(data: data),
+               let _ = try? data.write(to: planet.avatarPath) {
+                planet.avatar = image
+            } else
             if let data = feed.avatar,
                let image = NSImage(data: data),
                let _ = try? data.write(to: planet.avatarPath) {
@@ -498,6 +503,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 try await updateArticles(publicArticles: publicArticles)
             }
 
+            if let data = try? await ENSUtils.shared.avatar(name: link),
+               let image = NSImage(data: data),
+               let _ = try? data.write(to: avatarPath) {
+                await MainActor.run {
+                    avatar = image
+                }
+            } else
             if let data = feed.avatar,
                let image = NSImage(data: data),
                let _ = try? data.write(to: avatarPath) {
