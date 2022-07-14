@@ -71,6 +71,11 @@ struct FollowPlanetView: View {
                             }
                         } catch PlanetError.PlanetExistsError {
                             // ignore
+                        } catch PlanetError.ENSNoContentHashError {
+                            PlanetStore.shared.alert(
+                                title: "Unable to follow planet",
+                                message: "This ENS has no contenthash."
+                            )
                         } catch {
                             PlanetStore.shared.alert(title: "Failed to follow planet")
                         }

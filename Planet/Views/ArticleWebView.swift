@@ -18,7 +18,7 @@ struct ArticleWebView: NSViewRepresentable {
 
         wv.navigationDelegate = context.coordinator
         wv.setValue(false, forKey: "drawsBackground")
-        if url.scheme == "file" {
+        if url.isFileURL {
             wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent().deletingLastPathComponent())
         } else {
             wv.load(URLRequest(url: url))

@@ -13,7 +13,7 @@ struct TemplateBrowserPreviewWebView: NSViewRepresentable {
     public typealias NSViewType = WKWebView
 
     @Binding var url: URL
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
@@ -23,21 +23,19 @@ struct TemplateBrowserPreviewWebView: NSViewRepresentable {
 
         wv.navigationDelegate = context.coordinator
         wv.setValue(false, forKey: "drawsBackground")
-        
-        if url.scheme == "file" {
+
+        if url.isFileURL {
             wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
         } else {
             wv.load(URLRequest(url: url))
         }
-        
+
         NotificationCenter.default.addObserver(forName: .loadTemplatePreview, object: nil, queue: .main) { _ in
-            if wv.url != url {
-                debugPrint("Loading template preview from: \(url)")
-                if url.scheme == "file" {
-                    wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
-                } else {
-                    wv.load(URLRequest(url: url))
-                }
+            debugPrint("Loading template preview from: \(url)")
+            if url.isFileURL {
+                wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+            } else {
+                wv.load(URLRequest(url: url))
             }
         }
         return wv
@@ -45,7 +43,7 @@ struct TemplateBrowserPreviewWebView: NSViewRepresentable {
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
     }
-    
+
     class Coordinator: NSObject, WKNavigationDelegate {
         let parent: TemplateBrowserPreviewWebView
 
@@ -91,6 +89,6 @@ struct TemplateBrowserPreviewWebView: NSViewRepresentable {
 
 extension Notification.Name {
     static let refreshTemplatePreview = Notification.Name("TemplateBrowserRefreshPreviewNotification")
-    
+
     static let loadTemplatePreview = Notification.Name("TemplateBrowserLoadPreviewNotification")
 }
