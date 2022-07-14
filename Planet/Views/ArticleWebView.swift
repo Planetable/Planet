@@ -1,41 +1,10 @@
-//
-//  PlanetArticleWebView.swift
-//  Planet
-//
-//  Created by Kai on 2/26/22.
-//
-
 import SwiftUI
 import WebKit
-
-
-class PlanetWebViewHelper: NSObject {
-    static let shared = PlanetWebViewHelper()
-
-    override init() {
-        debugPrint("Planet Web View Init.")
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    deinit {
-        debugPrint("Planet Web View Deinit.")
-    }
-
-    func cleanCookies() {
-        HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
-        WKWebsiteDataStore.default().fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
-            for record in records {
-                WKWebsiteDataStore.default().removeData(ofTypes: record.dataTypes, for: [record], completionHandler: {})
-            }
-        }
-    }
-}
-
+import os
 
 struct ArticleWebView: NSViewRepresentable {
+    static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "ArticleWebView")
+
     public typealias NSViewType = WKWebView
 
     @Binding var url: URL
@@ -56,7 +25,7 @@ struct ArticleWebView: NSViewRepresentable {
         }
 
         NotificationCenter.default.addObserver(forName: .loadArticle, object: nil, queue: .main) { _ in
-            debugPrint("loading article at: \(url)")
+            Self.logger.log("Loading \(url)")
             if url.isFileURL {
                 wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent().deletingLastPathComponent())
             } else {
@@ -78,7 +47,7 @@ struct ArticleWebView: NSViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, shouldAllowDeprecatedTLSFor challenge: URLAuthenticationChallenge) async -> Bool {
-            return true
+            true
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {

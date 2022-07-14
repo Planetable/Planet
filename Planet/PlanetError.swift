@@ -13,6 +13,7 @@ enum PlanetError: Error {
     case FollowLocalPlanetError
     case FollowPlanetVerifyError
     case InvalidPlanetURLError
+    case ENSNoContentHashError
     case InternalError
     case UnknownError(Error)
 }

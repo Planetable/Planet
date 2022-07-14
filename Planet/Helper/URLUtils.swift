@@ -41,3 +41,24 @@ struct URLUtils {
         return url
     }()
 }
+
+extension URL {
+    var isHTTP: Bool {
+        if let scheme = scheme?.lowercased(),
+           scheme == "http" || scheme == "https" {
+            return true
+        }
+        return false
+    }
+
+    var pathQueryFragment: String {
+        var s = path
+        if let query = query {
+            s += "?\(query)"
+        }
+        if let fragment = fragment {
+            s += "#\(fragment)"
+        }
+        return s
+    }
+}

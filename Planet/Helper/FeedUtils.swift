@@ -3,7 +3,7 @@ import FeedKit
 import SwiftSoup
 
 struct FeedUtils {
-    static func findFeed(url: URL) async throws -> Data? {
+    static func findFeed(url: URL) async throws -> (feed: Data?, html: Document?) {
         guard let (data, response) = try? await URLSession.shared.data(from: url) else {
             throw PlanetError.NetworkError
         }
@@ -11,25 +11,28 @@ struct FeedUtils {
               httpResponse.ok,
               let mime = httpResponse.mimeType?.lowercased()
         else {
-            return nil
+            return (nil, nil)
         }
         if mime.contains("application/xml")
                || mime.contains("application/atom+xml")
                || mime.contains("application/rss+xml")
                || mime.contains("application/json")
                || mime.contains("application/feed+json") {
-            return data
+            return (data, nil)
         }
         if mime.contains("text/html") {
             // parse HTML and find <link rel="alternate">
             guard let homepageHTML = String(data: data, encoding: .utf8),
-                  let soup = try? SwiftSoup.parse(homepageHTML),
-                  let feedElem = try soup.select("link[rel='alternate']").first(),
+                  let soup = try? SwiftSoup.parse(homepageHTML)
+            else {
+                return (nil, nil)
+            }
+            guard let feedElem = try soup.select("link[rel='alternate']").first(),
                   let feedElemHref = try? feedElem.attr("href"),
                   let feedURL = URL(string: feedElemHref, relativeTo: url)?.absoluteURL
             else {
                 // no <link rel="alternate"> in HTML
-                return nil
+                return (nil, soup)
             }
             // fetch feed
             guard let (data, response) = try? await URLSession.shared.data(from: feedURL) else {
@@ -38,11 +41,12 @@ struct FeedUtils {
             guard let httpResponse = response as? HTTPURLResponse,
                   httpResponse.ok
             else {
-                return nil
+                return (nil, soup)
             }
-            return data
+            return (data, soup)
         }
-        return nil
+        // unknown HTTP response
+        return (nil, nil)
     }
 
     static func parseFeed(data: Data) throws -> (
