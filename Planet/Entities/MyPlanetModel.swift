@@ -14,6 +14,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var templateName: String
     @Published var lastPublished: Date?
 
+    @Published var plausibleEnabled: Bool? = false
+    @Published var plausibleDomain: String?
+    @Published var plausibleAPIKey: String?
+
     @Published var isPublishing = false
     // populated when initializing
     @Published var avatar: NSImage? = nil
@@ -66,6 +70,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(templateName)
         hasher.combine(lastPublished)
         hasher.combine(isPublishing)
+        hasher.combine(plausibleEnabled)
+        hasher.combine(plausibleDomain)
+        hasher.combine(plausibleAPIKey)
         hasher.combine(avatar)
         hasher.combine(drafts)
         hasher.combine(articles)
@@ -86,6 +93,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.updated == rhs.updated
             && lhs.templateName == rhs.templateName
             && lhs.lastPublished == rhs.lastPublished
+            && lhs.plausibleEnabled == rhs.plausibleEnabled
+            && lhs.plausibleDomain == rhs.plausibleDomain
+            && lhs.plausibleAPIKey == rhs.plausibleAPIKey
             && lhs.isPublishing == rhs.isPublishing
             && lhs.avatar == rhs.avatar
             && lhs.drafts == rhs.drafts
@@ -93,7 +103,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, about, ipns, created, updated, templateName, lastPublished
+        case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled, plausibleDomain, plausibleAPIKey
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -108,6 +118,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         updated = try container.decode(Date.self, forKey: .updated)
         templateName = try container.decode(String.self, forKey: .templateName)
         lastPublished = try container.decodeIfPresent(Date.self, forKey: .lastPublished)
+        plausibleEnabled = try container.decodeIfPresent(Bool.self, forKey: .plausibleEnabled)
+        plausibleDomain = try container.decodeIfPresent(String.self, forKey: .plausibleDomain)
+        plausibleAPIKey = try container.decodeIfPresent(String.self, forKey: .plausibleAPIKey)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -120,6 +133,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encode(updated, forKey: .updated)
         try container.encode(templateName, forKey: .templateName)
         try container.encodeIfPresent(lastPublished, forKey: .lastPublished)
+        try container.encodeIfPresent(plausibleEnabled, forKey: .plausibleEnabled)
+        try container.encodeIfPresent(plausibleDomain, forKey: .plausibleDomain)
+        try container.encodeIfPresent(plausibleAPIKey, forKey: .plausibleAPIKey)
     }
 
     init(
@@ -394,6 +410,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             updated: updated,
             lastPublished: lastPublished,
             templateName: templateName,
+            plausibleEnabled: plausibleEnabled,
+            plausibleDomain: plausibleDomain,
+            plausibleAPIKey: plausibleAPIKey,
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,
@@ -455,5 +474,8 @@ struct BackupMyPlanetModel: Codable {
     let updated: Date
     let lastPublished: Date?
     let templateName: String
+    let plausibleEnabled: Bool?
+    let plausibleDomain: String?
+    let plausibleAPIKey: String?
     let articles: [BackupArticleModel]
 }

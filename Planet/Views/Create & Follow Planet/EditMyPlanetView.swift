@@ -9,11 +9,18 @@ struct EditMyPlanetView: View {
     @State private var about: String
     @State private var templateName: String
 
+    @State private var plausibleEnabled: Bool = false
+    @State private var plausibleDomain: String
+    @State private var plausibleAPIKey: String
+
     init(planet: MyPlanetModel) {
         self.planet = planet
         _name = State(wrappedValue: planet.name)
         _about = State(wrappedValue: planet.about)
         _templateName = State(wrappedValue: planet.templateName)
+        _plausibleEnabled = State(wrappedValue: planet.plausibleEnabled ?? false)
+        _plausibleDomain = State(wrappedValue: planet.plausibleDomain ?? "")
+        _plausibleAPIKey = State(wrappedValue: planet.plausibleAPIKey ?? "")
     }
 
     var body: some View {
@@ -28,7 +35,7 @@ struct EditMyPlanetView: View {
             Divider()
 
             VStack(spacing: 15) {
-                HStack(alignment: .top) {
+                HStack {
                     HStack {
                         Text("Name")
                         Spacer()
@@ -38,9 +45,8 @@ struct EditMyPlanetView: View {
                     TextField("", text: $name)
                         .textFieldStyle(.roundedBorder)
                 }
-                .padding(.top, 16)
 
-                HStack(alignment: .top) {
+                HStack {
                     HStack {
                         Text("About")
                         Spacer()
@@ -72,10 +78,46 @@ struct EditMyPlanetView: View {
                     .frame(width: 70)
                 }
                 .pickerStyle(.menu)
-
-                Spacer()
             }
-            .padding(.horizontal, 16)
+            .padding(16)
+
+            Divider()
+
+            VStack(spacing: 15) {
+                HStack {
+                    HStack {
+                        Spacer()
+                    }.frame(width: 80)
+                    Toggle("Enable Plausible for Traffic Analytics", isOn: $plausibleEnabled)
+                    .toggleStyle(.checkbox)
+                    .frame(alignment: .leading)
+                    Spacer()
+                }
+
+                HStack {
+                    HStack {
+                        Text("Domain")
+                        Spacer()
+                    }
+                    .frame(width: 70)
+
+                    TextField("", text: $plausibleDomain)
+                        .textFieldStyle(.roundedBorder)
+                }
+
+                HStack {
+                    HStack {
+                        Text("API Key")
+                        Spacer()
+                    }
+                    .frame(width: 70)
+
+                    TextField("", text: $plausibleAPIKey)
+                        .textFieldStyle(.roundedBorder)
+                }
+
+            }
+            .padding(16)
 
             Divider()
 
@@ -95,6 +137,9 @@ struct EditMyPlanetView: View {
                     }
                     planet.about = about
                     planet.templateName = templateName
+                    planet.plausibleEnabled = plausibleEnabled
+                    planet.plausibleDomain = plausibleDomain
+                    planet.plausibleAPIKey = plausibleAPIKey
                     Task {
                         try planet.save()
                         try planet.copyTemplateAssets()
@@ -112,7 +157,7 @@ struct EditMyPlanetView: View {
             .padding(16)
         }
         .padding(0)
-        .frame(width: 480, height: 300, alignment: .center)
+        .frame(width: 480, height: 400, alignment: .top)
         .task {
             name = planet.name
             about = planet.about
