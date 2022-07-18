@@ -93,12 +93,16 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 selectedView = .starred
             }
         }
-
+        // Publish my planets every 30 minutes
         RunLoop.main.add(Timer(timeInterval: 1800, repeats: true) { [self] timer in
             publishMyPlanets()
         }, forMode: .common)
+        // Check content update every 15 minutes
         RunLoop.main.add(Timer(timeInterval: 300, repeats: true) { [self] timer in
             updateFollowingPlanets()
+        }, forMode: .common)
+        // Get the latest analytics data every minute
+        RunLoop.main.add(Timer(timeInterval: 60, repeats: true) { [self] timer in
             updateMyPlanetsTrafficAnalytics()
         }, forMode: .common)
     }

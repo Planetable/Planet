@@ -484,12 +484,19 @@ struct PlausibleAnalytics {
             let json = try JSON(data: data)
             debugPrint("SwiftyJSON: \(json)")
             if let visitors = json["results"]["visitors"]["value"].int, let pageviews = json["results"]["pageviews"]["value"].int {
-                let metrics = Metrics(
-                    visitorsToday: visitors,
-                    pageviewsToday: pageviews
-                )
-                debugPrint("Plausible Analytics for \(planet.name): \(metrics)")
-                planet.metrics = metrics
+                if planet.metrics == nil {
+                    Task { @MainActor in
+                        planet.metrics = Metrics(
+                            visitorsToday: visitors,
+                            pageviewsToday: pageviews
+                        )
+                    }
+                } else {
+                    Task {
+                        planet.metrics?.visitorsToday = visitors
+                        planet.metrics?.pageviewsToday = pageviews
+                    }
+                }
             }
         } catch {
             debugPrint("Plausible: error occurred when fetching analytics for \(planet.name) \(error)")
@@ -498,8 +505,8 @@ struct PlausibleAnalytics {
 }
 
 struct Metrics: Codable {
-    let visitorsToday: Int
-    let pageviewsToday: Int
+    var visitorsToday: Int
+    var pageviewsToday: Int
 }
 
 struct PublicPlanetModel: Codable {
