@@ -78,8 +78,16 @@ class Template: Codable, Identifiable {
         let result = MarkdownParser().parse(article.content.trim())
         let content_html = result.html
 
+        let planet = article.planet!
+        let publicPlanet = PublicPlanetModel(
+            id: planet.id, name: planet.name, about: planet.about, ipns: planet.ipns, created: planet.created, updated: planet.updated, articles: [],
+            plausibleEnabled: planet.plausibleEnabled ?? false,
+            plausibleDomain: planet.plausibleDomain ?? nil
+        )
+
         // render stencil template
         let context: [String: Any] = [
+            "planet": publicPlanet,
             "planet_ipns": article.planet.ipns,
             "assets_prefix": "../",
             "article": article.publicArticle,
@@ -101,6 +109,7 @@ class Template: Codable, Identifiable {
             "page_description": planet.about,
             "articles": planet.articles,
             "build_timestamp": Int(Date().timeIntervalSince1970),
+            "planet": planet,
         ]
         let loader = FileSystemLoader(paths: [Path(indexPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.common])

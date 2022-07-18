@@ -364,7 +364,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         let publicArticles = articles.map { $0.publicArticle }
         let publicPlanet = PublicPlanetModel(
-            id: id, name: name, about: about, ipns: ipns, created: created, updated: updated, articles: publicArticles
+            id: id, name: name, about: about, ipns: ipns, created: created, updated: updated, articles: publicArticles,
+            plausibleEnabled: plausibleEnabled,
+            plausibleDomain: plausibleDomain
         )
         let indexHTML = try template.renderIndex(planet: publicPlanet)
         try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
@@ -517,6 +519,8 @@ struct PublicPlanetModel: Codable {
     let created: Date
     let updated: Date
     let articles: [PublicArticleModel]
+    let plausibleEnabled: Bool?
+    let plausibleDomain: String?
 }
 
 struct BackupMyPlanetModel: Codable {

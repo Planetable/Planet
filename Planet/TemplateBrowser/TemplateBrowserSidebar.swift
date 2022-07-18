@@ -31,6 +31,12 @@ struct TemplateBrowserSidebar: View {
                         }
                     }
 
+                    Button {
+                        openTerminal(template)
+                    } label: {
+                        Text("Open in Terminal")
+                    }
+
                     Button(action: {
                         revealInFinder(template)
                     }) {
@@ -58,6 +64,16 @@ struct TemplateBrowserSidebar: View {
     private func revealInFinder(_ template: Template) {
         let url = URL(fileURLWithPath: template.path.path)
         NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path)
+    }
+
+    private func openTerminal(_ template: Template) {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Terminal")
+        else { return }
+
+        let url = URL(fileURLWithPath: template.path.path)
+
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
     }
 
     private func openConfiguration() -> NSWorkspace.OpenConfiguration {
