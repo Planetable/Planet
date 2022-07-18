@@ -85,7 +85,7 @@ struct ArticleView: View {
                                 if let plausibleDomain = planet.plausibleDomain {
                                     Divider()
                                     Button("Full Analytics on Plausible.io") {
-                                        let url = URL(string: "https://plausible.io/\(planet.plausibleDomain)")!
+                                        let url = URL(string: "https://plausible.io/\(plausibleDomain)")!
                                         if NSWorkspace.shared.open(url) {
                                         }
                                     }.buttonStyle(.link)
