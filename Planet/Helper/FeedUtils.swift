@@ -14,6 +14,7 @@ struct FeedUtils {
             return (nil, nil)
         }
         if mime.contains("application/xml")
+               || mime.contains("text/xml")
                || mime.contains("application/atom+xml")
                || mime.contains("application/rss+xml")
                || mime.contains("application/json")
