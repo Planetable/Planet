@@ -145,17 +145,18 @@ extension WriterWindow: NSToolbarDelegate {
             toolbarItem.isNavigational = false
         }
 
-        // let button = NSButton()
-        // button.bezelStyle = .texturedRounded
-        // button.image = image
-        // button.action = Selector((selector))
-        // toolbarItem.view = button
+        let button = NSButton(frame: CGRect(x: 0, y: 0, width: 45, height: 28))
+        button.widthAnchor.constraint(equalToConstant: button.frame.width).isActive = true
+        button.heightAnchor.constraint(equalToConstant: button.frame.height).isActive = true
+        button.bezelStyle = .texturedRounded
+        button.image = image
+        button.action = Selector((selector))
+        toolbarItem.view = button
 
-        toolbarItem.isBordered = true
-        toolbarItem.image = image
-        toolbarItem.action = Selector((selector))
+        // toolbarItem.isBordered = true
+        // toolbarItem.image = image
+        // toolbarItem.action = Selector((selector))
 
-        // toolbarItem.view = button
         toolbarItem.toolTip = title
         toolbarItem.label = title
         return toolbarItem
