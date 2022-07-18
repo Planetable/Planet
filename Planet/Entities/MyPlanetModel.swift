@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import os
+import SwiftyJSON
 
 class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codable {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "MyPlanet")
@@ -17,6 +18,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var plausibleEnabled: Bool? = false
     @Published var plausibleDomain: String?
     @Published var plausibleAPIKey: String?
+
+    @Published var metrics: Metrics?
 
     @Published var isPublishing = false
     // populated when initializing
@@ -453,6 +456,50 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try FileManager.default.removeItem(at: basePath)
         // try FileManager.default.removeItem(at: publicBasePath)
     }
+
+    func updateTrafficAnalytics() async {
+        if let domain = plausibleDomain, let apiKey = plausibleAPIKey {
+            let analytics = PlausibleAnalytics(domain: domain, apiKey: apiKey)
+            await analytics.updateTrafficAnalytics(for: self)
+        }
+    }
+}
+
+struct PlausibleAnalytics {
+    let domain: String
+    let apiKey: String
+
+    func updateTrafficAnalytics(for planet: MyPlanetModel) async {
+        let url = URL(string: "https://plausible.io/api/v1/stats/aggregate?site_id=\(domain)&period=day&metrics=visitors,pageviews")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        guard let (data, response) = try? await URLSession.shared.data(for: request) else {
+            return
+        }
+        do {
+            let jsonString = String(data: data, encoding: .utf8)
+            debugPrint("Data: \(jsonString)")
+            let json = try JSON(data: data)
+            debugPrint("SwiftyJSON: \(json)")
+            if let visitors = json["results"]["visitors"]["value"].int, let pageviews = json["results"]["pageviews"]["value"].int {
+                let metrics = Metrics(
+                    visitorsToday: visitors,
+                    pageviewsToday: pageviews
+                )
+                debugPrint("Plausible Analytics for \(planet.name): \(metrics)")
+                planet.metrics = metrics
+            }
+        } catch {
+            debugPrint("Plausible: error occurred when fetching analytics for \(planet.name) \(error)")
+        }
+    }
+}
+
+struct Metrics: Codable {
+    let visitorsToday: Int
+    let pageviewsToday: Int
 }
 
 struct PublicPlanetModel: Codable {

@@ -504,12 +504,12 @@
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
-				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */,
-				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */,
+				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */,
+				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */,
 				2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */,
 				BBFE51EA27F3AABC0055A51A /* XCRemoteSwiftPackageReference "ENSKit" */,
-				BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates.git" */,
-				BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup.git" */,
+				BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */,
+				BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				BB99C7052847AC9F001836B2 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
@@ -826,7 +826,7 @@
 				minimumVersion = 9.0.0;
 			};
 		};
-		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */ = {
+		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
 			requirement = {
@@ -834,7 +834,7 @@
 				kind = branch;
 			};
 		};
-		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */ = {
+		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/johnsundell/ink.git";
 			requirement = {
@@ -842,7 +842,7 @@
 				minimumVersion = 0.5.1;
 			};
 		};
-		BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup.git" */ = {
+		BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
 			requirement = {
@@ -858,7 +858,7 @@
 				minimumVersion = 2.1.0;
 			};
 		};
-		BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates.git" */ = {
+		BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Planetable/PlanetSiteTemplates.git";
 			requirement = {
@@ -884,17 +884,17 @@
 		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */;
+			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
 			productName = Stencil;
 		};
 		6A0172EA27C9FD5F006154B7 /* Ink */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */;
+			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */;
 			productName = Ink;
 		};
 		BB6FC66C28423AF80072C3A1 /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup.git" */;
+			package = BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
 		};
 		BB99C7062847AC9F001836B2 /* Sparkle */ = {
@@ -904,7 +904,7 @@
 		};
 		BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates.git" */;
+			package = BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */;
 			productName = PlanetSiteTemplates;
 		};
 		BBFE51EB27F3AABC0055A51A /* ENSKit */ = {

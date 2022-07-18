@@ -99,6 +99,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         }, forMode: .common)
         RunLoop.main.add(Timer(timeInterval: 300, repeats: true) { [self] timer in
             updateFollowingPlanets()
+            updateMyPlanetsTrafficAnalytics()
         }, forMode: .common)
     }
 
@@ -150,6 +151,18 @@ enum PlanetDetailViewType: Hashable, Equatable {
             }
             await MainActor.run {
                 refreshSelectedArticles()
+            }
+        }
+    }
+
+    func updateMyPlanetsTrafficAnalytics() {
+        Task {
+            await withTaskGroup(of: Void.self) { taskGroup in
+                for myPlanet in myPlanets {
+                    taskGroup.addTask {
+                        try? await myPlanet.updateTrafficAnalytics()
+                    }
+                }
             }
         }
     }
