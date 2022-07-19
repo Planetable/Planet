@@ -137,9 +137,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // let saver = Saver.shared
         // saver.savePlanets()
         // saver.migratePublic()
-        Task { @MainActor in
-            TemplateStore.shared.load()
-        }
 
         SUUpdater.shared().checkForUpdatesInBackground()
 
@@ -164,6 +161,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 saver.setMigrationDoneFlag(flag: true)
                 Task { @MainActor in
                     try PlanetStore.shared.load()
+                    try TemplateStore.shared.load()
                 }
             }
             Task { @MainActor in
