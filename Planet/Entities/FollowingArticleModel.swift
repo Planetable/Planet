@@ -81,7 +81,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, created, read, starred, videoFilename
+        case id, link, title, content, created, read, starred, videoFilename, audioFilename
     }
 
     required init(from decoder: Decoder) throws {
@@ -94,7 +94,8 @@ class FollowingArticleModel: ArticleModel, Codable {
         read = try container.decodeIfPresent(Date.self, forKey: .read)
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
-        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename)
+        let audioFilename = try container.decodeIfPresent(String.self, forKey: .audioFilename)
+        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -117,11 +118,12 @@ class FollowingArticleModel: ArticleModel, Codable {
         created: Date,
         read: Date?,
         starred: Date?,
-        videoFilename: String?
+        videoFilename: String?,
+        audioFilename: String?
     ) {
         self.link = link
         self.read = read
-        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename)
+        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename)
     }
 
     static func load(from filePath: URL, planet: FollowingPlanetModel) throws -> FollowingArticleModel {
@@ -147,7 +149,8 @@ class FollowingArticleModel: ArticleModel, Codable {
             created: publicArticle.created,
             read: nil,
             starred: nil,
-            videoFilename: nil
+            videoFilename: nil,
+            audioFilename: nil
         )
         article.planet = planet
 

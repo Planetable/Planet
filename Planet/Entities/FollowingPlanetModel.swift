@@ -311,7 +311,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 content: "",
                 created: now,
                 hasVideo: false,
-                videoFilename: nil
+                videoFilename: nil,
+                hasAudio: false,
+                audioFilename: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)

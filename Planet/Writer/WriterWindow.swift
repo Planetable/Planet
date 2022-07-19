@@ -56,6 +56,10 @@ class WriterWindow: NSWindow {
     @objc func attachVideo(_ sender: Any?) {
         viewModel.chooseVideo()
     }
+
+    @objc func attachAudio(_ sender: Any?) {
+        viewModel.chooseAudio()
+    }
 }
 
 extension NSToolbarItem.Identifier {
@@ -63,6 +67,7 @@ extension NSToolbarItem.Identifier {
     static let insertEmoji = NSToolbarItem.Identifier("insertEmoji")
     static let attachPhoto = NSToolbarItem.Identifier("attachPhoto")
     static let attachVideo = NSToolbarItem.Identifier("attachVideo")
+    static let attachAudio = NSToolbarItem.Identifier("attachAudio")
 }
 
 extension WriterWindow: NSToolbarDelegate {
@@ -104,17 +109,26 @@ extension WriterWindow: NSToolbarDelegate {
                 image: NSImage(systemSymbolName: "video.badge.plus", accessibilityDescription: "Attach Video")!,
                 selector: "attachVideo:"
             )
+        case .attachAudio:
+            let title = NSLocalizedString("Attach Audio", comment: "Attach Audio")
+            return makeToolbarButton(
+                itemIdentifier: .attachAudio,
+                title: title,
+                image: NSImage(systemSymbolName: "waveform.badge.plus", accessibilityDescription: "Attach Audio")!,
+                selector: "attachAudio:"
+            )
+
         default:
             return nil
         }
     }
 
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.send, .insertEmoji, .attachPhoto, .attachVideo, .flexibleSpace]
+        [.send, .insertEmoji, .attachPhoto, .attachVideo, .attachAudio, .flexibleSpace]
     }
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.send, .insertEmoji, .attachPhoto, .attachVideo]
+        [.send, .insertEmoji, .attachPhoto, .attachVideo, .attachAudio]
     }
 
     func toolbarWillAddItem(_ notification: Notification) {

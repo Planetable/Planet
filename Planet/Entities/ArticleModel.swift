@@ -7,18 +7,24 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
     let created: Date
     @Published var starred: Date? = nil
     @Published var videoFilename: String?
+    @Published var audioFilename: String?
 
     var hasVideo: Bool {
         videoFilename != nil
     }
 
-    init(id: UUID, title: String, content: String, created: Date, starred: Date?, videoFilename: String?) {
+    var hasAudio: Bool {
+        audioFilename != nil
+    }
+
+    init(id: UUID, title: String, content: String, created: Date, starred: Date?, videoFilename: String?, audioFilename: String?) {
         self.id = id
         self.title = title
         self.content = content
         self.created = created
         self.starred = starred
         self.videoFilename = videoFilename
+        self.audioFilename = audioFilename
     }
 
     func hash(into hasher: inout Hasher) {
@@ -47,4 +53,6 @@ struct PublicArticleModel: Codable {
     let created: Date
     let hasVideo: Bool?
     let videoFilename: String?
+    let hasAudio: Bool?
+    let audioFilename: String?
 }

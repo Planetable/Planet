@@ -77,7 +77,7 @@ struct FollowPlanetView: View {
                                 message: "This ENS has no contenthash."
                             )
                         } catch {
-                            PlanetStore.shared.alert(title: "Failed to follow planet")
+                            PlanetStore.shared.alert(title: "Failed to follow planet", message: "\(error)")
                         }
                         isCancelled = false
                         isFollowing = false

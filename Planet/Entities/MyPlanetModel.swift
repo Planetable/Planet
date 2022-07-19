@@ -301,7 +301,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     content: backupArticle.content,
                     created: backupArticle.created,
                     starred: nil,
-                    videoFilename: backupArticle.videoFilename
+                    videoFilename: backupArticle.videoFilename,
+                    audioFilename: backupArticle.audioFilename
                 )
                 article.planet = planet
                 do {
@@ -425,7 +426,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     title: $0.title,
                     content: $0.content,
                     created: $0.created,
-                    videoFilename: $0.videoFilename
+                    videoFilename: $0.videoFilename,
+                    audioFilename: $0.audioFilename
                 )
             }
         )

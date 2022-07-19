@@ -225,10 +225,14 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         try FileManager.default.contentsOfDirectory(at: article.publicBasePath, includingPropertiesForKeys: nil)
             .forEach { try FileManager.default.removeItem(at: $0) }
         var videoFilename: String? = nil
+        var audioFilename: String? = nil
         for attachment in attachments {
             let name = attachment.name
             if attachment.type == .video {
                 videoFilename = name
+            }
+            if attachment.type == .audio {
+                audioFilename = name
             }
             let targetPath = article.publicBasePath.appendingPathComponent(name, isDirectory: false)
             // copy attachment to article folder, in case file operation fails, the draft still maintains its integrity
@@ -236,6 +240,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             try FileManager.default.copyItem(at: attachment.path, to: targetPath)
         }
         article.videoFilename = videoFilename
+        article.audioFilename = audioFilename
         try article.save()
         try article.savePublic()
         try delete()

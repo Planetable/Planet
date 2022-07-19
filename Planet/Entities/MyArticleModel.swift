@@ -20,7 +20,9 @@ class MyArticleModel: ArticleModel, Codable {
             content: content,
             created: created,
             hasVideo: hasVideo,
-            videoFilename: videoFilename
+            videoFilename: videoFilename,
+            hasAudio: hasAudio,
+            audioFilename: audioFilename
         )
     }
     var browserURL: URL? {
@@ -28,7 +30,7 @@ class MyArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, created, starred, videoFilename
+        case id, link, title, content, created, starred, videoFilename, audioFilename
     }
 
     required init(from decoder: Decoder) throws {
@@ -40,12 +42,14 @@ class MyArticleModel: ArticleModel, Codable {
         let created = try container.decode(Date.self, forKey: .created)
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
+        let audioFilename = try container.decodeIfPresent(String.self, forKey: .audioFilename)
         super.init(id: id,
                    title: title,
                    content: content,
                    created: created,
                    starred: starred,
-                   videoFilename: videoFilename)
+                   videoFilename: videoFilename,
+                   audioFilename: audioFilename)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -57,11 +61,12 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encode(created, forKey: .created)
         try container.encodeIfPresent(starred, forKey: .starred)
         try container.encodeIfPresent(videoFilename, forKey: .videoFilename)
+        try container.encodeIfPresent(audioFilename, forKey: .audioFilename)
     }
 
-    init(id: UUID, link: String, title: String, content: String, created: Date, starred: Date?, videoFilename: String?) {
+    init(id: UUID, link: String, title: String, content: String, created: Date, starred: Date?, videoFilename: String?, audioFilename: String?) {
         self.link = link
-        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename)
+        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename)
     }
 
     static func load(from filePath: URL, planet: MyPlanetModel) throws -> MyArticleModel {
@@ -91,7 +96,8 @@ class MyArticleModel: ArticleModel, Codable {
             content: content,
             created: Date(),
             starred: nil,
-            videoFilename: nil
+            videoFilename: nil,
+            audioFilename: nil
         )
         article.planet = planet
         try FileManager.default.createDirectory(at: article.publicBasePath, withIntermediateDirectories: true)
@@ -125,4 +131,5 @@ struct BackupArticleModel: Codable {
     let content: String
     let created: Date
     let videoFilename: String?
+    let audioFilename: String?
 }

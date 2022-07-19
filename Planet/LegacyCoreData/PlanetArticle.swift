@@ -80,7 +80,8 @@ class PlanetArticle: NSManagedObject {
             content: articleContent,
             created: articleCreated,
             starred: articleStarred,
-            videoFilename: nil
+            videoFilename: nil,
+            audioFilename: nil
         )
         return newModel
     }
@@ -102,7 +103,8 @@ class PlanetArticle: NSManagedObject {
             created: articleCreated,
             read: articleRead,
             starred: articleStarred,
-            videoFilename: nil
+            videoFilename: nil,
+            audioFilename: nil
         )
         return newModel
     }

@@ -79,7 +79,9 @@ struct FeedUtils {
                     content: content,
                     created: created,
                     hasVideo: false,
-                    videoFilename: nil
+                    videoFilename: nil,
+                    hasAudio: false,
+                    audioFilename: nil
                 )
             }
             return (name, about, nil, articles)
@@ -101,7 +103,9 @@ struct FeedUtils {
                     content: description,
                     created: created,
                     hasVideo: false,
-                    videoFilename: nil
+                    videoFilename: nil,
+                    hasAudio: false,
+                    audioFilename: nil
                 )
             }
             return (name, about, nil, articles)
@@ -129,7 +133,9 @@ struct FeedUtils {
                     content: content,
                     created: created,
                     hasVideo: false,
-                    videoFilename: nil
+                    videoFilename: nil,
+                    hasAudio: false,
+                    audioFilename: nil
                 )
             }
             return (name, about, avatar, articles)

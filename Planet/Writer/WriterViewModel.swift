@@ -23,4 +23,11 @@ import UniformTypeIdentifiers
         allowMultipleSelection = false
         isChoosingAttachment = true
     }
+
+    func chooseAudio() {
+        attachmentType = .audio
+        allowedContentTypes = [.mp3, .mpeg4Audio, .wav]
+        allowMultipleSelection = false
+        isChoosingAttachment = true
+    }
 }

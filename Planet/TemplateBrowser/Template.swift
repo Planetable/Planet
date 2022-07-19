@@ -194,7 +194,9 @@ class Template: Codable, Identifiable {
                 """,
             created: Date(),
             hasVideo: false,
-            videoFilename: nil
+            videoFilename: nil,
+            hasAudio: false,
+            audioFilename: nil
         )
 
         // render markdown

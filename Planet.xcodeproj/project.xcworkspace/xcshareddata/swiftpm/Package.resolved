@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Planetable/ENSKit",
       "state" : {
-        "revision" : "1d4273fc21834bab1fd47b21aed1f2147ed04d6f",
-        "version" : "0.4.1"
+        "revision" : "7e61dc34e3f030d46f0964649726cf0b7bc53777",
+        "version" : "0.4.2"
       }
     },
     {
@@ -59,8 +59,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
-        "revision" : "86ad3748bb3d1bb0c29538bc1ba488cd075d8aa4",
-        "version" : "0.4.2"
+        "revision" : "c3b76b301e2129d6fa9cbd49c377749db8fd908a",
+        "version" : "0.4.3"
       }
     },
     {
@@ -68,8 +68,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sparkle-project/Sparkle",
       "state" : {
-        "revision" : "c1bf68f91f5c37ba5b3ac5028e34ceb5d444de12",
-        "version" : "2.2.0"
+        "revision" : "059ce9128775d5a636c7f4716f71a58919d3111e",
+        "version" : "2.2.1"
       }
     },
     {
@@ -88,6 +88,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "c7e1c890f83a2d847c5d3dfc9a737a8e7fd4c641"
+      }
+    },
+    {
+      "identity" : "subsonic",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/twostraws/Subsonic",
+      "state" : {
+        "revision" : "156c5742279df5d2315e29534a2410f418c8a772",
+        "version" : "0.2.0"
       }
     },
     {

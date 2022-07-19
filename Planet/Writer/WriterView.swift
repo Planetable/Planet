@@ -42,7 +42,7 @@ struct WriterView: View {
                 ScrollView(.horizontal) {
                     HStack(spacing: 0) {
                         ForEach(
-                            draft.attachments.filter { $0.type == .image || $0.type == .file },
+                            draft.attachments.filter { $0.type == .image || $0.type == .audio || $0.type == .file },
                             id: \.name
                         ) { attachment in
                             AttachmentThumbnailView(attachment: attachment)
