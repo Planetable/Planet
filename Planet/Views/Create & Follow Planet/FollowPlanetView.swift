@@ -4,7 +4,7 @@ struct FollowPlanetView: View {
     @Environment(\.dismiss) var dismiss
 
     @EnvironmentObject var planetStore: PlanetStore
-    @State var link = "planet://"
+    @State var link = ""
     @State var isFollowing = false
     @State var isCancelled = false
 
