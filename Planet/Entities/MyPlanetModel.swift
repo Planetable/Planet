@@ -496,7 +496,7 @@ struct PlausibleAnalytics {
                         )
                     }
                 } else {
-                    Task {
+                    Task { @MainActor in
                         planet.metrics?.visitorsToday = visitors
                         planet.metrics?.pageviewsToday = pageviews
                     }

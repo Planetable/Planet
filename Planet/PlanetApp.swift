@@ -20,6 +20,7 @@ struct PlanetApp: App {
         WindowGroup {
             PlanetMainView()
                 .environmentObject(planetStore)
+                .frame(minWidth: 720, minHeight: 600)
         }
         .windowToolbarStyle(.automatic)
         .windowStyle(.titleBar)
