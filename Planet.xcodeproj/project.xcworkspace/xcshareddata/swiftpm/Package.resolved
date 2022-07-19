@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Planetable/ENSKit",
       "state" : {
-        "revision" : "7e61dc34e3f030d46f0964649726cf0b7bc53777",
-        "version" : "0.4.2"
+        "revision" : "5b39cb365d9d84b8493259fbe92cb9df1dd39f41",
+        "version" : "0.4.3"
       }
     },
     {

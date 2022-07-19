@@ -35,6 +35,26 @@ struct ENSUtils {
 
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "ENSUtils")
 
+    static func isIPNS(_ str: String) -> Bool {
+        if !str.hasPrefix("k") {
+            return false
+        }
+        let base36encoded = String(str.dropFirst(1))
+        guard let content = Base36.decode(base36encoded) else {
+            return false
+        }
+        // 0x01: cidv1, 0x72: libp2p-key, 0x00: identity
+        if !content.starts(with: [0x01, 0x72, 0x00]) {
+            return false
+        }
+        guard let (length, _) = VarUInt.decode(content, offset: 3),
+              length + 3 == content.count
+        else {
+            return false
+        }
+        return true
+    }
+
     static func getCID(ens: String) async throws -> String? {
         let result: URL?
         do {
