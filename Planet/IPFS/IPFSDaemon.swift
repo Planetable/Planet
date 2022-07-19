@@ -363,20 +363,36 @@ class IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
-    func resolveIPNS(ipns: String) async throws -> String {
-        logger.info("Resolving IPNS \(ipns)")
+    func resolveIPNSorDNSLink(name: String) async throws -> String {
+        logger.info("Resolving IPNS or DNSLink \(name)")
         do {
-            let result = try await api(path: "name/resolve", args: ["arg": ipns])
-            let resolved = try JSONDecoder.shared.decode(IPFSResolved.self, from: result)
+            let resolved: IPFSResolved
+            let result = try await api(path: "name/resolve", args: ["arg": name])
+            do {
+                resolved = try JSONDecoder.shared.decode(IPFSResolved.self, from: result)
+            } catch {
+                logger.error(
+                    """
+                    Failed to resolve IPNS or DNSLink \(name): got error from API call, \
+                    error: \(result.logFormat())
+                    """
+                )
+                throw IPFSDaemonError.IPFSAPIError
+            }
             let cidWithPrefix = resolved.path
             if cidWithPrefix.starts(with: "/ipfs/") {
                 return String(cidWithPrefix.dropFirst("/ipfs/".count))
             }
-            logger.error("Failed to resolve IPNS \(ipns): unknown result from API call, got \(result.logFormat())")
+            logger.error(
+                """
+                Failed to resolve IPNS or DNSLink \(name): unknown result from API call, \
+                got \(result.logFormat())
+                """
+            )
         } catch {
             logger.error(
                 """
-                Failed to resolve IPNS \(ipns): error when accessing IPFS API, \
+                Failed to resolve IPNS or DNSLink \(name): error when accessing IPFS API, \
                 cause: \(String(describing: error))
                 """
             )

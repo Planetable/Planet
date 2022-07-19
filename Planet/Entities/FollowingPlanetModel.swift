@@ -193,12 +193,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
         if link.hasSuffix(".eth") {
             return try await followENS(ens: link)
-        } else if link.hasPrefix("https://") {
-            return try await followHTTPS(link: link)
-        } else if link.hasPrefix("k") {
-            return try await followNative(ipns: link)
+        } else if link.lowercased().hasPrefix("http://") || link.lowercased().hasPrefix("https://") {
+            return try await followHTTP(link: link)
+        } else {
+            return try await followIPNSorDNSLink(name: link)
         }
-        throw PlanetError.InvalidPlanetURLError
     }
 
     static func followENS(ens: String) async throws -> FollowingPlanetModel {
@@ -343,7 +342,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         return planet
     }
 
-    static func followHTTPS(link: String) async throws -> FollowingPlanetModel {
+    static func followHTTP(link: String) async throws -> FollowingPlanetModel {
         guard let feedURL = URL(string: link) else {
             throw PlanetError.InvalidPlanetURLError
         }
@@ -389,46 +388,125 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         return planet
     }
 
-    static func followNative(ipns: String) async throws -> FollowingPlanetModel {
-        let cid = try await IPFSDaemon.shared.resolveIPNS(ipns: ipns)
-        Self.logger.info("Follow \(ipns): CID \(cid)")
+    static func followIPNSorDNSLink(name: String) async throws -> FollowingPlanetModel {
+        let planetType: PlanetType = ENSUtils.isIPNS(name) ? .planet : .dnslink
+        let cid = try await IPFSDaemon.shared.resolveIPNSorDNSLink(name: name)
+        Self.logger.info("Follow \(name): CID \(cid)")
         Task {
             try await IPFSDaemon.shared.pin(cid: cid)
         }
-        let planetURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)/planet.json")!
-        let (planetData, planetResponse) = try await URLSession.shared.data(from: planetURL)
-        guard let httpResponse = planetResponse as? HTTPURLResponse,
-              httpResponse.ok
-        else {
-            throw PlanetError.NetworkError
+        if let planetURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)/planet.json"),
+           let (planetData, planetResponse) = try? await URLSession.shared.data(from: planetURL),
+           let httpResponse = planetResponse as? HTTPURLResponse,
+           httpResponse.ok {
+            let publicPlanet = try JSONDecoder.shared.decode(PublicPlanetModel.self, from: planetData)
+            let planet = FollowingPlanetModel(
+                id: UUID(),
+                planetType: planetType,
+                name: publicPlanet.name,
+                about: publicPlanet.about,
+                link: name,
+                cid: cid,
+                created: publicPlanet.created,
+                updated: publicPlanet.updated,
+                lastRetrieved: Date()
+            )
+
+            try FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(at: planet.articlesPath, withIntermediateDirectories: true)
+
+            planet.articles = publicPlanet.articles.map {
+                FollowingArticleModel.from(publicArticle: $0, planet: planet)
+            }
+            planet.articles.sort {
+                $0.created > $1.created
+            }
+
+            if let planetAvatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)/avatar.png"),
+               let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
+               let httpResponse = response as? HTTPURLResponse,
+               httpResponse.ok,
+               let image = NSImage(data: data),
+               let _ = try? data.write(to: planet.avatarPath) {
+                planet.avatar = image
+            }
+
+            try planet.save()
+            try planet.articles.forEach {
+                try $0.save()
+            }
+            return planet
         }
-        let publicPlanet = try JSONDecoder.shared.decode(PublicPlanetModel.self, from: planetData)
-        let planet = FollowingPlanetModel(
-            id: UUID(),
-            planetType: .planet,
-            name: publicPlanet.name,
-            about: publicPlanet.about,
-            link: ipns,
-            cid: cid,
-            created: publicPlanet.created,
-            updated: publicPlanet.updated,
-            lastRetrieved: Date()
-        )
+        // did not get published planet file, try to get feed
+        guard let feedURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)/") else {
+            throw PlanetError.InvalidPlanetURLError
+        }
+        let (feedData, htmlSoup) = try await FeedUtils.findFeed(url: feedURL)
+        let now = Date()
+        let planet: FollowingPlanetModel
+        var feedAvatar: Data? = nil
+        if let feedData = feedData {
+            Self.logger.info("Follow \(name): found feed")
+            let feed = try FeedUtils.parseFeed(data: feedData)
+            feedAvatar = feed.avatar
+            planet = FollowingPlanetModel(
+                id: UUID(),
+                planetType: planetType,
+                name: feed.name ?? name,
+                about: feed.about ?? "",
+                link: name,
+                cid: cid,
+                created: now,
+                updated: now,
+                lastRetrieved: now
+            )
+            if let publicArticles = feed.articles {
+                planet.articles = publicArticles.map {
+                    FollowingArticleModel.from(publicArticle: $0, planet: planet)
+                }
+                planet.articles.sort { $0.created > $1.created }
+            } else {
+                planet.articles = []
+            }
+        } else
+        if let htmlSoup = htmlSoup {
+            Self.logger.info("Follow \(name): no feed, use homepage as the only article")
+            planet = FollowingPlanetModel(
+                id: UUID(),
+                planetType: .ens,
+                name: name,
+                about: "",
+                link: name,
+                cid: cid,
+                created: now,
+                updated: now,
+                lastRetrieved: now
+            )
+            let homepage = PublicArticleModel(
+                id: UUID(),
+                link: "/",
+                title: (try? htmlSoup.title()) ?? "Homepage",
+                content: "",
+                created: now,
+                hasVideo: false,
+                videoFilename: nil,
+                hasAudio: false,
+                audioFilename: nil
+            )
+            planet.articles = [
+                FollowingArticleModel.from(publicArticle: homepage, planet: planet)
+            ]
+        } else {
+            throw PlanetError.InvalidPlanetURLError
+        }
 
         try FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: planet.articlesPath, withIntermediateDirectories: true)
 
-        planet.articles = publicPlanet.articles.map {
-            FollowingArticleModel.from(publicArticle: $0, planet: planet)
-        }
-        planet.articles.sort { $0.created > $1.created }
-
-        if let planetAvatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)/avatar.png"),
-           let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
-           let httpResponse = response as? HTTPURLResponse,
-           httpResponse.ok,
+        if let data = feedAvatar,
            let image = NSImage(data: data),
            let _ = try? data.write(to: planet.avatarPath) {
+            Self.logger.info("Follow \(name): found avatar from feed")
             planet.avatar = image
         }
 
@@ -448,8 +526,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
         }
         switch planetType {
-        case .planet:
-            let newCID = try await IPFSDaemon.shared.resolveIPNS(ipns: link)
+        case .planet, .dnslink:
+            let newCID = try await IPFSDaemon.shared.resolveIPNSorDNSLink(name: link)
             if cid == newCID {
                 Self.logger.info("Planet \(self.name) has no update")
                 return
@@ -457,38 +535,72 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             Task {
                 try await IPFSDaemon.shared.pin(cid: newCID)
             }
-            let planetURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(newCID)/planet.json")!
-            let (planetData, planetResponse) = try await URLSession.shared.data(from: planetURL)
-            if let httpResponse = planetResponse as? HTTPURLResponse,
-               httpResponse.ok {
-                let publicPlanet = try JSONDecoder.shared.decode(PublicPlanetModel.self, from: planetData)
-                await MainActor.run {
-                    name = publicPlanet.name
-                    about = publicPlanet.about
-                    updated = publicPlanet.updated
-                }
-
-                try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
-
-                if let planetAvatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(newCID)/avatar.png"),
-                   let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
-                   let httpResponse = response as? HTTPURLResponse,
-                   httpResponse.ok,
-                   let image = NSImage(data: data),
-                   let _ = try? data.write(to: avatarPath) {
+            do {
+                let planetURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(newCID)/planet.json")!
+                let (planetData, planetResponse) = try await URLSession.shared.data(from: planetURL)
+                if let httpResponse = planetResponse as? HTTPURLResponse,
+                   httpResponse.ok {
+                    let publicPlanet = try JSONDecoder.shared.decode(PublicPlanetModel.self, from: planetData)
                     await MainActor.run {
-                        avatar = image
+                        name = publicPlanet.name
+                        about = publicPlanet.about
+                        updated = publicPlanet.updated
                     }
-                }
 
-                await MainActor.run {
-                    cid = newCID
-                    lastRetrieved = Date()
-                }
+                    try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
 
-                try save()
-                return
+                    if let planetAvatarURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(newCID)/avatar.png"),
+                       let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
+                       let httpResponse = response as? HTTPURLResponse,
+                       httpResponse.ok,
+                       let image = NSImage(data: data),
+                       let _ = try? data.write(to: avatarPath) {
+                        await MainActor.run {
+                            avatar = image
+                        }
+                    }
+
+                    await MainActor.run {
+                        cid = newCID
+                        lastRetrieved = Date()
+                    }
+
+                    try save()
+                    return
+                }
+            } catch {
+                // ignore
             }
+            // did not get published planet file, try to get feed
+            let feedURL = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(newCID)")!
+            let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
+            guard let feedData =  feedData else {
+                throw PlanetError.InvalidPlanetURLError
+            }
+            let feed = try FeedUtils.parseFeed(data: feedData)
+            let now = Date()
+
+            await MainActor.run {
+                name = feed.name ?? link
+                about = feed.about ?? ""
+                updated = now
+                lastRetrieved = now
+            }
+
+            if let publicArticles = feed.articles {
+                try await updateArticles(publicArticles: publicArticles)
+            }
+
+            if let data = feed.avatar,
+               let image = NSImage(data: data),
+               let _ = try? data.write(to: avatarPath) {
+                await MainActor.run {
+                    avatar = image
+                }
+            }
+
+            try save()
+            return
         case .ens:
             guard let newCID = try await ENSUtils.getCID(ens: link) else {
                 throw PlanetError.InvalidPlanetURLError
@@ -580,9 +692,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
             try save()
             return
-        case .dnslink:
-            // not implemented yet
-            throw PlanetError.InternalError
         case .dns:
             guard let feedURL = URL(string: link) else {
                 throw PlanetError.PlanetFeedError

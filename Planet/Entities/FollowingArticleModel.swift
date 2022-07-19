@@ -11,13 +11,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     var webviewURL: URL? {
         get async {
             switch planet.planetType {
-            case .planet:
-                if let cid = planet.cid {
-                    // planet article link: /12345678-90AB-CDEF-1234-567890ABCDEF/
-                    return URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)\(link)")
-                }
-                return nil
-            case .ens:
+            case .planet, .dnslink, .ens:
                 if let cid = planet.cid {
                     if let linkURL = URL(string: link),
                        linkURL.isHTTP {
@@ -45,19 +39,14 @@ class FollowingArticleModel: ArticleModel, Codable {
                     return URL(string: link, relativeTo: planetLink)?.absoluteURL
                 }
                 return nil
-            default:
-                return nil
             }
         }
     }
     var browserURL: URL? {
         switch planet.planetType {
-        case .planet:
-            // planet article link: /12345678-90AB-CDEF-1234-567890ABCDEF/
-            return URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.link)\(link)")
-        case .ens:
+        case .planet, .dnslink, .ens:
             if let linkURL = URL(string: link),
-                linkURL.isHTTP {
+               linkURL.isHTTP {
                 // article from a feed with an absolute HTTP URL: https://vitalik.ca/general/2022/05/25/stable.html
                 // transform URL to load with limo
                 return URL(string: "https://\(planet.link).limo\(linkURL.pathQueryFragment)")
@@ -74,8 +63,6 @@ class FollowingArticleModel: ArticleModel, Codable {
                 // relative URL: /general/2022/05/25/stable.html, index.html, ./index.html, etc.
                 return URL(string: link, relativeTo: planetLink)?.absoluteURL
             }
-            return nil
-        default:
             return nil
         }
     }

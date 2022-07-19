@@ -68,7 +68,7 @@ struct ENSUtils {
         }
         if contenthash.scheme?.lowercased() == "ipns" {
             let ipns = String(contenthash.absoluteString.dropFirst("ipns://".count))
-            return try await IPFSDaemon.shared.resolveIPNS(ipns: ipns)
+            return try await IPFSDaemon.shared.resolveIPNSorDNSLink(name: ipns)
         } else if contenthash.scheme?.lowercased() == "ipfs" {
             return String(contenthash.absoluteString.dropFirst("ipfs://".count))
         }
