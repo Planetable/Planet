@@ -181,7 +181,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         Task {
-            await IPFSDaemon.shared.shutdownDaemon()
+            IPFSDaemon.shared.shutdownDaemon()
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater

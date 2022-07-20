@@ -9,37 +9,35 @@ class FollowingArticleModel: ArticleModel, Codable {
 
     lazy var path = planet.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
     var webviewURL: URL? {
-        get async {
-            switch planet.planetType {
-            case .planet, .dnslink, .ens:
-                if let cid = planet.cid {
-                    if let linkURL = URL(string: link),
-                       linkURL.isHTTP {
-                        // article from a feed with an absolute HTTP URL: https://vitalik.ca/general/2022/05/25/stable.html
-                        // transform URL to load with IPFS
-                        return URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)\(linkURL.pathQueryFragment)")
-                    }
-                    if link.starts(with: "/") {
-                        // article from a native planet: /12345678-90AB-CDEF-1234-567890ABCDEF/
-                        // OR
-                        // article from a feed with relative URL prefixed with slash: /general/2022/05/25/stable.html
-                        return URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)\(link)")
-                    }
-                    if let base = URL(string: "\(await IPFSDaemon.shared.gateway)/ipfs/\(cid)/") {
-                        // relative URL: index.html, ./index.html, etc.
-                        return URL(string: link, relativeTo: base)?.absoluteURL
-                    }
+        switch planet.planetType {
+        case .planet, .dnslink, .ens:
+            if let cid = planet.cid {
+                if let linkURL = URL(string: link),
+                   linkURL.isHTTP {
+                    // article from a feed with an absolute HTTP URL: https://vitalik.ca/general/2022/05/25/stable.html
+                    // transform URL to load with IPFS
+                    return URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)\(linkURL.pathQueryFragment)")
                 }
-                return nil
-            case .dns:
-                if let planetLink = URL(string: planet.link) {
-                    // absolute URL in HTTP scheme: https://vitalik.ca/general/2022/05/25/stable.html
+                if link.starts(with: "/") {
+                    // article from a native planet: /12345678-90AB-CDEF-1234-567890ABCDEF/
                     // OR
-                    // relative URL: /general/2022/05/25/stable.html, index.html, ./index.html, etc.
-                    return URL(string: link, relativeTo: planetLink)?.absoluteURL
+                    // article from a feed with relative URL prefixed with slash: /general/2022/05/25/stable.html
+                    return URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)\(link)")
                 }
-                return nil
+                if let base = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/") {
+                    // relative URL: index.html, ./index.html, etc.
+                    return URL(string: link, relativeTo: base)?.absoluteURL
+                }
             }
+            return nil
+        case .dns:
+            if let planetLink = URL(string: planet.link) {
+                // absolute URL in HTTP scheme: https://vitalik.ca/general/2022/05/25/stable.html
+                // OR
+                // relative URL: /general/2022/05/25/stable.html, index.html, ./index.html, etc.
+                return URL(string: link, relativeTo: planetLink)?.absoluteURL
+            }
+            return nil
         }
     }
     var browserURL: URL? {

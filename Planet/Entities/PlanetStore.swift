@@ -164,7 +164,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
             await withTaskGroup(of: Void.self) { taskGroup in
                 for myPlanet in myPlanets {
                     taskGroup.addTask {
-                        try? await myPlanet.updateTrafficAnalytics()
+                        await myPlanet.updateTrafficAnalytics()
                     }
                 }
             }

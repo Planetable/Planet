@@ -67,7 +67,7 @@ struct FollowPlanetView: View {
                                 planet.delete()
                             } else {
                                 planetStore.followingPlanets.insert(planet, at: 0)
-                                PlanetStore.shared.selectedView = .followingPlanet(planet)
+                                planetStore.selectedView = .followingPlanet(planet)
                             }
                         } catch PlanetError.PlanetExistsError {
                             // ignore

@@ -55,9 +55,7 @@
 		7211431A5867D4CF2960EC39 /* IPFSCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114270D79DBC89703262B9 /* IPFSCommand.swift */; };
 		721144331A990EB4451F1C1F /* MyPlanetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114299E3D896326AFFF5D0 /* MyPlanetModel.swift */; };
 		721144941B29E9E78C05A89D /* Lifetimes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143EEE6936427A9BC9452 /* Lifetimes.swift */; };
-		721144F70CBCCFAA04277BA4 /* fs-repo-migrations-arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 721145901046AC768CEAE31C /* fs-repo-migrations-arm64 */; };
 		72114509730D9D97178E0E82 /* IPFSState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721148C9E7BCB6F1BC539F57 /* IPFSState.swift */; };
-		72114526A36207759470E32B /* ipfs-arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 721146EB04A767526D0870E7 /* ipfs-arm64 */; };
 		7211453BC07C2E4A588D1618 /* URLUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143ED3BE78AB9D7C6C9A2 /* URLUtils.swift */; };
 		721145603D528B27CC6091D1 /* WriterDragAndDrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114BB597FFD06A2A2626A9 /* WriterDragAndDrop.swift */; };
 		721145BB829F2234DC279697 /* WriterVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211403BD64F1D6E5B14D69E /* WriterVideoView.swift */; };
@@ -73,17 +71,17 @@
 		721148F88BE8ABCC52FEB501 /* IPFSDaemon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */; };
 		72114971F1770E3DAB910F99 /* WriterStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211498D81C1BB38A22D001A /* WriterStore.swift */; };
 		721149AA66E0C018BA60DB5A /* AttachmentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143E2F2DEA3A694022B20 /* AttachmentModel.swift */; };
-		721149FFE57BBAB8F4F4B25D /* fs-repo-migrations-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 72114395F7CD359BE260F77C /* fs-repo-migrations-amd64 */; };
 		72114A3B2AA58EA6B139AEB8 /* FollowingPlanetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114BCC75EE5AAA9D0CA991 /* FollowingPlanetModel.swift */; };
 		72114A48526B9490A72FD92A /* MyArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114BAE1D6E54DD9D1059CB /* MyArticleModel.swift */; };
 		72114A65C35BF78B1A4B7D81 /* DraftModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114E45790363ADCC6F7673 /* DraftModel.swift */; };
 		72114A84BE7EC3DA2AAF14F5 /* Planet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114E6940D60B7155DDD8BC /* Planet.swift */; };
 		72114A966288F7CDAF984E3C /* FollowingArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */; };
 		72114AE68D0DEDE11FC82E60 /* CoreDataPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114C0FA779C3B613771E53 /* CoreDataPersistence.swift */; };
+		72114AE8931655425CC6E5C1 /* ipfs-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 721144FC9503C6ED3975276D /* ipfs-amd64 */; };
 		72114AFCB4EDB617C07192BB /* FollowingPlanetSidebarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211467DFBDA573F4B938B0C /* FollowingPlanetSidebarItem.swift */; };
 		72114B6486572E7F6AF5AC62 /* LoadingIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CF288467021C7E9BF40 /* LoadingIndicatorView.swift */; };
+		72114B95CA15BC9EC180FC36 /* ipfs-arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 72114EBF002DDAF0CD8B63B3 /* ipfs-arm64 */; };
 		72114C03242147A247A8B317 /* Runner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114BFBBB1E6F4DB7B0D234 /* Runner.swift */; };
-		72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 7211456357838C0FE5DEECD0 /* ipfs-amd64 */; };
 		72114D4918DAC507F6E3AF7F /* MarkdownUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211412C05B18AC06A98BA74 /* MarkdownUtils.swift */; };
 		72114E3DCDF2B0618F4693D7 /* MyArticleItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211477C97CD9725E13B885E /* MyArticleItemView.swift */; };
 		72114F25F504270EB29068C9 /* PlanetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211404DFC1B4D23F84EA279 /* PlanetError.swift */; };
@@ -149,19 +147,16 @@
 		7211412C05B18AC06A98BA74 /* MarkdownUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MarkdownUtils.swift; sourceTree = "<group>"; };
 		72114270D79DBC89703262B9 /* IPFSCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSCommand.swift; sourceTree = "<group>"; };
 		72114299E3D896326AFFF5D0 /* MyPlanetModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyPlanetModel.swift; sourceTree = "<group>"; };
-		72114395F7CD359BE260F77C /* fs-repo-migrations-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fs-repo-migrations-amd64"; sourceTree = "<group>"; };
 		721143C73AEAD5F0C049DF86 /* ViewUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewUtils.swift; sourceTree = "<group>"; };
 		721143E2F2DEA3A694022B20 /* AttachmentModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AttachmentModel.swift; sourceTree = "<group>"; };
 		721143ED3BE78AB9D7C6C9A2 /* URLUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLUtils.swift; sourceTree = "<group>"; };
 		721143EEE6936427A9BC9452 /* Lifetimes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Lifetimes.swift; sourceTree = "<group>"; };
 		721144D264DD084A74B49BF8 /* AboutMyPlanetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AboutMyPlanetView.swift; sourceTree = "<group>"; };
 		721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowingArticleModel.swift; sourceTree = "<group>"; };
-		7211456357838C0FE5DEECD0 /* ipfs-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-amd64"; sourceTree = "<group>"; };
-		721145901046AC768CEAE31C /* fs-repo-migrations-arm64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fs-repo-migrations-arm64"; sourceTree = "<group>"; };
+		721144FC9503C6ED3975276D /* ipfs-amd64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-amd64"; sourceTree = "<group>"; };
 		7211459D5283D74D29C8F0DC /* PlanetArticle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetArticle.swift; sourceTree = "<group>"; };
 		7211467DFBDA573F4B938B0C /* FollowingPlanetSidebarItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowingPlanetSidebarItem.swift; sourceTree = "<group>"; };
 		721146E8B821AA2558D6DD3A /* PlanetStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetStore.swift; sourceTree = "<group>"; };
-		721146EB04A767526D0870E7 /* ipfs-arm64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-arm64"; sourceTree = "<group>"; };
 		7211477C97CD9725E13B885E /* MyArticleItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyArticleItemView.swift; sourceTree = "<group>"; };
 		721147E510285883751DB4A2 /* MyPlanetSidebarItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyPlanetSidebarItem.swift; sourceTree = "<group>"; };
 		721148C9E7BCB6F1BC539F57 /* IPFSState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSState.swift; sourceTree = "<group>"; };
@@ -181,6 +176,7 @@
 		72114D688ABC8ED021EA17FF /* ENSUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ENSUtils.swift; sourceTree = "<group>"; };
 		72114E45790363ADCC6F7673 /* DraftModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DraftModel.swift; sourceTree = "<group>"; };
 		72114E6940D60B7155DDD8BC /* Planet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Planet.swift; sourceTree = "<group>"; };
+		72114EBF002DDAF0CD8B63B3 /* ipfs-arm64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-arm64"; sourceTree = "<group>"; };
 		72114F3CBC160F54087E1537 /* JSONUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONUtils.swift; sourceTree = "<group>"; };
 		72114F5686F5902EE578B3CF /* ArticleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleModel.swift; sourceTree = "<group>"; };
 		BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v6.xcdatamodel"; sourceTree = "<group>"; };
@@ -382,10 +378,8 @@
 		721141137EDE4A3E5706D234 /* go-ipfs-executables */ = {
 			isa = PBXGroup;
 			children = (
-				7211456357838C0FE5DEECD0 /* ipfs-amd64 */,
-				721146EB04A767526D0870E7 /* ipfs-arm64 */,
-				72114395F7CD359BE260F77C /* fs-repo-migrations-amd64 */,
-				721145901046AC768CEAE31C /* fs-repo-migrations-arm64 */,
+				721144FC9503C6ED3975276D /* ipfs-amd64 */,
+				72114EBF002DDAF0CD8B63B3 /* ipfs-arm64 */,
 			);
 			path = "go-ipfs-executables";
 			sourceTree = "<group>";
@@ -507,12 +501,12 @@
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
-				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */,
-				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */,
+				2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */,
+				6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */,
 				2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */,
 				BBFE51EA27F3AABC0055A51A /* XCRemoteSwiftPackageReference "ENSKit" */,
-				BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */,
-				BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+				BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates.git" */,
+				BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup.git" */,
 				BB99C7052847AC9F001836B2 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				6AF1F05C288631FB009C574E /* XCRemoteSwiftPackageReference "Subsonic" */,
 			);
@@ -537,10 +531,8 @@
 				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
 				6A64D2DE284640A80013EABB /* Credits.html in Resources */,
-				72114CDE6B0B3D309DCE0F67 /* ipfs-amd64 in Resources */,
-				72114526A36207759470E32B /* ipfs-arm64 in Resources */,
-				721149FFE57BBAB8F4F4B25D /* fs-repo-migrations-amd64 in Resources */,
-				721144F70CBCCFAA04277BA4 /* fs-repo-migrations-arm64 in Resources */,
+				72114AE8931655425CC6E5C1 /* ipfs-amd64 in Resources */,
+				72114B95CA15BC9EC180FC36 /* ipfs-arm64 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -830,7 +822,7 @@
 				minimumVersion = 9.0.0;
 			};
 		};
-		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
+		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
 			requirement = {
@@ -838,7 +830,7 @@
 				kind = branch;
 			};
 		};
-		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */ = {
+		6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/johnsundell/ink.git";
 			requirement = {
@@ -854,7 +846,7 @@
 				minimumVersion = 0.2.0;
 			};
 		};
-		BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+		BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
 			requirement = {
@@ -870,7 +862,7 @@
 				minimumVersion = 2.1.0;
 			};
 		};
-		BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */ = {
+		BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Planetable/PlanetSiteTemplates.git";
 			requirement = {
@@ -896,12 +888,12 @@
 		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
+			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil.git" */;
 			productName = Stencil;
 		};
 		6A0172EA27C9FD5F006154B7 /* Ink */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink" */;
+			package = 6A0172E927C9FD5F006154B7 /* XCRemoteSwiftPackageReference "ink.git" */;
 			productName = Ink;
 		};
 		6AF1F05D288631FB009C574E /* Subsonic */ = {
@@ -911,7 +903,7 @@
 		};
 		BB6FC66C28423AF80072C3A1 /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			package = BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup.git" */;
 			productName = SwiftSoup;
 		};
 		BB99C7062847AC9F001836B2 /* Sparkle */ = {
@@ -921,7 +913,7 @@
 		};
 		BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */;
+			package = BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates.git" */;
 			productName = PlanetSiteTemplates;
 		};
 		BBFE51EB27F3AABC0055A51A /* ENSKit */ = {

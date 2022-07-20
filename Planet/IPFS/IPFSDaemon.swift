@@ -2,90 +2,40 @@ import Foundation
 import os
 import SwiftyJSON
 
-@globalActor actor IPFSActor {
-    static let shared: IPFSActor = .init()
-}
-
-class IPFSDaemon {
-    static let publicGateways = [
+actor IPFSDaemon {
+    nonisolated static let publicGateways = [
         "https://www.cloudflare-ipfs.com",
         "https://dweb.link",
         "https://ipfs.io",
     ]
 
-    private static var _shared: IPFSDaemon? = nil
-    static var shared: IPFSDaemon {
-        get async {
-            if _shared == nil {
-                _shared = await .init()
-            }
-            return _shared!
-        }
-    }
+    static let shared = IPFSDaemon()
 
-    let swarmPort: UInt16
-    let APIPort: UInt16
-    let gatewayPort: UInt16
+    nonisolated let swarmPort: UInt16
+    nonisolated let APIPort: UInt16
+    nonisolated let gatewayPort: UInt16
 
-    var gateway: String {
+    nonisolated var gateway: String {
         "http://127.0.0.1:\(gatewayPort)"
     }
 
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "IPFSDaemon")
+    static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "IPFSDaemon")
 
-    @IPFSActor init() {
+    init() {
         let repoContents = try! FileManager.default.contentsOfDirectory(
-            at: IPFSCommand.IPFSRepositoryURL,
+            at: IPFSCommand.IPFSRepositoryPath,
             includingPropertiesForKeys: nil
         )
         if repoContents.isEmpty {
-            logger.info("Initializing IPFS config")
+            Self.logger.info("Initializing IPFS config")
             guard let result = try? IPFSCommand.IPFSInit().run(),
                   result.ret == 0 else {
                 fatalError("Error initializing IPFS")
             }
-        } else {
-            // check IPFS repo version
-            let versionFileURL = IPFSCommand.IPFSRepositoryURL.appendingPathComponent("version", isDirectory: false)
-            do {
-                let versionString = (try String(contentsOf: versionFileURL)).trim()
-                guard let version = Int(versionString) else {
-                    fatalError("Cannot check IPFS repository version")
-                }
-                if version != IPFSMigration.repoVersion {
-                    logger.info("Migrating local IPFS repo from version \(version) to version \(IPFSMigration.repoVersion)")
-                    do {
-                        let (ret, out, err) = try IPFSMigration.migrate()
-                        if ret == 0 {
-                            logger.info("Migrated local IPFS repo to version \(IPFSMigration.repoVersion)")
-                        } else {
-                            logger.error(
-                                """
-                                Failed to migrate local IPFS repo from version \(version) to version \(IPFSMigration.repoVersion): process returned \(ret)
-                                [stdout]
-                                \(out.logFormat())
-                                [stderr]
-                                \(err.logFormat())
-                                """
-                            )
-                        }
-                    } catch {
-                        fatalError(
-                            """
-                            Cannot migrate local IPFS repo from version \(version) to version \(IPFSMigration.repoVersion), \
-                            cause: \(error)
-                            """
-                        )
-                    }
-                }
-            } catch {
-                // IPFS repo version file is missing and the repo is likely corrupted
-                fatalError("Cannot check IPFS repository version")
-            }
         }
 
         // scout open ports
-        logger.info("Scouting open ports")
+        Self.logger.info("Scouting open ports")
         if let port = IPFSDaemon.scoutPort(4001...4011),
            let result = try? IPFSCommand.updateSwarmPort(port: port).run(),
            result.ret == 0 {
@@ -112,7 +62,7 @@ class IPFSDaemon {
         // peers from https://docs.ipfs.io/how-to/peering-with-content-providers/#content-provider-list
         // adding Cloudflare and ProtocolLabs
         // last updated: 2022-05-09
-        logger.info("Setting peers")
+        Self.logger.info("Setting peers")
         let peers = JSON([
             ["ID": "12D3KooWBJY6ZVV8Tk8UDDFMEqWoxn89Xc8wnpm8uBFSR3ijDkui", "Addrs": ["/ip4/167.71.172.216/tcp/4001", "/ip6/2604:a880:800:10::826:1/tcp/4001"]],
             ["ID": "QmcfgsJsMtx6qJb74akCw1M24X1zFwgGo11h1cuhwQjtJP", "Addrs": ["/ip6/2606:4700:60::6/tcp/4009", "/ip4/172.65.0.13/tcp/4009"]],
@@ -166,8 +116,8 @@ class IPFSDaemon {
         return nil
     }
 
-    @IPFSActor func launchDaemon() {
-        logger.info("Launching daemon")
+    func launchDaemon() {
+        Self.logger.info("Launching daemon")
         do {
             // perform a shutdown to clean possible lock file before launch daemon
             // the result of shutdown can be safely ignored
@@ -193,10 +143,10 @@ class IPFSDaemon {
                         //     UserDefaults.standard.set(Date().ISO8601Format(), forKey: "PlanetOnboarding")
                         // }
                     }
-                    logger.debug("[IPFS stdout]\n\(data.logFormat())")
+                    Self.logger.debug("[IPFS stdout]\n\(data.logFormat())")
                 },
-                errHandler: { [self] data in
-                    logger.debug("[IPFS error]\n\(data.logFormat())")
+                errHandler: { data in
+                    Self.logger.debug("[IPFS error]\n\(data.logFormat())")
                 }
             )
         } catch {
@@ -204,14 +154,14 @@ class IPFSDaemon {
         }
     }
 
-    func shutdownDaemon() {
-        logger.info("Shutting down daemon")
+    nonisolated func shutdownDaemon() {
+        Self.logger.info("Shutting down daemon")
         do {
             let (ret, out, err) = try IPFSCommand.shutdownDaemon().run()
             if ret == 0 {
-                logger.info("Shutdown daemon returned 0")
+                Self.logger.info("Shutdown daemon returned 0")
             } else {
-                logger.error(
+                Self.logger.error(
                     """
                     Failed to shutdown daemon: process returned \(ret)
                     [stdout]
@@ -222,7 +172,7 @@ class IPFSDaemon {
                 )
             }
         } catch {
-            logger.error(
+            Self.logger.error(
                 """
                 Failed to shutdown daemon: error when running IPFS process, \
                 cause: \(String(describing: error))
@@ -232,7 +182,7 @@ class IPFSDaemon {
     }
 
     func updateOnlineStatus() async {
-        logger.info("Updating online status")
+        Self.logger.info("Updating online status")
         // check if management API is online
         let url = URL(string: "http://127.0.0.1:\(APIPort)/webui")!
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 1)
@@ -260,7 +210,7 @@ class IPFSDaemon {
         } else {
             peers = 0
         }
-        logger.info("Daemon \(online ? "online (\(peers))" : "offline")")
+        Self.logger.info("Daemon \(online ? "online (\(peers))" : "offline")")
         await MainActor.run {
             IPFSState.shared.online = online
             IPFSState.shared.peers = peers
@@ -268,17 +218,17 @@ class IPFSDaemon {
     }
 
     func generateKey(name: String) throws -> String {
-        logger.info("Generating IPFS keypair for \(name)")
+        Self.logger.info("Generating IPFS keypair for \(name)")
         do {
             let (ret, out, err) = try IPFSCommand.generateKey(name: name).run()
             if ret == 0 {
                 if let ipns = String(data: out, encoding: .utf8)?.trim() {
-                    logger.info("Generated IPFS keypair: id \(ipns)")
+                    Self.logger.info("Generated IPFS keypair: id \(ipns)")
                     return ipns
                 }
-                logger.error("Failed to parse generated IPFS keypair: \(String(describing: out))")
+                Self.logger.error("Failed to parse generated IPFS keypair: \(String(describing: out))")
             } else {
-                logger.error(
+                Self.logger.error(
                     """
                     Failed to generate IPFS keypair: process returned \(ret)
                     [stdout]
@@ -289,7 +239,7 @@ class IPFSDaemon {
                 )
             }
         } catch {
-            logger.error(
+            Self.logger.error(
                 """
                 Failed to generate IPFS keypair: error when running IPFS process, \
                 cause: \(String(describing: error))
@@ -299,18 +249,18 @@ class IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
-    @IPFSActor func addDirectory(url: URL) throws -> String {
-        logger.info("Adding directory \(url.path) to IPFS")
+    func addDirectory(url: URL) throws -> String {
+        Self.logger.info("Adding directory \(url.path) to IPFS")
         do {
             let (ret, out, err) = try IPFSCommand.addDirectory(directory: url).run()
             if ret == 0 {
                 if let cid = String(data: out, encoding: .utf8)?.trim() {
-                    logger.info("Added directory \(url.path) to IPFS, CID \(cid)")
+                    Self.logger.info("Added directory \(url.path) to IPFS, CID \(cid)")
                     return cid
                 }
-                logger.error("Failed to parse directory CID: \(String(describing: out))")
+                Self.logger.error("Failed to parse directory CID: \(String(describing: out))")
             } else {
-                logger.error(
+                Self.logger.error(
                     """
                     Failed to add directory to IPFS: process returned \(ret)
                     [stdout]
@@ -321,7 +271,7 @@ class IPFSDaemon {
                 )
             }
         } catch {
-            logger.error(
+            Self.logger.error(
                 """
                 Failed to add directory to IPFS: error when running IPFS process, \
                 cause: \(String(describing: error))
@@ -332,17 +282,17 @@ class IPFSDaemon {
     }
 
     func getFileCID(url: URL) throws -> String {
-        logger.info("Checking file \(url.path) CID")
+        Self.logger.info("Checking file \(url.path) CID")
         do {
             let (ret, out, err) = try IPFSCommand.getFileCID(file: url).run()
             if ret == 0 {
                 if let cid = String(data: out, encoding: .utf8)?.trim() {
-                    logger.info("File \(url.path) CID \(cid)")
+                    Self.logger.info("File \(url.path) CID \(cid)")
                     return cid
                 }
-                logger.error("Failed to check file CID: \(String(describing: out))")
+                Self.logger.error("Failed to check file CID: \(String(describing: out))")
             } else {
-                logger.error(
+                Self.logger.error(
                     """
                     Failed to add check file CID: process returned \(ret)
                     [stdout]
@@ -353,7 +303,7 @@ class IPFSDaemon {
                 )
             }
         } catch {
-            logger.error(
+            Self.logger.error(
                 """
                 Failed to check file CID: error when running IPFS process, \
                 cause: \(String(describing: error))
@@ -364,14 +314,14 @@ class IPFSDaemon {
     }
 
     func resolveIPNSorDNSLink(name: String) async throws -> String {
-        logger.info("Resolving IPNS or DNSLink \(name)")
+        Self.logger.info("Resolving IPNS or DNSLink \(name)")
         do {
             let resolved: IPFSResolved
             let result = try await api(path: "name/resolve", args: ["arg": name])
             do {
                 resolved = try JSONDecoder.shared.decode(IPFSResolved.self, from: result)
             } catch {
-                logger.error(
+                Self.logger.error(
                     """
                     Failed to resolve IPNS or DNSLink \(name): got error from API call, \
                     error: \(result.logFormat())
@@ -383,14 +333,14 @@ class IPFSDaemon {
             if cidWithPrefix.starts(with: "/ipfs/") {
                 return String(cidWithPrefix.dropFirst("/ipfs/".count))
             }
-            logger.error(
+            Self.logger.error(
                 """
                 Failed to resolve IPNS or DNSLink \(name): unknown result from API call, \
                 got \(result.logFormat())
                 """
             )
         } catch {
-            logger.error(
+            Self.logger.error(
                 """
                 Failed to resolve IPNS or DNSLink \(name): error when accessing IPFS API, \
                 cause: \(String(describing: error))
@@ -401,22 +351,22 @@ class IPFSDaemon {
     }
 
     func pin(cid: String) async throws {
-        logger.info("Pinning \(cid)")
+        Self.logger.info("Pinning \(cid)")
         try await IPFSDaemon.shared.api(path: "pin/add", args: ["arg": cid], timeout: 120)
     }
 
     func unpin(cid: String) async throws {
-        logger.info("Unpinning \(cid)")
+        Self.logger.info("Unpinning \(cid)")
         try await IPFSDaemon.shared.api(path: "pin/rm", args: ["arg": cid], timeout: 120)
     }
 
     func getFile(ipns: String, path: String = "") async throws -> Data {
-        logger.info("Getting file from IPNS \(ipns)\(path)")
+        Self.logger.info("Getting file from IPNS \(ipns)\(path)")
         let url = URL(string: "\(gateway)/ipns/\(ipns)\(path)")!
         let (data, response) = try await URLSession.shared.data(for: URLRequest(url: url))
         let httpResponse = response as! HTTPURLResponse
         if !httpResponse.ok {
-            logger.error(
+            Self.logger.error(
                 """
                 Failed to get file from IPFS \(ipns)\(path): HTTP status \(httpResponse.statusCode)
                 [HTTP response body]

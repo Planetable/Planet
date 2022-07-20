@@ -18,7 +18,7 @@ struct GoIPFSGateway: IPFSClient {
             }
             suffix = String(str.suffix(from: str.index(str.startIndex, offsetBy: 7)))
         }
-        let requestURL = URL(string: "\(await IPFSDaemon.shared.gateway)/\(prefix)/\(suffix)")!
+        let requestURL = URL(string: "\(IPFSDaemon.shared.gateway)/\(prefix)/\(suffix)")!
         let request = URLRequest(url: requestURL)
         let (data, response) = try await URLSession.shared.data(for: request)
         if !(response as! HTTPURLResponse).ok {

@@ -16,21 +16,19 @@ struct ArticleView: View {
                 Color(NSColor.textBackgroundColor)
             )
             .onChange(of: planetStore.selectedArticle) { newArticle in
-                Task {
-                    if let myArticle = newArticle as? MyArticleModel {
-                        url = myArticle.publicIndexPath
-                    } else
-                    if let followingArticle = newArticle as? FollowingArticleModel {
-                        if let webviewURL = await followingArticle.webviewURL {
-                            url = webviewURL
-                        } else {
-                            url = Self.noSelectionURL
-                        }
+                if let myArticle = newArticle as? MyArticleModel {
+                    url = myArticle.publicIndexPath
+                } else
+                if let followingArticle = newArticle as? FollowingArticleModel {
+                    if let webviewURL = followingArticle.webviewURL {
+                        url = webviewURL
                     } else {
                         url = Self.noSelectionURL
                     }
-                    NotificationCenter.default.post(name: .loadArticle, object: nil)
+                } else {
+                    url = Self.noSelectionURL
                 }
+                NotificationCenter.default.post(name: .loadArticle, object: nil)
             }
             .onChange(of: planetStore.selectedView) { _ in
                 url = Self.noSelectionURL

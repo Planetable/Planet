@@ -2,9 +2,9 @@ import Foundation
 
 struct IPFSCommand {
     // executables are under <project_root>/Planet/IPFS/go-ipfs-executables
-    // version: 0.12.2, last updated 2022-04-15
+    // version: 0.13.1, last updated 2022-07-20
     // NOTE: executables must have executable permission in source code
-    static let IPFSExecutableURL: URL = {
+    static let IPFSExecutablePath: URL = {
         switch ProcessInfo.processInfo.machineHardwareName {
         case "arm64":
             return Bundle.main.url(forResource: "ipfs-arm64", withExtension: nil)!
@@ -15,7 +15,7 @@ struct IPFSCommand {
         }
     }()
 
-    static let IPFSRepositoryURL: URL = {
+    static let IPFSRepositoryPath: URL = {
         // ~/Library/Containers/xyz.planetable.Planet/Data/Library/Application\ Support/ipfs/
         let url = URLUtils.applicationSupportPath.appendingPathComponent("ipfs", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
@@ -26,11 +26,11 @@ struct IPFSCommand {
 
     @discardableResult func run() throws -> (ret: Int, out: Data, err: Data) {
         let process = Process()
-        process.executableURL = IPFSCommand.IPFSExecutableURL
+        process.executableURL = IPFSCommand.IPFSExecutablePath
         process.arguments = arguments
 
         var env = ProcessInfo.processInfo.environment
-        env["IPFS_PATH"] = IPFSCommand.IPFSRepositoryURL.path
+        env["IPFS_PATH"] = IPFSCommand.IPFSRepositoryPath.path
         process.environment = env
 
         let outputPipe = Pipe()
@@ -72,11 +72,11 @@ struct IPFSCommand {
         completionHandler: ((_ ret: Int) -> Void)? = nil
     ) throws {
         let process = Process()
-        process.executableURL = IPFSCommand.IPFSExecutableURL
+        process.executableURL = IPFSCommand.IPFSExecutablePath
         process.arguments = arguments
 
         var env = ProcessInfo.processInfo.environment
-        env["IPFS_PATH"] = IPFSCommand.IPFSRepositoryURL.path
+        env["IPFS_PATH"] = IPFSCommand.IPFSRepositoryPath.path
         process.environment = env
 
         let outputPipe = Pipe()
@@ -141,7 +141,7 @@ struct IPFSCommand {
     }
 
     static func launchDaemon() -> IPFSCommand {
-        IPFSCommand(arguments: ["daemon", "--enable-namesys-pubsub", "--enable-pubsub-experiment"])
+        IPFSCommand(arguments: ["daemon", "--migrate", "--enable-namesys-pubsub", "--enable-pubsub-experiment"])
     }
 
     static func shutdownDaemon() -> IPFSCommand {
@@ -199,7 +199,7 @@ struct IPFSMigration {
         ]
 
         var env = ProcessInfo.processInfo.environment
-        env["IPFS_PATH"] = IPFSCommand.IPFSRepositoryURL.path
+        env["IPFS_PATH"] = IPFSCommand.IPFSRepositoryPath.path
         process.environment = env
 
         let outputPipe = Pipe()
