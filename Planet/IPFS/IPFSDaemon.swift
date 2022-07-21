@@ -212,6 +212,9 @@ actor IPFSDaemon {
         }
         Self.logger.info("Daemon \(online ? "online (\(peers))" : "offline")")
         await MainActor.run {
+            if online {
+                IPFSState.shared.isBootstrapping = false
+            }
             IPFSState.shared.online = online
             IPFSState.shared.peers = peers
         }

@@ -6,6 +6,7 @@ import os
 
     @Published var online = false
     @Published var peers = 0
+    @Published var isBootstrapping = true
 
     init() {
         Task {
@@ -14,7 +15,7 @@ import os
         RunLoop.main.add(Timer(timeInterval: 30, repeats: true) { timer in
             Task {
                 await IPFSDaemon.shared.updateOnlineStatus()
-                if !(IPFSState.shared.online) {
+                if !self.online && !self.isBootstrapping {
                     await IPFSDaemon.shared.launchDaemon()
                 }
             }

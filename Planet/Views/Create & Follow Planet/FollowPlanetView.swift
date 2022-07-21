@@ -19,20 +19,25 @@ struct FollowPlanetView: View {
 
             Divider()
 
-            HStack {
-                TextEditor(text: $link)
-                    .font(.system(size: 13, weight: .regular, design: .monospaced))
-                    .lineSpacing(4)
-                    .disableAutocorrection(true)
-                    .cornerRadius(6)
-                    .frame(height: 60)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
-                    )
+            VStack {
+                if isFollowing {
+                    Text("Following \(link)")
+                    ProgressView()
+                        .progressViewStyle(.linear)
+                } else {
+                    TextEditor(text: $link)
+                        .font(.system(size: 13, weight: .regular, design: .monospaced))
+                        .lineSpacing(4)
+                        .disableAutocorrection(true)
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
+                        )
+                }
             }
-            .padding(.all, 16)
-            .frame(width: 480)
+                .frame(height: 60)
+                .padding(.all, 16)
 
             Divider()
 
@@ -42,21 +47,11 @@ struct FollowPlanetView: View {
                     isFollowing = false
                     dismiss()
                 } label: {
-                    Text("Dismiss")
+                    Text("Cancel")
                 }
                 .keyboardShortcut(.escape, modifiers: [])
 
                 Spacer()
-
-                if isFollowing {
-                    HStack {
-                        ProgressView()
-                        .progressViewStyle(.circular)
-                        .scaleEffect(0.5, anchor: .center)
-                    }
-                    .padding(.horizontal, 4)
-                    .frame(height: 10)
-                }
 
                 Button {
                     isFollowing = true
@@ -90,6 +85,6 @@ struct FollowPlanetView: View {
             }
             .padding(16)
         }
-        .frame(alignment: .center)
+        .frame(width: 480, alignment: .center)
     }
 }

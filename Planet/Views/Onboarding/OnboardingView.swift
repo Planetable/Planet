@@ -9,14 +9,20 @@ import SwiftUI
 
 struct OnboardingView: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         VStack(spacing: 20) {
             VStack {
                 VStack(spacing: 20) {
                     Text("Welcome to Planet")
                         .font(.largeTitle)
-                    Text("Planet lets you build and host your website on your Mac without requiring a centralized service. You can also use Planet to follow the content creators you like. The big difference is that there is no middle layer between you and the content creators you follow. You will receive the latest updates in a peer-to-peer manner.")
+                    Text(
+                        """
+                        Planet lets you build and host your website on your Mac without requiring a centralized service. \
+                        You can also use Planet to follow the content creators you like. \
+                        The big difference is that there is no middle layer between you and the content creators you follow. \
+                        You will receive the latest updates in a peer-to-peer manner.
+                        """)
                         .lineLimit(4)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -29,7 +35,7 @@ struct OnboardingView: View {
                             .font(.system(size: 16))
                         Spacer()
                     }
-                    
+
                     HStack(spacing: 20) {
                         Image(systemName: "tray.2")
                             .resizable()
@@ -38,7 +44,7 @@ struct OnboardingView: View {
                             .font(.system(size: 16))
                         Spacer()
                     }
-                    
+
                     HStack(spacing: 20) {
                         Image(systemName: "rectangle.leadinghalf.filled")
                             .resizable()
@@ -47,7 +53,7 @@ struct OnboardingView: View {
                             .font(.system(size: 16))
                         Spacer()
                     }
-                    
+
                     HStack(spacing: 20) {
                         Image(systemName: "square.and.arrow.down.on.square")
                             .resizable()
@@ -56,14 +62,11 @@ struct OnboardingView: View {
                             .font(.system(size: 16))
                         Spacer()
                     }
-                    
+
                 }
-                .padding(.top, 20)
-                .padding(.bottom, 20)
-                
+                .padding(.vertical, 20)
             }
-            .padding(.leading, 40)
-            .padding(.trailing, 40)
+            .padding(.horizontal, 40)
             Divider()
             HStack {
                 Button {
@@ -76,8 +79,7 @@ struct OnboardingView: View {
                     .controlSize(.large)
             }
         }
-        .padding(.top, 40)
-        .padding(.bottom, 40)
+        .padding(.vertical, 40)
         .background(Color(NSColor.textBackgroundColor))
     }
 }
