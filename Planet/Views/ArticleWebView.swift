@@ -16,6 +16,9 @@ struct ArticleWebView: NSViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
         let wv = WKWebView()
 
+        // TODO: probably need a way to inject marketing version here
+        wv.customUserAgent = "Planet/0.8.0"
+
         wv.navigationDelegate = context.coordinator
         wv.setValue(false, forKey: "drawsBackground")
         if url.isFileURL {
