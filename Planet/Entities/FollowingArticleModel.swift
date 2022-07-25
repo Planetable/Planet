@@ -134,8 +134,8 @@ class FollowingArticleModel: ArticleModel, Codable {
             created: publicArticle.created,
             read: nil,
             starred: nil,
-            videoFilename: nil,
-            audioFilename: nil
+            videoFilename: publicArticle.videoFilename,
+            audioFilename: publicArticle.audioFilename
         )
         article.planet = planet
 
