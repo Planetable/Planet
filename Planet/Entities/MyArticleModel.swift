@@ -104,6 +104,14 @@ class MyArticleModel: ArticleModel, Codable {
         return article
     }
 
+    func getAttachmentPath(name: String) -> URL? {
+        let path = publicBasePath.appendingPathComponent(name)
+        if FileManager.default.fileExists(atPath: path.path) {
+            return path
+        }
+        return nil
+    }
+
     func savePublic() throws {
         guard let template = planet.template else {
             throw PlanetError.MissingTemplateError

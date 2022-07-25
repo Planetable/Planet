@@ -9,6 +9,7 @@ struct ArticleView: View {
 
     var body: some View {
         VStack {
+            ArticleAudioPlayer()
             ArticleWebView(url: $url)
         }
             .frame(minWidth: 320)
@@ -56,39 +57,7 @@ struct ArticleView: View {
                             Image(systemName: "chart.xyaxis.line")
                         }
                         .popover(isPresented: $isShowingAnalyticsPopover, arrowEdge: .bottom) {
-                            VStack(spacing: 10) {
-                                if let metrics = planet.metrics {
-                                    HStack {
-                                        Text("Visitors Today")
-                                            .frame(width: 120, alignment: .leading)
-                                        Text("\(metrics.visitorsToday)")
-                                            .fontWeight(.bold)
-                                            .frame(width: 60, alignment: .trailing)
-                                    }
-                                    HStack {
-                                        Text("Pageviews Today")
-                                            .frame(width: 120, alignment: .leading)
-                                        Text("\(metrics.pageviewsToday)")
-                                            .fontWeight(.bold)
-                                            .frame(width: 60, alignment: .trailing)
-                                    }
-                                } else {
-                                    HStack(spacing: 10) {
-                                        ProgressView()
-                                        .progressViewStyle(.circular)
-                                        .scaleEffect(0.5, anchor: .center)
-                                        Text("Loading Analytics Data")
-                                    }
-                                }
-                                if let plausibleDomain = planet.plausibleDomain {
-                                    Divider()
-                                    Button("Full Analytics on Plausible.io") {
-                                        let url = URL(string: "https://plausible.io/\(plausibleDomain)")!
-                                        if NSWorkspace.shared.open(url) {
-                                        }
-                                    }.buttonStyle(.link)
-                                }
-                            }.padding()
+                            PlausiblePopoverView(planet: planet)
                         }
                     }
 
@@ -105,6 +74,30 @@ struct ArticleView: View {
                     }
                 default:
                     Text("")
+                }
+
+                if let article = planetStore.selectedArticle,
+                   article.hasAudio {
+                    if let myArticle = article as? MyArticleModel,
+                       let name = myArticle.audioFilename,
+                       let url = myArticle.getAttachmentPath(name: name) {
+                        Button {
+                            ArticleAudioPlayerViewModel.shared.url = url
+                            ArticleAudioPlayerViewModel.shared.title = article.title
+                        } label: {
+                            Label("Play Audio", systemImage: "play.circle")
+                        }
+                    }
+                    if let followingArticle = article as? FollowingArticleModel,
+                       let name = followingArticle.audioFilename,
+                       let url = followingArticle.getAttachmentURL(name: name) {
+                        Button {
+                            ArticleAudioPlayerViewModel.shared.url = url
+                            ArticleAudioPlayerViewModel.shared.title = article.title
+                        } label: {
+                            Label("Play Audio", systemImage: "play.circle")
+                        }
+                    }
                 }
             }
     }

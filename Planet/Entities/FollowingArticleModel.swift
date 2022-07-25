@@ -142,6 +142,15 @@ class FollowingArticleModel: ArticleModel, Codable {
         return article
     }
 
+    func getAttachmentURL(name: String) -> URL? {
+        // must be a native planet to have an attachment
+        if let base = webviewURL,
+           base.absoluteString.hasSuffix("/") {
+            return base.appendingPathComponent(name)
+        }
+        return nil
+    }
+
     func save() throws {
         try JSONEncoder.shared.encode(self).write(to: path)
     }

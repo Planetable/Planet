@@ -16,8 +16,11 @@ struct WriterView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if let attachment = draft.attachments.first(where: {$0.type == .video}) {
-                WriterVideoView(videoAttachment: attachment)
+            if let videoAttachment = draft.attachments.first(where: {$0.type == .video}) {
+                WriterVideoView(videoAttachment: videoAttachment)
+            }
+            if let audioAttachment = draft.attachments.first(where: {$0.type == .audio}) {
+                WriterAudioView(audioAttachment: audioAttachment)
             }
 
             TextField("Title", text: $draft.title)
@@ -93,7 +96,9 @@ struct WriterView: View {
                 allowsMultipleSelection: viewModel.allowMultipleSelection
             ) { result in
                 if let urls = try? result.get() {
-                    viewModel.isMediaTrayOpen = true
+                    if viewModel.attachmentType == .image {
+                        viewModel.isMediaTrayOpen = true
+                    }
                     urls.forEach { url in
                         _ = try? draft.addAttachment(path: url, type: viewModel.attachmentType)
                     }
