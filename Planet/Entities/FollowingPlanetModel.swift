@@ -790,6 +790,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         notificationCenter.add(request) { error in
             if let error = error {
                 Self.logger.warning("Cannot send user notifications for new articles: \(error.localizedDescription)")
+            } else {
+                Self.logger.warning("Sent notification: \(newArticles.count) new articles, request id: \(requestID).")
             }
         }
     }

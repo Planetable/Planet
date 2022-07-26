@@ -208,11 +208,15 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
             case "PlanetNotificationReadArticleIdentifier":
                 Task.detached(priority: .background) {
                     await MainActor.run {
+                        var skip = false
                         for following in PlanetStore.shared.followingPlanets {
                             guard let articles = following.articles else { continue }
+                            if skip { break }
                             for article in articles {
-                                if article.id.uuidString == response.notification.request.identifier {
-                                    PlanetStore.shared.selectedArticle = article
+                                if article.link.replacingOccurrences(of: "/", with: "") == response.notification.request.identifier || article.id.uuidString == response.notification.request.identifier {
+                                    PlanetStore.shared.selectedView = .followingPlanet(following)
+                                    NSWorkspace.shared.open(URL(string: "planet://")!)
+                                    skip = true
                                     break
                                 }
                             }
@@ -224,7 +228,8 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                     await MainActor.run {
                         for following in PlanetStore.shared.followingPlanets {
                             if following.id.uuidString == response.notification.request.identifier {
-                                PlanetStore.shared.selectedView = PlanetDetailViewType.followingPlanet(following)
+                                PlanetStore.shared.selectedView = .followingPlanet(following)
+                                NSWorkspace.shared.open(URL(string: "planet://")!)
                                 break
                             }
                         }
