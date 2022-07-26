@@ -514,7 +514,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     func update() async throws {
-        Self.logger.info("Updating planet \(self.name)")
+        Self.logger.info("Updating planet \(self.name), link: \(self.link), id: \(self.id)")
         await MainActor.run {
             isUpdating = true
         }
@@ -753,6 +753,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }
             }
         }
+
+        sendNotification(for: newArticles)
+
         if delete {
             let deletedArticles = existingArticleMap.values
             await MainActor.run {
@@ -763,23 +766,26 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         await MainActor.run {
             articles.sort { $0.created > $1.created }
         }
-        sendNotification(for: newArticles)
     }
 
     func sendNotification(for newArticles: [PublicArticleModel]) {
         if newArticles.isEmpty {
             return
         }
+        let requestID: UUID
         let content = UNMutableNotificationContent()
         content.title = name
         if newArticles.count == 1 {
+            requestID = newArticles[0].id
             content.body = newArticles[0].title
+            content.categoryIdentifier = "PlanetNotificationReadActionIdentifier"
         } else {
+            requestID = self.id
             content.body = "\(newArticles.count) new articles"
+            content.categoryIdentifier = "PlanetNotificationShowActionIdentifier"
         }
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-
+        let request = UNNotificationRequest(identifier: requestID.uuidString, content: content, trigger: trigger)
         let notificationCenter = UNUserNotificationCenter.current()
         notificationCenter.add(request) { error in
             if let error = error {

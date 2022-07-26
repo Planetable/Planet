@@ -139,15 +139,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // saver.savePlanets()
         // saver.migratePublic()
 
-        SUUpdater.shared().checkForUpdatesInBackground()
+        setupNotification()
 
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .badge]) { granted, error in
-            if let error = error {
-                // Handle the error here.
-            }
-            // Enable or disable features based on the authorization.
-        }
+        SUUpdater.shared().checkForUpdatesInBackground()
 
         let saver = Saver.shared
         if saver.isMigrationNeeded() {
@@ -185,5 +179,70 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
+    }
+}
+
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    func setupNotification() {
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { settings in
+            guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
+            if settings.alertSetting == .disabled {
+                center.requestAuthorization(options: [.alert, .badge]) { _, _ in
+                }
+            } else {
+                center.delegate = self
+                let dismissAction = UNNotificationAction(identifier: "PlanetNotificationDismissIdentifier", title: "Dismiss", options: [.destructive])
+                let readAction = UNNotificationAction(identifier: "PlanetNotificationReadArticleIdentifier", title: "Read Article", options: [.destructive])
+                let showAction = UNNotificationAction(identifier: "PlanetNotificationShowPlanetIdentifier", title: "Show Planet", options: [.destructive])
+                let readArticleCategory = UNNotificationCategory(identifier: "PlanetNotificationReadActionIdentifier", actions: [dismissAction, readAction], intentIdentifiers: [], hiddenPreviewsBodyPlaceholder: "", options: .customDismissAction)
+                let showPlanetCategory = UNNotificationCategory(identifier: "PlanetNotificationShowActionIdentifier", actions: [dismissAction, showAction], intentIdentifiers: [], hiddenPreviewsBodyPlaceholder: "", options: .customDismissAction)
+                center.setNotificationCategories([readArticleCategory, showPlanetCategory])
+            }
+        }
+    }
+
+    func processNotification(_ response: UNNotificationResponse) {
+        switch response.actionIdentifier {
+            case "PlanetNotificationReadArticleIdentifier":
+                Task.detached(priority: .background) {
+                    await MainActor.run {
+                        for following in PlanetStore.shared.followingPlanets {
+                            guard let articles = following.articles else { continue }
+                            for article in articles {
+                                if article.id.uuidString == response.notification.request.identifier {
+                                    PlanetStore.shared.selectedArticle = article
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+            case "PlanetNotificationShowPlanetIdentifier":
+                Task.detached(priority: .background) {
+                    await MainActor.run {
+                        for following in PlanetStore.shared.followingPlanets {
+                            if following.id.uuidString == response.notification.request.identifier {
+                                PlanetStore.shared.selectedView = PlanetDetailViewType.followingPlanet(following)
+                                break
+                            }
+                        }
+                    }
+                }
+            default:
+                break
+        }
+    }
+
+    // MARK: - UNUserNotificationCenterDelegate
+
+    func userNotificationCenter(_: UNUserNotificationCenter, willPresent _: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .badge])
+    }
+
+    func userNotificationCenter(_: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        processNotification(response)
+        completionHandler()
     }
 }
