@@ -70,11 +70,17 @@ struct FeedUtils {
                 else {
                     return nil
                 }
+                let sanitizedLink: String
+                if let linkURL = URL(string: link) {
+                    sanitizedLink = linkURL.sanitizedLink()
+                } else {
+                    return nil
+                }
                 let content = entry.content?.attributes?.src ?? ""
                 let created = entry.published ?? Date()
                 return PublicArticleModel(
                     id: UUID(),
-                    link: link,
+                    link: sanitizedLink,
                     title: title,
                     content: content,
                     created: created,
@@ -94,11 +100,17 @@ struct FeedUtils {
                 else {
                     return nil
                 }
+                let sanitizedLink: String
+                if let linkURL = URL(string: link) {
+                    sanitizedLink = linkURL.sanitizedLink()
+                } else {
+                    return nil
+                }
                 let description = item.description ?? ""
                 let created = item.pubDate ?? Date()
                 return PublicArticleModel(
                     id: UUID(),
-                    link: link,
+                    link: sanitizedLink,
                     title: title,
                     content: description,
                     created: created,
@@ -124,11 +136,17 @@ struct FeedUtils {
                 else {
                     return nil
                 }
+                let sanitizedLink: String
+                if let linkURL = URL(string: url) {
+                    sanitizedLink = linkURL.sanitizedLink()
+                } else {
+                    return nil
+                }
                 let content = item.contentHtml ?? ""
                 let created = item.datePublished ?? Date()
                 return PublicArticleModel(
                     id: UUID(),
-                    link: url,
+                    link: sanitizedLink,
                     title: title,
                     content: content,
                     created: created,

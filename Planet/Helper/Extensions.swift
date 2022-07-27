@@ -117,6 +117,16 @@ extension URL {
         let URLString : String = String(format: "%@?%@", absoluteString, parametersDictionary.queryParameters)
         return URL(string: URLString)!
     }
+    
+    func sanitizedLink() -> String {
+        if self.fragment != nil {
+            let s = self.standardized.absoluteString
+            let components = s.components(separatedBy: "#")
+            return components[0]
+        } else {
+            return self.standardized.absoluteString
+        }
+    }
 }
 
 extension HTTPURLResponse {
