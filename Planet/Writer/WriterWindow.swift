@@ -26,6 +26,7 @@ class WriterWindow: NSWindow {
         isReleasedWhenClosed = false
         contentView = NSHostingView(rootView: WriterView(draft: draft, viewModel: viewModel))
         center()
+        setFrameAutosaveName("PlanetWriter-\(draft.id.uuidString)")
         makeKeyAndOrderFront(nil)
     }
 
