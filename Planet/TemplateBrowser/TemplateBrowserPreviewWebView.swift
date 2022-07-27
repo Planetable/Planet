@@ -23,6 +23,8 @@ struct TemplateBrowserPreviewWebView: NSViewRepresentable {
 
         wv.navigationDelegate = context.coordinator
         wv.setValue(false, forKey: "drawsBackground")
+        
+        wv.customUserAgent = "Planet/0.8.0"
 
         if url.isFileURL {
             wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
