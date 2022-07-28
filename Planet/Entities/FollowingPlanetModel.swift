@@ -740,6 +740,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 await MainActor.run {
                     article.title = publicArticle.title
                     article.content = publicArticle.content
+                    article.audioFilename = publicArticle.audioFilename
+                    article.videoFilename = publicArticle.videoFilename
                 }
                 try article.save()
                 existingArticleMap.removeValue(forKey: link)
