@@ -85,7 +85,7 @@ struct ArticleView: View {
                             ArticleAudioPlayerViewModel.shared.url = url
                             ArticleAudioPlayerViewModel.shared.title = article.title
                         } label: {
-                            Label("Play Audio", systemImage: "play.circle")
+                            Label("Play Audio", systemImage: "headphones")
                         }
                     }
                     if let followingArticle = article as? FollowingArticleModel,
@@ -95,7 +95,7 @@ struct ArticleView: View {
                             ArticleAudioPlayerViewModel.shared.url = url
                             ArticleAudioPlayerViewModel.shared.title = article.title
                         } label: {
-                            Label("Play Audio", systemImage: "play.circle")
+                            Label("Play Audio", systemImage: "headphones")
                         }
                     }
                 }
