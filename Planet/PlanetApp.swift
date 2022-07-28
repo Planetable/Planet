@@ -6,15 +6,21 @@
 //
 
 import SwiftUI
-import Sparkle
 import UserNotifications
 
 @main
 struct PlanetApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject var planetStore = PlanetStore.shared
-    @StateObject var templateStore = TemplateStore.shared
+    @StateObject var planetStore: PlanetStore
+    @StateObject var templateStore: TemplateStore
+    @StateObject var updater: PlanetUpdater
     @Environment(\.openURL) private var openURL
+
+    init() {
+        _planetStore = StateObject(wrappedValue: PlanetStore.shared)
+        _templateStore = StateObject(wrappedValue: TemplateStore.shared)
+        _updater = StateObject(wrappedValue: PlanetUpdater.shared)
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -63,10 +69,11 @@ struct PlanetApp: App {
             }
             CommandGroup(after: .appInfo) {
                 Button {
-                    SUUpdater.shared().checkForUpdates(NSButton())
+                    updater.checkForUpdates()
                 } label: {
                     Text("Check for Updates")
                 }
+                .disabled(!updater.canCheckForUpdates)
             }
             SidebarCommands()
             CommandGroup(replacing: .help) {
@@ -141,8 +148,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupNotification()
 
-        SUUpdater.shared().checkForUpdatesInBackground()
-
         let saver = Saver.shared
         if saver.isMigrationNeeded() {
             Task { @MainActor in
@@ -164,6 +169,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 PlanetStore.shared.isMigrating = false
             }
         }
+
+        PlanetUpdater.shared.checkForUpdatesInBackground()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
