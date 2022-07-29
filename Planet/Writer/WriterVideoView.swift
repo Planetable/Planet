@@ -7,7 +7,7 @@ struct WriterVideoView: View {
     var body: some View {
         HStack {
             VideoPlayer(player: AVPlayer(url: videoAttachment.path))
-                .frame(height: 360)
+                .frame(height: 270)
         }
             .contextMenu {
                 Button {
