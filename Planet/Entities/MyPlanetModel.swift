@@ -462,7 +462,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func updateTrafficAnalytics() async {
-        if let domain = plausibleDomain, let apiKey = plausibleAPIKey {
+        if let domain = plausibleDomain, let apiKey = plausibleAPIKey, domain.count > 0, apiKey.count > 0 {
             let analytics = PlausibleAnalytics(domain: domain, apiKey: apiKey)
             await analytics.updateTrafficAnalytics(for: self)
         }
