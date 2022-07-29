@@ -34,13 +34,11 @@ struct WriterView: View {
 
             Divider()
 
-            GeometryReader { geometry in
-                HSplitView {
-                    WriterTextView(draft: draft, text: $draft.content)
-                        .frame(width: geometry.size.width / 2)
-                    WriterPreview(draft: draft)
-                        .frame(width: geometry.size.width / 2)
-                }
+
+            HSplitView {
+                WriterTextView(draft: draft, text: $draft.content)
+                    .frame(minWidth: 320, minHeight: 300)
+                WriterPreview(draft: draft)
             }
 
             if viewModel.isMediaTrayOpen {
