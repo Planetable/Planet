@@ -98,10 +98,15 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
 
     func loadThumbnail() {
         if type == .image,
-           let image = NSImage(contentsOf: path)?.resizeSquare(maxLength: 60)  {
+            let image = NSImage(contentsOf: path)?.resizeSquare(maxLength: 128)  {
             thumbnail = image
         } else {
-            thumbnail = nil
+            if let rep = NSWorkspace.shared.icon(forFile: self.path.path)
+                .bestRepresentation(for: NSRect(x: 0, y: 0, width: 128, height: 128), context: nil, hints: nil) {
+                let image = NSImage(size: rep.size)
+                image.addRepresentation(rep)
+                thumbnail = image
+            }
         }
     }
 }

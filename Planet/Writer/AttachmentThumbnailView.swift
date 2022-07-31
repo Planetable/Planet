@@ -12,7 +12,7 @@ struct AttachmentThumbnailView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .padding(.vertical, 4)
-                    .frame(width: 60, height: 60, alignment: .center)
+                    .frame(width: 64, height: 64, alignment: .center)
             }
 
             if attachment.type == .image || attachment.type == .file {
