@@ -59,8 +59,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
-        "revision" : "c3b76b301e2129d6fa9cbd49c377749db8fd908a",
-        "version" : "0.4.3"
+        "revision" : "73b463cf37ebbc1c887c3fa8e84df3cce0c3a521",
+        "version" : "0.5.0"
       }
     },
     {
@@ -87,7 +87,7 @@
       "location" : "https://github.com/stencilproject/Stencil.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c7e1c890f83a2d847c5d3dfc9a737a8e7fd4c641"
+        "revision" : "9444ee5c865e1cac72f12349430df4fb4e95673a"
       }
     },
     {
