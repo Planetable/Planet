@@ -181,16 +181,22 @@ enum PlanetDetailViewType: Hashable, Equatable {
         switch selectedView {
         case .today:
             selectedArticleList = getTodayArticles()
+            navigationTitle = "Today"
         case .unread:
             selectedArticleList = getUnreadArticles()
+            navigationTitle = "Unread"
         case .starred:
             selectedArticleList = getStarredArticles()
+            navigationTitle = "Starred"
         case .myPlanet(let planet):
             selectedArticleList = planet.articles
+            navigationTitle = planet.name
         case .followingPlanet(let planet):
             selectedArticleList = planet.articles
+            navigationTitle = planet.name
         case .none:
             selectedArticleList = nil
+            navigationTitle = "Planet"
         }
     }
 
