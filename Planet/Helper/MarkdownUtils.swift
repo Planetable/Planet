@@ -4,6 +4,28 @@ import Ink
 import HTMLEntities
 
 struct StencilExtension {
+    static let escapeJSTable: [Character: String] = {
+        var table: [Character: String] = [
+            "\\": "\\u005C",
+            "'": "\\u0027",
+            "\"": "\\u0022",
+            ">": "\\u003E",
+            "<": "\\u003C",
+            "&": "\\u0026",
+            "=": "\\u003D",
+            "-": "\\u002D",
+            ";": "\\u003B",
+            "\u{2028}": "\\u2028",
+            "\u{2029}": "\\u2029",
+        ]
+        for i in 0..<32 {
+            let char = Character(Unicode.Scalar(i)!)
+            let escapedString = String(format: "\\u%04X", i)
+            table[char] = escapedString
+        }
+        return table
+    }()
+
     static let common: Extension = {
         let ext = Extension()
         ext.registerFilter("formatDate") { value in
@@ -16,14 +38,20 @@ struct StencilExtension {
             }
             return value
         }
-        ext.registerFilter("escapeString") { value in
+        ext.registerFilter("escapejs") { value in
             if let value = value,
-               let str = value as? String,
-               let jsonData = try? JSONEncoder.shared.encode(str),
-               let jsonEscapedString = String(data: jsonData, encoding: .utf8) {
-                return jsonEscapedString
+               let str = value as? String {
+                var escapedString = ""
+                for char in str {
+                    if let escapedChar = escapeJSTable[char] {
+                        escapedString.append(escapedChar)
+                    } else {
+                        escapedString.append(char)
+                    }
+                }
+                return escapedString
             }
-            return value
+            return ""
         }
         ext.registerFilter("escapeHTML") { value in
             if let value = value,
