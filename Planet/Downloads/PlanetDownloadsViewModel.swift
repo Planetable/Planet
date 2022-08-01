@@ -14,15 +14,20 @@ import SwiftUI
 class PlanetDownloadsViewModel: ObservableObject {
     static let shared = PlanetDownloadsViewModel()
     
-    let timer = Timer.publish(every: 1, tolerance: 0.25, on: .current, in: .common).autoconnect()
+    let timer = Timer.publish(every: 0.5, tolerance: 0.1, on: .current, in: .common).autoconnect()
 
     @Published private(set) var downloads: [PlanetDownloadItem] = [] {
         didSet {
-            // MARK: TODO: deal with downloads history.
+            // MARK: TODO: handle downloads history.
+            saveDownloads()
         }
     }
 
     @Published var selectedDownloadID: UUID?
+
+    init() {
+        downloads = loadDownloads()
+    }
 
     func addDownload(_ download: PlanetDownloadItem) {
         if !downloads.contains(download) {
@@ -35,5 +40,12 @@ class PlanetDownloadsViewModel: ObservableObject {
             item.download.progress.cancel()
         }
         downloads.removeAll()
+    }
+
+    private func saveDownloads() {
+    }
+
+    private func loadDownloads() -> [PlanetDownloadItem] {
+        return []
     }
 }

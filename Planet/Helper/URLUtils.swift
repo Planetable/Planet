@@ -40,6 +40,12 @@ struct URLUtils {
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
+
+    static let downloadHistoryPath: URL = {
+        let url = repoPath.appendingPathComponent("Downloads", isDirectory: true)
+        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }()
 }
 
 extension URL {

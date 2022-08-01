@@ -17,7 +17,7 @@ struct PlanetDownloadsView: View {
 
     var body: some View {
         VStack (spacing: 0) {
-            List(downloadsViewModel.downloads.sorted(by: { $0.created < $1.created }), id: \.id, selection: $downloadsViewModel.selectedDownloadID) { item in
+            List(downloadsViewModel.downloads.sorted(by: { $0.created > $1.created }), id: \.id, selection: $downloadsViewModel.selectedDownloadID) { item in
                 PlanetDownloadsItemView(item: item)
                     .environmentObject(downloadsViewModel)
             }
@@ -31,7 +31,7 @@ struct PlanetDownloadsView: View {
                 .disabled(downloadsViewModel.downloads.count == 0)
                 .buttonStyle(.bordered)
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 12)
             .frame(height: 32)
             .background(Color.secondary.opacity(0.05))
         }

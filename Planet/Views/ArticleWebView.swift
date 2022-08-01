@@ -123,7 +123,6 @@ struct ArticleWebView: NSViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
-            debugPrint("new download: \(download), from: \(navigationResponse.response)")
             // MARK: TODO: detect running downloads before start new one.
             download.delegate = self
         }
@@ -138,6 +137,11 @@ struct ArticleWebView: NSViewRepresentable {
             }
             let downloadURL = downloadsDir.appendingPathComponent(suggestedFilename)
             if FileManager.default.fileExists(atPath: downloadURL.path) {
+                if let userDownloadsDir = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first {
+                    let downloadedURL = userDownloadsDir.appendingPathComponent(suggestedFilename)
+                    try? FileManager.default.moveItem(at: downloadURL, to: downloadedURL)
+                    NSWorkspace.shared.activateFileViewerSelecting([downloadedURL])
+                }
                 completionHandler(nil)
             } else {
                 let downloadItem = PlanetDownloadItem(id: UUID(), created: Date(), download: download)
@@ -145,17 +149,20 @@ struct ArticleWebView: NSViewRepresentable {
                     PlanetDownloadsViewModel.shared.addDownload(downloadItem)
                 }
                 completionHandler(downloadURL)
+                PlanetAppDelegate.shared.openDownloadsWindow()
             }
-
-            PlanetAppDelegate.shared.openDownloadsWindow()
         }
 
         func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {
-            debugPrint("download: \(download), failed: \(error), resume data: \(resumeData)")
+            // MARK: TODO: handle failed download task.
         }
 
         func downloadDidFinish(_ download: WKDownload) {
-            debugPrint("download finished: \(download)")
+            if let url = download.progress.fileURL, let userDownloadsDir = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first {
+                let downloadedURL = userDownloadsDir.appendingPathComponent(url.lastPathComponent)
+                try? FileManager.default.moveItem(at: url, to: downloadedURL)
+                NSWorkspace.shared.activateFileViewerSelecting([downloadedURL])
+            }
         }
 
         func download(_ download: WKDownload, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {

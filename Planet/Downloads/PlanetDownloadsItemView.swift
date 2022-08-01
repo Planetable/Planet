@@ -12,18 +12,22 @@ struct PlanetDownloadsItemView: View {
     @EnvironmentObject private var downloadsViewModel: PlanetDownloadsViewModel
 
     var item: PlanetDownloadItem
+
     @State private var downloadStatus: PlanetDownloadItemStatus = .idle
+    @State private var failedToLocateFile: Bool = false
 
     var body: some View {
         HStack {
             if downloadStatus != .downloading {
-                VStack {
+                VStack (spacing: 8) {
                     HStack {
                         Text(item.downloadItemName())
                         Spacer()
                     }
                     HStack {
-                        Text(item.created.description)
+                        Text(item.created.dateDescription())
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
                         Spacer()
                     }
                     .font(.caption2)
@@ -36,8 +40,6 @@ struct PlanetDownloadsItemView: View {
                         item.download.progress.resume()
                     } else if downloadStatus == .finished {
                         revealDownloadInFinder()
-                    } else if downloadStatus == .idle {
-                        //
                     }
                 } label: {
                     if downloadStatus == .cancelled || downloadStatus == .paused {
@@ -57,7 +59,7 @@ struct PlanetDownloadsItemView: View {
             } else {
                 ProgressView(item.download.progress)
                     .progressViewStyle(.linear)
-                Spacer()
+                Spacer(minLength: 10)
                 Button {
                     item.download.progress.pause()
                 } label: {
@@ -69,7 +71,9 @@ struct PlanetDownloadsItemView: View {
                 .buttonStyle(.plain)
             }
         }
-        .frame(height: 72)
+        .frame(height: 64)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 2)
         .onReceive(downloadsViewModel.timer) { _ in
             if item.download.progress.isFinished {
                 downloadStatus = .finished
@@ -81,11 +85,21 @@ struct PlanetDownloadsItemView: View {
                 downloadStatus = .downloading
             }
         }
+        .alert(isPresented: $failedToLocateFile) {
+            Alert(title: Text("Failed to locate downloaded file."), message: Text("Please try to redownload it from article."), dismissButton: .cancel(Text("Dismiss")))
+        }
     }
 
     private func revealDownloadInFinder() {
         if let targetPath = item.download.progress.fileURL {
-            NSWorkspace.shared.open(targetPath)
+            if let userDownloadsDir = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first {
+                let downloadedURL = userDownloadsDir.appendingPathComponent(targetPath.lastPathComponent)
+                if FileManager.default.fileExists(atPath: downloadedURL.path) {
+                    NSWorkspace.shared.activateFileViewerSelecting([downloadedURL])
+                    return
+                }
+            }
         }
+        failedToLocateFile = true
     }
 }
