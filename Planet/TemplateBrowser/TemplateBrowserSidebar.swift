@@ -37,6 +37,14 @@ struct TemplateBrowserSidebar: View {
                         Text("Open in Terminal")
                     }
 
+                    if hasiTerm() {
+                        Button {
+                            openiTerm(template)
+                        } label: {
+                            Text("Open in iTerm")
+                        }
+                    }
+
                     Button(action: {
                         revealInFinder(template)
                     }) {
@@ -46,6 +54,19 @@ struct TemplateBrowserSidebar: View {
             }
         }
         .frame(minWidth: 200)
+    }
+
+    private func hasiTerm() -> Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.googlecode.iterm2") != nil
+    }
+
+    private func openiTerm(_ template: Template) {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.googlecode.iterm2")
+        else { return }
+
+        let url = URL(fileURLWithPath: template.path.path)
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
     }
 
     private func hasVSCode() -> Bool {
