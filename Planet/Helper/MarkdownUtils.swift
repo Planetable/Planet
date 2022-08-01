@@ -1,6 +1,7 @@
 import Foundation
 import Stencil
 import Ink
+import HTMLEntities
 
 struct StencilExtension {
     static let common: Extension = {
@@ -13,7 +14,23 @@ struct StencilExtension {
                 format.timeStyle = .medium
                 return format.string(from: date)
             }
-            return "Test"
+            return value
+        }
+        ext.registerFilter("escapeString") { value in
+            if let value = value,
+               let str = value as? String,
+               let jsonData = try? JSONEncoder.shared.encode(str),
+               let jsonEscapedString = String(data: jsonData, encoding: .utf8) {
+                return jsonEscapedString
+            }
+            return value
+        }
+        ext.registerFilter("escapeHTML") { value in
+            if let value = value,
+               let str = value as? String {
+                return str.htmlEscape()
+            }
+            return value
         }
         return ext
     }()
