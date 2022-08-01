@@ -53,7 +53,7 @@ struct StencilExtension {
             }
             return ""
         }
-        ext.registerFilter("escapeHTML") { value in
+        ext.registerFilter("escape") { value in
             if let value = value,
                let str = value as? String {
                 return str.htmlEscape()
