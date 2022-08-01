@@ -51,7 +51,7 @@ struct ArticleWebView: NSViewRepresentable {
 
         private func shouldHandleDownloadForMimeType(_ mimeType: String) -> Bool {
             // MARK: TODO: more mime types for download tasks.
-            let downloadableMimeTypes: [String] = ["application/pdf", "image/jpeg", "image/png"]
+            let downloadableMimeTypes: [String] = ["application/pdf", "image/jpeg", "image/png", "audio/aac", "video/x-msvideo", "application/msword", "text/csv", "application/epub+zip", "application/gzip", "image/gif", "audio/mpeg", "video/mp4", "video/mpeg", "application/vnd.apple.installer+xml", "audio/ogg", "video/ogg", "application/vnd.ms-powerpoint", "application/vnd.rar", "image/svg+xml", "application/x-tar", "image/tiff", "font/ttf", "audio/wav", "audio/webm", "video/webm", "image/webp", "application/zip", "application/x-7z-compressed"]
             return downloadableMimeTypes.contains(mimeType)
         }
 
