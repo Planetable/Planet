@@ -31,6 +31,14 @@ struct TemplateBrowserSidebar: View {
                         }
                     }
 
+                    if hasTower() {
+                        Button {
+                            openTower(template)
+                        } label: {
+                            Text("Open in Tower")
+                        }
+                    }
+
                     Button {
                         openTerminal(template)
                     } label: {
@@ -63,6 +71,21 @@ struct TemplateBrowserSidebar: View {
     private func openiTerm(_ template: Template) {
         guard
             let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.googlecode.iterm2")
+        else { return }
+
+        let url = URL(fileURLWithPath: template.path.path)
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
+    }
+
+    // TODO: Needs a general method for opening template in various installed apps.
+
+    private func hasTower() -> Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.fournova.Tower3") != nil
+    }
+
+    private func openTower(_ template: Template) {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.fournova.Tower3")
         else { return }
 
         let url = URL(fileURLWithPath: template.path.path)
