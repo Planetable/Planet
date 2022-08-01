@@ -40,7 +40,7 @@ struct ArticleWebView: NSViewRepresentable {
     func updateNSView(_ nsView: WKWebView, context: Context) {
     }
 
-    class Coordinator: NSObject, WKNavigationDelegate {
+    class Coordinator: NSObject, WKNavigationDelegate, WKDownloadDelegate {
         let parent: ArticleWebView
 
         private var navigationType: WKNavigationType = .other
@@ -50,6 +50,7 @@ struct ArticleWebView: NSViewRepresentable {
         }
 
         private func shouldHandleDownloadForMimeType(_ mimeType: String) -> Bool {
+            // MARK: TODO: more mime types for download tasks.
             let downloadableMimeTypes: [String] = ["application/pdf", "image/jpeg", "image/png"]
             return downloadableMimeTypes.contains(mimeType)
         }
@@ -60,6 +61,10 @@ struct ArticleWebView: NSViewRepresentable {
                 return true
             }
             return false
+        }
+
+        private func moveDownloadedFile(_ download: WKDownload) {
+
         }
 
         // MARK: - NavigationDelegate
@@ -119,6 +124,46 @@ struct ArticleWebView: NSViewRepresentable {
 
         func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
             debugPrint("new download: \(download), from: \(navigationResponse.response)")
+            // MARK: TODO: detect running downloads before start new one.
+            download.delegate = self
+        }
+
+        // MARK: - DownloadDelegate
+
+        func download(_ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String, completionHandler: @escaping (URL?) -> Void) {
+            let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
+            let downloadsDir = tempDir.appendingPathComponent("Downloads")
+            if !FileManager.default.fileExists(atPath: downloadsDir.path) {
+                try? FileManager.default.createDirectory(at: downloadsDir, withIntermediateDirectories: true)
+            }
+            let downloadURL = downloadsDir.appendingPathComponent(suggestedFilename)
+            if FileManager.default.fileExists(atPath: downloadURL.path) {
+                completionHandler(nil)
+            } else {
+                let downloadItem = PlanetDownloadItem(id: UUID(), created: Date(), download: download)
+                Task { @MainActor in
+                    PlanetDownloadsViewModel.shared.addDownload(downloadItem)
+                }
+                completionHandler(downloadURL)
+            }
+
+            PlanetAppDelegate.shared.openDownloadsWindow()
+        }
+
+        func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {
+            debugPrint("download: \(download), failed: \(error), resume data: \(resumeData)")
+        }
+
+        func downloadDidFinish(_ download: WKDownload) {
+            debugPrint("download finished: \(download)")
+        }
+
+        func download(_ download: WKDownload, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+            completionHandler(.performDefaultHandling, nil)
+        }
+
+        func download(_ download: WKDownload, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, decisionHandler: @escaping (WKDownload.RedirectPolicy) -> Void) {
+            decisionHandler(.allow)
         }
     }
 }
