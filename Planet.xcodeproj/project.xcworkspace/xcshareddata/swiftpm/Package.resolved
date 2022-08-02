@@ -37,12 +37,12 @@
       }
     },
     {
-      "identity" : "ink",
+      "identity" : "libcmark_gfm",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/johnsundell/ink.git",
+      "location" : "https://github.com/KristopherGBaker/libcmark_gfm",
       "state" : {
-        "revision" : "77c3d8953374a9cf5418ef0bd7108524999de85a",
-        "version" : "0.5.1"
+        "revision" : "adfab58d571f9e8d1447e7e876ca381d7f0f6cdb",
+        "version" : "0.29.4"
       }
     },
     {

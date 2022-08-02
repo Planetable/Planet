@@ -1,7 +1,6 @@
 import Foundation
 import Stencil
 import PathKit
-import Ink
 import os
 
 class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
@@ -10,7 +9,6 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         loader: FileSystemLoader(paths: [Path(previewTemplatePath.path)]),
         extensions: [StencilExtension.common]
     )
-    static let previewMarkdownParser = MarkdownParser(modifiers: [InkModifier.draftPreviewImages])
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Draft")
 
@@ -193,10 +191,25 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         }
     }
 
+    func preprocessContentForMarkdown() -> String {
+        var processedContent = content
+        let timestamp = Int(Date().timeIntervalSince1970)
+        // not very efficient, but let's see if we observe performance problem
+        for attachment in attachments.filter({ $0.type == .image }) {
+            let name = attachment.name
+            let find = attachment.markdown!
+            let replace = "![\(name)](\(name)?t=\(timestamp))"
+            processedContent = processedContent.replacingOccurrences(of: find, with: replace)
+        }
+        return processedContent
+    }
+
     func renderPreview() throws {
         logger.info("Rendering preview for draft \(self.id)")
 
-        let html = Self.previewMarkdownParser.html(from: content.trim())
+        guard let html = CMarkRenderer.renderMarkdownHTML(markdown: preprocessContentForMarkdown()) else {
+            throw PlanetError.RenderMarkdownError
+        }
         let output = try Self.previewRenderEnv.renderTemplate(
             name: Self.previewTemplatePath.path,
             context: ["content_html": html]

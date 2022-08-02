@@ -75,8 +75,9 @@ class Template: Codable, Identifiable {
 
     func render(article: MyArticleModel) throws -> String {
         // render markdown
-        let result = MarkdownParser().parse(article.content.trim())
-        let content_html = result.html
+        guard let content_html = CMarkRenderer.renderMarkdownHTML(markdown: article.content) else {
+            throw PlanetError.RenderMarkdownError
+        }
 
         let planet = article.planet!
         let publicPlanet = PublicPlanetModel(
@@ -200,8 +201,9 @@ class Template: Codable, Identifiable {
         )
 
         // render markdown
-        let result = MarkdownParser().parse(article.content)
-        let content_html = result.html
+        guard let content_html = CMarkRenderer.renderMarkdownHTML(markdown: article.content) else {
+            return nil
+        }
 
         // render stencil template
         let context: [String: Any] = [

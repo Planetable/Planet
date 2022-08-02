@@ -14,6 +14,7 @@ enum PlanetError: Error {
     case FollowPlanetVerifyError
     case InvalidPlanetURLError
     case ENSNoContentHashError
+    case RenderMarkdownError
     case InternalError
     case UnknownError(Error)
 }
