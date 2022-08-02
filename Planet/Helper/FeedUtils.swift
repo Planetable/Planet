@@ -61,6 +61,33 @@ struct FeedUtils {
         return (nil, nil)
     }
 
+    static func findAvatarFromHTML(htmlDocument: Document, htmlURL: URL) async throws -> Data? {
+        let possibleAvatarElems = try htmlDocument.select("meta[property='og:image']")
+        let avatarElem = possibleAvatarElems.first { elem in
+            if let content = try? elem.attr("content") {
+                return content.contains("/")
+            }
+            return false
+        }
+        guard let avatarElem = avatarElem,
+              let avatarElemContent = try? avatarElem.attr("content")
+        else {
+            return nil
+        }
+        guard let avatarURL = URL(string: avatarElemContent, relativeTo: htmlURL) else {
+            return nil
+        }
+        guard let (data, response) = try? await URLSession.shared.data(from: avatarURL) else {
+            return nil
+        }
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.ok
+        else {
+            return nil
+        }
+        return data
+    }
+
     static func parseFeed(data: Data) throws -> (
         name: String?,
         about: String?,

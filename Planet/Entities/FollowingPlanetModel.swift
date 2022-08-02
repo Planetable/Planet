@@ -571,7 +571,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             // did not get published planet file, try to get feed
             let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)")!
-            let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
+            let (feedData, htmlDocument) = try await FeedUtils.findFeed(url: feedURL)
             guard let feedData =  feedData else {
                 throw PlanetError.InvalidPlanetURLError
             }
@@ -694,11 +694,30 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             guard let feedURL = URL(string: link) else {
                 throw PlanetError.PlanetFeedError
             }
-            let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
+            let (feedData, htmlDocument) = try await FeedUtils.findFeed(url: feedURL)
             guard let feedData = feedData else {
                 throw PlanetError.PlanetFeedError
             }
             let feed = try FeedUtils.parseFeed(data: feedData)
+
+            var feedAvatar: Data? = nil
+            if feed.avatar == nil {
+                if let soup = htmlDocument {
+                    debugPrint("FeedAvatar: Trying to fetch og:image as feed avatar")
+                    feedAvatar = try await FeedUtils.findAvatarFromHTML(htmlDocument: soup, htmlURL: feedURL)
+                }
+            }
+
+            var avatarData: Data? = nil
+
+            if feed.avatar != nil {
+                avatarData = feed.avatar
+            }
+
+            if avatarData == nil, feedAvatar != nil {
+                avatarData = feedAvatar
+            }
+
             let now = Date()
             await MainActor.run {
                 name = feed.name ?? link
@@ -711,7 +730,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 try await updateArticles(publicArticles: publicArticles)
             }
 
-            if let data = feed.avatar,
+            if let data = avatarData,
                let image = NSImage(data: data),
                let _ = try? data.write(to: avatarPath) {
                 await MainActor.run {
