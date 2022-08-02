@@ -10,7 +10,7 @@ import UserNotifications
 
 @main
 struct PlanetApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @NSApplicationDelegateAdaptor(PlanetAppDelegate.self) var appDelegate
     @StateObject var planetStore: PlanetStore
     @StateObject var templateStore: TemplateStore
     @StateObject var updater: PlanetUpdater
@@ -41,6 +41,13 @@ struct PlanetApp: App {
                     Text("Template Browser")
                 }
                 .keyboardShortcut("l", modifiers: [.command, .shift])
+
+                Button {
+                    PlanetAppDelegate.shared.openDownloadsWindow()
+                } label: {
+                    Text("Downloads")
+                }
+                .keyboardShortcut("d", modifiers: [.command, .shift])
 
                 Divider()
 
@@ -112,7 +119,11 @@ struct PlanetApp: App {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class PlanetAppDelegate: NSObject, NSApplicationDelegate {
+    static let shared = PlanetAppDelegate()
+
+    var downloadsWindowController: PlanetDownloadsWindowController?
+
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         true
     }
@@ -189,8 +200,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-
-extension AppDelegate: UNUserNotificationCenterDelegate {
+extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
     func setupNotification() {
         let center = UNUserNotificationCenter.current()
         center.getNotificationSettings { settings in
@@ -256,5 +266,15 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     func userNotificationCenter(_: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         processNotification(response)
         completionHandler()
+    }
+}
+
+
+extension PlanetAppDelegate {
+    func openDownloadsWindow() {
+        if downloadsWindowController == nil {
+            downloadsWindowController = PlanetDownloadsWindowController()
+        }
+        downloadsWindowController?.showWindow(nil)
     }
 }
