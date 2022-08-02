@@ -3,6 +3,15 @@ import FeedKit
 import SwiftSoup
 
 struct FeedUtils {
+    static func isFeed(mime: String) -> Bool {
+        mime.contains("application/xml")
+            || mime.contains("text/xml")
+            || mime.contains("application/atom+xml")
+            || mime.contains("application/rss+xml")
+            || mime.contains("application/json")
+            || mime.contains("application/feed+json")
+    }
+
     static func findFeed(url: URL) async throws -> (feed: Data?, html: Document?) {
         guard let (data, response) = try? await URLSession.shared.data(from: url) else {
             throw PlanetError.NetworkError
@@ -13,12 +22,7 @@ struct FeedUtils {
         else {
             return (nil, nil)
         }
-        if mime.contains("application/xml")
-               || mime.contains("text/xml")
-               || mime.contains("application/atom+xml")
-               || mime.contains("application/rss+xml")
-               || mime.contains("application/json")
-               || mime.contains("application/feed+json") {
+        if isFeed(mime: mime) {
             return (data, nil)
         }
         if mime.contains("text/html") {
@@ -28,7 +32,14 @@ struct FeedUtils {
             else {
                 return (nil, nil)
             }
-            guard let feedElem = try soup.select("link[rel='alternate']").first(),
+            let possibleFeedElems = try soup.select("link[rel='alternate']")
+            let feedElem = possibleFeedElems.first { elem in
+                if let mime = try? elem.attr("type") {
+                    return isFeed(mime: mime)
+                }
+                return false
+            }
+            guard let feedElem = feedElem,
                   let feedElemHref = try? feedElem.attr("href"),
                   let feedURL = URL(string: feedElemHref, relativeTo: url)?.absoluteURL
             else {
