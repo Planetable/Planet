@@ -807,20 +807,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     func delete() {
         try? FileManager.default.removeItem(at: basePath)
     }
-    
+
     func navigationSubtitle() -> String {
         if articles.isEmpty {
             return "0 articles"
         } else {
-            let unread: Int = {
-                var unread: Int = 0
-                for article in articles {
-                    if article.read == nil {
-                        unread = unread + 1
-                    }
-                }
-                return unread
-            }()
+            let unread = articles.filter { $0.read == nil }.count
             return "\(unread) unread · \(articles.count) total"
         }
     }
