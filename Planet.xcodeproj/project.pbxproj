@@ -54,7 +54,6 @@
 		6A6A146628215587009644B6 /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A146528215587009644B6 /* Template.swift */; };
 		6A6A1468282159DC009644B6 /* TemplateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A6A1467282159DC009644B6 /* TemplateStore.swift */; };
 		6ABAB91828215FF30014F209 /* TemplatePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */; };
-		6AF1F05E288631FB009C574E /* Subsonic in Frameworks */ = {isa = PBXBuildFile; productRef = 6AF1F05D288631FB009C574E /* Subsonic */; };
 		7211413A9B3CC77620629D22 /* ViewUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143C73AEAD5F0C049DF86 /* ViewUtils.swift */; };
 		7211421E15A5A630DF93A519 /* AboutMyPlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D264DD084A74B49BF8 /* AboutMyPlanetView.swift */; };
 		72114265702BCDF356C98046 /* FollowingPlanetAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721140CF1813A5B4340B90F3 /* FollowingPlanetAvatarView.swift */; };
@@ -215,7 +214,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6AF1F05E288631FB009C574E /* Subsonic in Frameworks */,
 				BBF7DF38287419FE009A87DE /* AVKit.framework in Frameworks */,
 				BB7FC8752898C70A00359802 /* libcmark_gfm in Frameworks */,
 				BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */,
@@ -523,7 +521,6 @@
 				BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */,
 				BB6FC66C28423AF80072C3A1 /* SwiftSoup */,
 				BB99C7062847AC9F001836B2 /* Sparkle */,
-				6AF1F05D288631FB009C574E /* Subsonic */,
 				BBAE651A28987A31007E1818 /* HTMLEntities */,
 				BB7FC8742898C70A00359802 /* libcmark_gfm */,
 			);
@@ -562,7 +559,6 @@
 				BBC831A92836239300CE1F67 /* XCRemoteSwiftPackageReference "PlanetSiteTemplates" */,
 				BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				BB99C7052847AC9F001836B2 /* XCRemoteSwiftPackageReference "Sparkle" */,
-				6AF1F05C288631FB009C574E /* XCRemoteSwiftPackageReference "Subsonic" */,
 				BBAE651928987A31007E1818 /* XCRemoteSwiftPackageReference "swift-html-entities" */,
 				BB7FC8732898C70A00359802 /* XCRemoteSwiftPackageReference "libcmark_gfm" */,
 			);
@@ -898,14 +894,6 @@
 				kind = branch;
 			};
 		};
-		6AF1F05C288631FB009C574E /* XCRemoteSwiftPackageReference "Subsonic" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/twostraws/Subsonic";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.2.0;
-			};
-		};
 		BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
@@ -966,11 +954,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
 			productName = Stencil;
-		};
-		6AF1F05D288631FB009C574E /* Subsonic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6AF1F05C288631FB009C574E /* XCRemoteSwiftPackageReference "Subsonic" */;
-			productName = Subsonic;
 		};
 		BB6FC66C28423AF80072C3A1 /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
