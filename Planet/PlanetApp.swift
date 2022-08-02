@@ -221,7 +221,6 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
         if response.actionIdentifier != UNNotificationDefaultActionIdentifier {
             return
         }
-        print(response.notification.request.content.categoryIdentifier)
         switch response.notification.request.content.categoryIdentifier {
             case "PlanetReadArticleNotification":
                 Task { @MainActor in
@@ -229,7 +228,10 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
                     for following in PlanetStore.shared.followingPlanets {
                         if let article = following.articles.first(where: { $0.id.uuidString == articleId }) {
                             PlanetStore.shared.selectedView = .followingPlanet(following)
-                            PlanetStore.shared.selectedArticle = article
+                            PlanetStore.shared.refreshSelectedArticles()
+                            Task { @MainActor in
+                                PlanetStore.shared.selectedArticle = article
+                            }
                             NSWorkspace.shared.open(URL(string: "planet://")!)
                             return
                         }
