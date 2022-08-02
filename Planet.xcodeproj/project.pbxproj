@@ -99,6 +99,7 @@
 		72114F25F504270EB29068C9 /* PlanetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211404DFC1B4D23F84EA279 /* PlanetError.swift */; };
 		72114FE37ADE9340E448FF3E /* WriterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114B2B1F05731320A89022 /* WriterViewModel.swift */; };
 		BB6FC66D28423AF80072C3A1 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = BB6FC66C28423AF80072C3A1 /* SwiftSoup */; };
+		BB7FC8752898C70A00359802 /* libcmark_gfm in Frameworks */ = {isa = PBXBuildFile; productRef = BB7FC8742898C70A00359802 /* libcmark_gfm */; };
 		BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BB99C7062847AC9F001836B2 /* Sparkle */; };
 		BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */ = {isa = PBXBuildFile; productRef = BBAE651A28987A31007E1818 /* HTMLEntities */; };
 		BBC831AB2836239300CE1F67 /* PlanetSiteTemplates in Frameworks */ = {isa = PBXBuildFile; productRef = BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */; };
@@ -217,6 +218,7 @@
 			files = (
 				6AF1F05E288631FB009C574E /* Subsonic in Frameworks */,
 				BBF7DF38287419FE009A87DE /* AVKit.framework in Frameworks */,
+				BB7FC8752898C70A00359802 /* libcmark_gfm in Frameworks */,
 				BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */,
 				BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */,
 				BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */,
@@ -526,6 +528,7 @@
 				BB99C7062847AC9F001836B2 /* Sparkle */,
 				6AF1F05D288631FB009C574E /* Subsonic */,
 				BBAE651A28987A31007E1818 /* HTMLEntities */,
+				BB7FC8742898C70A00359802 /* libcmark_gfm */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -565,6 +568,7 @@
 				BB99C7052847AC9F001836B2 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				6AF1F05C288631FB009C574E /* XCRemoteSwiftPackageReference "Subsonic" */,
 				BBAE651928987A31007E1818 /* XCRemoteSwiftPackageReference "swift-html-entities" */,
+				BB7FC8732898C70A00359802 /* XCRemoteSwiftPackageReference "libcmark_gfm" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -922,6 +926,14 @@
 				minimumVersion = 2.4.2;
 			};
 		};
+		BB7FC8732898C70A00359802 /* XCRemoteSwiftPackageReference "libcmark_gfm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/KristopherGBaker/libcmark_gfm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.29.4;
+			};
+		};
 		BB99C7052847AC9F001836B2 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
@@ -981,6 +993,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
+		};
+		BB7FC8742898C70A00359802 /* libcmark_gfm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BB7FC8732898C70A00359802 /* XCRemoteSwiftPackageReference "libcmark_gfm" */;
+			productName = libcmark_gfm;
 		};
 		BB99C7062847AC9F001836B2 /* Sparkle */ = {
 			isa = XCSwiftPackageProductDependency;

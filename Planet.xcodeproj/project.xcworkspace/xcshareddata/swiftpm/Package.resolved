@@ -46,6 +46,15 @@
       }
     },
     {
+      "identity" : "libcmark_gfm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/KristopherGBaker/libcmark_gfm",
+      "state" : {
+        "revision" : "adfab58d571f9e8d1447e7e876ca381d7f0f6cdb",
+        "version" : "0.29.4"
+      }
+    },
+    {
       "identity" : "pathkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kylef/PathKit.git",
