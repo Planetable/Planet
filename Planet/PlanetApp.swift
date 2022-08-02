@@ -210,46 +210,37 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
                 }
             } else {
                 center.delegate = self
-                let dismissAction = UNNotificationAction(identifier: "PlanetNotificationDismissIdentifier", title: "Dismiss", options: [.destructive])
-                let readAction = UNNotificationAction(identifier: "PlanetNotificationReadArticleIdentifier", title: "Read Article", options: [.destructive])
-                let showAction = UNNotificationAction(identifier: "PlanetNotificationShowPlanetIdentifier", title: "Show Planet", options: [.destructive])
-                let readArticleCategory = UNNotificationCategory(identifier: "PlanetNotificationReadActionIdentifier", actions: [dismissAction, readAction], intentIdentifiers: [], hiddenPreviewsBodyPlaceholder: "", options: .customDismissAction)
-                let showPlanetCategory = UNNotificationCategory(identifier: "PlanetNotificationShowActionIdentifier", actions: [dismissAction, showAction], intentIdentifiers: [], hiddenPreviewsBodyPlaceholder: "", options: .customDismissAction)
+                let readArticleCategory = UNNotificationCategory(identifier: "PlanetReadArticleNotification", actions: [], intentIdentifiers: [], options: [])
+                let showPlanetCategory = UNNotificationCategory(identifier: "PlanetShowPlanetNotification", actions: [], intentIdentifiers: [], options: [])
                 center.setNotificationCategories([readArticleCategory, showPlanetCategory])
             }
         }
     }
 
     func processNotification(_ response: UNNotificationResponse) {
-        switch response.actionIdentifier {
-            case "PlanetNotificationReadArticleIdentifier":
-                Task.detached(priority: .background) {
-                    await MainActor.run {
-                        var skip = false
-                        for following in PlanetStore.shared.followingPlanets {
-                            guard let articles = following.articles else { continue }
-                            if skip { break }
-                            for article in articles {
-                                if article.link.replacingOccurrences(of: "/", with: "") == response.notification.request.identifier || article.id.uuidString == response.notification.request.identifier {
-                                    PlanetStore.shared.selectedView = .followingPlanet(following)
-                                    NSWorkspace.shared.open(URL(string: "planet://")!)
-                                    skip = true
-                                    break
-                                }
-                            }
+        if response.actionIdentifier != UNNotificationDefaultActionIdentifier {
+            return
+        }
+        print(response.notification.request.content.categoryIdentifier)
+        switch response.notification.request.content.categoryIdentifier {
+            case "PlanetReadArticleNotification":
+                Task { @MainActor in
+                    let articleId = response.notification.request.identifier
+                    for following in PlanetStore.shared.followingPlanets {
+                        if let article = following.articles.first(where: { $0.id.uuidString == articleId }) {
+                            PlanetStore.shared.selectedView = .followingPlanet(following)
+                            PlanetStore.shared.selectedArticle = article
+                            NSWorkspace.shared.open(URL(string: "planet://")!)
+                            return
                         }
                     }
                 }
-            case "PlanetNotificationShowPlanetIdentifier":
-                Task.detached(priority: .background) {
-                    await MainActor.run {
-                        for following in PlanetStore.shared.followingPlanets {
-                            if following.id.uuidString == response.notification.request.identifier {
-                                PlanetStore.shared.selectedView = .followingPlanet(following)
-                                NSWorkspace.shared.open(URL(string: "planet://")!)
-                                break
-                            }
-                        }
+            case "PlanetShowPlanetNotification":
+                Task { @MainActor in
+                    let planetId = response.notification.request.identifier
+                    if let following = PlanetStore.shared.followingPlanets.first(where: { $0.id.uuidString == planetId }) {
+                        PlanetStore.shared.selectedView = .followingPlanet(following)
+                        NSWorkspace.shared.open(URL(string: "planet://")!)
                     }
                 }
             default:

@@ -751,7 +751,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             existingArticleMap[existingArticle.link] = existingArticle
         }
 
-        var newArticles: [PublicArticleModel] = []
+        var newArticles: [FollowingArticleModel] = []
         for publicArticle in publicArticles {
             let link = publicArticle.link
             if let article = existingArticleMap[link] {
@@ -768,9 +768,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 existingArticleMap.removeValue(forKey: link)
             } else {
                 // created
-                newArticles.append(publicArticle)
                 let articleModel = FollowingArticleModel.from(publicArticle: publicArticle, planet: self)
                 try articleModel.save()
+                newArticles.append(articleModel)
                 await MainActor.run {
                     articles.append(articleModel)
                 }
@@ -791,7 +791,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
     }
 
-    func sendNotification(for newArticles: [PublicArticleModel]) {
+    func sendNotification(for newArticles: [FollowingArticleModel]) {
         if newArticles.isEmpty {
             return
         }
@@ -801,11 +801,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         if newArticles.count == 1 {
             requestID = newArticles[0].id
             content.body = newArticles[0].title
-            content.categoryIdentifier = "PlanetNotificationReadActionIdentifier"
+            content.categoryIdentifier = "PlanetReadArticleNotification"
         } else {
-            requestID = self.id
+            requestID = id
             content.body = "\(newArticles.count) new articles"
-            content.categoryIdentifier = "PlanetNotificationShowActionIdentifier"
+            content.categoryIdentifier = "PlanetShowPlanetNotification"
         }
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
         let request = UNNotificationRequest(identifier: requestID.uuidString, content: content, trigger: trigger)
