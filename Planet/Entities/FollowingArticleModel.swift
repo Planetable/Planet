@@ -42,7 +42,10 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
     var browserURL: URL? {
         switch planet.planetType {
-        case .planet, .dnslink, .ens:
+        case .planet:
+            // planet article link: /12345678-90AB-CDEF-1234-567890ABCDEF/
+            return URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.link)\(link)")
+        case .ens:
             if let linkURL = URL(string: link),
                linkURL.isHTTP {
                 // article from a feed with an absolute HTTP URL: https://vitalik.ca/general/2022/05/25/stable.html
@@ -54,6 +57,8 @@ class FollowingArticleModel: ArticleModel, Codable {
                 return URL(string: link, relativeTo: limo)?.absoluteURL
             }
             return nil
+        case .dnslink:
+            return URL(string: link)?.absoluteURL
         case .dns:
             if let planetLink = URL(string: planet.link) {
                 // absolute URL in HTTP scheme: https://vitalik.ca/general/2022/05/25/stable.html
