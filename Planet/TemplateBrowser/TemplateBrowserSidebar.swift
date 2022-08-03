@@ -30,6 +30,8 @@ struct TemplateBrowserSidebar: View {
                             Text("Open in VSCode")
                         }
                     }
+                    
+                    Divider()
 
                     if hasTower() {
                         Button {
@@ -52,6 +54,8 @@ struct TemplateBrowserSidebar: View {
                             Text("Open in iTerm")
                         }
                     }
+                    
+                    Divider()
 
                     Button(action: {
                         revealInFinder(template)
