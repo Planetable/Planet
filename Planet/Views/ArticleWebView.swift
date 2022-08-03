@@ -11,8 +11,8 @@ struct ArticleWebView: NSViewRepresentable {
         Coordinator(self)
     }
 
-    func makeNSView(context: Context) -> WKWebView {
-        let wv = WKWebView()
+    func makeNSView(context: Context) -> PlanetDownloadsWebView {
+        let wv = PlanetDownloadsWebView()
 
         // TODO: probably need a way to inject marketing version here
         wv.customUserAgent = "Planet/0.8.0"
@@ -37,7 +37,7 @@ struct ArticleWebView: NSViewRepresentable {
         return wv
     }
 
-    func updateNSView(_ nsView: WKWebView, context: Context) {
+    func updateNSView(_ nsView: PlanetDownloadsWebView, context: Context) {
     }
 
     class Coordinator: NSObject, WKNavigationDelegate, WKDownloadDelegate {
@@ -50,7 +50,7 @@ struct ArticleWebView: NSViewRepresentable {
         }
 
         private func shouldHandleDownloadForMIMEType(_ mimeType: String) -> Bool {
-            return PlanetDownloadItem.downloadableTypes().contains(mimeType)
+            return PlanetDownloadItem.downloadableMIMETypes().contains(mimeType)
         }
 
         private func isValidatedLink(_ url: URL) -> Bool {
@@ -101,7 +101,7 @@ struct ArticleWebView: NSViewRepresentable {
 
         func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
             if navigationResponse.canShowMIMEType, let url = navigationResponse.response.url, let mimeType = navigationResponse.response.mimeType {
-                if shouldHandleDownloadForMimeType(mimeType) {
+                if shouldHandleDownloadForMIMEType(mimeType) {
                     decisionHandler(.download)
                 } else {
                     if navigationType == .linkActivated, isValidatedLink(url) {

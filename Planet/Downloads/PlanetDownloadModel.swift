@@ -59,7 +59,8 @@ extension PlanetDownloadItem {
             "video/webm",
             "image/webp",
             "application/zip",
-            "application/x-7z-compressed"
+            "application/x-7z-compressed",
+            "application/octet-stream"
         ]
     }
 }

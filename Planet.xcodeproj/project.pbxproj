@@ -17,6 +17,7 @@
 		2A441BB027C4DD980008A694 /* CreatePlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAF27C4DD980008A694 /* CreatePlanetView.swift */; };
 		2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BB227C4DF110008A694 /* FollowPlanetView.swift */; };
 		2A69F04727E1B53A00141DC0 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A69F04627E1B53A00141DC0 /* FeedKit */; };
+		2A6F8282289A5DAF0099D87E /* PlanetDownloadsWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6F8281289A5DAF0099D87E /* PlanetDownloadsWebView.swift */; };
 		2A7022ED2897DF1700022F13 /* PlanetDownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7022EC2897DF1700022F13 /* PlanetDownloadsView.swift */; };
 		2A7022F02897DF3100022F13 /* PlanetDownloadsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7022EF2897DF3100022F13 /* PlanetDownloadsWindowController.swift */; };
 		2A7022F22897DF4600022F13 /* PlanetDownloadsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7022F12897DF4600022F13 /* PlanetDownloadsWindow.swift */; };
@@ -116,6 +117,7 @@
 		2A441BAD27C40BD30008A694 /* WriterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriterView.swift; sourceTree = "<group>"; };
 		2A441BAF27C4DD980008A694 /* CreatePlanetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreatePlanetView.swift; sourceTree = "<group>"; };
 		2A441BB227C4DF110008A694 /* FollowPlanetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowPlanetView.swift; sourceTree = "<group>"; };
+		2A6F8281289A5DAF0099D87E /* PlanetDownloadsWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadsWebView.swift; sourceTree = "<group>"; };
 		2A7022EC2897DF1700022F13 /* PlanetDownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadsView.swift; sourceTree = "<group>"; };
 		2A7022EF2897DF3100022F13 /* PlanetDownloadsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadsWindowController.swift; sourceTree = "<group>"; };
 		2A7022F12897DF4600022F13 /* PlanetDownloadsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadsWindow.swift; sourceTree = "<group>"; };
@@ -271,6 +273,7 @@
 				2A7022F12897DF4600022F13 /* PlanetDownloadsWindow.swift */,
 				2A7022F32897DF5700022F13 /* PlanetDownloadsViewController.swift */,
 				2A79FB2B2898184100F06DDF /* PlanetDownloadModel.swift */,
+				2A6F8281289A5DAF0099D87E /* PlanetDownloadsWebView.swift */,
 			);
 			path = Downloads;
 			sourceTree = "<group>";
@@ -640,6 +643,7 @@
 				72114A48526B9490A72FD92A /* MyArticleModel.swift in Sources */,
 				72114AE68D0DEDE11FC82E60 /* CoreDataPersistence.swift in Sources */,
 				72114842F65B9DF14A1B3F61 /* PlanetStore.swift in Sources */,
+				2A6F8282289A5DAF0099D87E /* PlanetDownloadsWebView.swift in Sources */,
 				721142A9C5080D3F17D23F1F /* JSONUtils.swift in Sources */,
 				721146EC85B1251B2669195C /* ENSUtils.swift in Sources */,
 				721145EEDE381A8BDED43E93 /* FeedUtils.swift in Sources */,
