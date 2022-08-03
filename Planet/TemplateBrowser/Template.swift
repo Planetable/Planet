@@ -8,7 +8,6 @@
 import Foundation
 import Stencil
 import PathKit
-import Ink
 import os
 
 class Template: Codable, Identifiable {
