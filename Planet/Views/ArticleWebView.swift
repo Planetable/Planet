@@ -11,8 +11,8 @@ struct ArticleWebView: NSViewRepresentable {
         Coordinator(self)
     }
 
-    func makeNSView(context: Context) -> WKWebView {
-        let wv = WKWebView()
+    func makeNSView(context: Context) -> PlanetDownloadsWebView {
+        let wv = PlanetDownloadsWebView()
 
         // TODO: probably need a way to inject marketing version here
         wv.customUserAgent = "Planet/0.8.0"
@@ -37,7 +37,7 @@ struct ArticleWebView: NSViewRepresentable {
         return wv
     }
 
-    func updateNSView(_ nsView: WKWebView, context: Context) {
+    func updateNSView(_ nsView: PlanetDownloadsWebView, context: Context) {
     }
 
     class Coordinator: NSObject, WKNavigationDelegate, WKDownloadDelegate {
@@ -49,10 +49,8 @@ struct ArticleWebView: NSViewRepresentable {
             self.parent = parent
         }
 
-        private func shouldHandleDownloadForMimeType(_ mimeType: String) -> Bool {
-            // MARK: TODO: more mime types for download tasks.
-            let downloadableMimeTypes: [String] = ["application/pdf", "image/jpeg", "image/png", "audio/aac", "video/x-msvideo", "application/msword", "text/csv", "application/epub+zip", "application/gzip", "image/gif", "audio/mpeg", "video/mp4", "video/mpeg", "application/vnd.apple.installer+xml", "audio/ogg", "video/ogg", "application/vnd.ms-powerpoint", "application/vnd.rar", "image/svg+xml", "application/x-tar", "image/tiff", "font/ttf", "audio/wav", "audio/webm", "video/webm", "image/webp", "application/zip", "application/x-7z-compressed"]
-            return downloadableMimeTypes.contains(mimeType)
+        private func shouldHandleDownloadForMIMEType(_ mimeType: String) -> Bool {
+            return PlanetDownloadItem.downloadableMIMETypes().contains(mimeType)
         }
 
         private func isValidatedLink(_ url: URL) -> Bool {
@@ -61,10 +59,6 @@ struct ArticleWebView: NSViewRepresentable {
                 return true
             }
             return false
-        }
-
-        private func moveDownloadedFile(_ download: WKDownload) {
-
         }
 
         // MARK: - NavigationDelegate
@@ -107,7 +101,7 @@ struct ArticleWebView: NSViewRepresentable {
 
         func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
             if navigationResponse.canShowMIMEType, let url = navigationResponse.response.url, let mimeType = navigationResponse.response.mimeType {
-                if shouldHandleDownloadForMimeType(mimeType) {
+                if shouldHandleDownloadForMIMEType(mimeType) {
                     decisionHandler(.download)
                 } else {
                     if navigationType == .linkActivated, isValidatedLink(url) {

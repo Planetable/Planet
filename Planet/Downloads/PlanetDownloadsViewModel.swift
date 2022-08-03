@@ -34,6 +34,13 @@ class PlanetDownloadsViewModel: ObservableObject {
             downloads.insert(download, at: 0)
         }
     }
+    
+    func removeDownload(_ download: PlanetDownloadItem) {
+        download.download.progress.cancel()
+        downloads = downloads.filter({ item in
+            return item.id != download.id
+        })
+    }
 
     func removeAllDownloads() {
         for item in downloads {
