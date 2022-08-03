@@ -344,7 +344,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         guard let feedURL = URL(string: link) else {
             throw PlanetError.InvalidPlanetURLError
         }
-        let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
+        let (feedData, htmlDocument) = try await FeedUtils.findFeed(url: feedURL)
         guard let feedData = feedData else {
             throw PlanetError.InvalidPlanetURLError
         }
@@ -374,7 +374,25 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             planet.articles = []
         }
 
-        if let data = feed.avatar,
+        var feedAvatar: Data? = nil
+        if feed.avatar == nil {
+            if let soup = htmlDocument {
+                debugPrint("FeedAvatar: Trying to fetch og:image as feed avatar")
+                feedAvatar = try await FeedUtils.findAvatarFromHTML(htmlDocument: soup, htmlURL: feedURL)
+            }
+        }
+
+        var avatarData: Data? = nil
+
+        if feed.avatar != nil {
+            avatarData = feed.avatar
+        }
+
+        if avatarData == nil, feedAvatar != nil {
+            avatarData = feedAvatar
+        }
+
+        if let data = avatarData,
            let image = NSImage(data: data),
            let _ = try? data.write(to: planet.avatarPath) {
             Self.logger.info("Follow \(link): found avatar from feed")
