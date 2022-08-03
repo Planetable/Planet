@@ -61,6 +61,42 @@ struct FeedUtils {
         return (nil, nil)
     }
 
+    static func findAvatarFromHTMLIcons(htmlDocument: Document, htmlURL: URL) async throws -> Data? {
+        let possibleAvatarElems = try htmlDocument.select("link[sizes]")
+        let avatarElem = possibleAvatarElems.sorted { elemA, elemB in
+            let elemASizes = try? elemA.attr("sizes")
+            let elemBSizes = try? elemB.attr("sizes")
+            if let elemASizes = elemASizes, let elemBSizes = elemBSizes {
+                let elemAWidth = elemASizes.components(separatedBy: "x").first?.trimmingCharacters(in: .whitespacesAndNewlines)
+                let elemBWidth = elemBSizes.components(separatedBy: "x").first?.trimmingCharacters(in: .whitespacesAndNewlines)
+                if let elemAWidth = elemAWidth, let elemBWidth = elemBWidth {
+                    return Int(elemAWidth) ?? 0 > Int(elemBWidth) ?? 0
+                }
+                return false
+            } else {
+                return false
+            }
+        }.first
+
+        guard let avatarElem = avatarElem,
+              let avatarElemHref = try? avatarElem.attr("href")
+        else {
+            return nil
+        }
+        guard let avatarURL = URL(string: avatarElemHref, relativeTo: htmlURL) else {
+            return nil
+        }
+        guard let (data, response) = try? await URLSession.shared.data(from: avatarURL) else {
+            return nil
+        }
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.ok
+        else {
+            return nil
+        }
+        return data
+    }
+
     static func findAvatarFromHTML(htmlDocument: Document, htmlURL: URL) async throws -> Data? {
         let possibleAvatarElems = try htmlDocument.select("meta[property='og:image']")
         let avatarElem = possibleAvatarElems.first { elem in
