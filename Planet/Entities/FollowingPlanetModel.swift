@@ -1,6 +1,7 @@
 import Foundation
 import os
 import SwiftUI
+import SwiftSoup
 import UserNotifications
 
 enum PlanetType: Int, Codable {
@@ -723,7 +724,20 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
             var feedAvatar: Data? = nil
             if feed.avatar == nil {
-                if let soup = htmlDocument {
+                let homepageDocument: Document?
+                if htmlDocument == nil {
+                    // try to get homepage html of the domain
+                    if let domain = feedURL.host,
+                       let homepageURL = URL(string: "https://\(domain)") {
+                        // fetch the homepage and turn it into a soup
+                        homepageDocument = try await FeedUtils.getHTMLDocument(url: homepageURL)
+                    } else {
+                        homepageDocument = nil
+                    }
+                } else {
+                    homepageDocument = htmlDocument
+                }
+                if let soup = homepageDocument {
                     debugPrint("FeedAvatar: Trying to fetch og:image as feed avatar")
                     feedAvatar = try await FeedUtils.findAvatarFromHTMLIcons(htmlDocument: soup, htmlURL: feedURL)
                     if feedAvatar == nil {
