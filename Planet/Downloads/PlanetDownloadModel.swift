@@ -10,7 +10,6 @@ import WebKit
 
 
 enum PlanetDownloadItemStatus: Int {
-    case idle
     case downloading
     case finished
     case paused

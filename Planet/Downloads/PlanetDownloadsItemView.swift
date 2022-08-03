@@ -13,7 +13,7 @@ struct PlanetDownloadsItemView: View {
 
     var item: PlanetDownloadItem
 
-    @State private var downloadStatus: PlanetDownloadItemStatus = .idle
+    @State private var downloadStatus: PlanetDownloadItemStatus = .downloading
     @State private var failedToLocateFile: Bool = false
 
     var body: some View {
