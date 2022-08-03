@@ -138,6 +138,8 @@ class PlanetDownloadsWebView: WKWebView {
             self.load(URLRequest(url: URL(string: srcString)!))
         } else if let urlString = GlobalScriptMessageHandler.instance.href {
             self.load(URLRequest(url: URL(string: urlString)!))
+        } else if let srcString = GlobalScriptMessageHandler.instance.src {
+            self.load(URLRequest(url: URL(string: srcString)!))
         }
     }
     
@@ -146,6 +148,8 @@ class PlanetDownloadsWebView: WKWebView {
             NSWorkspace.shared.open(URL(string: srcString)!)
         } else if let urlString = GlobalScriptMessageHandler.instance.href {
             NSWorkspace.shared.open(URL(string: urlString)!)
+        } else if let srcString = GlobalScriptMessageHandler.instance.src {
+            NSWorkspace.shared.open(URL(string: srcString)!)
         }
     }
     

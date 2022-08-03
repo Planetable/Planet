@@ -55,7 +55,6 @@ struct PlanetDownloadsItemView: View {
                     }
                 }
                 .buttonStyle(.plain)
-                .disabled(downloadStatus == .idle)
             } else {
                 ProgressView(item.download.progress)
                     .progressViewStyle(.linear)
@@ -81,25 +80,73 @@ struct PlanetDownloadsItemView: View {
                 downloadStatus = .paused
             } else if item.download.progress.isCancelled {
                 downloadStatus = .cancelled
-            } else {
-                downloadStatus = .downloading
             }
         }
         .alert(isPresented: $failedToLocateFile) {
             Alert(title: Text("Failed to locate downloaded file."), message: Text("Please try to redownload it from article."), dismissButton: .cancel(Text("Dismiss")))
         }
+        .contextMenu {
+            Button {
+                openFromFinder()
+            } label: {
+                Text("Open")
+            }
+            
+            Button {
+                revealDownloadInFinder()
+            } label: {
+                Text("Show in Finder")
+            }
+            
+            Button {
+                copyItemURL()
+            } label: {
+                Text("Copy Address")
+            }
+            
+            Button {
+                Task { @MainActor in
+                    PlanetDownloadsViewModel.shared.removeDownload(item)
+                }
+            } label: {
+                Text("Remove from List")
+            }
+        }
     }
-
-    private func revealDownloadInFinder() {
+    
+    private func itemURL() -> URL? {
         if let targetPath = item.download.progress.fileURL {
             if let userDownloadsDir = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first {
                 let downloadedURL = userDownloadsDir.appendingPathComponent(targetPath.lastPathComponent)
                 if FileManager.default.fileExists(atPath: downloadedURL.path) {
-                    NSWorkspace.shared.activateFileViewerSelecting([downloadedURL])
-                    return
+                    return downloadedURL
                 }
             }
         }
+        return nil
+    }
+
+    private func revealDownloadInFinder() {
+        if let targetURL = itemURL() {
+            NSWorkspace.shared.activateFileViewerSelecting([targetURL])
+            return
+        }
         failedToLocateFile = true
+    }
+    
+    private func openFromFinder() {
+        if let targetURL = itemURL() {
+            NSWorkspace.shared.open(targetURL)
+            return
+        }
+        failedToLocateFile = true
+    }
+    
+    private func copyItemURL() {
+        if let targetURL = item.download.originalRequest?.url {
+            let pboard = NSPasteboard.general
+            pboard.clearContents()
+            pboard.setString(targetURL.absoluteString, forType: .string)
+        }
     }
 }
