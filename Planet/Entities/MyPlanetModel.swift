@@ -391,7 +391,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             "allow-offline": "1",
             "key": id.uuidString,
             "quieter": "1",
-            "lifetime": "168h",
+            "lifetime": "7200h",
         ], timeout: 600)
         let published = try JSONDecoder.shared.decode(IPFSPublished.self, from: result)
         Self.logger.info("Published planet \(self.id) to \(published.name)")
