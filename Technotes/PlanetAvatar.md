@@ -1,5 +1,7 @@
 ## Strategy to Find the Planet Avatar
 
+The chart below is the happy path. Everything that is not on the path is `nil`.
+
 ```mermaid
 graph TD;
 A(URL)--Planet.link is a Feed-->B(Feed)
