@@ -59,24 +59,38 @@ struct PlanetDownloadsItemView: View {
                 ProgressView(item.download.progress)
                     .progressViewStyle(.linear)
                 Spacer(minLength: 10)
-                Button {
-                    item.download.progress.pause()
-                } label: {
-                    Image(systemName: "pause.circle.fill")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 12, height: 12)
+                if item.download.progress.isPausable {
+                    Button {
+                        item.download.progress.pause()
+                    } label: {
+                        Image(systemName: "pause.circle.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 12, height: 12)
+                    }
+                    .buttonStyle(.plain)
+                } else if item.download.progress.isCancellable {
+                    Button {
+                        item.download.progress.cancel()
+                    } label: {
+                        Image(systemName: "stop.circle.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 12, height: 12)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
         }
         .frame(height: 64)
         .padding(.horizontal, 8)
         .padding(.vertical, 2)
         .onReceive(downloadsViewModel.timer) { _ in
-            if item.download.progress.isFinished {
+            guard item.download.progress.fractionCompleted < 1.0 else {
                 downloadStatus = .finished
-            } else if item.download.progress.isPaused {
+                return
+            }
+            if item.download.progress.isPaused {
                 downloadStatus = .paused
             } else if item.download.progress.isCancelled {
                 downloadStatus = .cancelled

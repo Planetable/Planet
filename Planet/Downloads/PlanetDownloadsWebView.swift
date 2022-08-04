@@ -107,7 +107,7 @@ class PlanetDownloadsWebView: WKWebView {
             case Self.downloadLinkedFileIdentifier:
                 menuItem.target = self
                 menuItem.action = #selector(downloadFileAction(_:))
-                menuItem.isHidden = shouldHideSelectedMenuItem()
+                menuItem.isHidden = shouldHideSelectedMenuItem(isDownloadableTarget: true)
             case Self.openImageInNewWindowIdentifier:
                 menuItem.target = self
                 menuItem.action = #selector(openImageAction(_:))
@@ -122,7 +122,22 @@ class PlanetDownloadsWebView: WKWebView {
         }
     }
     
-    private func shouldHideSelectedMenuItem() -> Bool {
+    private func shouldHideSelectedMenuItem(isDownloadableTarget: Bool = false) -> Bool {
+        if isDownloadableTarget {
+            var url: URL?
+            if let _ = GlobalScriptMessageHandler.instance.src, let href = GlobalScriptMessageHandler.instance.href {
+                url = URL(string: href)
+            } else if let src = GlobalScriptMessageHandler.instance.src {
+                url = URL(string: src)
+            } else if let href = GlobalScriptMessageHandler.instance.href {
+                url = URL(string: href)
+            }
+            if let url = url {
+                return !PlanetDownloadItem.downloadableFileExtensions().contains(url.pathExtension)
+            } else {
+                return true
+            }
+        }
         return GlobalScriptMessageHandler.instance.href == nil && GlobalScriptMessageHandler.instance.src == nil
     }
     
