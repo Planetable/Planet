@@ -22,11 +22,18 @@ struct FollowingArticleItemView: View {
             }
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(article.title)
+                    (Text(article.title)
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.primary) +
+
+                        Text("\n") +
+                        Text(article.content)
+                            .foregroundColor(.secondary) +
+                        Text("\n\n")
+                    ).lineLimit(3)
                     Spacer()
                 }
+                    .frame(height: 48)
                 HStack {
                     Text(article.created.mmddyyyy())
                         .font(.caption)
