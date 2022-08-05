@@ -85,12 +85,21 @@ struct FeedUtils {
             }
         }.first
 
-        guard let avatarElem = avatarElem,
-              let avatarElemHref = try? avatarElem.attr("href")
-        else {
-            return nil
+        var avatarURLString: String? = nil
+
+        if avatarElem == nil {
+            let simpleLinkElems = try htmlDocument.select("link[rel='icon']")
+            let simpleLinkElem = simpleLinkElems.first
+            if let simpleLinkElemHref = try? simpleLinkElem?.attr("href") {
+                avatarURLString = simpleLinkElemHref
+            }
+        } else {
+            if let avatarElemHref = try? avatarElem?.attr("href") {
+                avatarURLString = avatarElemHref
+            }
         }
-        guard let avatarURL = URL(string: avatarElemHref, relativeTo: htmlURL) else {
+
+        guard let avatarURLString = avatarURLString, let avatarURL = URL(string: avatarURLString, relativeTo: htmlURL) else {
             return nil
         }
         guard let (data, response) = try? await URLSession.shared.data(from: avatarURL) else {
