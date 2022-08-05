@@ -104,7 +104,7 @@ struct FeedUtils {
         return data
     }
 
-    static func findAvatarFromHTML(htmlDocument: Document, htmlURL: URL) async throws -> Data? {
+    static func findAvatarFromHTMLOGImage(htmlDocument: Document, htmlURL: URL) async throws -> Data? {
         let possibleAvatarElems = try htmlDocument.select("meta[property='og:image']")
         let avatarElem = possibleAvatarElems.first { elem in
             if let content = try? elem.attr("content") {
@@ -129,6 +129,32 @@ struct FeedUtils {
             return nil
         }
         return data
+    }
+
+    static func findLinkFromFeed(feedData: Data) -> String? {
+        let feedResult = FeedParser(data: feedData).parse()
+        guard case .success(let feed) = feedResult else {
+            return nil
+        }
+        switch feed {
+        case let .atom(feed):
+            if let links = feed.links {
+                for link in links {
+                    if let rel = link.attributes?.rel, rel == "alternate" {
+                        return link.attributes?.href
+                    }
+                }
+            }
+        case let .rss(feed):
+            if let link = feed.link {
+                return link
+            }
+        case let .json(feed):
+            if let link = feed.homePageURL {
+                return link
+            }
+        }
+        return nil
     }
 
     static func parseFeed(data: Data) throws -> (

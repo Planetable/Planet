@@ -378,10 +378,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         var feedAvatar: Data? = nil
         if feed.avatar == nil {
             if let soup = htmlDocument {
-                debugPrint("FeedAvatar: Trying to fetch og:image as feed avatar")
                 feedAvatar = try await FeedUtils.findAvatarFromHTMLIcons(htmlDocument: soup, htmlURL: feedURL)
                 if feedAvatar == nil {
-                    feedAvatar = try await FeedUtils.findAvatarFromHTML(htmlDocument: soup, htmlURL: feedURL)
+                    feedAvatar = try await FeedUtils.findAvatarFromHTMLOGImage(htmlDocument: soup, htmlURL: feedURL)
                 }
             }
         }
@@ -726,11 +725,16 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             if feed.avatar == nil {
                 let homepageDocument: Document?
                 if htmlDocument == nil {
-                    // try to get homepage html of the domain
-                    if let domain = feedURL.host,
-                       let homepageURL = URL(string: "https://\(domain)") {
-                        // fetch the homepage and turn it into a soup
-                        homepageDocument = try await FeedUtils.getHTMLDocument(url: homepageURL)
+                    var urlForFindingAvatar: URL? = nil
+                    if let feedLink = FeedUtils.findLinkFromFeed(feedData: feedData), let feedLinkURL = URL(string: feedLink) {
+                        urlForFindingAvatar = feedLinkURL
+                    } else {
+                        if let domain = feedURL.host {
+                            urlForFindingAvatar = URL(string: "https://\(domain)")
+                        }
+                    }
+                    if let avatarPageURL = urlForFindingAvatar {
+                        homepageDocument = try await FeedUtils.getHTMLDocument(url: avatarPageURL)
                     } else {
                         homepageDocument = nil
                     }
@@ -741,7 +745,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     debugPrint("FeedAvatar: Trying to fetch og:image as feed avatar")
                     feedAvatar = try await FeedUtils.findAvatarFromHTMLIcons(htmlDocument: soup, htmlURL: feedURL)
                     if feedAvatar == nil {
-                        feedAvatar = try await FeedUtils.findAvatarFromHTML(htmlDocument: soup, htmlURL: feedURL)
+                        feedAvatar = try await FeedUtils.findAvatarFromHTMLOGImage(htmlDocument: soup, htmlURL: feedURL)
                     }
                 }
             }
