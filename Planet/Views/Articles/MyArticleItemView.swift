@@ -21,19 +21,15 @@ struct MyArticleItemView: View {
                 Spacer()
             }
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    (Text(article.title)
+                VStack(alignment: .leading) {
+                    Text(article.title)
                         .font(.headline)
-                        .foregroundColor(.primary) +
+                        .foregroundColor(.primary)
 
-                        Text("\n") +
-                        Text(article.content)
-                            .foregroundColor(.secondary) +
-                        Text("\n\n")
-                    ).lineLimit(3)
-                    Spacer()
+                    Text(article.content)
+                        .foregroundColor(.secondary)
                 }
-                    .frame(height: 48)
+                    .frame(height: 48, alignment: .top)
                 HStack {
                     Text(article.created.mmddyyyy())
                         .font(.caption)
