@@ -192,7 +192,7 @@ struct FeedUtils {
                 } else {
                     return nil
                 }
-                let content = entry.content?.attributes?.src ?? ""
+                let content = entry.content?.value ?? ""
                 let created = entry.published ?? Date()
                 return PublicArticleModel(
                     id: UUID(),
