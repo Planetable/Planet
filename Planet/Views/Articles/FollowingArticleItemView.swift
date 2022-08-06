@@ -34,10 +34,20 @@ struct FollowingArticleItemView: View {
                     Spacer()
                 }
                     .frame(height: 48)
-                HStack {
-                    Text(article.created.mmddyyyy())
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                HStack(spacing: 6) {
+                        Text(article.created.mmddyyyy())
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        if article.hasAudio {
+                            Text(Image(systemName: "headphones"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        }
+                        if article.hasVideo {
+                            Text(Image(systemName: "video"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        }
                     Spacer()
                 }
             }
