@@ -27,7 +27,7 @@ struct FollowingArticleItemView: View {
                         .foregroundColor(.primary) +
 
                         Text("\n") +
-                        Text(article.content)
+                        Text(article.summary)
                             .foregroundColor(.secondary) +
                         Text("\n\n")
                     ).lineLimit(3)

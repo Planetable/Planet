@@ -1,4 +1,5 @@
 import Foundation
+import SwiftSoup
 
 class FollowingArticleModel: ArticleModel, Codable {
     let link: String
@@ -69,6 +70,14 @@ class FollowingArticleModel: ArticleModel, Codable {
             return nil
         }
     }
+
+    lazy var summary: String = {
+        if let html = try? SwiftSoup.parseBodyFragment(content),
+           let htmlText = try? html.text() {
+            return htmlText
+        }
+        return content
+    }()
 
     enum CodingKeys: String, CodingKey {
         case id, link, title, content, created, read, starred, videoFilename, audioFilename
