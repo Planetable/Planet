@@ -98,6 +98,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(read, forKey: .read)
         try container.encodeIfPresent(starred, forKey: .starred)
         try container.encodeIfPresent(videoFilename, forKey: .videoFilename)
+        try container.encodeIfPresent(audioFilename, forKey: .audioFilename)
     }
 
     init(
