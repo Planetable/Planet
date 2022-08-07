@@ -26,8 +26,21 @@ struct FollowingArticleItemView: View {
                         .font(.headline)
                         .foregroundColor(.primary)
 
-                    Text(article.summary)
-                        .foregroundColor(.secondary)
+                    if let summary = article.summary, summary.count > 0 {
+                        Text(summary)
+                            .foregroundColor(.secondary)
+                        if summary.count < 30 {
+                            Spacer()
+                        }
+                    } else if let content = article.content, content.count > 0 {
+                        Text(content)
+                            .foregroundColor(.secondary)
+                        if content.count < 30 {
+                            Spacer()
+                        }
+                    } else {
+                        Spacer()
+                    }
                 }
                     .frame(height: 48)
                 HStack(spacing: 6) {

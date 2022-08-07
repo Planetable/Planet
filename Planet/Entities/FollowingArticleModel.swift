@@ -4,6 +4,7 @@ import SwiftSoup
 class FollowingArticleModel: ArticleModel, Codable {
     let link: String
     @Published var read: Date? = nil
+    var summary: String? = nil
 
     // populated when initializing
     unowned var planet: FollowingPlanetModel! = nil
@@ -71,16 +72,29 @@ class FollowingArticleModel: ArticleModel, Codable {
         }
     }
 
-    lazy var summary: String = {
-        if let html = try? SwiftSoup.parseBodyFragment(content),
-           let htmlText = try? html.text() {
-            return htmlText
+    static func extractSummary(content: String?) -> String? {
+        if let content = content {
+            let doc = try? SwiftSoup.parseBodyFragment(content)
+            let text = try? doc?.text()
+            if let text = text {
+                if text.count > 280 {
+                    return text.prefix(280) + "..."
+                } else {
+                    return text
+                }
+            } else {
+                if content.count > 280 {
+                    return content.prefix(280) + "..."
+                } else {
+                    return content
+                }
+            }
         }
-        return content
-    }()
+        return nil
+    }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, created, read, starred, videoFilename, audioFilename
+        case id, link, title, content, summary, created, read, starred, videoFilename, audioFilename
     }
 
     required init(from decoder: Decoder) throws {
@@ -89,6 +103,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         link = try container.decode(String.self, forKey: .link)
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
+        summary = try container.decodeIfPresent(String.self, forKey: .summary)
         let created = try container.decode(Date.self, forKey: .created)
         read = try container.decodeIfPresent(Date.self, forKey: .read)
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
@@ -103,6 +118,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         try container.encode(link, forKey: .link)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
+        try container.encodeIfPresent(summary, forKey: .summary)
         try container.encode(created, forKey: .created)
         try container.encodeIfPresent(read, forKey: .read)
         try container.encodeIfPresent(starred, forKey: .starred)
@@ -123,6 +139,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     ) {
         self.link = link
         self.read = read
+        self.summary = FollowingArticleModel.extractSummary(content: content)
         super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename)
     }
 
