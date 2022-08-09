@@ -311,7 +311,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 hasVideo: false,
                 videoFilename: nil,
                 hasAudio: false,
-                audioFilename: nil
+                audioFilename: nil,
+                attachments: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)
@@ -510,7 +511,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 hasVideo: false,
                 videoFilename: nil,
                 hasAudio: false,
-                audioFilename: nil
+                audioFilename: nil,
+                attachments: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)

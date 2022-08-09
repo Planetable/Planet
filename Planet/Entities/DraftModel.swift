@@ -239,6 +239,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             .forEach { try FileManager.default.removeItem(at: $0) }
         var videoFilename: String? = nil
         var audioFilename: String? = nil
+        var currentAttachments: [String] = []
         for attachment in attachments {
             let name = attachment.name
             if attachment.type == .video {
@@ -247,11 +248,13 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             if attachment.type == .audio {
                 audioFilename = name
             }
+            currentAttachments.append(name)
             let targetPath = article.publicBasePath.appendingPathComponent(name, isDirectory: false)
             // copy attachment to article folder, in case file operation fails, the draft still maintains its integrity
             // if we found storage is a problem, we can move attachment instead
             try FileManager.default.copyItem(at: attachment.path, to: targetPath)
         }
+        article.attachments = currentAttachments
         article.videoFilename = videoFilename
         article.audioFilename = audioFilename
         try article.save()

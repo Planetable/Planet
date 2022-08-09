@@ -29,11 +29,21 @@ struct MyArticleItemView: View {
                     Text(article.content)
                         .foregroundColor(.secondary)
                 }
-                    .frame(height: 48, alignment: .top)
-                HStack {
+                    .frame(height: 48)
+                HStack(spacing: 6) {
                     Text(article.created.mmddyyyy())
                         .font(.caption)
                         .foregroundColor(.secondary)
+                    if article.hasAudio {
+                        Text(Image(systemName: "headphones"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    }
+                    if article.hasVideo {
+                        Text(Image(systemName: "video"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    }
                     Spacer()
                 }
             }

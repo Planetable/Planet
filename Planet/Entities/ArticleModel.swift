@@ -8,6 +8,7 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
     @Published var starred: Date? = nil
     @Published var videoFilename: String?
     @Published var audioFilename: String?
+    @Published var attachments: [String]?
 
     var hasVideo: Bool {
         videoFilename != nil
@@ -17,7 +18,16 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
         audioFilename != nil
     }
 
-    init(id: UUID, title: String, content: String, created: Date, starred: Date?, videoFilename: String?, audioFilename: String?) {
+    init(
+        id: UUID,
+        title: String,
+        content: String,
+        created: Date,
+        starred: Date?,
+        videoFilename: String?,
+        audioFilename: String?,
+        attachments: [String]?
+    ) {
         self.id = id
         self.title = title
         self.content = content
@@ -25,13 +35,14 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
         self.starred = starred
         self.videoFilename = videoFilename
         self.audioFilename = audioFilename
+        self.attachments = attachments
     }
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
 
-    static func ==(lhs: ArticleModel, rhs: ArticleModel) -> Bool {
+    static func == (lhs: ArticleModel, rhs: ArticleModel) -> Bool {
         if lhs === rhs {
             return true
         }
@@ -55,4 +66,5 @@ struct PublicArticleModel: Codable {
     let videoFilename: String?
     let hasAudio: Bool?
     let audioFilename: String?
+    let attachments: [String]?
 }

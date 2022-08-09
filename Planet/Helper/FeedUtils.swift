@@ -203,7 +203,8 @@ struct FeedUtils {
                     hasVideo: false,
                     videoFilename: nil,
                     hasAudio: false,
-                    audioFilename: nil
+                    audioFilename: nil,
+                    attachments: nil
                 )
             }
             return (name, about, nil, articles)
@@ -233,7 +234,8 @@ struct FeedUtils {
                     hasVideo: false,
                     videoFilename: nil,
                     hasAudio: false,
-                    audioFilename: nil
+                    audioFilename: nil,
+                    attachments: nil
                 )
             }
             return (name, about, nil, articles)
@@ -269,7 +271,8 @@ struct FeedUtils {
                     hasVideo: false,
                     videoFilename: nil,
                     hasAudio: false,
-                    audioFilename: nil
+                    audioFilename: nil,
+                    attachments: nil
                 )
             }
             return (name, about, avatar, articles)

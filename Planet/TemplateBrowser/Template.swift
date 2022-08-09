@@ -196,7 +196,8 @@ class Template: Codable, Identifiable {
             hasVideo: false,
             videoFilename: nil,
             hasAudio: false,
-            audioFilename: nil
+            audioFilename: nil,
+            attachments: nil
         )
 
         // render markdown

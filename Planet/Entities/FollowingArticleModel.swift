@@ -94,7 +94,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, summary, created, read, starred, videoFilename, audioFilename
+        case id, link, title, content, summary, created, read, starred, videoFilename, audioFilename, attachments
     }
 
     required init(from decoder: Decoder) throws {
@@ -109,7 +109,8 @@ class FollowingArticleModel: ArticleModel, Codable {
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
         let audioFilename = try container.decodeIfPresent(String.self, forKey: .audioFilename)
-        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename)
+        let attachments = try container.decodeIfPresent([String].self, forKey: .attachments)
+        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename, attachments: attachments)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -135,12 +136,13 @@ class FollowingArticleModel: ArticleModel, Codable {
         read: Date?,
         starred: Date?,
         videoFilename: String?,
-        audioFilename: String?
+        audioFilename: String?,
+        attachments: [String]?
     ) {
         self.link = link
         self.read = read
         self.summary = FollowingArticleModel.extractSummary(content: content)
-        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename)
+        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename, attachments: attachments)
     }
 
     static func load(from filePath: URL, planet: FollowingPlanetModel) throws -> FollowingArticleModel {
@@ -167,7 +169,8 @@ class FollowingArticleModel: ArticleModel, Codable {
             read: nil,
             starred: nil,
             videoFilename: publicArticle.videoFilename,
-            audioFilename: publicArticle.audioFilename
+            audioFilename: publicArticle.audioFilename,
+            attachments: publicArticle.attachments
         )
         article.planet = planet
 

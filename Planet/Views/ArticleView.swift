@@ -6,6 +6,7 @@ struct ArticleView: View {
 
     @State private var url = Self.noSelectionURL
     @State private var isShowingAnalyticsPopover: Bool = false
+    @State private var selectedAttachment: String? = nil
 
     var body: some View {
         VStack {
@@ -80,7 +81,7 @@ struct ArticleView: View {
                    article.hasAudio {
                     if let myArticle = article as? MyArticleModel,
                        let name = myArticle.audioFilename,
-                       let url = myArticle.getAttachmentPath(name: name) {
+                       let url = myArticle.getAttachmentURL(name: name) {
                         Button {
                             ArticleAudioPlayerViewModel.shared.url = url
                             ArticleAudioPlayerViewModel.shared.title = article.title
@@ -97,6 +98,43 @@ struct ArticleView: View {
                         } label: {
                             Label("Play Audio", systemImage: "headphones")
                         }
+                    }
+                }
+
+                // Menu for accessing the attachments if any
+                if let article = planetStore.selectedArticle, let attachments = article.attachments, attachments.count > 0 {
+
+                    Menu {
+                        ForEach(attachments, id: \.self) { attachment in
+                            Button {
+                                let downloadsPath = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+                                if let myArticle = article as? MyArticleModel {
+                                    if let attachmentURL = myArticle.getAttachmentURL(name: attachment), let destinationURL = downloadsPath?.appendingPathComponent(attachment) {
+                                        if !FileManager.default.fileExists(atPath: destinationURL.path) {
+                                            try? FileManager.default.copyItem(at: attachmentURL, to: destinationURL)
+                                        }
+                                        NSWorkspace.shared.activateFileViewerSelecting([destinationURL])
+                                    }
+                                }
+                                if let followingArticle = article as? FollowingArticleModel {
+                                    if let attachmentURL = followingArticle.getAttachmentURL(name: attachment), let destinationURL = downloadsPath?.appendingPathComponent(attachment) {
+
+                                        let task = URLSession.shared.downloadTask(with: attachmentURL) { localURL, urlResponse, error in
+                                            if let localURL = localURL {
+                                                NSWorkspace.shared.activateFileViewerSelecting([localURL])
+                                            }
+                                        }
+
+                                        task.resume()
+                                    }
+                                }
+                            } label: {
+                                Text(attachment)
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "paperclip")
+                        Text("\(attachments.count)")
                     }
                 }
             }
