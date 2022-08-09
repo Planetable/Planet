@@ -12,8 +12,13 @@ struct FeedUtils {
             || mime.contains("application/feed+json")
     }
 
-    static func getHTMLDocument(url: URL) -> Document? {
-        guard let data = try? Data(contentsOf: url), let htmlString = String(data: data, encoding: .utf8) else {
+    static func getHTMLDocument(url: URL) async throws -> Document? {
+        guard let (data, _) = try? await URLSession.shared.data(from: url)
+        else {
+            return nil
+        }
+        guard let htmlString = String(data: data, encoding: .utf8)
+        else {
             return nil
         }
         return try? SwiftSoup.parse(htmlString)

@@ -26,7 +26,7 @@ struct MyArticleItemView: View {
                         .font(.headline)
                         .foregroundColor(.primary)
 
-                    Text(article.content)
+                    Text(article.content.prefix(280))
                         .foregroundColor(.secondary)
                 }
                     .frame(height: 48)

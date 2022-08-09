@@ -194,7 +194,7 @@ class Saver: NSObject {
         var migrationErrors: Int = 0
 
         // Migrate all legacy templates from Application Support
-        
+
         let legacyTemplatesDirectory: URL = Saver.applicationSupportDirectory.appendingPathComponent("templates")
         let newTemplatesDirectory: URL = Saver.documentDirectory.appendingPathComponent("Templates")
 

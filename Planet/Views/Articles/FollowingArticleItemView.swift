@@ -33,7 +33,7 @@ struct FollowingArticleItemView: View {
                             Spacer()
                         }
                     } else if let content = article.content, content.count > 0 {
-                        Text(content)
+                        Text(content.prefix(280))
                             .foregroundColor(.secondary)
                         if content.count < 30 {
                             Spacer()

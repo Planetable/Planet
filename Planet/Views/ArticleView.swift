@@ -117,7 +117,7 @@ struct ArticleView: View {
                                     }
                                 }
                                 if let followingArticle = article as? FollowingArticleModel {
-                                    if let attachmentURL = followingArticle.getAttachmentURL(name: attachment), let destinationURL = downloadsPath?.appendingPathComponent(attachment) {
+                                    if let attachmentURL = followingArticle.getAttachmentURL(name: attachment) {
 
                                         let task = URLSession.shared.downloadTask(with: attachmentURL) { localURL, urlResponse, error in
                                             if let localURL = localURL {
