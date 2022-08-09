@@ -2,6 +2,7 @@ import Foundation
 
 class MyArticleModel: ArticleModel, Codable {
     @Published var link: String
+    @Published var summary: String? = nil
 
     // populated when initializing
     unowned var planet: MyPlanetModel! = nil
@@ -31,7 +32,7 @@ class MyArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, created, starred, videoFilename, audioFilename, attachments
+        case id, link, title, content, summary, created, starred, videoFilename, audioFilename, attachments
     }
 
     required init(from decoder: Decoder) throws {
@@ -40,6 +41,7 @@ class MyArticleModel: ArticleModel, Codable {
         link = try container.decode(String.self, forKey: .link)
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
+        summary = try container.decodeIfPresent(String.self, forKey: .summary)
         let created = try container.decode(Date.self, forKey: .created)
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
@@ -61,6 +63,7 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encode(link, forKey: .link)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
+        try container.encode(summary, forKey: .summary)
         try container.encode(created, forKey: .created)
         try container.encodeIfPresent(starred, forKey: .starred)
         try container.encodeIfPresent(videoFilename, forKey: .videoFilename)
@@ -68,8 +71,9 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(attachments, forKey: .attachments)
     }
 
-    init(id: UUID, link: String, title: String, content: String, created: Date, starred: Date?, videoFilename: String?, audioFilename: String?, attachments: [String]?) {
+    init(id: UUID, link: String, title: String, content: String, summary: String?, created: Date, starred: Date?, videoFilename: String?, audioFilename: String?, attachments: [String]?) {
         self.link = link
+        self.summary = summary
         super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename, attachments: attachments)
     }
 
@@ -91,13 +95,14 @@ class MyArticleModel: ArticleModel, Codable {
         return article
     }
 
-    static func compose(link: String?, title: String, content: String, planet: MyPlanetModel) throws -> MyArticleModel {
+    static func compose(link: String?, title: String, content: String, summary: String?, planet: MyPlanetModel) throws -> MyArticleModel {
         let id = UUID()
         let article = MyArticleModel(
             id: id,
             link: link ?? "/\(id.uuidString)/",
             title: title,
             content: content,
+            summary: summary,
             created: Date(),
             starred: nil,
             videoFilename: nil,
@@ -142,6 +147,7 @@ struct BackupArticleModel: Codable {
     let link: String
     let title: String
     let content: String
+    let summary: String?
     let created: Date
     let videoFilename: String?
     let audioFilename: String?

@@ -25,9 +25,15 @@ struct MyArticleItemView: View {
                     Text(article.title)
                         .font(.headline)
                         .foregroundColor(.primary)
-
-                    Text(article.content.prefix(280))
-                        .foregroundColor(.secondary)
+                    if let summary = article.summary {
+                        Text(summary.prefix(280))
+                            .foregroundColor(.secondary)
+                    } else if article.content.count > 0 {
+                        Text(article.content.prefix(280))
+                            .foregroundColor(.secondary)
+                    } else {
+                        Spacer()
+                    }
                 }
                     .frame(height: 48)
                 HStack(spacing: 6) {

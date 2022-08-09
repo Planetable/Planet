@@ -2,6 +2,7 @@ import Foundation
 import Stencil
 import PathKit
 import os
+import SwiftSoup
 
 class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     static let previewTemplatePath = Bundle.main.url(forResource: "WriterBasic", withExtension: "html")!
@@ -225,7 +226,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         switch target! {
         case .myPlanet(let wrapper):
             planet = wrapper.value
-            article = try MyArticleModel.compose(link: nil, title: title, content: content, planet: planet)
+            article = try MyArticleModel.compose(link: nil, title: title, content: content, summary: nil, planet: planet)
             planet.articles.insert(article, at: 0)
         case .article(let wrapper):
             article = wrapper.value
@@ -257,6 +258,13 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         article.attachments = currentAttachments
         article.videoFilename = videoFilename
         article.audioFilename = audioFilename
+        if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content), let soup = try? SwiftSoup.parseBodyFragment(contentHTML), let summary = try? soup.text() {
+            if summary.count > 280 {
+                article.summary = summary + "..."
+            } else {
+                article.summary = summary
+            }
+        }
         try article.save()
         try article.savePublic()
         try delete()
