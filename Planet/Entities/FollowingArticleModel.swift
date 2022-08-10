@@ -125,6 +125,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(starred, forKey: .starred)
         try container.encodeIfPresent(videoFilename, forKey: .videoFilename)
         try container.encodeIfPresent(audioFilename, forKey: .audioFilename)
+        try container.encodeIfPresent(attachments, forKey: .attachments)
     }
 
     init(
