@@ -187,6 +187,7 @@ extension PlanetDownloadItem {
             "vcf",
             "vob",
             "wav",
+            "webp",
             "wma",
             "wmv",
             "wpd",
