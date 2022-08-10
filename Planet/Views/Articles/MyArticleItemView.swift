@@ -25,7 +25,7 @@ struct MyArticleItemView: View {
                     Text(article.title)
                         .font(.headline)
                         .foregroundColor(.primary)
-                    if let summary = article.summary {
+                    if let summary = article.summary, summary.count > 0 {
                         Text(summary.prefix(280))
                             .foregroundColor(.secondary)
                     } else if article.content.count > 0 {

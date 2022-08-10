@@ -746,7 +746,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 if let soup = homepageDocument {
                     debugPrint("FeedAvatar: Trying to fetch og:image as feed avatar")
                     feedAvatar = try await FeedUtils.findAvatarFromHTMLOGImage(htmlDocument: soup, htmlURL: feedURL)
-                    if feedAvatar == nil {
+                    var avatarIsSquare = true
+                    if let imageData = feedAvatar, let feedAvatarImage = NSImage(data: imageData) {
+                        avatarIsSquare = feedAvatarImage.size.width == feedAvatarImage.size.height
+                    }
+                    if feedAvatar == nil || !avatarIsSquare {
                         feedAvatar = try await FeedUtils.findAvatarFromHTMLIcons(htmlDocument: soup, htmlURL: feedURL)
                     }
                 }
@@ -807,6 +811,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     // Remember to take care of the updates here
                     article.audioFilename = publicArticle.audioFilename
                     article.videoFilename = publicArticle.videoFilename
+                    article.attachments = publicArticle.attachments
                 }
                 try article.save()
                 existingArticleMap.removeValue(forKey: link)

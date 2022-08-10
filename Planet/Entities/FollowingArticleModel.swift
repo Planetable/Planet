@@ -158,24 +158,16 @@ class FollowingArticleModel: ArticleModel, Codable {
         article.planet = planet
         if article.summary == nil || article.summary?.count ?? 0 > 283 {
             if planet.planetType == .planet || planet.planetType == .ens {
-                if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content), let soup = try? SwiftSoup.parseBodyFragment(contentHTML), let summary = try? soup.text() {
-                    if summary.count > 283 {
-                        article.summary = summary.prefix(280) + "..."
-                    } else {
-                        article.summary = summary
-                    }
+                if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content), let summary = extractSummary(content: contentHTML) {
+                    article.summary = summary
                     if let _ = try? article.save() {
                         debugPrint("Type 0/ENS Planet \(planet): Extracted summary for \(article.title)")
                     }
                 }
             } else if planet.planetType == .dnslink || planet.planetType == .dns {
                 debugPrint("Type DNS/DNSLink Planet \(planet.name): Try to extract summary")
-                if let soup = try? SwiftSoup.parseBodyFragment(article.content), let summary = try? soup.text() {
-                    if summary.count > 283 {
-                        article.summary = summary.prefix(280) + "..."
-                    } else {
-                        article.summary = summary
-                    }
+                if let summary = extractSummary(content: article.content) {
+                    article.summary = summary
                     if let _ = try? article.save() {
                         debugPrint("Type DNS/DNSLink Planet \(planet): Extracted summary for \(article.title)")
                     }
@@ -198,6 +190,17 @@ class FollowingArticleModel: ArticleModel, Codable {
             audioFilename: publicArticle.audioFilename,
             attachments: publicArticle.attachments
         )
+        if article.content.count > 0 {
+            if planet.planetType == .planet || planet.planetType == .ens {
+                if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content), let summary = extractSummary(content: contentHTML) {
+                    article.summary = summary
+                }
+            } else if planet.planetType == .dnslink || planet.planetType == .dns {
+                if let summary = extractSummary(content: article.content) {
+                    article.summary = summary
+                }
+            }
+        }
         article.planet = planet
 
         return article

@@ -103,7 +103,6 @@ struct ArticleView: View {
 
                 // Menu for accessing the attachments if any
                 if let article = planetStore.selectedArticle, let attachments = article.attachments, attachments.count > 0 {
-
                     Menu {
                         ForEach(attachments, id: \.self) { attachment in
                             Button {
