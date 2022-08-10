@@ -34,6 +34,12 @@ struct ArticleWebView: NSViewRepresentable {
             }
         }
 
+        NotificationCenter.default.addObserver(forName: .downloadArticleAttachment, object: nil, queue: nil) { n in
+            Self.logger.log("Downloading \(url)")
+            guard let url = n.object as? URL else { return }
+            wv.load(URLRequest(url: url))
+        }
+
         return wv
     }
 

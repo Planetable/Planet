@@ -48,6 +48,8 @@ extension Notification.Name {
     static let publishPlanet = Notification.Name("PlanetPublishPlanetNotification")
 
     static let loadArticle = Notification.Name("PlanetLoadArticleNotification")
+
+    static let downloadArticleAttachment = Notification.Name("PlanetDownloadArticleAttachmentNotification")
 }
 
 // Writer

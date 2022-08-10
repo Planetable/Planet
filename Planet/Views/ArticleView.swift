@@ -117,14 +117,10 @@ struct ArticleView: View {
                                 }
                                 if let followingArticle = article as? FollowingArticleModel {
                                     if let attachmentURL = followingArticle.getAttachmentURL(name: attachment) {
-
-                                        let task = URLSession.shared.downloadTask(with: attachmentURL) { localURL, urlResponse, error in
-                                            if let localURL = localURL {
-                                                NSWorkspace.shared.activateFileViewerSelecting([localURL])
-                                            }
+                                        // MARK: TODO: should hide download button if any
+                                        if PlanetDownloadItem.downloadableFileExtensions().contains(attachmentURL.pathExtension) {
+                                            NotificationCenter.default.post(name: .downloadArticleAttachment, object: attachmentURL)
                                         }
-
-                                        task.resume()
                                     }
                                 }
                             } label: {
