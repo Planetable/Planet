@@ -93,8 +93,13 @@ class PlanetDownloadsWebView: WKWebView {
     }
     
     override func willOpenMenu(_ menu: NSMenu, with event: NSEvent) {
+        let menuItemsToHide: [NSUserInterfaceItemIdentifier] = [Self.goBackIdentifier, Self.goForwardIdentifier]
         for menuItem in menu.items {
             guard let identifier = menuItem.identifier else { continue }
+            if menuItemsToHide.contains(identifier) {
+                menuItem.isHidden = true
+                continue
+            }
             switch identifier {
             case Self.openLinkIdentifier:
                 menuItem.target = self
@@ -172,6 +177,12 @@ class PlanetDownloadsWebView: WKWebView {
 
 
 extension PlanetDownloadsWebView {
+    static let reloadIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierReload")
+    static let goBackIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierGoBack")
+    static let goForwardIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierGoForward")
+    static let lookUpIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierLookUp")
+    static let translateIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierTranslate")
+    static let searchWebIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierSearchWeb")
     static let openLinkIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierOpenLink")
     static let openLinkInNewWindowIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierOpenLinkInNewWindow")
     static let downloadLinkedFileIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierDownloadLinkedFile")
