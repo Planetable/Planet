@@ -38,9 +38,17 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
     var markdown: String? {
         switch type {
         case .image:
-            return "![\(name)](\(name))"
+            if let im = NSImage(contentsOf: self.path) {
+                let size = im.size
+                return """
+\n<img width="\(Int(size.width))" alt="\((name as NSString).deletingPathExtension)" src="\(name)">\n
+"""
+            }
+            return """
+\n<img alt="\((name as NSString).deletingPathExtension)" src="\(name)">\n
+"""
         case .file:
-            return "<a href=\"\(name)\">\(name)</a>"
+            return "\n<a href=\"\(name)\">\(name)</a>\n"
         default:
             return nil
         }

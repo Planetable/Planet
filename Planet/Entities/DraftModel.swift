@@ -196,12 +196,12 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         var processedContent = content
         let timestamp = Int(Date().timeIntervalSince1970)
         // not very efficient, but let's see if we observe performance problem
-        for attachment in attachments.filter({ $0.type == .image }) {
-            let name = attachment.name
-            let find = attachment.markdown!
-            let replace = "![\(name)](\(name)?t=\(timestamp))"
-            processedContent = processedContent.replacingOccurrences(of: find, with: replace)
-        }
+        //for attachment in attachments.filter({ $0.type == .image }) {
+        //    let name = attachment.name
+        //    let find = attachment.markdown!
+        //    let replace = "![\(name)](\(name)?t=\(timestamp))"
+        //    processedContent = processedContent.replacingOccurrences(of: find, with: replace)
+        //}
         return processedContent
     }
 
