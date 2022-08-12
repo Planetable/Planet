@@ -29,13 +29,13 @@ struct FollowingArticleItemView: View {
                     if let summary = article.summary, summary.count > 0 {
                         Text(summary)
                             .foregroundColor(.secondary)
-                        if summary.count < 30 {
+                        if summary.count < 40 {
                             Spacer()
                         }
                     } else if let content = article.content, content.count > 0 {
                         Text(content.prefix(280))
                             .foregroundColor(.secondary)
-                        if content.count < 30 {
+                        if content.count < 40 {
                             Spacer()
                         }
                     } else {

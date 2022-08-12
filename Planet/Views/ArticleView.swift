@@ -13,7 +13,7 @@ struct ArticleView: View {
             ArticleAudioPlayer()
             ArticleWebView(url: $url)
         }
-            .frame(minWidth: 320)
+            .frame(minWidth: 400)
             .background(
                 Color(NSColor.textBackgroundColor)
             )
