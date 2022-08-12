@@ -97,11 +97,11 @@ class FollowingArticleModel: ArticleModel, Codable {
         if article.content.count > 0 {
             if planet.planetType == .planet || planet.planetType == .ens {
                 if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content), let summary = extractSummary(content: contentHTML) {
-                    article.summary = summary
+                    return summary
                 }
             } else if planet.planetType == .dnslink || planet.planetType == .dns {
                 if let summary = extractSummary(content: article.content) {
-                    article.summary = summary
+                    return summary
                 }
             }
         }
