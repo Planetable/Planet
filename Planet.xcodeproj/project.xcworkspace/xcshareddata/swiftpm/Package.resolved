@@ -59,8 +59,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
-        "revision" : "c4a29c87e52e1e019f83e45d4ea50505b71c2802",
-        "version" : "0.5.1"
+        "revision" : "ec8256b72b1fb54971d3e72bd25083f3e6f28285",
+        "version" : "0.5.2"
       }
     },
     {
