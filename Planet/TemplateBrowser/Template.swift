@@ -82,7 +82,8 @@ class Template: Codable, Identifiable {
         let publicPlanet = PublicPlanetModel(
             id: planet.id, name: planet.name, about: planet.about, ipns: planet.ipns, created: planet.created, updated: planet.updated, articles: [],
             plausibleEnabled: planet.plausibleEnabled ?? false,
-            plausibleDomain: planet.plausibleDomain ?? nil
+            plausibleDomain: planet.plausibleDomain ?? nil,
+            plausibleAPIServer: planet.plausibleAPIServer ?? "plausible.io"
         )
 
         // render stencil template
@@ -102,19 +103,24 @@ class Template: Codable, Identifiable {
         return try environment.renderTemplate(name: stencilTemplateName, context: context)
     }
 
-    func renderIndex(planet: PublicPlanetModel) throws -> String {
-        let context: [String: Any] = [
+    func renderIndex(context: [String: Any]) throws -> String {
+        guard let planet = context["planet"] as? PublicPlanetModel else {
+            throw PlanetError.RenderMarkdownError
+        }
+        var contextForRendering: [String: Any] = [
             "assets_prefix": "./",
             "page_title": planet.name,
             "page_description": planet.about,
             "articles": planet.articles,
-            "build_timestamp": Int(Date().timeIntervalSince1970),
-            "planet": planet,
+            "build_timestamp": Int(Date().timeIntervalSince1970)
         ]
+        for (key, value) in context {
+            contextForRendering[key] = value
+        }
         let loader = FileSystemLoader(paths: [Path(indexPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.common])
         let stencilTemplateName = indexPath.lastPathComponent
-        return try environment.renderTemplate(name: stencilTemplateName, context: context)
+        return try environment.renderTemplate(name: stencilTemplateName, context: contextForRendering)
     }
 
     func prepareTemporaryAssetsForPreview() {

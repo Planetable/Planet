@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct EditMyPlanetView: View {
+    let CONTROL_CAPTION_WIDTH: CGFloat = 80
+    
     @Environment(\.dismiss) var dismiss
 
     @EnvironmentObject var planetStore: PlanetStore
@@ -12,6 +14,7 @@ struct EditMyPlanetView: View {
     @State private var plausibleEnabled: Bool = false
     @State private var plausibleDomain: String
     @State private var plausibleAPIKey: String
+    @State private var plausibleAPIServer: String = "plausible.io"
 
     init(planet: MyPlanetModel) {
         self.planet = planet
@@ -21,6 +24,7 @@ struct EditMyPlanetView: View {
         _plausibleEnabled = State(wrappedValue: planet.plausibleEnabled ?? false)
         _plausibleDomain = State(wrappedValue: planet.plausibleDomain ?? "")
         _plausibleAPIKey = State(wrappedValue: planet.plausibleAPIKey ?? "")
+        _plausibleAPIServer = State(wrappedValue: planet.plausibleAPIServer ?? "plausible.io")
     }
 
     var body: some View {
@@ -40,7 +44,7 @@ struct EditMyPlanetView: View {
                         Text("Name")
                         Spacer()
                     }
-                    .frame(width: 70)
+                    .frame(width: CONTROL_CAPTION_WIDTH)
 
                     TextField("", text: $name)
                         .textFieldStyle(.roundedBorder)
@@ -51,7 +55,7 @@ struct EditMyPlanetView: View {
                         Text("About")
                         Spacer()
                     }
-                    .frame(width: 70)
+                    .frame(width: CONTROL_CAPTION_WIDTH)
 
                     TextEditor(text: $about)
                         .font(.system(size: 13, weight: .regular, design: .default))
@@ -75,7 +79,7 @@ struct EditMyPlanetView: View {
                         Text("Template")
                         Spacer()
                     }
-                    .frame(width: 70)
+                    .frame(width: CONTROL_CAPTION_WIDTH)
                 }
                 .pickerStyle(.menu)
             }
@@ -87,7 +91,7 @@ struct EditMyPlanetView: View {
                 HStack {
                     HStack {
                         Spacer()
-                    }.frame(width: 80)
+                    }.frame(width: CONTROL_CAPTION_WIDTH + 10)
                     Toggle("Enable Plausible for Traffic Analytics", isOn: $plausibleEnabled)
                     .toggleStyle(.checkbox)
                     .frame(alignment: .leading)
@@ -99,7 +103,7 @@ struct EditMyPlanetView: View {
                         Text("Domain")
                         Spacer()
                     }
-                    .frame(width: 70)
+                    .frame(width: CONTROL_CAPTION_WIDTH)
 
                     TextField("", text: $plausibleDomain)
                         .textFieldStyle(.roundedBorder)
@@ -110,9 +114,20 @@ struct EditMyPlanetView: View {
                         Text("API Key")
                         Spacer()
                     }
-                    .frame(width: 70)
+                    .frame(width: CONTROL_CAPTION_WIDTH)
 
                     TextField("", text: $plausibleAPIKey)
+                        .textFieldStyle(.roundedBorder)
+                }
+                
+                HStack {
+                    HStack {
+                        Text("API Server")
+                        Spacer()
+                    }
+                    .frame(width: CONTROL_CAPTION_WIDTH)
+
+                    TextField("", text: $plausibleAPIServer)
                         .textFieldStyle(.roundedBorder)
                 }
 
@@ -140,6 +155,7 @@ struct EditMyPlanetView: View {
                     planet.plausibleEnabled = plausibleEnabled
                     planet.plausibleDomain = plausibleDomain
                     planet.plausibleAPIKey = plausibleAPIKey
+                    planet.plausibleAPIServer = plausibleAPIServer
                     Task {
                         try planet.save()
                         try planet.copyTemplateAssets()
@@ -157,7 +173,7 @@ struct EditMyPlanetView: View {
             .padding(16)
         }
         .padding(0)
-        .frame(width: 480, height: 400, alignment: .top)
+        .frame(width: 520, height: 440, alignment: .top)
         .task {
             name = planet.name
             about = planet.about

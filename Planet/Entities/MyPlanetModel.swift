@@ -18,6 +18,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var plausibleEnabled: Bool? = false
     @Published var plausibleDomain: String?
     @Published var plausibleAPIKey: String?
+    @Published var plausibleAPIServer: String? = "plausible.io"
 
     @Published var metrics: Metrics?
 
@@ -76,6 +77,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(plausibleEnabled)
         hasher.combine(plausibleDomain)
         hasher.combine(plausibleAPIKey)
+        hasher.combine(plausibleAPIServer)
         hasher.combine(avatar)
         hasher.combine(drafts)
         hasher.combine(articles)
@@ -99,6 +101,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.plausibleEnabled == rhs.plausibleEnabled
             && lhs.plausibleDomain == rhs.plausibleDomain
             && lhs.plausibleAPIKey == rhs.plausibleAPIKey
+            && lhs.plausibleAPIServer == rhs.plausibleAPIServer
             && lhs.isPublishing == rhs.isPublishing
             && lhs.avatar == rhs.avatar
             && lhs.drafts == rhs.drafts
@@ -106,7 +109,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled, plausibleDomain, plausibleAPIKey
+        case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -124,6 +127,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         plausibleEnabled = try container.decodeIfPresent(Bool.self, forKey: .plausibleEnabled)
         plausibleDomain = try container.decodeIfPresent(String.self, forKey: .plausibleDomain)
         plausibleAPIKey = try container.decodeIfPresent(String.self, forKey: .plausibleAPIKey)
+        plausibleAPIServer = try container.decodeIfPresent(String.self, forKey: .plausibleAPIServer)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -139,6 +143,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(plausibleEnabled, forKey: .plausibleEnabled)
         try container.encodeIfPresent(plausibleDomain, forKey: .plausibleDomain)
         try container.encodeIfPresent(plausibleAPIKey, forKey: .plausibleAPIKey)
+        try container.encodeIfPresent(plausibleAPIServer, forKey: .plausibleAPIServer)
     }
 
     init(
@@ -369,9 +374,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let publicPlanet = PublicPlanetModel(
             id: id, name: name, about: about, ipns: ipns, created: created, updated: updated, articles: publicArticles,
             plausibleEnabled: plausibleEnabled,
-            plausibleDomain: plausibleDomain
+            plausibleDomain: plausibleDomain,
+            plausibleAPIServer: plausibleAPIServer
         )
-        let indexHTML = try template.renderIndex(planet: publicPlanet)
+        let hasAvatar = FileManager.default.fileExists(atPath: publicAvatarPath.path)
+        var context: [String: Any] = [
+            "planet": publicPlanet,
+            "has_avatar": hasAvatar
+        ]
+        let indexHTML = try template.renderIndex(context: context)
         try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
 
         let info = try JSONEncoder.shared.encode(publicPlanet)
@@ -421,6 +432,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             plausibleEnabled: plausibleEnabled,
             plausibleDomain: plausibleDomain,
             plausibleAPIKey: plausibleAPIKey,
+            plausibleAPIServer: plausibleAPIServer,
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,
@@ -467,7 +479,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     func updateTrafficAnalytics() async {
         if let domain = plausibleDomain, let apiKey = plausibleAPIKey, domain.count > 0, apiKey.count > 0 {
-            let analytics = PlausibleAnalytics(domain: domain, apiKey: apiKey)
+            let apiServer = plausibleAPIServer ?? "plausible.io"
+            let analytics = PlausibleAnalytics(domain: domain, apiKey: apiKey, apiServer: apiServer)
             await analytics.updateTrafficAnalytics(for: self)
         }
     }
@@ -476,9 +489,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 struct PlausibleAnalytics {
     let domain: String
     let apiKey: String
+    let apiServer: String
 
     func updateTrafficAnalytics(for planet: MyPlanetModel) async {
-        let url = URL(string: "https://plausible.io/api/v1/stats/aggregate?site_id=\(domain)&period=day&metrics=visitors,pageviews")!
+        let url = URL(string: "https://\(apiServer)/api/v1/stats/aggregate?site_id=\(domain)&period=day&metrics=visitors,pageviews")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -527,6 +541,7 @@ struct PublicPlanetModel: Codable {
     let articles: [PublicArticleModel]
     let plausibleEnabled: Bool?
     let plausibleDomain: String?
+    let plausibleAPIServer: String?
 }
 
 struct BackupMyPlanetModel: Codable {
@@ -541,5 +556,6 @@ struct BackupMyPlanetModel: Codable {
     let plausibleEnabled: Bool?
     let plausibleDomain: String?
     let plausibleAPIKey: String?
+    let plausibleAPIServer: String?
     let articles: [BackupArticleModel]
 }

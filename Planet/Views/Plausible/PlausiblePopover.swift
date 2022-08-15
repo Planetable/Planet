@@ -31,7 +31,8 @@ struct PlausiblePopoverView: View {
             if let plausibleDomain = planet.plausibleDomain {
                 Divider()
                 Button("Full Analytics on Plausible.io") {
-                    let url = URL(string: "https://plausible.io/\(plausibleDomain)")!
+                    let plausibleServer = planet.plausibleAPIServer ?? "plausible.io"
+                    let url = URL(string: "https://\(plausibleServer)/\(plausibleDomain)")!
                     if NSWorkspace.shared.open(url) {
                     }
                 }.buttonStyle(.link)
