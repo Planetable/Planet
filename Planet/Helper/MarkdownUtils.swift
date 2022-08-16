@@ -38,6 +38,16 @@ struct StencilExtension {
             }
             return value
         }
+        ext.registerFilter("ymd") { value in
+            if let value = value,
+               let date = value as? Date {
+                let format = DateFormatter()
+                format.dateStyle = .medium
+                format.timeStyle = .none
+                return format.string(from: date)
+            }
+            return value
+        }
         ext.registerFilter("escapejs") { value in
             if let value = value,
                let str = value as? String {
