@@ -35,7 +35,7 @@ struct MyPlanetSidebarItem: View {
                 .opacity(planet.isPublishing ? 1.0 : 0.0)
         }
             .contextMenu {
-                VStack {
+
                     Button {
                         do {
                             try WriterStore.shared.newArticle(for: planet)
@@ -54,6 +54,18 @@ struct MyPlanetSidebarItem: View {
                         Text(planet.isPublishing ? "Publishing" : "Publish Planet")
                     }
                         .disabled(planet.isPublishing)
+
+                    Button {
+                        Task {
+                            try planet.copyTemplateAssets()
+                            try planet.articles.forEach { try $0.savePublic() }
+                            try planet.savePublic()
+                        }
+                    } label: {
+                        Text("Rebuild")
+                    }
+
+                    Divider()
 
                     Button {
                         NSPasteboard.general.clearContents()
@@ -76,7 +88,7 @@ struct MyPlanetSidebarItem: View {
                             Text("Open in WorldWideWeb Server")
                         }
                     }
-
+                    
                     Button {
                         if let url = planet.browserURL {
                             NSWorkspace.shared.open(url)
@@ -91,14 +103,12 @@ struct MyPlanetSidebarItem: View {
                         Text("Export Planet")
                     }
 
-                    Divider()
-
                     Button {
                         isShowingDeleteConfirmation = true
                     } label: {
                         Text("Delete Planet")
                     }
-                }
+
             }
             .confirmationDialog(
                 Text("Are you sure you want to delete this planet? This action cannot be undone."),
