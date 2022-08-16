@@ -31,6 +31,22 @@ class PlanetUpdater: NSObject, ObservableObject {
         }
     }
 
+    func appVersion() -> String {
+        var v = "0.1"
+        if let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String {
+            v = build
+        }
+        return v
+    }
+
+    func appBuildVersion() -> String {
+        var b = "1"
+        if let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String {
+            b = build
+        }
+        return b
+    }
+
     func checkForUpdates() {
         updater.checkForUpdates()
     }
