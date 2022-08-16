@@ -69,6 +69,14 @@ struct MyPlanetSidebarItem: View {
                         Text("Copy IPNS")
                     }
 
+                    if hasWorldWideWeb() {
+                        Button {
+                            openWorldWideWeb(planet.publicBasePath)
+                        } label: {
+                            Text("Open in WorldWideWeb Server")
+                        }
+                    }
+
                     Button {
                         if let url = planet.browserURL {
                             NSWorkspace.shared.open(url)
@@ -131,5 +139,26 @@ struct MyPlanetSidebarItem: View {
                 }
                 PlanetStore.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
             }
+    }
+
+    private func hasWorldWideWeb() -> Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.iconfactory.WorldWideWeb") != nil
+    }
+
+    private func openWorldWideWeb(_ path: URL) {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.iconfactory.WorldWideWeb")
+        else { return }
+
+        let url = URL(fileURLWithPath: path.path)
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
+    }
+
+    private func openConfiguration() -> NSWorkspace.OpenConfiguration {
+        let conf = NSWorkspace.OpenConfiguration()
+        conf.hidesOthers = false
+        conf.hides = false
+        conf.activates = true
+        return conf
     }
 }
