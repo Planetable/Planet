@@ -24,7 +24,7 @@ struct TemplateBrowserPreviewWebView: NSViewRepresentable {
         wv.navigationDelegate = context.coordinator
         wv.setValue(false, forKey: "drawsBackground")
         
-        wv.customUserAgent = "Planet/0.8.0"
+        wv.customUserAgent = "Planet/" + PlanetUpdater.shared.appVersion()
 
         if url.isFileURL {
             wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
@@ -33,7 +33,7 @@ struct TemplateBrowserPreviewWebView: NSViewRepresentable {
         }
 
         NotificationCenter.default.addObserver(forName: .loadTemplatePreview, object: nil, queue: .main) { _ in
-            debugPrint("Loading template preview from: \(url)")
+            debugPrint("Loading template preview from: \(url), user agent: \(wv.customUserAgent ?? "")")
             if url.isFileURL {
                 wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
             } else {

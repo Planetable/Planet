@@ -14,8 +14,7 @@ struct ArticleWebView: NSViewRepresentable {
     func makeNSView(context: Context) -> PlanetDownloadsWebView {
         let wv = PlanetDownloadsWebView()
 
-        // TODO: probably need a way to inject marketing version here
-        wv.customUserAgent = "Planet/0.8.0"
+        wv.customUserAgent = "Planet/" + PlanetUpdater.shared.appVersion()
 
         wv.navigationDelegate = context.coordinator
         wv.setValue(false, forKey: "drawsBackground")
@@ -26,7 +25,7 @@ struct ArticleWebView: NSViewRepresentable {
         }
 
         NotificationCenter.default.addObserver(forName: .loadArticle, object: nil, queue: .main) { _ in
-            Self.logger.log("Loading \(url)")
+            Self.logger.log("Loading \(url), user agent: \(wv.customUserAgent ?? "")")
             if url.isFileURL {
                 wv.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent().deletingLastPathComponent())
             } else {
