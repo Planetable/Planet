@@ -18,6 +18,9 @@ struct MyPlanetAvatarView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 80, height: 80, alignment: .center)
                     .cornerRadius(40)
+                    .overlay(RoundedRectangle(cornerRadius: 40)
+                                               .stroke(Color("BorderColor"), lineWidth: 1))
+                            .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
             } else {
                 Text(planet.nameInitials)
                     .font(Font.custom("Arial Rounded MT Bold", size: 40))
@@ -30,6 +33,9 @@ struct MyPlanetAvatarView: View {
                         endPoint: .bottom
                     ))
                     .cornerRadius(40)
+                    .overlay(RoundedRectangle(cornerRadius: 40)
+                                               .stroke(Color("BorderColor"), lineWidth: 1))
+                            .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
             }
         }
         .onTapGesture {
