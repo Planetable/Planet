@@ -593,7 +593,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 // ignore
             }
             // did not get published planet file, try to get feed
-            guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)") else {
+            guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/") else {
                 throw PlanetError.InvalidPlanetURLError
             }
             let (feedData, htmlDocument) = try await FeedUtils.findFeed(url: feedURL)
