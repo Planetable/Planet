@@ -593,7 +593,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 // ignore
             }
             // did not get published planet file, try to get feed
-            let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)")!
+            guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)") else {
+                throw PlanetError.InvalidPlanetURLError
+            }
             let (feedData, htmlDocument) = try await FeedUtils.findFeed(url: feedURL)
             guard let feedData =  feedData else {
                 throw PlanetError.InvalidPlanetURLError
@@ -629,6 +631,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             if cid == newCID {
                 Self.logger.info("Planet \(self.name) has no update")
                 return
+            } else {
+                Self.logger.info("Planet \(self.name) has update")
             }
             Task {
                 try await IPFSDaemon.shared.pin(cid: newCID)
@@ -672,16 +676,22 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
                     try save()
                     return
+                } else {
+                    Self.logger.info("Planet \(self.name) does not have planet.json")
                 }
             } catch {
                 // ignore
             }
             // did not get published planet file, try to get feed
-            let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)")!
-            let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
-            guard let feedData =  feedData else {
+            guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/") else {
                 throw PlanetError.InvalidPlanetURLError
             }
+            Self.logger.info("Planet \(self.name) is finding feed at \(feedURL)")
+            let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
+            guard let feedData = feedData else {
+                throw PlanetError.InvalidPlanetURLError
+            }
+            Self.logger.info("Planet \(self.name) feed data fetched: \(feedData.count) bytes")
             let feed = try FeedUtils.parseFeed(data: feedData)
             let now = Date()
 
