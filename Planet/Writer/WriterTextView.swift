@@ -167,6 +167,10 @@ class WriterEditorTextView: NSTextView {
     init(draft: DraftModel, frame: NSRect, textContainer: NSTextContainer) {
         self.draft = draft
         super.init(frame: frame, textContainer: textContainer)
+        self.isAutomaticQuoteSubstitutionEnabled = false
+        self.isAutomaticDashSubstitutionEnabled = false
+        self.isAutomaticTextReplacementEnabled = false
+        self.enabledTextCheckingTypes = 0
     }
 
     required init?(coder: NSCoder) {
