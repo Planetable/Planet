@@ -55,14 +55,31 @@ struct MyPlanetSidebarItem: View {
                 }
                 .disabled(planet.isPublishing)
 
-                Button {
-                    Task {
-                        try planet.copyTemplateAssets()
-                        try planet.articles.forEach { try $0.savePublic() }
-                        try planet.savePublic()
+
+                Divider()
+            }
+
+            Group {
+                Menu {
+                    if hasWorldWideWeb() {
+                        Button {
+                            openWorldWideWeb(planet.publicBasePath)
+                        } label: {
+                            Text("Open in WorldWideWeb Server")
+                        }
+                    }
+
+                    Button {
+                        Task {
+                            try planet.copyTemplateAssets()
+                            try planet.articles.forEach { try $0.savePublic() }
+                            try planet.savePublic()
+                        }
+                    } label: {
+                        Text("Rebuild")
                     }
                 } label: {
-                    Text("Rebuild")
+                    Text("Develop")
                 }
 
                 Divider()
@@ -83,14 +100,6 @@ struct MyPlanetSidebarItem: View {
                     Text("Copy IPNS")
                 }
 
-                if hasWorldWideWeb() {
-                    Button {
-                        openWorldWideWeb(planet.publicBasePath)
-                    } label: {
-                        Text("Open in WorldWideWeb Server")
-                    }
-                }
-
                 Button {
                     if let url = planet.browserURL {
                         NSWorkspace.shared.open(url)
@@ -108,6 +117,8 @@ struct MyPlanetSidebarItem: View {
                 } label: {
                     Text("Export Planet")
                 }
+
+                Divider()
 
                 Button {
                     isShowingDeleteConfirmation = true
