@@ -35,11 +35,15 @@ struct WriterView: View {
             Divider()
 
 
-            HSplitView {
-                WriterTextView(draft: draft, text: $draft.content)
-                    .frame(minWidth: 320, minHeight: 300)
-                WriterPreview(draft: draft)
+            GeometryReader { geometry in
+                HSplitView {
+                    WriterTextView(draft: draft, text: $draft.content)
+                        .frame(minWidth: geometry.size.width / 2, minHeight: 300)
+                    WriterPreview(draft: draft)
+                        .frame(minWidth: geometry.size.width / 2, minHeight: 300)
+                }.frame(minWidth: 640, minHeight: 300)
             }
+            
 
             if viewModel.isMediaTrayOpen {
                 Divider()
@@ -58,7 +62,7 @@ struct WriterView: View {
                     .background(Color.secondary.opacity(0.03))
             }
         }
-            .frame(minWidth: 640)
+        .frame(minWidth: 640, minHeight: 440)
             .alert(
                 "This article has no title. Please enter the title before clicking send.",
                 isPresented: $viewModel.isShowingEmptyTitleAlert

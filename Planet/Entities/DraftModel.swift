@@ -28,6 +28,17 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     // populated when initializing
     var target: DraftTarget!
 
+    lazy var planetUUIDString: String = {
+        switch target! {
+        case .myPlanet(let wrapper):
+            let planet = wrapper.value
+            return planet.id.uuidString
+        case .article(let wrapper):
+            let article = wrapper.value
+            return article.planet.id.uuidString
+        }
+    }()
+
     lazy var basePath: URL = {
         switch target! {
         case .article(let wrapper):
