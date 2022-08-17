@@ -674,7 +674,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         lastRetrieved = Date()
                     }
 
-                    try save()
+                    if let _ = try? save() {
+                        debugPrint("Planet \(self.name) updated and saved")
+                    } else {
+                        debugPrint("Planet \(self.name) failed to save during update")
+                    }
                     return
                 } else {
                     Self.logger.info("Planet \(self.name) does not have planet.json")
@@ -696,6 +700,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             let now = Date()
 
             await MainActor.run {
+                cid = newCID
                 name = feed.name ?? link
                 about = feed.about ?? ""
                 updated = now
