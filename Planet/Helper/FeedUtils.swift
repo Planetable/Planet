@@ -107,6 +107,8 @@ struct FeedUtils {
         guard let avatarURLString = avatarURLString, let avatarURL = URL(string: avatarURLString, relativeTo: htmlURL) else {
             return nil
         }
+        
+        debugPrint("FeedAvatar: found avatar URL at \(avatarURLString)")
         guard let (data, response) = try? await URLSession.shared.data(from: avatarURL) else {
             return nil
         }

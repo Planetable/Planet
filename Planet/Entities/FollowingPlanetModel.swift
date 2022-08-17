@@ -761,6 +761,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         avatarIsSquare = feedAvatarImage.size.width == feedAvatarImage.size.height
                     }
                     if feedAvatar == nil || !avatarIsSquare {
+                        debugPrint("FeedAvatar: Trying to fetch icons from links as feed avatar")
                         feedAvatar = try await FeedUtils.findAvatarFromHTMLIcons(htmlDocument: soup, htmlURL: feedURL)
                     }
                 }
