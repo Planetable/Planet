@@ -823,6 +823,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 await MainActor.run {
                     article.title = publicArticle.title
                     article.content = publicArticle.content
+                    article.summary = FollowingArticleModel.extractSummary(content: article.content)
                     // If you added a new feature to the article model
                     // Remember to take care of the updates here
                     article.audioFilename = publicArticle.audioFilename
