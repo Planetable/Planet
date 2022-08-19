@@ -83,7 +83,8 @@ class Template: Codable, Identifiable {
             id: planet.id, name: planet.name, about: planet.about, ipns: planet.ipns, created: planet.created, updated: planet.updated, articles: [],
             plausibleEnabled: planet.plausibleEnabled ?? false,
             plausibleDomain: planet.plausibleDomain ?? nil,
-            plausibleAPIServer: planet.plausibleAPIServer ?? "plausible.io"
+            plausibleAPIServer: planet.plausibleAPIServer ?? "plausible.io",
+            twitterUsername: planet.twitterUsername ?? nil
         )
 
         // render stencil template

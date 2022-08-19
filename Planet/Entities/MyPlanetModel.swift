@@ -20,6 +20,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var plausibleAPIKey: String?
     @Published var plausibleAPIServer: String? = "plausible.io"
 
+    @Published var twitterUsername: String?
+
     @Published var metrics: Metrics?
 
     @Published var isPublishing = false
@@ -78,6 +80,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(plausibleDomain)
         hasher.combine(plausibleAPIKey)
         hasher.combine(plausibleAPIServer)
+        hasher.combine(twitterUsername)
         hasher.combine(avatar)
         hasher.combine(drafts)
         hasher.combine(articles)
@@ -103,13 +106,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.plausibleAPIKey == rhs.plausibleAPIKey
             && lhs.plausibleAPIServer == rhs.plausibleAPIServer
             && lhs.isPublishing == rhs.isPublishing
+            && lhs.twitterUsername == rhs.twitterUsername
             && lhs.avatar == rhs.avatar
             && lhs.drafts == rhs.drafts
             && lhs.articles == rhs.articles
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer
+        case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -128,6 +132,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         plausibleDomain = try container.decodeIfPresent(String.self, forKey: .plausibleDomain)
         plausibleAPIKey = try container.decodeIfPresent(String.self, forKey: .plausibleAPIKey)
         plausibleAPIServer = try container.decodeIfPresent(String.self, forKey: .plausibleAPIServer)
+        twitterUsername = try container.decodeIfPresent(String.self, forKey: .twitterUsername)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -144,6 +149,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(plausibleDomain, forKey: .plausibleDomain)
         try container.encodeIfPresent(plausibleAPIKey, forKey: .plausibleAPIKey)
         try container.encodeIfPresent(plausibleAPIServer, forKey: .plausibleAPIServer)
+        try container.encodeIfPresent(twitterUsername, forKey: .twitterUsername)
     }
 
     init(
@@ -375,7 +381,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             id: id, name: name, about: about, ipns: ipns, created: created, updated: updated, articles: publicArticles,
             plausibleEnabled: plausibleEnabled,
             plausibleDomain: plausibleDomain,
-            plausibleAPIServer: plausibleAPIServer
+            plausibleAPIServer: plausibleAPIServer,
+            twitterUsername: twitterUsername
         )
         let hasAvatar = FileManager.default.fileExists(atPath: publicAvatarPath.path)
         var context: [String: Any] = [
@@ -433,6 +440,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             plausibleDomain: plausibleDomain,
             plausibleAPIKey: plausibleAPIKey,
             plausibleAPIServer: plausibleAPIServer,
+            twitterUsername: twitterUsername,
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,
@@ -542,6 +550,7 @@ struct PublicPlanetModel: Codable {
     let plausibleEnabled: Bool?
     let plausibleDomain: String?
     let plausibleAPIServer: String?
+    let twitterUsername: String?
 }
 
 struct BackupMyPlanetModel: Codable {
@@ -557,5 +566,6 @@ struct BackupMyPlanetModel: Codable {
     let plausibleDomain: String?
     let plausibleAPIKey: String?
     let plausibleAPIServer: String?
+    let twitterUsername: String?
     let articles: [BackupArticleModel]
 }

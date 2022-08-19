@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EditMyPlanetView: View {
     let CONTROL_CAPTION_WIDTH: CGFloat = 80
+    let SOCIAL_CONTROL_CAPTION_WIDTH: CGFloat = 120
 
     @Environment(\.dismiss) var dismiss
 
@@ -16,6 +17,8 @@ struct EditMyPlanetView: View {
     @State private var plausibleAPIKey: String
     @State private var plausibleAPIServer: String = "plausible.io"
 
+    @State private var twitterUsername: String
+
     init(planet: MyPlanetModel) {
         self.planet = planet
         _name = State(wrappedValue: planet.name)
@@ -25,6 +28,7 @@ struct EditMyPlanetView: View {
         _plausibleDomain = State(wrappedValue: planet.plausibleDomain ?? "")
         _plausibleAPIKey = State(wrappedValue: planet.plausibleAPIKey ?? "")
         _plausibleAPIServer = State(wrappedValue: planet.plausibleAPIServer ?? "plausible.io")
+        _twitterUsername = State(wrappedValue: planet.twitterUsername ?? "")
     }
 
     var body: some View {
@@ -165,6 +169,24 @@ struct EditMyPlanetView: View {
                 .tabItem {
                     Text("Analytics")
                 }
+
+                VStack(spacing: 15) {
+                    HStack(spacing: 8) {
+                        HStack {
+                            Spacer()
+                            Text("Twitter Username:")
+                        }
+                        .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
+
+                        TextField("", text: $twitterUsername)
+                            .textFieldStyle(.roundedBorder)
+                    }
+
+                }
+                .padding(16)
+                .tabItem {
+                    Text("Social")
+                }
             }
 
             HStack(spacing: 8) {
@@ -185,9 +207,18 @@ struct EditMyPlanetView: View {
                     planet.about = about
                     planet.templateName = templateName
                     planet.plausibleEnabled = plausibleEnabled
-                    planet.plausibleDomain = plausibleDomain
-                    planet.plausibleAPIKey = plausibleAPIKey
-                    planet.plausibleAPIServer = plausibleAPIServer
+                    if plausibleDomain.count > 0 {
+                        planet.plausibleDomain = plausibleDomain
+                    }
+                    if plausibleAPIKey.count > 0 {
+                        planet.plausibleAPIKey = plausibleAPIKey
+                    }
+                    if plausibleAPIServer.count > 0 {
+                        planet.plausibleAPIServer = plausibleAPIServer
+                    }
+                    if twitterUsername.count > 0 {
+                        planet.twitterUsername = twitterUsername
+                    }
                     Task {
                         try planet.save()
                         try planet.copyTemplateAssets()
