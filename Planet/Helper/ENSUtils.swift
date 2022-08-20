@@ -29,11 +29,14 @@ struct GoIPFSGateway: IPFSClient {
 }
 
 struct ENSUtils {
+    // Use Infura:
     // static let infuraClient = InfuraEthereumAPI(url: URL(string: "https://mainnet.infura.io/v3/<projectid>")!)
     // static let shared = ENSKit(jsonrpcClient: infuraClient)
-    static let shared = ENSKit(ipfsClient: GoIPFSGateway())
 
-    static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "ENSUtils")
+    // ENSKit uses Cloudflare Ethereum Gateway by default, which does not search history
+    // Use other Ethereum API that supports searchContenthashHistory and lastContenthashChange
+    // static let shared = ENSKit(jsonrpcClient: EthereumAPI.Flashbots, ipfsClient: GoIPFSGateway())
+    static let shared = ENSKit(ipfsClient: GoIPFSGateway())
 
     static func isIPNS(_ str: String) -> Bool {
         if !str.hasPrefix("k") {
@@ -55,17 +58,7 @@ struct ENSUtils {
         return true
     }
 
-    static func getCID(ens: String) async throws -> String? {
-        let result: URL?
-        do {
-            result = try await shared.resolve(name: ens)
-        } catch {
-            throw PlanetError.EthereumError
-        }
-        logger.info("Get contenthash from \(ens): \(String(describing: result))")
-        guard let contenthash = result else {
-            return nil
-        }
+    static func getCID(from contenthash: URL) async throws -> String? {
         if contenthash.scheme?.lowercased() == "ipns" {
             let ipns = String(contenthash.absoluteString.dropFirst("ipns://".count))
             return try await IPFSDaemon.shared.resolveIPNSorDNSLink(name: ipns)

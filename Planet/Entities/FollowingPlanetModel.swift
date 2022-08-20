@@ -200,7 +200,19 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     static func followENS(ens: String) async throws -> FollowingPlanetModel {
-        guard let cid = try await ENSUtils.getCID(ens: ens) else {
+        guard let resolver = try await ENSUtils.shared.resolver(name: ens) else {
+            throw PlanetError.InvalidPlanetURLError
+        }
+        let result: URL?
+        do {
+            result = try await resolver.contenthash()
+        } catch {
+            throw PlanetError.EthereumError
+        }
+        Self.logger.info("Get contenthash from \(ens): \(String(describing: result))")
+        guard let contenthash = result,
+              let cid = try await ENSUtils.getCID(from: contenthash)
+        else {
             throw PlanetError.ENSNoContentHashError
         }
         Self.logger.info("Follow \(ens): CID \(cid)")
@@ -236,7 +248,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             planet.articles.sort { $0.created > $1.created }
 
             // try to find ENS avatar
-            if let data = try? await ENSUtils.shared.avatar(name: ens),
+            if let data = try? await resolver.avatar(),
                let image = NSImage(data: data),
                let _ = try? data.write(to: planet.avatarPath) {
                 Self.logger.info("Follow \(ens): found avatar from ENS")
@@ -324,7 +336,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         try FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: planet.articlesPath, withIntermediateDirectories: true)
 
-        if let data = try? await ENSUtils.shared.avatar(name: ens),
+        if let data = try? await resolver.avatar(),
            let image = NSImage(data: data),
            let _ = try? data.write(to: planet.avatarPath) {
             Self.logger.info("Follow \(ens): found avatar from ENS")
@@ -596,7 +608,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/") else {
                 throw PlanetError.InvalidPlanetURLError
             }
-            let (feedData, htmlDocument) = try await FeedUtils.findFeed(url: feedURL)
+            let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
             guard let feedData =  feedData else {
                 throw PlanetError.InvalidPlanetURLError
             }
@@ -625,8 +637,20 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             try save()
             return
         case .ens:
-            guard let newCID = try await ENSUtils.getCID(ens: link) else {
+            guard let resolver = try await ENSUtils.shared.resolver(name: link) else {
                 throw PlanetError.InvalidPlanetURLError
+            }
+            let result: URL?
+            do {
+                result = try await resolver.contenthash()
+            } catch {
+                throw PlanetError.EthereumError
+            }
+            Self.logger.info("Get contenthash from \(self.link): \(String(describing: result))")
+            guard let contenthash = result,
+                  let newCID = try await ENSUtils.getCID(from: contenthash)
+            else {
+                throw PlanetError.ENSNoContentHashError
             }
             if cid == newCID {
                 Self.logger.info("Planet \(self.name) has no update")
@@ -651,7 +675,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
                     try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
 
-                    if let data = try? await ENSUtils.shared.avatar(name: link),
+                    if let data = try? await resolver.avatar(),
                        let image = NSImage(data: data),
                        let _ = try? data.write(to: avatarPath) {
                         await MainActor.run {
@@ -711,7 +735,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 try await updateArticles(publicArticles: publicArticles)
             }
 
-            if let data = try? await ENSUtils.shared.avatar(name: link),
+            if let data = try? await resolver.avatar(),
                let image = NSImage(data: data),
                let _ = try? data.write(to: avatarPath) {
                 await MainActor.run {
