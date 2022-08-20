@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
-import os
 import SwiftyJSON
+import os
 
 class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codable {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "MyPlanet")
@@ -21,6 +21,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var plausibleAPIServer: String? = "plausible.io"
 
     @Published var twitterUsername: String?
+
+    @Published var githubUsername: String?
 
     @Published var metrics: Metrics?
 
@@ -49,17 +51,30 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
-    lazy var publicBasePath = Self.publicPlanetsPath.appendingPathComponent(id.uuidString, isDirectory: true)
-    lazy var publicInfoPath = publicBasePath.appendingPathComponent("planet.json", isDirectory: false)
-    lazy var publicAvatarPath = publicBasePath.appendingPathComponent("avatar.png", isDirectory: false)
-    lazy var publicIndexPath = publicBasePath.appendingPathComponent("index.html", isDirectory: false)
+    lazy var publicBasePath = Self.publicPlanetsPath.appendingPathComponent(
+        id.uuidString,
+        isDirectory: true
+    )
+    lazy var publicInfoPath = publicBasePath.appendingPathComponent(
+        "planet.json",
+        isDirectory: false
+    )
+    lazy var publicAvatarPath = publicBasePath.appendingPathComponent(
+        "avatar.png",
+        isDirectory: false
+    )
+    lazy var publicIndexPath = publicBasePath.appendingPathComponent(
+        "index.html",
+        isDirectory: false
+    )
     lazy var publicAssetsPath = publicBasePath.appendingPathComponent("assets", isDirectory: true)
 
     var template: Template? {
         TemplateStore.shared[templateName]
     }
     var nameInitials: String {
-        let initials = name.components(separatedBy: .whitespaces).map { $0.prefix(1).capitalized }.joined()
+        let initials = name.components(separatedBy: .whitespaces).map { $0.prefix(1).capitalized }
+            .joined()
         return String(initials.prefix(2))
     }
     var browserURL: URL? {
@@ -81,12 +96,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(plausibleAPIKey)
         hasher.combine(plausibleAPIServer)
         hasher.combine(twitterUsername)
+        hasher.combine(githubUsername)
         hasher.combine(avatar)
         hasher.combine(drafts)
         hasher.combine(articles)
     }
 
-    static func ==(lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
+    static func == (lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
         if lhs === rhs {
             return true
         }
@@ -107,13 +123,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.plausibleAPIServer == rhs.plausibleAPIServer
             && lhs.isPublishing == rhs.isPublishing
             && lhs.twitterUsername == rhs.twitterUsername
+            && lhs.githubUsername == rhs.githubUsername
             && lhs.avatar == rhs.avatar
             && lhs.drafts == rhs.drafts
             && lhs.articles == rhs.articles
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername
+        case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled,
+            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -133,6 +151,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         plausibleAPIKey = try container.decodeIfPresent(String.self, forKey: .plausibleAPIKey)
         plausibleAPIServer = try container.decodeIfPresent(String.self, forKey: .plausibleAPIServer)
         twitterUsername = try container.decodeIfPresent(String.self, forKey: .twitterUsername)
+        githubUsername = try container.decodeIfPresent(String.self, forKey: .githubUsername)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -150,6 +169,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(plausibleAPIKey, forKey: .plausibleAPIKey)
         try container.encodeIfPresent(plausibleAPIServer, forKey: .plausibleAPIServer)
         try container.encodeIfPresent(twitterUsername, forKey: .twitterUsername)
+        try container.encodeIfPresent(githubUsername, forKey: .githubUsername)
     }
 
     init(
@@ -191,21 +211,27 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             at: planet.draftsPath,
             includingPropertiesForKeys: nil
         ).filter { $0.hasDirectoryPath }
-        planet.drafts = draftDirectories.compactMap { try? DraftModel.load(from: $0, planet: planet) }
+        planet.drafts = draftDirectories.compactMap {
+            try? DraftModel.load(from: $0, planet: planet)
+        }
 
         let articleDirectory = directoryPath.appendingPathComponent("Articles", isDirectory: true)
         let articleFiles = try FileManager.default.contentsOfDirectory(
             at: articleDirectory,
             includingPropertiesForKeys: nil
         )
-        let articles = articleFiles.compactMap { try? MyArticleModel.load(from: $0, planet: planet) }
+        let articles = articleFiles.compactMap {
+            try? MyArticleModel.load(from: $0, planet: planet)
+        }
         planet.articles = articles.sorted {
             $0.created > $1.created
         }
         return planet
     }
 
-    static func create(name: String, about: String, templateName: String) async throws -> MyPlanetModel {
+    static func create(name: String, about: String, templateName: String) async throws
+        -> MyPlanetModel
+    {
         let id = UUID()
         let ipns = try await IPFSDaemon.shared.generateKey(name: id.uuidString)
         let now = Date()
@@ -222,11 +248,26 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         planet.avatar = nil
         planet.drafts = []
         planet.articles = []
-        try FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: planet.articlesPath, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: planet.draftsPath, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: planet.articleDraftsPath, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: planet.publicBasePath, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: planet.basePath,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: planet.articlesPath,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: planet.draftsPath,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: planet.articleDraftsPath,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: planet.publicBasePath,
+            withIntermediateDirectories: true
+        )
         try planet.copyTemplateAssets()
         return planet
     }
@@ -240,7 +281,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let backupAvatarPath = path.appendingPathComponent("avatar.png", isDirectory: false)
 
         guard FileManager.default.fileExists(atPath: backupInfoPath.path),
-              FileManager.default.fileExists(atPath: backupPrivateKeyPath.path)
+            FileManager.default.fileExists(atPath: backupPrivateKeyPath.path)
         else {
             Self.logger.info("Planet backup is missing private key for publishing IPNS, abort")
             throw PlanetError.ImportPlanetError
@@ -248,7 +289,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         let decoder = JSONDecoder()
         guard let data = try? Data.init(contentsOf: backupInfoPath),
-              let backupPlanet = try? decoder.decode(BackupMyPlanetModel.self, from: data)
+            let backupPlanet = try? decoder.decode(BackupMyPlanetModel.self, from: data)
         else {
             throw PlanetError.ImportPlanetError
         }
@@ -261,8 +302,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         do {
             // key may already exist in IPFS keystore, ignore error
-            try IPFSCommand.importKey(name: backupPlanet.id.uuidString, target: backupPrivateKeyPath).run()
-        } catch {
+            try IPFSCommand.importKey(
+                name: backupPlanet.id.uuidString,
+                target: backupPrivateKeyPath
+            ).run()
+        }
+        catch {
             throw PlanetError.IPFSError
         }
 
@@ -284,7 +329,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         Self.logger.info("Copying assets from backup planet \(backupPlanet.id)")
         do {
-            try FileManager.default.createDirectory(at: planet.publicBasePath, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(
+                at: planet.publicBasePath,
+                withIntermediateDirectories: true
+            )
             if FileManager.default.fileExists(atPath: backupAssetsPath.path) {
                 try FileManager.default.copyItem(at: backupAssetsPath, to: planet.publicAssetsPath)
             }
@@ -294,16 +342,22 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             if FileManager.default.fileExists(atPath: backupAvatarPath.path) {
                 try FileManager.default.copyItem(at: backupAvatarPath, to: planet.publicAvatarPath)
             }
-        } catch {
+        }
+        catch {
             throw PlanetError.ImportPlanetError
         }
         Self.logger.info("Assets copied from backup planet \(backupPlanet.id)")
 
         planet.avatar = NSImage(contentsOf: planet.avatarPath)
         planet.drafts = []
-        Self.logger.info("Found \(backupPlanet.articles.count) backup articles from backup planet \(backupPlanet.id)")
+        Self.logger.info(
+            "Found \(backupPlanet.articles.count) backup articles from backup planet \(backupPlanet.id)"
+        )
         planet.articles = backupPlanet.articles.compactMap { backupArticle in
-            let backupArticlePath = path.appendingPathComponent(backupArticle.link, isDirectory: true)
+            let backupArticlePath = path.appendingPathComponent(
+                backupArticle.link,
+                isDirectory: true
+            )
             if FileManager.default.fileExists(atPath: backupArticlePath.path) {
                 let article = MyArticleModel(
                     id: backupArticle.id,
@@ -319,19 +373,37 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 )
                 article.planet = planet
                 do {
-                    try FileManager.default.copyItem(at: backupArticlePath, to: article.publicBasePath)
+                    try FileManager.default.copyItem(
+                        at: backupArticlePath,
+                        to: article.publicBasePath
+                    )
                     return article
-                } catch {
+                }
+                catch {
                 }
             }
             return nil
         }
-        Self.logger.info("Regenerated \(planet.articles.count) articles from backup articles for backup planet \(backupPlanet.id)")
+        Self.logger.info(
+            "Regenerated \(planet.articles.count) articles from backup articles for backup planet \(backupPlanet.id)"
+        )
 
-        try FileManager.default.createDirectory(at: planet.basePath, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: planet.articlesPath, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: planet.draftsPath, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: planet.articleDraftsPath, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: planet.basePath,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: planet.articlesPath,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: planet.draftsPath,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: planet.articleDraftsPath,
+            withIntermediateDirectories: true
+        )
 
         if FileManager.default.fileExists(atPath: backupAvatarPath.path) {
             try FileManager.default.copyItem(at: backupAvatarPath, to: planet.avatarPath)
@@ -346,8 +418,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     func updateAvatar(path: URL) throws {
         guard let image = NSImage(contentsOf: path),
-              let resizedImage = image.resizeSquare(maxLength: 144),
-              let data = resizedImage.PNGData
+            let resizedImage = image.resizeSquare(maxLength: 144),
+            let data = resizedImage.PNGData
         else {
             throw PlanetError.AvatarError
         }
@@ -378,16 +450,23 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         let publicArticles = articles.map { $0.publicArticle }
         let publicPlanet = PublicPlanetModel(
-            id: id, name: name, about: about, ipns: ipns, created: created, updated: updated, articles: publicArticles,
+            id: id,
+            name: name,
+            about: about,
+            ipns: ipns,
+            created: created,
+            updated: updated,
+            articles: publicArticles,
             plausibleEnabled: plausibleEnabled,
             plausibleDomain: plausibleDomain,
             plausibleAPIServer: plausibleAPIServer,
-            twitterUsername: twitterUsername
+            twitterUsername: twitterUsername,
+            githubUsername: githubUsername
         )
         let hasAvatar = FileManager.default.fileExists(atPath: publicAvatarPath.path)
         var context: [String: Any] = [
             "planet": publicPlanet,
-            "has_avatar": hasAvatar
+            "has_avatar": hasAvatar,
         ]
         let indexHTML = try template.renderIndex(context: context)
         try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
@@ -406,13 +485,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             }
         }
         let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
-        let result = try await IPFSDaemon.shared.api(path: "name/publish", args: [
-            "arg": cid,
-            "allow-offline": "1",
-            "key": id.uuidString,
-            "quieter": "1",
-            "lifetime": "7200h",
-        ], timeout: 600)
+        let result = try await IPFSDaemon.shared.api(
+            path: "name/publish",
+            args: [
+                "arg": cid,
+                "allow-offline": "1",
+                "key": id.uuidString,
+                "quieter": "1",
+                "lifetime": "7200h",
+            ],
+            timeout: 600
+        )
         let published = try JSONDecoder.shared.decode(IPFSPublished.self, from: result)
         Self.logger.info("Published planet \(self.id) to \(published.name)")
         Task { @MainActor in
@@ -422,7 +505,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func exportBackup(to directory: URL) throws {
-        let exportPath = directory.appendingPathComponent("\(name.sanitized()).planet", isDirectory: true)
+        let exportPath = directory.appendingPathComponent(
+            "\(name.sanitized()).planet",
+            isDirectory: true
+        )
         guard !FileManager.default.fileExists(atPath: exportPath.path) else {
             throw PlanetError.FileExistsError
         }
@@ -441,6 +527,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             plausibleAPIKey: plausibleAPIKey,
             plausibleAPIServer: plausibleAPIServer,
             twitterUsername: twitterUsername,
+            githubUsername: githubUsername,
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,
@@ -459,17 +546,27 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             try FileManager.default.copyItem(at: publicBasePath, to: exportPath)
 
             // export private key from IPFS keystore
-            let exportPrivateKeyPath = exportPath.appendingPathComponent("planet.key", isDirectory: false)
-            let (ret, _, _) = try IPFSCommand.exportKey(name: id.uuidString, target: exportPrivateKeyPath).run()
+            let exportPrivateKeyPath = exportPath.appendingPathComponent(
+                "planet.key",
+                isDirectory: false
+            )
+            let (ret, _, _) = try IPFSCommand.exportKey(
+                name: id.uuidString,
+                target: exportPrivateKeyPath
+            ).run()
             if ret != 0 {
                 throw PlanetError.IPFSError
             }
 
             // override public planet info with backup planet info
-            let backupPlanetInfoPath = exportPath.appendingPathComponent("planet.json", isDirectory: false)
+            let backupPlanetInfoPath = exportPath.appendingPathComponent(
+                "planet.json",
+                isDirectory: false
+            )
             let backupPlanet = try JSONEncoder.shared.encode(backupPlanet)
             try backupPlanet.write(to: backupPlanetInfoPath)
-        } catch {
+        }
+        catch {
             throw PlanetError.ExportPlanetError
         }
 
@@ -486,7 +583,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func updateTrafficAnalytics() async {
-        if let domain = plausibleDomain, let apiKey = plausibleAPIKey, domain.count > 0, apiKey.count > 0 {
+        if let domain = plausibleDomain, let apiKey = plausibleAPIKey, domain.count > 0,
+            apiKey.count > 0
+        {
             let apiServer = plausibleAPIServer ?? "plausible.io"
             let analytics = PlausibleAnalytics(domain: domain, apiKey: apiKey, apiServer: apiServer)
             await analytics.updateTrafficAnalytics(for: self)
@@ -500,7 +599,10 @@ struct PlausibleAnalytics {
     let apiServer: String
 
     func updateTrafficAnalytics(for planet: MyPlanetModel) async {
-        let url = URL(string: "https://\(apiServer)/api/v1/stats/aggregate?site_id=\(domain)&period=day&metrics=visitors,pageviews")!
+        let url = URL(
+            string:
+                "https://\(apiServer)/api/v1/stats/aggregate?site_id=\(domain)&period=day&metrics=visitors,pageviews"
+        )!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -513,7 +615,9 @@ struct PlausibleAnalytics {
             debugPrint("Data: \(jsonString)")
             let json = try JSON(data: data)
             debugPrint("SwiftyJSON: \(json)")
-            if let visitors = json["results"]["visitors"]["value"].int, let pageviews = json["results"]["pageviews"]["value"].int {
+            if let visitors = json["results"]["visitors"]["value"].int,
+                let pageviews = json["results"]["pageviews"]["value"].int
+            {
                 if planet.metrics == nil {
                     Task { @MainActor in
                         planet.metrics = Metrics(
@@ -521,15 +625,19 @@ struct PlausibleAnalytics {
                             pageviewsToday: pageviews
                         )
                     }
-                } else {
+                }
+                else {
                     Task { @MainActor in
                         planet.metrics?.visitorsToday = visitors
                         planet.metrics?.pageviewsToday = pageviews
                     }
                 }
             }
-        } catch {
-            debugPrint("Plausible: error occurred when fetching analytics for \(planet.name) \(error)")
+        }
+        catch {
+            debugPrint(
+                "Plausible: error occurred when fetching analytics for \(planet.name) \(error)"
+            )
         }
     }
 }
@@ -551,6 +659,7 @@ struct PublicPlanetModel: Codable {
     let plausibleDomain: String?
     let plausibleAPIServer: String?
     let twitterUsername: String?
+    let githubUsername: String?
 }
 
 struct BackupMyPlanetModel: Codable {
@@ -567,5 +676,6 @@ struct BackupMyPlanetModel: Codable {
     let plausibleAPIKey: String?
     let plausibleAPIServer: String?
     let twitterUsername: String?
+    let githubUsername: String?
     let articles: [BackupArticleModel]
 }
