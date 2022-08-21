@@ -8,6 +8,10 @@ struct ArticleView: View {
     @State private var isShowingAnalyticsPopover: Bool = false
     @State private var selectedAttachment: String? = nil
 
+    @State private var isSharing = false
+
+    @State private var sharingItem: URL?
+
     var body: some View {
         VStack {
             ArticleAudioPlayer()
@@ -20,6 +24,7 @@ struct ArticleView: View {
         .onChange(of: planetStore.selectedArticle) { newArticle in
             if let myArticle = newArticle as? MyArticleModel {
                 url = myArticle.publicIndexPath
+                sharingItem = myArticle.browserURL?.absoluteURL
             }
             else if let followingArticle = newArticle as? FollowingArticleModel {
                 if let webviewURL = followingArticle.webviewURL {
@@ -28,6 +33,7 @@ struct ArticleView: View {
                 else {
                     url = Self.noSelectionURL
                 }
+                sharingItem = followingArticle.browserURL?.absoluteURL
             }
             else {
                 url = Self.noSelectionURL
@@ -166,7 +172,20 @@ struct ArticleView: View {
                         Text("\(attachments.count)")
                     }
                 }
+            }
 
+            ToolbarItemGroup(placement: .automatic) {
+                Spacer()
+                if let article = planetStore.selectedArticle {
+                    Button {
+                        isSharing = true
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .background(
+                        SharingServicePicker(isPresented: $isSharing, sharingItems: [sharingItem ?? URL(string: "https://planetable.eth.limo")!])
+                    )
+                }
             }
         }
     }

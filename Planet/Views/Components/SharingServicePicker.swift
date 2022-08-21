@@ -35,14 +35,14 @@ struct SharingServicePicker: NSViewRepresentable {
             sharingServicesForItems items: [Any],
             proposedSharingServices proposedServices: [NSSharingService]
         ) -> [NSSharingService] {
-            guard let image = NSImage(named: NSImage.networkName) else {
+            guard let image = NSImage(systemSymbolName: "link", accessibilityDescription: "Link") else {
                 return proposedServices
             }
             var share = proposedServices
-            let copyService = NSSharingService(title: "Copy Planet IPNS", image: image, alternateImage: image) {
-                if let ipns = items.first as? String {
+            let copyService = NSSharingService(title: "Copy Link", image: image, alternateImage: image) {
+                if let item = items.first as? URL {
                     NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(ipns, forType: .string)
+                    NSPasteboard.general.setString(item.absoluteString, forType: .string)
                 }
             }
             share.insert(copyService, at: 0)
