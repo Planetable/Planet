@@ -13,36 +13,40 @@ struct ArticleView: View {
             ArticleAudioPlayer()
             ArticleWebView(url: $url)
         }
-            .frame(minWidth: 400)
-            .background(
-                Color(NSColor.textBackgroundColor)
-            )
-            .onChange(of: planetStore.selectedArticle) { newArticle in
-                if let myArticle = newArticle as? MyArticleModel {
-                    url = myArticle.publicIndexPath
-                } else
-                if let followingArticle = newArticle as? FollowingArticleModel {
-                    if let webviewURL = followingArticle.webviewURL {
-                        url = webviewURL
-                    } else {
-                        url = Self.noSelectionURL
-                    }
-                } else {
+        .frame(minWidth: 400)
+        .background(
+            Color(NSColor.textBackgroundColor)
+        )
+        .onChange(of: planetStore.selectedArticle) { newArticle in
+            if let myArticle = newArticle as? MyArticleModel {
+                url = myArticle.publicIndexPath
+            }
+            else if let followingArticle = newArticle as? FollowingArticleModel {
+                if let webviewURL = followingArticle.webviewURL {
+                    url = webviewURL
+                }
+                else {
                     url = Self.noSelectionURL
                 }
-                NotificationCenter.default.post(name: .loadArticle, object: nil)
             }
-            .onChange(of: planetStore.selectedView) { _ in
+            else {
                 url = Self.noSelectionURL
-                NotificationCenter.default.post(name: .loadArticle, object: nil)
             }
-            .toolbar {
+            NotificationCenter.default.post(name: .loadArticle, object: nil)
+        }
+        .onChange(of: planetStore.selectedView) { _ in
+            url = Self.noSelectionURL
+            NotificationCenter.default.post(name: .loadArticle, object: nil)
+        }
+        .toolbar {
+            ToolbarItemGroup {
                 switch planetStore.selectedView {
                 case .myPlanet(let planet):
                     Button {
                         do {
                             try WriterStore.shared.newArticle(for: planet)
-                        } catch {
+                        }
+                        catch {
                             PlanetStore.shared.alert(title: "Failed to launch writer")
                         }
                     } label: {
@@ -76,12 +80,16 @@ struct ArticleView: View {
                 default:
                     Text("")
                 }
+            }
 
+            ToolbarItemGroup(placement: .principal) {
                 if let article = planetStore.selectedArticle,
-                   article.hasAudio {
+                    article.hasAudio
+                {
                     if let myArticle = article as? MyArticleModel,
-                       let name = myArticle.audioFilename,
-                       let url = myArticle.getAttachmentURL(name: name) {
+                        let name = myArticle.audioFilename,
+                        let url = myArticle.getAttachmentURL(name: name)
+                    {
                         Button {
                             ArticleAudioPlayerViewModel.shared.url = url
                             ArticleAudioPlayerViewModel.shared.title = article.title
@@ -90,8 +98,9 @@ struct ArticleView: View {
                         }
                     }
                     if let followingArticle = article as? FollowingArticleModel,
-                       let name = followingArticle.audioFilename,
-                       let url = followingArticle.getAttachmentURL(name: name) {
+                        let name = followingArticle.audioFilename,
+                        let url = followingArticle.getAttachmentURL(name: name)
+                    {
                         Button {
                             ArticleAudioPlayerViewModel.shared.url = url
                             ArticleAudioPlayerViewModel.shared.title = article.title
@@ -102,24 +111,49 @@ struct ArticleView: View {
                 }
 
                 // Menu for accessing the attachments if any
-                if let article = planetStore.selectedArticle, let attachments = article.attachments, attachments.count > 0 {
+                if let article = planetStore.selectedArticle, let attachments = article.attachments,
+                    attachments.count > 0
+                {
                     Menu {
                         ForEach(attachments, id: \.self) { attachment in
                             Button {
-                                let downloadsPath = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+                                let downloadsPath = FileManager.default.urls(
+                                    for: .downloadsDirectory,
+                                    in: .userDomainMask
+                                ).first
                                 if let myArticle = article as? MyArticleModel {
-                                    if let attachmentURL = myArticle.getAttachmentURL(name: attachment), let destinationURL = downloadsPath?.appendingPathComponent(attachment) {
-                                        if !FileManager.default.fileExists(atPath: destinationURL.path) {
-                                            try? FileManager.default.copyItem(at: attachmentURL, to: destinationURL)
+                                    if let attachmentURL = myArticle.getAttachmentURL(
+                                        name: attachment
+                                    ),
+                                        let destinationURL = downloadsPath?.appendingPathComponent(
+                                            attachment
+                                        )
+                                    {
+                                        if !FileManager.default.fileExists(
+                                            atPath: destinationURL.path
+                                        ) {
+                                            try? FileManager.default.copyItem(
+                                                at: attachmentURL,
+                                                to: destinationURL
+                                            )
                                         }
-                                        NSWorkspace.shared.activateFileViewerSelecting([destinationURL])
+                                        NSWorkspace.shared.activateFileViewerSelecting([
+                                            destinationURL
+                                        ])
                                     }
                                 }
                                 if let followingArticle = article as? FollowingArticleModel {
-                                    if let attachmentURL = followingArticle.getAttachmentURL(name: attachment) {
+                                    if let attachmentURL = followingArticle.getAttachmentURL(
+                                        name: attachment
+                                    ) {
                                         // MARK: TODO: should hide download button if any
-                                        if PlanetDownloadItem.downloadableFileExtensions().contains(attachmentURL.pathExtension) {
-                                            NotificationCenter.default.post(name: .downloadArticleAttachment, object: attachmentURL)
+                                        if PlanetDownloadItem.downloadableFileExtensions().contains(
+                                            attachmentURL.pathExtension
+                                        ) {
+                                            NotificationCenter.default.post(
+                                                name: .downloadArticleAttachment,
+                                                object: attachmentURL
+                                            )
                                         }
                                     }
                                 }
@@ -132,6 +166,8 @@ struct ArticleView: View {
                         Text("\(attachments.count)")
                     }
                 }
+
             }
+        }
     }
 }
