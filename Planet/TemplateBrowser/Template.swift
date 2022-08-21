@@ -109,10 +109,12 @@ class Template: Codable, Identifiable {
         guard let planet = context["planet"] as? PublicPlanetModel else {
             throw PlanetError.RenderMarkdownError
         }
+        let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
         var contextForRendering: [String: Any] = [
             "assets_prefix": "./",
             "page_title": planet.name,
             "page_description": planet.about,
+            "page_description_html": pageAboutHTML,
             "articles": planet.articles,
             "build_timestamp": Int(Date().timeIntervalSince1970)
         ]

@@ -48,7 +48,7 @@ struct PlanetMainView: View {
         }
         .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
             if case .myPlanet(let planet) = planetStore.selectedView {
-                AboutMyPlanetView(planet: planet)
+                MyPlanetInfoView(planet: planet)
             } else
             if case .followingPlanet(let planet) = planetStore.selectedView {
                 AboutFollowingPlanetView(planet: planet)
