@@ -42,6 +42,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     lazy var infoPath = basePath.appendingPathComponent("planet.json", isDirectory: false)
     lazy var articlesPath = basePath.appendingPathComponent("Articles", isDirectory: true)
     lazy var avatarPath = basePath.appendingPathComponent("avatar.png", isDirectory: false)
+    lazy var faviconPath = basePath.appendingPathComponent("favicon.ico", isDirectory: false)
     lazy var draftsPath = basePath.appendingPathComponent("Drafts", isDirectory: true)
     lazy var articleDraftsPath = articlesPath.appendingPathComponent("Drafts", isDirectory: true)
 
@@ -61,6 +62,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     )
     lazy var publicAvatarPath = publicBasePath.appendingPathComponent(
         "avatar.png",
+        isDirectory: false
+    )
+    lazy var publicFaviconPath = publicBasePath.appendingPathComponent(
+        "favicon.ico",
         isDirectory: false
     )
     lazy var publicIndexPath = publicBasePath.appendingPathComponent(
@@ -417,6 +422,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func updateAvatar(path: URL) throws {
+        // write 144x144 avatar.png
         guard let image = NSImage(contentsOf: path),
             let resizedImage = image.resizeSquare(maxLength: 144),
             let data = resizedImage.PNGData
@@ -425,6 +431,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         try data.write(to: avatarPath)
         try data.write(to: publicAvatarPath)
+        // write 32x32 favicon.ico
+        if let resizedIcon = image.resizeSquare(maxLength: 32),
+           let iconData = resizedIcon.PNGData {
+            try iconData.write(to: faviconPath)
+            try iconData.write(to: publicFaviconPath)
+        }
         avatar = resizedImage
     }
 
