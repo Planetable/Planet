@@ -178,11 +178,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     static func follow(link raw: String) async throws -> FollowingPlanetModel {
-        let link: String
-        if raw.starts(with: "planet://") {
-            link = String(raw.dropFirst("planet://".count))
-        } else {
-            link = raw
+        var link = raw.trim()
+        if link.starts(with: "planet://") {
+            link = String(link.dropFirst("planet://".count))
         }
         if let existing = await PlanetStore.shared.followingPlanets.first(where: { $0.link == link }) {
             await MainActor.run {
