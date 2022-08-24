@@ -327,6 +327,28 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             templateName: backupPlanet.templateName
         )
 
+        // Restore Plausible
+        if backupPlanet.plausibleEnabled != nil {
+            planet.plausibleEnabled = backupPlanet.plausibleEnabled
+        }
+        if backupPlanet.plausibleDomain != nil {
+            planet.plausibleDomain = backupPlanet.plausibleDomain
+        }
+        if backupPlanet.plausibleAPIKey != nil {
+            planet.plausibleAPIKey = backupPlanet.plausibleAPIKey
+        }
+        if backupPlanet.plausibleAPIServer != nil {
+            planet.plausibleAPIServer = backupPlanet.plausibleAPIServer
+        }
+
+        // Restore Social Links
+        if backupPlanet.twitterUsername != nil {
+            planet.twitterUsername = backupPlanet.twitterUsername
+        }
+        if backupPlanet.githubUsername != nil {
+            planet.githubUsername = backupPlanet.githubUsername
+        }
+
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
         if FileManager.default.fileExists(atPath: planet.publicBasePath.path) {
@@ -433,7 +455,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try data.write(to: publicAvatarPath)
         // write 32x32 favicon.ico
         if let resizedIcon = image.resizeSquare(maxLength: 32),
-           let iconData = resizedIcon.PNGData {
+            let iconData = resizedIcon.PNGData
+        {
             try iconData.write(to: faviconPath)
             try iconData.write(to: publicFaviconPath)
         }
