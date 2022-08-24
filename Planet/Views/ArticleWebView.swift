@@ -104,7 +104,7 @@ struct ArticleWebView: NSViewRepresentable {
             navigationType = navigationAction.navigationType
         }
 
-        func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+        @MainActor func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
             if navigationResponse.canShowMIMEType, let url = navigationResponse.response.url, let mimeType = navigationResponse.response.mimeType {
                 if shouldHandleDownloadForMIMEType(mimeType) {
                     debugPrint("WKNavigationResponse: .download branch 1 -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))")
@@ -121,6 +121,17 @@ struct ArticleWebView: NSViewRepresentable {
                 }
             } else {
                 debugPrint("WKNavigationResponse: .download branch 2 -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))")
+                if let urlString = navigationResponse.response.url?.lastPathComponent, let range = urlString.range(of: #"[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"#, options: .regularExpression) {
+                    let uuidString = urlString[range]
+                    debugPrint("WKNavigationResponse: Found UUID: \(uuidString)")
+                    if let article = PlanetStore.shared.selectedArticleList?.first(where: { $0.id.uuidString == uuidString }) {
+                        Task { @MainActor in
+                            PlanetStore.shared.selectedArticle = article
+                        }
+                        decisionHandler(.cancel)
+                        return
+                    }
+                }
                 decisionHandler(.download)
             }
         }
