@@ -157,7 +157,7 @@ class WriterCustomTextView: NSView {
     }
 
     required init?(coder aDecoder: NSCoder) {
-        fatalError()
+        fatalError("WriterCustomTextView: required init?(coder: NSCoder) not implemented")
     }
 
     override func viewWillDraw() {
