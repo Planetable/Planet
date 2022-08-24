@@ -57,6 +57,7 @@ extension Notification.Name {
     static let clearText = Notification.Name("PlanetWriterClearTextNotification")
     static let insertText = Notification.Name("PlanetWriterInsertTextNotification")
     static let removeText = Notification.Name("PlanetWriterRemoveTextNotification")
+    static let scrollText = Notification.Name("PlanetWriterScrollTextNotification")
     static let moveCursorFront = Notification.Name("PlanetWriterMoveCursorFrontNotification")
     static let moveCursorEnd = Notification.Name("PlanetWriterMoveCursorEndNotification")
     static let loadPreview = Notification.Name("PlanetWriterLoadDraftPreviewNotification")
@@ -119,7 +120,7 @@ extension URL {
         let URLString : String = String(format: "%@?%@", absoluteString, parametersDictionary.queryParameters)
         return URL(string: URLString)!
     }
-    
+
     func sanitizedLink() -> String {
         if self.fragment != nil {
             let s = self.standardized.absoluteString

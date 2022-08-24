@@ -7,7 +7,6 @@ import os
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "WriterStore")
 
     @Published var writers: [DraftModel: WriterWindow] = [:]
-    @Published var activeDraft: DraftModel? = nil
 
     func newArticle(for planet: MyPlanetModel) throws {
         let draft: DraftModel
@@ -41,9 +40,5 @@ import os
             let window = WriterWindow(draft: draft)
             writers[draft] = window
         }
-    }
-
-    func setActiveDraft(draft: DraftModel?) {
-        activeDraft = draft
     }
 }

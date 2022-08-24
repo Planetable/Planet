@@ -15,7 +15,7 @@ struct WriterTextView: NSViewRepresentable {
         let textView = WriterCustomTextView(draft: draft, text: text, font: font)
         textView.delegate = context.coordinator
         NotificationCenter.default.addObserver(
-            forName: Notification.Name.writerNotification(.insertText, for: draft),
+            forName: .writerNotification(.insertText, for: draft),
             object: nil,
             queue: .main
         ) { notification in
@@ -23,7 +23,7 @@ struct WriterTextView: NSViewRepresentable {
             textView.insertTextAtCursor(text: text)
         }
         NotificationCenter.default.addObserver(
-            forName: Notification.Name.writerNotification(.removeText, for: draft),
+            forName: .writerNotification(.removeText, for: draft),
             object: nil,
             queue: .main
         ) { notification in
@@ -118,6 +118,7 @@ class WriterCustomTextView: NSView {
     @ObservedObject var draft: DraftModel
     private var font: NSFont?
     private var lastOffset: Float = 0
+    private var scrollTimer: Timer? = nil
     unowned var delegate: NSTextViewDelegate?
     var text: String
     var selectedRanges: [NSValue] = []
@@ -127,10 +128,34 @@ class WriterCustomTextView: NSView {
         self.font = font
         self.text = text
         super.init(frame: .zero)
+
+        // Synchronize writer preview with text cursor every second
+        // use [weak self] to not to create a retain cycle
+        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] timer in
+            guard let unwrappedSelf = self else {
+                return
+            }
+            debugPrint("Firing scrollText for draft \(unwrappedSelf.draft.id)")
+            guard let scroller = unwrappedSelf.scrollView.verticalScroller,
+                  unwrappedSelf.lastOffset != scroller.floatValue
+            else { return }
+            let notification = Notification.Name.writerNotification(.scrollText, for: unwrappedSelf.draft)
+            NotificationCenter.default.post(name: notification, object: NSNumber(value: scroller.floatValue))
+            unwrappedSelf.lastOffset = scroller.floatValue
+        }
+        scrollTimer = timer
+        RunLoop.main.add(timer, forMode: .default)
     }
 
     required init?(coder: NSCoder) {
         fatalError()
+    }
+
+    deinit {
+        // BUG: it seems like the object is NOT released as expected
+        debugPrint("Deinit WriterCustomTextView for draft \(draft.id) ")
+        scrollTimer?.invalidate()
+        scrollTimer = nil
     }
 
     override func viewWillDraw() {

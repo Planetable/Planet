@@ -38,7 +38,6 @@ class WriterWindow: NSWindow {
         do {
             try draft.saveToArticle()
             WriterStore.shared.writers.removeValue(forKey: draft)
-            WriterStore.shared.setActiveDraft(draft: nil)
 
             close()
         } catch {
@@ -185,9 +184,5 @@ extension WriterWindow: NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         WriterStore.shared.writers.removeValue(forKey: draft)
-    }
-
-    func windowDidBecomeKey(_ notification: Notification) {
-        WriterStore.shared.setActiveDraft(draft: draft)
     }
 }

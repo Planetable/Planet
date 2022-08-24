@@ -84,16 +84,14 @@
     </style>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        let pos = localStorage.getItem('scrollpos');
+        let pos = JSON.parse(localStorage.getItem('scrollpos'));
         if (pos) {
           window.scrollTo(0, pos);
         }
       });
-      function saveScroll() {
-        localStorage.setItem('scrollpos', window.scrollY);
-      }
       function scrollPosition(positionPercent) {
         window.scrollTo(0, document.body.scrollHeight * positionPercent);
+        localStorage.setItem('scrollpos', JSON.stringify(window.scrollY));
       }
     </script>
   </head>

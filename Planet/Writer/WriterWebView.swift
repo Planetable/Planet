@@ -19,12 +19,15 @@ struct WriterWebView: NSViewRepresentable {
             object: nil,
             queue: .main
         ) { _ in
-            webView.evaluateJavaScript("saveScroll();") { _, error in
-                if let error = error {
-                    debugPrint("failed to evaluate js: \(error)")
-                }
-                webView.loadFileURL(draft.previewPath, allowingReadAccessTo: draft.attachmentsPath)
-            }
+            webView.loadFileURL(draft.previewPath, allowingReadAccessTo: draft.attachmentsPath)
+        }
+        NotificationCenter.default.addObserver(
+            forName: .writerNotification(.scrollText, for: draft),
+            object: nil,
+            queue: .main
+        ) { notification in
+            guard let offset = notification.object as? NSNumber else { return }
+            webView.evaluateJavaScript("scrollPosition(\(offset.floatValue));")
         }
         return webView
     }
