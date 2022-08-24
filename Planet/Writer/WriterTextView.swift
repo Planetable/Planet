@@ -37,6 +37,15 @@ struct WriterTextView: NSViewRepresentable {
         nsView.text = text
     }
 
+    static func dismantleNSView(
+    _ nsView: Self.NSViewType,
+    coordinator: Self.Coordinator
+    ) {
+        debugPrint("Dismantle WriterCustomTextView for draft \(nsView.draft.id) ")
+        nsView.scrollTimer?.invalidate()
+        nsView.scrollTimer = nil
+    }
+
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: WriterTextView
         var selectedRanges: [NSValue] = []
@@ -118,7 +127,7 @@ class WriterCustomTextView: NSView {
     @ObservedObject var draft: DraftModel
     private var font: NSFont?
     private var lastOffset: Float = 0
-    private var scrollTimer: Timer? = nil
+    var scrollTimer: Timer? = nil
     unowned var delegate: NSTextViewDelegate?
     var text: String
     var selectedRanges: [NSValue] = []
@@ -147,15 +156,8 @@ class WriterCustomTextView: NSView {
         RunLoop.main.add(timer, forMode: .default)
     }
 
-    required init?(coder: NSCoder) {
+    required init?(coder aDecoder: NSCoder) {
         fatalError()
-    }
-
-    deinit {
-        // BUG: it seems like the object is NOT released as expected
-        debugPrint("Deinit WriterCustomTextView for draft \(draft.id) ")
-        scrollTimer?.invalidate()
-        scrollTimer = nil
     }
 
     override func viewWillDraw() {
