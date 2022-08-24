@@ -107,16 +107,20 @@ struct ArticleWebView: NSViewRepresentable {
         func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
             if navigationResponse.canShowMIMEType, let url = navigationResponse.response.url, let mimeType = navigationResponse.response.mimeType {
                 if shouldHandleDownloadForMIMEType(mimeType) {
+                    debugPrint("WKNavigationResponse: .download branch 1 -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))")
                     decisionHandler(.download)
                 } else {
                     if navigationType == .linkActivated, isValidatedLink(url) {
+                        debugPrint("WKNavigationResponse: open in external browser -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))")
                         NSWorkspace.shared.open(url)
                         decisionHandler(.cancel)
                         return
                     }
+                    debugPrint("WKNavigationResponse: .allow -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))")
                     decisionHandler(.allow)
                 }
             } else {
+                debugPrint("WKNavigationResponse: .download branch 2 -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))")
                 decisionHandler(.download)
             }
         }
