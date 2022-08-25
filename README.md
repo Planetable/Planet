@@ -16,6 +16,10 @@ Planet can follow any ENS with a [EIP-1577](https://eips.ethereum.org/EIPS/eip-1
 
 <img width="1528" src="Screenshots/vitalik.eth.png" alt="vitalik.eth">
 
+## Backup
+
+Before you try this app out, please be advised that it is still at an early stage, and many changes happen. So we recommend you backup your data, especially your IPNS key, from time to time. When you use `Export Planet`, it will include your IPNS key.
+
 ## Build the macOS App
 
 To use your own build config for setting `DEVELOPMENT_TEAM`, please create a `local.xcconfig` file alongside the `Planet.xcconfig` file.
