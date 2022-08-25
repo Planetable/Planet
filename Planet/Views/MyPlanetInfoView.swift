@@ -13,13 +13,22 @@ struct MyPlanetInfoView: View {
         ZStack {
             VStack(alignment: .center) {
                 MyPlanetAvatarView(planet: planet)
-                .padding(.top, 20)
-                .padding(.bottom, 5)
+                    .padding(.top, 20)
+                    .padding(.bottom, 5)
 
                 Text(planet.name)
                     .font(.title)
-                Text(planet.about)
-                    .font(.body)
+
+                if let attributedString = try? AttributedString(
+                    markdown: planet.about
+                ) {
+                    Text(attributedString)
+                        .font(.body)
+                }
+                else {
+                    Text(planet.about)
+                        .font(.body)
+                }
 
                 Spacer()
 
@@ -39,7 +48,7 @@ struct MyPlanetInfoView: View {
                     } label: {
                         Text(planet.isPublishing ? "Publishing" : "Publish")
                     }
-                        .disabled(planet.isPublishing)
+                    .disabled(planet.isPublishing)
 
                     Spacer()
 
@@ -52,9 +61,9 @@ struct MyPlanetInfoView: View {
                 }
             }
 
-                .background(
-                    SharingServicePicker(isPresented: $isSharing, sharingItems: [planetIPNS])
-                )
+            .background(
+                SharingServicePicker(isPresented: $isSharing, sharingItems: [planetIPNS])
+            )
 
             VStack {
                 HStack {
@@ -73,16 +82,15 @@ struct MyPlanetInfoView: View {
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 16, height: 16, alignment: .center)
                     }
-                        .buttonStyle(PlainButtonStyle())
-                        .keyboardShortcut(.escape, modifiers: [])
+                    .buttonStyle(PlainButtonStyle())
+                    .keyboardShortcut(.escape, modifiers: [])
                 }
                 Spacer()
             }
         }
-            .padding()
-            .frame(width: 320, height: 260, alignment: .center)
+        .padding()
+        .frame(width: 320, height: 260, alignment: .center)
     }
-
 
     func lastPublishedText() -> String {
         if let published = planet.lastPublished {
