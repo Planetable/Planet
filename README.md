@@ -4,6 +4,22 @@ Planet is a free and open-source software for publishing and following web conte
 
 <img width="1371" src="Screenshots/planetable.eth.png" alt="planetable.eth">
 
+## Features
+
+- Build a blog and publish it to IPFS
+- Built-in local IPFS node
+- Generate an IPNS that is ready to be set as [EIP-1577](https://eips.ethereum.org/EIPS/eip-1577) ENS contenthash
+- Pinning content when following, make content usable offline
+- Follow the updates of websites running on ENS, NFT avatar as site icon is supported
+- Markdown editor with live preview
+- Attach video, audio, or any format of files
+- Star or share posts
+- Global audio player
+- Template browser for managing and building templates
+- Integration with [WorldWideWeb](https://apps.apple.com/us/app/worldwideweb-desktop/id1621370168?mt=12) for previewing sites built with Planet
+- Integration with Plausible.io for traffic analytics, example: [plausible.io/planetable.eth.limo](https://plausible.io/planetable.eth.limo)
+- RSS reader, all three formats, RSS, Atom, and JSON Feed, are supported
+
 ## Sites Using Planet
 
 If you would like to add your site to this list, please share it in a [discussion](https://github.com/Planetable/Planet/discussions). We can't wait to see your creations!
