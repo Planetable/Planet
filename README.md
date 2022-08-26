@@ -2,6 +2,8 @@
 
 Planet is a free and open-source software for publishing and following web content, and it does not require a centralized server or service. It uses IPFS to achieve peer-to-peer content distribution. Furthermore, you can link your content to an Ethereum Name (.eth) so that others can follow you via Planet by the .eth name. Since both IPFS and ENS are decentralized, you can build your websites or follow others, all in a decentralized manner.
 
+<img width="1371" src="Screenshots/planetable.eth.png" alt="planetable.eth">
+
 ## Sites Using Planet
 
 If you would like to add your site to this list, please share it in a [discussion](https://github.com/Planetable/Planet/discussions). We can't wait to see your creations!
