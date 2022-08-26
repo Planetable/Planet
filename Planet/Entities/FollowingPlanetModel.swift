@@ -211,6 +211,18 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
     }
 
+    static func deduplicate(_ articles: [PublicArticleModel]) -> [PublicArticleModel] {
+        var result: [PublicArticleModel] = []
+        var links: [String] = []
+        for article in articles {
+            if !links.contains(article.link) {
+                result.append(article)
+                links.append(article.link)
+            }
+        }
+        return result
+    }
+
     static func followENS(ens: String) async throws -> FollowingPlanetModel {
         guard let resolver = try await ENSUtils.shared.resolver(name: ens) else {
             throw PlanetError.InvalidPlanetURLError
@@ -321,7 +333,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 lastRetrieved: now
             )
             if let publicArticles = feed.articles {
-                planet.articles = publicArticles.map {
+                let items = deduplicate(publicArticles)
+                planet.articles = items.map {
                     FollowingArticleModel.from(publicArticle: $0, planet: planet)
                 }
                 planet.articles.sort { $0.created > $1.created }
@@ -424,17 +437,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         )
 
         if let publicArticles = feed.articles {
-            let items: [PublicArticleModel] = {
-                var items: [PublicArticleModel] = []
-                var links: [String] = []
-                for publicArticle in publicArticles {
-                    if !links.contains(publicArticle.link) {
-                        items.append(publicArticle)
-                        links.append(publicArticle.link)
-                    }
-                }
-                return items
-            }()
+            let items: [PublicArticleModel] = deduplicate(publicArticles)
             planet.articles = items.map {
                 FollowingArticleModel.from(publicArticle: $0, planet: planet)
             }
@@ -569,7 +572,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 lastRetrieved: now
             )
             if let publicArticles = feed.articles {
-                planet.articles = publicArticles.map {
+                let items: [PublicArticleModel] = deduplicate(publicArticles)
+                planet.articles = items.map {
                     FollowingArticleModel.from(publicArticle: $0, planet: planet)
                 }
                 planet.articles.sort { $0.created > $1.created }
