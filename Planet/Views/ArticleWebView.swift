@@ -141,13 +141,24 @@ struct ArticleWebView: NSViewRepresentable {
             completionHandler(.performDefaultHandling, nil)
         }
 
-        func webView(
+        @MainActor func webView(
             _ webView: WKWebView,
             decidePolicyFor navigationAction: WKNavigationAction,
             preferences: WKWebpagePreferences,
             decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void
         ) {
+            if let url = navigationAction.request.url,
+                    let article = findInternalArticleLink(url: url)
+                {
+                    Task { @MainActor in
+                        PlanetStore.shared.selectedArticle = article
+                    }
+                    decisionHandler(.cancel, preferences)
+                    return
+                }
+
             // handle (ignore) target="_blank" (open in new window) link as external
+
             if navigationAction.targetFrame == nil, let externalURL = navigationAction.request.url,
                 isValidatedLink(externalURL)
             {
@@ -182,13 +193,6 @@ struct ArticleWebView: NSViewRepresentable {
                 }
                 else {
                     if navigationType == .linkActivated, isValidatedLink(url) {
-                        if let article = findInternalArticleLink(url: url) {
-                            Task { @MainActor in
-                                PlanetStore.shared.selectedArticle = article
-                            }
-                            decisionHandler(.cancel)
-                            return
-                        }
                         debugPrint(
                             "WKNavigationResponse: open in external browser -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))"
                         )
