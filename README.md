@@ -18,7 +18,9 @@ Planet is a free and open-source software for publishing and following web conte
 - Template browser for managing and building templates
 - Integration with [WorldWideWeb](https://apps.apple.com/us/app/worldwideweb-desktop/id1621370168?mt=12) for previewing sites built with Planet
 - Integration with Plausible.io for traffic analytics, example: [plausible.io/planetable.eth.limo](https://plausible.io/planetable.eth.limo)
+- Export/Import website
 - RSS reader, all three formats, RSS, Atom, and JSON Feed, are supported
+- Sandboxed native macOS app created with SwiftUI 3
 
 ## Sites Using Planet
 
