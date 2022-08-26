@@ -424,7 +424,18 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         )
 
         if let publicArticles = feed.articles {
-            planet.articles = publicArticles.map {
+            let items: [PublicArticleModel] = {
+                var items: [PublicArticleModel] = []
+                var links: [String] = []
+                for publicArticle in publicArticles {
+                    if !links.contains(publicArticle.link) {
+                        items.append(publicArticle)
+                        links.append(publicArticle.link)
+                    }
+                }
+                return items
+            }()
+            planet.articles = items.map {
                 FollowingArticleModel.from(publicArticle: $0, planet: planet)
             }
             planet.articles.sort { $0.created > $1.created }
