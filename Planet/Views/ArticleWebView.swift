@@ -93,6 +93,9 @@ struct ArticleWebView: NSViewRepresentable {
                     if let followingArticle = item as? FollowingArticleModel {
                         return followingArticle.link.contains(uuidString)
                     }
+                    if let myArticle = item as? MyArticleModel {
+                        return myArticle.link.contains(uuidString)
+                    }
                     return false
                 }) {
                     if article.id.uuidString != PlanetStore.shared.selectedArticle?.id.uuidString {
