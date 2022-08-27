@@ -43,6 +43,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         }
     }
     var browserURL: URL? {
+        debugPrint("Generating BrowserURL: planet.type: \(planet.planetType) planet.link: \(planet.link) article.link: \(link)")
         switch planet.planetType {
         case .planet:
             // planet article link: /12345678-90AB-CDEF-1234-567890ABCDEF/

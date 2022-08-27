@@ -89,10 +89,14 @@ struct ArticleWebView: NSViewRepresentable {
             ) {
                 let uuidString = urlString[range]
                 debugPrint("WKNavigationResponse: Found UUID: \(uuidString)")
-                if let article = PlanetStore.shared.selectedArticleList?.first(where: {
-                    $0.id.uuidString == uuidString
+                if let article = PlanetStore.shared.selectedArticleList?.first(where: { item in
+                    if let followingArticle = item as? FollowingArticleModel {
+                        return followingArticle.link.contains(uuidString)
+                    }
+                    return false
                 }) {
                     if article.id.uuidString != PlanetStore.shared.selectedArticle?.id.uuidString {
+                        debugPrint("WKNavigationResponse: Found matching article: \(article.title)")
                         return article
                     }
                 }
@@ -210,15 +214,6 @@ struct ArticleWebView: NSViewRepresentable {
                 debugPrint(
                     "WKNavigationResponse: .download branch 2 -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))"
                 )
-                if let url = navigationResponse.response.url,
-                    let article = findInternalArticleLink(url: url)
-                {
-                    Task { @MainActor in
-                        PlanetStore.shared.selectedArticle = article
-                    }
-                    decisionHandler(.cancel)
-                    return
-                }
                 decisionHandler(.download)
             }
         }
