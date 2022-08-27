@@ -96,6 +96,7 @@ struct ArticleWebView: NSViewRepresentable {
                     if let myArticle = item as? MyArticleModel {
                         return myArticle.link.contains(uuidString)
                     }
+                    debugPrint("WKNavigationResponse: Found UUID but not matching article: \(uuidString)")
                     return false
                 }) {
                     if article.id.uuidString != PlanetStore.shared.selectedArticle?.id.uuidString {
