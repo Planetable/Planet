@@ -15,8 +15,13 @@ struct AboutFollowingPlanetView: View {
                     .padding(.top, 20)
                     .padding(.bottom, 5)
 
-                Text(planet.name)
+                HStack(spacing: 8) {
+                    Text(planet.name)
                     .font(.title)
+                    if planet.planetType == .ens {
+                        Image("ENS").resizable().frame(width: 16, height: 16)
+                    }
+                }
 
                 if let attributedString = try? AttributedString(
                     markdown: planet.about
