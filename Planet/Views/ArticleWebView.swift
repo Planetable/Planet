@@ -158,10 +158,10 @@ struct ArticleWebView: NSViewRepresentable {
             if let url = navigationAction.request.url,
                     let article = findInternalArticleLink(url: url)
                 {
+                    decisionHandler(.cancel, preferences)
                     Task { @MainActor in
                         PlanetStore.shared.selectedArticle = article
                     }
-                    decisionHandler(.cancel, preferences)
                     return
                 }
 
