@@ -185,7 +185,7 @@ struct ArticleWebView: NSViewRepresentable {
             navigationType = navigationAction.navigationType
         }
 
-        @MainActor func webView(
+        func webView(
             _ webView: WKWebView,
             decidePolicyFor navigationResponse: WKNavigationResponse,
             decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
