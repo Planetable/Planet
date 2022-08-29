@@ -80,6 +80,22 @@ struct ArticleWebView: NSViewRepresentable {
             return false
         }
 
+        private func isPlanetLink(_ url: URL) -> Bool {
+            let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            if components?.scheme == "planet" {
+                return true
+            }
+            return false
+        }
+
+        private func isInternalArticleLink(_ url: URL) -> Bool {
+            let urlString = url.lastPathComponent
+            if let _ = UUID(uuidString: urlString) {
+                return true
+            }
+            return false
+        }
+
         @MainActor private func findInternalArticleLink(url: URL) -> ArticleModel? {
             let urlString = url.lastPathComponent
             if let range = urlString.range(
@@ -144,35 +160,41 @@ struct ArticleWebView: NSViewRepresentable {
             _ webView: WKWebView,
             didReceive challenge: URLAuthenticationChallenge,
             completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) ->
-                Void
+            Void
         ) {
             completionHandler(.performDefaultHandling, nil)
         }
 
-        @MainActor func webView(
+        func webView(
             _ webView: WKWebView,
             decidePolicyFor navigationAction: WKNavigationAction,
             preferences: WKWebpagePreferences,
             decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void
         ) {
-            if let url = navigationAction.request.url,
-                    let article = findInternalArticleLink(url: url)
-                {
-                    decisionHandler(.cancel, preferences)
-                    Task { @MainActor in
-                        PlanetStore.shared.selectedArticle = article
-                    }
-                    return
-                }
-
             // handle (ignore) target="_blank" (open in new window) link as external
-
             if navigationAction.targetFrame == nil, let externalURL = navigationAction.request.url,
-                isValidatedLink(externalURL)
+               isValidatedLink(externalURL)
             {
                 NSWorkspace.shared.open(externalURL)
                 decisionHandler(.cancel, preferences)
                 return
+            }
+            else if let targetLink = navigationAction.request.url, isPlanetLink(targetLink) {
+                // MARK: TODO: redirect to or follow planet.
+                debugPrint("processing planet link: \(targetLink)")
+            }
+            else if let targetLink = navigationAction.request.url, isInternalArticleLink(targetLink) {
+                // MARK: TODO: redirect to article if exists, otherwise open in system browser.
+                debugPrint("processing article link: \(targetLink)")
+//                Task(priority: .userInitiated) {
+//                    debugPrint("processing internal article link: \(targetLink)")
+//                    await MainActor.run {
+//                        guard let targetArticle = self.findInternalArticleLink(url: targetLink) else { return }
+//                        PlanetStore.shared.selectedArticle = targetArticle
+//                    }
+//                }
+//                decisionHandler(.cancel, preferences)
+//                return
             }
             else {
                 if navigationAction.shouldPerformDownload {
@@ -191,7 +213,7 @@ struct ArticleWebView: NSViewRepresentable {
             decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
         ) {
             if navigationResponse.canShowMIMEType, let url = navigationResponse.response.url,
-                let mimeType = navigationResponse.response.mimeType
+               let mimeType = navigationResponse.response.mimeType
             {
                 if shouldHandleDownloadForMIMEType(mimeType) {
                     debugPrint(
@@ -279,10 +301,10 @@ struct ArticleWebView: NSViewRepresentable {
 
         func downloadDidFinish(_ download: WKDownload) {
             if let url = download.progress.fileURL,
-                let userDownloadsDir = FileManager.default.urls(
-                    for: .downloadsDirectory,
-                    in: .userDomainMask
-                ).first
+               let userDownloadsDir = FileManager.default.urls(
+                for: .downloadsDirectory,
+                in: .userDomainMask
+               ).first
             {
                 let downloadedURL = userDownloadsDir.appendingPathComponent(url.lastPathComponent)
                 try? FileManager.default.moveItem(at: url, to: downloadedURL)
@@ -294,7 +316,7 @@ struct ArticleWebView: NSViewRepresentable {
             _ download: WKDownload,
             didReceive challenge: URLAuthenticationChallenge,
             completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) ->
-                Void
+            Void
         ) {
             completionHandler(.performDefaultHandling, nil)
         }
