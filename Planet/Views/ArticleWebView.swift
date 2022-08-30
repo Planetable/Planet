@@ -180,8 +180,18 @@ struct ArticleWebView: NSViewRepresentable {
                 return
             }
             else if let targetLink = navigationAction.request.url, isPlanetLink(targetLink) {
-                // MARK: TODO: redirect to or follow planet.
-                debugPrint("processing planet link: \(targetLink)")
+                let link = targetLink.absoluteString.replacingOccurrences(of: "planet://", with: "")
+                Task.detached { @MainActor in
+                    do {
+                        let planet = try await FollowingPlanetModel.follow(link: link)
+                        PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+                        PlanetStore.shared.selectedView = .followingPlanet(planet)
+                    } catch {
+                        debugPrint("failed to follow a planet: \(targetLink)")
+                    }
+                }
+                decisionHandler(.cancel, preferences)
+                return
             }
             else if let targetLink = navigationAction.request.url, isInternalArticleLink(targetLink) {
                 // MARK: TODO: redirect to article if exists, otherwise open in system browser.
@@ -195,6 +205,8 @@ struct ArticleWebView: NSViewRepresentable {
 //                }
 //                decisionHandler(.cancel, preferences)
 //                return
+                decisionHandler(.cancel, preferences)
+                return
             }
             else {
                 if navigationAction.shouldPerformDownload {
