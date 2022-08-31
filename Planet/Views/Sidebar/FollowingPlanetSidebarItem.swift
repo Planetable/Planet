@@ -51,8 +51,10 @@ struct FollowingPlanetSidebarItem: View {
                 .disabled(planet.isUpdating)
 
                 Button {
-                    planet.articles.forEach { $0.read = Date() }
-                    try? planet.save()
+                    planet.articles.forEach {
+                        $0.read = Date()
+                        try? $0.save()
+                    }
                 } label: {
                     Text("Mark All as Read")
                 }
