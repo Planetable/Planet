@@ -173,7 +173,7 @@ struct FeedUtils {
         return nil
     }
 
-    static func parseFeed(data: Data) throws -> (
+    static func parseFeed(data: Data) async throws -> (
         name: String?,
         about: String?,
         avatar: Data?,

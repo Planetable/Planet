@@ -319,7 +319,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         var feedAvatar: Data? = nil
         if let feedData = feedData {
             Self.logger.info("Follow \(ens): found feed")
-            let feed = try FeedUtils.parseFeed(data: feedData)
+            let feed = try await FeedUtils.parseFeed(data: feedData)
             feedAvatar = feed.avatar
             planet = FollowingPlanetModel(
                 id: UUID(),
@@ -414,7 +414,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             throw PlanetError.InvalidPlanetURLError
         }
         Self.logger.info("Follow \(link): found feed")
-        let feed = try FeedUtils.parseFeed(data: feedData)
+        let feed = try await FeedUtils.parseFeed(data: feedData)
         let now = Date()
         let planet = FollowingPlanetModel(
             id: UUID(),
@@ -558,7 +558,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         var feedAvatar: Data? = nil
         if let feedData = feedData {
             Self.logger.info("Follow \(name): found feed")
-            let feed = try FeedUtils.parseFeed(data: feedData)
+            let feed = try await FeedUtils.parseFeed(data: feedData)
             feedAvatar = feed.avatar
             planet = FollowingPlanetModel(
                 id: UUID(),
@@ -713,7 +713,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             guard let feedData = feedData else {
                 throw PlanetError.InvalidPlanetURLError
             }
-            let feed = try FeedUtils.parseFeed(data: feedData)
+            let feed = try await FeedUtils.parseFeed(data: feedData)
             let now = Date()
 
             await MainActor.run {
@@ -839,7 +839,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 throw PlanetError.InvalidPlanetURLError
             }
             Self.logger.info("Planet \(self.name) feed data fetched: \(feedData.count) bytes")
-            let feed = try FeedUtils.parseFeed(data: feedData)
+            let feed = try await FeedUtils.parseFeed(data: feedData)
             let now = Date()
 
             await MainActor.run {
@@ -881,7 +881,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             guard let feedData = feedData else {
                 throw PlanetError.PlanetFeedError
             }
-            let feed = try FeedUtils.parseFeed(data: feedData)
+            let feed = try await FeedUtils.parseFeed(data: feedData)
 
             var feedAvatar: Data? = nil
             if feed.avatar == nil {
@@ -985,15 +985,18 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     await MainActor.run {
                         article.title = publicArticle.title
                         article.content = publicArticle.content
-                        article.summary = FollowingArticleModel.extractSummary(
-                            article: article,
-                            planet: self
-                        )
                         // If you added a new feature to the article model
                         // Remember to take care of the updates here
                         article.audioFilename = publicArticle.audioFilename
                         article.videoFilename = publicArticle.videoFilename
                         article.attachments = publicArticle.attachments
+                    }
+                    let summary: String? = FollowingArticleModel.extractSummary(
+                        article: article,
+                        planet: self
+                    )
+                    await MainActor.run {
+                        article.summary = summary
                     }
                     try article.save()
                     existingArticleMap.removeValue(forKey: link)
