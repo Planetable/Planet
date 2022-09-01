@@ -89,8 +89,12 @@ struct ArticleWebView: NSViewRepresentable {
         }
 
         private func isInternalArticleLink(_ url: URL) -> Bool {
-            // file link is not an internal link:
+            // file link is not an internal link, check for local and public gateway article links:
             /*
+             // public
+             https://www.cloudflare-ipfs.com/ipns/k51qzi5uqu5dgt38bap3uz6k0sizcscrl2khow28r2148yietg6qkok20ncsu3/57A5E55F-1162-4C05-948C-768FDEEF2C31/
+
+             // local
              http://127.0.0.1:18181/ipfs/bafybeidu5amq53cmc6mn6timcopof63dk5674gjhaguyogjuunkcykxd7e/3C473A64-4309-4CFC-BD7C-80E23C3C391D/
              */
             debugPrint("checking if it is internal url: \(url)")
@@ -99,7 +103,6 @@ struct ArticleWebView: NSViewRepresentable {
                 let cidString = url.deletingLastPathComponent().lastPathComponent
                 let ipfsTag = url.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent
                 debugPrint("scheme: \(scheme), host: \(host), port: \(port), uuid: \(uuidString), cid: \(cidString), ipfs tag: \(ipfsTag)")
-                // MARK: TODO: Should verify host as well.
                 if let _ = UUID(uuidString: uuidString), cidString.count == "bafybeigbofhj4t4uxqwd7u6lxdqve3xazrjchagwsoqtcxilpge6sexnuq".count, ipfsTag == "ipfs", port == IPFSDaemon.shared.gatewayPort {
                     debugPrint("is internal link")
                     return true

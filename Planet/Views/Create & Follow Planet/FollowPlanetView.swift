@@ -36,16 +36,14 @@ struct FollowPlanetView: View {
                         )
                 }
             }
-                .frame(height: 60)
-                .padding(.all, 16)
+            .frame(height: 60)
+            .padding(.all, 16)
 
             Divider()
 
             HStack {
                 Button {
-                    isCancelled = true
-                    isFollowing = false
-                    dismiss()
+                    cancelAction()
                 } label: {
                     Text("Cancel")
                 }
@@ -54,30 +52,7 @@ struct FollowPlanetView: View {
                 Spacer()
 
                 Button {
-                    isFollowing = true
-                    Task {
-                        do {
-                            let planet = try await FollowingPlanetModel.follow(link: link)
-                            if isCancelled {
-                                planet.delete()
-                            } else {
-                                planetStore.followingPlanets.insert(planet, at: 0)
-                                planetStore.selectedView = .followingPlanet(planet)
-                            }
-                        } catch PlanetError.PlanetExistsError {
-                            // ignore
-                        } catch PlanetError.ENSNoContentHashError {
-                            PlanetStore.shared.alert(
-                                title: "Unable to follow planet",
-                                message: "This ENS has no contenthash."
-                            )
-                        } catch {
-                            PlanetStore.shared.alert(title: "Failed to follow planet", message: "\(error)")
-                        }
-                        isCancelled = false
-                        isFollowing = false
-                        dismiss()
-                    }
+                    followAction()
                 } label: {
                     Text("Follow")
                 }
@@ -86,5 +61,59 @@ struct FollowPlanetView: View {
             .padding(16)
         }
         .frame(width: 480, alignment: .center)
+        .task {
+            // Follow a new planet from internal planet links.
+            Task { @MainActor in
+                guard self.planetStore.followingPlanetLink != "" else { return }
+                self.link = self.planetStore.followingPlanetLink
+                self.followAction()
+            }
+        }
+    }
+
+    private func cancelAction() {
+        isCancelled = true
+        isFollowing = false
+        dismiss()
+        Task { @MainActor in
+            self.planetStore.followingPlanetLink = ""
+        }
+    }
+
+    private func followAction() {
+        isFollowing = true
+        Task {
+            do {
+                let planet = try await FollowingPlanetModel.follow(link: link)
+                if isCancelled {
+                    planet.delete()
+                } else {
+                    planetStore.followingPlanets.insert(planet, at: 0)
+                    planetStore.selectedView = .followingPlanet(planet)
+                }
+            } catch PlanetError.PlanetExistsError {
+                // ignore
+            } catch PlanetError.ENSNoContentHashError {
+                if !isCancelled {
+                    PlanetStore.shared.alert(
+                        title: "Unable to follow planet",
+                        message: "This ENS has no contenthash."
+                    )
+                }
+            } catch {
+                if !isCancelled {
+                    PlanetStore.shared.alert(
+                        title: "Failed to follow planet",
+                        message: "\(error)"
+                    )
+                }
+            }
+            isCancelled = false
+            isFollowing = false
+            dismiss()
+            Task { @MainActor in
+                self.planetStore.followingPlanetLink = ""
+            }
+        }
     }
 }
