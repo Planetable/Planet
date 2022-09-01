@@ -61,6 +61,10 @@ class FollowingArticleModel: ArticleModel, Codable {
             }
             return nil
         case .dnslink:
+            // TODO: Fix how type 0 planet was mishandled as a dnslink
+            if planet.link.count == 62, planet.link.starts(with: "k51"), link.starts(with: "/") {
+                return URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.link)\(link)")
+            }
             return URL(string: link)?.absoluteURL
         case .dns:
             if let planetLink = URL(string: planet.link) {
