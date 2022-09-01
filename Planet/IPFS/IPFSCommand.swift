@@ -140,6 +140,15 @@ struct IPFSCommand {
         ])
     }
 
+    static func setSwarmConnMgr(_ jsonString: String) -> IPFSCommand {
+        IPFSCommand(arguments: [
+            "config",
+            "Swarm.ConnMgr",
+            jsonString,
+            "--json"
+        ])
+    }
+
     static func launchDaemon() -> IPFSCommand {
         IPFSCommand(arguments: ["daemon", "--migrate", "--enable-namesys-pubsub", "--enable-pubsub-experiment"])
     }

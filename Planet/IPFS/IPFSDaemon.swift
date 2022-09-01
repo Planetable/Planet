@@ -80,6 +80,17 @@ actor IPFSDaemon {
         else {
             fatalError("Unable to set peers for IPFS")
         }
+        let swarmConnMgr = JSON([
+            "GracePeriod": "20s",
+            "HighWater": 240,
+            "LowWater": 120,
+            "Type": "basic"
+        ])
+        guard let result = try? IPFSCommand.setSwarmConnMgr(String(data: swarmConnMgr.rawData(), encoding: .utf8)!).run(),
+              result.ret == 0
+        else {
+            fatalError("Unable to set parameters for Swarm Connection Manager")
+        }
     }
 
     // Reference: https://stackoverflow.com/a/65162953
