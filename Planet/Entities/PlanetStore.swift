@@ -33,8 +33,20 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
     let indicatorTimer = Timer.publish(every: 1.25, tolerance: 0.25, on: .current, in: .default).autoconnect()
 
-    @Published var myPlanets: [MyPlanetModel] = []
-    @Published var followingPlanets: [FollowingPlanetModel] = []
+    @Published var myPlanets: [MyPlanetModel] = [] {
+        didSet {
+            Task { @MainActor in
+                ArticleWebViewModel.shared.updateMyPlanets(myPlanets)
+            }
+        }
+    }
+    @Published var followingPlanets: [FollowingPlanetModel] = [] {
+        didSet {
+            Task { @MainActor in
+                ArticleWebViewModel.shared.updateFollowingPlanets(followingPlanets)
+            }
+        }
+    }
     @Published var selectedView: PlanetDetailViewType? {
         didSet {
             if selectedView != oldValue {

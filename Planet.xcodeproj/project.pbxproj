@@ -34,6 +34,7 @@
 		2AC4996C27BB99DC00F1C2D1 /* Stencil in Frameworks */ = {isa = PBXBuildFile; productRef = 2AC4996B27BB99DC00F1C2D1 /* Stencil */; };
 		2AC4997427BC0EBA00F1C2D1 /* Planet.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4997227BC0EBA00F1C2D1 /* Planet.xcdatamodeld */; };
 		2AE07DDA27C9F4EA00377651 /* ArticleWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE07DD927C9F4EA00377651 /* ArticleWebView.swift */; };
+		2AEEBF5428C0758000A0A092 /* ArticleWebViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */; };
 		2AF1318727C7CDAF007792FE /* ArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF1318627C7CDAF007792FE /* ArticleView.swift */; };
 		2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */; };
 		2AF4003927F2321F005DF1A9 /* WriterTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF4003827F2321F005DF1A9 /* WriterTextView.swift */; };
@@ -139,6 +140,7 @@
 		2AC4996927BB987B00F1C2D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2AC4997327BC0EBA00F1C2D1 /* Planet.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Planet.xcdatamodel; sourceTree = "<group>"; };
 		2AE07DD927C9F4EA00377651 /* ArticleWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleWebView.swift; sourceTree = "<group>"; };
+		2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleWebViewModel.swift; sourceTree = "<group>"; };
 		2AF1318627C7CDAF007792FE /* ArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleView.swift; sourceTree = "<group>"; };
 		2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = TemplatePlaceholder.html; sourceTree = "<group>"; };
 		2AF4003827F2321F005DF1A9 /* WriterTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriterTextView.swift; sourceTree = "<group>"; };
@@ -246,6 +248,7 @@
 				2A780CF827C76EF0007DC36A /* MyPlanetAvatarView.swift */,
 				2AF1318627C7CDAF007792FE /* ArticleView.swift */,
 				2AE07DD927C9F4EA00377651 /* ArticleWebView.swift */,
+				2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */,
 				2A441BB127C4DDDE0008A694 /* Create & Follow Planet */,
 				72114FAFE612D3D03B0CB4DA /* Components */,
 				721144D264DD084A74B49BF8 /* MyPlanetInfoView.swift */,
@@ -626,6 +629,7 @@
 				2A09A36127C2582B0003A0B5 /* ArticleListView.swift in Sources */,
 				2A780CF927C76EF0007DC36A /* MyPlanetAvatarView.swift in Sources */,
 				2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */,
+				2AEEBF5428C0758000A0A092 /* ArticleWebViewModel.swift in Sources */,
 				6A669052282BD6E6009E56E2 /* TemplateBrowserPreviewWebView.swift in Sources */,
 				2A79FB2E289819AD00F06DDF /* PlanetDownloadsItemView.swift in Sources */,
 				2AC4995D27BB758B00F1C2D1 /* Extensions.swift in Sources */,

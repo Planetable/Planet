@@ -89,9 +89,23 @@ struct ArticleWebView: NSViewRepresentable {
         }
 
         private func isInternalArticleLink(_ url: URL) -> Bool {
-            let urlString = url.lastPathComponent
-            if let _ = UUID(uuidString: urlString) {
-                return true
+            // file link is not an internal link:
+            /*
+             http://127.0.0.1:18181/ipfs/bafybeidu5amq53cmc6mn6timcopof63dk5674gjhaguyogjuunkcykxd7e/3C473A64-4309-4CFC-BD7C-80E23C3C391D/
+             */
+            debugPrint("checking if it is internal url: \(url)")
+            if let scheme = url.scheme, let host = url.host, let port = url.port {
+                let uuidString = url.lastPathComponent
+                let cidString = url.deletingLastPathComponent().lastPathComponent
+                let ipfsTag = url.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent
+                debugPrint("scheme: \(scheme), host: \(host), port: \(port), uuid: \(uuidString), cid: \(cidString), ipfs tag: \(ipfsTag)")
+                // MARK: TODO: Should verify host as well.
+                if let _ = UUID(uuidString: uuidString), cidString.count == "bafybeigbofhj4t4uxqwd7u6lxdqve3xazrjchagwsoqtcxilpge6sexnuq".count, ipfsTag == "ipfs", port == IPFSDaemon.shared.gatewayPort {
+                    debugPrint("is internal link")
+                    return true
+                }
+            } else {
+                debugPrint("not internal link.")
             }
             return false
         }
@@ -180,33 +194,46 @@ struct ArticleWebView: NSViewRepresentable {
                 return
             }
             else if let targetLink = navigationAction.request.url, isPlanetLink(targetLink) {
-                let link = targetLink.absoluteString.replacingOccurrences(of: "planet://", with: "")
-                Task.detached { @MainActor in
-                    do {
-                        let planet = try await FollowingPlanetModel.follow(link: link)
-                        PlanetStore.shared.followingPlanets.insert(planet, at: 0)
-                        PlanetStore.shared.selectedView = .followingPlanet(planet)
-                    } catch {
-                        debugPrint("failed to follow a planet: \(targetLink)")
-                    }
+                debugPrint("processing planet link: \(targetLink)")
+                var existings = ArticleWebViewModel.shared.checkPlanetLink(targetLink)
+                if let mime: MyPlanetModel = existings.mime {
+
+                    decisionHandler(.cancel, preferences)
+                    return
                 }
-                decisionHandler(.cancel, preferences)
-                return
+                else if let following: FollowingPlanetModel = existings.following {
+
+                    decisionHandler(.cancel, preferences)
+                    return
+                }
+                else {
+
+                    // Ask to follow or view directly with .limo link.
+
+                    decisionHandler(.allow, preferences)
+                    return
+                }
+                existings.mime = nil
+                existings.following = nil
             }
             else if let targetLink = navigationAction.request.url, isInternalArticleLink(targetLink) {
-                // MARK: TODO: redirect to article if exists, otherwise open in system browser.
                 debugPrint("processing article link: \(targetLink)")
-//                Task(priority: .userInitiated) {
-//                    debugPrint("processing internal article link: \(targetLink)")
-//                    await MainActor.run {
-//                        guard let targetArticle = self.findInternalArticleLink(url: targetLink) else { return }
-//                        PlanetStore.shared.selectedArticle = targetArticle
-//                    }
-//                }
-//                decisionHandler(.cancel, preferences)
-//                return
-                decisionHandler(.cancel, preferences)
-                return
+                var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
+                if let mime = existings.mime, let myArticle = existings.myArticle {
+
+                    decisionHandler(.cancel, preferences)
+                    return
+                }
+                else if let following = existings.following, let publicArticle = existings.publicArticle {
+
+                    decisionHandler(.cancel, preferences)
+                    return
+                }
+                else {
+                    // continue with internal link.
+                    decisionHandler(.allow, preferences)
+                    return
+                }
             }
             else {
                 if navigationAction.shouldPerformDownload {
