@@ -4,11 +4,6 @@ struct MyArticleItemView: View {
     @ObservedObject var article: MyArticleModel
 
     @State private var isShowingDeleteConfirmation = false
-    @State private var summaryLinesCount = 0 {
-        didSet {
-            print(summaryLinesCount)
-        }
-    }
 
     var body: some View {
         HStack {
