@@ -80,34 +80,6 @@ struct ArticleWebView: NSViewRepresentable {
             return false
         }
 
-        @MainActor private func findInternalArticleLink(url: URL) -> ArticleModel? {
-            let urlString = url.lastPathComponent
-            if let range = urlString.range(
-                of:
-                    #"[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"#,
-                options: .regularExpression
-            ) {
-                let uuidString = urlString[range]
-                debugPrint("WKNavigationResponse: Found UUID: \(uuidString)")
-                if let article = PlanetStore.shared.selectedArticleList?.first(where: { item in
-                    if let followingArticle = item as? FollowingArticleModel {
-                        return followingArticle.link.contains(uuidString)
-                    }
-                    if let myArticle = item as? MyArticleModel {
-                        return myArticle.link.contains(uuidString)
-                    }
-                    debugPrint("WKNavigationResponse: Found UUID but not matching article: \(uuidString)")
-                    return false
-                }) {
-                    if article.id.uuidString != PlanetStore.shared.selectedArticle?.id.uuidString {
-                        debugPrint("WKNavigationResponse: Found matching article: \(article.title)")
-                        return article
-                    }
-                }
-            }
-            return nil
-        }
-
         // MARK: - NavigationDelegate
 
         func webView(
@@ -144,35 +116,78 @@ struct ArticleWebView: NSViewRepresentable {
             _ webView: WKWebView,
             didReceive challenge: URLAuthenticationChallenge,
             completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) ->
-                Void
+            Void
         ) {
             completionHandler(.performDefaultHandling, nil)
         }
 
-        @MainActor func webView(
+        func webView(
             _ webView: WKWebView,
             decidePolicyFor navigationAction: WKNavigationAction,
             preferences: WKWebpagePreferences,
             decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void
         ) {
-            if let url = navigationAction.request.url,
-                    let article = findInternalArticleLink(url: url)
-                {
-                    decisionHandler(.cancel, preferences)
-                    Task { @MainActor in
-                        PlanetStore.shared.selectedArticle = article
-                    }
-                    return
-                }
-
             // handle (ignore) target="_blank" (open in new window) link as external
-
             if navigationAction.targetFrame == nil, let externalURL = navigationAction.request.url,
-                isValidatedLink(externalURL)
+               isValidatedLink(externalURL)
             {
                 NSWorkspace.shared.open(externalURL)
                 decisionHandler(.cancel, preferences)
-                return
+            }
+            else if let targetLink = navigationAction.request.url, targetLink.isPlanetLink {
+                var existings = ArticleWebViewModel.shared.checkPlanetLink(targetLink)
+                if let mime: MyPlanetModel = existings.mime {
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.selectedView = .myPlanet(mime)
+                    }
+                    decisionHandler(.cancel, preferences)
+                }
+                else if let following: FollowingPlanetModel = existings.following {
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.selectedView = .followingPlanet(following)
+                    }
+                    decisionHandler(.cancel, preferences)
+                }
+                else {
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.followingPlanetLink = targetLink.absoluteString
+                        PlanetStore.shared.isFollowingPlanet = true
+                    }
+                    decisionHandler(.cancel, preferences)
+                }
+                existings.mime = nil
+                existings.following = nil
+            }
+            else if let targetLink = navigationAction.request.url, targetLink.isPlanetInternalLink {
+                var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
+                if let mime = existings.mime, let myArticle = existings.myArticle {
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.selectedView = .myPlanet(mime)
+                        Task { @MainActor in
+                            PlanetStore.shared.selectedArticle = myArticle
+                            PlanetStore.shared.refreshSelectedArticles()
+                        }
+                    }
+                    decisionHandler(.cancel, preferences)
+                }
+                else if let following = existings.following, let followingArticle = existings.followingArticle {
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.selectedView = .followingPlanet(following)
+                        Task { @MainActor in
+                            PlanetStore.shared.selectedArticle = followingArticle
+                            PlanetStore.shared.refreshSelectedArticles()
+                        }
+                    }
+                    decisionHandler(.cancel, preferences)
+                }
+                else {
+                    // continue with internal link.
+                    decisionHandler(.allow, preferences)
+                }
+                existings.mime = nil
+                existings.myArticle = nil
+                existings.following = nil
+                existings.followingArticle = nil
             }
             else {
                 if navigationAction.shouldPerformDownload {
@@ -191,7 +206,7 @@ struct ArticleWebView: NSViewRepresentable {
             decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
         ) {
             if navigationResponse.canShowMIMEType, let url = navigationResponse.response.url,
-                let mimeType = navigationResponse.response.mimeType
+               let mimeType = navigationResponse.response.mimeType
             {
                 if shouldHandleDownloadForMIMEType(mimeType) {
                     debugPrint(
@@ -279,10 +294,10 @@ struct ArticleWebView: NSViewRepresentable {
 
         func downloadDidFinish(_ download: WKDownload) {
             if let url = download.progress.fileURL,
-                let userDownloadsDir = FileManager.default.urls(
-                    for: .downloadsDirectory,
-                    in: .userDomainMask
-                ).first
+               let userDownloadsDir = FileManager.default.urls(
+                for: .downloadsDirectory,
+                in: .userDomainMask
+               ).first
             {
                 let downloadedURL = userDownloadsDir.appendingPathComponent(url.lastPathComponent)
                 try? FileManager.default.moveItem(at: url, to: downloadedURL)
@@ -294,7 +309,7 @@ struct ArticleWebView: NSViewRepresentable {
             _ download: WKDownload,
             didReceive challenge: URLAuthenticationChallenge,
             completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) ->
-                Void
+            Void
         ) {
             completionHandler(.performDefaultHandling, nil)
         }

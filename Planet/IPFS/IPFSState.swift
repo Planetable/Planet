@@ -15,7 +15,9 @@ import os
         RunLoop.main.add(Timer(timeInterval: 30, repeats: true) { timer in
             Task {
                 await IPFSDaemon.shared.updateOnlineStatus()
-                if !self.online && !self.isBootstrapping {
+                let onlineStatus = await self.online
+                let bootstrappingStatus = await self.isBootstrapping
+                if !onlineStatus && !bootstrappingStatus {
                     await IPFSDaemon.shared.launchDaemon()
                 }
             }
