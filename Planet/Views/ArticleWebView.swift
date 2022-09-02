@@ -163,9 +163,9 @@ struct ArticleWebView: NSViewRepresentable {
                 if let mime = existings.mime, let myArticle = existings.myArticle {
                     Task.detached { @MainActor in
                         PlanetStore.shared.selectedView = .myPlanet(mime)
-                        PlanetStore.shared.refreshSelectedArticles()
                         Task { @MainActor in
                             PlanetStore.shared.selectedArticle = myArticle
+                            PlanetStore.shared.refreshSelectedArticles()
                         }
                     }
                     decisionHandler(.cancel, preferences)
@@ -173,9 +173,9 @@ struct ArticleWebView: NSViewRepresentable {
                 else if let following = existings.following, let followingArticle = existings.followingArticle {
                     Task.detached { @MainActor in
                         PlanetStore.shared.selectedView = .followingPlanet(following)
-                        PlanetStore.shared.refreshSelectedArticles()
                         Task { @MainActor in
                             PlanetStore.shared.selectedArticle = followingArticle
+                            PlanetStore.shared.refreshSelectedArticles()
                         }
                     }
                     decisionHandler(.cancel, preferences)
