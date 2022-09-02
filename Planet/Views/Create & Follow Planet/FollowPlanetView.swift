@@ -62,7 +62,7 @@ struct FollowPlanetView: View {
         }
         .frame(width: 480, alignment: .center)
         .task {
-            // Follow a new planet from internal planet links.
+            // Follow a new planet from internal planet link.
             Task { @MainActor in
                 guard self.planetStore.followingPlanetLink != "" else { return }
                 self.link = self.planetStore.followingPlanetLink

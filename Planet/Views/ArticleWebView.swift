@@ -80,67 +80,6 @@ struct ArticleWebView: NSViewRepresentable {
             return false
         }
 
-        private func isPlanetLink(_ url: URL) -> Bool {
-            let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-            if components?.scheme == "planet" {
-                return true
-            }
-            return false
-        }
-
-        private func isInternalArticleLink(_ url: URL) -> Bool {
-            // file link is not an internal link, check for local and public gateway article links:
-            /*
-             // public
-             https://www.cloudflare-ipfs.com/ipns/k51qzi5uqu5dgt38bap3uz6k0sizcscrl2khow28r2148yietg6qkok20ncsu3/57A5E55F-1162-4C05-948C-768FDEEF2C31/
-
-             // local
-             http://127.0.0.1:18181/ipfs/bafybeidu5amq53cmc6mn6timcopof63dk5674gjhaguyogjuunkcykxd7e/3C473A64-4309-4CFC-BD7C-80E23C3C391D/
-             */
-            debugPrint("checking if it is internal url: \(url)")
-            if let scheme = url.scheme, let host = url.host, let port = url.port {
-                let uuidString = url.lastPathComponent
-                let cidString = url.deletingLastPathComponent().lastPathComponent
-                let ipfsTag = url.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent
-                debugPrint("scheme: \(scheme), host: \(host), port: \(port), uuid: \(uuidString), cid: \(cidString), ipfs tag: \(ipfsTag)")
-                if let _ = UUID(uuidString: uuidString), cidString.count == "bafybeigbofhj4t4uxqwd7u6lxdqve3xazrjchagwsoqtcxilpge6sexnuq".count, ipfsTag == "ipfs", port == IPFSDaemon.shared.gatewayPort {
-                    debugPrint("is internal link")
-                    return true
-                }
-            } else {
-                debugPrint("not internal link.")
-            }
-            return false
-        }
-
-        @MainActor private func findInternalArticleLink(url: URL) -> ArticleModel? {
-            let urlString = url.lastPathComponent
-            if let range = urlString.range(
-                of:
-                    #"[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"#,
-                options: .regularExpression
-            ) {
-                let uuidString = urlString[range]
-                debugPrint("WKNavigationResponse: Found UUID: \(uuidString)")
-                if let article = PlanetStore.shared.selectedArticleList?.first(where: { item in
-                    if let followingArticle = item as? FollowingArticleModel {
-                        return followingArticle.link.contains(uuidString)
-                    }
-                    if let myArticle = item as? MyArticleModel {
-                        return myArticle.link.contains(uuidString)
-                    }
-                    debugPrint("WKNavigationResponse: Found UUID but not matching article: \(uuidString)")
-                    return false
-                }) {
-                    if article.id.uuidString != PlanetStore.shared.selectedArticle?.id.uuidString {
-                        debugPrint("WKNavigationResponse: Found matching article: \(article.title)")
-                        return article
-                    }
-                }
-            }
-            return nil
-        }
-
         // MARK: - NavigationDelegate
 
         func webView(
@@ -194,49 +133,61 @@ struct ArticleWebView: NSViewRepresentable {
             {
                 NSWorkspace.shared.open(externalURL)
                 decisionHandler(.cancel, preferences)
-                return
             }
-            else if let targetLink = navigationAction.request.url, isPlanetLink(targetLink) {
-                debugPrint("processing planet link: \(targetLink)")
+            else if let targetLink = navigationAction.request.url, targetLink.isPlanetLink {
                 var existings = ArticleWebViewModel.shared.checkPlanetLink(targetLink)
                 if let mime: MyPlanetModel = existings.mime {
-
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.selectedView = .myPlanet(mime)
+                    }
                     decisionHandler(.cancel, preferences)
-                    return
                 }
                 else if let following: FollowingPlanetModel = existings.following {
-
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.selectedView = .followingPlanet(following)
+                    }
                     decisionHandler(.cancel, preferences)
-                    return
                 }
                 else {
-
-                    // Ask to follow or view directly with .limo link.
-
-                    decisionHandler(.allow, preferences)
-                    return
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.followingPlanetLink = targetLink.absoluteString
+                        PlanetStore.shared.isFollowingPlanet = true
+                    }
+                    decisionHandler(.cancel, preferences)
                 }
                 existings.mime = nil
                 existings.following = nil
             }
-            else if let targetLink = navigationAction.request.url, isInternalArticleLink(targetLink) {
-                debugPrint("processing article link: \(targetLink)")
+            else if let targetLink = navigationAction.request.url, targetLink.isPlanetInternalLink {
                 var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
                 if let mime = existings.mime, let myArticle = existings.myArticle {
-
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.selectedView = .myPlanet(mime)
+                        PlanetStore.shared.refreshSelectedArticles()
+                        Task { @MainActor in
+                            PlanetStore.shared.selectedArticle = myArticle
+                        }
+                    }
                     decisionHandler(.cancel, preferences)
-                    return
                 }
-                else if let following = existings.following, let publicArticle = existings.publicArticle {
-
+                else if let following = existings.following, let followingArticle = existings.followingArticle {
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.selectedView = .followingPlanet(following)
+                        PlanetStore.shared.refreshSelectedArticles()
+                        Task { @MainActor in
+                            PlanetStore.shared.selectedArticle = followingArticle
+                        }
+                    }
                     decisionHandler(.cancel, preferences)
-                    return
                 }
                 else {
                     // continue with internal link.
                     decisionHandler(.allow, preferences)
-                    return
                 }
+                existings.mime = nil
+                existings.myArticle = nil
+                existings.following = nil
+                existings.followingArticle = nil
             }
             else {
                 if navigationAction.shouldPerformDownload {
