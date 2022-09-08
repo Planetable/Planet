@@ -157,6 +157,13 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
         // saver.savePlanets()
         // saver.migratePublic()
 
+        // use hide instead of close for main windows to keep reopen position.
+        for w in NSApp.windows {
+            if w.canHide && w.canBecomeMain && w.styleMask.contains(.closable) {
+                w.delegate = self
+            }
+        }
+
         setupNotification()
 
         let saver = Saver.shared
@@ -262,12 +269,18 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
     }
 }
 
-
 extension PlanetAppDelegate {
     func openDownloadsWindow() {
         if downloadsWindowController == nil {
             downloadsWindowController = PlanetDownloadsWindowController()
         }
         downloadsWindowController?.showWindow(nil)
+    }
+}
+
+extension PlanetAppDelegate: NSWindowDelegate {
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        NSApp.hide(nil)
+        return false
     }
 }
