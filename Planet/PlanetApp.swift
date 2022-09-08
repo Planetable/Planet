@@ -153,10 +153,6 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // let saver = Saver.shared
-        // saver.savePlanets()
-        // saver.migratePublic()
-
         // use hide instead of close for main windows to keep reopen position.
         for w in NSApp.windows {
             if w.canHide && w.canBecomeMain && w.styleMask.contains(.closable) {
