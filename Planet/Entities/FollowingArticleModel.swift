@@ -12,7 +12,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     lazy var path = planet.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
     var webviewURL: URL? {
         switch planet.planetType {
-        case .planet, .dnslink, .ens:
+        case .planet, .dnslink, .ens, .dotbit:
             if let cid = planet.cid {
                 if let linkURL = URL(string: link),
                    linkURL.isHTTP {
@@ -58,6 +58,18 @@ class FollowingArticleModel: ArticleModel, Codable {
             if let limo = URL(string: "https://\(planet.link).limo") {
                 // relative URL: /general/2022/05/25/stable.html, index.html, ./index.html, etc.
                 return URL(string: link, relativeTo: limo)?.absoluteURL
+            }
+            return nil
+        case .dotbit:
+            if let linkURL = URL(string: link),
+               linkURL.isHTTP {
+                // article from a feed with an absolute HTTP URL: https://vitalik.ca/general/2022/05/25/stable.html
+                // transform URL to load with limo
+                return URL(string: "https://\(planet.link).cc\(linkURL.pathQueryFragment)")
+            }
+            if let gateway = URL(string: "https://\(planet.link).cc") {
+                // relative URL: /general/2022/05/25/stable.html, index.html, ./index.html, etc.
+                return URL(string: link, relativeTo: gateway)?.absoluteURL
             }
             return nil
         case .dnslink:

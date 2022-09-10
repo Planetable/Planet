@@ -9,6 +9,7 @@ enum PlanetType: Int, Codable {
     case ens = 1
     case dnslink = 2
     case dns = 3
+    case dotbit = 4
 }
 
 class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codable {
@@ -202,6 +203,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
         if link.hasSuffix(".eth") {
             return try await followENS(ens: link)
+        }
+        if link.hasSuffix(".bit") {
+            return try await followDotBit(dotbit: link)
         }
         else if link.lowercased().hasPrefix("http://") || link.lowercased().hasPrefix("https://") {
             return try await followHTTP(link: link)
@@ -397,6 +401,169 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             let _ = try? data.write(to: planet.avatarPath)
         {
             Self.logger.info("Follow \(ens): found avatar from feed")
+            planet.avatar = image
+        }
+
+        try planet.save()
+        try planet.articles.forEach { try $0.save() }
+        return planet
+    }
+
+    static func followDotBit(dotbit: String) async throws -> FollowingPlanetModel {
+        guard let dweb = await DotBitKit.shared.resolve(dotbit) else {
+            throw PlanetError.DotBitNoDWebRecordError
+        }
+        let cid: String
+        if dweb.type == .ipfs {
+            cid = dweb.value
+        } else {
+            debugPrint("DotBit: resolving \(dweb)")
+            guard let resolved = try? await IPFSDaemon.shared.resolveIPNSorDNSLink(name: dweb.value) else {
+                throw PlanetError.DotBitIPNSResolveError
+            }
+            cid = resolved
+        }
+        Self.logger.info("Follow \(dotbit): CID \(cid)")
+        Task {
+            try await IPFSDaemon.shared.pin(cid: cid)
+        }
+        // update a native planet if a public planet is found
+        if let planetURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/planet.json"),
+            let (planetData, planetResponse) = try? await URLSession.shared.data(from: planetURL),
+            let httpResponse = planetResponse as? HTTPURLResponse,
+            httpResponse.ok,
+            let publicPlanet = try? JSONDecoder.shared.decode(
+                PublicPlanetModel.self,
+                from: planetData
+            )
+        {
+            Self.logger.info("Follow \(dotbit): found native planet \(publicPlanet.name)")
+
+            let planet = FollowingPlanetModel(
+                id: UUID(),
+                planetType: .dotbit,
+                name: publicPlanet.name,
+                about: publicPlanet.about,
+                link: dotbit,
+                cid: cid,
+                created: publicPlanet.created,
+                updated: publicPlanet.updated,
+                lastRetrieved: Date()
+            )
+
+            try FileManager.default.createDirectory(
+                at: planet.basePath,
+                withIntermediateDirectories: true
+            )
+            try FileManager.default.createDirectory(
+                at: planet.articlesPath,
+                withIntermediateDirectories: true
+            )
+
+            planet.articles = publicPlanet.articles.map {
+                FollowingArticleModel.from(publicArticle: $0, planet: planet)
+            }
+            planet.articles.sort { $0.created > $1.created }
+
+            // try to find native planet avatar
+            if let planetAvatarURL = URL(
+                string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/avatar.png"
+            ),
+                let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
+                let httpResponse = response as? HTTPURLResponse,
+                httpResponse.ok,
+                let image = NSImage(data: data),
+                let _ = try? data.write(to: planet.avatarPath)
+            {
+                Self.logger.info("Follow \(dotbit): found avatar in native planet")
+                planet.avatar = image
+            }
+
+            try planet.save()
+            try planet.articles.forEach { try $0.save() }
+            return planet
+        }
+        // did not get published planet file, try to get feed
+        guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/") else {
+            throw PlanetError.InvalidPlanetURLError
+        }
+        let (feedData, htmlSoup) = try await FeedUtils.findFeed(url: feedURL)
+        let now = Date()
+        let planet: FollowingPlanetModel
+        var feedAvatar: Data? = nil
+        if let feedData = feedData {
+            Self.logger.info("Follow \(dotbit): found feed")
+            let feed = try await FeedUtils.parseFeed(data: feedData)
+            feedAvatar = feed.avatar
+            planet = FollowingPlanetModel(
+                id: UUID(),
+                planetType: .ens,
+                name: feed.name ?? dotbit,
+                about: feed.about ?? "",
+                link: dotbit,
+                cid: cid,
+                created: now,
+                updated: now,
+                lastRetrieved: now
+            )
+            if let publicArticles = feed.articles {
+                let items = deduplicate(publicArticles)
+                planet.articles = items.map {
+                    FollowingArticleModel.from(publicArticle: $0, planet: planet)
+                }
+                planet.articles.sort { $0.created > $1.created }
+            }
+            else {
+                planet.articles = []
+            }
+        }
+        else if let htmlSoup = htmlSoup {
+            Self.logger.info("Follow \(dotbit): no feed, use homepage as the only article")
+            planet = FollowingPlanetModel(
+                id: UUID(),
+                planetType: .dotbit,
+                name: dotbit,
+                about: "",
+                link: dotbit,
+                cid: cid,
+                created: now,
+                updated: now,
+                lastRetrieved: now
+            )
+            let homepage = PublicArticleModel(
+                id: UUID(),
+                link: "/",
+                title: (try? htmlSoup.title()) ?? "Homepage",
+                content: "",
+                created: now,
+                hasVideo: false,
+                videoFilename: nil,
+                hasAudio: false,
+                audioFilename: nil,
+                attachments: nil
+            )
+            planet.articles = [
+                FollowingArticleModel.from(publicArticle: homepage, planet: planet)
+            ]
+        }
+        else {
+            throw PlanetError.InvalidPlanetURLError
+        }
+
+        try FileManager.default.createDirectory(
+            at: planet.basePath,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: planet.articlesPath,
+            withIntermediateDirectories: true
+        )
+
+        if let data = feedAvatar,
+            let image = NSImage(data: data),
+            let _ = try? data.write(to: planet.avatarPath)
+        {
+            Self.logger.info("Follow \(dotbit): found avatar from feed")
             planet.avatar = image
         }
 
@@ -863,6 +1030,121 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }
             }
             else if let data = feed.avatar,
+                let image = NSImage(data: data),
+                let _ = try? data.write(to: avatarPath)
+            {
+                await MainActor.run {
+                    avatar = image
+                }
+            }
+
+            try save()
+            return
+        case .dotbit:
+            guard let dweb = await DotBitKit.shared.resolve(link) else {
+                throw PlanetError.DotBitNoDWebRecordError
+            }
+            let newCID: String
+            if dweb.type == .ipfs {
+                newCID = dweb.value
+            } else {
+                guard let resolved = try? await IPFSDaemon.shared.resolveIPNSorDNSLink(name: dweb.value) else {
+                    throw PlanetError.DotBitIPNSResolveError
+                }
+                newCID = resolved
+            }
+            if cid == newCID {
+                Self.logger.info("Planet \(self.name) has no update")
+                return
+            }
+            else {
+                Self.logger.info("Planet \(self.name) has update")
+            }
+            Task {
+                try await IPFSDaemon.shared.pin(cid: newCID)
+            }
+            do {
+                let planetURL = URL(
+                    string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/planet.json"
+                )!
+                let (planetData, planetResponse) = try await URLSession.shared.data(from: planetURL)
+                if let httpResponse = planetResponse as? HTTPURLResponse,
+                    httpResponse.ok
+                {
+                    let publicPlanet = try JSONDecoder.shared.decode(
+                        PublicPlanetModel.self,
+                        from: planetData
+                    )
+                    await MainActor.run {
+                        name = publicPlanet.name
+                        about = publicPlanet.about
+                        updated = publicPlanet.updated
+                    }
+
+                    try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
+
+                    if let planetAvatarURL = URL(
+                        string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/avatar.png"
+                    ),
+                        let (data, response) = try? await URLSession.shared.data(
+                            from: planetAvatarURL
+                        ),
+                        let httpResponse = response as? HTTPURLResponse,
+                        httpResponse.ok,
+                        let image = NSImage(data: data),
+                        let _ = try? data.write(to: avatarPath)
+                    {
+                        await MainActor.run {
+                            avatar = image
+                        }
+                    }
+
+                    await MainActor.run {
+                        cid = newCID
+                        lastRetrieved = Date()
+                    }
+
+                    if let _ = try? save() {
+                        debugPrint("Planet \(self.name) updated and saved")
+                    }
+                    else {
+                        debugPrint("Planet \(self.name) failed to save during update")
+                    }
+                    return
+                }
+                else {
+                    Self.logger.info("Planet \(self.name) does not have planet.json")
+                }
+            }
+            catch {
+                // ignore
+            }
+            // did not get published planet file, try to get feed
+            guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/") else {
+                throw PlanetError.InvalidPlanetURLError
+            }
+            Self.logger.info("Planet \(self.name) is finding feed at \(feedURL)")
+            let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
+            guard let feedData = feedData else {
+                throw PlanetError.InvalidPlanetURLError
+            }
+            Self.logger.info("Planet \(self.name) feed data fetched: \(feedData.count) bytes")
+            let feed = try await FeedUtils.parseFeed(data: feedData)
+            let now = Date()
+
+            await MainActor.run {
+                cid = newCID
+                name = feed.name ?? link
+                about = feed.about ?? ""
+                updated = now
+                lastRetrieved = now
+            }
+
+            if let publicArticles = feed.articles {
+                try await updateArticles(publicArticles: publicArticles)
+            }
+
+            if let data = feed.avatar,
                 let image = NSImage(data: data),
                 let _ = try? data.write(to: avatarPath)
             {
