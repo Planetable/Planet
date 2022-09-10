@@ -17,6 +17,8 @@ extension Data {
 }
 
 extension String {
+    static let settingsPublicGatewayIndex: String = "PlanetSettingsPublicGatewayIndexKey"
+
     func sanitized() -> String {
         // Reference: https://superuser.com/a/358861
         let invalidCharacters = CharacterSet(charactersIn: "\\/:*?\"<>|")

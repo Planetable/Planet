@@ -83,7 +83,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return String(initials.prefix(2))
     }
     var browserURL: URL? {
-        URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(ipns)/")
+        let index: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
+        return URL(string: "\(IPFSDaemon.publicGateways[index])/ipns/\(ipns)/")
     }
 
     func hash(into hasher: inout Hasher) {

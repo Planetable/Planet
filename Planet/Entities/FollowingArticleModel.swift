@@ -44,10 +44,11 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
     var browserURL: URL? {
         debugPrint("Generating BrowserURL: planet.type: \(planet.planetType) planet.link: \(planet.link) article.link: \(link)")
+        let gatewayIndex: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
         switch planet.planetType {
         case .planet:
             // planet article link: /12345678-90AB-CDEF-1234-567890ABCDEF/
-            return URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.link)\(link)")
+            return URL(string: "\(IPFSDaemon.publicGateways[gatewayIndex])/ipns/\(planet.link)\(link)")
         case .ens:
             if let linkURL = URL(string: link),
                linkURL.isHTTP {
@@ -75,7 +76,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         case .dnslink:
             // TODO: Fix how type 0 planet was mishandled as a dnslink
             if planet.link.count == 62, planet.link.starts(with: "k51"), link.starts(with: "/") {
-                return URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.link)\(link)")
+                return URL(string: "\(IPFSDaemon.publicGateways[gatewayIndex])/ipns/\(planet.link)\(link)")
             }
             return URL(string: link)?.absoluteURL
         case .dns:

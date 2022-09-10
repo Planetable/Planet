@@ -116,6 +116,10 @@ struct PlanetApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unifiedCompact)
         .handlesExternalEvents(matching: Set(arrayLiteral: "planet://Onboarding"))
+
+        Settings {
+            PlanetSettingsView()
+        }
     }
 }
 

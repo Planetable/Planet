@@ -61,7 +61,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
     var browserURL: URL? {
         if let cid = cid {
-            return URL(string: "\(IPFSDaemon.publicGateways[0])/ipfs/\(cid)/")
+            let index: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
+            return URL(string: "\(IPFSDaemon.publicGateways[index])/ipfs/\(cid)/")
         }
         return URL(string: link)
     }

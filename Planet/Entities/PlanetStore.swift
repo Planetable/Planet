@@ -81,6 +81,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var alertMessage: String = ""
 
     init() {
+        // Init UserDefaults
+        if UserDefaults.standard.value(forKey: String.settingsPublicGatewayIndex) == nil {
+            UserDefaults.standard.set(0, forKey: String.settingsPublicGatewayIndex)
+        }
+
         do {
             try load()
         } catch {

@@ -28,7 +28,8 @@ class MyArticleModel: ArticleModel, Codable {
         )
     }
     var browserURL: URL? {
-        URL(string: "\(IPFSDaemon.publicGateways[0])/ipns/\(planet.ipns)\(link)")
+        let index: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
+        return URL(string: "\(IPFSDaemon.publicGateways[index])/ipns/\(planet.ipns)\(link)")
     }
 
     enum CodingKeys: String, CodingKey {
