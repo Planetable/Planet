@@ -3,7 +3,14 @@ import SwiftSoup
 
 class FollowingArticleModel: ArticleModel, Codable {
     let link: String
-    @Published var read: Date? = nil
+    @Published var read: Date? = nil {
+        didSet {
+            if oldValue == nil {
+                // send notification to set navigation subtitle
+                NotificationCenter.default.post(name: .followingArticleReadChanged, object: self)
+            }
+        }
+    }
     var summary: String? = nil
 
     // populated when initializing

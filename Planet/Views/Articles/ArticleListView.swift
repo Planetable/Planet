@@ -37,5 +37,14 @@ struct ArticleListView: View {
             .toolbar {
                 Text("")
             }
+            .onReceive(NotificationCenter.default
+            .publisher(for: .followingArticleReadChanged)) { aNotification in
+                if let userObject = aNotification.object, let article = userObject as? FollowingArticleModel, let planet = article.planet {
+                    debugPrint("FollowingArticleReadChanged: \(planet.name) -> \(article.title)")
+                    Task { @MainActor in
+                        planetStore.navigationSubtitle = planet.navigationSubtitle()
+                    }
+                }
+            }
     }
 }
