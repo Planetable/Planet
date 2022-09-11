@@ -7,6 +7,8 @@ actor IPFSDaemon {
         "https://www.cloudflare-ipfs.com",
         "https://dweb.link",
         "https://ipfs.io",
+        "https://4everland.io",
+        "https://ipfs.fleek.co",
     ]
 
     static let shared = IPFSDaemon()
