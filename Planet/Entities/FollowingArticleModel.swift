@@ -113,7 +113,7 @@ class FollowingArticleModel: ArticleModel, Codable {
 
     static func extractSummary(article: FollowingArticleModel, planet: FollowingPlanetModel) -> String? {
         if article.content.count > 0 {
-            if planet.planetType == .planet || planet.planetType == .ens {
+            if planet.planetType == .planet || planet.planetType == .ens || planet.planetType == .dotbit {
                 if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content), let summary = extractSummary(content: contentHTML) {
                     return summary
                 }
