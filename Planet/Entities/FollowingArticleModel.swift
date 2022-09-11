@@ -5,7 +5,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     let link: String
     @Published var read: Date? = nil {
         didSet {
-            if oldValue == nil {
+            if oldValue == nil || read == nil {
                 // send notification to set navigation subtitle
                 NotificationCenter.default.post(name: .followingArticleReadChanged, object: self)
             }
