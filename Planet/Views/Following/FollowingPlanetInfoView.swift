@@ -6,7 +6,6 @@ struct FollowingPlanetInfoView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var planet: FollowingPlanetModel
     @State private var isSharing = false
-    @State private var planetIPNS = "planet://"
 
     var body: some View {
         ZStack {
@@ -39,40 +38,13 @@ struct FollowingPlanetInfoView: View {
                 HStack {
                     Button {
                         isSharing = true
-                        planetIPNS = planet.shareLink
                     } label: {
                         Text("Share")
                     }
-
-                    Button {
-                        Task {
-                            try await planet.update()
-                            planetStore.refreshSelectedArticles()
-                            dismiss()
-                        }
-                    } label: {
-                        Text(planet.isUpdating ? "Updating" : "Update")
-                    }
-                    .disabled(planet.isUpdating)
-
-                    Spacer()
-
-                    Button {
-                        planetStore.followingPlanets.removeAll { $0.id == planet.id }
-                        planet.delete()
-                        if case .followingPlanet(let selectedPlanet) = planetStore.selectedView,
-                            planet.id == selectedPlanet.id
-                        {
-                            planetStore.selectedView = nil
-                        }
-                    } label: {
-                        Text("Unfollow")
-                    }
-
                 }
             }
             .background(
-                SharingServicePicker(isPresented: $isSharing, sharingItems: [planetIPNS])
+                SharingServicePicker(isPresented: $isSharing, sharingItems: [planet.shareLink])
             )
 
             VStack {

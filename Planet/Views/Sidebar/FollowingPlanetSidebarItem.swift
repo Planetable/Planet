@@ -61,7 +61,7 @@ struct FollowingPlanetSidebarItem: View {
 
                 Button {
                     NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(planet.shareLink, forType: .string)
+                    NSPasteboard.general.setString(planet.shareLink.absoluteString, forType: .string)
                 } label: {
                     Text("Copy URL")
                 }
