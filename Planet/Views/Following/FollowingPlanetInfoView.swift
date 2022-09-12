@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AboutFollowingPlanetView: View {
+struct FollowingPlanetInfoView: View {
     @Environment(\.dismiss) private var dismiss
 
     @EnvironmentObject var planetStore: PlanetStore
