@@ -643,14 +643,11 @@ struct PlausibleAnalytics {
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        guard let (data, response) = try? await URLSession.shared.data(for: request) else {
+        guard let (data, _) = try? await URLSession.shared.data(for: request) else {
             return
         }
         do {
-            let jsonString = String(data: data, encoding: .utf8)
-            debugPrint("Data: \(jsonString)")
             let json = try JSON(data: data)
-            debugPrint("SwiftyJSON: \(json)")
             if let visitors = json["results"]["visitors"]["value"].int,
                 let pageviews = json["results"]["pageviews"]["value"].int
             {
