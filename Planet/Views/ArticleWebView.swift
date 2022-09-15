@@ -134,60 +134,101 @@ struct ArticleWebView: NSViewRepresentable {
                 NSWorkspace.shared.open(externalURL)
                 decisionHandler(.cancel, preferences)
             }
-            else if let targetLink = navigationAction.request.url, targetLink.isPlanetLink {
+            else if let targetLink = navigationAction.request.url {
                 var existings = ArticleWebViewModel.shared.checkPlanetLink(targetLink)
-                if let mime: MyPlanetModel = existings.mime {
-                    Task.detached { @MainActor in
-                        PlanetStore.shared.selectedView = .myPlanet(mime)
-                    }
-                    decisionHandler(.cancel, preferences)
+                defer {
+                    existings.mine = nil
+                    existings.following = nil
                 }
-                else if let following: FollowingPlanetModel = existings.following {
-                    Task.detached { @MainActor in
-                        PlanetStore.shared.selectedView = .followingPlanet(following)
+                if targetLink.isPlanetLink {
+                    if let myPlanet: MyPlanetModel = existings.mine {
+                        Task.detached { @MainActor in
+                            PlanetStore.shared.selectedView = .myPlanet(myPlanet)
+                        }
+                        decisionHandler(.cancel, preferences)
                     }
-                    decisionHandler(.cancel, preferences)
+                    else if let followingPlanet: FollowingPlanetModel = existings.following {
+                        Task.detached { @MainActor in
+                            PlanetStore.shared.selectedView = .followingPlanet(followingPlanet)
+                        }
+                        decisionHandler(.cancel, preferences)
+                    }
+                    else {
+                        var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
+                        defer {
+                            existings.mine = nil
+                            existings.following = nil
+                            existings.myArticle = nil
+                            existings.followingArticle = nil
+                        }
+                        if let mine = existings.mine, let myArticle = existings.myArticle {
+                            Task.detached { @MainActor in
+                                PlanetStore.shared.selectedView = .myPlanet(mine)
+                                Task { @MainActor in
+                                    PlanetStore.shared.selectedArticle = myArticle
+                                    PlanetStore.shared.refreshSelectedArticles()
+                                }
+                            }
+                        }
+                        else if let following = existings.following, let followingArticle = existings.followingArticle {
+                            Task.detached { @MainActor in
+                                PlanetStore.shared.selectedView = .followingPlanet(following)
+                                Task { @MainActor in
+                                    PlanetStore.shared.selectedArticle = followingArticle
+                                    PlanetStore.shared.refreshSelectedArticles()
+                                }
+                            }
+                        }
+                        else {
+                            Task.detached { @MainActor in
+                                PlanetStore.shared.followingPlanetLink = targetLink.absoluteString
+                                PlanetStore.shared.isFollowingPlanet = true
+                            }
+                        }
+                        decisionHandler(.cancel, preferences)
+                    }
                 }
                 else {
-                    Task.detached { @MainActor in
-                        PlanetStore.shared.followingPlanetLink = targetLink.absoluteString
-                        PlanetStore.shared.isFollowingPlanet = true
+                    var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
+                    defer {
+                        existings.mine = nil
+                        existings.following = nil
+                        existings.myArticle = nil
+                        existings.followingArticle = nil
                     }
-                    decisionHandler(.cancel, preferences)
-                }
-                existings.mime = nil
-                existings.following = nil
-            }
-            else if let targetLink = navigationAction.request.url, targetLink.isPlanetInternalLink {
-                var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
-                if let mime = existings.mime, let myArticle = existings.myArticle {
-                    Task.detached { @MainActor in
-                        PlanetStore.shared.selectedView = .myPlanet(mime)
-                        Task { @MainActor in
-                            PlanetStore.shared.selectedArticle = myArticle
-                            PlanetStore.shared.refreshSelectedArticles()
+                    if let mine = existings.mine, let myArticle = existings.myArticle {
+                        Task.detached { @MainActor in
+                            PlanetStore.shared.selectedView = .myPlanet(mine)
+                            Task { @MainActor in
+                                PlanetStore.shared.selectedArticle = myArticle
+                                PlanetStore.shared.refreshSelectedArticles()
+                            }
+                        }
+                        decisionHandler(.allow, preferences)
+                    }
+                    else if let following = existings.following, let followingArticle = existings.followingArticle {
+                        Task.detached { @MainActor in
+                            PlanetStore.shared.selectedView = .followingPlanet(following)
+                            Task { @MainActor in
+                                PlanetStore.shared.selectedArticle = followingArticle
+                                PlanetStore.shared.refreshSelectedArticles()
+                            }
+                        }
+                        decisionHandler(.allow, preferences)
+                    }
+                    else {
+                        if isValidatedLink(targetLink), PlanetDownloadItem.downloadableFileExtensions().contains(targetLink.pathExtension) {
+                            decisionHandler(.allow, preferences)
+                        }
+                        else if navigationAction.navigationType == .linkActivated, isValidatedLink(targetLink) {
+                            NSWorkspace.shared.open(targetLink)
+                            decisionHandler(.cancel, preferences)
+                        }
+                        else {
+                            decisionHandler(.allow, preferences)
                         }
                     }
-                    decisionHandler(.cancel, preferences)
                 }
-                else if let following = existings.following, let followingArticle = existings.followingArticle {
-                    Task.detached { @MainActor in
-                        PlanetStore.shared.selectedView = .followingPlanet(following)
-                        Task { @MainActor in
-                            PlanetStore.shared.selectedArticle = followingArticle
-                            PlanetStore.shared.refreshSelectedArticles()
-                        }
-                    }
-                    decisionHandler(.cancel, preferences)
-                }
-                else {
-                    // continue with internal link.
-                    decisionHandler(.allow, preferences)
-                }
-                existings.mime = nil
-                existings.myArticle = nil
-                existings.following = nil
-                existings.followingArticle = nil
             }
             else {
                 if navigationAction.shouldPerformDownload {
@@ -208,21 +249,13 @@ struct ArticleWebView: NSViewRepresentable {
             if navigationResponse.canShowMIMEType, let url = navigationResponse.response.url,
                let mimeType = navigationResponse.response.mimeType
             {
-                if shouldHandleDownloadForMIMEType(mimeType) {
+                if shouldHandleDownloadForMIMEType(mimeType) || PlanetDownloadItem.downloadableFileExtensions().contains(url.pathExtension) {
                     debugPrint(
                         "WKNavigationResponse: .download branch 1 -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))"
                     )
                     decisionHandler(.download)
                 }
                 else {
-                    if navigationType == .linkActivated, isValidatedLink(url) {
-                        debugPrint(
-                            "WKNavigationResponse: open in external browser -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))"
-                        )
-                        NSWorkspace.shared.open(url)
-                        decisionHandler(.cancel)
-                        return
-                    }
                     debugPrint(
                         "WKNavigationResponse: .allow -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))"
                     )

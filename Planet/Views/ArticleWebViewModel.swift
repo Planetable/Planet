@@ -26,51 +26,51 @@ class ArticleWebViewModel: NSObject {
         followingPlanets = planets
     }
 
-    func checkPlanetLink(_ url: URL) -> (mime: MyPlanetModel?, following: FollowingPlanetModel?) {
+    func checkPlanetLink(_ url: URL) -> (mine: MyPlanetModel?, following: FollowingPlanetModel?) {
         var link = url.absoluteString.trim()
         if link.starts(with: "planet://") {
             link = String(link.dropFirst("planet://".count))
         }
-        var mime: MyPlanetModel?
-        var following: FollowingPlanetModel?
+        var myPlanet: MyPlanetModel?
+        var followingPlanet: FollowingPlanetModel?
         if let existingPlanet = myPlanets.first(where: { $0.ipns == link }) {
-            mime = existingPlanet
+            myPlanet = existingPlanet
         }
         if let existingFollowingPlanet = followingPlanets.first(where: { $0.link == link }
         ) {
-            following = existingFollowingPlanet
+            followingPlanet = existingFollowingPlanet
         }
-        return (mime, following)
+        return (myPlanet, followingPlanet)
     }
 
-    func checkArticleLink(_ url: URL) -> (mime: MyPlanetModel?, following: FollowingPlanetModel?, myArticle: MyArticleModel?, followingArticle: FollowingArticleModel?) {
+    func checkArticleLink(_ url: URL) -> (mine: MyPlanetModel?, following: FollowingPlanetModel?, myArticle: MyArticleModel?, followingArticle: FollowingArticleModel?) {
         let idString = url.deletingLastPathComponent().lastPathComponent
         let uuidString = url.lastPathComponent
         let tagString = url.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent
 
-        var mime: MyPlanetModel?
-        var following: FollowingPlanetModel?
+        var myPlanet: MyPlanetModel?
+        var followingPlanet: FollowingPlanetModel?
         var myArticle: MyArticleModel?
         var followingArticle: FollowingArticleModel?
 
         if tagString == "ipns" {
             if let existingPlanet = myPlanets.first(where: { $0.ipns == idString }) {
-                mime = existingPlanet
+                myPlanet = existingPlanet
             }
-            if mime != nil {
-                for myPlanet in myPlanets {
-                    if let targetArticle = myPlanet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+            if myPlanet != nil {
+                for planet in myPlanets {
+                    if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
                         myArticle = targetArticle
                         break
                     }
                 }
             }
-            if mime == nil {
+            if myPlanet == nil {
                 if let existingFollowingPlanet = followingPlanets.first(where: { $0.link == idString }
                 ) {
-                    following = existingFollowingPlanet
+                    followingPlanet = existingFollowingPlanet
                 }
-                if following != nil {
+                if followingPlanet != nil {
                     for planet in followingPlanets {
                         if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
                             followingArticle = targetArticle
@@ -80,37 +80,61 @@ class ArticleWebViewModel: NSObject {
                 }
             }
         }
-        else if tagString == "ipfs" {
-            if let existingPlanet = myPlanets.first(where: { $0.ipns == idString }) {
-                mime = existingPlanet
+        else if uuidString != "", tagString == "ipfs", let _ = url.host {
+            for planet in myPlanets {
+                if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+                    myArticle = targetArticle
+                    myPlanet = planet
+                    break
+                }
             }
-            if mime != nil {
-                for myPlanet in myPlanets {
-                    if let targetArticle = myPlanet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
-                        myArticle = targetArticle
+            if myPlanet == nil {
+                for planet in followingPlanets {
+                    if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+                        followingArticle = targetArticle
+                        followingPlanet = planet
                         break
                     }
                 }
             }
         }
-        else if let host = url.host, host.hasSuffix(".eth.limo"), uuidString != "" {
-            for myPlanet in myPlanets {
-                if let targetArticle = myPlanet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+        else if let _ = url.host, uuidString != "" {
+            for planet in myPlanets {
+                if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
                     myArticle = targetArticle
-                    mime = myPlanet
+                    myPlanet = planet
                     break
                 }
             }
-            for planet in followingPlanets {
-                if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
-                    followingArticle = targetArticle
-                    following = planet
-                    break
+            if myPlanet == nil {
+                for planet in followingPlanets {
+                    if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+                        followingArticle = targetArticle
+                        followingPlanet = planet
+                        break
+                    }
                 }
             }
         }
-
-        return (mime, following, myArticle, followingArticle)
+        else if uuidString == "", let host = url.host, let relativeUUID = UUID(uuidString: host) {
+            for planet in myPlanets {
+                if let targetArticle = planet.articles.first(where: { $0.link == "/\(relativeUUID.uuidString)/" }) {
+                    myArticle = targetArticle
+                    myPlanet = planet
+                    break
+                }
+            }
+            if myPlanet == nil {
+                for planet in followingPlanets {
+                    if let targetArticle = planet.articles.first(where: { $0.link == "/\(relativeUUID.uuidString)/" }) {
+                        followingArticle = targetArticle
+                        followingPlanet = planet
+                        break
+                    }
+                }
+            }
+        }
+        return (myPlanet, followingPlanet, myArticle, followingArticle)
     }
 
     deinit {

@@ -124,6 +124,7 @@ extension PlanetDownloadItem {
             "java",
             "jpeg",
             "jpg",
+            "json",
             "js",
             "jsp",
             "key",
