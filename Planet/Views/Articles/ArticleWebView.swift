@@ -127,6 +127,7 @@ struct ArticleWebView: NSViewRepresentable {
             preferences: WKWebpagePreferences,
             decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void
         ) {
+            debugPrint("WKWebView decidePolicyFor: action: \(navigationAction) / url: \(navigationAction.request.url)")
             // handle (ignore) target="_blank" (open in new window) link as external
             if navigationAction.targetFrame == nil, let externalURL = navigationAction.request.url,
                isValidatedLink(externalURL)
