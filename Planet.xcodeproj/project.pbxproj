@@ -252,20 +252,16 @@
 		2A09A35D27C257E40003A0B5 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */,
 				6A1FD0B728CF9AD600750861 /* Following */,
 				6A1FD0B628CF9ACB00750861 /* My */,
-				6A0624D02876BF020014DDDD /* Saver */,
 				6A0FB8A627FBAFFD008E203D /* Articles */,
 				6A0FB8A527FBAFDF008E203D /* Sidebar */,
-				2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */,
-				2AF1318627C7CDAF007792FE /* ArticleView.swift */,
-				2AE07DD927C9F4EA00377651 /* ArticleWebView.swift */,
-				2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */,
 				2A441BB127C4DDDE0008A694 /* Create & Follow Planet */,
 				72114FAFE612D3D03B0CB4DA /* Components */,
 				72114882E08952AFB41E90A6 /* Onboarding */,
 				7211413CAA72A088BCD0D4F3 /* Plausible */,
-				7211433BE4B52A03C1722DA7 /* ArticleAudioPlayer.swift */,
+				6A0624D02876BF020014DDDD /* Saver */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -430,7 +426,11 @@
 		6A0FB8A627FBAFFD008E203D /* Articles */ = {
 			isa = PBXGroup;
 			children = (
+				7211433BE4B52A03C1722DA7 /* ArticleAudioPlayer.swift */,
 				2A09A36027C2582B0003A0B5 /* ArticleListView.swift */,
+				2AF1318627C7CDAF007792FE /* ArticleView.swift */,
+				2AE07DD927C9F4EA00377651 /* ArticleWebView.swift */,
+				2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */,
 			);
 			path = Articles;
 			sourceTree = "<group>";
