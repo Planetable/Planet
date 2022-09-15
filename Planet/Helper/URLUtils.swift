@@ -76,45 +76,4 @@ extension URL {
         return false
     }
 
-    /*
-     - file link is not an internal link:
-        file://
-
-     - public article link:
-        https://[*]/ipns/[ipns]/[uuid]/
-
-     - public article link (2):
-        https://[*].eth.limo/[uuid]/
-
-     - TODO: support more public article links.
-
-     - local article link:
-        http://[*]:18181/ipfs/[cid]/[uuid]/
-     */
-    var isPlanetInternalLink: Bool {
-        if let _ = self.scheme, let host = self.host {
-            let uuidString = self.lastPathComponent
-            let idString = self.deletingLastPathComponent().lastPathComponent
-            let tag = self.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent
-            let cidStringCount: Int = 59
-            let ipnsStringCount: Int = 62
-            if let _ = UUID(uuidString: uuidString), idString.count >= min(cidStringCount, ipnsStringCount) {
-                if let port = self.port, tag == "ipfs" && port == IPFSDaemon.shared.gatewayPort && idString.count == cidStringCount {
-                    // localhost article link
-                    return true
-                }
-                else if tag == "ipns" && idString.count == ipnsStringCount {
-                    // (possible) public gateway article link
-                    return true
-                }
-            }
-            else if host.hasSuffix(".eth.limo") {
-                if let _ = UUID(uuidString: uuidString) {
-                    // (possible) public gateway article link (2)
-                    return true
-                }
-            }
-        }
-        return false
-    }
 }

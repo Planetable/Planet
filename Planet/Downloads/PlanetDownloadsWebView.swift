@@ -96,7 +96,6 @@ class PlanetDownloadsWebView: WKWebView {
         let menuItemsToHide: [NSUserInterfaceItemIdentifier] = [Self.goBackIdentifier, Self.goForwardIdentifier, Self.openFrameInNewWindowIdentifier]
         for menuItem in menu.items {
             guard let identifier = menuItem.identifier else { continue }
-            debugPrint("menu item identifier: \(identifier)")
             if menuItemsToHide.contains(identifier) {
                 menuItem.isHidden = true
                 continue

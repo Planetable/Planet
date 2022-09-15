@@ -278,6 +278,8 @@ extension PlanetAppDelegate {
     }
 }
 
+// Hide main window instead of closing to keep window position.
+// https://stackoverflow.com/questions/71506416/restoring-macos-window-size-after-close-using-swiftui-windowsgroup
 extension PlanetAppDelegate: NSWindowDelegate {
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         NSApp.hide(nil)
