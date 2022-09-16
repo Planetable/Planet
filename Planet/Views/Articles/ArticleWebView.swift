@@ -142,52 +142,52 @@ struct ArticleWebView: NSViewRepresentable {
                     existings.following = nil
                 }
                 if targetLink.isPlanetLink {
-                    if let myPlanet: MyPlanetModel = existings.mine {
-                        Task.detached { @MainActor in
-                            PlanetStore.shared.selectedView = .myPlanet(myPlanet)
-                        }
-                        decisionHandler(.cancel, preferences)
-                    }
-                    else if let followingPlanet: FollowingPlanetModel = existings.following {
-                        Task.detached { @MainActor in
-                            PlanetStore.shared.selectedView = .followingPlanet(followingPlanet)
-                        }
-                        decisionHandler(.cancel, preferences)
-                    }
-                    else {
-                        var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
-                        defer {
-                            existings.mine = nil
-                            existings.following = nil
-                            existings.myArticle = nil
-                            existings.followingArticle = nil
-                        }
-                        if let mine = existings.mine, let myArticle = existings.myArticle {
+                    if !ArticleWebViewModel.shared.checkActivePlanet(myPlanet: existings.mine, followingPlanet: existings.following) {
+                        if let myPlanet: MyPlanetModel = existings.mine {
                             Task.detached { @MainActor in
-                                PlanetStore.shared.selectedView = .myPlanet(mine)
-                                Task { @MainActor in
-                                    PlanetStore.shared.selectedArticle = myArticle
-                                    PlanetStore.shared.refreshSelectedArticles()
-                                }
+                                PlanetStore.shared.selectedView = .myPlanet(myPlanet)
                             }
                         }
-                        else if let following = existings.following, let followingArticle = existings.followingArticle {
+                        else if let followingPlanet: FollowingPlanetModel = existings.following {
                             Task.detached { @MainActor in
-                                PlanetStore.shared.selectedView = .followingPlanet(following)
-                                Task { @MainActor in
-                                    PlanetStore.shared.selectedArticle = followingArticle
-                                    PlanetStore.shared.refreshSelectedArticles()
-                                }
+                                PlanetStore.shared.selectedView = .followingPlanet(followingPlanet)
                             }
                         }
                         else {
-                            Task.detached { @MainActor in
-                                PlanetStore.shared.followingPlanetLink = targetLink.absoluteString
-                                PlanetStore.shared.isFollowingPlanet = true
+                            var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
+                            defer {
+                                existings.mine = nil
+                                existings.following = nil
+                                existings.myArticle = nil
+                                existings.followingArticle = nil
+                            }
+                            if let mine = existings.mine, let myArticle = existings.myArticle {
+                                Task.detached { @MainActor in
+                                    PlanetStore.shared.selectedView = .myPlanet(mine)
+                                    Task { @MainActor in
+                                        PlanetStore.shared.selectedArticle = myArticle
+                                        PlanetStore.shared.refreshSelectedArticles()
+                                    }
+                                }
+                            }
+                            else if let following = existings.following, let followingArticle = existings.followingArticle {
+                                Task.detached { @MainActor in
+                                    PlanetStore.shared.selectedView = .followingPlanet(following)
+                                    Task { @MainActor in
+                                        PlanetStore.shared.selectedArticle = followingArticle
+                                        PlanetStore.shared.refreshSelectedArticles()
+                                    }
+                                }
+                            }
+                            else {
+                                Task.detached { @MainActor in
+                                    PlanetStore.shared.followingPlanetLink = targetLink.absoluteString
+                                    PlanetStore.shared.isFollowingPlanet = true
+                                }
                             }
                         }
-                        decisionHandler(.cancel, preferences)
                     }
+                    decisionHandler(.cancel, preferences)
                 }
                 else {
                     var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
@@ -197,6 +197,12 @@ struct ArticleWebView: NSViewRepresentable {
                         existings.myArticle = nil
                         existings.followingArticle = nil
                     }
+
+                    if ArticleWebViewModel.shared.checkActiveArticle(myArticle: existings.myArticle, followingArticle: existings.followingArticle) {
+                        decisionHandler(.cancel, preferences)
+                        return
+                    }
+
                     if let mine = existings.mine, let myArticle = existings.myArticle {
                         Task.detached { @MainActor in
                             PlanetStore.shared.selectedView = .myPlanet(mine)
