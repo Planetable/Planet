@@ -149,6 +149,24 @@ struct IPFSCommand {
         ])
     }
 
+    static func setAccessControlAllowOrigin(_ jsonString: String) -> IPFSCommand {
+        IPFSCommand(arguments: [
+            "config",
+            "API.HTTPHeaders.Access-Control-Allow-Origin",
+            jsonString,
+            "--json"
+        ])
+    }
+
+    static func setAccessControlAllowMethods(_ jsonString: String) -> IPFSCommand {
+        IPFSCommand(arguments: [
+            "config",
+            "API.HTTPHeaders.Access-Control-Allow-Methods",
+            jsonString,
+            "--json"
+        ])
+    }
+
     static func launchDaemon() -> IPFSCommand {
         IPFSCommand(arguments: ["daemon", "--migrate", "--enable-namesys-pubsub", "--enable-pubsub-experiment"])
     }
