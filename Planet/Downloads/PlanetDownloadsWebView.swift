@@ -23,7 +23,7 @@ private class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
     public private(set) var href: String?
     public private(set) var src: String?
     
-    static private var WHOLE_PAGE_SCRIPT = """
+    static private var contextMenuScript = """
         window.oncontextmenu = (event) => {
             var target = event.target
             var src = target.src
@@ -48,6 +48,16 @@ private class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
             });
         }
         """
+
+    static private var relativeLinkScript = """
+        window.onclick = (event) => {
+            var target = event.target
+            var href = target.href
+            window.webkit.messageHandlers.buttonclicked.postMessage({
+                linkClicked: href
+            });
+        }
+        """
     
     private override init() {
         super.init()
@@ -56,7 +66,7 @@ private class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
     public func ensureHandles(configuration: WKWebViewConfiguration) {
         var alreadyHandling = false
         for userScript in configuration.userContentController.userScripts {
-            if userScript.source == GlobalScriptMessageHandler.WHOLE_PAGE_SCRIPT {
+            if userScript.source == GlobalScriptMessageHandler.contextMenuScript {
                 alreadyHandling = true
             }
         }
@@ -64,8 +74,11 @@ private class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
         if !alreadyHandling {
             let userContentController = configuration.userContentController
             userContentController.add(self, name: "oncontextmenu")
-            let userScript = WKUserScript(source: GlobalScriptMessageHandler.WHOLE_PAGE_SCRIPT, injectionTime: .atDocumentStart, forMainFrameOnly: false)
-            userContentController.addUserScript(userScript)
+            userContentController.add(self, name: "buttonclicked")
+            let contextMenuScript = WKUserScript(source: GlobalScriptMessageHandler.contextMenuScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+            userContentController.addUserScript(contextMenuScript)
+            let relativeLinkScript = WKUserScript(source: GlobalScriptMessageHandler.relativeLinkScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+            userContentController.addUserScript(relativeLinkScript)
         }
     }
     
@@ -77,6 +90,39 @@ private class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
             hrefNodeId = body["hrefId"] as? String
             href = body["href"] as? String
             src = body["src"] as? String
+
+            // handle relative link from single click
+            if let linkClicked = body["linkClicked"] as? String, linkClicked.hasPrefix("file:///") {
+                let targetURL = URL(fileURLWithPath: linkClicked)
+                if let possibleArticleUUID = UUID(uuidString: targetURL.lastPathComponent) {
+                    guard let targetLink = URL(string: "planet://" + possibleArticleUUID.uuidString) else { return }
+                    var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
+                    defer {
+                        existings.mine = nil
+                        existings.following = nil
+                        existings.myArticle = nil
+                        existings.followingArticle = nil
+                    }
+                    if let mine = existings.mine, let myArticle = existings.myArticle {
+                        Task.detached { @MainActor in
+                            PlanetStore.shared.selectedView = .myPlanet(mine)
+                            Task { @MainActor in
+                                PlanetStore.shared.selectedArticle = myArticle
+                                PlanetStore.shared.refreshSelectedArticles()
+                            }
+                        }
+                    }
+                    else if let following = existings.following, let followingArticle = existings.followingArticle {
+                        Task.detached { @MainActor in
+                            PlanetStore.shared.selectedView = .followingPlanet(following)
+                            Task { @MainActor in
+                                PlanetStore.shared.selectedArticle = followingArticle
+                                PlanetStore.shared.refreshSelectedArticles()
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -147,9 +193,41 @@ class PlanetDownloadsWebView: WKWebView {
     }
     
     @objc private func openLinkAction(_ sender: NSMenuItem) {
-        if let urlString = GlobalScriptMessageHandler.instance.href {
-            let url = URL(string: urlString)!
-            NSWorkspace.shared.open(url)
+        guard let urlString = GlobalScriptMessageHandler.instance.href else { return }
+        if urlString.hasPrefix("file:///") {
+            let targetURL = URL(fileURLWithPath: urlString)
+            if let possibleArticleUUID = UUID(uuidString: targetURL.lastPathComponent) {
+                guard let targetLink = URL(string: "planet://" + possibleArticleUUID.uuidString) else { return }
+                var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
+                defer {
+                    existings.mine = nil
+                    existings.following = nil
+                    existings.myArticle = nil
+                    existings.followingArticle = nil
+                }
+                if let mine = existings.mine, let myArticle = existings.myArticle {
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.selectedView = .myPlanet(mine)
+                        Task { @MainActor in
+                            PlanetStore.shared.selectedArticle = myArticle
+                            PlanetStore.shared.refreshSelectedArticles()
+                        }
+                    }
+                }
+                else if let following = existings.following, let followingArticle = existings.followingArticle {
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.selectedView = .followingPlanet(following)
+                        Task { @MainActor in
+                            PlanetStore.shared.selectedArticle = followingArticle
+                            PlanetStore.shared.refreshSelectedArticles()
+                        }
+                    }
+                }
+            }
+        } else {
+            if let url = URL(string: urlString) {
+                NSWorkspace.shared.open(url)
+            }
         }
     }
 
