@@ -21,8 +21,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var plausibleAPIServer: String? = "plausible.io"
 
     @Published var twitterUsername: String?
-
     @Published var githubUsername: String?
+
+    @Published var dWebServicesEnabled: Bool? = false
+    @Published var dWebServicesDomain: String?
+    @Published var dWebServicesAPIKey: String?
 
     @Published var metrics: Metrics?
 
@@ -103,6 +106,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(plausibleAPIServer)
         hasher.combine(twitterUsername)
         hasher.combine(githubUsername)
+        hasher.combine(dWebServicesEnabled)
+        hasher.combine(dWebServicesDomain)
+        hasher.combine(dWebServicesAPIKey)
         hasher.combine(avatar)
         hasher.combine(drafts)
         hasher.combine(articles)
@@ -130,6 +136,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.isPublishing == rhs.isPublishing
             && lhs.twitterUsername == rhs.twitterUsername
             && lhs.githubUsername == rhs.githubUsername
+            && lhs.dWebServicesEnabled == rhs.dWebServicesEnabled
+            && lhs.dWebServicesDomain == rhs.dWebServicesDomain
+            && lhs.dWebServicesAPIKey == rhs.dWebServicesAPIKey
             && lhs.avatar == rhs.avatar
             && lhs.drafts == rhs.drafts
             && lhs.articles == rhs.articles
@@ -137,7 +146,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     enum CodingKeys: String, CodingKey {
         case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled,
-            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername
+            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername, dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -158,6 +167,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         plausibleAPIServer = try container.decodeIfPresent(String.self, forKey: .plausibleAPIServer)
         twitterUsername = try container.decodeIfPresent(String.self, forKey: .twitterUsername)
         githubUsername = try container.decodeIfPresent(String.self, forKey: .githubUsername)
+        dWebServicesEnabled = try container.decodeIfPresent(Bool.self, forKey: .dWebServicesEnabled)
+        dWebServicesDomain = try container.decodeIfPresent(String.self, forKey: .dWebServicesDomain)
+        dWebServicesAPIKey = try container.decodeIfPresent(String.self, forKey: .dWebServicesAPIKey)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -176,6 +188,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(plausibleAPIServer, forKey: .plausibleAPIServer)
         try container.encodeIfPresent(twitterUsername, forKey: .twitterUsername)
         try container.encodeIfPresent(githubUsername, forKey: .githubUsername)
+        try container.encodeIfPresent(dWebServicesEnabled, forKey: .dWebServicesEnabled)
+        try container.encodeIfPresent(dWebServicesDomain, forKey: .dWebServicesDomain)
+        try container.encodeIfPresent(dWebServicesAPIKey, forKey: .dWebServicesAPIKey)
     }
 
     init(
@@ -350,6 +365,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             planet.githubUsername = backupPlanet.githubUsername
         }
 
+        // Restore DWebServices
+        if backupPlanet.dWebServicesEnabled != nil {
+            planet.dWebServicesEnabled = backupPlanet.dWebServicesEnabled
+        }
+        if backupPlanet.dWebServicesDomain != nil {
+            planet.dWebServicesDomain = backupPlanet.dWebServicesDomain
+        }
+        if backupPlanet.dWebServicesAPIKey != nil {
+            planet.dWebServicesAPIKey = backupPlanet.dWebServicesAPIKey
+        }
+
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
         if FileManager.default.fileExists(atPath: planet.publicBasePath.path) {
@@ -521,6 +547,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             }
         }
         let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
+        if let dWebServicesEnabled = dWebServicesEnabled, dWebServicesEnabled, let dWebServicesDomain = dWebServicesDomain, let dWebServicesAPIKey = dWebServicesAPIKey {
+            debugPrint("dWebServices: about to update for \(dWebServicesDomain)")
+            let dWebRecord = dWebServices(domain: dWebServicesDomain, apiKey: dWebServicesAPIKey)
+            await dWebRecord.publish(cid: cid)
+        }
         let result = try await IPFSDaemon.shared.api(
             path: "name/publish",
             args: [
@@ -564,6 +595,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             plausibleAPIServer: plausibleAPIServer,
             twitterUsername: twitterUsername,
             githubUsername: githubUsername,
+            dWebServicesEnabled: dWebServicesEnabled,
+            dWebServicesDomain: dWebServicesDomain,
+            dWebServicesAPIKey: dWebServicesAPIKey,
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,
@@ -680,6 +714,64 @@ struct Metrics: Codable {
     var pageviewsToday: Int
 }
 
+struct dWebServices: Codable {
+    var domain: String
+    var apiKey: String
+
+    func publish(cid: String) async {
+        guard let url = URL(string: "https://dwebservices.xyz/api/eth-names-ipns/?name=\(domain)") else {
+            debugPrint("dWebServices: failed to construct the initial URL")
+            return
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        guard let (data, _) = try? await URLSession.shared.data(for: request) else {
+            debugPrint("dWebServices: request to find UID failed")
+            return
+        }
+        var uid: String?
+        do {
+            let json = try JSON(data: data)
+            if let status = json["status"].string, status == "ok" {
+                if let data = json["data"][0].dictionary, let id = data["uid"]?.string {
+                    uid = id
+                    debugPrint("dWebServices: uid for \(domain) found: \(uid)")
+                }
+                else {
+                    debugPrint("dWebServices: uid for \(domain) not found")
+                    return
+                }
+            }
+        }
+        catch {
+            debugPrint("dWebServices: error occurred when updating planet \(error)")
+        }
+
+        guard let uid = uid, let url2 = URL(string: "https://dwebservices.xyz/api/eth-names-ipns/\(uid)/publish/\(cid)/") else {
+            return
+        }
+        var request2 = URLRequest(url: url2)
+        request2.httpMethod = "GET"
+        request2.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request2.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        guard let (data2, _) = try? await URLSession.shared.data(for: request2) else {
+            return
+        }
+        do {
+            let json = try JSON(data: data2)
+            debugPrint("dWebServices: \(json)")
+            if let status = json["status"].string, status == "ok" {
+                debugPrint("dWebServices: planet published successfully")
+            }
+        }
+        catch {
+            debugPrint("dWebServices: error occurred when publishing planet \(error)")
+        }
+    }
+}
+
 struct PublicPlanetModel: Codable {
     let id: UUID
     let name: String
@@ -710,5 +802,8 @@ struct BackupMyPlanetModel: Codable {
     let plausibleAPIServer: String?
     let twitterUsername: String?
     let githubUsername: String?
+    let dWebServicesEnabled: Bool?
+    let dWebServicesDomain: String?
+    let dWebServicesAPIKey: String?
     let articles: [BackupArticleModel]
 }

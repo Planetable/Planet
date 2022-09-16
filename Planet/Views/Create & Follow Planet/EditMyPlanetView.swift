@@ -20,6 +20,10 @@ struct EditMyPlanetView: View {
     @State private var twitterUsername: String
     @State private var githubUsername: String
 
+    @State private var dWebServicesEnabled: Bool = false
+    @State private var dWebServicesDomain: String
+    @State private var dWebServicesAPIKey: String
+
     init(planet: MyPlanetModel) {
         self.planet = planet
         _name = State(wrappedValue: planet.name)
@@ -31,6 +35,9 @@ struct EditMyPlanetView: View {
         _plausibleAPIServer = State(wrappedValue: planet.plausibleAPIServer ?? "plausible.io")
         _twitterUsername = State(wrappedValue: planet.twitterUsername ?? "")
         _githubUsername = State(wrappedValue: planet.githubUsername ?? "")
+        _dWebServicesEnabled = State(wrappedValue: planet.dWebServicesEnabled ?? false)
+        _dWebServicesDomain = State(wrappedValue: planet.dWebServicesDomain ?? "")
+        _dWebServicesAPIKey = State(wrappedValue: planet.dWebServicesAPIKey ?? "")
     }
 
     var body: some View {
@@ -45,201 +52,252 @@ struct EditMyPlanetView: View {
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 24, height: 24, alignment: .center)
                             .cornerRadius(12)
-                            .overlay(RoundedRectangle(cornerRadius: 12)
-                                               .stroke(Color("BorderColor"), lineWidth: 1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color("BorderColor"), lineWidth: 1)
+                            )
                             .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3)
-                    } else {
+                    }
+                    else {
                         Text(planet.nameInitials)
                             .font(Font.custom("Arial Rounded MT Bold", size: 12))
                             .foregroundColor(Color.white)
                             .contentShape(Rectangle())
                             .frame(width: 24, height: 24, alignment: .center)
-                            .background(LinearGradient(
-                                gradient: ViewUtils.getPresetGradient(from: planet.id),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            ))
+                            .background(
+                                LinearGradient(
+                                    gradient: ViewUtils.getPresetGradient(from: planet.id),
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
                             .cornerRadius(12)
-                            .overlay(RoundedRectangle(cornerRadius: 12)
-                                               .stroke(Color("BorderColor"), lineWidth: 1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color("BorderColor"), lineWidth: 1)
+                            )
                             .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3)
                     }
 
                     Text("\(planet.name)")
-                    .font(.body)
+                        .font(.body)
 
                     Spacer()
                 }
 
-            TabView {
-                VStack(spacing: 15) {
-                    HStack {
+                TabView {
+                    VStack(spacing: 15) {
                         HStack {
-                            Text("Name")
-                            Spacer()
-                        }
-                        .frame(width: CONTROL_CAPTION_WIDTH)
+                            HStack {
+                                Text("Name")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
 
-                        TextField("", text: $name)
-                            .textFieldStyle(.roundedBorder)
+                            TextField("", text: $name)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("About")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+
+                            TextEditor(text: $about)
+                                .font(.system(size: 13, weight: .regular, design: .default))
+                                .lineSpacing(8)
+                                .disableAutocorrection(true)
+                                .cornerRadius(6)
+                                .frame(height: 80)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
+                                )
+                        }
+
+                        Picker(selection: $templateName) {
+                            ForEach(TemplateStore.shared.templates) { template in
+                                Text(template.name)
+                                    .tag(template.name)
+                            }
+                        } label: {
+                            HStack {
+                                Text("Template")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+                        }
+                        .pickerStyle(.menu)
+                    }
+                    .padding(16)
+                    .tabItem {
+                        Text("Basic Info")
                     }
 
-                    HStack {
+                    VStack(spacing: 15) {
                         HStack {
-                            Text("About")
-                            Spacer()
-                        }
-                        .frame(width: CONTROL_CAPTION_WIDTH)
-
-                        TextEditor(text: $about)
-                            .font(.system(size: 13, weight: .regular, design: .default))
-                            .lineSpacing(8)
-                            .disableAutocorrection(true)
-                            .cornerRadius(6)
-                            .frame(height: 80)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
+                            HStack {
+                                Spacer()
+                            }.frame(width: CONTROL_CAPTION_WIDTH + 10)
+                            Toggle(
+                                "Enable Plausible for Traffic Analytics",
+                                isOn: $plausibleEnabled
                             )
+                            .toggleStyle(.checkbox)
+                            .frame(alignment: .leading)
+                            Spacer()
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("Domain")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+
+                            TextField("", text: $plausibleDomain)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("API Key")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+
+                            TextField("", text: $plausibleAPIKey)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("API Server")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+
+                            TextField("", text: $plausibleAPIServer)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                    }
+                    .padding(16)
+                    .tabItem {
+                        Text("Analytics")
                     }
 
-                    Picker(selection: $templateName) {
-                        ForEach(TemplateStore.shared.templates) { template in
-                            Text(template.name)
-                                .tag(template.name)
+                    VStack(spacing: 15) {
+                        HStack(spacing: 8) {
+                            HStack {
+                                Spacer()
+                                Text("Twitter Username:")
+                            }
+                            .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
+
+                            TextField("", text: $twitterUsername)
+                                .textFieldStyle(.roundedBorder)
                         }
+
+                        HStack(spacing: 8) {
+                            HStack {
+                                Spacer()
+                                Text("GitHub Username:")
+                            }
+                            .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
+
+                            TextField("", text: $githubUsername)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                    }
+                    .padding(16)
+                    .tabItem {
+                        Text("Social")
+                    }
+
+                    VStack(spacing: 15) {
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
+                            Toggle("Enable dWebServices.xyz for IPNS", isOn: $dWebServicesEnabled)
+                                .toggleStyle(.checkbox)
+                                .frame(alignment: .leading)
+                            Spacer()
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("ENS Domain")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                            TextField("", text: $dWebServicesDomain)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("API Key")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                            TextField("", text: $dWebServicesAPIKey)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                    }
+                    .padding(16)
+                    .tabItem {
+                        Text("Integrations")
+                    }
+                }
+
+                HStack(spacing: 8) {
+                    Spacer()
+
+                    Button {
+                        dismiss()
                     } label: {
-                        HStack {
-                            Text("Template")
-                            Spacer()
+                        Text("Cancel")
+                            .frame(width: 50)
+                    }
+                    .keyboardShortcut(.escape, modifiers: [])
+
+                    Button {
+                        if !name.isEmpty {
+                            planet.name = name
                         }
-                        .frame(width: CONTROL_CAPTION_WIDTH)
-                    }
-                    .pickerStyle(.menu)
-                }
-                .padding(16)
-                .tabItem {
-                    Text("Basic Info")
-                }
-
-                VStack(spacing: 15) {
-                    HStack {
-                        HStack {
-                            Spacer()
-                        }.frame(width: CONTROL_CAPTION_WIDTH + 10)
-                        Toggle("Enable Plausible for Traffic Analytics", isOn: $plausibleEnabled)
-                        .toggleStyle(.checkbox)
-                        .frame(alignment: .leading)
-                        Spacer()
-                    }
-
-                    HStack {
-                        HStack {
-                            Text("Domain")
-                            Spacer()
+                        planet.about = about
+                        planet.templateName = templateName
+                        planet.plausibleEnabled = plausibleEnabled
+                        planet.plausibleDomain = plausibleDomain
+                        planet.plausibleAPIKey = plausibleAPIKey
+                        planet.plausibleAPIServer = plausibleAPIServer
+                        planet.twitterUsername = twitterUsername
+                        planet.githubUsername = githubUsername
+                        planet.dWebServicesEnabled = dWebServicesEnabled
+                        planet.dWebServicesDomain = dWebServicesDomain
+                        planet.dWebServicesAPIKey = dWebServicesAPIKey
+                        Task {
+                            try planet.save()
+                            try planet.copyTemplateAssets()
+                            try planet.articles.forEach { try $0.savePublic() }
+                            try planet.savePublic()
+                            NotificationCenter.default.post(name: .loadArticle, object: nil)
+                            try await planet.publish()
                         }
-                        .frame(width: CONTROL_CAPTION_WIDTH)
-
-                        TextField("", text: $plausibleDomain)
-                            .textFieldStyle(.roundedBorder)
+                        dismiss()
+                    } label: {
+                        Text("OK")
+                            .frame(width: 50)
                     }
-
-                    HStack {
-                        HStack {
-                            Text("API Key")
-                            Spacer()
-                        }
-                        .frame(width: CONTROL_CAPTION_WIDTH)
-
-                        TextField("", text: $plausibleAPIKey)
-                            .textFieldStyle(.roundedBorder)
-                    }
-
-                    HStack {
-                        HStack {
-                            Text("API Server")
-                            Spacer()
-                        }
-                        .frame(width: CONTROL_CAPTION_WIDTH)
-
-                        TextField("", text: $plausibleAPIServer)
-                            .textFieldStyle(.roundedBorder)
-                    }
-
+                    .disabled(name.isEmpty)
                 }
-                .padding(16)
-                .tabItem {
-                    Text("Analytics")
-                }
-
-                VStack(spacing: 15) {
-                    HStack(spacing: 8) {
-                        HStack {
-                            Spacer()
-                            Text("Twitter Username:")
-                        }
-                        .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
-
-                        TextField("", text: $twitterUsername)
-                            .textFieldStyle(.roundedBorder)
-                    }
-
-                    HStack(spacing: 8) {
-                        HStack {
-                            Spacer()
-                            Text("GitHub Username:")
-                        }
-                        .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
-
-                        TextField("", text: $githubUsername)
-                            .textFieldStyle(.roundedBorder)
-                    }
-
-                }
-                .padding(16)
-                .tabItem {
-                    Text("Social")
-                }
-            }
-
-            HStack(spacing: 8) {
-                Spacer()
-
-                Button {
-                    dismiss()
-                } label: {
-                    Text("Cancel")
-                        .frame(width: 50)
-                }
-                .keyboardShortcut(.escape, modifiers: [])
-
-                Button {
-                    if !name.isEmpty {
-                        planet.name = name
-                    }
-                    planet.about = about
-                    planet.templateName = templateName
-                    planet.plausibleEnabled = plausibleEnabled
-                    planet.plausibleDomain = plausibleDomain
-                    planet.plausibleAPIKey = plausibleAPIKey
-                    planet.plausibleAPIServer = plausibleAPIServer
-                    planet.twitterUsername = twitterUsername
-                    planet.githubUsername = githubUsername
-                    Task {
-                        try planet.save()
-                        try planet.copyTemplateAssets()
-                        try planet.articles.forEach { try $0.savePublic() }
-                        try planet.savePublic()
-                        NotificationCenter.default.post(name: .loadArticle, object: nil)
-                        try await planet.publish()
-                    }
-                    dismiss()
-                } label: {
-                    Text("OK")
-                        .frame(width: 50)
-                }
-                .disabled(name.isEmpty)
-            }
 
             }.padding(20)
         }
