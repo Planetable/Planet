@@ -142,48 +142,66 @@ struct ArticleWebView: NSViewRepresentable {
                     existings.following = nil
                 }
                 if targetLink.isPlanetLink {
-                    if !ArticleWebViewModel.shared.checkActivePlanet(myPlanet: existings.mine, followingPlanet: existings.following) {
-                        if let myPlanet: MyPlanetModel = existings.mine {
-                            Task.detached { @MainActor in
-                                PlanetStore.shared.selectedView = .myPlanet(myPlanet)
-                            }
+//                    if !ArticleWebViewModel.shared.checkActivePlanet(myPlanet: existings.mine, followingPlanet: existings.following) {
+//                    }
+                    if let myPlanet: MyPlanetModel = existings.mine {
+                        Task.detached { @MainActor in
+                            PlanetStore.shared.selectedView = .myPlanet(myPlanet)
                         }
-                        else if let followingPlanet: FollowingPlanetModel = existings.following {
-                            Task.detached { @MainActor in
-                                PlanetStore.shared.selectedView = .followingPlanet(followingPlanet)
-                            }
+                    }
+                    else if let followingPlanet: FollowingPlanetModel = existings.following {
+                        Task.detached { @MainActor in
+                            PlanetStore.shared.selectedView = .followingPlanet(followingPlanet)
                         }
-                        else {
-                            var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
-                            defer {
-                                existings.mine = nil
-                                existings.following = nil
-                                existings.myArticle = nil
-                                existings.followingArticle = nil
-                            }
-                            if let mine = existings.mine, let myArticle = existings.myArticle {
-                                Task.detached { @MainActor in
+                    }
+                    else {
+                        var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
+                        defer {
+                            existings.mine = nil
+                            existings.following = nil
+                            existings.myArticle = nil
+                            existings.followingArticle = nil
+                        }
+                        if let mine = existings.mine, let myArticle = existings.myArticle {
+                            Task.detached { @MainActor in
+                                if let aList = PlanetStore.shared.selectedArticleList, aList.contains(myArticle) {
+
+                                } else {
                                     PlanetStore.shared.selectedView = .myPlanet(mine)
                                     Task { @MainActor in
                                         PlanetStore.shared.selectedArticle = myArticle
                                         PlanetStore.shared.refreshSelectedArticles()
                                     }
                                 }
+//                                PlanetStore.shared.selectedView = .myPlanet(mine)
+//                                Task { @MainActor in
+//                                    PlanetStore.shared.selectedArticle = myArticle
+//                                    PlanetStore.shared.refreshSelectedArticles()
+//                                }
                             }
-                            else if let following = existings.following, let followingArticle = existings.followingArticle {
-                                Task.detached { @MainActor in
+                        }
+                        else if let following = existings.following, let followingArticle = existings.followingArticle {
+                            Task.detached { @MainActor in
+                                if let aList = PlanetStore.shared.selectedArticleList, aList.contains(followingArticle) {
+
+                                } else {
                                     PlanetStore.shared.selectedView = .followingPlanet(following)
                                     Task { @MainActor in
                                         PlanetStore.shared.selectedArticle = followingArticle
                                         PlanetStore.shared.refreshSelectedArticles()
                                     }
                                 }
+//                                PlanetStore.shared.selectedView = .followingPlanet(following)
+//                                Task { @MainActor in
+//                                    PlanetStore.shared.selectedArticle = followingArticle
+//                                    PlanetStore.shared.refreshSelectedArticles()
+//                                }
                             }
-                            else {
-                                Task.detached { @MainActor in
-                                    PlanetStore.shared.followingPlanetLink = targetLink.absoluteString
-                                    PlanetStore.shared.isFollowingPlanet = true
-                                }
+                        }
+                        else {
+                            Task.detached { @MainActor in
+                                PlanetStore.shared.followingPlanetLink = targetLink.absoluteString
+                                PlanetStore.shared.isFollowingPlanet = true
                             }
                         }
                     }

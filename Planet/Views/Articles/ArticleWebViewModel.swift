@@ -67,15 +67,15 @@ class ArticleWebViewModel: NSObject {
         return (myPlanet, followingPlanet)
     }
 
-    func checkActivePlanet(myPlanet: MyPlanetModel?, followingPlanet: FollowingPlanetModel?) -> Bool {
-        if let myPlanet = myPlanet, myPlanet == activeMyPlanet {
-            return true
-        }
-        if let followingPlanet = followingPlanet, followingPlanet == activeFollowingPlanet {
-            return true
-        }
-        return false
-    }
+//    func checkActivePlanet(myPlanet: MyPlanetModel?, followingPlanet: FollowingPlanetModel?) -> Bool {
+//        if let myPlanet = myPlanet, myPlanet == activeMyPlanet {
+//            return true
+//        }
+//        if let followingPlanet = followingPlanet, followingPlanet == activeFollowingPlanet {
+//            return true
+//        }
+//        return false
+//    }
 
     func checkArticleLink(_ url: URL) -> (mine: MyPlanetModel?, following: FollowingPlanetModel?, myArticle: MyArticleModel?, followingArticle: FollowingArticleModel?) {
         let idString = url.deletingLastPathComponent().lastPathComponent
@@ -171,15 +171,15 @@ class ArticleWebViewModel: NSObject {
         return (myPlanet, followingPlanet, myArticle, followingArticle)
     }
 
-    func checkActiveArticle(myArticle: MyArticleModel?, followingArticle: FollowingArticleModel?) -> Bool {
-        if let myArticle = myArticle, myArticle == activeMyArticle {
-            return true
-        }
-        if let followingArticle = followingArticle, followingArticle == activeFollowingArticle {
-            return true
-        }
-        return false
-    }
+//    func checkActiveArticle(myArticle: MyArticleModel?, followingArticle: FollowingArticleModel?) -> Bool {
+//        if let myArticle = myArticle, myArticle == activeMyArticle {
+//            return true
+//        }
+//        if let followingArticle = followingArticle, followingArticle == activeFollowingArticle {
+//            return true
+//        }
+//        return false
+//    }
 
     deinit {
         myPlanets.removeAll()
