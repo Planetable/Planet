@@ -205,7 +205,7 @@ struct ArticleWebView: NSViewRepresentable {
 
                     if let mine = existings.mine, let myArticle = existings.myArticle {
                         Task.detached { @MainActor in
-                            if ((PlanetStore.shared.selectedArticleList?.contains(myArticle)) != nil) {
+                            if let aList = PlanetStore.shared.selectedArticleList, aList.contains(myArticle) {
 
                             } else {
                                 PlanetStore.shared.selectedView = .myPlanet(mine)
@@ -219,7 +219,7 @@ struct ArticleWebView: NSViewRepresentable {
                     }
                     else if let following = existings.following, let followingArticle = existings.followingArticle {
                         Task.detached { @MainActor in
-                            if ((PlanetStore.shared.selectedArticleList?.contains(followingArticle)) != nil) {
+                            if let aList = PlanetStore.shared.selectedArticleList, aList.contains(followingArticle) {
 
                             } else {
                                 PlanetStore.shared.selectedView = .followingPlanet(following)
