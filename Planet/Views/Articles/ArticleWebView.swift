@@ -205,20 +205,28 @@ struct ArticleWebView: NSViewRepresentable {
 
                     if let mine = existings.mine, let myArticle = existings.myArticle {
                         Task.detached { @MainActor in
-                            PlanetStore.shared.selectedView = .myPlanet(mine)
-                            Task { @MainActor in
-                                PlanetStore.shared.selectedArticle = myArticle
-                                PlanetStore.shared.refreshSelectedArticles()
+                            if ((PlanetStore.shared.selectedArticleList?.contains(myArticle)) != nil) {
+
+                            } else {
+                                PlanetStore.shared.selectedView = .myPlanet(mine)
+                                Task { @MainActor in
+                                    PlanetStore.shared.selectedArticle = myArticle
+                                    PlanetStore.shared.refreshSelectedArticles()
+                                }
                             }
                         }
                         decisionHandler(.allow, preferences)
                     }
                     else if let following = existings.following, let followingArticle = existings.followingArticle {
                         Task.detached { @MainActor in
-                            PlanetStore.shared.selectedView = .followingPlanet(following)
-                            Task { @MainActor in
-                                PlanetStore.shared.selectedArticle = followingArticle
-                                PlanetStore.shared.refreshSelectedArticles()
+                            if ((PlanetStore.shared.selectedArticleList?.contains(followingArticle)) != nil) {
+
+                            } else {
+                                PlanetStore.shared.selectedView = .followingPlanet(following)
+                                Task { @MainActor in
+                                    PlanetStore.shared.selectedArticle = followingArticle
+                                    PlanetStore.shared.refreshSelectedArticles()
+                                }
                             }
                         }
                         decisionHandler(.allow, preferences)
