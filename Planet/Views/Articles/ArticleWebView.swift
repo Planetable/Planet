@@ -223,9 +223,6 @@ struct ArticleWebView: NSViewRepresentable {
 
                     if let mine = existings.mine, let myArticle = existings.myArticle {
                         Task.detached { @MainActor in
-                            if let aList = PlanetStore.shared.selectedArticleList {
-                                debugPrint("Here is a list: \(aList)")
-                            }
                             if let aList = PlanetStore.shared.selectedArticleList, let article = aList.first(where: { item in
                                 if let my = item as? MyArticleModel  {
                                     return aList.contains(my)
@@ -248,8 +245,15 @@ struct ArticleWebView: NSViewRepresentable {
                     }
                     else if let following = existings.following, let followingArticle = existings.followingArticle {
                         Task.detached { @MainActor in
-                            if let aList = PlanetStore.shared.selectedArticleList, aList.contains(followingArticle) {
-
+                            if let aList = PlanetStore.shared.selectedArticleList, let article = aList.first(where: { item in
+                                if let my = item as? MyArticleModel  {
+                                    return aList.contains(my)
+                                }
+                                if let following = item as? FollowingArticleModel {
+                                    return aList.contains(following)
+                                }
+                                return false
+                            }) {
                             } else {
                                 PlanetStore.shared.selectedView = .followingPlanet(following)
                                 Task { @MainActor in
