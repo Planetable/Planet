@@ -198,10 +198,10 @@ struct ArticleWebView: NSViewRepresentable {
                         existings.followingArticle = nil
                     }
 
-                    if ArticleWebViewModel.shared.checkActiveArticle(myArticle: existings.myArticle, followingArticle: existings.followingArticle) {
-                        decisionHandler(.cancel, preferences)
-                        return
-                    }
+//                    if ArticleWebViewModel.shared.checkActiveArticle(myArticle: existings.myArticle, followingArticle: existings.followingArticle) {
+//                        decisionHandler(.cancel, preferences)
+//                        return
+//                    }
 
                     if let mine = existings.mine, let myArticle = existings.myArticle {
                         Task.detached { @MainActor in
