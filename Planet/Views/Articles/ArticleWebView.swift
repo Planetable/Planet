@@ -130,159 +130,28 @@ struct ArticleWebView: NSViewRepresentable {
             debugPrint("WKWebView decidePolicyFor: action: \(navigationAction) / url: \(navigationAction.request.url)")
             // handle (ignore) target="_blank" (open in new window) link as external
             if navigationAction.targetFrame == nil, let externalURL = navigationAction.request.url,
-               isValidatedLink(externalURL)
-            {
+               isValidatedLink(externalURL) {
                 NSWorkspace.shared.open(externalURL)
                 decisionHandler(.cancel, preferences)
-            }
-            else if let targetLink = navigationAction.request.url {
-                var existings = ArticleWebViewModel.shared.checkPlanetLink(targetLink)
-                defer {
-                    existings.mine = nil
-                    existings.following = nil
-                }
-                if targetLink.isPlanetLink {
-//                    if !ArticleWebViewModel.shared.checkActivePlanet(myPlanet: existings.mine, followingPlanet: existings.following) {
-//                    }
-                    if let myPlanet: MyPlanetModel = existings.mine {
-                        Task.detached { @MainActor in
-                            PlanetStore.shared.selectedView = .myPlanet(myPlanet)
-                        }
-                    }
-                    else if let followingPlanet: FollowingPlanetModel = existings.following {
-                        Task.detached { @MainActor in
-                            PlanetStore.shared.selectedView = .followingPlanet(followingPlanet)
-                        }
-                    }
-                    else {
-                        var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
-                        defer {
-                            existings.mine = nil
-                            existings.following = nil
-                            existings.myArticle = nil
-                            existings.followingArticle = nil
-                        }
-                        if let mine = existings.mine, let myArticle = existings.myArticle {
-                            Task.detached { @MainActor in
-                                if let aList = PlanetStore.shared.selectedArticleList, aList.contains(myArticle) {
-
-                                } else {
-                                    PlanetStore.shared.selectedView = .myPlanet(mine)
-                                    Task { @MainActor in
-                                        PlanetStore.shared.selectedArticle = myArticle
-                                        PlanetStore.shared.refreshSelectedArticles()
-                                    }
-                                }
-//                                PlanetStore.shared.selectedView = .myPlanet(mine)
-//                                Task { @MainActor in
-//                                    PlanetStore.shared.selectedArticle = myArticle
-//                                    PlanetStore.shared.refreshSelectedArticles()
-//                                }
-                            }
-                        }
-                        else if let following = existings.following, let followingArticle = existings.followingArticle {
-                            Task.detached { @MainActor in
-                                if let aList = PlanetStore.shared.selectedArticleList, aList.contains(followingArticle) {
-
-                                } else {
-                                    PlanetStore.shared.selectedView = .followingPlanet(following)
-                                    Task { @MainActor in
-                                        PlanetStore.shared.selectedArticle = followingArticle
-                                        PlanetStore.shared.refreshSelectedArticles()
-                                    }
-                                }
-//                                PlanetStore.shared.selectedView = .followingPlanet(following)
-//                                Task { @MainActor in
-//                                    PlanetStore.shared.selectedArticle = followingArticle
-//                                    PlanetStore.shared.refreshSelectedArticles()
-//                                }
-                            }
-                        }
-                        else {
-                            Task.detached { @MainActor in
-                                PlanetStore.shared.followingPlanetLink = targetLink.absoluteString
-                                PlanetStore.shared.isFollowingPlanet = true
-                            }
-                        }
-                    }
+            } else if let targetLink = navigationAction.request.url {
+                if ArticleWebViewModel.shared.checkInternalLink(targetLink) {
                     decisionHandler(.cancel, preferences)
-                }
-                else {
-                    var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
-                    defer {
-                        existings.mine = nil
-                        existings.following = nil
-                        existings.myArticle = nil
-                        existings.followingArticle = nil
-                    }
-
-//                    if ArticleWebViewModel.shared.checkActiveArticle(myArticle: existings.myArticle, followingArticle: existings.followingArticle) {
-//                        decisionHandler(.cancel, preferences)
-//                        return
-//                    }
-
-                    if let mine = existings.mine, let myArticle = existings.myArticle {
-                        Task.detached { @MainActor in
-                            if let aList = PlanetStore.shared.selectedArticleList, let article = aList.first(where: { item in
-                                if let my = item as? MyArticleModel  {
-                                    return aList.contains(my)
-                                }
-                                if let following = item as? FollowingArticleModel {
-                                    return aList.contains(following)
-                                }
-                                return false
-                            }) {
-
-                            } else {
-                                PlanetStore.shared.selectedView = .myPlanet(mine)
-                                Task { @MainActor in
-                                    PlanetStore.shared.selectedArticle = myArticle
-                                    PlanetStore.shared.refreshSelectedArticles()
-                                }
-                            }
-                        }
+                } else if isValidatedLink(targetLink) {
+                    if PlanetDownloadItem.downloadableFileExtensions().contains(targetLink.pathExtension) {
+                        decisionHandler(.allow, preferences)
+                    } else if navigationAction.navigationType == .linkActivated {
+                        NSWorkspace.shared.open(targetLink)
+                        decisionHandler(.cancel, preferences)
+                    } else {
                         decisionHandler(.allow, preferences)
                     }
-                    else if let following = existings.following, let followingArticle = existings.followingArticle {
-                        Task.detached { @MainActor in
-                            if let aList = PlanetStore.shared.selectedArticleList, let article = aList.first(where: { item in
-                                if let my = item as? MyArticleModel  {
-                                    return aList.contains(my)
-                                }
-                                if let following = item as? FollowingArticleModel {
-                                    return aList.contains(following)
-                                }
-                                return false
-                            }) {
-                            } else {
-                                PlanetStore.shared.selectedView = .followingPlanet(following)
-                                Task { @MainActor in
-                                    PlanetStore.shared.selectedArticle = followingArticle
-                                    PlanetStore.shared.refreshSelectedArticles()
-                                }
-                            }
-                        }
-                        decisionHandler(.allow, preferences)
-                    }
-                    else {
-                        if isValidatedLink(targetLink), PlanetDownloadItem.downloadableFileExtensions().contains(targetLink.pathExtension) {
-                            decisionHandler(.allow, preferences)
-                        }
-                        else if navigationAction.navigationType == .linkActivated, isValidatedLink(targetLink) {
-                            NSWorkspace.shared.open(targetLink)
-                            decisionHandler(.cancel, preferences)
-                        }
-                        else {
-                            decisionHandler(.allow, preferences)
-                        }
-                    }
+                } else {
+                    decisionHandler(.allow, preferences)
                 }
-            }
-            else {
+            } else {
                 if navigationAction.shouldPerformDownload {
                     decisionHandler(.download, preferences)
-                }
-                else {
+                } else {
                     decisionHandler(.allow, preferences)
                 }
             }
@@ -316,6 +185,7 @@ struct ArticleWebView: NSViewRepresentable {
                 )
                 decisionHandler(.download)
             }
+            ArticleWebViewModel.shared.removeInternalLinks()
         }
 
         func webView(

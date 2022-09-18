@@ -56,21 +56,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
             } else {
                 debugPrint("same planet, ignore.")
             }
-            switch selectedView {
-                case .myPlanet(let planet):
-                    Task { @MainActor in
-                        ArticleWebViewModel.shared.updateActivePlanet(planet)
-                    }
-                case .followingPlanet(let planet):
-                    Task { @MainActor in
-                        ArticleWebViewModel.shared.updateActiveFollowingPlanet(planet)
-                    }
-                default:
-                    Task { @MainActor in
-                        ArticleWebViewModel.shared.updateActivePlanet(nil)
-                        ArticleWebViewModel.shared.updateActiveFollowingPlanet(nil)
-                    }
-            }
         }
     }
     @Published var selectedArticleList: [ArticleModel]? = nil
@@ -83,18 +68,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 }
             } else {
                 debugPrint("same article, ignore.")
-            }
-            Task { @MainActor in
-                if let myArticle = selectedArticle as? MyArticleModel {
-                    ArticleWebViewModel.shared.updateActiveMyArticle(myArticle)
-                }
-                else if let followingArticle = selectedArticle as? FollowingArticleModel {
-                    ArticleWebViewModel.shared.updateActiveFollowingArticle(followingArticle)
-                }
-                else {
-                    ArticleWebViewModel.shared.updateActiveMyArticle(nil)
-                    ArticleWebViewModel.shared.updateActiveFollowingArticle(nil)
-                }
             }
         }
     }

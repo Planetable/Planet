@@ -49,16 +49,16 @@ private class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
         }
         """
 
-    static private var relativeLinkScript = """
+    static private var internalLinkScript = """
         window.onclick = (event) => {
-            var target = event.target
-            var href = target.href
+            const target = event.target
+            const href = target.href
             window.webkit.messageHandlers.buttonclicked.postMessage({
                 linkClicked: href
             });
         }
         """
-    
+
     private override init() {
         super.init()
     }
@@ -77,8 +77,8 @@ private class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
             userContentController.add(self, name: "buttonclicked")
             let contextMenuScript = WKUserScript(source: GlobalScriptMessageHandler.contextMenuScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
             userContentController.addUserScript(contextMenuScript)
-            let relativeLinkScript = WKUserScript(source: GlobalScriptMessageHandler.relativeLinkScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
-            userContentController.addUserScript(relativeLinkScript)
+            let internalLinkScript = WKUserScript(source: GlobalScriptMessageHandler.internalLinkScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+            userContentController.addUserScript(internalLinkScript)
         }
     }
     
@@ -91,36 +91,16 @@ private class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
             href = body["href"] as? String
             src = body["src"] as? String
 
-            // handle relative link from single click
-            if let linkClicked = body["linkClicked"] as? String, linkClicked.hasPrefix("file:///") {
-                let targetURL = URL(fileURLWithPath: linkClicked)
-                if let possibleArticleUUID = UUID(uuidString: targetURL.lastPathComponent) {
-                    guard let targetLink = URL(string: "planet://" + possibleArticleUUID.uuidString) else { return }
-                    var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
-                    defer {
-                        existings.mine = nil
-                        existings.following = nil
-                        existings.myArticle = nil
-                        existings.followingArticle = nil
-                    }
-                    if let mine = existings.mine, let myArticle = existings.myArticle {
-                        Task.detached { @MainActor in
-                            PlanetStore.shared.selectedView = .myPlanet(mine)
-                            Task { @MainActor in
-                                PlanetStore.shared.selectedArticle = myArticle
-                                PlanetStore.shared.refreshSelectedArticles()
-                            }
-                        }
-                    }
-                    else if let following = existings.following, let followingArticle = existings.followingArticle {
-                        Task.detached { @MainActor in
-                            PlanetStore.shared.selectedView = .followingPlanet(following)
-                            Task { @MainActor in
-                                PlanetStore.shared.selectedArticle = followingArticle
-                                PlanetStore.shared.refreshSelectedArticles()
-                            }
-                        }
-                    }
+            // handle internal link from single click
+            if let linkClicked = body["linkClicked"] as? String {
+                // relative link with file:/// scheme
+                if linkClicked.hasPrefix("file:///") {
+                    let targetURL = URL(fileURLWithPath: linkClicked)
+                    ArticleWebViewModel.shared.processInternalFileLink(targetURL)
+                }
+                // process possible internal link
+                if let targetURL = URL(string: linkClicked) {
+                    ArticleWebViewModel.shared.processPossibleInternalLink(targetURL)
                 }
             }
         }
@@ -196,36 +176,11 @@ class PlanetDownloadsWebView: WKWebView {
         guard let urlString = GlobalScriptMessageHandler.instance.href else { return }
         if urlString.hasPrefix("file:///") {
             let targetURL = URL(fileURLWithPath: urlString)
-            if let possibleArticleUUID = UUID(uuidString: targetURL.lastPathComponent) {
-                guard let targetLink = URL(string: "planet://" + possibleArticleUUID.uuidString) else { return }
-                var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
-                defer {
-                    existings.mine = nil
-                    existings.following = nil
-                    existings.myArticle = nil
-                    existings.followingArticle = nil
-                }
-                if let mine = existings.mine, let myArticle = existings.myArticle {
-                    Task.detached { @MainActor in
-                        PlanetStore.shared.selectedView = .myPlanet(mine)
-                        Task { @MainActor in
-                            PlanetStore.shared.selectedArticle = myArticle
-                            PlanetStore.shared.refreshSelectedArticles()
-                        }
-                    }
-                }
-                else if let following = existings.following, let followingArticle = existings.followingArticle {
-                    Task.detached { @MainActor in
-                        PlanetStore.shared.selectedView = .followingPlanet(following)
-                        Task { @MainActor in
-                            PlanetStore.shared.selectedArticle = followingArticle
-                            PlanetStore.shared.refreshSelectedArticles()
-                        }
-                    }
-                }
-            }
-        } else {
-            if let url = URL(string: urlString) {
+            ArticleWebViewModel.shared.processInternalFileLink(targetURL)
+        }
+        if let url = URL(string: urlString) {
+            ArticleWebViewModel.shared.processPossibleInternalLink(url)
+            if !ArticleWebViewModel.shared.checkInternalLink(url) {
                 NSWorkspace.shared.open(url)
             }
         }
