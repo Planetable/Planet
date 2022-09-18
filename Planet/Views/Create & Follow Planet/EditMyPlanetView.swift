@@ -231,7 +231,7 @@ struct EditMyPlanetView: View {
 
                         HStack {
                             HStack {
-                                Text("ENS Domain")
+                                Text("Domain")
                                 Spacer()
                             }
                             .frame(width: CONTROL_CAPTION_WIDTH + 20)
