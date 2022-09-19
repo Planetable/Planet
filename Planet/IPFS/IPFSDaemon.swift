@@ -7,7 +7,7 @@ actor IPFSDaemon {
         "https://cloudflare-ipfs.com",
         "https://dweb.link",
         "https://ipfs.io",
-        "https://4everland.io",
+        "https://gateway.pinata.cloud",
         "https://ipfs.fleek.co",
         "https://cf-ipfs.com",
     ]
