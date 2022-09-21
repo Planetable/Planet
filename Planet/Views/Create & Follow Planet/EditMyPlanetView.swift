@@ -286,17 +286,40 @@ struct EditMyPlanetView: View {
 
                                 if let pinStatus = filebasePinStatus {
                                     Button {
-                                        if let cid = filebasePinCID, let url = URL(string: "https://ipfs.filebase.io/ipfs/\(cid)") {
+                                        if let cid = filebasePinCID,
+                                            let url = URL(
+                                                string: "https://ipfs.filebase.io/ipfs/\(cid)"
+                                            )
+                                        {
                                             debugPrint("Filebase: Open preview URL \(url)")
                                             NSWorkspace.shared.open(url)
-                                        } else {
+                                        }
+                                        else {
                                             debugPrint("Filebase: Preview URL is not available")
                                         }
                                     } label: {
-                                        Label(pinStatus.capitalized, systemImage: "checkmark.circle.fill")
+                                        switch pinStatus {
+                                        case "pinned":
+                                            Label(
+                                                pinStatus.capitalized,
+                                                systemImage: "checkmark.circle.fill"
+                                            )
+                                        case "pinning":
+                                            Label(
+                                                pinStatus.capitalized,
+                                                systemImage: "ellipsis.circle.fill"
+                                            )
+                                        default:
+                                            Label(
+                                                pinStatus.capitalized,
+                                                systemImage: "questionmark.circle"
+                                            )
+                                        }
+
                                     }
 
-                                } else {
+                                }
+                                else {
                                     ProgressView()
                                         .progressViewStyle(.linear)
                                         .frame(height: 8)
@@ -305,12 +328,23 @@ struct EditMyPlanetView: View {
                                 Spacer()
                             }.onAppear {
                                 Task {
-                                    if let filebaseEnabled = planet.filebaseEnabled, filebaseEnabled, let filebasePinName = planet.filebasePinName, let filebaseAPIToken = planet.filebaseAPIToken, let filebaseRequestID = planet.filebaseRequestID {
-                                        let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
-                                        if let pin = await filebase.checkPinStatus(requestID: filebaseRequestID) {
+                                    if let filebaseEnabled = planet.filebaseEnabled,
+                                        filebaseEnabled,
+                                        let filebasePinName = planet.filebasePinName,
+                                        let filebaseAPIToken = planet.filebaseAPIToken,
+                                        let filebaseRequestID = planet.filebaseRequestID
+                                    {
+                                        let filebase = Filebase(
+                                            pinName: filebasePinName,
+                                            apiToken: filebaseAPIToken
+                                        )
+                                        if let pin = await filebase.checkPinStatus(
+                                            requestID: filebaseRequestID
+                                        ) {
                                             filebasePinStatus = pin.status
                                             filebasePinCID = pin.cid
-                                        } else {
+                                        }
+                                        else {
                                             filebasePinStatus = "Unknown"
                                         }
                                     }
