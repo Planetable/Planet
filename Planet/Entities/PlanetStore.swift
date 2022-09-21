@@ -53,23 +53,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 refreshSelectedArticles()
                 selectedArticle = nil
                 UserDefaults.standard.set(selectedView?.stringValue, forKey: "lastSelectedView")
-            } else {
-                debugPrint("same planet, ignore.")
-            }
-            switch selectedView {
-                case .myPlanet(let planet):
-                    Task { @MainActor in
-                        ArticleWebViewModel.shared.updateActivePlanet(planet)
-                    }
-                case .followingPlanet(let planet):
-                    Task { @MainActor in
-                        ArticleWebViewModel.shared.updateActiveFollowingPlanet(planet)
-                    }
-                default:
-                    Task { @MainActor in
-                        ArticleWebViewModel.shared.updateActivePlanet(nil)
-                        ArticleWebViewModel.shared.updateActiveFollowingPlanet(nil)
-                    }
             }
         }
     }
@@ -80,20 +63,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 if let followingArticle = selectedArticle as? FollowingArticleModel {
                     followingArticle.read = Date()
                     try? followingArticle.save()
-                }
-            } else {
-                debugPrint("same article, ignore.")
-            }
-            Task { @MainActor in
-                if let myArticle = selectedArticle as? MyArticleModel {
-                    ArticleWebViewModel.shared.updateActiveMyArticle(myArticle)
-                }
-                else if let followingArticle = selectedArticle as? FollowingArticleModel {
-                    ArticleWebViewModel.shared.updateActiveFollowingArticle(followingArticle)
-                }
-                else {
-                    ArticleWebViewModel.shared.updateActiveMyArticle(nil)
-                    ArticleWebViewModel.shared.updateActiveFollowingArticle(nil)
                 }
             }
         }
