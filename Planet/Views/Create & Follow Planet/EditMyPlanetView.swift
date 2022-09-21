@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EditMyPlanetView: View {
     let CONTROL_CAPTION_WIDTH: CGFloat = 80
+    let CONTROL_ROW_SPACING: CGFloat = 8
     let SOCIAL_CONTROL_CAPTION_WIDTH: CGFloat = 120
 
     @Environment(\.dismiss) var dismiss
@@ -93,7 +94,7 @@ struct EditMyPlanetView: View {
                 }
 
                 TabView {
-                    VStack(spacing: 15) {
+                    VStack(spacing: CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
                                 Text("Name")
@@ -143,7 +144,7 @@ struct EditMyPlanetView: View {
                         Text("Basic Info")
                     }
 
-                    VStack(spacing: 15) {
+                    VStack(spacing: CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
                                 Spacer()
@@ -196,7 +197,7 @@ struct EditMyPlanetView: View {
                         Text("Analytics")
                     }
 
-                    VStack(spacing: 15) {
+                    VStack(spacing: CONTROL_ROW_SPACING) {
                         HStack(spacing: 8) {
                             HStack {
                                 Spacer()
@@ -225,7 +226,7 @@ struct EditMyPlanetView: View {
                         Text("Social")
                     }
 
-                    VStack(spacing: 15) {
+                    VStack(spacing: CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
                                 Spacer()
@@ -263,7 +264,7 @@ struct EditMyPlanetView: View {
                         Text("Pinning")
                     }
 
-                    VStack(spacing: 15) {
+                    VStack(spacing: CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
                                 Spacer()
