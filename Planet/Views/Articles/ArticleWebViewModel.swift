@@ -277,10 +277,10 @@ class ArticleWebViewModel: NSObject {
                 Task.detached { @MainActor in
                     if !self.checkMyArticleInCurrentList(myArticle) {
                         PlanetStore.shared.selectedView = .myPlanet(mine)
-                        Task { @MainActor in
-                            PlanetStore.shared.selectedArticle = myArticle
-                            PlanetStore.shared.refreshSelectedArticles()
-                        }
+                    }
+                    Task { @MainActor in
+                        PlanetStore.shared.selectedArticle = myArticle
+                        PlanetStore.shared.refreshSelectedArticles()
                     }
                 }
             } else if let following = existings.following, let followingArticle = existings.followingArticle {
@@ -288,14 +288,12 @@ class ArticleWebViewModel: NSObject {
                 Task.detached { @MainActor in
                     if !self.checkFollowingArticleInCurrentList(followingArticle) {
                         PlanetStore.shared.selectedView = .followingPlanet(following)
-                        Task { @MainActor in
-                            PlanetStore.shared.selectedArticle = followingArticle
-                            PlanetStore.shared.refreshSelectedArticles()
-                        }
+                    }
+                    Task { @MainActor in
+                        PlanetStore.shared.selectedArticle = followingArticle
+                        PlanetStore.shared.refreshSelectedArticles()
                     }
                 }
-            } else {
-                debugPrint("TODO: -> \(existings)")
             }
         }
         guard isInternalLink else { return }

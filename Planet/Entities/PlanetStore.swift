@@ -53,8 +53,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 refreshSelectedArticles()
                 selectedArticle = nil
                 UserDefaults.standard.set(selectedView?.stringValue, forKey: "lastSelectedView")
-            } else {
-                debugPrint("same planet, ignore.")
             }
         }
     }
@@ -66,8 +64,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
                     followingArticle.read = Date()
                     try? followingArticle.save()
                 }
-            } else {
-                debugPrint("same article, ignore.")
             }
         }
     }
