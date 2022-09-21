@@ -30,6 +30,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var filebaseEnabled: Bool? = false
     @Published var filebasePinName: String?
     @Published var filebaseAPIToken: String?
+    @Published var filebaseRequestID: String?
+    @Published var filebasePinStatus: String?
+    @Published var filebasePinStatusRetrieved: Date?
 
     @Published var metrics: Metrics?
 
@@ -116,6 +119,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(filebaseEnabled)
         hasher.combine(filebasePinName)
         hasher.combine(filebaseAPIToken)
+        hasher.combine(filebaseRequestID)
         hasher.combine(avatar)
         hasher.combine(drafts)
         hasher.combine(articles)
@@ -149,6 +153,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.filebaseEnabled == rhs.filebaseEnabled
             && lhs.filebasePinName == rhs.filebasePinName
             && lhs.filebaseAPIToken == rhs.filebaseAPIToken
+            && lhs.filebaseRequestID == rhs.filebaseRequestID
             && lhs.avatar == rhs.avatar
             && lhs.drafts == rhs.drafts
             && lhs.articles == rhs.articles
@@ -156,7 +161,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     enum CodingKeys: String, CodingKey {
         case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled,
-            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername, dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey, filebaseEnabled, filebasePinName, filebaseAPIToken
+            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername, dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey, filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -183,6 +188,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         filebaseEnabled = try container.decodeIfPresent(Bool.self, forKey: .filebaseEnabled)
         filebasePinName = try container.decodeIfPresent(String.self, forKey: .filebasePinName)
         filebaseAPIToken = try container.decodeIfPresent(String.self, forKey: .filebaseAPIToken)
+        filebaseRequestID = try container.decodeIfPresent(String.self, forKey: .filebaseRequestID)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -207,6 +213,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(filebaseEnabled, forKey: .filebaseEnabled)
         try container.encodeIfPresent(filebasePinName, forKey: .filebasePinName)
         try container.encodeIfPresent(filebaseAPIToken, forKey: .filebaseAPIToken)
+        try container.encodeIfPresent(filebaseRequestID, forKey: .filebaseRequestID)
     }
 
     init(
@@ -402,6 +409,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if backupPlanet.filebaseAPIToken != nil {
             planet.filebaseAPIToken = backupPlanet.filebaseAPIToken
         }
+        if backupPlanet.filebaseRequestID != nil {
+            planet.filebaseRequestID = backupPlanet.filebaseRequestID
+        }
 
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
@@ -584,7 +594,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if let filebaseEnabled = filebaseEnabled, filebaseEnabled, let filebasePinName = filebasePinName, let filebaseAPIToken = filebaseAPIToken {
             debugPrint("Filebase: about to pin for \(filebasePinName)")
             let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
-            await filebase.pin(cid: cid)
+            if let requestID = await filebase.pin(cid: cid) {
+                Task { @MainActor in
+                    self.filebaseRequestID = requestID
+                }
+                try save()
+            }
         }
         let result = try await IPFSDaemon.shared.api(
             path: "name/publish",
@@ -635,6 +650,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             filebaseEnabled: filebaseEnabled,
             filebasePinName: filebasePinName,
             filebaseAPIToken: filebaseAPIToken,
+            filebaseRequestID: filebaseRequestID,
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,
@@ -736,5 +752,6 @@ struct BackupMyPlanetModel: Codable {
     let filebaseEnabled: Bool?
     let filebasePinName: String?
     let filebaseAPIToken: String?
+    let filebaseRequestID: String?
     let articles: [BackupArticleModel]
 }

@@ -12,10 +12,10 @@ struct Filebase: Codable {
     var pinName: String
     var apiToken: String
 
-    func pin(cid: String) async {
+    func pin(cid: String) async -> String? {
         guard let url = URL(string: "https://api.filebase.io/v1/ipfs/pins") else {
             debugPrint("Filebase: failed to construct the API URL")
-            return
+            return nil
         }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -24,7 +24,7 @@ struct Filebase: Codable {
 
         guard let (data, _) = try? await URLSession.shared.data(for: request) else {
             debugPrint("Filebase: request to find existing request ID failed")
-            return
+            return nil
         }
         var requestID: String?
         do {
@@ -57,7 +57,7 @@ struct Filebase: Codable {
             url2 = URL(string: "https://api.filebase.io/v1/ipfs/pins")
         }
 
-        guard let urlPin = url2 else { return }
+        guard let urlPin = url2 else { return nil }
 
         var request2 = URLRequest(url: urlPin)
         request2.httpMethod = "POST"
@@ -70,16 +70,54 @@ struct Filebase: Codable {
             (data2, response2) = try await URLSession.shared.data(for: request2)
         } catch {
             debugPrint("Filebase: failed to send POST request")
-            return
+            return nil
         }
         if !(response2 as! HTTPURLResponse).ok {
             debugPrint("Filebase: http response is non-200 \(response2)")
-            return
+            return nil
         }
         if let json = try? JSON(data: data2) {
             debugPrint("Filebase: got response: \(json)")
+            if let requestID = json["requestid"].string {
+                debugPrint("Filebase: the latest request ID for \(pinName) is \(requestID)")
+                return requestID
+            }
         } else {
             debugPrint("Filebase: failed to parse JSON response")
         }
+        return nil
     }
+
+    func checkPinStatus(requestID: String) async -> FilebasePin? {
+        guard let url = URL(string: "https://api.filebase.io/v1/ipfs/pins/\(requestID)") else {
+            debugPrint("Filebase: failed to construct the API URL")
+            return nil
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiToken)", forHTTPHeaderField: "Authorization")
+
+        guard let (data, _) = try? await URLSession.shared.data(for: request) else {
+            debugPrint("Filebase: request to find existing pin failed")
+            return nil
+        }
+        do {
+            let json = try JSON(data: data)
+            debugPrint(json)
+            if let status = json["status"].string, let cid = json["pin"]["cid"].string {
+                let pin = FilebasePin(cid: cid, requestID: requestID, status: status)
+                return pin
+            }
+        } catch {
+            debugPrint("Filebase: error occurred when finding request ID for \(pinName) \(error)")
+        }
+        return nil
+    }
+}
+
+struct FilebasePin: Codable {
+    var cid: String
+    var requestID: String
+    var status: String
 }

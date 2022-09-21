@@ -29,6 +29,9 @@ struct EditMyPlanetView: View {
     @State private var filebasePinName: String
     @State private var filebaseAPIToken: String
 
+    @State private var filebasePinStatus: String? = nil
+    @State private var filebasePinCID: String? = nil
+
     init(planet: MyPlanetModel) {
         self.planet = planet
         _name = State(wrappedValue: planet.name)
@@ -257,6 +260,62 @@ struct EditMyPlanetView: View {
 
                             TextField("", text: $filebaseAPIToken)
                                 .textFieldStyle(.roundedBorder)
+                        }
+
+                        if let requestID = planet.filebaseRequestID {
+                            HStack {
+                                HStack {
+                                    Text("Request ID")
+                                    Spacer()
+                                }
+                                .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                                Text(requestID).font(.footnote)
+
+                                Spacer()
+                            }
+                        }
+
+                        if let hasFilebase = planet.filebaseEnabled, hasFilebase {
+                            HStack {
+                                HStack {
+                                    Text("Pin Status")
+                                    Spacer()
+                                }
+                                .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                                if let pinStatus = filebasePinStatus {
+                                    Button {
+                                        if let cid = filebasePinCID, let url = URL(string: "https://ipfs.filebase.io/ipfs/\(cid)") {
+                                            debugPrint("Filebase: Open preview URL \(url)")
+                                            NSWorkspace.shared.open(url)
+                                        } else {
+                                            debugPrint("Filebase: Preview URL is not available")
+                                        }
+                                    } label: {
+                                        Label(pinStatus.capitalized, systemImage: "checkmark.circle.fill")
+                                    }
+
+                                } else {
+                                    ProgressView()
+                                        .progressViewStyle(.linear)
+                                        .frame(height: 8)
+                                }
+
+                                Spacer()
+                            }.onAppear {
+                                Task {
+                                    if let filebaseEnabled = planet.filebaseEnabled, filebaseEnabled, let filebasePinName = planet.filebasePinName, let filebaseAPIToken = planet.filebaseAPIToken, let filebaseRequestID = planet.filebaseRequestID {
+                                        let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
+                                        if let pin = await filebase.checkPinStatus(requestID: filebaseRequestID) {
+                                            filebasePinStatus = pin.status
+                                            filebasePinCID = pin.cid
+                                        } else {
+                                            filebasePinStatus = "Unknown"
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                     .padding(16)
