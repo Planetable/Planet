@@ -24,6 +24,10 @@ struct EditMyPlanetView: View {
     @State private var dWebServicesDomain: String
     @State private var dWebServicesAPIKey: String
 
+    @State private var filebaseEnabled: Bool = false
+    @State private var filebasePinName: String
+    @State private var filebaseAPIToken: String
+
     init(planet: MyPlanetModel) {
         self.planet = planet
         _name = State(wrappedValue: planet.name)
@@ -38,6 +42,9 @@ struct EditMyPlanetView: View {
         _dWebServicesEnabled = State(wrappedValue: planet.dWebServicesEnabled ?? false)
         _dWebServicesDomain = State(wrappedValue: planet.dWebServicesDomain ?? "")
         _dWebServicesAPIKey = State(wrappedValue: planet.dWebServicesAPIKey ?? "")
+        _filebaseEnabled = State(wrappedValue: planet.filebaseEnabled ?? false)
+        _filebasePinName = State(wrappedValue: planet.filebasePinName ?? "")
+        _filebaseAPIToken = State(wrappedValue: planet.filebaseAPIToken ?? "")
     }
 
     var body: some View {
@@ -223,6 +230,44 @@ struct EditMyPlanetView: View {
                             HStack {
                                 Spacer()
                             }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
+                            Toggle("Enable Filebase for Pinning", isOn: $filebaseEnabled)
+                                .toggleStyle(.checkbox)
+                                .frame(alignment: .leading)
+                            Spacer()
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("Pin Name")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                            TextField("", text: $filebasePinName)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("API Token")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                            TextField("", text: $filebaseAPIToken)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                    }
+                    .padding(16)
+                    .tabItem {
+                        Text("Pinning")
+                    }
+
+                    VStack(spacing: 15) {
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
                             Toggle("Enable dWebServices.xyz for IPNS", isOn: $dWebServicesEnabled)
                                 .toggleStyle(.checkbox)
                                 .frame(alignment: .leading)
@@ -283,6 +328,9 @@ struct EditMyPlanetView: View {
                         planet.dWebServicesEnabled = dWebServicesEnabled
                         planet.dWebServicesDomain = dWebServicesDomain
                         planet.dWebServicesAPIKey = dWebServicesAPIKey
+                        planet.filebaseEnabled = filebaseEnabled
+                        planet.filebasePinName = filebasePinName
+                        planet.filebaseAPIToken = filebaseAPIToken
                         Task {
                             try planet.save()
                             try planet.copyTemplateAssets()

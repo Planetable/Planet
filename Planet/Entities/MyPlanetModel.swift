@@ -27,6 +27,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var dWebServicesDomain: String?
     @Published var dWebServicesAPIKey: String?
 
+    @Published var filebaseEnabled: Bool? = false
+    @Published var filebasePinName: String?
+    @Published var filebaseAPIToken: String?
+
     @Published var metrics: Metrics?
 
     @Published var isPublishing = false
@@ -109,6 +113,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(dWebServicesEnabled)
         hasher.combine(dWebServicesDomain)
         hasher.combine(dWebServicesAPIKey)
+        hasher.combine(filebaseEnabled)
+        hasher.combine(filebasePinName)
+        hasher.combine(filebaseAPIToken)
         hasher.combine(avatar)
         hasher.combine(drafts)
         hasher.combine(articles)
@@ -139,6 +146,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.dWebServicesEnabled == rhs.dWebServicesEnabled
             && lhs.dWebServicesDomain == rhs.dWebServicesDomain
             && lhs.dWebServicesAPIKey == rhs.dWebServicesAPIKey
+            && lhs.filebaseEnabled == rhs.filebaseEnabled
+            && lhs.filebasePinName == rhs.filebasePinName
+            && lhs.filebaseAPIToken == rhs.filebaseAPIToken
             && lhs.avatar == rhs.avatar
             && lhs.drafts == rhs.drafts
             && lhs.articles == rhs.articles
@@ -146,7 +156,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     enum CodingKeys: String, CodingKey {
         case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled,
-            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername, dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey
+            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername, dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey, filebaseEnabled, filebasePinName, filebaseAPIToken
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -170,6 +180,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         dWebServicesEnabled = try container.decodeIfPresent(Bool.self, forKey: .dWebServicesEnabled)
         dWebServicesDomain = try container.decodeIfPresent(String.self, forKey: .dWebServicesDomain)
         dWebServicesAPIKey = try container.decodeIfPresent(String.self, forKey: .dWebServicesAPIKey)
+        filebaseEnabled = try container.decodeIfPresent(Bool.self, forKey: .filebaseEnabled)
+        filebasePinName = try container.decodeIfPresent(String.self, forKey: .filebasePinName)
+        filebaseAPIToken = try container.decodeIfPresent(String.self, forKey: .filebaseAPIToken)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -191,6 +204,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(dWebServicesEnabled, forKey: .dWebServicesEnabled)
         try container.encodeIfPresent(dWebServicesDomain, forKey: .dWebServicesDomain)
         try container.encodeIfPresent(dWebServicesAPIKey, forKey: .dWebServicesAPIKey)
+        try container.encodeIfPresent(filebaseEnabled, forKey: .filebaseEnabled)
+        try container.encodeIfPresent(filebasePinName, forKey: .filebasePinName)
+        try container.encodeIfPresent(filebaseAPIToken, forKey: .filebaseAPIToken)
     }
 
     init(
@@ -376,6 +392,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             planet.dWebServicesAPIKey = backupPlanet.dWebServicesAPIKey
         }
 
+        // Restore Filebase
+        if backupPlanet.filebaseEnabled != nil {
+            planet.filebaseEnabled = backupPlanet.filebaseEnabled
+        }
+        if backupPlanet.filebasePinName != nil {
+            planet.filebasePinName = backupPlanet.filebasePinName
+        }
+        if backupPlanet.filebaseAPIToken != nil {
+            planet.filebaseAPIToken = backupPlanet.filebaseAPIToken
+        }
+
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
         if FileManager.default.fileExists(atPath: planet.publicBasePath.path) {
@@ -547,10 +574,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             }
         }
         let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
+        // Send the latest CID to dWebServices.xyz if enabled
         if let dWebServicesEnabled = dWebServicesEnabled, dWebServicesEnabled, let dWebServicesDomain = dWebServicesDomain, let dWebServicesAPIKey = dWebServicesAPIKey {
             debugPrint("dWebServices: about to update for \(dWebServicesDomain)")
             let dWebRecord = dWebServices(domain: dWebServicesDomain, apiKey: dWebServicesAPIKey)
             await dWebRecord.publish(cid: cid)
+        }
+        // Send the latest CID to Filebase if enabled
+        if let filebaseEnabled = filebaseEnabled, filebaseEnabled, let filebasePinName = filebasePinName, let filebaseAPIToken = filebaseAPIToken {
+            debugPrint("Filebase: about to pin for \(filebasePinName)")
+            let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
+            await filebase.pin(cid: cid)
         }
         let result = try await IPFSDaemon.shared.api(
             path: "name/publish",
@@ -598,6 +632,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             dWebServicesEnabled: dWebServicesEnabled,
             dWebServicesDomain: dWebServicesDomain,
             dWebServicesAPIKey: dWebServicesAPIKey,
+            filebaseEnabled: filebaseEnabled,
+            filebasePinName: filebasePinName,
+            filebaseAPIToken: filebaseAPIToken,
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,
@@ -772,6 +809,82 @@ struct dWebServices: Codable {
     }
 }
 
+struct Filebase: Codable {
+    var pinName: String
+    var apiToken: String
+
+    func pin(cid: String) async {
+        guard let url = URL(string: "https://api.filebase.io/v1/ipfs/pins") else {
+            debugPrint("Filebase: failed to construct the API URL")
+            return
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiToken)", forHTTPHeaderField: "Authorization")
+
+        guard let (data, _) = try? await URLSession.shared.data(for: request) else {
+            debugPrint("Filebase: request to find existing request ID failed")
+            return
+        }
+        var requestID: String?
+        do {
+            let json = try JSON(data: data)
+            debugPrint("Filebase: JSON object for finding existing requestID: \(json)")
+            if let results = json["results"].array {
+                for result in results {
+                    if let name = result["pin"]["name"].string, name == pinName {
+                        requestID = result["requestid"].string
+                        debugPrint("Filebase: request ID for \(pinName) found: \(requestID)")
+                        break
+                    }
+                }
+                if requestID == nil {
+                    debugPrint("Filebase: request ID for \(pinName) not found")
+                }
+            }
+        }
+        catch {
+            debugPrint("Filebase: error occurred when finding request ID for \(pinName) \(error)")
+        }
+
+        let parameters: [String : String] = ["name": pinName, "cid": cid]
+        let jsonData = try? JSONSerialization.data(withJSONObject: parameters)
+
+        var url2: URL?
+        if let requestID = requestID {
+            url2 = URL(string: "https://api.filebase.io/v1/ipfs/pins/\(requestID)")
+        } else {
+            url2 = URL(string: "https://api.filebase.io/v1/ipfs/pins")
+        }
+
+        guard let urlPin = url2 else { return }
+
+        var request2 = URLRequest(url: urlPin)
+        request2.httpMethod = "POST"
+        request2.httpBody = jsonData
+        request2.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request2.setValue("Bearer \(apiToken)", forHTTPHeaderField: "Authorization")
+        let data2: Data
+        let response2: URLResponse
+        do {
+            (data2, response2) = try await URLSession.shared.data(for: request2)
+        } catch {
+            debugPrint("Filebase: failed to send POST request")
+            return
+        }
+        if !(response2 as! HTTPURLResponse).ok {
+            debugPrint("Filebase: http response is non-200 \(response2)")
+            return
+        }
+        if let json = try? JSON(data: data2) {
+            debugPrint("Filebase: got response: \(json)")
+        } else {
+            debugPrint("Filebase: failed to parse JSON response")
+        }
+    }
+}
+
 struct PublicPlanetModel: Codable {
     let id: UUID
     let name: String
@@ -805,5 +918,8 @@ struct BackupMyPlanetModel: Codable {
     let dWebServicesEnabled: Bool?
     let dWebServicesDomain: String?
     let dWebServicesAPIKey: String?
+    let filebaseEnabled: Bool?
+    let filebasePinName: String?
+    let filebaseAPIToken: String?
     let articles: [BackupArticleModel]
 }
