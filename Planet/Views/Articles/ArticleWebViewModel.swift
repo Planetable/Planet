@@ -239,10 +239,10 @@ class ArticleWebViewModel: NSObject {
                         if let aList = PlanetStore.shared.selectedArticleList, aList.contains(myArticle) {
                         } else {
                             PlanetStore.shared.selectedView = .myPlanet(mine)
-                            Task { @MainActor in
-                                PlanetStore.shared.selectedArticle = myArticle
-                                PlanetStore.shared.refreshSelectedArticles()
-                            }
+                        }
+                        Task { @MainActor in
+                            PlanetStore.shared.selectedArticle = myArticle
+                            PlanetStore.shared.refreshSelectedArticles()
                         }
                     }
                 } else if let following = existings.following, let followingArticle = existings.followingArticle {
@@ -250,10 +250,10 @@ class ArticleWebViewModel: NSObject {
                         if let aList = PlanetStore.shared.selectedArticleList, aList.contains(followingArticle) {
                         } else {
                             PlanetStore.shared.selectedView = .followingPlanet(following)
-                            Task { @MainActor in
-                                PlanetStore.shared.selectedArticle = followingArticle
-                                PlanetStore.shared.refreshSelectedArticles()
-                            }
+                        }
+                        Task { @MainActor in
+                            PlanetStore.shared.selectedArticle = followingArticle
+                            PlanetStore.shared.refreshSelectedArticles()
                         }
                     }
                 } else {
