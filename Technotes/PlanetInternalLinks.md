@@ -11,8 +11,7 @@
 ### Redirection Types
 
 Planet links will be redirect to the planet if:
-  - The planet is mine
-  - The planet is a following planet
+  - The planet is mine or followed
   - The planet is not currently selected
 
 Planet links will promote a following if:
@@ -20,18 +19,12 @@ Planet links will promote a following if:
 - The planet link is valid
 
 Article links will be redirect to the article and planet if:
-- The article is from my planet, and:
-  -  Current selected planet is a different planet.
-  -  It is not in the article list of selected sidebar (today, unread or star)
-- The article is from a following planet, and:
+- The article is from mine or followed, and:
   - Current selected planet is a different planet.
   - It is not in the article list of selected sidebar (today, unread or star)
 
 Article links will be redirect to the article if:
-- The article is from my planet, and:
-  - It is not the current article
-  - It is in the article list of selected sidebar (today, unread or star)
-- The article is from a following planet, and:
+- The article is from my planet or followed, and:
   - It is not the current article
   - It is in the article list of selected sidebar (today, unread or star)
 
@@ -44,7 +37,7 @@ graph LR;
 A(Link in article)
 B(Activate planet if not selected)
 C(Promote to follow)
-D(Activate planet and select article if not selected or not today, unread or star)
+D(Activate planet and select article if not selected or not today, unread or star.)
 Y(Promote to downloads view)
 Z(Open in system default browser)
 
