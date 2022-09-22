@@ -31,6 +31,19 @@ class Template: Codable, Identifiable {
 
     lazy var assetsPath = path.appendingPathComponent("assets", isDirectory: true)
 
+    lazy var styleCSSPath = path
+        .appendingPathComponent("assets", isDirectory: true)
+        .appendingPathComponent("style.css", isDirectory: false)
+
+    lazy var styleCSSHash: String? = {
+        if let data = try? Data(contentsOf: styleCSSPath) {
+            let hash = data.sha256().toHexString()
+            debugPrint("style.css: \(data.count) bytes / sha256 -> \(hash)")
+            return hash
+        }
+        return nil
+    }()
+
     var hasGitRepo: Bool {
         let gitPath = path.appendingPathComponent(".git", isDirectory: true)
         return FileManager.default.fileExists(atPath: gitPath.path)
@@ -98,6 +111,7 @@ class Template: Codable, Identifiable {
             "page_title": article.title,
             "content_html": content_html,
             "build_timestamp": Int(Date().timeIntervalSince1970),
+            "style_css_sha256": styleCSSHash ?? "",
         ]
         let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.common])
@@ -116,7 +130,8 @@ class Template: Codable, Identifiable {
             "page_description": planet.about,
             "page_description_html": pageAboutHTML,
             "articles": planet.articles,
-            "build_timestamp": Int(Date().timeIntervalSince1970)
+            "build_timestamp": Int(Date().timeIntervalSince1970),
+            "style_css_sha256": styleCSSHash ?? "",
         ]
         for (key, value) in context {
             contextForRendering[key] = value
