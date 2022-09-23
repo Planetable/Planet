@@ -50,6 +50,10 @@ The following configuration variables can be overridden:
 - CODE_SIGN_STYLE
 - ORGANIZATION_IDENTIFIER_PREFIX
 
+## Privacy Policy
+
+The development team collects zero information from the app.
+
 ## License
 
 Licensed under the [MIT license](https://github.com/Planetable/Planet/blob/main/LICENSE).
