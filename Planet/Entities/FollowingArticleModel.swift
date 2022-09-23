@@ -85,6 +85,9 @@ class FollowingArticleModel: ArticleModel, Codable {
             if planet.link.count == 62, planet.link.starts(with: "k51"), link.starts(with: "/") {
                 return URL(string: "\(IPFSDaemon.publicGateways[gatewayIndex])/ipns/\(planet.link)\(link)")
             }
+            if link.starts(with: "/"), !planet.link.starts(with: "http") {
+                return URL(string: "https://\(planet.link)\(link)")?.absoluteURL
+            }
             return URL(string: link)?.absoluteURL
         case .dns:
             if let planetLink = URL(string: planet.link) {
