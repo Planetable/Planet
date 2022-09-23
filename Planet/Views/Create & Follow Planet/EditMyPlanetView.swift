@@ -179,7 +179,7 @@ struct EditMyPlanetView: View {
                             }
                             .frame(width: CONTROL_CAPTION_WIDTH)
 
-                            TextField("", text: $plausibleAPIKey)
+                            SecureField("", text: $plausibleAPIKey)
                                 .textFieldStyle(.roundedBorder)
                         }
 
@@ -258,7 +258,7 @@ struct EditMyPlanetView: View {
                             }
                             .frame(width: CONTROL_CAPTION_WIDTH + 20)
 
-                            TextField("", text: $filebaseAPIToken)
+                            SecureField("", text: $filebaseAPIToken)
                                 .textFieldStyle(.roundedBorder)
                         }
 
@@ -386,7 +386,7 @@ struct EditMyPlanetView: View {
                             }
                             .frame(width: CONTROL_CAPTION_WIDTH + 20)
 
-                            TextField("", text: $dWebServicesAPIKey)
+                            SecureField("", text: $dWebServicesAPIKey)
                                 .textFieldStyle(.roundedBorder)
                         }
                     }
