@@ -50,6 +50,10 @@ actor IPFSDaemon {
            let result = try? IPFSCommand.updateAPIPort(port: port).run(),
            result.ret == 0 {
             APIPort = port
+            Task.detached(priority: .utility) {
+                let value = NSNumber(value: port)
+                NotificationCenter.default.post(name: .updateRuleList, object: value)
+            }
         } else {
             fatalError("Unable to find open API port for IPFS")
         }

@@ -53,6 +53,40 @@ struct ArticleWebView: NSViewRepresentable {
             wv.load(URLRequest(url: url))
         }
 
+        NotificationCenter.default.addObserver(forName: .updateRuleList, object: nil, queue: nil) { n in
+            guard let port = n.object as? NSNumber else { return }
+            Self.logger.log("Updating rule list for api port \(port.intValue)")
+            let ruleListString = """
+                [
+                    {
+                        "trigger": {
+                            "url-filter": "://127.0.0.1:\(port.intValue)/*"
+                        },
+                        "action": {
+                            "type": "block"
+                        }
+                    },
+                    {
+                        "trigger": {
+                            "url-filter": "://localhost:\(port.intValue)/*"
+                        },
+                        "action": {
+                            "type": "block"
+                        }
+                    }
+                ]
+            """
+            Task {
+                do {
+                    if let contentList: WKContentRuleList = try await WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "IPFSAPIPortList", encodedContentRuleList: ruleListString) {
+                        wv.configuration.userContentController.add(contentList)
+                    }
+                } catch {
+                    debugPrint("failed to update rule list for article view: \(error)")
+                }
+            }
+        }
+
         return wv
     }
 
