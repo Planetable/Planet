@@ -725,7 +725,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         let planet: FollowingPlanetModel
         var feedAvatar: Data? = nil
         if let feedData = feedData {
-            Self.logger.info("Follow \(name): found feed")
+            Self.logger.info("Follow IPNS or DNSLink \(name): found feed")
             let feed = try await FeedUtils.parseFeed(data: feedData)
             feedAvatar = feed.avatar
             planet = FollowingPlanetModel(

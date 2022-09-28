@@ -173,6 +173,51 @@ struct FeedUtils {
         return nil
     }
 
+    static func jsonFeedItemToArticle(item: JSONFeedItem, feed: JSONFeed) -> PublicArticleModel? {
+        guard let url = item.url,
+              let title = item.title
+        else {
+            return nil
+        }
+        let allowedCharacterSet = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "/~-_."))
+        let escapedURL = url.addingPercentEncoding(withAllowedCharacters: allowedCharacterSet)
+
+        let sanitizedLink: String
+        if !url.contains("://") {
+            if let feedURLString = feed.feedUrl, let feedURL = URL(string: feedURLString), let escapedURL = escapedURL {
+
+                guard let linkURL = URL(string: escapedURL, relativeTo: feedURL) else {
+                    debugPrint("Failed to construct linkURL: \(url) \(feedURL)")
+                    return nil
+                }
+                sanitizedLink = linkURL.sanitizedLink()
+            } else {
+                debugPrint("FeedUtils: during parsing, found item with invalid url \(url)")
+                return nil
+            }
+        } else {
+            if let linkURL = URL(string: url) {
+                sanitizedLink = linkURL.sanitizedLink()
+            } else {
+                return nil
+            }
+        }
+        let content = item.contentHtml ?? ""
+        let created = item.datePublished ?? Date()
+        return PublicArticleModel(
+            id: UUID(),
+            link: sanitizedLink,
+            title: title,
+            content: content,
+            created: created,
+            hasVideo: false,
+            videoFilename: nil,
+            hasAudio: false,
+            audioFilename: nil,
+            attachments: nil
+        )
+    }
+
     static func parseFeed(data: Data) async throws -> (
         name: String?,
         about: String?,
@@ -180,6 +225,7 @@ struct FeedUtils {
         articles: [PublicArticleModel]?
     ) {
         let feedResult = FeedParser(data: data).parse()
+        debugPrint("FeedUtils: parsing result \(feedResult)")
         guard case .success(let feed) = feedResult else {
             throw PlanetError.PlanetFeedError
         }
@@ -256,31 +302,7 @@ struct FeedUtils {
                 avatar = data
             }
             let articles: [PublicArticleModel]? = feed.items?.compactMap { item in
-                guard let url = item.url,
-                      let title = item.title
-                else {
-                    return nil
-                }
-                let sanitizedLink: String
-                if let linkURL = URL(string: url) {
-                    sanitizedLink = linkURL.sanitizedLink()
-                } else {
-                    return nil
-                }
-                let content = item.contentHtml ?? ""
-                let created = item.datePublished ?? Date()
-                return PublicArticleModel(
-                    id: UUID(),
-                    link: sanitizedLink,
-                    title: title,
-                    content: content,
-                    created: created,
-                    hasVideo: false,
-                    videoFilename: nil,
-                    hasAudio: false,
-                    audioFilename: nil,
-                    attachments: nil
-                )
+                FeedUtils.jsonFeedItemToArticle(item: item, feed: feed)
             }
             return (name, about, avatar, articles)
         }

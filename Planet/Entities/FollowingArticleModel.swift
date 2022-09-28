@@ -18,9 +18,15 @@ class FollowingArticleModel: ArticleModel, Codable {
 
     lazy var path = planet.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
     var webviewURL: URL? {
+        debugPrint("Generating webviewURL: planet.type: \(planet.planetType) planet.link: \(planet.link) article.link: \(link)")
         switch planet.planetType {
         case .planet, .dnslink, .ens, .dotbit:
             if let cid = planet.cid {
+                if link.starts(with: "https://ipfs.io/ipns/") {
+                    let local: String = "\(IPFSDaemon.shared.gateway)\(link.dropFirst(15))"
+                    debugPrint("Converted to use local gateway: FROM \(link) TO \(local)")
+                    return URL(string: local)
+                }
                 if let linkURL = URL(string: link),
                    linkURL.isHTTP {
                     // article from a feed with an absolute HTTP URL: https://vitalik.ca/general/2022/05/25/stable.html
@@ -40,6 +46,11 @@ class FollowingArticleModel: ArticleModel, Codable {
             }
             return nil
         case .dns:
+            if link.starts(with: "https://ipfs.io/ipns/") {
+                let local: String = "\(IPFSDaemon.shared.gateway)\(link.dropFirst(15))"
+                debugPrint("Converted to use local gateway: FROM \(link) TO \(local)")
+                return URL(string: local)
+            }
             if let planetLink = URL(string: planet.link) {
                 // absolute URL in HTTP scheme: https://vitalik.ca/general/2022/05/25/stable.html
                 // OR
@@ -50,7 +61,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         }
     }
     var browserURL: URL? {
-        debugPrint("Generating BrowserURL: planet.type: \(planet.planetType) planet.link: \(planet.link) article.link: \(link)")
+        debugPrint("Generating browserURL: planet.type: \(planet.planetType) planet.link: \(planet.link) article.link: \(link)")
         let gatewayIndex: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
         switch planet.planetType {
         case .planet:
