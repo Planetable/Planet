@@ -29,6 +29,7 @@ struct FeedUtils {
         return try? SwiftSoup.parse(htmlString)
     }
 
+    // TODO: Make an UI for this choice
     static func selectBestFeed(_ feeds: [AvailableFeed]) -> AvailableFeed? {
         if feeds.count == 1 {
             if let feed = feeds.first {
