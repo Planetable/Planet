@@ -2,6 +2,11 @@ import Foundation
 import FeedKit
 import SwiftSoup
 
+struct AvailableFeed: Codable {
+    let url: String
+    let mime: String
+}
+
 struct FeedUtils {
     static func isFeed(mime: String) -> Bool {
         mime.contains("application/xml")
@@ -24,6 +29,23 @@ struct FeedUtils {
         return try? SwiftSoup.parse(htmlString)
     }
 
+    static func selectBestFeed(_ feeds: [AvailableFeed]) -> AvailableFeed? {
+        if feeds.count == 1 {
+            if let feed = feeds.first {
+                return feed
+            }
+        }
+        for feed in feeds {
+            if feed.mime.contains("json") {
+                return feed
+            }
+        }
+        if let feed = feeds.first {
+            return feed
+        }
+        return nil
+    }
+
     static func findFeed(url: URL) async throws -> (feed: Data?, html: Document?) {
         guard let (data, response) = try? await URLSession.shared.data(from: url) else {
             throw PlanetError.NetworkError
@@ -44,20 +66,24 @@ struct FeedUtils {
             else {
                 return (nil, nil)
             }
-            let possibleFeedElems = try soup.select("link[rel='alternate']")
-            let feedElem = possibleFeedElems.first { elem in
-                if let mime = try? elem.attr("type") {
-                    return isFeed(mime: mime)
+            let availableFeeds = try soup.select("link[rel=alternate]")
+                .compactMap { elem in
+                    let mime = try? elem.attr("type")
+                    let href = try? elem.attr("href")
+                    if let mime = mime, let href = href, isFeed(mime: mime) {
+                        let availableFeedURLString = URL(string: href, relativeTo: url)?.absoluteString
+                        if let urlString = availableFeedURLString {
+                            return AvailableFeed(url: urlString, mime: mime)
+                        }
+                    }
+                    return nil
                 }
-                return false
-            }
-            guard let feedElem = feedElem,
-                  let feedElemHref = try? feedElem.attr("href"),
-                  let feedURL = URL(string: feedElemHref, relativeTo: url)?.absoluteURL
-            else {
-                // no <link rel="alternate"> in HTML
+            debugPrint("FeedUtils: availableFeeds: \(availableFeeds)")
+            if availableFeeds.count == 0 {
                 return (nil, soup)
             }
+            guard let bestFeed = selectBestFeed(availableFeeds) else { return (nil, soup) }
+            guard let feedURL = URL(string: bestFeed.url) else { return (nil, soup) }
             // fetch feed
             guard let (data, response) = try? await URLSession.shared.data(from: feedURL) else {
                 throw PlanetError.NetworkError

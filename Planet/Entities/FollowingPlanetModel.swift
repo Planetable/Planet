@@ -323,7 +323,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         let planet: FollowingPlanetModel
         var feedAvatar: Data? = nil
         if let feedData = feedData {
-            Self.logger.info("Follow \(ens): found feed")
+            Self.logger.info("Follow ENS \(ens): found feed")
             let feed = try await FeedUtils.parseFeed(data: feedData)
             feedAvatar = feed.avatar
             planet = FollowingPlanetModel(
@@ -493,7 +493,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         let planet: FollowingPlanetModel
         var feedAvatar: Data? = nil
         if let feedData = feedData {
-            Self.logger.info("Follow \(dotbit): found feed")
+            Self.logger.info("Follow .bit \(dotbit): found feed")
             let feed = try await FeedUtils.parseFeed(data: feedData)
             feedAvatar = feed.avatar
             planet = FollowingPlanetModel(
@@ -581,7 +581,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         guard let feedData = feedData else {
             throw PlanetError.InvalidPlanetURLError
         }
-        Self.logger.info("Follow \(link): found feed")
+        Self.logger.info("Follow HTTP feed \(link): found feed")
         let feed = try await FeedUtils.parseFeed(data: feedData)
         let now = Date()
         let planet = FollowingPlanetModel(
