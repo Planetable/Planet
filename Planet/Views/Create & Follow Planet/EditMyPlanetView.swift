@@ -30,6 +30,7 @@ struct EditMyPlanetView: View {
     @State private var filebaseAPIToken: String
 
     @State private var filebasePinStatus: String? = nil
+    @State private var filebasePinStatusMessage: String? = nil
     @State private var filebasePinCID: String? = nil
 
     init(planet: MyPlanetModel) {
@@ -315,9 +316,14 @@ struct EditMyPlanetView: View {
                                                 systemImage: "questionmark.circle"
                                             )
                                         }
-
                                     }
-
+                                    if let message = filebasePinStatusMessage {
+                                        Button {
+                                            NSWorkspace.shared.open(URL(string: "https://console.filebase.com/keys")!)
+                                        } label: {
+                                            Label(message, systemImage: "exclamationmark.triangle.fill")
+                                        }.buttonStyle(.link)
+                                    }
                                 }
                                 else {
                                     ProgressView()
@@ -338,14 +344,18 @@ struct EditMyPlanetView: View {
                                             pinName: filebasePinName,
                                             apiToken: filebaseAPIToken
                                         )
-                                        if let pin = await filebase.checkPinStatus(
+                                        let (pin, message) = await filebase.checkPinStatus(
                                             requestID: filebaseRequestID
-                                        ) {
+                                        )
+                                        if let pin = pin {
                                             filebasePinStatus = pin.status
                                             filebasePinCID = pin.cid
                                         }
                                         else {
                                             filebasePinStatus = "Unknown"
+                                            if let message = message {
+                                                filebasePinStatusMessage = message
+                                            }
                                         }
                                     }
                                 }

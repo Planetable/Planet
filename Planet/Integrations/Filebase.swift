@@ -88,10 +88,10 @@ struct Filebase: Codable {
         return nil
     }
 
-    func checkPinStatus(requestID: String) async -> FilebasePin? {
+    func checkPinStatus(requestID: String) async -> (pin: FilebasePin?, message: String?) {
         guard let url = URL(string: "https://api.filebase.io/v1/ipfs/pins/\(requestID)") else {
             debugPrint("Filebase: failed to construct the API URL")
-            return nil
+            return (nil, nil)
         }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -100,19 +100,27 @@ struct Filebase: Codable {
 
         guard let (data, _) = try? await URLSession.shared.data(for: request) else {
             debugPrint("Filebase: request to find existing pin failed")
-            return nil
+            return (nil, nil)
         }
         do {
             let json = try JSON(data: data)
             debugPrint(json)
+            if let errorReason = json["error"]["reason"].string {
+                debugPrint("Filebase: check pin status error - \(errorReason)")
+                var message: String?
+                if errorReason == "ERR_INVALID_TOKEN" {
+                    message = "Please check API token"
+                }
+                return (nil, message)
+            }
             if let status = json["status"].string, let cid = json["pin"]["cid"].string {
                 let pin = FilebasePin(cid: cid, requestID: requestID, status: status)
-                return pin
+                return (pin, nil)
             }
         } catch {
             debugPrint("Filebase: error occurred when finding request ID for \(pinName) \(error)")
         }
-        return nil
+        return (nil, nil)
     }
 }
 
