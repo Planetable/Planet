@@ -25,25 +25,36 @@ class FollowingArticleModel: ArticleModel, Codable {
                 if link.starts(with: "https://ipfs.io/ipns/") {
                     let local: String = "\(IPFSDaemon.shared.gateway)\(link.dropFirst(15))"
                     debugPrint("Converted to use local gateway: FROM \(link) TO \(local)")
+                    debugPrint("When generating webviewURL, reached branch A1")
+                    return URL(string: local)
+                }
+                if link.starts(with: IPFSDaemon.shared.gateway) {
+                    let local: String = "\(IPFSDaemon.shared.gateway)\(link.dropFirst(IPFSDaemon.shared.gateway.count))"
+                    debugPrint("Converted to use local gateway: FROM \(link) TO \(local)")
+                    debugPrint("When generating webviewURL, reached branch A2")
                     return URL(string: local)
                 }
                 if let linkURL = URL(string: link),
                    linkURL.isHTTP {
                     // article from a feed with an absolute HTTP URL: https://vitalik.ca/general/2022/05/25/stable.html
                     // transform URL to load with IPFS
-                    return URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)\(linkURL.pathQueryFragment)")
+                    debugPrint("When generating webviewURL, reached branch B")
+                    return URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)\(linkURL.pathQueryFragment)")?.absoluteURL
                 }
                 if link.starts(with: "/") {
                     // article from a native planet: /12345678-90AB-CDEF-1234-567890ABCDEF/
                     // OR
                     // article from a feed with relative URL prefixed with slash: /general/2022/05/25/stable.html
+                    debugPrint("When generating webviewURL, reached branch C")
                     return URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)\(link)")
                 }
                 if let base = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/") {
                     // relative URL: index.html, ./index.html, etc.
+                    debugPrint("When generating webviewURL, reached branch D")
                     return URL(string: link, relativeTo: base)?.absoluteURL
                 }
             }
+            debugPrint("When generating webviewURL, reached nil branch")
             return nil
         case .dns:
             if link.starts(with: "https://ipfs.io/ipns/") {

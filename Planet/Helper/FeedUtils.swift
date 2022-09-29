@@ -200,7 +200,7 @@ struct FeedUtils {
         return nil
     }
 
-    static func jsonFeedItemToArticle(item: JSONFeedItem, feed: JSONFeed) -> PublicArticleModel? {
+    static func jsonFeedItemToArticle(item: JSONFeedItem, feed: JSONFeed, feedURL: URL) -> PublicArticleModel? {
         guard let url = item.url,
               let title = item.title
         else {
@@ -211,8 +211,7 @@ struct FeedUtils {
 
         let sanitizedLink: String
         if !url.contains("://") {
-            if let feedURLString = feed.feedUrl, let feedURL = URL(string: feedURLString), let escapedURL = escapedURL {
-
+            if let escapedURL = escapedURL {
                 guard let linkURL = URL(string: escapedURL, relativeTo: feedURL) else {
                     debugPrint("Failed to construct linkURL: \(url) \(feedURL)")
                     return nil
@@ -245,7 +244,7 @@ struct FeedUtils {
         )
     }
 
-    static func parseFeed(data: Data) async throws -> (
+    static func parseFeed(data: Data, url: URL) async throws -> (
         name: String?,
         about: String?,
         avatar: Data?,
@@ -329,7 +328,7 @@ struct FeedUtils {
                 avatar = data
             }
             let articles: [PublicArticleModel]? = feed.items?.compactMap { item in
-                FeedUtils.jsonFeedItemToArticle(item: item, feed: feed)
+                FeedUtils.jsonFeedItemToArticle(item: item, feed: feed, feedURL: url)
             }
             return (name, about, avatar, articles)
         }

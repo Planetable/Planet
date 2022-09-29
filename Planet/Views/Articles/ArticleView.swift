@@ -31,11 +31,13 @@ struct ArticleView: View {
                     url = webviewURL
                 }
                 else {
+                    debugPrint("Failed to switch selected article - branch A")
                     url = Self.noSelectionURL
                 }
                 sharingItem = followingArticle.browserURL?.absoluteURL
             }
             else {
+                debugPrint("Failed to switch selected article - branch B")
                 url = Self.noSelectionURL
             }
             NotificationCenter.default.post(name: .loadArticle, object: nil)
