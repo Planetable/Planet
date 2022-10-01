@@ -31,6 +31,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var filebasePinName: String?
     @Published var filebaseAPIToken: String?
     @Published var filebaseRequestID: String?
+    @Published var filebasePinCID: String?
     @Published var filebasePinStatus: String?
     @Published var filebasePinStatusRetrieved: Date?
 
@@ -127,6 +128,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(filebasePinName)
         hasher.combine(filebaseAPIToken)
         hasher.combine(filebaseRequestID)
+        hasher.combine(filebasePinCID)
         hasher.combine(customCodeHeadEnabled)
         hasher.combine(customCodeHead)
         hasher.combine(customCodeBodyStartEnabled)
@@ -167,6 +169,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.filebasePinName == rhs.filebasePinName
             && lhs.filebaseAPIToken == rhs.filebaseAPIToken
             && lhs.filebaseRequestID == rhs.filebaseRequestID
+            && lhs.filebasePinCID == rhs.filebasePinCID
             && lhs.customCodeHeadEnabled == rhs.customCodeHeadEnabled
             && lhs.customCodeHead == rhs.customCodeHead
             && lhs.customCodeBodyStartEnabled == rhs.customCodeBodyStartEnabled
@@ -180,7 +183,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     enum CodingKeys: String, CodingKey {
         case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled,
-            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername, dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey, filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart, customCodeBodyEndEnabled, customCodeBodyEnd
+            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername, dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey, filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, filebasePinCID, customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart, customCodeBodyEndEnabled, customCodeBodyEnd
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -208,6 +211,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         filebasePinName = try container.decodeIfPresent(String.self, forKey: .filebasePinName)
         filebaseAPIToken = try container.decodeIfPresent(String.self, forKey: .filebaseAPIToken)
         filebaseRequestID = try container.decodeIfPresent(String.self, forKey: .filebaseRequestID)
+        filebasePinCID = try container.decodeIfPresent(String.self, forKey: .filebasePinCID)
         customCodeHeadEnabled = try container.decodeIfPresent(Bool.self, forKey: .customCodeHeadEnabled)
         customCodeHead = try container.decodeIfPresent(String.self, forKey: .customCodeHead)
         customCodeBodyStartEnabled = try container.decodeIfPresent(Bool.self, forKey: .customCodeBodyStartEnabled)
@@ -239,6 +243,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(filebasePinName, forKey: .filebasePinName)
         try container.encodeIfPresent(filebaseAPIToken, forKey: .filebaseAPIToken)
         try container.encodeIfPresent(filebaseRequestID, forKey: .filebaseRequestID)
+        try container.encodeIfPresent(filebasePinCID, forKey: .filebasePinCID)
         try container.encodeIfPresent(customCodeHeadEnabled, forKey: .customCodeHeadEnabled)
         try container.encodeIfPresent(customCodeHead, forKey: .customCodeHead)
         try container.encodeIfPresent(customCodeBodyStartEnabled, forKey: .customCodeBodyStartEnabled)
@@ -443,6 +448,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if backupPlanet.filebaseRequestID != nil {
             planet.filebaseRequestID = backupPlanet.filebaseRequestID
         }
+        if backupPlanet.filebasePinCID != nil {
+            planet.filebasePinCID = backupPlanet.filebasePinCID
+        }
 
         // Restore custom code
         if backupPlanet.customCodeHeadEnabled != nil {
@@ -644,13 +652,26 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         // Send the latest CID to Filebase if enabled
         if let filebaseEnabled = filebaseEnabled, filebaseEnabled, let filebasePinName = filebasePinName, let filebaseAPIToken = filebaseAPIToken {
-            debugPrint("Filebase: about to pin for \(filebasePinName)")
-            let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
-            if let requestID = await filebase.pin(cid: cid) {
-                Task { @MainActor in
-                    self.filebaseRequestID = requestID
+            var toPin: Bool = false
+            if let existingCID = filebasePinCID {
+                if existingCID.count == 0 || existingCID != cid {
+                    toPin = true
                 }
-                try save()
+            } else {
+                toPin = true
+            }
+            if toPin {
+                debugPrint("Filebase: about to pin for \(filebasePinName)")
+                let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
+                if let requestID = await filebase.pin(cid: cid) {
+                    Task { @MainActor in
+                        self.filebaseRequestID = requestID
+                        self.filebasePinCID = cid
+                    }
+                    try save()
+                }
+            } else {
+                debugPrint("Filebase: no need to pin for \(filebasePinName)")
             }
         }
         let result = try await IPFSDaemon.shared.api(
@@ -703,6 +724,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             filebasePinName: filebasePinName,
             filebaseAPIToken: filebaseAPIToken,
             filebaseRequestID: filebaseRequestID,
+            filebasePinCID: filebasePinCID,
             customCodeHeadEnabled: customCodeHeadEnabled,
             customCodeHead: customCodeHead,
             customCodeBodyStartEnabled: customCodeBodyStartEnabled,
@@ -811,6 +833,7 @@ struct BackupMyPlanetModel: Codable {
     let filebasePinName: String?
     let filebaseAPIToken: String?
     let filebaseRequestID: String?
+    let filebasePinCID: String?
     let customCodeHeadEnabled: Bool?
     let customCodeHead: String?
     let customCodeBodyStartEnabled: Bool?
