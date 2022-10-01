@@ -19,6 +19,15 @@
       }
     },
     {
+      "identity" : "codemirror-swiftui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Pictarine/CodeMirror-SwiftUI",
+      "state" : {
+        "branch" : "master",
+        "revision" : "91eb30d2ea54c136de2540cacaeb95b9ab5de8e0"
+      }
+    },
+    {
       "identity" : "cryptoswift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/CryptoSwift.git",

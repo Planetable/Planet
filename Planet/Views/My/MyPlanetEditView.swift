@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct EditMyPlanetView: View {
+struct MyPlanetEditView: View {
     let CONTROL_CAPTION_WIDTH: CGFloat = 80
     let CONTROL_ROW_SPACING: CGFloat = 8
     let SOCIAL_CONTROL_CAPTION_WIDTH: CGFloat = 120

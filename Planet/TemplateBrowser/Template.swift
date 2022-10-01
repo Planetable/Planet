@@ -85,6 +85,27 @@ class Template: Codable, Identifiable {
         return template
     }
 
+    func renderCustomCode(planet: MyPlanetModel, context: [String: Any]) -> [String: Any] {
+        var output: [String: Any] = [
+            "custom_code_head": "",
+            "custom_code_body_start": "",
+            "custom_code_body_end": ""
+        ]
+        if let customCodeHeadEnabled = planet.customCodeHeadEnabled, customCodeHeadEnabled, let customCodeHead: String = planet.customCodeHead {
+            let template = Stencil.Template(templateString: customCodeHead)
+            output["custom_code_head"] = try? template.render(context)
+        }
+        if let customCodeBodyStartEnabled = planet.customCodeBodyStartEnabled, customCodeBodyStartEnabled, let customCodeBodyStart: String = planet.customCodeBodyStart {
+            let template = Stencil.Template(templateString: customCodeBodyStart)
+            output["custom_code_body_start"] = try? template.render(context)
+        }
+        if let customCodeBodyEndEnabled = planet.customCodeBodyEndEnabled, customCodeBodyEndEnabled, let customCodeBodyEnd: String = planet.customCodeBodyEnd {
+            let template = Stencil.Template(templateString: customCodeBodyEnd)
+            output["custom_code_body_end"] = try? template.render(context)
+        }
+        return output
+    }
+
     func render(article: MyArticleModel) throws -> String {
         // render markdown
         guard let content_html = CMarkRenderer.renderMarkdownHTML(markdown: article.content) else {
@@ -102,7 +123,7 @@ class Template: Codable, Identifiable {
         )
 
         // render stencil template
-        let context: [String: Any] = [
+        var context: [String: Any] = [
             "planet": publicPlanet,
             "planet_ipns": article.planet.ipns,
             "assets_prefix": "../",
@@ -112,7 +133,9 @@ class Template: Codable, Identifiable {
             "content_html": content_html,
             "build_timestamp": Int(Date().timeIntervalSince1970),
             "style_css_sha256": styleCSSHash ?? "",
+            "current_item_type": "blog",
         ]
+        context.merge(renderCustomCode(planet: planet, context: context)) { (_, new) in new }
         let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.common])
         let stencilTemplateName = blogPath.lastPathComponent
@@ -121,6 +144,9 @@ class Template: Codable, Identifiable {
 
     func renderIndex(context: [String: Any]) throws -> String {
         guard let planet = context["planet"] as? PublicPlanetModel else {
+            throw PlanetError.RenderMarkdownError
+        }
+        guard let myPlanet = context["my_planet"] as? MyPlanetModel else {
             throw PlanetError.RenderMarkdownError
         }
         let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
@@ -132,10 +158,12 @@ class Template: Codable, Identifiable {
             "articles": planet.articles,
             "build_timestamp": Int(Date().timeIntervalSince1970),
             "style_css_sha256": styleCSSHash ?? "",
+            "current_item_type": "index",
         ]
         for (key, value) in context {
             contextForRendering[key] = value
         }
+        contextForRendering.merge(renderCustomCode(planet: myPlanet, context: contextForRendering)) { (_, new) in new }
         let loader = FileSystemLoader(paths: [Path(indexPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.common])
         let stencilTemplateName = indexPath.lastPathComponent

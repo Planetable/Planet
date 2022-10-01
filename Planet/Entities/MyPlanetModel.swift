@@ -34,6 +34,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var filebasePinStatus: String?
     @Published var filebasePinStatusRetrieved: Date?
 
+    @Published var customCodeHeadEnabled: Bool? = false
+    @Published var customCodeHead: String?
+    @Published var customCodeBodyStartEnabled: Bool? = false
+    @Published var customCodeBodyStart: String?
+    @Published var customCodeBodyEndEnabled: Bool? = false
+    @Published var customCodeBodyEnd: String?
+
     @Published var metrics: Metrics?
 
     @Published var isPublishing = false
@@ -120,6 +127,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(filebasePinName)
         hasher.combine(filebaseAPIToken)
         hasher.combine(filebaseRequestID)
+        hasher.combine(customCodeHeadEnabled)
+        hasher.combine(customCodeHead)
+        hasher.combine(customCodeBodyStartEnabled)
+        hasher.combine(customCodeBodyStart)
+        hasher.combine(customCodeBodyEndEnabled)
+        hasher.combine(customCodeBodyEnd)
         hasher.combine(avatar)
         hasher.combine(drafts)
         hasher.combine(articles)
@@ -154,6 +167,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.filebasePinName == rhs.filebasePinName
             && lhs.filebaseAPIToken == rhs.filebaseAPIToken
             && lhs.filebaseRequestID == rhs.filebaseRequestID
+            && lhs.customCodeHeadEnabled == rhs.customCodeHeadEnabled
+            && lhs.customCodeHead == rhs.customCodeHead
+            && lhs.customCodeBodyStartEnabled == rhs.customCodeBodyStartEnabled
+            && lhs.customCodeBodyStart == rhs.customCodeBodyStart
+            && lhs.customCodeBodyEndEnabled == rhs.customCodeBodyEndEnabled
+            && lhs.customCodeBodyEnd == rhs.customCodeBodyEnd
             && lhs.avatar == rhs.avatar
             && lhs.drafts == rhs.drafts
             && lhs.articles == rhs.articles
@@ -161,7 +180,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     enum CodingKeys: String, CodingKey {
         case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled,
-            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername, dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey, filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID
+            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername, dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey, filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart, customCodeBodyEndEnabled, customCodeBodyEnd
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -189,6 +208,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         filebasePinName = try container.decodeIfPresent(String.self, forKey: .filebasePinName)
         filebaseAPIToken = try container.decodeIfPresent(String.self, forKey: .filebaseAPIToken)
         filebaseRequestID = try container.decodeIfPresent(String.self, forKey: .filebaseRequestID)
+        customCodeHeadEnabled = try container.decodeIfPresent(Bool.self, forKey: .customCodeHeadEnabled)
+        customCodeHead = try container.decodeIfPresent(String.self, forKey: .customCodeHead)
+        customCodeBodyStartEnabled = try container.decodeIfPresent(Bool.self, forKey: .customCodeBodyStartEnabled)
+        customCodeBodyStart = try container.decodeIfPresent(String.self, forKey: .customCodeBodyStart)
+        customCodeBodyEndEnabled = try container.decodeIfPresent(Bool.self, forKey: .customCodeBodyEndEnabled)
+        customCodeBodyEnd = try container.decodeIfPresent(String.self, forKey: .customCodeBodyEnd)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -214,6 +239,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(filebasePinName, forKey: .filebasePinName)
         try container.encodeIfPresent(filebaseAPIToken, forKey: .filebaseAPIToken)
         try container.encodeIfPresent(filebaseRequestID, forKey: .filebaseRequestID)
+        try container.encodeIfPresent(customCodeHeadEnabled, forKey: .customCodeHeadEnabled)
+        try container.encodeIfPresent(customCodeHead, forKey: .customCodeHead)
+        try container.encodeIfPresent(customCodeBodyStartEnabled, forKey: .customCodeBodyStartEnabled)
+        try container.encodeIfPresent(customCodeBodyStart, forKey: .customCodeBodyStart)
+        try container.encodeIfPresent(customCodeBodyEndEnabled, forKey: .customCodeBodyEndEnabled)
+        try container.encodeIfPresent(customCodeBodyEnd, forKey: .customCodeBodyEnd)
     }
 
     init(
@@ -413,6 +444,26 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             planet.filebaseRequestID = backupPlanet.filebaseRequestID
         }
 
+        // Restore custom code
+        if backupPlanet.customCodeHeadEnabled != nil {
+            planet.customCodeHeadEnabled = backupPlanet.customCodeHeadEnabled
+        }
+        if backupPlanet.customCodeHead != nil {
+            planet.customCodeHead = backupPlanet.customCodeHead
+        }
+        if backupPlanet.customCodeBodyStartEnabled != nil {
+            planet.customCodeBodyStartEnabled = backupPlanet.customCodeBodyStartEnabled
+        }
+        if backupPlanet.customCodeBodyStart != nil {
+            planet.customCodeBodyStart = backupPlanet.customCodeBodyStart
+        }
+        if backupPlanet.customCodeBodyEndEnabled != nil {
+            planet.customCodeBodyEndEnabled = backupPlanet.customCodeBodyEndEnabled
+        }
+        if backupPlanet.customCodeBodyEnd != nil {
+            planet.customCodeBodyEnd = backupPlanet.customCodeBodyEnd
+        }
+
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
         if FileManager.default.fileExists(atPath: planet.publicBasePath.path) {
@@ -565,6 +616,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let hasAvatar = FileManager.default.fileExists(atPath: publicAvatarPath.path)
         var context: [String: Any] = [
             "planet": publicPlanet,
+            "my_planet": self,
             "has_avatar": hasAvatar,
         ]
         let indexHTML = try template.renderIndex(context: context)
@@ -651,6 +703,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             filebasePinName: filebasePinName,
             filebaseAPIToken: filebaseAPIToken,
             filebaseRequestID: filebaseRequestID,
+            customCodeHeadEnabled: customCodeHeadEnabled,
+            customCodeHead: customCodeHead,
+            customCodeBodyStartEnabled: customCodeBodyStartEnabled,
+            customCodeBodyStart: customCodeBodyStart,
+            customCodeBodyEndEnabled: customCodeBodyEndEnabled,
+            customCodeBodyEnd: customCodeBodyEnd,
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,
@@ -753,5 +811,11 @@ struct BackupMyPlanetModel: Codable {
     let filebasePinName: String?
     let filebaseAPIToken: String?
     let filebaseRequestID: String?
+    let customCodeHeadEnabled: Bool?
+    let customCodeHead: String?
+    let customCodeBodyStartEnabled: Bool?
+    let customCodeBodyStart: String?
+    let customCodeBodyEndEnabled: Bool?
+    let customCodeBodyEnd: String?
     let articles: [BackupArticleModel]
 }

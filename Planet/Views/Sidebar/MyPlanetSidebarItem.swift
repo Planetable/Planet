@@ -57,6 +57,15 @@ struct MyPlanetSidebarItem: View {
 
                 Button {
                     Task {
+                        PlanetStore.shared.selectedView = .myPlanet(planet)
+                        PlanetStore.shared.isEditingPlanetCustomCode = true
+                    }
+                } label: {
+                    Text("Custom Code")
+                }
+
+                Button {
+                    Task {
                         try await planet.publish()
                     }
                 } label: {
