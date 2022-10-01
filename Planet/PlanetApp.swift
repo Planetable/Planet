@@ -156,12 +156,17 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
         UserDefaults.standard.set(false, forKey: "NSFullScreenMenuItemEverywhere")
     }
 
+    func applicationWillBecomeActive(_ notification: Notification) {
+        debugPrint("applicationWillBecomeActive")
+        (notification.object as? NSApplication)?.windows.first?.makeKeyAndOrderFront(self)
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // fixes to applicationShouldHandleReopen not called in macOS 12.
-        if #available(macOS 13, *) {
-        } else {
-            NSApplication.shared.delegate = self
-        }
+        //if #available(macOS 13, *) {
+        //} else {
+        //    NSApplication.shared.delegate = self
+        //}
 
         // use hide instead of close for main windows to keep reopen position.
         for w in NSApp.windows {
