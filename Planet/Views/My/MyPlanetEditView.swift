@@ -310,6 +310,11 @@ struct MyPlanetEditView: View {
                                                 pinStatus.capitalized,
                                                 systemImage: "ellipsis.circle.fill"
                                             )
+                                        case "queued":
+                                            Label(
+                                                pinStatus.capitalized,
+                                                systemImage: "hourglass.bottomhalf.filled"
+                                            )
                                         default:
                                             Label(
                                                 pinStatus.capitalized,
