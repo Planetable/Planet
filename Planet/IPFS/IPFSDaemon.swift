@@ -127,6 +127,11 @@ actor IPFSDaemon {
         }
     }
 
+    static func preferredGateway() -> String {
+        let index: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
+        return IPFSDaemon.publicGateways[index]
+    }
+
     // Reference: https://stackoverflow.com/a/65162953
     static func isPortOpen(port: in_port_t) -> Bool {
         let socketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0)

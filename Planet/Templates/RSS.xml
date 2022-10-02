@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+    xmlns:content="http://purl.org/rss/1.0/modules/content/"
+    xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+    xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+    >
+<channel>
+    <title>{{ planet.name|escape }}</title>
+    <atom:link href="{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/rss.xml" rel="self" type="application/rss+xml" />
+    <link>{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/</link>
+    <description><![CDATA[
+    {{ planet.about|md2html }}
+    ]]></description>
+    {% for article in planet.articles %}
+    <item>
+        <title>{{ article.title|escape }}</title>
+        <link>{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/{{ article.id }}/</link>
+        <guid>{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/{{ article.id }}/</guid>
+        <pubDate>{{ article.created|rfc822 }}</pubDate>
+        <description><![CDATA[
+            {{ article.content|md2html }}
+        ]]></description>
+    </item>
+    {% endfor %}
+</channel>
+</rss>

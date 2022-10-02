@@ -28,6 +28,15 @@ struct StencilExtension {
 
     static let common: Extension = {
         let ext = Extension()
+        ext.registerFilter("md2html") { value in
+            if let value = value,
+               let md = value as? String {
+                if let html = CMarkRenderer.renderMarkdownHTML(markdown: md) {
+                    return html
+                }
+            }
+            return value
+        }
         ext.registerFilter("formatDate") { value in
             if let value = value,
                let date = value as? Date {
@@ -45,6 +54,16 @@ struct StencilExtension {
                 format.dateStyle = .medium
                 format.timeStyle = .none
                 return format.string(from: date)
+            }
+            return value
+        }
+        ext.registerFilter("rfc822") { value in
+            if let value = value,
+               let date = value as? Date {
+                let RFC822DateFormatter = DateFormatter()
+                RFC822DateFormatter.locale = Locale(identifier: "en_US_POSIX")
+                RFC822DateFormatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
+                return RFC822DateFormatter.string(from: date)
             }
             return value
         }

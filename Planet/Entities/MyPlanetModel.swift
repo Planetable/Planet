@@ -1,4 +1,5 @@
 import Foundation
+import Stencil
 import SwiftUI
 import SwiftyJSON
 import os
@@ -90,19 +91,36 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         "index.html",
         isDirectory: false
     )
+    lazy var publicRSSPath = publicBasePath.appendingPathComponent(
+        "rss.xml",
+        isDirectory: false
+    )
+
     lazy var publicAssetsPath = publicBasePath.appendingPathComponent("assets", isDirectory: true)
 
     var template: Template? {
         TemplateStore.shared[templateName]
     }
+
+    var templateStringRSS: String? {
+        if let rssURL = Bundle.main.url(forResource:"RSS", withExtension: "xml") {
+            do {
+                let rssString = try String(contentsOf: rssURL)
+                return rssString
+            } catch {
+                debugPrint("Error reading RSS template: \(error)")
+            }
+        }
+        return nil
+    }
+
     var nameInitials: String {
         let initials = name.components(separatedBy: .whitespaces).map { $0.prefix(1).capitalized }
             .joined()
         return String(initials.prefix(2))
     }
     var browserURL: URL? {
-        let index: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
-        return URL(string: "\(IPFSDaemon.publicGateways[index])/ipns/\(ipns)/")
+        return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(ipns)/")
     }
 
     func hash(into hasher: inout Hasher) {
@@ -602,6 +620,38 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try FileManager.default.copyItem(at: template.assetsPath, to: publicAssetsPath)
     }
 
+    func renderRSS() {
+        if let templateStringRSS = templateStringRSS {
+            do {
+                let publicArticles = articles.map { $0.publicArticle }
+                let publicPlanet = PublicPlanetModel(
+                    id: id,
+                    name: name,
+                    about: about,
+                    ipns: ipns,
+                    created: created,
+                    updated: updated,
+                    articles: publicArticles,
+                    plausibleEnabled: plausibleEnabled,
+                    plausibleDomain: plausibleDomain,
+                    plausibleAPIServer: plausibleAPIServer,
+                    twitterUsername: twitterUsername,
+                    githubUsername: githubUsername
+                )
+                let environment = Environment(extensions: [StencilExtension.common])
+                let context: [String: Any] = [
+                    "planet": publicPlanet,
+                    "ipfs_gateway": IPFSDaemon.preferredGateway(),
+                ]
+                let rssXML = try environment.renderTemplate(string: templateStringRSS, context: context)
+                debugPrint("rssXML: \(rssXML)")
+                try rssXML.data(using: .utf8)?.write(to: publicRSSPath)
+            } catch {
+                debugPrint("Error rendering RSS: \(error)")
+            }
+        }
+    }
+
     func savePublic() throws {
         guard let template = template else {
             throw PlanetError.MissingTemplateError
@@ -629,6 +679,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         ]
         let indexHTML = try template.renderIndex(context: context)
         try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
+
+        renderRSS()
 
         let info = try JSONEncoder.shared.encode(publicPlanet)
         try info.write(to: publicInfoPath)
