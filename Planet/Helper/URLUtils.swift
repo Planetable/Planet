@@ -70,10 +70,14 @@ extension URL {
 
     var isPlanetLink: Bool {
         let components = URLComponents(url: self, resolvingAgainstBaseURL: false)
-        if components?.scheme == "planet" {
+        if components?.scheme == "planet" && !isPlanetWindowGroupLink {
             return true
         }
         return false
     }
 
+    var isPlanetWindowGroupLink: Bool {
+        let windowGroups: [String] = ["planet://Template", "planet://Onboarding"]
+        return windowGroups.contains(self.absoluteString)
+    }
 }
