@@ -209,7 +209,10 @@ class ArticleWebViewModel: NSObject {
             debugPrint("possible link: \(link) -> \(isInternalLink)")
         }
 
-        if link.isPlanetLink {
+        if link.isPlanetWindowGroupLink {
+            debugPrint("planet window group link: \(link), abort.")
+            return
+        } else if link.isPlanetLink {
             isInternalLink = true
 
             var existings = ArticleWebViewModel.shared.checkPlanetLink(link)

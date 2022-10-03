@@ -165,10 +165,14 @@ struct ArticleWebView: NSViewRepresentable {
             // handle (ignore) target="_blank" (open in new window) link as external
             if navigationAction.targetFrame == nil, let externalURL = navigationAction.request.url,
                isValidatedLink(externalURL) {
-                NSWorkspace.shared.open(externalURL)
+                if !externalURL.isPlanetWindowGroupLink {
+                    NSWorkspace.shared.open(externalURL)
+                }
                 decisionHandler(.cancel, preferences)
             } else if let targetLink = navigationAction.request.url {
-                if ArticleWebViewModel.shared.checkInternalLink(targetLink) {
+                if targetLink.isPlanetWindowGroupLink {
+                    decisionHandler(.cancel, preferences)
+                } else if ArticleWebViewModel.shared.checkInternalLink(targetLink) {
                     decisionHandler(.cancel, preferences)
                 } else if isValidatedLink(targetLink) {
                     if PlanetDownloadItem.downloadableFileExtensions().contains(targetLink.pathExtension) {
