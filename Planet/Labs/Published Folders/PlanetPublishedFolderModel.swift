@@ -6,3 +6,12 @@
 //
 
 import Foundation
+
+
+struct PlanetPublishedFolder: Codable {
+    let id: UUID
+    let url: URL
+    let created: Date
+    var published: Date?
+    var publishedLink: String?
+}

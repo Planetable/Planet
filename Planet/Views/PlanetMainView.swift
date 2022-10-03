@@ -10,6 +10,7 @@ import SwiftUI
 
 struct PlanetMainView: View {
     @EnvironmentObject var planetStore: PlanetStore
+    @EnvironmentObject var serviceStore: PlanetPublishedServiceStore
 
     @State private var isInfoAlert: Bool = false
     @State private var isFollowingAlert: Bool = false
@@ -17,6 +18,15 @@ struct PlanetMainView: View {
     var body: some View {
         NavigationView {
             PlanetSidebarView()
+                .fileImporter(isPresented: $serviceStore.isChoosingFolder, allowedContentTypes: [.folder], allowsMultipleSelection: false) { result in
+                    guard let url = try? result.get().first else { return }
+                    var folders = serviceStore.publishedFolders
+                    folders.insert(PlanetPublishedFolder(id: UUID(), url: url, created: Date()), at: 0)
+                    let updatedFolders = folders
+                    Task { @MainActor in
+                        serviceStore.updatePublishedFolders(updatedFolders)
+                    }
+                }
 
             ArticleListView()
 
