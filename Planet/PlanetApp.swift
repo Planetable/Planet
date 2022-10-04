@@ -183,7 +183,7 @@ struct PlanetApp: App {
                                             if try await !IPFSDaemon.shared.checkKeyExists(name: keyName) {
                                                 let _ = try await IPFSDaemon.shared.generateKey(name: keyName)
                                             }
-                                            let cid = try await IPFSDaemon.shared.addDirectory(url:url)
+                                            let cid = try await IPFSDaemon.shared.addDirectory(url: url)
                                             url.stopAccessingSecurityScopedResource()
                                             let result = try await IPFSDaemon.shared.api(
                                                 path: "name/publish",
@@ -240,17 +240,12 @@ struct PlanetApp: App {
                         Divider()
 
                         Button {
-                            serviceStore.removeBookmarkData(forFolder: folder)
+                            serviceStore.addToRemovingPublishedFolderQueue(folder)
                             let updatedFolders = serviceStore.publishedFolders.filter { f in
                                 return f.id != folder.id
                             }
                             Task { @MainActor in
                                 serviceStore.updatePublishedFolders(updatedFolders)
-                                do {
-                                    try await IPFSDaemon.shared.removeKey(name: folder.id.uuidString)
-                                } catch {
-                                    debugPrint("Failed to remove published folder key: \(error)")
-                                }
                             }
                         } label: {
                             Text("Remove")
