@@ -226,6 +226,7 @@ struct PlanetApp: App {
                             }
                             Task { @MainActor in
                                 serviceStore.updatePublishedFolders(updatedFolders)
+                                UserDefaults.standard.removeObject(forKey: PlanetPublishedServiceStore.prefixKey + folder.id.uuidString)
                                 do {
                                     try await IPFSDaemon.shared.removeKey(name: folder.id.uuidString)
                                 } catch {
@@ -243,6 +244,8 @@ struct PlanetApp: App {
             }
             Button {
                 let panel = NSOpenPanel()
+                panel.message = "Choose Folder to Publish"
+                panel.prompt = "Choose"
                 panel.allowsMultipleSelection = false
                 panel.allowedContentTypes = [.folder]
                 panel.canChooseDirectories = true
@@ -362,7 +365,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         Task {
             IPFSDaemon.shared.shutdownDaemon()
-            await NSApplication.shared.reply(toApplicationShouldTerminate: true)
+            NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
     }
