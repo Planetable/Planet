@@ -14,7 +14,6 @@ class PlanetPublishedServiceStore: ObservableObject {
 
     let timer = Timer.publish(every: 3, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
 
-    @Published var isChoosingFolder: Bool = false
     @Published var timestamp: Int = Int(Date().timeIntervalSince1970)
     @Published private(set) var publishedFolders: [PlanetPublishedFolder] = []
     @Published private(set) var publishingFolders: [UUID] = []

@@ -28,7 +28,6 @@ struct PlanetApp: App {
         WindowGroup {
             PlanetMainView()
                 .environmentObject(planetStore)
-                .environmentObject(serviceStore)
                 .frame(minWidth: 720, minHeight: 600)
         }
         .windowToolbarStyle(.automatic)
@@ -236,7 +235,27 @@ struct PlanetApp: App {
                 Divider()
             }
             Button {
-                serviceStore.isChoosingFolder = true
+                let panel = NSOpenPanel()
+                panel.allowsMultipleSelection = false
+                panel.allowedContentTypes = [.folder]
+                panel.canChooseDirectories = true
+                panel.canChooseFiles = false
+                let response = panel.runModal()
+                guard response == .OK, let url = panel.url else { return }
+                var folders = serviceStore.publishedFolders
+                var exists = false
+                for f in folders {
+                    if f.url.absoluteString.md5() == url.absoluteString.md5() {
+                        exists = true
+                        break
+                    }
+                }
+                if exists { return }
+                folders.insert(PlanetPublishedFolder(id: UUID(), url: url, created: Date()), at: 0)
+                let updatedFolders = folders
+                Task { @MainActor in
+                    serviceStore.updatePublishedFolders(updatedFolders)
+                }
             } label: {
                 Text("Add Folder")
             }
