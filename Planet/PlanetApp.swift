@@ -365,7 +365,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         Task {
             IPFSDaemon.shared.shutdownDaemon()
-            NSApplication.shared.reply(toApplicationShouldTerminate: true)
+            await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
     }
