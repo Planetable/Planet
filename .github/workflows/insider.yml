@@ -98,6 +98,7 @@ jobs:
       - name: Release App
         uses: softprops/action-gh-release@v1
         with:
+          prerelease: true
           files: Planet.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
