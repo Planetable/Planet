@@ -2,14 +2,14 @@ import Foundation
 
 struct IPFSCommand {
     // executables are under <project_root>/Planet/IPFS/go-ipfs-executables
-    // version: 0.14.0, last updated 2022-07-21
+    // version: 0.16.0, last updated 2022-10-04
     // NOTE: executables must have executable permission in source code
     static let IPFSExecutablePath: URL = {
         switch ProcessInfo.processInfo.machineHardwareName {
         case "arm64":
-            return Bundle.main.url(forResource: "ipfs-arm64", withExtension: nil)!
+            return Bundle.main.url(forResource: "ipfs-arm64", withExtension: "bin")!
         case "x86_64":
-            return Bundle.main.url(forResource: "ipfs-amd64", withExtension: nil)!
+            return Bundle.main.url(forResource: "ipfs-amd64", withExtension: "bin")!
         default:
             fatalError("Planet is not supported on your operating system.")
         }

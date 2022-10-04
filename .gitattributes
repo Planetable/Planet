@@ -1,2 +1,1 @@
-ipfs-amd64 filter=lfs diff=lfs merge=lfs -text
-ipfs-arm64 filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
