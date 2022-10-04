@@ -147,6 +147,13 @@ struct PlanetApp: App {
                                 } label: {
                                     Text("Open in Public Gateway")
                                 }
+                                Button {
+                                    if let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+                                        openURL(url)
+                                    }
+                                } label: {
+                                    Text("Open in Localhost")
+                                }
                             }
 
                             Button {
