@@ -240,6 +240,7 @@ struct FeedUtils {
             videoFilename: nil,
             hasAudio: false,
             audioFilename: nil,
+            audioDuration: 0,
             attachments: nil
         )
     }
@@ -283,6 +284,7 @@ struct FeedUtils {
                     videoFilename: nil,
                     hasAudio: false,
                     audioFilename: nil,
+                    audioDuration: 0,
                     attachments: nil
                 )
             }
@@ -314,6 +316,7 @@ struct FeedUtils {
                     videoFilename: nil,
                     hasAudio: false,
                     audioFilename: nil,
+                    audioDuration: 0,
                     attachments: nil
                 )
             }

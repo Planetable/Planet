@@ -861,6 +861,24 @@ struct PublicPlanetModel: Codable {
     let plausibleAPIServer: String?
     let twitterUsername: String?
     let githubUsername: String?
+
+    func hasAudioContent() -> Bool {
+        for article in articles {
+            if article.audioFilename != nil {
+                return true
+            }
+        }
+        return false
+    }
+
+    func hasVideoContent() -> Bool {
+        for article in articles {
+            if article.videoFilename != nil {
+                return true
+            }
+        }
+        return false
+    }
 }
 
 struct BackupMyPlanetModel: Codable {

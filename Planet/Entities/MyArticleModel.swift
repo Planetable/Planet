@@ -24,6 +24,7 @@ class MyArticleModel: ArticleModel, Codable {
             videoFilename: videoFilename,
             hasAudio: hasAudio,
             audioFilename: audioFilename,
+            audioDuration: 0, // TODO: get audio duration
             attachments: attachments
         )
     }
