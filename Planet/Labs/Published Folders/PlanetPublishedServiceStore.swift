@@ -33,16 +33,6 @@ class PlanetPublishedServiceStore: ObservableObject {
         publishedFolders = folders.sorted(by: { a, b in
             return a.created > b.created
         })
-        let updatedFolders = publishedFolders
-        Task(priority: .background) {
-            for folder in updatedFolders {
-                do {
-                    try saveBookmarkData(workDir: folder.url, forFolder: folder)
-                } catch {
-                    debugPrint("failed to save work directory \(folder) as bookmark: \(error)")
-                }
-            }
-        }
         Task(priority: .background) {
             do {
                 try savePublishedFolders()
@@ -75,21 +65,6 @@ extension PlanetPublishedServiceStore {
         let decoder = JSONDecoder()
         let data = try Data(contentsOf: folderHistoryURL)
         let folders: [PlanetPublishedFolder] = try decoder.decode([PlanetPublishedFolder].self, from: data)
-        let defaults = UserDefaults.standard
-        for folder in folders {
-            let key = Self.prefixKey + folder.id.uuidString
-            guard let bookmarkData = defaults.object(forKey: key) as? Data else { continue }
-            let url = try restoreFileAccess(with: bookmarkData, forFolder: folder)
-            if !url.startAccessingSecurityScopedResource() {
-                print("startAccessingSecurityScopedResource returned false. This directory might not need it, or this URL might not be a security scoped URL, or maybe something's wrong?")
-            }
-            let paths = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
-                        .map {
-                            $0.relativePath.replacingOccurrences(of: url.path, with: "")
-                        }
-            url.stopAccessingSecurityScopedResource()
-            debugPrint("restored paths: \(paths), at url: \(url)")
-        }
         return folders
     }
 
@@ -103,17 +78,24 @@ extension PlanetPublishedServiceStore {
     // https://developer.apple.com/documentation/uikit/view_controllers/providing_access_to_directories
     // https://benscheirman.com/2019/10/troubleshooting-appkit-file-permissions/
     //
-    private func saveBookmarkData(workDir: URL, forFolder folder: PlanetPublishedFolder) throws {
-        let bookmarkData = try workDir.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
-        UserDefaults.standard.set(bookmarkData, forKey: Self.prefixKey + folder.id.uuidString)
-    }
-
-    private func restoreFileAccess(with bookmarkData: Data, forFolder folder: PlanetPublishedFolder) throws -> URL {
+    func restoreFolderAccess(forFolder folder: PlanetPublishedFolder) throws -> URL {
+        let bookmarkKey = Self.prefixKey + folder.id.uuidString
+        guard let bookmarkData = UserDefaults.standard.data(forKey: bookmarkKey) else { throw PlanetError.InternalError }
         var isStale = false
         let url = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale)
         if isStale {
-            try saveBookmarkData(workDir: url, forFolder: folder)
+            try saveBookmarkData(forFolder: folder)
         }
         return url
+    }
+
+    func saveBookmarkData(forFolder folder: PlanetPublishedFolder) throws {
+        let bookmarkData = try folder.url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+        let bookmarkKey = Self.prefixKey + folder.id.uuidString
+        UserDefaults.standard.set(bookmarkData, forKey: bookmarkKey)
+    }
+    
+    func removeBookmarkData(forFolder folder: PlanetPublishedFolder) {
+        UserDefaults.standard.removeObject(forKey: Self.prefixKey + folder.id.uuidString)
     }
 }

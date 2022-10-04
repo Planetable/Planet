@@ -130,7 +130,7 @@ struct PlanetApp: App {
     private func publishedFoldersMenu() -> some View {
         Menu("Published Folders") {
             ForEach(serviceStore.publishedFolders, id: \.id) { folder in
-                Menu(folder.url.absoluteString.removingPercentEncoding ?? folder.url.absoluteString) {
+                Menu(folder.url.path.removingPercentEncoding ?? folder.url.path) {
                     if serviceStore.publishingFolders.contains(folder.id) {
                         Text("Publishing ...")
                     } else {
@@ -157,7 +157,17 @@ struct PlanetApp: App {
                             }
 
                             Button {
-                                NSWorkspace.shared.open(folder.url)
+                                do {
+                                    let url = try serviceStore.restoreFolderAccess(forFolder: folder)
+                                    if url.startAccessingSecurityScopedResource() {
+                                        NSWorkspace.shared.open(url)
+                                        url.stopAccessingSecurityScopedResource()
+                                    } else {
+                                        debugPrint("failed to access to folder: \(folder)")
+                                    }
+                                } catch {
+                                    debugPrint("failed to request access to folder: \(folder), error: \(error)")
+                                }
                             } label: {
                                 Text("Reveal in Finder")
                             }
@@ -168,36 +178,45 @@ struct PlanetApp: App {
                                     let content = UNMutableNotificationContent()
                                     let keyName = folder.id.uuidString
                                     do {
-                                        if try await !IPFSDaemon.shared.checkKeyExists(name: keyName) {
-                                            let _ = try await IPFSDaemon.shared.generateKey(name: keyName)
-                                        }
-                                        let cid = try await IPFSDaemon.shared.addDirectory(url: folder.url)
-                                        let result = try await IPFSDaemon.shared.api(
-                                            path: "name/publish",
-                                            args: [
-                                                "arg": cid,
-                                                "allow-offline": "1",
-                                                "key": keyName,
-                                                "quieter": "1",
-                                                "lifetime": "7200h",
-                                            ],
-                                            timeout: 600
-                                        )
-                                        let deocder = JSONDecoder()
-                                        let publishedStatus = try deocder.decode(IPFSPublished.self, from: result)
-                                        let updatedFolder = PlanetPublishedFolder(id: folder.id, url: folder.url, created: folder.created, published: Date(), publishedLink: publishedStatus.name)
-                                        let updatedFolders = serviceStore.publishedFolders.map() { f in
-                                            if f.id == folder.id {
-                                                return updatedFolder
-                                            } else {
-                                                return f
+                                        let url = try serviceStore.restoreFolderAccess(forFolder: folder)
+                                        if url.startAccessingSecurityScopedResource() {
+                                            if try await !IPFSDaemon.shared.checkKeyExists(name: keyName) {
+                                                let _ = try await IPFSDaemon.shared.generateKey(name: keyName)
                                             }
+                                            let cid = try await IPFSDaemon.shared.addDirectory(url:url)
+                                            url.stopAccessingSecurityScopedResource()
+                                            let result = try await IPFSDaemon.shared.api(
+                                                path: "name/publish",
+                                                args: [
+                                                    "arg": cid,
+                                                    "allow-offline": "1",
+                                                    "key": keyName,
+                                                    "quieter": "1",
+                                                    "lifetime": "7200h",
+                                                ],
+                                                timeout: 600
+                                            )
+                                            let deocder = JSONDecoder()
+                                            let publishedStatus = try deocder.decode(IPFSPublished.self, from: result)
+                                            let updatedFolder = PlanetPublishedFolder(id: folder.id, url: folder.url, created: folder.created, published: Date(), publishedLink: publishedStatus.name)
+                                            let updatedFolders = serviceStore.publishedFolders.map() { f in
+                                                if f.id == folder.id {
+                                                    return updatedFolder
+                                                } else {
+                                                    return f
+                                                }
+                                            }
+                                            serviceStore.removePublishingFolder(folder)
+                                            serviceStore.updatePublishedFolders(updatedFolders)
+                                            content.title = "Folder Published"
+                                            content.subtitle = folder.url.absoluteString
+                                            debugPrint("Folder published -> \(folder.url)")
+                                        } else {
+                                            debugPrint("Failed to access to folder: \(folder)")
+                                            serviceStore.removePublishingFolder(folder)
+                                            content.title = "Failed to Publish Folder"
+                                            content.subtitle = folder.url.absoluteString
                                         }
-                                        serviceStore.removePublishingFolder(folder)
-                                        serviceStore.updatePublishedFolders(updatedFolders)
-                                        content.title = "Folder Published"
-                                        content.subtitle = folder.url.absoluteString
-                                        debugPrint("Folder published -> \(folder.url)")
                                     } catch {
                                         debugPrint("Failed to publish folder: \(folder), error: \(error)")
                                         serviceStore.removePublishingFolder(folder)
@@ -221,12 +240,12 @@ struct PlanetApp: App {
                         Divider()
 
                         Button {
+                            serviceStore.removeBookmarkData(forFolder: folder)
                             let updatedFolders = serviceStore.publishedFolders.filter { f in
                                 return f.id != folder.id
                             }
                             Task { @MainActor in
                                 serviceStore.updatePublishedFolders(updatedFolders)
-                                UserDefaults.standard.removeObject(forKey: PlanetPublishedServiceStore.prefixKey + folder.id.uuidString)
                                 do {
                                     try await IPFSDaemon.shared.removeKey(name: folder.id.uuidString)
                                 } catch {
@@ -261,10 +280,16 @@ struct PlanetApp: App {
                     }
                 }
                 if exists { return }
-                folders.insert(PlanetPublishedFolder(id: UUID(), url: url, created: Date()), at: 0)
-                let updatedFolders = folders
-                Task { @MainActor in
-                    serviceStore.updatePublishedFolders(updatedFolders)
+                let folder = PlanetPublishedFolder(id: UUID(), url: url, created: Date())
+                do {
+                    try serviceStore.saveBookmarkData(forFolder: folder)
+                    folders.insert(folder, at: 0)
+                    let updatedFolders = folders
+                    Task { @MainActor in
+                        serviceStore.updatePublishedFolders(updatedFolders)
+                    }
+                } catch {
+                    debugPrint("failed to add folder: \(error)")
                 }
             } label: {
                 Text("Add Folder")
