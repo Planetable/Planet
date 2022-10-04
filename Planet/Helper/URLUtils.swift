@@ -41,8 +41,8 @@ struct URLUtils {
         return url
     }()
 
-    static let downloadHistoryPath: URL = {
-        let url = repoPath.appendingPathComponent("Downloads", isDirectory: true)
+    static let publishedFolderHistoryPath: URL = {
+        let url = repoPath.appendingPathComponent("PublishedFolders", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()

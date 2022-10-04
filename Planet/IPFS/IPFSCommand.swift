@@ -200,6 +200,10 @@ struct IPFSCommand {
     static func deleteKey(name: String) -> IPFSCommand {
         IPFSCommand(arguments: ["key", "rm", name])
     }
+
+    static func listKeys() -> IPFSCommand {
+        IPFSCommand(arguments: ["key", "list"])
+    }
 }
 
 struct IPFSMigration {

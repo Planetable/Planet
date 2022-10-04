@@ -302,6 +302,52 @@ actor IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
+    func removeKey(name: String) throws {
+        Self.logger.info("Removing IPFS keypair for \(name)")
+        do {
+            let (ret, out, err) = try IPFSCommand.deleteKey(name: name).run()
+            if ret == 0 {
+                if let keyName = String(data: out, encoding: .utf8)?.trim() {
+                    Self.logger.info("Removed IPFS keypair: id \(keyName)")
+                } else {
+                    Self.logger.error("Failed to parse removed IPFS keypair: \(String(describing: out))")
+                }
+            } else {
+                Self.logger.error(
+                    """
+                    Failed to remove IPFS keypair: process returned \(ret)
+                    [stdout]
+                    \(out.logFormat())
+                    [stderr]
+                    \(err.logFormat())
+                    """
+                )
+            }
+        } catch {
+            Self.logger.error(
+                """
+                Failed to remove IPFS keypair: error when running IPFS process, \
+                cause: \(String(describing: error))
+                """
+            )
+        }
+    }
+
+    func checkKeyExists(name: String) throws -> Bool {
+        Self.logger.info("Check IPFS keypair exists: \(name)")
+        let (ret, out, _) = try IPFSCommand.listKeys().run()
+        if ret == 0 {
+            if let output = String(data: out, encoding: .utf8)?.trimmingCharacters(in: .whitespaces) {
+                let keyList = output.components(separatedBy: .newlines)
+                Self.logger.error("IPFS keypairs: \(String(describing: keyList))")
+                return keyList.contains(name)
+            } else {
+                Self.logger.error("Failed to parse list IPFS keypairs: \(String(describing: out))")
+            }
+        }
+        return false
+    }
+
     func addDirectory(url: URL) throws -> String {
         Self.logger.info("Adding directory \(url.path) to IPFS")
         do {
