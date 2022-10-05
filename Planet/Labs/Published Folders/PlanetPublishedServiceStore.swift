@@ -114,8 +114,8 @@ class PlanetPublishedServiceStore: ObservableObject {
             ],
             timeout: 600
         )
-        let deocder = JSONDecoder()
-        let publishedStatus = try deocder.decode(IPFSPublished.self, from: result)
+        let decoder = JSONDecoder()
+        let publishedStatus = try decoder.decode(IPFSPublished.self, from: result)
 
         // 3. update removal list if unpublished
         if publishedStatus.name != "" {
@@ -167,7 +167,7 @@ extension PlanetPublishedServiceStore {
         let bookmarkKey = Self.prefixKey + folder.id.uuidString
         UserDefaults.standard.set(bookmarkData, forKey: bookmarkKey)
     }
-    
+
     func removeBookmarkData(forFolder folder: PlanetPublishedFolder) {
         UserDefaults.standard.removeObject(forKey: Self.prefixKey + folder.id.uuidString)
     }
