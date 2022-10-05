@@ -91,7 +91,12 @@ class PlanetPublishedServiceStore: ObservableObject {
             UserDefaults.standard.set(removedIDs, forKey: Self.removedListKey)
         }
 
-        // 2. publish the empty folder
+        // 2. unpin available cids
+        for version in try loadPublishedVersions(byFolderKeyName: keyName) {
+            try? await IPFSDaemon.shared.unpin(cid: version.cid)
+        }
+
+        // 3. publish the empty folder
         let emptyFolderURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(keyName)
         if FileManager.default.fileExists(atPath: emptyFolderURL.path) {
             try? FileManager.default.removeItem(at: emptyFolderURL)
@@ -110,19 +115,20 @@ class PlanetPublishedServiceStore: ObservableObject {
                 "allow-offline": "1",
                 "key": keyName,
                 "quieter": "1",
-                "lifetime": "7200h",
+                "lifetime": "24h",
             ],
             timeout: 600
         )
         let decoder = JSONDecoder()
         let publishedStatus = try decoder.decode(IPFSPublished.self, from: result)
 
-        // 3. update removal list if unpublished
+        // 4. update removal list if unpublished
         if publishedStatus.name != "" {
             try await IPFSDaemon.shared.removeKey(name: keyName)
             UserDefaults.standard.set(updatedRemovedIDs.filter({ id in
                 return id != keyName
             }), forKey: Self.removedListKey)
+            removePublishedVersions(byFolderKeyName: keyName)
             debugPrint("Folder with key id \(keyName) is unpublished and removed -> \(publishedStatus)")
         }
     }
@@ -134,8 +140,19 @@ extension PlanetPublishedServiceStore {
         return URLUtils.publishedFolderHistoryPath.appendingPathComponent("history.json")
     }
 
+    private var folderVersionURL: URL {
+        let url = URLUtils.publishedFolderHistoryPath.appendingPathComponent("versions", conformingTo: .directory)
+        if !FileManager.default.fileExists(atPath: url.path) {
+            try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        }
+        return url
+    }
+
     func loadPublishedFolders() throws -> [PlanetPublishedFolder] {
         let decoder = JSONDecoder()
+        if !FileManager.default.fileExists(atPath: folderHistoryURL.path) {
+            return []
+        }
         let data = try Data(contentsOf: folderHistoryURL)
         let folders: [PlanetPublishedFolder] = try decoder.decode([PlanetPublishedFolder].self, from: data)
         return folders
@@ -145,6 +162,30 @@ extension PlanetPublishedServiceStore {
         let encoder = JSONEncoder()
         let data = try encoder.encode(self.publishedFolders)
         try data.write(to: folderHistoryURL)
+    }
+
+    func loadPublishedVersions(byFolderKeyName name: String) throws -> [PlanetPublishedFolderVersion] {
+        let decoder = JSONDecoder()
+        let versionsURL = folderVersionURL.appendingPathComponent(name)
+        if !FileManager.default.fileExists(atPath: versionsURL.path) {
+            return []
+        }
+        let data = try Data(contentsOf: versionsURL)
+        let versions: [PlanetPublishedFolderVersion] = try decoder.decode([PlanetPublishedFolderVersion].self, from: data)
+        return versions
+    }
+
+    func savePublishedVersions(_ versions: [PlanetPublishedFolderVersion]) throws {
+        let encoder = JSONEncoder()
+        guard let name = versions.first?.id.uuidString else { throw PlanetError.InternalError }
+        let versionsURL = folderVersionURL.appendingPathComponent(name)
+        let data = try encoder.encode(versions)
+        try data.write(to: versionsURL)
+    }
+
+    func removePublishedVersions(byFolderKeyName name: String) {
+        let versionsURL = folderVersionURL.appendingPathComponent(name)
+        try? FileManager.default.removeItem(at: versionsURL)
     }
 
     // MARK: -

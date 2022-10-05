@@ -185,6 +185,9 @@ struct PlanetApp: App {
                                             }
                                             let cid = try await IPFSDaemon.shared.addDirectory(url: url)
                                             url.stopAccessingSecurityScopedResource()
+                                            var versions = try serviceStore.loadPublishedVersions(byFolderKeyName: keyName)
+                                            versions.append(PlanetPublishedFolderVersion(id: folder.id, cid: cid, created: Date()))
+                                            try serviceStore.savePublishedVersions(versions)
                                             let result = try await IPFSDaemon.shared.api(
                                                 path: "name/publish",
                                                 args: [
