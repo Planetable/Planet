@@ -17,6 +17,8 @@ enum PlanetError: Error {
     case DotBitNoDWebRecordError
     case DotBitIPNSResolveError
     case RenderMarkdownError
+    case PublishedServiceFolderUnchangedError
+    case PublishedServiceFolderPermissionError
     case InternalError
     case UnknownError(Error)
 }

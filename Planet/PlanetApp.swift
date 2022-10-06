@@ -126,177 +126,6 @@ struct PlanetApp: App {
         }
     }
 
-    @ViewBuilder
-    private func publishedFoldersMenu() -> some View {
-        Menu("Published Folders") {
-            ForEach(serviceStore.publishedFolders, id: \.id) { folder in
-                Menu(folder.url.path.removingPercentEncoding ?? folder.url.path) {
-                    if serviceStore.publishingFolders.contains(folder.id) {
-                        Text("Publishing ...")
-                    } else {
-                        if !FileManager.default.fileExists(atPath: folder.url.path) {
-                            Text("Folder is missing ...")
-                        } else {
-                            if let published = folder.published, let publishedLink = folder.publishedLink {
-                                Text("Last Published: " + published.relativeDateDescription())
-                                Divider()
-                                Button {
-                                    if let url = URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(publishedLink)") {
-                                        openURL(url)
-                                    }
-                                } label: {
-                                    Text("Open in Public Gateway")
-                                }
-                                Button {
-                                    if let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
-                                        openURL(url)
-                                    }
-                                } label: {
-                                    Text("Open in Localhost")
-                                }
-                            }
-
-                            Button {
-                                do {
-                                    let url = try serviceStore.restoreFolderAccess(forFolder: folder)
-                                    if url.startAccessingSecurityScopedResource() {
-                                        NSWorkspace.shared.open(url)
-                                        url.stopAccessingSecurityScopedResource()
-                                    } else {
-                                        debugPrint("failed to access to folder: \(folder)")
-                                    }
-                                } catch {
-                                    debugPrint("failed to request access to folder: \(folder), error: \(error)")
-                                }
-                            } label: {
-                                Text("Reveal in Finder")
-                            }
-
-                            Button {
-                                Task { @MainActor in
-                                    serviceStore.addPublishingFolder(folder)
-                                    let content = UNMutableNotificationContent()
-                                    let keyName = folder.id.uuidString
-                                    do {
-                                        let url = try serviceStore.restoreFolderAccess(forFolder: folder)
-                                        if url.startAccessingSecurityScopedResource() {
-                                            if try await !IPFSDaemon.shared.checkKeyExists(name: keyName) {
-                                                let _ = try await IPFSDaemon.shared.generateKey(name: keyName)
-                                            }
-                                            let cid = try await IPFSDaemon.shared.addDirectory(url: url)
-                                            url.stopAccessingSecurityScopedResource()
-                                            var versions = try serviceStore.loadPublishedVersions(byFolderKeyName: keyName)
-                                            versions.append(PlanetPublishedFolderVersion(id: folder.id, cid: cid, created: Date()))
-                                            try serviceStore.savePublishedVersions(versions)
-                                            let result = try await IPFSDaemon.shared.api(
-                                                path: "name/publish",
-                                                args: [
-                                                    "arg": cid,
-                                                    "allow-offline": "1",
-                                                    "key": keyName,
-                                                    "quieter": "1",
-                                                    "lifetime": "7200h",
-                                                ],
-                                                timeout: 600
-                                            )
-                                            let deocder = JSONDecoder()
-                                            let publishedStatus = try deocder.decode(IPFSPublished.self, from: result)
-                                            let updatedFolder = PlanetPublishedFolder(id: folder.id, url: folder.url, created: folder.created, published: Date(), publishedLink: publishedStatus.name)
-                                            let updatedFolders = serviceStore.publishedFolders.map() { f in
-                                                if f.id == folder.id {
-                                                    return updatedFolder
-                                                } else {
-                                                    return f
-                                                }
-                                            }
-                                            serviceStore.removePublishingFolder(folder)
-                                            serviceStore.updatePublishedFolders(updatedFolders)
-                                            content.title = "Folder Published"
-                                            content.subtitle = folder.url.absoluteString
-                                            debugPrint("Folder published -> \(folder.url)")
-                                        } else {
-                                            debugPrint("Failed to access to folder: \(folder)")
-                                            serviceStore.removePublishingFolder(folder)
-                                            content.title = "Failed to Publish Folder"
-                                            content.subtitle = folder.url.absoluteString
-                                        }
-                                    } catch {
-                                        debugPrint("Failed to publish folder: \(folder), error: \(error)")
-                                        serviceStore.removePublishingFolder(folder)
-                                        content.title = "Failed to Publish Folder"
-                                        content.subtitle = folder.url.absoluteString
-                                    }
-                                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                                    let request = UNNotificationRequest(
-                                        identifier: keyName,
-                                        content: content,
-                                        trigger: trigger
-                                    )
-                                    UNUserNotificationCenter.current().add(request) { _ in
-                                    }
-                                }
-                            } label: {
-                                Text("Publish")
-                            }
-                        }
-
-                        Divider()
-
-                        Button {
-                            serviceStore.addToRemovingPublishedFolderQueue(folder)
-                            let updatedFolders = serviceStore.publishedFolders.filter { f in
-                                return f.id != folder.id
-                            }
-                            Task { @MainActor in
-                                serviceStore.updatePublishedFolders(updatedFolders)
-                            }
-                        } label: {
-                            Text("Remove")
-                        }
-                    }
-                }
-            }
-            if serviceStore.publishedFolders.count > 0 {
-                Divider()
-            }
-            Button {
-                let panel = NSOpenPanel()
-                panel.message = "Choose Folder to Publish"
-                panel.prompt = "Choose"
-                panel.allowsMultipleSelection = false
-                panel.allowedContentTypes = [.folder]
-                panel.canChooseDirectories = true
-                panel.canChooseFiles = false
-                let response = panel.runModal()
-                guard response == .OK, let url = panel.url else { return }
-                var folders = serviceStore.publishedFolders
-                var exists = false
-                for f in folders {
-                    if f.url.absoluteString.md5() == url.absoluteString.md5() {
-                        exists = true
-                        break
-                    }
-                }
-                if exists { return }
-                let folder = PlanetPublishedFolder(id: UUID(), url: url, created: Date())
-                do {
-                    try serviceStore.saveBookmarkData(forFolder: folder)
-                    folders.insert(folder, at: 0)
-                    let updatedFolders = folders
-                    Task { @MainActor in
-                        serviceStore.updatePublishedFolders(updatedFolders)
-                    }
-                } catch {
-                    debugPrint("failed to add folder: \(error)")
-                }
-            } label: {
-                Text("Add Folder")
-            }
-        }
-        .onReceive(serviceStore.timer) { _ in
-            serviceStore.timestamp = Int(Date().timeIntervalSince1970)
-        }
-    }
 }
 
 class PlanetAppDelegate: NSObject, NSApplicationDelegate {
@@ -394,6 +223,186 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+// MARK: -
+extension PlanetApp {
+    @ViewBuilder
+    private func publishedFoldersMenu() -> some View {
+        Menu("Published Folders") {
+            ForEach(serviceStore.publishedFolders, id: \.id) { folder in
+                Menu(folder.url.path.removingPercentEncoding ?? folder.url.path) {
+                    if serviceStore.publishingFolders.contains(folder.id) {
+                        Text("Publishing ...")
+                    } else {
+                        if !FileManager.default.fileExists(atPath: folder.url.path) {
+                            Text("Folder is missing ...")
+                        } else {
+                            if let published = folder.published, let publishedLink = folder.publishedLink {
+                                Text("Last Published: " + published.relativeDateDescription())
+                                Divider()
+                                Button {
+                                    if let url = URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(publishedLink)") {
+                                        openURL(url)
+                                    }
+                                } label: {
+                                    Text("Open in Public Gateway")
+                                }
+                                Button {
+                                    if let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+                                        openURL(url)
+                                    }
+                                } label: {
+                                    Text("Open in Localhost")
+                                }
+                            }
+
+                            Button {
+                                do {
+                                    let url = try serviceStore.restoreFolderAccess(forFolder: folder)
+                                    guard url.startAccessingSecurityScopedResource() else {
+                                        throw PlanetError.PublishedServiceFolderPermissionError
+                                    }
+                                    NSWorkspace.shared.open(url)
+                                    url.stopAccessingSecurityScopedResource()
+                                } catch {
+                                    debugPrint("failed to request access to folder: \(folder), error: \(error)")
+                                    planetStore.isShowingAlert = true
+                                    planetStore.alertTitle = "Failed to Access to Folder"
+                                    planetStore.alertMessage = error.localizedDescription
+                                }
+                            } label: {
+                                Text("Reveal in Finder")
+                            }
+
+                            Button {
+                                Task { @MainActor in
+                                    serviceStore.addPublishingFolder(folder)
+                                    let keyName = folder.id.uuidString
+                                    do {
+                                        if try await !IPFSDaemon.shared.checkKeyExists(name: keyName) {
+                                            let _ = try await IPFSDaemon.shared.generateKey(name: keyName)
+                                        }
+                                        let url = try serviceStore.restoreFolderAccess(forFolder: folder)
+                                        guard url.startAccessingSecurityScopedResource() else {
+                                            throw PlanetError.PublishedServiceFolderPermissionError
+                                        }
+                                        let cid = try await IPFSDaemon.shared.addDirectory(url: url)
+                                        url.stopAccessingSecurityScopedResource()
+                                        var versions = try serviceStore.loadPublishedVersions(byFolderKeyName: keyName)
+                                        if let lastVersion = versions.last, lastVersion.cid == cid {
+                                            throw PlanetError.PublishedServiceFolderUnchangedError
+                                        }
+                                        versions.append(PlanetPublishedFolderVersion(id: folder.id, cid: cid, created: Date()))
+                                        try serviceStore.savePublishedVersions(versions)
+                                        let result = try await IPFSDaemon.shared.api(
+                                            path: "name/publish",
+                                            args: [
+                                                "arg": cid,
+                                                "allow-offline": "1",
+                                                "key": keyName,
+                                                "quieter": "1",
+                                                "lifetime": "7200h",
+                                            ],
+                                            timeout: 600
+                                        )
+                                        let decoder = JSONDecoder()
+                                        let publishedStatus = try decoder.decode(IPFSPublished.self, from: result)
+                                        let updatedFolder = PlanetPublishedFolder(id: folder.id, url: folder.url, created: folder.created, published: Date(), publishedLink: publishedStatus.name)
+                                        let updatedFolders = serviceStore.publishedFolders.map() { f in
+                                            if f.id == folder.id {
+                                                return updatedFolder
+                                            } else {
+                                                return f
+                                            }
+                                        }
+                                        serviceStore.removePublishingFolder(folder)
+                                        serviceStore.updatePublishedFolders(updatedFolders)
+                                        debugPrint("Folder published -> \(folder.url)")
+                                        let content = UNMutableNotificationContent()
+                                        content.title = "Folder Published"
+                                        content.subtitle = folder.url.absoluteString
+                                        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                                        let request = UNNotificationRequest(
+                                            identifier: keyName,
+                                            content: content,
+                                            trigger: trigger
+                                        )
+                                        try? await UNUserNotificationCenter.current().add(request)
+                                    } catch {
+                                        debugPrint("Failed to publish folder: \(folder), error: \(error)")
+                                        serviceStore.removePublishingFolder(folder)
+                                        planetStore.isShowingAlert = true
+                                        planetStore.alertTitle = "Failed to Publish Folder"
+                                        planetStore.alertMessage = error.localizedDescription
+                                    }
+                                }
+                            } label: {
+                                Text("Publish")
+                            }
+                        }
+
+                        Divider()
+
+                        Button {
+                            serviceStore.addToRemovingPublishedFolderQueue(folder)
+                            let updatedFolders = serviceStore.publishedFolders.filter { f in
+                                return f.id != folder.id
+                            }
+                            Task { @MainActor in
+                                serviceStore.updatePublishedFolders(updatedFolders)
+                            }
+                        } label: {
+                            Text("Remove")
+                        }
+                    }
+                }
+            }
+            if serviceStore.publishedFolders.count > 0 {
+                Divider()
+            }
+            Button {
+                let panel = NSOpenPanel()
+                panel.message = "Choose Folder to Publish"
+                panel.prompt = "Choose"
+                panel.allowsMultipleSelection = false
+                panel.allowedContentTypes = [.folder]
+                panel.canChooseDirectories = true
+                panel.canChooseFiles = false
+                let response = panel.runModal()
+                guard response == .OK, let url = panel.url else { return }
+                var folders = serviceStore.publishedFolders
+                var exists = false
+                for f in folders {
+                    if f.url.absoluteString.md5() == url.absoluteString.md5() {
+                        exists = true
+                        break
+                    }
+                }
+                if exists { return }
+                let folder = PlanetPublishedFolder(id: UUID(), url: url, created: Date())
+                do {
+                    try serviceStore.saveBookmarkData(forFolder: folder)
+                    folders.insert(folder, at: 0)
+                    let updatedFolders = folders
+                    Task { @MainActor in
+                        serviceStore.updatePublishedFolders(updatedFolders)
+                    }
+                } catch {
+                    debugPrint("failed to add folder: \(error)")
+                    planetStore.isShowingAlert = true
+                    planetStore.alertTitle = "Failed to Add Folder"
+                    planetStore.alertMessage = error.localizedDescription
+                }
+            } label: {
+                Text("Add Folder")
+            }
+        }
+        .onReceive(serviceStore.timer) { _ in
+            serviceStore.timestamp = Int(Date().timeIntervalSince1970)
+        }
+    }
+}
+
+// MARK: -
 extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
     func setupNotification() {
         let center = UNUserNotificationCenter.current()
@@ -456,6 +465,7 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
     }
 }
 
+// MARK: -
 extension PlanetAppDelegate {
     func openDownloadsWindow() {
         if downloadsWindowController == nil {
@@ -465,6 +475,7 @@ extension PlanetAppDelegate {
     }
 }
 
+// MARK: -
 // Hide main window instead of closing to keep window position.
 // https://stackoverflow.com/questions/71506416/restoring-macos-window-size-after-close-using-swiftui-windowsgroup
 extension PlanetAppDelegate: NSWindowDelegate {
