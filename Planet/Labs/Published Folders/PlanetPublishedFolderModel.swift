@@ -15,3 +15,10 @@ struct PlanetPublishedFolder: Codable {
     var published: Date?
     var publishedLink: String?
 }
+
+
+struct PlanetPublishedFolderVersion: Codable {
+    let id: UUID
+    let cid: String
+    let created: Date
+}
