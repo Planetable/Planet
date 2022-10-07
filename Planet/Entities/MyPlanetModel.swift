@@ -95,6 +95,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         "rss.xml",
         isDirectory: false
     )
+    lazy var publicPodcastPath = publicBasePath.appendingPathComponent(
+        "podcast.xml",
+        isDirectory: false
+    )
 
     lazy var publicAssetsPath = publicBasePath.appendingPathComponent("assets", isDirectory: true)
 
@@ -620,10 +624,23 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try FileManager.default.copyItem(at: template.assetsPath, to: publicAssetsPath)
     }
 
-    func renderRSS() {
+    func renderRSS(podcastOnly: Bool = false) {
         if let templateStringRSS = templateStringRSS {
             do {
-                let publicArticles = articles.map { $0.publicArticle }
+                let allArticles: [PublicArticleModel] = articles.map { item in
+                    return item.publicArticle
+                }
+                let publicArticles = allArticles.filter { item in
+                    if podcastOnly {
+                        if item.audioFilename != nil {
+                            return true
+                        } else {
+                            return false
+                        }
+                    } else {
+                        return true
+                    }
+                }
                 let publicPlanet = PublicPlanetModel(
                     id: id,
                     name: name,
@@ -642,10 +659,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 let context: [String: Any] = [
                     "planet": publicPlanet,
                     "ipfs_gateway": IPFSDaemon.preferredGateway(),
+                    "podcast": podcastOnly
                 ]
                 let rssXML = try environment.renderTemplate(string: templateStringRSS, context: context)
                 debugPrint("rssXML: \(rssXML)")
-                try rssXML.data(using: .utf8)?.write(to: publicRSSPath)
+                if podcastOnly {
+                    try rssXML.data(using: .utf8)?.write(to: publicPodcastPath)
+                } else {
+                    try rssXML.data(using: .utf8)?.write(to: publicRSSPath)
+                }
             } catch {
                 debugPrint("Error rendering RSS: \(error)")
             }
@@ -680,7 +702,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let indexHTML = try template.renderIndex(context: context)
         try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
 
-        renderRSS()
+        renderRSS(podcastOnly: false)
+
+        if publicPlanet.hasAudioContent() {
+            renderRSS(podcastOnly: true)
+        }
 
         let info = try JSONEncoder.shared.encode(publicPlanet)
         try info.write(to: publicInfoPath)

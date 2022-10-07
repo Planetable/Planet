@@ -1,4 +1,5 @@
 import Foundation
+import AVKit
 
 class MyArticleModel: ArticleModel, Codable {
     @Published var link: String
@@ -24,7 +25,8 @@ class MyArticleModel: ArticleModel, Codable {
             videoFilename: videoFilename,
             hasAudio: hasAudio,
             audioFilename: audioFilename,
-            audioDuration: 0, // TODO: get audio duration
+            audioDuration: getAudioDuration(name: audioFilename),
+            audioByteLength: getAttachmentByteLength(name: audioFilename),
             attachments: attachments
         )
     }
@@ -121,6 +123,31 @@ class MyArticleModel: ArticleModel, Codable {
             return path
         }
         return nil
+    }
+
+    func getAttachmentByteLength(name: String?) -> Int? {
+        guard let name = name, let url = getAttachmentURL(name: name) else {
+            return nil
+        }
+        do {
+            let attr = try FileManager.default.attributesOfItem(atPath: url.path)
+            return attr[.size] as? Int
+        } catch {
+            return nil
+        }
+    }
+
+    func getAudioDuration(name: String?) -> Int? {
+        guard let name = name, let url = getAttachmentURL(name: name) else {
+            return nil
+        }
+        do {
+            let asset = AVURLAsset(url: url)
+            let duration = asset.duration
+            return Int(CMTimeGetSeconds(duration))
+        } catch {
+            return nil
+        }
     }
 
     func savePublic() throws {

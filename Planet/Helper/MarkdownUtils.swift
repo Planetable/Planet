@@ -57,6 +57,16 @@ struct StencilExtension {
             }
             return value
         }
+        ext.registerFilter("hhmmss") { value in
+            if let value = value,
+               let seconds = value as? Int {
+                let hours = seconds / 3600
+                let minutes = (seconds % 3600) / 60
+                let seconds = seconds % 60
+                return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+               }
+            return "00:00:00"
+        }
         ext.registerFilter("rfc822") { value in
             if let value = value,
                let date = value as? Date {

@@ -67,5 +67,6 @@ struct PublicArticleModel: Codable {
     let hasAudio: Bool?
     let audioFilename: String?
     let audioDuration: Int?
+    let audioByteLength: Int?
     let attachments: [String]?
 }

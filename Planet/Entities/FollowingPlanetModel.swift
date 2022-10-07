@@ -370,7 +370,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 videoFilename: nil,
                 hasAudio: false,
                 audioFilename: nil,
-                audioDuration: 0,
+                audioDuration: nil,
+                audioByteLength: nil,
                 attachments: nil
             )
             planet.articles = [
@@ -541,7 +542,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 videoFilename: nil,
                 hasAudio: false,
                 audioFilename: nil,
-                audioDuration: 0,
+                audioDuration: nil,
+                audioByteLength: nil,
                 attachments: nil
             )
             planet.articles = [
@@ -774,7 +776,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 videoFilename: nil,
                 hasAudio: false,
                 audioFilename: nil,
-                audioDuration: 0,
+                audioDuration: nil,
+                audioByteLength: nil,
                 attachments: nil
             )
             planet.articles = [

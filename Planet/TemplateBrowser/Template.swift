@@ -250,7 +250,8 @@ class Template: Codable, Identifiable {
             videoFilename: nil,
             hasAudio: false,
             audioFilename: nil,
-            audioDuration: 0,
+            audioDuration: nil,
+            audioByteLength: nil,
             attachments: nil
         )
 
