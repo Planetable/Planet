@@ -66,6 +66,15 @@ struct MyPlanetSidebarItem: View {
 
                 Button {
                     Task {
+                        PlanetStore.shared.selectedView = .myPlanet(planet)
+                        PlanetStore.shared.isEditingPlanetPodcastSettings = true
+                    }
+                } label: {
+                    Text("Podcast Settings")
+                }
+
+                Button {
+                    Task {
                         try await planet.publish()
                     }
                 } label: {

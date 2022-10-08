@@ -64,6 +64,11 @@ struct PlanetMainView: View {
                 MyPlanetCustomCodeView(planet: planet)
             }
         }
+        .sheet(isPresented: $planetStore.isEditingPlanetPodcastSettings) {
+            if case .myPlanet(let planet) = planetStore.selectedView {
+                MyPlanetPodcastSettingsView(planet: planet)
+            }
+        }
         .sheet(isPresented: $planetStore.isMigrating) {
             MigrationProgressView()
         }

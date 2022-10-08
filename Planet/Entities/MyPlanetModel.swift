@@ -43,6 +43,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var customCodeBodyEndEnabled: Bool? = false
     @Published var customCodeBodyEnd: String?
 
+    @Published var podcastLanguage: String? = "en"
+    @Published var podcastExplicit: Bool? = false
+
     @Published var metrics: Metrics?
 
     @Published var isPublishing = false
@@ -157,6 +160,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(customCodeBodyStart)
         hasher.combine(customCodeBodyEndEnabled)
         hasher.combine(customCodeBodyEnd)
+        hasher.combine(podcastLanguage)
+        hasher.combine(podcastExplicit)
         hasher.combine(avatar)
         hasher.combine(drafts)
         hasher.combine(articles)
@@ -198,14 +203,23 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.customCodeBodyStart == rhs.customCodeBodyStart
             && lhs.customCodeBodyEndEnabled == rhs.customCodeBodyEndEnabled
             && lhs.customCodeBodyEnd == rhs.customCodeBodyEnd
+            && lhs.podcastLanguage == rhs.podcastLanguage
+            && lhs.podcastExplicit == rhs.podcastExplicit
             && lhs.avatar == rhs.avatar
             && lhs.drafts == rhs.drafts
             && lhs.articles == rhs.articles
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, about, ipns, created, updated, templateName, lastPublished, plausibleEnabled,
-            plausibleDomain, plausibleAPIKey, plausibleAPIServer, twitterUsername, githubUsername, dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey, filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, filebasePinCID, customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart, customCodeBodyEndEnabled, customCodeBodyEnd
+        case id, name, about, ipns,
+             created, updated,
+             templateName, lastPublished,
+             plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer,
+             twitterUsername, githubUsername,
+             dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey,
+             filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, filebasePinCID,
+             customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart, customCodeBodyEndEnabled, customCodeBodyEnd,
+             podcastLanguage, podcastExplicit
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -240,6 +254,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         customCodeBodyStart = try container.decodeIfPresent(String.self, forKey: .customCodeBodyStart)
         customCodeBodyEndEnabled = try container.decodeIfPresent(Bool.self, forKey: .customCodeBodyEndEnabled)
         customCodeBodyEnd = try container.decodeIfPresent(String.self, forKey: .customCodeBodyEnd)
+        podcastLanguage = try container.decodeIfPresent(String.self, forKey: .podcastLanguage)
+        podcastExplicit = try container.decodeIfPresent(Bool.self, forKey: .podcastExplicit)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -272,6 +288,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(customCodeBodyStart, forKey: .customCodeBodyStart)
         try container.encodeIfPresent(customCodeBodyEndEnabled, forKey: .customCodeBodyEndEnabled)
         try container.encodeIfPresent(customCodeBodyEnd, forKey: .customCodeBodyEnd)
+        try container.encodeIfPresent(podcastLanguage, forKey: .podcastLanguage)
+        try container.encodeIfPresent(podcastExplicit, forKey: .podcastExplicit)
     }
 
     init(
@@ -492,6 +510,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         if backupPlanet.customCodeBodyEnd != nil {
             planet.customCodeBodyEnd = backupPlanet.customCodeBodyEnd
+        }
+
+        // Restore Podcast settings
+        if backupPlanet.podcastLanguage != nil {
+            planet.podcastLanguage = backupPlanet.podcastLanguage
+        }
+        if backupPlanet.podcastExplicit != nil {
+            planet.podcastExplicit = backupPlanet.podcastExplicit
         }
 
         // delete existing planet files if exists
@@ -809,6 +835,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             customCodeBodyStart: customCodeBodyStart,
             customCodeBodyEndEnabled: customCodeBodyEndEnabled,
             customCodeBodyEnd: customCodeBodyEnd,
+            podcastLanguage: podcastLanguage,
+            podcastExplicit: podcastExplicit,
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,
@@ -936,5 +964,7 @@ struct BackupMyPlanetModel: Codable {
     let customCodeBodyStart: String?
     let customCodeBodyEndEnabled: Bool?
     let customCodeBodyEnd: String?
+    let podcastLanguage: String?
+    let podcastExplicit: Bool?
     let articles: [BackupArticleModel]
 }
