@@ -20,6 +20,9 @@ struct MyPlanetPodcastSettingsView: View {
     @State private var podcastLanguage: String = "en"
     @State private var podcastExplicit: Bool = false
 
+    let categories: [String: [String]] = PodcastUtils.categories
+    @State private var selectedCategories: [String: Bool] = [:]
+
     init(planet: MyPlanetModel) {
         self.planet = planet
         _name = State(wrappedValue: planet.name)
@@ -105,7 +108,17 @@ struct MyPlanetPodcastSettingsView: View {
                     }
 
                     VStack(spacing: CONTROL_ROW_SPACING) {
-
+                        LazyVGrid(columns: [GridItem(), GridItem()], alignment: .leading) {
+                            ForEach(Array(categories.keys), id: \.self) { category in
+                                HStack {
+                                    Toggle(
+                                        category,
+                                        isOn: binding(for: category)
+                                    )
+                                    Spacer()
+                                }
+                            }
+                        }
                     }
                     .padding(16)
                     .tabItem {
@@ -150,5 +163,13 @@ struct MyPlanetPodcastSettingsView: View {
         .task {
             name = planet.name
         }
+    }
+
+    private func binding(for category: String) -> Binding<Bool> {
+        return Binding(get: {
+            return self.selectedCategories[category] ?? false
+        }, set: {
+            self.selectedCategories[category] = $0
+        })
     }
 }
