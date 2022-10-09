@@ -43,6 +43,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var customCodeBodyEndEnabled: Bool? = false
     @Published var customCodeBodyEnd: String?
 
+    @Published var podcastCategories: [String: [String]]? = [:]
     @Published var podcastLanguage: String? = "en"
     @Published var podcastExplicit: Bool? = false
 
@@ -160,6 +161,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(customCodeBodyStart)
         hasher.combine(customCodeBodyEndEnabled)
         hasher.combine(customCodeBodyEnd)
+        hasher.combine(podcastCategories)
         hasher.combine(podcastLanguage)
         hasher.combine(podcastExplicit)
         hasher.combine(avatar)
@@ -203,6 +205,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.customCodeBodyStart == rhs.customCodeBodyStart
             && lhs.customCodeBodyEndEnabled == rhs.customCodeBodyEndEnabled
             && lhs.customCodeBodyEnd == rhs.customCodeBodyEnd
+            && lhs.podcastCategories == rhs.podcastCategories
             && lhs.podcastLanguage == rhs.podcastLanguage
             && lhs.podcastExplicit == rhs.podcastExplicit
             && lhs.avatar == rhs.avatar
@@ -219,7 +222,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
              dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey,
              filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, filebasePinCID,
              customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart, customCodeBodyEndEnabled, customCodeBodyEnd,
-             podcastLanguage, podcastExplicit
+             podcastCategories, podcastLanguage, podcastExplicit
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -254,6 +257,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         customCodeBodyStart = try container.decodeIfPresent(String.self, forKey: .customCodeBodyStart)
         customCodeBodyEndEnabled = try container.decodeIfPresent(Bool.self, forKey: .customCodeBodyEndEnabled)
         customCodeBodyEnd = try container.decodeIfPresent(String.self, forKey: .customCodeBodyEnd)
+        podcastCategories = try container.decodeIfPresent(Dictionary.self, forKey: .podcastCategories)
         podcastLanguage = try container.decodeIfPresent(String.self, forKey: .podcastLanguage)
         podcastExplicit = try container.decodeIfPresent(Bool.self, forKey: .podcastExplicit)
     }
@@ -288,6 +292,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(customCodeBodyStart, forKey: .customCodeBodyStart)
         try container.encodeIfPresent(customCodeBodyEndEnabled, forKey: .customCodeBodyEndEnabled)
         try container.encodeIfPresent(customCodeBodyEnd, forKey: .customCodeBodyEnd)
+        try container.encodeIfPresent(podcastCategories, forKey: .podcastCategories)
         try container.encodeIfPresent(podcastLanguage, forKey: .podcastLanguage)
         try container.encodeIfPresent(podcastExplicit, forKey: .podcastExplicit)
     }
@@ -835,6 +840,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             customCodeBodyStart: customCodeBodyStart,
             customCodeBodyEndEnabled: customCodeBodyEndEnabled,
             customCodeBodyEnd: customCodeBodyEnd,
+            podcastCategories: podcastCategories,
             podcastLanguage: podcastLanguage,
             podcastExplicit: podcastExplicit,
             articles: articles.map {
@@ -964,6 +970,7 @@ struct BackupMyPlanetModel: Codable {
     let customCodeBodyStart: String?
     let customCodeBodyEndEnabled: Bool?
     let customCodeBodyEnd: String?
+    let podcastCategories: [String: [String]]?
     let podcastLanguage: String?
     let podcastExplicit: Bool?
     let articles: [BackupArticleModel]

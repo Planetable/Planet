@@ -17,6 +17,7 @@ struct MyPlanetPodcastSettingsView: View {
     @ObservedObject var planet: MyPlanetModel
     @State private var name: String
 
+    @State private var podcastCategories: [String: [String]]?
     @State private var podcastLanguage: String = "en"
     @State private var podcastExplicit: Bool = false
 
@@ -27,6 +28,7 @@ struct MyPlanetPodcastSettingsView: View {
         self.planet = planet
         _name = State(wrappedValue: planet.name)
 
+        _podcastCategories = State(wrappedValue: planet.podcastCategories ?? [:])
         _podcastLanguage = State(wrappedValue: planet.podcastLanguage ?? "en")
         _podcastExplicit = State(wrappedValue: planet.podcastExplicit ?? false)
     }
@@ -109,7 +111,7 @@ struct MyPlanetPodcastSettingsView: View {
 
                     VStack(spacing: CONTROL_ROW_SPACING) {
                         LazyVGrid(columns: [GridItem(), GridItem()], alignment: .leading) {
-                            ForEach(Array(categories.keys), id: \.self) { category in
+                            ForEach(allCategories, id: \.self) { category in
                                 HStack {
                                     Toggle(
                                         category,
@@ -123,6 +125,13 @@ struct MyPlanetPodcastSettingsView: View {
                     .padding(16)
                     .tabItem {
                         Text("Categories")
+                    }
+                    .onAppear {
+                        if let podcastCategories = podcastCategories {
+                            for category in podcastCategories.keys {
+                                self.selectedCategories[category] = true
+                            }
+                        }
                     }
                 }
 
@@ -138,6 +147,13 @@ struct MyPlanetPodcastSettingsView: View {
                     .keyboardShortcut(.escape, modifiers: [])
 
                     Button {
+                        var newCategories: [String: [String]] = [:]
+                        for category in selectedCategories.keys {
+                            if let selected = selectedCategories[category], selected {
+                                newCategories[category] = []
+                            }
+                        }
+                        planet.podcastCategories = newCategories
                         planet.podcastLanguage = podcastLanguage
                         planet.podcastExplicit = podcastExplicit
                         Task {
@@ -163,6 +179,10 @@ struct MyPlanetPodcastSettingsView: View {
         .task {
             name = planet.name
         }
+    }
+
+    private var allCategories: [String] {
+        return categories.keys.sorted().map { String($0) }
     }
 
     private func binding(for category: String) -> Binding<Bool> {
