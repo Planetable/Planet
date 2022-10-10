@@ -163,7 +163,8 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillBecomeActive(_ notification: Notification) {
         debugPrint("applicationWillBecomeActive")
-        (notification.object as? NSApplication)?.windows.first?.makeKeyAndOrderFront(self)
+        // TODO: If Writer is open, then the main window should not always get focus
+        // (notification.object as? NSApplication)?.windows.first?.makeKeyAndOrderFront(self)
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
