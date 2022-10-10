@@ -800,6 +800,21 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             self.lastPublished = Date()
         }
         try save()
+        Task(priority: .background) {
+            await self.prewarm()
+        }
+    }
+
+    func prewarm() async {
+        guard let rootURL = browserURL else { return }
+        let planetJSONURL = rootURL.appendingPathComponent("planet.json")
+        do {
+            debugPrint("About to prewarm \(name): \(planetJSONURL)")
+            let (planetJSONData, _) = try await URLSession.shared.data(from: planetJSONURL)
+            debugPrint("Prewarmed \(name): \(planetJSONData.count) bytes")
+        } catch {
+            debugPrint("Failed to prewarm \(name): \(error)")
+        }
     }
 
     func exportBackup(to directory: URL) throws {
