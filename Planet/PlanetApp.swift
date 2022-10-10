@@ -164,7 +164,22 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillBecomeActive(_ notification: Notification) {
         debugPrint("applicationWillBecomeActive")
         // TODO: If Writer is open, then the main window should not always get focus
-        // (notification.object as? NSApplication)?.windows.first?.makeKeyAndOrderFront(self)
+        if let windows = (notification.object as? NSApplication)?.windows {
+            var i = 0
+            for window in windows {
+                debugPrint("Planet window: \(window)")
+                debugPrint("window.isMainWindow: \(window.isMainWindow)")
+                debugPrint("window.isMiniaturized: \(window.isMiniaturized)")
+                if window.isMiniaturized {
+                    if i == 0 {
+                        window.makeKeyAndOrderFront(self)
+                    } else {
+                        window.deminiaturize(self)
+                    }
+                }
+                i = i + 1
+            }
+        }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
