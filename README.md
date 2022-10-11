@@ -56,6 +56,8 @@ git lfs install
 
 If Kubo binaries are only 133 bytes on disk, please ensure you have activated git-lfs for the project folder.
 
+A `pre-commit.sh` script is provided in the `git-hooks` folder for sync build number with git commits count.
+
 To use your own build config for setting `DEVELOPMENT_TEAM`, please create a `local.xcconfig` file alongside the `Planet.xcconfig` file.
 
 The following configuration variables can be overridden:
