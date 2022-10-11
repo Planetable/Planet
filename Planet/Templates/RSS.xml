@@ -10,18 +10,18 @@
     >
 <channel>
     <title>{{ planet.name|escape }}</title>
-    <atom:link href="{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/rss.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/{% if podcast %}podcast{% else %}rss{% endif %}.xml" rel="self" type="application/rss+xml" />
     <link>{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/</link>
     <description><![CDATA[
     {{ planet.about|md2html }}
     ]]></description>
     {% if podcast %}
-    {% if planet.podcastCoverArt != nil %}
+    {% if has_podcast_cover_art %}
     <itunes:image href="{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/podcastCoverArt.png"/>
     {% endif %}
     <language>{{ planet.podcastLanguage|escape }}</language>
     <itunes:explicit>{% if planet.podcastExplicit %}yes{% else %}no{% endif %}</itunes:explicit>
-    {% for category in planet.podcastCategories.keys.sorted().map { String($0) } %}
+    {% for category in planet.podcastCategories %}
     <itunes:category text="{{ category|escape }}" />
     {% endfor %}
     {% endif %}

@@ -730,13 +730,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     plausibleDomain: plausibleDomain,
                     plausibleAPIServer: plausibleAPIServer,
                     twitterUsername: twitterUsername,
-                    githubUsername: githubUsername
+                    githubUsername: githubUsername,
+                    podcastCategories: podcastCategories,
+                    podcastLanguage: podcastLanguage,
+                    podcastExplicit: podcastExplicit
                 )
                 let environment = Environment(extensions: [StencilExtension.common])
                 let context: [String: Any] = [
                     "planet": publicPlanet,
                     "ipfs_gateway": IPFSDaemon.preferredGateway(),
-                    "podcast": podcastOnly
+                    "podcast": podcastOnly,
+                    "has_podcast_cover_art": FileManager.default.fileExists(atPath: publicPodcastCoverArtPath.path)
                 ]
                 let rssXML = try environment.renderTemplate(string: templateStringRSS, context: context)
                 debugPrint("rssXML: \(rssXML)")
@@ -768,13 +772,18 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             plausibleDomain: plausibleDomain,
             plausibleAPIServer: plausibleAPIServer,
             twitterUsername: twitterUsername,
-            githubUsername: githubUsername
+            githubUsername: githubUsername,
+            podcastCategories: podcastCategories,
+            podcastLanguage: podcastLanguage,
+            podcastExplicit: podcastExplicit
         )
         let hasAvatar = FileManager.default.fileExists(atPath: publicAvatarPath.path)
+        let hasPodcastCoverArt = FileManager.default.fileExists(atPath: publicPodcastCoverArtPath.path)
         var context: [String: Any] = [
             "planet": publicPlanet,
             "my_planet": self,
             "has_avatar": hasAvatar,
+            "has_podcast_cover_art": hasPodcastCoverArt
         ]
         let indexHTML = try template.renderIndex(context: context)
         try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
@@ -982,6 +991,10 @@ struct PublicPlanetModel: Codable {
     let plausibleAPIServer: String?
     let twitterUsername: String?
     let githubUsername: String?
+
+    let podcastCategories: [String: [String]]?
+    let podcastLanguage: String?
+    let podcastExplicit: Bool?
 
     func hasAudioContent() -> Bool {
         for article in articles {

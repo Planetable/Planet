@@ -119,7 +119,10 @@ class Template: Codable, Identifiable {
             plausibleDomain: planet.plausibleDomain ?? nil,
             plausibleAPIServer: planet.plausibleAPIServer ?? "plausible.io",
             twitterUsername: planet.twitterUsername ?? nil,
-            githubUsername: planet.githubUsername ?? nil
+            githubUsername: planet.githubUsername ?? nil,
+            podcastCategories: planet.podcastCategories ?? [:],
+            podcastLanguage: planet.podcastLanguage ?? "en",
+            podcastExplicit: planet.podcastExplicit ?? false
         )
 
         // render stencil template
