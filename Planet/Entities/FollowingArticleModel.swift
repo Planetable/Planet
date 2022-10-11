@@ -28,8 +28,8 @@ class FollowingArticleModel: ArticleModel, Codable {
                     debugPrint("When generating webviewURL, reached branch A1")
                     return URL(string: local)
                 }
-                if link.starts(with: IPFSDaemon.shared.gateway) {
-                    let local: String = "\(IPFSDaemon.shared.gateway)\(link.dropFirst(IPFSDaemon.shared.gateway.count))"
+                if link.starts(with: "http://127.0.0.1:181") {
+                    let local: String = "\(IPFSDaemon.shared.gateway)\(link.dropFirst(22))"
                     debugPrint("Converted to use local gateway: FROM \(link) TO \(local)")
                     debugPrint("When generating webviewURL, reached branch A2")
                     return URL(string: local)
