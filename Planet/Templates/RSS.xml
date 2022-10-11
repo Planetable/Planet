@@ -15,6 +15,16 @@
     <description><![CDATA[
     {{ planet.about|md2html }}
     ]]></description>
+    {% if podcast %}
+    {% if planet.podcastCoverArt != nil %}
+    <itunes:image href="{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/podcastCoverArt.png"/>
+    {% endif %}
+    <language>{{ planet.podcastLanguage|escape }}</language>
+    <itunes:explicit>{% if planet.podcastExplicit %}yes{% else %}no{% endif %}</itunes:explicit>
+    {% for category in planet.podcastCategories.keys.sorted().map { String($0) } %}
+    <itunes:category text="{{ category|escape }}" />
+    {% endfor %}
+    {% endif %}
     {% for article in planet.articles %}
     <item>
         <title>{{ article.title|escape }}</title>

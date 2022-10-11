@@ -533,6 +533,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
 
         // Restore Podcast settings
+        if backupPlanet.podcastCategories != nil {
+            planet.podcastCategories = backupPlanet.podcastCategories
+        }
         if backupPlanet.podcastLanguage != nil {
             planet.podcastLanguage = backupPlanet.podcastLanguage
         }
