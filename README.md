@@ -42,6 +42,20 @@ Before you try this app out, please be advised that it is still at an early stag
 
 ## Build the macOS App
 
+Git LFS is required for working with this code base. You can install git-lfs with Hoembrew:
+
+```
+brew install git-lfs
+```
+
+Then activate it in the project folder:
+
+```
+git lfs install
+```
+
+If Kubo binaries are only 133 bytes on disk, please ensure you have activated git-lfs for the project folder.
+
 To use your own build config for setting `DEVELOPMENT_TEAM`, please create a `local.xcconfig` file alongside the `Planet.xcconfig` file.
 
 The following configuration variables can be overridden:
