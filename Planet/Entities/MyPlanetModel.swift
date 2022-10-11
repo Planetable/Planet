@@ -51,7 +51,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     @Published var isPublishing = false
     // populated when initializing
+
     @Published var avatar: NSImage? = nil
+    @Published var podcastCoverArt: NSImage? = nil
+
     @Published var drafts: [DraftModel]! = nil
     @Published var articles: [MyArticleModel]! = nil
 
@@ -66,6 +69,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     lazy var articlesPath = basePath.appendingPathComponent("Articles", isDirectory: true)
     lazy var avatarPath = basePath.appendingPathComponent("avatar.png", isDirectory: false)
     lazy var faviconPath = basePath.appendingPathComponent("favicon.ico", isDirectory: false)
+    lazy var podcastCoverArtPath = basePath.appendingPathComponent("podcastCoverArt.png", isDirectory: false)
+
     lazy var draftsPath = basePath.appendingPathComponent("Drafts", isDirectory: true)
     lazy var articleDraftsPath = articlesPath.appendingPathComponent("Drafts", isDirectory: true)
 
@@ -91,6 +96,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         "favicon.ico",
         isDirectory: false
     )
+    lazy var publicPodcastCoverArtPath = publicBasePath.appendingPathComponent(
+        "podcastCoverArt.png",
+        isDirectory: false
+    )
+
     lazy var publicIndexPath = publicBasePath.appendingPathComponent(
         "index.html",
         isDirectory: false
@@ -165,6 +175,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(podcastLanguage)
         hasher.combine(podcastExplicit)
         hasher.combine(avatar)
+        hasher.combine(podcastCoverArt)
         hasher.combine(drafts)
         hasher.combine(articles)
     }
@@ -209,6 +220,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.podcastLanguage == rhs.podcastLanguage
             && lhs.podcastExplicit == rhs.podcastExplicit
             && lhs.avatar == rhs.avatar
+            && lhs.podcastCoverArt == rhs.podcastCoverArt
             && lhs.drafts == rhs.drafts
             && lhs.articles == rhs.articles
     }
@@ -331,6 +343,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
 
         planet.avatar = NSImage(contentsOf: planet.avatarPath)
+        planet.podcastCoverArt = NSImage(contentsOf: planet.podcastCoverArtPath)
 
         let draftDirectories = try FileManager.default.contentsOfDirectory(
             at: planet.draftsPath,
@@ -371,6 +384,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             templateName: templateName
         )
         planet.avatar = nil
+        planet.podcastCoverArt = nil
         planet.drafts = []
         planet.articles = []
         try FileManager.default.createDirectory(
@@ -404,6 +418,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let backupIndexPath = path.appendingPathComponent("index.html", isDirectory: false)
         let backupPrivateKeyPath = path.appendingPathComponent("planet.key", isDirectory: false)
         let backupAvatarPath = path.appendingPathComponent("avatar.png", isDirectory: false)
+        let backupPodcastCoverArtPath = path.appendingPathComponent("podcastCoverArt.png", isDirectory: false)
 
         guard FileManager.default.fileExists(atPath: backupInfoPath.path),
             FileManager.default.fileExists(atPath: backupPrivateKeyPath.path)
@@ -545,6 +560,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             if FileManager.default.fileExists(atPath: backupAvatarPath.path) {
                 try FileManager.default.copyItem(at: backupAvatarPath, to: planet.publicAvatarPath)
             }
+            if FileManager.default.fileExists(atPath: backupPodcastCoverArtPath.path) {
+                try FileManager.default.copyItem(at: backupPodcastCoverArtPath, to: planet.publicPodcastCoverArtPath)
+            }
         }
         catch {
             throw PlanetError.ImportPlanetError
@@ -552,6 +570,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Self.logger.info("Assets copied from backup planet \(backupPlanet.id)")
 
         planet.avatar = NSImage(contentsOf: planet.avatarPath)
+        planet.podcastCoverArt = NSImage(contentsOf: planet.podcastCoverArtPath)
+
         planet.drafts = []
         Self.logger.info(
             "Found \(backupPlanet.articles.count) backup articles from backup planet \(backupPlanet.id)"
@@ -612,6 +632,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             try FileManager.default.copyItem(at: backupAvatarPath, to: planet.avatarPath)
         }
         planet.avatar = NSImage(contentsOf: planet.avatarPath)
+        if FileManager.default.fileExists(atPath: backupPodcastCoverArtPath.path) {
+            try FileManager.default.copyItem(at: backupPodcastCoverArtPath, to: planet.podcastCoverArtPath)
+        }
+        planet.podcastCoverArt = NSImage(contentsOf: planet.podcastCoverArtPath)
 
         Self.logger.info("Saving imported planet \(planet.id)")
         try planet.save()
@@ -643,6 +667,25 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try FileManager.default.removeItem(at: avatarPath)
         try FileManager.default.removeItem(at: publicAvatarPath)
         avatar = nil
+    }
+
+    func updatePodcastCoverArt(path: URL) throws {
+        // write 2048x2048 podcastCoverArt.png
+        guard let image = NSImage(contentsOf: path),
+            let resizedImage = image.resizeSquare(maxLength: 2048),
+            let data = resizedImage.PNGData
+        else {
+            throw PlanetError.PodcastCoverArtError
+        }
+        try data.write(to: podcastCoverArtPath)
+        try data.write(to: publicPodcastCoverArtPath)
+        podcastCoverArt = resizedImage
+    }
+
+    func removePodcastCoverArt() throws {
+        try FileManager.default.removeItem(at: podcastCoverArtPath)
+        try FileManager.default.removeItem(at: publicPodcastCoverArtPath)
+        podcastCoverArt = nil
     }
 
     func copyTemplateAssets() throws {

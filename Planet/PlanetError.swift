@@ -7,6 +7,7 @@ enum PlanetError: Error {
     case PlanetExistsError
     case MissingTemplateError
     case AvatarError
+    case PodcastCoverArtError
     case ImportPlanetError
     case ExportPlanetError
     case FileExistsError

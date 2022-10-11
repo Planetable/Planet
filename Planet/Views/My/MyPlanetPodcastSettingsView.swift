@@ -82,6 +82,20 @@ struct MyPlanetPodcastSettingsView: View {
                     VStack(spacing: CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
+                                Text("Cover Art")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+
+                            MyPlanetPodcastCoverArtView(planet: planet)
+                                .padding(.top, 16)
+                                .padding(.bottom, 16)
+
+                            Spacer()
+                        }
+
+                        HStack {
+                            HStack {
                                 Text("Language")
                                 Spacer()
                             }

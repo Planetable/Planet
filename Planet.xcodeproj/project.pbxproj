@@ -63,6 +63,7 @@
 		6A373A4428E8263800750256 /* CodeMirror-SwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 6A373A4328E8263800750256 /* CodeMirror-SwiftUI */; };
 		6A373A4528E8279B00750256 /* CodeMirror-SwiftUI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 6A373A4328E8263800750256 /* CodeMirror-SwiftUI */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		6A4825CA28F22DAC004CE2C0 /* PodcastUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A4825C928F22DAC004CE2C0 /* PodcastUtils.swift */; };
+		6A4825CC28F4FDC3004CE2C0 /* MyPlanetPodcastCoverArtView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A4825CB28F4FDC3004CE2C0 /* MyPlanetPodcastCoverArtView.swift */; };
 		6A5E63A8280726AB00FB1E84 /* TemplateBrowserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63A7280726AB00FB1E84 /* TemplateBrowserManager.swift */; };
 		6A5E63AA2807297000FB1E84 /* TemplateBrowserWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63A92807297000FB1E84 /* TemplateBrowserWindow.swift */; };
 		6A5E63AC28072AD400FB1E84 /* TemplateBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */; };
@@ -199,6 +200,7 @@
 		6A2F5F1428DB767A00034D55 /* dWebServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = dWebServices.swift; sourceTree = "<group>"; };
 		6A373A3B28E8178500750256 /* MyPlanetCustomCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetCustomCodeView.swift; sourceTree = "<group>"; };
 		6A4825C928F22DAC004CE2C0 /* PodcastUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastUtils.swift; sourceTree = "<group>"; };
+		6A4825CB28F4FDC3004CE2C0 /* MyPlanetPodcastCoverArtView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetPodcastCoverArtView.swift; sourceTree = "<group>"; };
 		6A5E63A7280726AB00FB1E84 /* TemplateBrowserManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserManager.swift; sourceTree = "<group>"; };
 		6A5E63A92807297000FB1E84 /* TemplateBrowserWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserWindow.swift; sourceTree = "<group>"; };
 		6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserView.swift; sourceTree = "<group>"; };
@@ -507,6 +509,7 @@
 				2A780CF827C76EF0007DC36A /* MyPlanetAvatarView.swift */,
 				7211477C97CD9725E13B885E /* MyArticleItemView.swift */,
 				6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */,
+				6A4825CB28F4FDC3004CE2C0 /* MyPlanetPodcastCoverArtView.swift */,
 			);
 			path = My;
 			sourceTree = "<group>";
@@ -825,6 +828,7 @@
 				2AE44EB028CD223C00944786 /* PlanetSettingsViewModel.swift in Sources */,
 				7211475AEDACC392B139F1FC /* PlausiblePopover.swift in Sources */,
 				72114702E6BB350F51ED7499 /* ArticleAudioPlayer.swift in Sources */,
+				6A4825CC28F4FDC3004CE2C0 /* MyPlanetPodcastCoverArtView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
