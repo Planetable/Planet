@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct MyPlanetPodcastCoverArtView: View {
-    let CORNER_RADIUS: CGFloat = 16
+    let CORNER_RADIUS: CGFloat = 10
 
     @ObservedObject var planet: MyPlanetModel
     @State var isChoosingCoverArtImage = false
