@@ -109,10 +109,10 @@
 		72114A84BE7EC3DA2AAF14F5 /* Planet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114E6940D60B7155DDD8BC /* Planet.swift */; };
 		72114A966288F7CDAF984E3C /* FollowingArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */; };
 		72114AE68D0DEDE11FC82E60 /* CoreDataPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114C0FA779C3B613771E53 /* CoreDataPersistence.swift */; };
-		72114AE8931655425CC6E5C1 /* ipfs-amd64.bin in Resources */ = {isa = PBXBuildFile; fileRef = 721144FC9503C6ED3975276D /* ipfs-amd64.bin */; };
+		72114AE8931655425CC6E5C1 /* ipfs-amd64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */; };
 		72114AFCB4EDB617C07192BB /* FollowingPlanetSidebarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211467DFBDA573F4B938B0C /* FollowingPlanetSidebarItem.swift */; };
 		72114B6486572E7F6AF5AC62 /* LoadingIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CF288467021C7E9BF40 /* LoadingIndicatorView.swift */; };
-		72114B95CA15BC9EC180FC36 /* ipfs-arm64.bin in Resources */ = {isa = PBXBuildFile; fileRef = 72114EBF002DDAF0CD8B63B3 /* ipfs-arm64.bin */; };
+		72114B95CA15BC9EC180FC36 /* ipfs-arm64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */; };
 		72114C03242147A247A8B317 /* Runner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114BFBBB1E6F4DB7B0D234 /* Runner.swift */; };
 		72114D4918DAC507F6E3AF7F /* MarkdownUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211412C05B18AC06A98BA74 /* MarkdownUtils.swift */; };
 		72114E3DCDF2B0618F4693D7 /* MyArticleItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211477C97CD9725E13B885E /* MyArticleItemView.swift */; };
@@ -230,7 +230,7 @@
 		721143EEE6936427A9BC9452 /* Lifetimes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Lifetimes.swift; sourceTree = "<group>"; };
 		721144D264DD084A74B49BF8 /* MyPlanetInfoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyPlanetInfoView.swift; sourceTree = "<group>"; };
 		721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowingArticleModel.swift; sourceTree = "<group>"; };
-		721144FC9503C6ED3975276D /* ipfs-amd64.bin */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-amd64.bin"; sourceTree = "<group>"; };
+		721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-amd64-0.15.bin"; sourceTree = "<group>"; };
 		7211459D5283D74D29C8F0DC /* PlanetArticle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetArticle.swift; sourceTree = "<group>"; };
 		7211467DFBDA573F4B938B0C /* FollowingPlanetSidebarItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowingPlanetSidebarItem.swift; sourceTree = "<group>"; };
 		721146E8B821AA2558D6DD3A /* PlanetStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetStore.swift; sourceTree = "<group>"; };
@@ -255,7 +255,7 @@
 		72114E45790363ADCC6F7673 /* DraftModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DraftModel.swift; sourceTree = "<group>"; };
 		72114E6940D60B7155DDD8BC /* Planet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Planet.swift; sourceTree = "<group>"; };
 		72114E6F20DEF821BA928CB2 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
-		72114EBF002DDAF0CD8B63B3 /* ipfs-arm64.bin */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-arm64.bin"; sourceTree = "<group>"; };
+		72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-arm64-0.15.bin"; sourceTree = "<group>"; };
 		72114F3CBC160F54087E1537 /* JSONUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONUtils.swift; sourceTree = "<group>"; };
 		72114F5686F5902EE578B3CF /* ArticleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleModel.swift; sourceTree = "<group>"; };
 		BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v6.xcdatamodel"; sourceTree = "<group>"; };
@@ -552,8 +552,8 @@
 		721141137EDE4A3E5706D234 /* go-ipfs-executables */ = {
 			isa = PBXGroup;
 			children = (
-				721144FC9503C6ED3975276D /* ipfs-amd64.bin */,
-				72114EBF002DDAF0CD8B63B3 /* ipfs-arm64.bin */,
+				721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */,
+				72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */,
 			);
 			path = "go-ipfs-executables";
 			sourceTree = "<group>";
@@ -721,8 +721,8 @@
 				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
 				6A64D2DE284640A80013EABB /* Credits.html in Resources */,
-				72114AE8931655425CC6E5C1 /* ipfs-amd64.bin in Resources */,
-				72114B95CA15BC9EC180FC36 /* ipfs-arm64.bin in Resources */,
+				72114AE8931655425CC6E5C1 /* ipfs-amd64-0.15.bin in Resources */,
+				72114B95CA15BC9EC180FC36 /* ipfs-arm64-0.15.bin in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

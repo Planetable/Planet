@@ -7,9 +7,9 @@ struct IPFSCommand {
     static let IPFSExecutablePath: URL = {
         switch ProcessInfo.processInfo.machineHardwareName {
         case "arm64":
-            return Bundle.main.url(forResource: "ipfs-arm64", withExtension: "bin")!
+            return Bundle.main.url(forResource: "ipfs-arm64-0.15", withExtension: "bin")!
         case "x86_64":
-            return Bundle.main.url(forResource: "ipfs-amd64", withExtension: "bin")!
+            return Bundle.main.url(forResource: "ipfs-amd64-0.15", withExtension: "bin")!
         default:
             fatalError("Planet is not supported on your operating system.")
         }
