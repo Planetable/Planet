@@ -196,6 +196,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     article.link = String(article.link.dropFirst(22))
                     try article.save()
                 }
+                if article.link.hasPrefix("/ipfs/Qm"), article.link.count > (6 + 46) {
+                    article.link = String(article.link.dropFirst(6 + 46))
+                    try article.save()
+                }
                 if !links.contains(article.link) {
                     links.append(article.link)
                     consolidatedArticles.append(article)
@@ -1287,7 +1291,14 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
         var newArticles: [FollowingArticleModel] = []
         for publicArticle in publicArticles {
-            let link = publicArticle.link
+            var link: String
+            link = publicArticle.link
+            if link.startsWithInternalGateway() {
+                link = String(publicArticle.link.dropFirst(22))
+            }
+            if link.hasPrefix("/ipfs/Qm"), link.count > (6 + 46) {
+                link = String(link.dropFirst(6 + 46))
+            }
             if existingLinks.contains(link) {
                 if let article = existingArticleMap[link] {
                     // update

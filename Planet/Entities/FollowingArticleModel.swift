@@ -239,7 +239,12 @@ class FollowingArticleModel: ArticleModel, Codable {
     static func from(publicArticle: PublicArticleModel, planet: FollowingPlanetModel) -> FollowingArticleModel {
         let articleLink: String
         if publicArticle.link.startsWithInternalGateway() {
-            articleLink = String(publicArticle.link.dropFirst(22))
+            let path = String(publicArticle.link.dropFirst(22))
+            if path.hasPrefix("/ipfs/Qm"), path.count > (6 + 46) {
+                articleLink = String(path.dropFirst(6 + 46))
+            } else {
+                articleLink = path
+            }
         } else {
             articleLink = publicArticle.link
         }
