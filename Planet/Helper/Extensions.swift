@@ -32,6 +32,15 @@ extension String {
     func trim() -> String {
         trimmingCharacters(in: .whitespacesAndNewlines)
     }
+
+    func startsWithInternalGateway() -> Bool {
+        let pattern = #"^http:\/\/127\.0\.0\.1:181[0-9]{2}\/"#
+        var result = self.range(
+            of: pattern,
+            options: .regularExpression
+        )
+        return result != nil
+    }
 }
 
 extension Notification.Name {

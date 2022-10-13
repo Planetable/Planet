@@ -2,7 +2,7 @@ import Foundation
 import SwiftSoup
 
 class FollowingArticleModel: ArticleModel, Codable {
-    let link: String
+    var link: String
     @Published var read: Date? = nil {
         didSet {
             if oldValue == nil || read == nil {
@@ -28,7 +28,7 @@ class FollowingArticleModel: ArticleModel, Codable {
                     debugPrint("When generating webviewURL, reached branch A1")
                     return URL(string: local)
                 }
-                if link.starts(with: "http://127.0.0.1:181") {
+                if link.startsWithInternalGateway() {
                     let local: String = "\(IPFSDaemon.shared.gateway)\(link.dropFirst(22))"
                     debugPrint("Converted to use local gateway: FROM \(link) TO \(local)")
                     debugPrint("When generating webviewURL, reached branch A2")
@@ -40,6 +40,10 @@ class FollowingArticleModel: ArticleModel, Codable {
                     // transform URL to load with IPFS
                     debugPrint("When generating webviewURL, reached branch B")
                     return URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)\(linkURL.pathQueryFragment)")?.absoluteURL
+                }
+                if link.starts(with: "/ipfs/Q") || link.starts(with: "/ipfs/b") {
+                    debugPrint("When generating webviewURL, reached branch D")
+                    return URL(string: "\(IPFSDaemon.shared.gateway)\(link)")
                 }
                 if link.starts(with: "/") {
                     // article from a native planet: /12345678-90AB-CDEF-1234-567890ABCDEF/
@@ -105,6 +109,9 @@ class FollowingArticleModel: ArticleModel, Codable {
         case .dnslink:
             // TODO: Fix how type 0 planet was mishandled as a dnslink
             if planet.link.count == 62, planet.link.starts(with: "k51"), link.starts(with: "/") {
+                if link.hasPrefix("/ipfs/Q") || link.hasPrefix("/ipfs/b") || link.hasPrefix("/ipns/") {
+                    return URL(string: "\(IPFSDaemon.preferredGateway())\(link)")
+                }
                 return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.link)\(link)")
             }
             if link.starts(with: "/"), !planet.link.contains("://") {
@@ -230,9 +237,15 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
 
     static func from(publicArticle: PublicArticleModel, planet: FollowingPlanetModel) -> FollowingArticleModel {
+        let articleLink: String
+        if publicArticle.link.startsWithInternalGateway() {
+            articleLink = String(publicArticle.link.dropFirst(22))
+        } else {
+            articleLink = publicArticle.link
+        }
         let article = FollowingArticleModel(
             id: UUID(),
-            link: publicArticle.link,
+            link: articleLink,
             title: publicArticle.title,
             content: publicArticle.content,
             created: publicArticle.created,

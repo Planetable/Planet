@@ -186,6 +186,27 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
         planet.articles.sort { $0.created > $1.created }
         planet.avatar = NSImage(contentsOf: planet.avatarPath)
+
+        if planet.articles.count > 0 {
+            var links: [String] = []
+            var consolidatedArticles: [FollowingArticleModel] = []
+
+            for article in planet.articles {
+                if article.link.startsWithInternalGateway() {
+                    article.link = String(article.link.dropFirst(22))
+                    try article.save()
+                }
+                if !links.contains(article.link) {
+                    links.append(article.link)
+                    consolidatedArticles.append(article)
+                } else {
+                    article.delete()
+                }
+            }
+            if consolidatedArticles.count != planet.articles.count {
+                planet.articles = consolidatedArticles
+            }
+        }
         return planet
     }
 
