@@ -11,6 +11,7 @@ struct MyPlanetEditView: View {
     @ObservedObject var planet: MyPlanetModel
     @State private var name: String
     @State private var about: String
+    @State private var domain: String
     @State private var templateName: String
 
     @State private var plausibleEnabled: Bool = false
@@ -37,6 +38,7 @@ struct MyPlanetEditView: View {
         self.planet = planet
         _name = State(wrappedValue: planet.name)
         _about = State(wrappedValue: planet.about)
+        _domain = State(wrappedValue: planet.domain ?? "")
         _templateName = State(wrappedValue: planet.templateName)
         _plausibleEnabled = State(wrappedValue: planet.plausibleEnabled ?? false)
         _plausibleDomain = State(wrappedValue: planet.plausibleDomain ?? "")
@@ -108,6 +110,31 @@ struct MyPlanetEditView: View {
 
                             TextField("", text: $name)
                                 .textFieldStyle(.roundedBorder)
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("Domain")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+
+                            TextField("", text: $domain)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 8)
+
+                            Text("This domain will be used in places that need a domain prefix, like for RSS or Podcast feeds.")
+                                .lineLimit(2)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+
                         }
 
                         HStack {
@@ -427,6 +454,7 @@ struct MyPlanetEditView: View {
                             planet.name = name
                         }
                         planet.about = about
+                        planet.domain = domain
                         planet.templateName = templateName
                         planet.plausibleEnabled = plausibleEnabled
                         planet.plausibleDomain = plausibleDomain
