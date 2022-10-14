@@ -183,12 +183,6 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // fixes to applicationShouldHandleReopen not called in macOS 12.
-        //if #available(macOS 13, *) {
-        //} else {
-        //    NSApplication.shared.delegate = self
-        //}
-
         // use hide instead of close for main windows to keep reopen position.
         for w in NSApp.windows {
             if w.canHide && w.canBecomeMain && w.styleMask.contains(.closable) {
@@ -231,7 +225,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        Task {
+        Task.detached(priority: .utility) {
             IPFSDaemon.shared.shutdownDaemon()
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }

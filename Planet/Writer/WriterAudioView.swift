@@ -11,12 +11,11 @@ struct WriterAudioView: View {
             } label: {
                 Image(systemName: "xmark.circle.fill")
             }
-                .buttonStyle(.borderless)
-                .frame(width: 24, height: 24)
+            .buttonStyle(.borderless)
+            .frame(width: 24, height: 24)
         }
-            .padding(.horizontal, 12)
-            .frame(height: 34)
-
+        .padding(.horizontal, 12)
+        .frame(height: 34)
         Divider()
     }
 }

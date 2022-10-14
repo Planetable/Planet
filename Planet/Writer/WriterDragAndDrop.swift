@@ -1,5 +1,7 @@
 import Foundation
 import SwiftUI
+import UniformTypeIdentifiers
+
 
 class WriterDragAndDrop: ObservableObject, DropDelegate {
     @ObservedObject var draft: DraftModel
@@ -22,7 +24,7 @@ class WriterDragAndDrop: ObservableObject, DropDelegate {
         let supportedExtensions = ["png", "jpeg", "gif", "tiff", "jpg", "webp"]
         Task {
             for provider in providers {
-                if let item = try? await provider.loadItem(forTypeIdentifier: kUTTypeFileURL as String),
+                if let item = try? await provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier),
                    let data = item as? Data,
                    let path = URL(dataRepresentation: data, relativeTo: nil),
                    supportedExtensions.contains(path.pathExtension) {
