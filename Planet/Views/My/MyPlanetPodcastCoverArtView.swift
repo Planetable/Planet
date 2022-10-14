@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
+
 
 struct MyPlanetPodcastCoverArtView: View {
     let CORNER_RADIUS: CGFloat = 10
@@ -106,8 +108,7 @@ class CoverArtDragAndDrop: ObservableObject, DropDelegate {
         guard let provider = info.itemProviders(for: [.fileURL]).first else { return false }
         let supportedExtensions = ["png", "jpeg", "gif", "tiff", "jpg"]
         Task {
-            // fix deprecated: import UniformTypeIdentifiers and use UTType.fileURL instead
-            if let item = try? await provider.loadItem(forTypeIdentifier: kUTTypeFileURL as String),
+            if let item = try? await provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier),
                let data = item as? Data,
                let url = URL(dataRepresentation: data, relativeTo: nil),
                supportedExtensions.contains(url.pathExtension) {
