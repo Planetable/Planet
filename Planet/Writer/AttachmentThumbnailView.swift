@@ -25,10 +25,10 @@ struct AttachmentThumbnailView: View {
                             .opacity(isShowingControl ? 1.0 : 0.0)
                     }
                 }
-                    .padding(4)
-                    .onTapGesture {
-                        insertAttachment()
-                    }
+                .padding(4)
+                .onTapGesture {
+                    insertAttachment()
+                }
             }
 
             VStack {
@@ -45,18 +45,18 @@ struct AttachmentThumbnailView: View {
                 }
                 Spacer()
             }
-                .padding(.leading, 0)
-                .padding(.top, 2)
-                .padding(.trailing, -10)
+            .padding(.leading, 0)
+            .padding(.top, 2)
+            .padding(.trailing, -10)
         }
-            .frame(width: 60, height: 60, alignment: .center)
-            .padding(.leading, 12)
-            .padding(.trailing, 8)
-            .onHover { isHovering in
-                withAnimation {
-                    isShowingControl = isHovering
-                }
+        .frame(width: 60, height: 60, alignment: .center)
+        .padding(.leading, 12)
+        .padding(.trailing, 8)
+        .onHover { isHovering in
+            withAnimation {
+                isShowingControl = isHovering
             }
+        }
     }
 
     func insertAttachment() {
