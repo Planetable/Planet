@@ -16,7 +16,6 @@ struct WriterAudioView: View {
         }
         .padding(.horizontal, 12)
         .frame(height: 34)
-        
         Divider()
     }
 }
