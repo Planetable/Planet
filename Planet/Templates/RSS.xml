@@ -10,14 +10,14 @@
     >
 <channel>
     <title>{{ planet.name|escape }}</title>
-    <atom:link href="{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/{% if podcast %}podcast{% else %}rss{% endif %}.xml" rel="self" type="application/rss+xml" />
-    <link>{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/</link>
+    <atom:link href="{{ root_prefix }}/{% if podcast %}podcast{% else %}rss{% endif %}.xml" rel="self" type="application/rss+xml" />
+    <link>{{ root_prefix }}/</link>
     <description><![CDATA[
     {{ planet.about|md2html }}
     ]]></description>
     {% if podcast %}
     {% if has_podcast_cover_art %}
-    <itunes:image href="{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/podcastCoverArt.png"/>
+    <itunes:image href="{{ root_prefix }}/podcastCoverArt.png"/>
     {% endif %}
     <language>{{ planet.podcastLanguage|escape }}</language>
     <itunes:explicit>{% if planet.podcastExplicit %}yes{% else %}no{% endif %}</itunes:explicit>
@@ -28,11 +28,11 @@
     {% for article in planet.articles %}
     <item>
         <title>{{ article.title|escape }}</title>
-        <link>{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/{{ article.id }}/</link>
-        <guid>{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/{{ article.id }}/</guid>
+        <link>{{ root_prefix }}/{{ article.id }}/</link>
+        <guid>{{ root_prefix }}/{{ article.id }}/</guid>
         <pubDate>{{ article.created|rfc822 }}</pubDate>
         {% if podcast %}
-        <enclosure url="{{ ipfs_gateway }}/ipns/{{ planet.ipns }}/{{ article.id }}/{{ article.audioFilename }}" length="{{ article.audioByteLength }}" type="audio/mpeg" />
+        <enclosure url="{{ root_prefix }}/{{ article.id }}/{{ article.audioFilename }}" length="{{ article.audioByteLength }}" type="audio/mpeg" />
         <itunes:duration>{{ article.audioDuration|hhmmss }}</itunes:duration>
         {% endif %}
         <description><![CDATA[

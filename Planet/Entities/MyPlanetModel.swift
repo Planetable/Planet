@@ -138,7 +138,25 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             .joined()
         return String(initials.prefix(2))
     }
+
+    var domainWithGateway: String? {
+        if let domain = domain {
+            if domain.hasSuffix(".eth") {
+                return "\(domain).limo"
+            }
+            if domain.hasSuffix(".bit") {
+                return "\(domain).cc"
+            }
+            return domain
+        } else {
+            return nil
+        }
+    }
+
     var browserURL: URL? {
+        if let domainWithGateway = domainWithGateway {
+            return URL(string: "https://" + domainWithGateway + "/")
+        }
         return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(ipns)/")
     }
 
@@ -746,8 +764,21 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     podcastExplicit: podcastExplicit
                 )
                 let environment = Environment(extensions: [StencilExtension.common])
+                let domain_prefix: String
+                let root_prefix: String
+                if let domainWithGateway = domainWithGateway {
+                    domain_prefix = "https://" + domainWithGateway
+                    root_prefix = "https://" + domainWithGateway
+                } else {
+                    domain_prefix = IPFSDaemon.preferredGateway()
+                    root_prefix = IPFSDaemon.preferredGateway() + "/ipns/" + ipns
+                }
                 let context: [String: Any] = [
                     "planet": publicPlanet,
+                    "has_domain": domain != nil,
+                    "domain": domainWithGateway ?? "",
+                    "domain_prefix": domain_prefix,
+                    "root_prefix": root_prefix,
                     "ipfs_gateway": IPFSDaemon.preferredGateway(),
                     "podcast": podcastOnly,
                     "has_podcast_cover_art": FileManager.default.fileExists(atPath: publicPodcastCoverArtPath.path)
