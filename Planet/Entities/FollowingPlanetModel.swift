@@ -918,6 +918,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 name = feed.name ?? link
                 about = feed.about ?? ""
                 updated = now
+                if cid != newCID {
+                    cid = newCID
+                }
                 lastRetrieved = now
             }
 
