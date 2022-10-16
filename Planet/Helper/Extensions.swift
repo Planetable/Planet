@@ -35,7 +35,7 @@ extension String {
 
     func startsWithInternalGateway() -> Bool {
         let pattern = #"^http:\/\/127\.0\.0\.1:181[0-9]{2}\/"#
-        var result = self.range(
+        let result = self.range(
             of: pattern,
             options: .regularExpression
         )

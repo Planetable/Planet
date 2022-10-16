@@ -820,7 +820,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         )
         let hasAvatar = FileManager.default.fileExists(atPath: publicAvatarPath.path)
         let hasPodcastCoverArt = FileManager.default.fileExists(atPath: publicPodcastCoverArtPath.path)
-        var context: [String: Any] = [
+        let context: [String: Any] = [
             "planet": publicPlanet,
             "my_planet": self,
             "has_avatar": hasAvatar,

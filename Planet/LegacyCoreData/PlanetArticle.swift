@@ -94,7 +94,6 @@ class PlanetArticle: NSManagedObject {
         let articleLink = link ?? "/\(articleID)/"
         let articleTitle = title ?? ""
         let articleContent = content ?? ""
-        let articleSummary = ""
         let articleCreated = created ?? Date()
         let articleRead = read
         let articleStarred = starred

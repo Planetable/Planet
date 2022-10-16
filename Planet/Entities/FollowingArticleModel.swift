@@ -77,7 +77,6 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
     var browserURL: URL? {
         debugPrint("Generating browserURL: planet.type: \(planet.planetType) planet.link: \(planet.link) article.link: \(link)")
-        let gatewayIndex: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
         switch planet.planetType {
         case .planet:
             // planet article link: /12345678-90AB-CDEF-1234-567890ABCDEF/
