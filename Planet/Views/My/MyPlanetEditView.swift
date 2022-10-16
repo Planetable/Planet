@@ -127,7 +127,7 @@ struct MyPlanetEditView: View {
                             HStack {
                                 Spacer()
                             }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 8)
+                            .frame(width: CONTROL_CAPTION_WIDTH + 10)
 
                             Text("This domain will be used in places that need a domain prefix, like for RSS or Podcast feeds.")
                                 .lineLimit(2)
