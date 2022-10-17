@@ -824,6 +824,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             "planet": publicPlanet,
             "my_planet": self,
             "has_avatar": hasAvatar,
+            "has_podcast": publicPlanet.hasAudioContent(),
             "has_podcast_cover_art": hasPodcastCoverArt
         ]
         let indexHTML = try template.renderIndex(context: context)
