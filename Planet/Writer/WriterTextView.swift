@@ -287,7 +287,7 @@ class WriterEditorTextView: NSTextView {
                 let updatedEndingString = endingString.dropLast(targetLastLineString.count + 1)
                 string.replaceSubrange(targetRangeToRemove, with: updatedEndingString)
                 range.length = 0
-                range.location -= lastLineString.count
+                range.location -= targetLastLineString.count
                 setSelectedRange(range)
             }
 
