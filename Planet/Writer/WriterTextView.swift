@@ -38,8 +38,8 @@ struct WriterTextView: NSViewRepresentable {
     }
 
     static func dismantleNSView(
-    _ nsView: Self.NSViewType,
-    coordinator: Self.Coordinator
+        _ nsView: Self.NSViewType,
+        coordinator: Self.Coordinator
     ) {
         debugPrint("Dismantle WriterCustomTextView for draft \(nsView.draft.id) ")
         nsView.scrollTimer?.invalidate()
@@ -144,7 +144,7 @@ class WriterCustomTextView: NSView {
             guard let unwrappedSelf = self else {
                 return
             }
-            debugPrint("Firing scrollText for draft \(unwrappedSelf.draft.id)")
+//            debugPrint("Firing scrollText for draft \(unwrappedSelf.draft.id)")
             guard let scroller = unwrappedSelf.scrollView.verticalScroller,
                   unwrappedSelf.lastOffset != scroller.floatValue
             else { return }
@@ -243,5 +243,59 @@ class WriterEditorTextView: NSTextView {
 
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
         true
+    }
+
+    override func keyDown(with event: NSEvent) {
+        var skipEnterOrReturnEvent: Bool = true
+        switch event.keyCode {
+            case 36, 76:
+                skipEnterOrReturnEvent = false
+            default:
+                break
+        }
+        super.keyDown(with: event)
+
+        if !skipEnterOrReturnEvent {
+            var range = selectedRanges.first?.rangeValue ?? NSRange(location: 0, length: 0)
+            var endingString = string.dropLast(string.count - range.location)
+            var components: [String] = endingString.components(separatedBy: .newlines)
+            var lastLineString = components.dropLast().last ?? ""
+            var secondLastLineString = components.dropLast().dropLast().last ?? ""
+            var targetRangeToRemove: Range<String.Index>?
+            var targetLastLineString: String?
+
+            // first-level list (-, *, 1.) autocompletion
+            if lastLineString.count > 2, (lastLineString.hasPrefix("- ") || lastLineString.hasPrefix("* ") || lastLineString.range(of: #"(^(\d+\.)(\s)(.*)(?:$)?)+"#, options: .regularExpression) != nil) {
+                range.length = 0
+                if lastLineString.hasPrefix("- ") {
+                    insertText("- ", replacementRange: range)
+                } else if lastLineString.hasPrefix("* ") {
+                    insertText("* ", replacementRange: range)
+                } else if !lastLineString.hasSuffix(". "), let lastIndexString = lastLineString.components(separatedBy: ". ").first, let index = Int(lastIndexString) {
+                    insertText("\(index + 1). ", replacementRange: range)
+                } else if secondLastLineString != "", endingString.hasSuffix(". \n"), let targetRange = string.range(of: endingString) {
+                    targetRangeToRemove = targetRange
+                    targetLastLineString = lastLineString
+                }
+            } else if secondLastLineString != "", (lastLineString == "- " && endingString.hasSuffix("- \n")) || (lastLineString == "* " && endingString.hasSuffix("* \n")), let targetRange = string.range(of: endingString) {
+                targetRangeToRemove = targetRange
+                targetLastLineString = lastLineString
+            }
+
+            // remove last empty list item
+            if let targetRangeToRemove = targetRangeToRemove, let targetLastLineString = targetLastLineString {
+                let updatedEndingString = endingString.dropLast(targetLastLineString.count + 1)
+                string.replaceSubrange(targetRangeToRemove, with: updatedEndingString)
+                range.length = 0
+                range.location -= lastLineString.count
+                setSelectedRange(range)
+            }
+
+            // cleanup
+            endingString = ""
+            components.removeAll()
+            lastLineString = ""
+            secondLastLineString = ""
+        }
     }
 }
