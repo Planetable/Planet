@@ -274,8 +274,17 @@ class WriterEditorTextView: NSTextView {
                 } else if !lastLineString.hasSuffix(". "), let lastIndexString = lastLineString.components(separatedBy: ". ").first, let index = Int(lastIndexString) {
                     insertText("\(index + 1). ", replacementRange: range)
                 } else if secondLastLineString != "", endingString.hasSuffix(". \n"), let targetRange = string.range(of: endingString) {
-                    targetRangeToRemove = targetRange
-                    targetLastLineString = lastLineString
+                    if let lastIndexString = lastLineString.components(separatedBy: ". ").first, let theIndex = Int(lastIndexString) {
+                        if lastIndexString.count != lastLineString.count - 2 {
+                            targetRangeToRemove = targetRange
+                            targetLastLineString = lastLineString
+                        } else {
+                            insertText("\(theIndex + 1). ", replacementRange: range)
+                        }
+                    } else {
+                        targetRangeToRemove = targetRange
+                        targetLastLineString = lastLineString
+                    }
                 }
             } else if secondLastLineString != "", (lastLineString == "- " && endingString.hasSuffix("- \n")) || (lastLineString == "* " && endingString.hasSuffix("* \n")), let targetRange = string.range(of: endingString) {
                 targetRangeToRemove = targetRange
