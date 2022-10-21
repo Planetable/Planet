@@ -71,7 +71,6 @@ actor IPFSDaemon {
         // last updated: 2022-05-09
         Self.logger.info("Setting peers")
         let peers = JSON([
-            ["ID": "12D3KooWEmFWfKRT9jgDaMNSQGFDZzx7RwRwi4MiNeWqkdmjUvo1", "Addrs": ["/ip4/13.214.0.82/tcp/4001"]],
             ["ID": "12D3KooWBJY6ZVV8Tk8UDDFMEqWoxn89Xc8wnpm8uBFSR3ijDkui", "Addrs": ["/ip4/167.71.172.216/tcp/4001", "/ip6/2604:a880:800:10::826:1/tcp/4001"]],
             ["ID": "QmcFf2FH3CEgTNHeMRGhN7HNHU1EXAxoEk6EFuSyXCsvRE", "Addrs": ["/dnsaddr/node-1.ingress.cloudflare-ipfs.com"]],
             ["ID": "QmcFmLd5ySfk2WZuJ1mfSWLDjdmHZq7rSAua4GoeSQfs1z", "Addrs": ["/dnsaddr/node-2.ingress.cloudflare-ipfs.com"]],
