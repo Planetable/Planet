@@ -54,6 +54,8 @@ Then activate it in the project folder:
 git lfs install
 ```
 
+[GitHub Desktop](https://desktop.github.com) has built-in Git LFS support, so we recommend using it to check out the project if you are unsure about the installation status of Git LFS.
+
 If Kubo binaries are only 133 bytes on disk, please ensure you have activated git-lfs for the project folder.
 
 A `pre-commit.sh` script is provided in the `git-hooks` folder for sync build number with git commits count.
