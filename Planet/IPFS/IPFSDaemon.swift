@@ -50,10 +50,6 @@ actor IPFSDaemon {
            let result = try? IPFSCommand.updateAPIPort(port: port).run(),
            result.ret == 0 {
             APIPort = port
-            Task.detached(priority: .utility) {
-                let value = NSNumber(value: port)
-                NotificationCenter.default.post(name: .updateRuleList, object: value)
-            }
         } else {
             fatalError("Unable to find open API port for IPFS")
         }
@@ -124,6 +120,10 @@ actor IPFSDaemon {
               result.ret == 0
         else {
             fatalError("Unable to set parameters for Access Control Allow Methods")
+        }
+        // update webview rule list.
+        Task.detached(priority: .utility) {
+            NotificationCenter.default.post(name: .updateRuleList, object: NSNumber(value: self.APIPort))
         }
     }
 
