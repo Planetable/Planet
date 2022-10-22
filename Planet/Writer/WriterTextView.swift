@@ -246,65 +246,75 @@ class WriterEditorTextView: NSTextView {
     }
 
     override func keyDown(with event: NSEvent) {
-        var skipEnterOrReturnEvent: Bool = true
+        super.keyDown(with: event)
         switch event.keyCode {
             case 36, 76:
-                skipEnterOrReturnEvent = false
+                do {
+                    try processEnterOrReturnEvent()
+                } catch {
+                    debugPrint("failed to process enter / return event: \(error)")
+                }
             default:
                 break
         }
-        super.keyDown(with: event)
+    }
 
-        if !skipEnterOrReturnEvent {
-            var range = selectedRanges.first?.rangeValue ?? NSRange(location: 0, length: 0)
-            var endingString = string.dropLast(string.count - range.location)
-            var components: [String] = endingString.components(separatedBy: .newlines)
-            var lastLineString = components.dropLast().last ?? ""
-            var secondLastLineString = components.dropLast().dropLast().last ?? ""
-            var targetRangeToRemove: Range<String.Index>?
-            var targetLastLineString: String?
-
-            // first-level list (-, *, 1.) autocompletion
-            if lastLineString.count > 2, (lastLineString.hasPrefix("- ") || lastLineString.hasPrefix("* ") || lastLineString.range(of: #"(^(\d+\.)(\s)(.*)(?:$)?)+"#, options: .regularExpression) != nil) {
-                range.length = 0
-                if lastLineString.hasPrefix("- ") {
-                    insertText("- ", replacementRange: range)
-                } else if lastLineString.hasPrefix("* ") {
-                    insertText("* ", replacementRange: range)
-                } else if !lastLineString.hasSuffix(". "), let lastIndexString = lastLineString.components(separatedBy: ". ").first, let index = Int(lastIndexString) {
-                    insertText("\(index + 1). ", replacementRange: range)
-                } else if secondLastLineString != "", endingString.hasSuffix(". \n"), let targetRange = string.range(of: endingString) {
-                    if let lastIndexString = lastLineString.components(separatedBy: ". ").first, let theIndex = Int(lastIndexString) {
-                        if lastIndexString.count != lastLineString.count - 2 {
-                            targetRangeToRemove = targetRange
-                            targetLastLineString = lastLineString
-                        } else {
-                            insertText("\(theIndex + 1). ", replacementRange: range)
-                        }
-                    } else {
-                        targetRangeToRemove = targetRange
-                        targetLastLineString = lastLineString
-                    }
-                }
-            } else if secondLastLineString != "", (lastLineString == "- " && endingString.hasSuffix("- \n")) || (lastLineString == "* " && endingString.hasSuffix("* \n")), let targetRange = string.range(of: endingString) {
-                targetRangeToRemove = targetRange
-                targetLastLineString = lastLineString
+    private func processEnterOrReturnEvent() throws {
+        func getLocationOfFirstNewline(fromString string: NSString, beforeLocation loc: UInt) -> UInt {
+            var location: UInt = loc
+            if location > string.length {
+                location = UInt(string.length)
             }
-
-            // remove last empty list item
-            if let targetRangeToRemove = targetRangeToRemove, let targetLastLineString = targetLastLineString {
-                let updatedEndingString = endingString.dropLast(targetLastLineString.count + 1)
-                string.replaceSubrange(targetRangeToRemove, with: updatedEndingString)
-                range.length = 0
-                range.location -= targetLastLineString.count
-                setSelectedRange(range)
-            }
-
-            // cleanup
-            endingString = ""
-            components.removeAll()
-            lastLineString = ""
-            secondLastLineString = ""
+            var start: UInt = 0
+            string.getLineStart(&start, end: nil, contentsEnd: nil, for: NSRange(location: Int(location), length: 0))
+            return start
         }
+
+        let selectedRange = self.selectedRange()
+        let location = selectedRange.location - 1
+        let content = NSString(string: self.string)
+        let start = getLocationOfFirstNewline(fromString: content, beforeLocation: UInt(location))
+        let end = UInt(location)
+        let range = NSRange(location: Int(start), length: Int(end - start))
+        let line = NSString(string: content.substring(with: range))
+        let regex = try NSRegularExpression(pattern: "^(\\s*)((?:(?:\\*|\\+|-|)\\s+)?)((?:\\d+\\.\\s+)?)(\\S)?", options: .anchorsMatchLines)
+        guard let result: NSTextCheckingResult = regex.firstMatch(in: line as String, range: NSRange(location: 0, length: line.length)) else { return }
+        var prefix: NSString = NSString(string: "")
+        let isUnordered = result.range(at: 2).length != 0
+        let isOrdered = result.range(at: 3).length != 0
+        let isPreviousLineEmpty = result.range(at: 4).length == 0
+        let indent = NSString(string: line.substring(with: result.range(at: 1)))
+        if isPreviousLineEmpty {
+            var replaceRange = NSRange(location: NSNotFound, length: 0)
+            if isUnordered {
+                replaceRange = result.range(at: 2)
+            } else if isOrdered {
+                replaceRange = result.range(at: 3)
+            }
+            if replaceRange.length > 0 {
+                replaceRange.location += Int(start)
+                if indent != "" {
+                    var targetRange = selectedRange
+                    targetRange.length = 0
+                    self.insertText(indent, replacementRange: targetRange)
+                }
+                self.shouldChangeText(in: range, replacementString: nil)
+                self.replaceCharacters(in: range, with: "")
+            }
+        } else if isUnordered {
+            var theRange = result.range(at: 2)
+            theRange.length -= 1
+            prefix = NSString(string: line.substring(with: theRange))
+        } else if isOrdered {
+            var theRange = result.range(at: 3)
+            theRange.length -= 1
+            let capturedIndex = NSString(string: line.substring(with: theRange)).integerValue
+            prefix = NSString(format: "%ld.", capturedIndex + 1)
+        }
+        guard prefix != "" else { return }
+        var targetRange = selectedRange
+        targetRange.length = 0
+        let extendedContent = NSString(format: "%@%@ ", indent, prefix)
+        self.insertText(extendedContent, replacementRange: targetRange)
     }
 }
