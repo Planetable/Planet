@@ -294,6 +294,7 @@ class WriterEditorTextView: NSTextView {
             if replaceRange.length > 0 {
                 replaceRange.location += Int(start)
                 if indent != "" {
+                    // keep sublevel indent after return.
                     var targetRange = selectedRange
                     targetRange.length = 0
                     self.insertText(indent, replacementRange: targetRange)
