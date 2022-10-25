@@ -120,6 +120,7 @@ class Template: Codable, Identifiable {
             plausibleAPIServer: planet.plausibleAPIServer ?? "plausible.io",
             twitterUsername: planet.twitterUsername ?? nil,
             githubUsername: planet.githubUsername ?? nil,
+            telegramUsername: planet.telegramUsername ?? nil,
             podcastCategories: planet.podcastCategories ?? [:],
             podcastLanguage: planet.podcastLanguage ?? "en",
             podcastExplicit: planet.podcastExplicit ?? false

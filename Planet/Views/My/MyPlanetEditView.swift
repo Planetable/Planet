@@ -21,6 +21,7 @@ struct MyPlanetEditView: View {
 
     @State private var twitterUsername: String
     @State private var githubUsername: String
+    @State private var telegramUsername: String
 
     @State private var dWebServicesEnabled: Bool = false
     @State private var dWebServicesDomain: String
@@ -46,6 +47,7 @@ struct MyPlanetEditView: View {
         _plausibleAPIServer = State(wrappedValue: planet.plausibleAPIServer ?? "plausible.io")
         _twitterUsername = State(wrappedValue: planet.twitterUsername ?? "")
         _githubUsername = State(wrappedValue: planet.githubUsername ?? "")
+        _telegramUsername = State(wrappedValue: planet.telegramUsername ?? "")
         _dWebServicesEnabled = State(wrappedValue: planet.dWebServicesEnabled ?? false)
         _dWebServicesDomain = State(wrappedValue: planet.dWebServicesDomain ?? "")
         _dWebServicesAPIKey = State(wrappedValue: planet.dWebServicesAPIKey ?? "")
@@ -232,7 +234,7 @@ struct MyPlanetEditView: View {
                         HStack(spacing: 8) {
                             HStack {
                                 Spacer()
-                                Text("Twitter Username:")
+                                Text("Twitter:")
                             }
                             .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
 
@@ -243,7 +245,7 @@ struct MyPlanetEditView: View {
                         HStack(spacing: 8) {
                             HStack {
                                 Spacer()
-                                Text("GitHub Username:")
+                                Text("GitHub:")
                             }
                             .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
 
@@ -251,6 +253,16 @@ struct MyPlanetEditView: View {
                                 .textFieldStyle(.roundedBorder)
                         }
 
+                        HStack(spacing: 8) {
+                            HStack {
+                                Spacer()
+                                Text("Telegram:")
+                            }
+                            .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
+
+                            TextField("", text: $telegramUsername)
+                                .textFieldStyle(.roundedBorder)
+                        }
                     }
                     .padding(16)
                     .tabItem {
@@ -462,6 +474,7 @@ struct MyPlanetEditView: View {
                         planet.plausibleAPIServer = plausibleAPIServer
                         planet.twitterUsername = twitterUsername
                         planet.githubUsername = githubUsername
+                        planet.telegramUsername = telegramUsername
                         planet.dWebServicesEnabled = dWebServicesEnabled
                         planet.dWebServicesDomain = dWebServicesDomain
                         planet.dWebServicesAPIKey = dWebServicesAPIKey
