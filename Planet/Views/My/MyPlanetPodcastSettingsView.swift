@@ -87,7 +87,7 @@ struct MyPlanetPodcastSettingsView: View {
                             }
                             .frame(width: CONTROL_CAPTION_WIDTH)
 
-                            MyPlanetPodcastCoverArtView(planet: planet)
+                            ArtworkView(planet: planet, artworkType: .podcastCoverArt, cornerRadius: 10, size: CGSize(width: 128, height: 128))
                                 .padding(.top, 16)
                                 .padding(.bottom, 16)
 

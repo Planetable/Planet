@@ -12,7 +12,7 @@ struct MyPlanetInfoView: View {
     var body: some View {
         ZStack {
             VStack(alignment: .center) {
-                MyPlanetAvatarView(planet: planet)
+                ArtworkView(planet: planet, artworkType: .avatar, cornerRadius: 40, size: CGSize(width: 80, height: 80))
                     .padding(.top, 20)
                     .padding(.bottom, 5)
 
