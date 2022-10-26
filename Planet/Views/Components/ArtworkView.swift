@@ -80,7 +80,6 @@ struct ArtworkView: View {
                         case .podcastCoverArt:
                             try planet.updatePodcastCoverArt(path: url)
                     }
-                    debugPrint("artwork updated: \(url)")
                 } catch {
                     debugPrint("failed to choose image file: \(error)")
                 }
