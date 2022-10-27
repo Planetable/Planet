@@ -10,7 +10,7 @@ import UniformTypeIdentifiers
 
 
 struct ArtworkView: View {
-    @StateObject var dragAndDrop: ArtworkDragAndDrop
+    private var dragAndDrop: ArtworkDragAndDrop
 
     var image: NSImage?
     var planetNameInitials: String
@@ -30,7 +30,7 @@ struct ArtworkView: View {
         self.size = size
         self.uploadAction = uploadAction
         self.deleteAction = deleteAction
-        self._dragAndDrop = StateObject(wrappedValue: ArtworkDragAndDrop(uploadAction: uploadAction))
+        self.dragAndDrop = ArtworkDragAndDrop(uploadAction: uploadAction)
     }
 
     var body: some View {
@@ -134,7 +134,7 @@ struct ArtworkView: View {
 }
 
 
-class ArtworkDragAndDrop: ObservableObject, DropDelegate {
+private class ArtworkDragAndDrop: DropDelegate {
     let uploadAction: (URL) -> Void
 
     init(uploadAction: @escaping ((URL) -> Void)) {
