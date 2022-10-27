@@ -87,9 +87,21 @@ struct MyPlanetPodcastSettingsView: View {
                             }
                             .frame(width: CONTROL_CAPTION_WIDTH)
 
-                            ArtworkView(planet: planet, artworkType: .podcastCoverArt, cornerRadius: 10, size: CGSize(width: 128, height: 128))
-                                .padding(.top, 16)
-                                .padding(.bottom, 16)
+                            ArtworkView(image: planet.podcastCoverArt, planetNameInitials: planet.nameInitials, planetID: planet.id, cornerRadius: 10, size: CGSize(width: 128, height: 128), uploadAction: { url in
+                                do {
+                                    try planet.updatePodcastCoverArt(path: url)
+                                } catch {
+                                    debugPrint("failed to upload podcast cover art: \(error)")
+                                }
+                            }, deleteAction: {
+                                do {
+                                    try planet.removePodcastCoverArt()
+                                } catch {
+                                    debugPrint("failed to remove podcast cover art: \(error)")
+                                }
+                            })
+                            .padding(.top, 16)
+                            .padding(.bottom, 16)
 
                             Spacer()
                         }
