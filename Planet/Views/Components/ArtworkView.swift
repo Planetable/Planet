@@ -108,7 +108,7 @@ struct ArtworkView: View {
         panel.message = "Choose Artwork"
         panel.prompt = "Choose"
         panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = [.png, .jpeg, .tiff]
+        panel.allowedContentTypes = [.png, .jpeg, .tiff, .webP]
         panel.canChooseDirectories = false
         let response = panel.runModal()
         guard response == .OK, let url = panel.url else { return nil }
@@ -151,7 +151,7 @@ private class ArtworkDragAndDrop: DropDelegate {
 
     func performDrop(info: DropInfo) -> Bool {
         guard let provider = info.itemProviders(for: [.fileURL]).first else { return false }
-        let supportedExtensions = ["png", "jpeg", "tiff", "jpg"]
+        let supportedExtensions = ["png", "jpeg", "tiff", "jpg", "webp"]
         Task {
             if let item = try? await provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier),
                let data = item as? Data,
