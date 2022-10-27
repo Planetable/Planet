@@ -12,9 +12,21 @@ struct MyPlanetInfoView: View {
     var body: some View {
         ZStack {
             VStack(alignment: .center) {
-                ArtworkView(planet: planet, artworkType: .avatar, cornerRadius: 40, size: CGSize(width: 80, height: 80))
-                    .padding(.top, 20)
-                    .padding(.bottom, 5)
+                ArtworkView(image: planet.avatar, planetNameInitials: planet.nameInitials, planetID: planet.id, cornerRadius: 40, size: CGSize(width: 80, height: 80), uploadAction: { url in
+                    do {
+                        try planet.updateAvatar(path: url)
+                    } catch {
+                        debugPrint("failed to upload planet avatar: \(error)")
+                    }
+                }, deleteAction: {
+                    do {
+                        try planet.removeAvatar()
+                    } catch {
+                        debugPrint("failed to remove planet avatar: \(error)")
+                    }
+                })
+                .padding(.top, 20)
+                .padding(.bottom, 5)
 
                 Text(planet.name)
                     .font(.title)
@@ -60,7 +72,6 @@ struct MyPlanetInfoView: View {
                     }
                 }
             }
-
             .background(
                 SharingServicePicker(isPresented: $isSharing, sharingItems: [planetIPNS])
             )

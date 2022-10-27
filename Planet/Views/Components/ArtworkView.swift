@@ -9,33 +9,33 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 
-enum PlanetArtworkType {
-    case avatar
-    case podcastCoverArt
-}
-
-
 struct ArtworkView: View {
-    @ObservedObject var planet: MyPlanetModel
     @StateObject var dragAndDrop: ArtworkDragAndDrop
 
-    var artworkType: PlanetArtworkType
+    var image: NSImage?
+    var planetNameInitials: String
+    var planetID: UUID
     var cornerRadius: CGFloat
     var size: CGSize
+    let uploadAction: (URL) -> Void
+    let deleteAction: () -> Void
 
     @State private var isHovering: Bool = false
 
-    init(planet: MyPlanetModel, artworkType: PlanetArtworkType, cornerRadius: CGFloat = 0, size: CGSize = .zero) {
-        self.planet = planet
-        self.artworkType = artworkType
+    init(image: NSImage?, planetNameInitials: String, planetID: UUID, cornerRadius: CGFloat = 0, size: CGSize = .zero, uploadAction: @escaping ((URL) -> Void), deleteAction: @escaping (() -> Void)) {
+        self.image = image
+        self.planetNameInitials = planetNameInitials
+        self.planetID = planetID
         self.cornerRadius = cornerRadius
         self.size = size
-        self._dragAndDrop = StateObject(wrappedValue: ArtworkDragAndDrop(planet: planet, artworkType: artworkType))
+        self.uploadAction = uploadAction
+        self.deleteAction = deleteAction
+        self._dragAndDrop = StateObject(wrappedValue: ArtworkDragAndDrop(uploadAction: uploadAction))
     }
 
     var body: some View {
         VStack {
-            if let image = getArtworkImage() {
+            if let image = image {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -50,13 +50,13 @@ struct ArtworkView: View {
                                 }
                             }
             } else {
-                Text(planet.nameInitials)
+                Text(planetNameInitials)
                     .font(Font.custom("Arial Rounded MT Bold", size: size.width / 2.0))
                     .foregroundColor(Color.white)
                     .contentShape(Rectangle())
                     .frame(width: size.width, height: size.height, alignment: .center)
                     .background(LinearGradient(
-                        gradient: ViewUtils.getPresetGradient(from: planet.id),
+                        gradient: ViewUtils.getPresetGradient(from: planetID),
                         startPoint: .top,
                         endPoint: .bottom
                     ))
@@ -73,16 +73,7 @@ struct ArtworkView: View {
         }
         .onTapGesture {
             if let url = chooseImageFileToUpload() {
-                do {
-                    switch artworkType {
-                        case .avatar:
-                            try planet.updateAvatar(path: url)
-                        case .podcastCoverArt:
-                            try planet.updatePodcastCoverArt(path: url)
-                    }
-                } catch {
-                    debugPrint("failed to choose image file: \(error)")
-                }
+                uploadAction(url)
             } else {
                 debugPrint("failed to choose image file.")
             }
@@ -91,16 +82,7 @@ struct ArtworkView: View {
             VStack {
                 Button {
                     if let url = chooseImageFileToUpload() {
-                        do {
-                            switch artworkType {
-                                case .avatar:
-                                    try planet.updateAvatar(path: url)
-                                case .podcastCoverArt:
-                                    try planet.updatePodcastCoverArt(path: url)
-                            }
-                        } catch {
-                            debugPrint("failed to choose image file: \(error)")
-                        }
+                        uploadAction(url)
                     } else {
                         debugPrint("failed to choose image file.")
                     }
@@ -109,16 +91,7 @@ struct ArtworkView: View {
                 }
 
                 Button {
-                    do {
-                        switch artworkType {
-                            case .avatar:
-                                try planet.removeAvatar()
-                            case .podcastCoverArt:
-                                try planet.removePodcastCoverArt()
-                        }
-                    } catch {
-                        debugPrint("failed to remove avatar: \(error)")
-                    }
+                    deleteAction()
                 } label: {
                     Text("Delete Artwork")
                 }
@@ -142,15 +115,6 @@ struct ArtworkView: View {
         return url
     }
 
-    private func getArtworkImage() -> NSImage? {
-        switch artworkType {
-            case .avatar:
-                return planet.avatar
-            case .podcastCoverArt:
-                return planet.podcastCoverArt
-        }
-    }
-
     private func editLabel() -> some View {
         VStack (spacing: 0) {
             Spacer()
@@ -171,12 +135,10 @@ struct ArtworkView: View {
 
 
 class ArtworkDragAndDrop: ObservableObject, DropDelegate {
-    @ObservedObject var planet: MyPlanetModel
-    var artworkType: PlanetArtworkType
+    let uploadAction: (URL) -> Void
 
-    init(planet: MyPlanetModel, artworkType: PlanetArtworkType) {
-        self.planet = planet
-        self.artworkType = artworkType
+    init(uploadAction: @escaping ((URL) -> Void)) {
+        self.uploadAction = uploadAction
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
@@ -195,12 +157,7 @@ class ArtworkDragAndDrop: ObservableObject, DropDelegate {
                let data = item as? Data,
                let url = URL(dataRepresentation: data, relativeTo: nil),
                supportedExtensions.contains(url.pathExtension) {
-                switch self.artworkType {
-                    case .avatar:
-                        try self.planet.updateAvatar(path: url)
-                    case .podcastCoverArt:
-                        try self.planet.updatePodcastCoverArt(path: url)
-                }
+                self.uploadAction(url)
             }
         }
         return true
