@@ -924,6 +924,22 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
+    func importArticle(articleID: UUID) async throws {
+        let myPlanets = await PlanetStore.shared.myPlanets
+        var previousPlanet: MyPlanetModel?
+        var targetArticle: MyArticleModel?
+        for myPlanet in myPlanets {
+            if let article = myPlanet.articles.first(where: { $0.id == articleID && $0.planet.id != self.id }) {
+                targetArticle = article
+                previousPlanet = myPlanet
+                break
+            }
+        }
+        guard let previousPlanet = previousPlanet, let targetArticle = targetArticle else { return }
+        debugPrint("moving article: \(targetArticle) from planet: \(previousPlanet) to planet: \(self) ...")
+        // MARK: TODO: move article.
+    }
+
     func exportBackup(to directory: URL) throws {
         let exportPath = directory.appendingPathComponent(
             "\(name.sanitized()).planet",

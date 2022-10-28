@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MyPlanetSidebarItem: View {
-    @EnvironmentObject var planetStore: PlanetStore
+    @EnvironmentObject private var planetStore: PlanetStore
     @ObservedObject var planet: MyPlanetModel
     @State var isShowingDeleteConfirmation = false
     @State var isExportingPlanet = false
@@ -34,6 +34,7 @@ struct MyPlanetSidebarItem: View {
             LoadingIndicatorView()
                 .opacity(planet.isPublishing ? 1.0 : 0.0)
         }
+        .onDrop(of: [.plainText], isTargeted: nil, perform: processDrop)
         .contextMenu {
             Group {
                 Button {
@@ -193,6 +194,25 @@ struct MyPlanetSidebarItem: View {
             }
             PlanetStore.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
         }
+    }
+
+    private func processDrop(items: [NSItemProvider]) -> Bool {
+        guard let item = items.first else { return false }
+        _ = item.loadObject(ofClass: String.self, completionHandler: { articleUUIDString, error in
+            if error == nil, let uuidString = articleUUIDString, let articleID = UUID(uuidString: uuidString) {
+                debugPrint("moving my article: \(articleID), to my planet: \(planet.id) ...")
+                Task(priority: .userInitiated) {
+                    do {
+                        try await self.planet.importArticle(articleID: articleID)
+                    } catch {
+                        debugPrint("failed to move article: \(articleID) into planet: \(self.planet)")
+                    }
+                }
+            } else {
+                debugPrint("failed to process drop: \(error)")
+            }
+        })
+        return true
     }
 
     private func hasWorldWideWeb() -> Bool {
