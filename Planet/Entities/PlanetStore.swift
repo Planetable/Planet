@@ -138,6 +138,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         logger.info("Found \(myPlanetDirectories.count) my planets in repo")
         myPlanets = myPlanetDirectories.compactMap { try? MyPlanetModel.load(from: $0) }
         logger.info("Loaded \(self.myPlanets.count) my planets")
+        myPlanets = myPlanets.filter { $0.archived == false || $0.archived == nil }
 
         let followingPlanetDirectories = try FileManager.default.contentsOfDirectory(
             at: FollowingPlanetModel.followingPlanetsPath,

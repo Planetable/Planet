@@ -75,6 +75,7 @@
 		6A8C3A6A28C939E800339A86 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 6A8C3A6928C939E800339A86 /* Alamofire */; };
 		6ABAB91828215FF30014F209 /* TemplatePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */; };
 		6AC0BC4728F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */; };
+		6AE93656290CB10700BAC092 /* PlanetSettingsPlanetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */; };
 		7211413A9B3CC77620629D22 /* ViewUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143C73AEAD5F0C049DF86 /* ViewUtils.swift */; };
 		7211421E15A5A630DF93A519 /* MyPlanetInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D264DD084A74B49BF8 /* MyPlanetInfoView.swift */; };
 		72114265702BCDF356C98046 /* FollowingPlanetAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721140CF1813A5B4340B90F3 /* FollowingPlanetAvatarView.swift */; };
@@ -213,6 +214,7 @@
 		6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetPodcastSettingsView.swift; sourceTree = "<group>"; };
 		6AC83749284C9A4D00C0F952 /* versioning.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = versioning.xcconfig; sourceTree = "<group>"; };
 		6AC8374B284C9A8500C0F952 /* marketing_version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = marketing_version.xcconfig; sourceTree = "<group>"; };
+		6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsPlanetsView.swift; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 		7211403BD64F1D6E5B14D69E /* WriterVideoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WriterVideoView.swift; sourceTree = "<group>"; };
 		7211404DFC1B4D23F84EA279 /* PlanetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetError.swift; sourceTree = "<group>"; };
@@ -427,6 +429,7 @@
 			children = (
 				2AE44EA828CD214800944786 /* PlanetSettingsView.swift */,
 				2AE44EAB28CD218200944786 /* PlanetSettingsGeneralView.swift */,
+				6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */,
 				2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */,
 				2AE44EAF28CD223C00944786 /* PlanetSettingsViewModel.swift */,
 			);
@@ -795,6 +798,7 @@
 				72114B6486572E7F6AF5AC62 /* LoadingIndicatorView.swift in Sources */,
 				7211479EB744642D1895087E /* SharingServicePicker.swift in Sources */,
 				7211421E15A5A630DF93A519 /* MyPlanetInfoView.swift in Sources */,
+				6AE93656290CB10700BAC092 /* PlanetSettingsPlanetsView.swift in Sources */,
 				7211413A9B3CC77620629D22 /* ViewUtils.swift in Sources */,
 				72114A966288F7CDAF984E3C /* FollowingArticleModel.swift in Sources */,
 				721148D471575905C624EEC7 /* ArticleModel.swift in Sources */,

@@ -3,6 +3,7 @@ import SwiftUI
 struct MyPlanetSidebarItem: View {
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var planet: MyPlanetModel
+    @State var isShowingArchiveConfirmation = false
     @State var isShowingDeleteConfirmation = false
     @State var isExportingPlanet = false
 
@@ -148,10 +149,32 @@ struct MyPlanetSidebarItem: View {
                 Divider()
 
                 Button {
+                    isShowingArchiveConfirmation = true
+                } label: {
+                    Text("Archive Planet")
+                }
+
+                Button {
                     isShowingDeleteConfirmation = true
                 } label: {
                     Text("Delete Planet")
                 }
+            }
+        }
+        .confirmationDialog(
+            Text("Are you sure you want to archive this planet? Archived planets will not be auto published. You can later unarchive it from settings."),
+            isPresented: $isShowingArchiveConfirmation
+        ) {
+            Button() {
+                planet.archive()
+                if case .myPlanet(let selectedPlanet) = planetStore.selectedView,
+                   planet == selectedPlanet {
+                    planetStore.selectedView = nil
+                }
+                PlanetStore.shared.myPlanets.removeAll { $0.id == planet.id }
+                PlanetSettingsViewModel.shared.myArchivedPlanets.insert(planet, at: 0)
+            } label: {
+                Text("Archive")
             }
         }
         .confirmationDialog(

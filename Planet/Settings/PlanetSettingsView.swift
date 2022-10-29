@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 struct PlanetSettingsView: View {
     @StateObject private var viewModel: PlanetSettingsViewModel
 
@@ -24,10 +23,17 @@ struct PlanetSettingsView: View {
                 .tag(PlanetSettingsTab.general)
                 .frame(width: 420, height: 240)
                 .environmentObject(viewModel)
+
+            PlanetSettingsPlanetsView()
+                .tabItem {
+                    Label("Planets", systemImage: "tray.full")
+                }
+                .tag(PlanetSettingsTab.planets)
+                .frame(width: 420, height: 240)
+                .environmentObject(viewModel)
         }
     }
 }
-
 
 struct PlanetSettingsView_Previews: PreviewProvider {
     static var previews: some View {

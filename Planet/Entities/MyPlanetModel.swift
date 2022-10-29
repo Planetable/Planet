@@ -16,6 +16,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var updated: Date
     @Published var templateName: String
     @Published var lastPublished: Date?
+    @Published var archived: Bool? = false
+    @Published var archivedAt: Date?
 
     @Published var plausibleEnabled: Bool? = false
     @Published var plausibleDomain: String?
@@ -172,6 +174,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(templateName)
         hasher.combine(lastPublished)
         hasher.combine(isPublishing)
+        hasher.combine(archived)
+        hasher.combine(archivedAt)
         hasher.combine(plausibleEnabled)
         hasher.combine(plausibleDomain)
         hasher.combine(plausibleAPIKey)
@@ -218,6 +222,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.updated == rhs.updated
             && lhs.templateName == rhs.templateName
             && lhs.lastPublished == rhs.lastPublished
+            && lhs.archived == rhs.archived
+            && lhs.archivedAt == rhs.archivedAt
             && lhs.plausibleEnabled == rhs.plausibleEnabled
             && lhs.plausibleDomain == rhs.plausibleDomain
             && lhs.plausibleAPIKey == rhs.plausibleAPIKey
@@ -253,6 +259,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         case id, name, about, domain, ipns,
              created, updated,
              templateName, lastPublished,
+             archived, archivedAt,
              plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer,
              twitterUsername, githubUsername, telegramUsername,
              dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey,
@@ -274,6 +281,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         updated = try container.decode(Date.self, forKey: .updated)
         templateName = try container.decode(String.self, forKey: .templateName)
         lastPublished = try container.decodeIfPresent(Date.self, forKey: .lastPublished)
+        archived = try container.decodeIfPresent(Bool.self, forKey: .archived)
+        archivedAt = try container.decodeIfPresent(Date.self, forKey: .archivedAt)
         plausibleEnabled = try container.decodeIfPresent(Bool.self, forKey: .plausibleEnabled)
         plausibleDomain = try container.decodeIfPresent(String.self, forKey: .plausibleDomain)
         plausibleAPIKey = try container.decodeIfPresent(String.self, forKey: .plausibleAPIKey)
@@ -311,6 +320,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encode(updated, forKey: .updated)
         try container.encode(templateName, forKey: .templateName)
         try container.encodeIfPresent(lastPublished, forKey: .lastPublished)
+        try container.encodeIfPresent(archived, forKey: .archived)
+        try container.encodeIfPresent(archivedAt, forKey: .archivedAt)
         try container.encodeIfPresent(plausibleEnabled, forKey: .plausibleEnabled)
         try container.encodeIfPresent(plausibleDomain, forKey: .plausibleDomain)
         try container.encodeIfPresent(plausibleAPIKey, forKey: .plausibleAPIKey)
@@ -493,6 +504,16 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         // Restore domain
         if backupPlanet.domain != nil {
             planet.domain = backupPlanet.domain
+        }
+
+        // Restore archived
+        if backupPlanet.archived != nil {
+            planet.archived = backupPlanet.archived
+        } else {
+            planet.archived = false
+        }
+        if backupPlanet.archivedAt != nil {
+            planet.archivedAt = backupPlanet.archivedAt
         }
 
         // Restore Plausible
@@ -706,6 +727,29 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try FileManager.default.removeItem(at: avatarPath)
         try FileManager.default.removeItem(at: publicAvatarPath)
         avatar = nil
+    }
+
+    @ViewBuilder
+    func avatarView(size: CGFloat) -> some View {
+        if let image = self.avatar {
+            Image(nsImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: size, height: size, alignment: .center)
+                .cornerRadius(size / 2)
+        } else {
+            Text(self.nameInitials)
+                .font(Font.custom("Arial Rounded MT Bold", size: size / 2))
+                .foregroundColor(Color.white)
+                .contentShape(Rectangle())
+                .frame(width: size, height: size, alignment: .center)
+                .background(LinearGradient(
+                    gradient: ViewUtils.getPresetGradient(from: self.id),
+                    startPoint: .top,
+                    endPoint: .bottom
+                ))
+                .cornerRadius(size / 2)
+        }
     }
 
     func updatePodcastCoverArt(path: URL) throws {
@@ -942,6 +986,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             created: created,
             updated: updated,
             lastPublished: lastPublished,
+            archived: archived,
+            archivedAt: archivedAt,
             templateName: templateName,
             plausibleEnabled: plausibleEnabled,
             plausibleDomain: plausibleDomain,
@@ -1016,6 +1062,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try JSONEncoder.shared.encode(self).write(to: infoPath)
     }
 
+    func archive() {
+        Task { @MainActor in
+            self.archived = true
+            self.archivedAt = Date()
+            try? self.save()
+        }
+    }
+
     func delete() throws {
         try FileManager.default.removeItem(at: basePath)
         // try FileManager.default.removeItem(at: publicBasePath)
@@ -1079,6 +1133,8 @@ struct BackupMyPlanetModel: Codable {
     let created: Date
     let updated: Date
     let lastPublished: Date?
+    let archived: Bool?
+    let archivedAt: Date?
     let templateName: String
     let plausibleEnabled: Bool?
     let plausibleDomain: String?
