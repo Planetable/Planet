@@ -16,6 +16,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var updated: Date
     @Published var templateName: String
     @Published var lastPublished: Date?
+
     @Published var archived: Bool? = false
     @Published var archivedAt: Date?
 

@@ -28,6 +28,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     @Published var updated: Date
     @Published var lastRetrieved: Date
 
+    @Published var archived: Bool? = false
+    @Published var archivedAt: Date?
+
     @Published var isUpdating = false
 
     // populated when initializing
@@ -82,6 +85,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         hasher.combine(cid)
         hasher.combine(updated)
         hasher.combine(lastRetrieved)
+        hasher.combine(archived)
+        hasher.combine(archivedAt)
         hasher.combine(isUpdating)
         hasher.combine(articles)
         hasher.combine(avatar)
@@ -103,13 +108,17 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             && lhs.cid == rhs.cid
             && lhs.updated == rhs.updated
             && lhs.lastRetrieved == rhs.lastRetrieved
+            && lhs.archived == rhs.archived
+            && lhs.archivedAt == rhs.archivedAt
             && lhs.isUpdating == rhs.isUpdating
             && lhs.articles == rhs.articles
             && lhs.avatar == rhs.avatar
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, planetType, name, about, link, cid, created, updated, lastRetrieved
+        case id, planetType, name, about, link,
+             cid, created, updated, lastRetrieved,
+             archived, archivedAt
     }
 
     required init(from decoder: Decoder) throws {
@@ -123,6 +132,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         created = try container.decode(Date.self, forKey: .created)
         updated = try container.decode(Date.self, forKey: .updated)
         lastRetrieved = try container.decode(Date.self, forKey: .lastRetrieved)
+        archived = try container.decodeIfPresent(Bool.self, forKey: .archived)
+        archivedAt = try container.decodeIfPresent(Date.self, forKey: .archivedAt)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -136,6 +147,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         try container.encode(created, forKey: .created)
         try container.encode(updated, forKey: .updated)
         try container.encode(lastRetrieved, forKey: .lastRetrieved)
+        try container.encodeIfPresent(archived, forKey: .archived)
+        try container.encodeIfPresent(archivedAt, forKey: .archivedAt)
     }
 
     init(
@@ -1396,6 +1409,14 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         try JSONEncoder.shared.encode(self).write(to: infoPath)
     }
 
+    func archive() {
+        Task { @MainActor in
+            self.archived = true
+            self.archivedAt = Date()
+            try? self.save()
+        }
+    }
+
     func delete() {
         try? FileManager.default.removeItem(at: basePath)
     }
@@ -1407,6 +1428,29 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         else {
             let unread = articles.filter { $0.read == nil }.count
             return "\(unread) unread · \(articles.count) total"
+        }
+    }
+
+    @ViewBuilder
+    func avatarView(size: CGFloat) -> some View {
+        if let image = self.avatar {
+            Image(nsImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: size, height: size, alignment: .center)
+                .cornerRadius(size / 2)
+        } else {
+            Text(self.nameInitials)
+                .font(Font.custom("Arial Rounded MT Bold", size: size / 2))
+                .foregroundColor(Color.white)
+                .contentShape(Rectangle())
+                .frame(width: size, height: size, alignment: .center)
+                .background(LinearGradient(
+                    gradient: ViewUtils.getPresetGradient(from: self.id),
+                    startPoint: .top,
+                    endPoint: .bottom
+                ))
+                .cornerRadius(size / 2)
         }
     }
 }

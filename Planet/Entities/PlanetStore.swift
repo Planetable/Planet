@@ -146,6 +146,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         ).filter { $0.hasDirectoryPath }
         logger.info("Found \(followingPlanetDirectories.count) following planets in repo")
         followingPlanets = followingPlanetDirectories.compactMap { try? FollowingPlanetModel.load(from: $0) }
+        followingPlanets = followingPlanets.filter { $0.archived == false || $0.archived == nil }
         logger.info("Loaded \(self.followingPlanets.count) following planets")
     }
 

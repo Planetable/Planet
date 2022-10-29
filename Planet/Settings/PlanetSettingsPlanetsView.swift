@@ -17,7 +17,7 @@ struct PlanetSettingsPlanetsView: View {
             ).padding(0)
 
             Table(viewModel.myArchivedPlanets) {
-                TableColumn("Planet") { planet in
+                TableColumn("Archived My Planet") { planet in
                     HStack {
                         planet.avatarView(size: 24)
                         Text(String(planet.name))
@@ -27,8 +27,30 @@ struct PlanetSettingsPlanetsView: View {
                             planet.archivedAt = nil
                             do {
                                 try planet.save()
-                                try viewModel.loadArchivedPlanets()
+                                viewModel.myArchivedPlanets.removeAll { $0.id == planet.id }
                                 PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                            }
+                            catch {
+                                fatalError("Error when accessing planet repo: \(error)")
+                            }
+                        }
+                    }.padding(4)
+                }
+            }
+
+            Table(viewModel.followingArchivedPlanets) {
+                TableColumn("Archived Following Planet") { planet in
+                    HStack {
+                        planet.avatarView(size: 24)
+                        Text(String(planet.name))
+                        Spacer()
+                        Button("Unarchive") {
+                            planet.archived = false
+                            planet.archivedAt = nil
+                            do {
+                                try planet.save()
+                                viewModel.followingArchivedPlanets.removeAll { $0.id == planet.id }
+                                PlanetStore.shared.followingPlanets.insert(planet, at: 0)
                             }
                             catch {
                                 fatalError("Error when accessing planet repo: \(error)")

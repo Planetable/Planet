@@ -9,25 +9,7 @@ struct MyPlanetSidebarItem: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            if let image = planet.avatar {
-                Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 24, height: 24, alignment: .center)
-                    .cornerRadius(12)
-            } else {
-                Text(planet.nameInitials)
-                    .font(Font.custom("Arial Rounded MT Bold", size: 12))
-                    .foregroundColor(Color.white)
-                    .contentShape(Rectangle())
-                    .frame(width: 24, height: 24, alignment: .center)
-                    .background(LinearGradient(
-                        gradient: ViewUtils.getPresetGradient(from: planet.id),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ))
-                    .cornerRadius(12)
-            }
+            planet.avatarView(size: 24)
             Text(planet.name)
                 .font(.body)
                 .foregroundColor(.primary)

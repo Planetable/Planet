@@ -3,32 +3,12 @@ import SwiftUI
 struct FollowingPlanetSidebarItem: View {
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var planet: FollowingPlanetModel
+    @State var isShowingArchiveConfirmation = false
     @State var isShowingUnfollowConfirmation = false
 
     var body: some View {
         HStack(spacing: 4) {
-            if let image = planet.avatar {
-                Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 24, height: 24, alignment: .center)
-                    .cornerRadius(12)
-            }
-            else {
-                Text(planet.nameInitials)
-                    .font(Font.custom("Arial Rounded MT Bold", size: 12))
-                    .foregroundColor(Color.white)
-                    .contentShape(Rectangle())
-                    .frame(width: 24, height: 24, alignment: .center)
-                    .background(
-                        LinearGradient(
-                            gradient: ViewUtils.getPresetGradient(from: planet.id),
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .cornerRadius(12)
-            }
+            planet.avatarView(size: 24)
             Text(planet.name)
                 .font(.body)
                 .foregroundColor(.primary)
@@ -69,10 +49,34 @@ struct FollowingPlanetSidebarItem: View {
                 Divider()
 
                 Button {
+                    isShowingArchiveConfirmation = true
+                } label: {
+                    Text("Archive Planet")
+                }
+
+                Button {
                     isShowingUnfollowConfirmation = true
                 } label: {
                     Text("Unfollow")
                 }
+            }
+        }
+        .confirmationDialog(
+            Text("Are you sure you want to archive this planet? Archived planets will not be auto updated. You can later unarchive it from settings."),
+            isPresented: $isShowingArchiveConfirmation
+        ) {
+            Button() {
+                planet.archive()
+                if case .followingPlanet(let selectedPlanet) = planetStore.selectedView,
+                   planet == selectedPlanet {
+                    planetStore.selectedView = nil
+                }
+                PlanetStore.shared.followingPlanets.removeAll { $0.id == planet.id }
+                Task(priority: .background) {
+                    PlanetSettingsViewModel.shared.followingArchivedPlanets.insert(planet, at: 0)
+                }
+            } label: {
+                Text("Archive")
             }
         }
         .confirmationDialog(
