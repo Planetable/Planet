@@ -267,4 +267,91 @@ enum PlanetDetailViewType: Hashable, Equatable {
         articles.sort { $0.starred! > $1.starred! }
         return articles
     }
+
+    func moveMyArticle(_ article: MyArticleModel, toPlanet: MyPlanetModel) async throws {
+        guard let fromPlanet = article.planet else {
+            throw PlanetError.InternalError
+        }
+        guard fromPlanet.isPublishing == false, toPlanet.isPublishing == false else {
+            throw PlanetError.MovePublishingPlanetArticleError
+        }
+        debugPrint("moving article: \(article), from planet: \(fromPlanet), to planet: \(toPlanet)")
+        fromPlanet.articles = fromPlanet.articles.filter({ a in
+            return a.id != article.id
+        })
+        let articleIDString: String = article.id.uuidString.uppercased()
+        let fromPlanetIDString: String = fromPlanet.id.uuidString.uppercased()
+        let toPlanetIDString: String = toPlanet.id.uuidString.uppercased()
+        let fromArticlePath = article.path
+        let targetArticlePath = fromArticlePath.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(toPlanetIDString).appendingPathComponent("Articles").appendingPathComponent("\(articleIDString).json")
+        debugPrint("moving article from: \(fromArticlePath), to: \(targetArticlePath) ...")
+        try FileManager.default.copyItem(at: fromArticlePath, to: targetArticlePath)
+
+        let fromArticlePublicPath = article.publicBasePath
+        let targetArticlePublicPath = fromArticlePublicPath.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(toPlanet.id.uuidString.uppercased()).appendingPathComponent(article.id.uuidString.uppercased())
+        debugPrint("moving public article from: \(fromArticlePublicPath), to: \(targetArticlePublicPath) ...")
+        try FileManager.default.copyItem(at: fromArticlePublicPath, to: targetArticlePublicPath)
+
+        debugPrint("delete previous article")
+        try article.delete()
+
+        let movedArticle = article
+        movedArticle.planet = toPlanet
+        movedArticle.path = URL(string: article.path.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
+        movedArticle.publicBasePath = URL(string: article.path.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
+        movedArticle.publicIndexPath = URL(string: article.path.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
+        movedArticle.publicInfoPath = URL(string: article.path.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
+        toPlanet.articles.append(movedArticle)
+        toPlanet.articles = toPlanet.articles.sorted(by: { $0.created > $1.created })
+
+        debugPrint("copy templates assets for target planet")
+        try toPlanet.copyTemplateAssets()
+
+        debugPrint("update target planet update date")
+        toPlanet.updated = Date()
+
+        debugPrint("target planet save")
+        try toPlanet.save()
+
+        debugPrint("target planet save public")
+        try toPlanet.savePublic()
+
+        debugPrint("update from planet update date")
+        fromPlanet.updated = Date()
+
+        debugPrint("from planet save")
+        try fromPlanet.save()
+
+        debugPrint("from planet save public")
+        try fromPlanet.savePublic()
+
+        debugPrint("refresh planet store")
+        let finalPlanet = try MyPlanetModel.load(from: toPlanet.basePath)
+
+        debugPrint("target planet articles save public.")
+        try finalPlanet.articles.forEach({ try $0.savePublic() })
+
+        myPlanets = myPlanets.map() { p in
+            if p.id == fromPlanet.id {
+                return fromPlanet
+            } else if p.id == finalPlanet.id {
+                return finalPlanet
+            }
+            return p
+        }
+
+        debugPrint("refresh UI")
+        selectedArticle = nil
+        selectedView = nil
+        selectedArticleList = nil
+        refreshSelectedArticles()
+
+        debugPrint("publish changes from two planets ...")
+        Task {
+            try await finalPlanet.publish()
+        }
+        Task {
+            try await fromPlanet.publish()
+        }
+    }
 }
