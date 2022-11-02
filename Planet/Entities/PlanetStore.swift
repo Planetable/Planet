@@ -40,6 +40,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
             }
         }
     }
+
     @Published var followingPlanets: [FollowingPlanetModel] = [] {
         didSet {
             Task { @MainActor in
@@ -47,6 +48,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
             }
         }
     }
+
+    @Published var myArchivedPlanets: [MyPlanetModel] = []
+
+    @Published var followingArchivedPlanets: [FollowingPlanetModel] = []
+
     @Published var selectedView: PlanetDetailViewType? {
         didSet {
             if selectedView != oldValue {
@@ -136,17 +142,21 @@ enum PlanetDetailViewType: Hashable, Equatable {
             includingPropertiesForKeys: nil
         ).filter { $0.hasDirectoryPath }
         logger.info("Found \(myPlanetDirectories.count) my planets in repo")
-        myPlanets = myPlanetDirectories.compactMap { try? MyPlanetModel.load(from: $0) }
+        var myAllPlanets: [MyPlanetModel] = myPlanetDirectories.compactMap { try? MyPlanetModel.load(from: $0) }
         logger.info("Loaded \(self.myPlanets.count) my planets")
-        myPlanets = myPlanets.filter { $0.archived == false || $0.archived == nil }
+        let myPlanetPartition = myAllPlanets.partition(by: { $0.archived == false || $0.archived == nil })
+        myArchivedPlanets = Array(myAllPlanets[..<myPlanetPartition])
+        myPlanets = Array(myAllPlanets[myPlanetPartition...])
 
         let followingPlanetDirectories = try FileManager.default.contentsOfDirectory(
             at: FollowingPlanetModel.followingPlanetsPath,
             includingPropertiesForKeys: nil
         ).filter { $0.hasDirectoryPath }
         logger.info("Found \(followingPlanetDirectories.count) following planets in repo")
-        followingPlanets = followingPlanetDirectories.compactMap { try? FollowingPlanetModel.load(from: $0) }
-        followingPlanets = followingPlanets.filter { $0.archived == false || $0.archived == nil }
+        var followingAllPlanets = followingPlanetDirectories.compactMap { try? FollowingPlanetModel.load(from: $0) }
+        let followingPlanetPartition = followingAllPlanets.partition(by: { $0.archived == false || $0.archived == nil })
+        followingArchivedPlanets = Array(followingAllPlanets[..<followingPlanetPartition])
+        followingPlanets = Array(followingAllPlanets[followingPlanetPartition...])
         logger.info("Loaded \(self.followingPlanets.count) following planets")
     }
 

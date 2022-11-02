@@ -153,8 +153,8 @@ struct MyPlanetSidebarItem: View {
                    planet == selectedPlanet {
                     planetStore.selectedView = nil
                 }
-                PlanetStore.shared.myPlanets.removeAll { $0.id == planet.id }
-                PlanetSettingsViewModel.shared.myArchivedPlanets.insert(planet, at: 0)
+                planetStore.myArchivedPlanets.insert(planet, at: 0)
+                planetStore.myPlanets.removeAll { $0.id == planet.id }
             } label: {
                 Text("Archive")
             }

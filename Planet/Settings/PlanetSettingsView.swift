@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct PlanetSettingsView: View {
-    @StateObject private var viewModel: PlanetSettingsViewModel
+    @StateObject private var store: PlanetStore
 
     init() {
-        _viewModel = StateObject(wrappedValue: PlanetSettingsViewModel.shared)
+        _store = StateObject(wrappedValue: PlanetStore.shared)
     }
 
     var body: some View {
@@ -22,7 +22,7 @@ struct PlanetSettingsView: View {
                 }
                 .tag(PlanetSettingsTab.general)
                 .frame(width: 420, height: 240)
-                .environmentObject(viewModel)
+                .environmentObject(store)
 
             PlanetSettingsPlanetsView()
                 .tabItem {
@@ -30,7 +30,7 @@ struct PlanetSettingsView: View {
                 }
                 .tag(PlanetSettingsTab.planets)
                 .frame(width: 420, height: 500)
-                .environmentObject(viewModel)
+                .environmentObject(store)
         }
     }
 }

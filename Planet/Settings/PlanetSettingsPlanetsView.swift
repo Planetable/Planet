@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PlanetSettingsPlanetsView: View {
-    @EnvironmentObject private var viewModel: PlanetSettingsViewModel
+    @EnvironmentObject private var store: PlanetStore
 
     var body: some View {
         VStack {
@@ -16,7 +16,7 @@ struct PlanetSettingsPlanetsView: View {
                 "Here are your archived Planets. Archived planets are not auto published or updated. You can unarchive them from here."
             ).padding(0)
 
-            Table(viewModel.myArchivedPlanets) {
+            Table(store.myArchivedPlanets) {
                 TableColumn("Archived My Planet") { planet in
                     HStack {
                         planet.avatarView(size: 24)
@@ -27,8 +27,8 @@ struct PlanetSettingsPlanetsView: View {
                             planet.archivedAt = nil
                             do {
                                 try planet.save()
-                                viewModel.myArchivedPlanets.removeAll { $0.id == planet.id }
-                                PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                                store.myArchivedPlanets.removeAll { $0.id == planet.id }
+                                store.myPlanets.insert(planet, at: 0)
                             }
                             catch {
                                 fatalError("Error when accessing planet repo: \(error)")
@@ -38,7 +38,7 @@ struct PlanetSettingsPlanetsView: View {
                 }
             }
 
-            Table(viewModel.followingArchivedPlanets) {
+            Table(store.followingArchivedPlanets) {
                 TableColumn("Archived Following Planet") { planet in
                     HStack {
                         planet.avatarView(size: 24)
@@ -49,8 +49,8 @@ struct PlanetSettingsPlanetsView: View {
                             planet.archivedAt = nil
                             do {
                                 try planet.save()
-                                viewModel.followingArchivedPlanets.removeAll { $0.id == planet.id }
-                                PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+                                store.followingArchivedPlanets.removeAll { $0.id == planet.id }
+                                store.followingPlanets.insert(planet, at: 0)
                             }
                             catch {
                                 fatalError("Error when accessing planet repo: \(error)")

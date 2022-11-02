@@ -71,10 +71,8 @@ struct FollowingPlanetSidebarItem: View {
                    planet == selectedPlanet {
                     planetStore.selectedView = nil
                 }
-                PlanetStore.shared.followingPlanets.removeAll { $0.id == planet.id }
-                Task(priority: .background) {
-                    PlanetSettingsViewModel.shared.followingArchivedPlanets.insert(planet, at: 0)
-                }
+                planetStore.followingPlanets.removeAll { $0.id == planet.id }
+                planetStore.followingArchivedPlanets.insert(planet, at: 0)
             } label: {
                 Text("Archive")
             }
