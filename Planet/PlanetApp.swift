@@ -8,6 +8,7 @@
 import SwiftUI
 import UserNotifications
 
+
 @main
 struct PlanetApp: App {
     @NSApplicationDelegateAdaptor(PlanetAppDelegate.self) var appDelegate
@@ -25,84 +26,82 @@ struct PlanetApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
-            PlanetMainView()
-                .environmentObject(planetStore)
-                .frame(minWidth: 720, minHeight: 600)
-        }
-        .windowToolbarStyle(.automatic)
-        .windowStyle(.titleBar)
-        .handlesExternalEvents(matching: Set(arrayLiteral: ""))
-        .commands {
-            CommandGroup(replacing: .newItem) {
-            }
-            CommandMenu("Tools") {
-                Button {
-                    openURL(URL(string: "planet://Template")!)
-                } label: {
-                    Text("Template Browser")
+        mainWindow()
+            .windowToolbarStyle(.automatic)
+            .windowStyle(.titleBar)
+            .commands {
+                CommandGroup(replacing: .newItem) {
                 }
-                .keyboardShortcut("l", modifiers: [.command, .shift])
+                CommandMenu("Tools") {
+                    Button {
+                        openURL(URL(string: "planet://Template")!)
+                    } label: {
+                        Text("Template Browser")
+                    }
+                    .keyboardShortcut("l", modifiers: [.command, .shift])
 
-                Button {
-                    PlanetAppDelegate.shared.openDownloadsWindow()
-                } label: {
-                    Text("Downloads")
+                    Button {
+                        PlanetAppDelegate.shared.openDownloadsWindow()
+                    } label: {
+                        Text("Downloads")
+                    }
+                    .keyboardShortcut("d", modifiers: [.command, .shift])
+
+                    publishedFoldersMenu()
+
+                    Divider()
+
+                    Button {
+                        planetStore.publishMyPlanets()
+                    } label: {
+                        Text("Publish My Planets")
+                    }
+                    .keyboardShortcut("p", modifiers: [.command, .shift])
+
+                    Button {
+                        planetStore.updateFollowingPlanets()
+                    } label: {
+                        Text("Update Following Planets")
+                    }
+                    .keyboardShortcut("r", modifiers: [.command, .shift])
+
+                    Divider()
+
+                    Button {
+                        planetStore.isImportingPlanet = true
+                    } label: {
+                        Text("Import Planet")
+                    }
+                    .keyboardShortcut("i", modifiers: [.command, .shift])
                 }
-                .keyboardShortcut("d", modifiers: [.command, .shift])
-
-                publishedFoldersMenu()
-
-                Divider()
-
-                Button {
-                    planetStore.publishMyPlanets()
-                } label: {
-                    Text("Publish My Planets")
+                CommandGroup(after: .appInfo) {
+                    Button {
+                        updater.checkForUpdates()
+                    } label: {
+                        Text("Check for Updates")
+                    }
+                    .disabled(!updater.canCheckForUpdates)
                 }
-                .keyboardShortcut("p", modifiers: [.command, .shift])
-
-                Button {
-                    planetStore.updateFollowingPlanets()
-                } label: {
-                    Text("Update Following Planets")
-                }
-                .keyboardShortcut("r", modifiers: [.command, .shift])
-
-                Divider()
-
-                Button {
-                    planetStore.isImportingPlanet = true
-                } label: {
-                    Text("Import Planet")
-                }
-                .keyboardShortcut("i", modifiers: [.command, .shift])
-            }
-            CommandGroup(after: .appInfo) {
-                Button {
-                    updater.checkForUpdates()
-                } label: {
-                    Text("Check for Updates")
-                }
-                .disabled(!updater.canCheckForUpdates)
-            }
-            SidebarCommands()
-            CommandGroup(replacing: .help) {
-                Button {
-                    openURL(URL(string: "planet://Onboarding")!)
-                } label: {
-                    Text("What's New in Planet")
+                SidebarCommands()
+                CommandGroup(replacing: .help) {
+                    Button {
+                        openURL(URL(string: "planet://Onboarding")!)
+                    } label: {
+                        Text("What's New in Planet")
+                    }
                 }
             }
-        }
 
+        let templateEvent: Set<String> = Set(arrayLiteral: "planet://Template")
         WindowGroup("Planet Templates") {
             TemplateBrowserView()
                 .environmentObject(templateStore)
                 .frame(minWidth: 720, minHeight: 480)
+                .handlesExternalEvents(preferring: templateEvent, allowing: templateEvent)
         }
-        .handlesExternalEvents(matching: Set(arrayLiteral: "planet://Template"))
+        .handlesExternalEvents(matching: templateEvent)
 
+        let onboardingEvent: Set<String> = Set(arrayLiteral: "planet://Onboarding")
         WindowGroup("Onboarding") {
             OnboardingView()
                 .frame(width: 720, height: 528)
@@ -116,16 +115,43 @@ struct PlanetApp: App {
                         }
                     }
                 }
+                .handlesExternalEvents(preferring: onboardingEvent, allowing: onboardingEvent)
         }
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unifiedCompact)
-        .handlesExternalEvents(matching: Set(arrayLiteral: "planet://Onboarding"))
+        .handlesExternalEvents(matching: onboardingEvent)
 
         Settings {
             PlanetSettingsView()
         }
     }
 
+    private func mainWindow() -> some Scene {
+        if #available(macOS 13.0, *) {
+            return planetMainWindow()
+        } else {
+            return planetMainWindowGroup()
+        }
+    }
+
+    @SceneBuilder
+    private func planetMainWindowGroup() -> some Scene {
+        WindowGroup {
+            PlanetMainView()
+                .environmentObject(planetStore)
+                .frame(minWidth: 720, minHeight: 600)
+        }
+    }
+
+    @available(macOS 13.0, *)
+    @SceneBuilder
+    private func planetMainWindow() -> some Scene {
+        Window("Planet", id: "planetMainWindow") {
+            PlanetMainView()
+                .environmentObject(planetStore)
+                .frame(minWidth: 720, minHeight: 600)
+        }
+    }
 }
 
 class PlanetAppDelegate: NSObject, NSApplicationDelegate {
@@ -184,9 +210,12 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // use hide instead of close for main windows to keep reopen position.
-        for w in NSApp.windows {
-            if w.canHide && w.canBecomeMain && w.styleMask.contains(.closable) {
-                w.delegate = self
+        if #available(macOS 13.0, *) {
+        } else {
+            for w in NSApp.windows {
+                if w.canHide && w.canBecomeMain && w.styleMask.contains(.closable) {
+                    w.delegate = self
+                }
             }
         }
 
@@ -490,7 +519,11 @@ extension PlanetAppDelegate {
 // https://stackoverflow.com/questions/71506416/restoring-macos-window-size-after-close-using-swiftui-windowsgroup
 extension PlanetAppDelegate: NSWindowDelegate {
     func windowShouldClose(_ sender: NSWindow) -> Bool {
-        NSApp.hide(nil)
-        return false
+        if #available(macOS 13.0, *) {
+            return true
+        } else {
+            NSApp.hide(nil)
+            return false
+        }
     }
 }
