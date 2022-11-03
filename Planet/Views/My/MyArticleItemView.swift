@@ -143,7 +143,12 @@ struct MyArticleItemView: View {
                             debugPrint("failed to move article: \(error)")
                             PlanetStore.shared.isShowingAlert = true
                             PlanetStore.shared.alertTitle = "Failed to Move Article"
-                            PlanetStore.shared.alertMessage = error.localizedDescription
+                            switch error {
+                                case PlanetError.MovePublishingPlanetArticleError:
+                                    PlanetStore.shared.alertMessage = "Please wait for the planet publishing completed then try again."
+                                default:
+                                    PlanetStore.shared.alertMessage = error.localizedDescription
+                            }
                         }
                     }
                 } label: {

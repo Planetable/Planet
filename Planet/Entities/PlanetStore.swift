@@ -328,7 +328,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
         debugPrint("refresh planet store")
         let finalPlanet = try MyPlanetModel.load(from: toPlanet.basePath)
 
-        debugPrint("target planet articles save public.")
+        debugPrint("copy templates assets for final planet")
+        try finalPlanet.copyTemplateAssets()
+
+        debugPrint("final planet articles save public.")
         try finalPlanet.articles.forEach({ try $0.savePublic() })
 
         myPlanets = myPlanets.map() { p in
@@ -346,7 +349,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         selectedArticleList = nil
         refreshSelectedArticles()
 
-        debugPrint("publish changes from two planets ...")
+        debugPrint("publish changes ...")
         Task {
             try await finalPlanet.publish()
         }
