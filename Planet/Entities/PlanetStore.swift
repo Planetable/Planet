@@ -81,6 +81,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isEditingPlanet = false
     @Published var isEditingPlanetCustomCode = false
     @Published var isEditingPlanetPodcastSettings = false
+    @Published var isShowingPlanetIPNS = false
     @Published var isFollowingPlanet = false
     @Published var followingPlanetLink: String = ""
     @Published var isShowingPlanetInfo = false

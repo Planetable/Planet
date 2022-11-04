@@ -2,7 +2,7 @@
 //  Template.swift
 //  Planet
 //
-//  Created by Livid on 5/3/22.
+//  Created by Xin Liu on 5/3/22.
 //
 
 import Foundation

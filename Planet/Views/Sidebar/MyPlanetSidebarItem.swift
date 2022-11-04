@@ -111,6 +111,15 @@ struct MyPlanetSidebarItem: View {
                 }
 
                 Button {
+                    Task {
+                        PlanetStore.shared.selectedView = .myPlanet(planet)
+                        PlanetStore.shared.isShowingPlanetIPNS = true
+                    }
+                } label: {
+                    Text("Show IPNS and CID")
+                }
+
+                Button {
                     if let url = planet.browserURL {
                         NSWorkspace.shared.open(url)
                     }

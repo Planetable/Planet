@@ -2,7 +2,7 @@
 //  TemplateBrowserSidebar.swift
 //  Planet
 //
-//  Created by Livid on 4/13/22.
+//  Created by Xin Liu on 4/13/22.
 //
 
 import SwiftUI
@@ -30,7 +30,7 @@ struct TemplateBrowserSidebar: View {
                             Text("Open in VSCode")
                         }
                     }
-                    
+
                     Divider()
 
                     if hasTower() {
@@ -54,7 +54,7 @@ struct TemplateBrowserSidebar: View {
                             Text("Open in iTerm")
                         }
                     }
-                    
+
                     Divider()
 
                     Button(action: {

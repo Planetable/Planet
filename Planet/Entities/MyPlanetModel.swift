@@ -16,6 +16,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var updated: Date
     @Published var templateName: String
     @Published var lastPublished: Date?
+    @Published var lastPublishedCID: String?
 
     @Published var archived: Bool? = false
     @Published var archivedAt: Date?
@@ -174,6 +175,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(updated)
         hasher.combine(templateName)
         hasher.combine(lastPublished)
+        hasher.combine(lastPublishedCID)
         hasher.combine(isPublishing)
         hasher.combine(archived)
         hasher.combine(archivedAt)
@@ -223,6 +225,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.updated == rhs.updated
             && lhs.templateName == rhs.templateName
             && lhs.lastPublished == rhs.lastPublished
+            && lhs.lastPublishedCID == rhs.lastPublishedCID
             && lhs.archived == rhs.archived
             && lhs.archivedAt == rhs.archivedAt
             && lhs.plausibleEnabled == rhs.plausibleEnabled
@@ -259,7 +262,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     enum CodingKeys: String, CodingKey {
         case id, name, about, domain, ipns,
              created, updated,
-             templateName, lastPublished,
+             templateName, lastPublished, lastPublishedCID,
              archived, archivedAt,
              plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer,
              twitterUsername, githubUsername, telegramUsername,
@@ -282,6 +285,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         updated = try container.decode(Date.self, forKey: .updated)
         templateName = try container.decode(String.self, forKey: .templateName)
         lastPublished = try container.decodeIfPresent(Date.self, forKey: .lastPublished)
+        lastPublishedCID = try container.decodeIfPresent(String.self, forKey: .lastPublishedCID)
         archived = try container.decodeIfPresent(Bool.self, forKey: .archived)
         archivedAt = try container.decodeIfPresent(Date.self, forKey: .archivedAt)
         plausibleEnabled = try container.decodeIfPresent(Bool.self, forKey: .plausibleEnabled)
@@ -321,6 +325,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encode(updated, forKey: .updated)
         try container.encode(templateName, forKey: .templateName)
         try container.encodeIfPresent(lastPublished, forKey: .lastPublished)
+        try container.encodeIfPresent(lastPublishedCID, forKey: .lastPublishedCID)
         try container.encodeIfPresent(archived, forKey: .archived)
         try container.encodeIfPresent(archivedAt, forKey: .archivedAt)
         try container.encodeIfPresent(plausibleEnabled, forKey: .plausibleEnabled)
@@ -505,6 +510,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         // Restore domain
         if backupPlanet.domain != nil {
             planet.domain = backupPlanet.domain
+        }
+
+        // Restore last published CID
+        if backupPlanet.lastPublishedCID != nil {
+            planet.lastPublishedCID = backupPlanet.lastPublishedCID
         }
 
         // Restore archived
@@ -753,6 +763,45 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
+    @ViewBuilder
+    func smallAvatarAndNameView() -> some View {
+        if let image = self.avatar {
+            Image(nsImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 24, height: 24, alignment: .center)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color("BorderColor"), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 2)
+        }
+        else {
+            Text(self.nameInitials)
+                .font(Font.custom("Arial Rounded MT Bold", size: 12))
+                .foregroundColor(Color.white)
+                .contentShape(Rectangle())
+                .frame(width: 24, height: 24, alignment: .center)
+                .background(
+                    LinearGradient(
+                        gradient: ViewUtils.getPresetGradient(from: self.id),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color("BorderColor"), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 2)
+        }
+
+        Text("\(self.name)")
+            .font(.body)
+    }
+
     func updatePodcastCoverArt(path: URL) throws {
         // write 2048x2048 podcastCoverArt.png
         guard let image = NSImage(contentsOf: path),
@@ -950,6 +999,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Self.logger.info("Published planet \(self.id) to \(published.name)")
         Task { @MainActor in
             self.lastPublished = Date()
+            self.lastPublishedCID = cid
         }
         try save()
         Task(priority: .background) {
@@ -987,6 +1037,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             created: created,
             updated: updated,
             lastPublished: lastPublished,
+            lastPublishedCID: lastPublishedCID,
             archived: archived,
             archivedAt: archivedAt,
             templateName: templateName,
@@ -1134,6 +1185,7 @@ struct BackupMyPlanetModel: Codable {
     let created: Date
     let updated: Date
     let lastPublished: Date?
+    let lastPublishedCID: String?
     let archived: Bool?
     let archivedAt: Date?
     let templateName: String

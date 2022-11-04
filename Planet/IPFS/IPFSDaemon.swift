@@ -132,6 +132,16 @@ actor IPFSDaemon {
         return IPFSDaemon.publicGateways[index]
     }
 
+    static func urlForCID(_ cid: String) -> URL? {
+        let gateway = IPFSDaemon.preferredGateway()
+        return URL(string: gateway + "/ipfs/" + cid)
+    }
+
+    static func urlForIPNS(_ ipns: String) -> URL? {
+        let gateway = IPFSDaemon.preferredGateway()
+        return URL(string: gateway + "/ipns/" + ipns)
+    }
+
     // Reference: https://stackoverflow.com/a/65162953
     static func isPortOpen(port: in_port_t) -> Bool {
         let socketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0)
