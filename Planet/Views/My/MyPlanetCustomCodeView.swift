@@ -55,45 +55,8 @@ struct MyPlanetCustomCodeView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 8) {
-
                 HStack(spacing: 10) {
-
-                    if let image = planet.avatar {
-                        Image(nsImage: image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 24, height: 24, alignment: .center)
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color("BorderColor"), lineWidth: 1)
-                            )
-                            .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3)
-                    }
-                    else {
-                        Text(planet.nameInitials)
-                            .font(Font.custom("Arial Rounded MT Bold", size: 12))
-                            .foregroundColor(Color.white)
-                            .contentShape(Rectangle())
-                            .frame(width: 24, height: 24, alignment: .center)
-                            .background(
-                                LinearGradient(
-                                    gradient: ViewUtils.getPresetGradient(from: planet.id),
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color("BorderColor"), lineWidth: 1)
-                            )
-                            .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3)
-                    }
-
-                    Text("\(planet.name)")
-                        .font(.body)
-
+                    planet.smallAvatarAndNameView()
                     Spacer()
                 }
 

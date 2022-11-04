@@ -15,20 +15,13 @@ struct MyPlanetIPNSView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 8) {
-
                 HStack(spacing: 10) {
                     planet.smallAvatarAndNameView()
-
-                    Spacer()
-                }
-
-                HStack(spacing: 8) {
-                    Text("Here you can find the IPNS and its latest CID.")
                     Spacer()
                 }
 
                 GroupBox {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 10) {
                         if planet.ipns.count > 0, planet.ipns.hasPrefix("k") {
                             HStack {
                                 HStack {
@@ -46,16 +39,19 @@ struct MyPlanetIPNSView: View {
                                 } label: {
                                     Image(systemName: "globe")
                                 }.help("Open IPNS in Public Gateway")
+
                                 Button {
                                     NSPasteboard.general.clearContents()
                                     NSPasteboard.general.setString(planet.ipns, forType: .string)
                                 } label: {
                                     Image(systemName: "doc.on.doc")
                                 }.help("Copy IPNS to clipboard")
+
                             }
                         }
-
                         if let cid: String = planet.lastPublishedCID {
+                            Divider()
+
                             HStack {
                                 HStack {
                                     Text("CID")
@@ -72,18 +68,20 @@ struct MyPlanetIPNSView: View {
                                 } label: {
                                     Image(systemName: "globe")
                                 }.help("Open CID in Public Gateway")
+
                                 Button {
                                     NSPasteboard.general.clearContents()
                                     NSPasteboard.general.setString(cid, forType: .string)
                                 } label: {
                                     Image(systemName: "doc.on.doc")
                                 }.help("Copy CID to clipboard")
+
                             }
                         }
                         else {
                             Spacer()
                         }
-                    }.padding(10)
+                    }.padding(8)
                 }
 
                 HStack(spacing: 8) {
@@ -103,6 +101,6 @@ struct MyPlanetIPNSView: View {
             }.padding(20)
         }
         .padding(0)
-        .frame(width: 620, height: 210, alignment: .top)
+        .frame(width: 620, height: 188, alignment: .top)
     }
 }
