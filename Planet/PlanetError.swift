@@ -20,6 +20,7 @@ enum PlanetError: Error {
     case RenderMarkdownError
     case PublishedServiceFolderUnchangedError
     case PublishedServiceFolderPermissionError
+    case MovePublishingPlanetArticleError
     case InternalError
     case UnknownError(Error)
 }
