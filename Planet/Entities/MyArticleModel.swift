@@ -31,6 +31,14 @@ class MyArticleModel: ArticleModel, Codable {
         )
     }
     var browserURL: URL? {
+        if let domain = planet.domain {
+            if domain.hasSuffix(".eth") {
+                return URL(string: "https://\(domain).limo/\(id.uuidString)/")
+            }
+            if domain.hasSuffix(".bit") {
+                return URL(string: "https://\(domain).cc/\(id.uuidString)/")
+            }
+        }
         return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.ipns)\(link)")
     }
 
