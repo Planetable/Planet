@@ -149,13 +149,9 @@ class MyArticleModel: ArticleModel, Codable {
         guard let name = name, let url = getAttachmentURL(name: name) else {
             return nil
         }
-        do {
-            let asset = AVURLAsset(url: url)
-            let duration = asset.duration
-            return Int(CMTimeGetSeconds(duration))
-        } catch {
-            return nil
-        }
+        let asset = AVURLAsset(url: url)
+        let duration = asset.duration
+        return Int(CMTimeGetSeconds(duration))
     }
 
     func savePublic() throws {
