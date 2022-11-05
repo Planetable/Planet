@@ -47,7 +47,7 @@ struct ArticleView: View {
             NotificationCenter.default.post(name: .loadArticle, object: nil)
         }
         .toolbar {
-            ToolbarItemGroup {
+            ToolbarItemGroup(placement: .automatic) {
                 switch planetStore.selectedView {
                 case .myPlanet(let planet):
                     Button {
@@ -90,7 +90,8 @@ struct ArticleView: View {
                 }
             }
 
-            ToolbarItemGroup(placement: .principal) {
+            ToolbarItemGroup(placement: .automatic) {
+                Spacer()
                 if let article = planetStore.selectedArticle,
                     article.hasAudio
                 {
@@ -177,8 +178,8 @@ struct ArticleView: View {
             }
 
             ToolbarItemGroup(placement: .automatic) {
-                Spacer()
                 if let article = planetStore.selectedArticle {
+                    Spacer()
                     Button {
                         isSharing = true
                     } label: {
