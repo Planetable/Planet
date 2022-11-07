@@ -152,9 +152,55 @@ struct MyArticleItemView: View {
                         }
                     }
                 } label: {
-                    Text("\(targetPlanet.name)")
+                    HStack (spacing: 4) {
+                        if let image = articleItemAvatarImage(fromPlanet: targetPlanet) {
+                            Image(nsImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                        }
+                        Text(targetPlanet.name)
+                        Spacer(minLength: 4)
+                    }
                 }
             }
         }
+    }
+
+    private func articleItemAvatarImage(fromPlanet planet: MyPlanetModel) -> NSImage? {
+        let size = CGSize(width: 24, height: 24)
+        let img = NSImage(size: size)
+        img.lockFocus()
+        defer {
+            img.unlockFocus()
+        }
+        if let image = planet.avatar {
+            if let ctx = NSGraphicsContext.current {
+                ctx.imageInterpolation = .high
+                let targetRect = NSRect(origin: .zero, size: size)
+                let radius: CGFloat = size.width / 2.0
+                let path: NSBezierPath = NSBezierPath(roundedRect: targetRect, xRadius: radius, yRadius: radius)
+                path.addClip()
+                image.draw(in: targetRect, from: NSRect(origin: .zero, size: image.size), operation: .copy, fraction: 1.0)
+            }
+            return img
+        } else if let font = NSFont(name: "Arial Rounded MT Bold", size: size.width / 2.0) {
+            let t = NSAttributedString(string: planet.nameInitials, attributes: [NSAttributedString.Key.font: font, NSAttributedString.Key.foregroundColor: NSColor.white])
+            let drawPoint = NSPoint(x: (size.width - t.size().width) / 2.0, y: (size.height - t.size().height) / 2.0)
+            let leastSignificantUInt8 = planet.id.uuid.15
+            let index = Int(leastSignificantUInt8) % ViewUtils.presetGradients.count
+            let gradient = ViewUtils.presetGradients[index]
+            if let ctx = NSGraphicsContext.current {
+                ctx.imageInterpolation = .high
+                let targetRect = NSRect(origin: .zero, size: size)
+                let radius: CGFloat = size.width / 2.0
+                let path: NSBezierPath = NSBezierPath(roundedRect: targetRect, xRadius: radius, yRadius: radius)
+                path.addClip()
+                let gradient = NSGradient(starting: NSColor(gradient.stops.first?.color ?? .white), ending: NSColor(gradient.stops.last?.color ?? .gray))
+                gradient?.draw(in: targetRect, angle: -90)
+                t.draw(at: drawPoint)
+            }
+            return img
+        }
+        return nil
     }
 }
