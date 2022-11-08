@@ -430,7 +430,7 @@ struct MyPlanetEditView: View {
                             planet.name = name
                         }
                         planet.about = about
-                        planet.domain = domain
+                        planet.domain = domain.trimmingCharacters(in: .whitespacesAndNewlines)
                         planet.templateName = templateName
                         planet.plausibleEnabled = plausibleEnabled
                         planet.plausibleDomain = plausibleDomain

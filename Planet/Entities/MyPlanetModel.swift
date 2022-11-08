@@ -876,9 +876,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     domain_prefix = IPFSDaemon.preferredGateway()
                     root_prefix = IPFSDaemon.preferredGateway() + "/ipns/" + ipns
                 }
+                var hasDomain: Bool = false
+                if let planetDomain = domain, planetDomain.count > 0, !planetDomain.contains(":") {
+                    hasDomain = true
+                }
                 let context: [String: Any] = [
                     "planet": publicPlanet,
-                    "has_domain": domain != nil,
+                    "has_domain": hasDomain,
                     "domain": domainWithGateway ?? "",
                     "domain_prefix": domain_prefix,
                     "root_prefix": root_prefix,
