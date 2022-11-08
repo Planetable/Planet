@@ -18,6 +18,11 @@ class PlanetPublishedServiceStore: ObservableObject {
     let timer = Timer.publish(every: 3, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
 
     @Published var timestamp: Int = Int(Date().timeIntervalSince1970)
+    @Published var autoPublish: Bool = UserDefaults.standard.bool(forKey: "PlanetPublishedFolderAutoPublish") {
+        didSet {
+            UserDefaults.standard.set(autoPublish, forKey: "PlanetPublishedFolderAutoPublish")
+        }
+    }
     @Published private(set) var publishedFolders: [PlanetPublishedFolder] = []
     @Published private(set) var publishingFolders: [UUID] = []
 
@@ -211,5 +216,55 @@ extension PlanetPublishedServiceStore {
 
     func removeBookmarkData(forFolder folder: PlanetPublishedFolder) {
         UserDefaults.standard.removeObject(forKey: Self.prefixKey + folder.id.uuidString)
+    }
+}
+
+
+private protocol PlanetPublishedServiceMonitorDelegate: AnyObject {
+    func directoryMonitorDidObserveChange(directoryMonitor: PlanetPublishedServiceMonitor)
+}
+
+
+private class PlanetPublishedServiceMonitor {
+    var monitorQueue: DispatchQueue
+    var monitoredDirectoryFileDescriptor: CInt = -1
+    var directoryMonitorSource: DispatchSource?
+    var url: URL
+
+    weak var delegate: PlanetPublishedServiceMonitorDelegate?
+
+    init(url: URL) {
+        self.url = url
+        self.monitorQueue = DispatchQueue(label: "planet.monitor.\(url.absoluteString.md5())", attributes: .concurrent)
+    }
+
+    deinit {
+        stopMonitoring()
+    }
+
+    func startMonitoring() {
+        if directoryMonitorSource == nil && monitoredDirectoryFileDescriptor == -1 {
+            monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
+
+            directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: DispatchSource.FileSystemEvent.write, queue: self.monitorQueue) as? DispatchSource
+
+            directoryMonitorSource?.setEventHandler{
+                self.delegate?.directoryMonitorDidObserveChange(directoryMonitor: self)
+            }
+
+            directoryMonitorSource?.setCancelHandler{
+                close(self.monitoredDirectoryFileDescriptor)
+                self.monitoredDirectoryFileDescriptor = -1
+                self.directoryMonitorSource = nil
+            }
+
+            directoryMonitorSource?.resume()
+        }
+    }
+
+    private func stopMonitoring() {
+        if directoryMonitorSource != nil {
+            directoryMonitorSource?.cancel()
+        }
     }
 }

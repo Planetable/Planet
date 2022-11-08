@@ -446,6 +446,26 @@ extension PlanetApp {
             } label: {
                 Text("Add Folder")
             }
+            Divider()
+            Menu("Options") {
+                Button {
+                    Task { @MainActor in
+                        self.serviceStore.autoPublish.toggle()
+                    }
+                } label: {
+                    switch serviceStore.autoPublish {
+                        case true:
+                            HStack {
+                                Image(systemName: "checkmark")
+                                Text("Automatically Publish On")
+                            }
+                        default:
+                            HStack {
+                                Text("Automatically Publish Off")
+                            }
+                    }
+                }
+            }
         }
         .onReceive(serviceStore.timer) { _ in
             serviceStore.timestamp = Int(Date().timeIntervalSince1970)
