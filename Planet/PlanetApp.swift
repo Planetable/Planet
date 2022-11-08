@@ -82,13 +82,11 @@ struct PlanetApp: App {
                     }
                     .disabled(!updater.canCheckForUpdates)
 
-                    /* WIP: Sign in with Ethereum
                     Button {
-                        WalletManager.shared.connect()
+                        WalletManager.shared.connectV1()
                     } label: {
-                        Text("Sign in with Ethereum")
+                        Text("Connect Wallet")
                     }
-                    */
                 }
                 SidebarCommands()
                 CommandGroup(replacing: .help) {
@@ -253,9 +251,9 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
 
         PlanetUpdater.shared.checkForUpdatesInBackground()
 
-        /* WIP: Sign in with Ethereum
-        WalletManager.shared.setupV2()
-        */
+        // Connect Wallet
+
+        WalletManager.shared.setupV1()
     }
 
     func applicationWillTerminate(_ notification: Notification) {

@@ -87,6 +87,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isShowingPlanetInfo = false
     @Published var isImportingPlanet = false
     @Published var isMigrating = false
+    
+    @Published var isShowingWalletConnectV1QRCode = false
+    @Published var walletConnectV1ConnectionURL: String = ""
+    
     @Published var isShowingAlert = false
     @Published var alertTitle: String = ""
     @Published var alertMessage: String = ""
