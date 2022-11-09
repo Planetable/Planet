@@ -15,16 +15,23 @@ class PlanetPublishedServiceStore: ObservableObject {
     static let prefixKey = "PlanetPublishedFolder-"
     static let removedListKey = "PlanetPublishedFolderRemovalList"
 
-    let timer = Timer.publish(every: 3, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
+    let timer = Timer.publish(every: 2, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
 
     @Published var timestamp: Int = Int(Date().timeIntervalSince1970)
     @Published var autoPublish: Bool = UserDefaults.standard.bool(forKey: "PlanetPublishedFolderAutoPublish") {
         didSet {
             UserDefaults.standard.set(autoPublish, forKey: "PlanetPublishedFolderAutoPublish")
+            updateMonitoring()
         }
     }
-    @Published private(set) var publishedFolders: [PlanetPublishedFolder] = []
+    @Published private(set) var publishedFolders: [PlanetPublishedFolder] = [] {
+        didSet {
+            updateMonitoring()
+        }
+    }
     @Published private(set) var publishingFolders: [UUID] = []
+
+    private var monitors: [PlanetPublishedServiceMonitor] = []
 
     init() {
         do {
@@ -47,7 +54,15 @@ class PlanetPublishedServiceStore: ObservableObject {
     }
 
     func addToRemovingPublishedFolderQueue(_ folder: PlanetPublishedFolder) {
+        // remove bookmark data
         removeBookmarkData(forFolder: folder)
+        // remove monitor if exists
+        monitors = monitors.filter { m in
+            if m.url == folder.url {
+                m.reset()
+            }
+            return m.url != folder.url
+        }
         let isPublished: Bool = folder.publishedLink != nil && folder.published != nil
         if !isPublished {
             return
@@ -135,6 +150,21 @@ class PlanetPublishedServiceStore: ObservableObject {
             }), forKey: Self.removedListKey)
             removePublishedVersions(byFolderKeyName: keyName)
             debugPrint("Folder with key id \(keyName) is unpublished and removed -> \(publishedStatus)")
+        }
+    }
+
+    private func updateMonitoring() {
+        if autoPublish {
+            for folder in publishedFolders {
+                let monitor = PlanetPublishedServiceMonitor(url: folder.url)
+                if let _ = monitors.first(where: { $0.url == monitor.url }) { continue }
+                monitor.startMonitoring()
+                monitors.append(monitor)
+            }
+        } else {
+            for monitor in monitors {
+                monitor.reset()
+            }
         }
     }
 }
@@ -231,40 +261,38 @@ private class PlanetPublishedServiceMonitor {
     var directoryMonitorSource: DispatchSource?
     var url: URL
 
-    weak var delegate: PlanetPublishedServiceMonitorDelegate?
-
     init(url: URL) {
         self.url = url
         self.monitorQueue = DispatchQueue(label: "planet.monitor.\(url.absoluteString.md5())", attributes: .concurrent)
     }
 
     deinit {
-        stopMonitoring()
+        reset()
+    }
+
+    func reset() {
+        debugPrint("reset monitoring at \(url)")
+        if directoryMonitorSource != nil {
+            directoryMonitorSource?.cancel()
+            directoryMonitorSource = nil
+        }
+        if monitoredDirectoryFileDescriptor != -1 {
+            monitoredDirectoryFileDescriptor = -1
+        }
     }
 
     func startMonitoring() {
-        if directoryMonitorSource == nil && monitoredDirectoryFileDescriptor == -1 {
-            monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
-
-            directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: DispatchSource.FileSystemEvent.write, queue: self.monitorQueue) as? DispatchSource
-
-            directoryMonitorSource?.setEventHandler{
-                self.delegate?.directoryMonitorDidObserveChange(directoryMonitor: self)
-            }
-
-            directoryMonitorSource?.setCancelHandler{
-                close(self.monitoredDirectoryFileDescriptor)
-                self.monitoredDirectoryFileDescriptor = -1
-                self.directoryMonitorSource = nil
-            }
-
-            directoryMonitorSource?.resume()
+        reset()
+        monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
+        directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: DispatchSource.FileSystemEvent.write, queue: self.monitorQueue) as? DispatchSource
+        directoryMonitorSource?.setEventHandler{
+            debugPrint("Content changed at: \(self.url)")
         }
-    }
-
-    private func stopMonitoring() {
-        if directoryMonitorSource != nil {
-            directoryMonitorSource?.cancel()
+        directoryMonitorSource?.setCancelHandler{
+            close(self.monitoredDirectoryFileDescriptor)
+            self.monitoredDirectoryFileDescriptor = -1
+            self.directoryMonitorSource = nil
         }
+        directoryMonitorSource?.resume()
     }
 }
