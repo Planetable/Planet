@@ -250,11 +250,6 @@ extension PlanetPublishedServiceStore {
 }
 
 
-private protocol PlanetPublishedServiceMonitorDelegate: AnyObject {
-    func directoryMonitorDidObserveChange(directoryMonitor: PlanetPublishedServiceMonitor)
-}
-
-
 private class PlanetPublishedServiceMonitor {
     var monitorQueue: DispatchQueue
     var monitoredDirectoryFileDescriptor: CInt = -1
