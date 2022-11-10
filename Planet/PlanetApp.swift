@@ -326,54 +326,14 @@ extension PlanetApp {
 
                             Button {
                                 Task { @MainActor in
-                                    serviceStore.addPublishingFolder(folder)
-                                    let keyName = folder.id.uuidString
                                     do {
-                                        if try await !IPFSDaemon.shared.checkKeyExists(name: keyName) {
-                                            let _ = try await IPFSDaemon.shared.generateKey(name: keyName)
-                                        }
-                                        let url = try serviceStore.restoreFolderAccess(forFolder: folder)
-                                        guard url.startAccessingSecurityScopedResource() else {
-                                            throw PlanetError.PublishedServiceFolderPermissionError
-                                        }
-                                        let cid = try await IPFSDaemon.shared.addDirectory(url: url)
-                                        url.stopAccessingSecurityScopedResource()
-                                        var versions = try serviceStore.loadPublishedVersions(byFolderKeyName: keyName)
-                                        if let lastVersion = versions.last, lastVersion.cid == cid {
-                                            throw PlanetError.PublishedServiceFolderUnchangedError
-                                        }
-                                        versions.append(PlanetPublishedFolderVersion(id: folder.id, cid: cid, created: Date()))
-                                        try serviceStore.savePublishedVersions(versions)
-                                        let result = try await IPFSDaemon.shared.api(
-                                            path: "name/publish",
-                                            args: [
-                                                "arg": cid,
-                                                "allow-offline": "1",
-                                                "key": keyName,
-                                                "quieter": "1",
-                                                "lifetime": "7200h",
-                                            ],
-                                            timeout: 600
-                                        )
-                                        let decoder = JSONDecoder()
-                                        let publishedStatus = try decoder.decode(IPFSPublished.self, from: result)
-                                        let updatedFolder = PlanetPublishedFolder(id: folder.id, url: folder.url, created: folder.created, published: Date(), publishedLink: publishedStatus.name)
-                                        let updatedFolders = serviceStore.publishedFolders.map() { f in
-                                            if f.id == folder.id {
-                                                return updatedFolder
-                                            } else {
-                                                return f
-                                            }
-                                        }
-                                        serviceStore.removePublishingFolder(folder)
-                                        serviceStore.updatePublishedFolders(updatedFolders)
-                                        debugPrint("Folder published -> \(folder.url)")
+                                        try await self.serviceStore.publishFolder(folder)
                                         let content = UNMutableNotificationContent()
                                         content.title = "Folder Published"
                                         content.subtitle = folder.url.absoluteString
                                         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
                                         let request = UNNotificationRequest(
-                                            identifier: keyName,
+                                            identifier: folder.id.uuidString,
                                             content: content,
                                             trigger: trigger
                                         )

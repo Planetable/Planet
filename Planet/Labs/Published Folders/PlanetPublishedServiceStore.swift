@@ -14,6 +14,7 @@ class PlanetPublishedServiceStore: ObservableObject {
 
     static let prefixKey = "PlanetPublishedFolder-"
     static let removedListKey = "PlanetPublishedFolderRemovalList"
+    static let pendingPrefixKey = "PlanetPublishedFolderPendingFolder-"
 
     let timer = Timer.publish(every: 2, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
 
@@ -74,6 +75,55 @@ class PlanetPublishedServiceStore: ObservableObject {
                 debugPrint("failed to unpublish folder: \(folder), error: \(error)")
             }
         }
+    }
+
+    func requestToPublishFolder(withURL url: URL) {
+        debugPrint("about to request to publishing changes at url: \(url) ...")
+    }
+
+    @MainActor
+    func publishFolder(_ folder: PlanetPublishedFolder) async throws {
+        addPublishingFolder(folder)
+        let keyName = folder.id.uuidString
+        if try await !IPFSDaemon.shared.checkKeyExists(name: keyName) {
+            let _ = try await IPFSDaemon.shared.generateKey(name: keyName)
+        }
+        let url = try restoreFolderAccess(forFolder: folder)
+        guard url.startAccessingSecurityScopedResource() else {
+            throw PlanetError.PublishedServiceFolderPermissionError
+        }
+        let cid = try await IPFSDaemon.shared.addDirectory(url: url)
+        url.stopAccessingSecurityScopedResource()
+        var versions = try loadPublishedVersions(byFolderKeyName: keyName)
+        if let lastVersion = versions.last, lastVersion.cid == cid {
+            throw PlanetError.PublishedServiceFolderUnchangedError
+        }
+        versions.append(PlanetPublishedFolderVersion(id: folder.id, cid: cid, created: Date()))
+        try savePublishedVersions(versions)
+        let result = try await IPFSDaemon.shared.api(
+            path: "name/publish",
+            args: [
+                "arg": cid,
+                "allow-offline": "1",
+                "key": keyName,
+                "quieter": "1",
+                "lifetime": "7200h",
+            ],
+            timeout: 600
+        )
+        let decoder = JSONDecoder()
+        let publishedStatus = try decoder.decode(IPFSPublished.self, from: result)
+        let updatedFolder = PlanetPublishedFolder(id: folder.id, url: folder.url, created: folder.created, published: Date(), publishedLink: publishedStatus.name)
+        let updatedFolders = publishedFolders.map() { f in
+            if f.id == folder.id {
+                return updatedFolder
+            } else {
+                return f
+            }
+        }
+        removePublishingFolder(folder)
+        updatePublishedFolders(updatedFolders)
+        debugPrint("Folder published -> \(folder.url)")
     }
 
     @MainActor
@@ -257,11 +307,13 @@ private class PlanetPublishedServiceMonitor {
     var url: URL
 
     init(url: URL) {
+        debugPrint("monitor init")
         self.url = url
         self.monitorQueue = DispatchQueue(label: "planet.monitor.\(url.absoluteString.md5())", attributes: .concurrent)
     }
 
     deinit {
+        debugPrint("monitor deinit")
         reset()
     }
 
@@ -281,7 +333,7 @@ private class PlanetPublishedServiceMonitor {
         monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
         directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: DispatchSource.FileSystemEvent.write, queue: self.monitorQueue) as? DispatchSource
         directoryMonitorSource?.setEventHandler{
-            debugPrint("Content changed at: \(self.url)")
+            PlanetPublishedServiceStore.shared.requestToPublishFolder(withURL: self.url)
         }
         directoryMonitorSource?.setCancelHandler{
             close(self.monitoredDirectoryFileDescriptor)
