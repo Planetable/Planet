@@ -171,7 +171,7 @@ struct MyPlanetPodcastSettingsView: View {
     }
 
     private var allCategories: [String] {
-        return categories.keys.sorted().map { String($0) }
+        return categories.keys.sorted().map { $0 }
     }
 
     private func binding(for category: String) -> Binding<Bool> {

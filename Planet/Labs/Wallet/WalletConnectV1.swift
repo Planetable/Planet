@@ -33,7 +33,7 @@ class WalletConnect {
                            key: try! randomKey())
         let clientMeta = Session.ClientMeta(name: "Planet",
                                             description: "Build and host decentralized websites",
-                                            icons: [],
+                                            icons: [URL(string: "https://github.com/Planetable.png")!],
                                             url: URL(string: "https://planetable.xyz")!)
         let dAppInfo = Session.DAppInfo(peerId: UUID().uuidString, peerMeta: clientMeta)
         client = Client(delegate: self, dAppInfo: dAppInfo)
@@ -48,7 +48,9 @@ class WalletConnect {
         if let oldSessionObject = UserDefaults.standard.object(forKey: sessionKey) as? Data,
             let session = try? JSONDecoder().decode(Session.self, from: oldSessionObject) {
             client = Client(delegate: self, dAppInfo: session.dAppInfo)
-            try? client.reconnect(to: session)
+            if let _ = try? client.reconnect(to: session) {
+                self.session = session
+            }
         }
     }
 

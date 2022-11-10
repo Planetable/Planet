@@ -83,6 +83,8 @@
 		6AB6E515291527B800F17328 /* WalletConnectPairing in Frameworks */ = {isa = PBXBuildFile; productRef = 6AB6E514291527B800F17328 /* WalletConnectPairing */; };
 		6AB6E517291527B800F17328 /* WalletConnectPush in Frameworks */ = {isa = PBXBuildFile; productRef = 6AB6E516291527B800F17328 /* WalletConnectPush */; };
 		6ABAB91828215FF30014F209 /* TemplatePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */; };
+		6AC01AEC291D139C00EB6B5F /* KeychainSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 6AC01AEB291D139C00EB6B5F /* KeychainSwift */; };
+		6AC01AEE291D258900EB6B5F /* AccountBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AED291D258900EB6B5F /* AccountBadgeView.swift */; };
 		6AC0BC4728F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */; };
 		6ADF40B92914D88C007A24E8 /* MyPlanetIPNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */; };
 		6ADF40C429151407007A24E8 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 6ADF40C329151407007A24E8 /* Starscream */; };
@@ -224,6 +226,7 @@
 		6AABC6AB291A698B009FD13F /* WalletConnectV1QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV1QRCodeView.swift; sourceTree = "<group>"; };
 		6AB6E4FA2915227600F17328 /* WalletManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletManager.swift; sourceTree = "<group>"; };
 		6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePreviewView.swift; sourceTree = "<group>"; };
+		6AC01AED291D258900EB6B5F /* AccountBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBadgeView.swift; sourceTree = "<group>"; };
 		6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetPodcastSettingsView.swift; sourceTree = "<group>"; };
 		6AC83749284C9A4D00C0F952 /* versioning.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = versioning.xcconfig; sourceTree = "<group>"; };
 		6AC8374B284C9A8500C0F952 /* marketing_version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = marketing_version.xcconfig; sourceTree = "<group>"; };
@@ -282,6 +285,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6AC01AEC291D139C00EB6B5F /* KeychainSwift in Frameworks */,
 				6AB6E515291527B800F17328 /* WalletConnectPairing in Frameworks */,
 				BB7FC8752898C70A00359802 /* libcmark_gfm in Frameworks */,
 				BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */,
@@ -486,6 +490,7 @@
 				2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */,
 				721147E510285883751DB4A2 /* MyPlanetSidebarItem.swift */,
 				7211467DFBDA573F4B938B0C /* FollowingPlanetSidebarItem.swift */,
+				6AC01AED291D258900EB6B5F /* AccountBadgeView.swift */,
 			);
 			path = Sidebar;
 			sourceTree = "<group>";
@@ -687,6 +692,7 @@
 				6AB6E514291527B800F17328 /* WalletConnectPairing */,
 				6AB6E516291527B800F17328 /* WalletConnectPush */,
 				6AABC6A9291A62A9009FD13F /* WalletConnectSwift */,
+				6AC01AEB291D139C00EB6B5F /* KeychainSwift */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -730,6 +736,7 @@
 				6ADF40C229151407007A24E8 /* XCRemoteSwiftPackageReference "Starscream" */,
 				6AB6E50D291527B800F17328 /* XCRemoteSwiftPackageReference "WalletConnectSwiftV2" */,
 				6AABC6A8291A62A9009FD13F /* XCRemoteSwiftPackageReference "WalletConnectSwift" */,
+				6AC01AEA291D139C00EB6B5F /* XCRemoteSwiftPackageReference "keychain-swift" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -854,6 +861,7 @@
 				6AB6E4FB2915227600F17328 /* WalletManager.swift in Sources */,
 				2A7022F22897DF4600022F13 /* PlanetDownloadsWindow.swift in Sources */,
 				72114AFCB4EDB617C07192BB /* FollowingPlanetSidebarItem.swift in Sources */,
+				6AC01AEE291D258900EB6B5F /* AccountBadgeView.swift in Sources */,
 				2A04DADF28EAD2610040D8E0 /* PlanetPublishedFolderModel.swift in Sources */,
 				721144941B29E9E78C05A89D /* Lifetimes.swift in Sources */,
 				721149AA66E0C018BA60DB5A /* AttachmentModel.swift in Sources */,
@@ -1118,6 +1126,14 @@
 				kind = branch;
 			};
 		};
+		6AC01AEA291D139C00EB6B5F /* XCRemoteSwiftPackageReference "keychain-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/evgenyneu/keychain-swift";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 20.0.0;
+			};
+		};
 		6ADF40C229151407007A24E8 /* XCRemoteSwiftPackageReference "Starscream" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/daltoniam/Starscream.git";
@@ -1226,6 +1242,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6AB6E50D291527B800F17328 /* XCRemoteSwiftPackageReference "WalletConnectSwiftV2" */;
 			productName = WalletConnectPush;
+		};
+		6AC01AEB291D139C00EB6B5F /* KeychainSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6AC01AEA291D139C00EB6B5F /* XCRemoteSwiftPackageReference "keychain-swift" */;
+			productName = KeychainSwift;
 		};
 		6ADF40C329151407007A24E8 /* Starscream */ = {
 			isa = XCSwiftPackageProductDependency;

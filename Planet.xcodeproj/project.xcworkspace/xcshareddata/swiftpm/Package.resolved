@@ -55,6 +55,15 @@
       }
     },
     {
+      "identity" : "keychain-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/evgenyneu/keychain-swift",
+      "state" : {
+        "revision" : "d108a1fa6189e661f91560548ef48651ed8d93b9",
+        "version" : "20.0.0"
+      }
+    },
+    {
       "identity" : "libcmark_gfm",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/KristopherGBaker/libcmark_gfm",

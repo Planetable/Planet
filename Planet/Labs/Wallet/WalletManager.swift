@@ -28,6 +28,13 @@ class WalletManager: NSObject {
     func setupV1() {
         walletConnect = WalletConnect(delegate: self)
         walletConnect.reconnectIfNeeded()
+        if let session = walletConnect.session {
+            debugPrint("Found existing session: \(session)")
+            Task { @MainActor in
+                PlanetStore.shared.walletAddress = session.walletInfo?.accounts[0] ?? ""
+                debugPrint("Wallet Address: \(PlanetStore.shared.walletAddress)")
+            }
+        }
     }
 
     func connectV1() {
@@ -46,7 +53,7 @@ class WalletManager: NSObject {
             name: "Planet",
             description: "Build decentralized websites on IPFS + ENS",
             url: "wallet.planetable.xyz",
-            icons: ["https://www.planetable.xyz/assets/planetable-logo-light.png"])
+            icons: ["https://github.com/Planetable.png"])
 
         // TODO: Read PROJECT_ID from local.xcconfig
         Networking.configure(projectId: "", socketFactory: SocketFactory())
@@ -65,14 +72,33 @@ class WalletManager: NSObject {
 
 extension WalletManager: WalletConnectDelegate {
     func failedToConnect() {
-
+        Task { @MainActor in
+            debugPrint("Failed to connect: \(self)")
+        }
     }
 
     func didConnect() {
-
+        Task { @MainActor in
+            PlanetStore.shared.isShowingWalletConnectV1QRCode = false
+            PlanetStore.shared.walletAddress = self.walletConnect.session.walletInfo?.accounts[0] ?? ""
+            debugPrint("Wallet Address: \(PlanetStore.shared.walletAddress)")
+            debugPrint("Session: \(self.walletConnect.session)")
+        }
     }
 
     func didDisconnect() {
+        Task { @MainActor in
+            PlanetStore.shared.walletAddress = ""
+        }
+    }
+}
 
+extension PlanetStore {
+    func hasWalletAddress() -> Bool {
+        if walletAddress.count > 0 {
+            return true
+        } else {
+            return false
+        }
     }
 }

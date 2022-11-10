@@ -20,7 +20,7 @@ struct PlanetSettingsPlanetsView: View {
                 TableColumn("Archived My Planet") { planet in
                     HStack {
                         planet.avatarView(size: 24)
-                        Text(String(planet.name))
+                        Text(planet.name)
                         Spacer()
                         Button("Unarchive") {
                             planet.archived = false
@@ -42,7 +42,7 @@ struct PlanetSettingsPlanetsView: View {
                 TableColumn("Archived Following Planet") { planet in
                     HStack {
                         planet.avatarView(size: 24)
-                        Text(String(planet.name))
+                        Text(planet.name)
                         Spacer()
                         Button("Unarchive") {
                             planet.archived = false

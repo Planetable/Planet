@@ -15,6 +15,9 @@ struct PlanetSidebarView: View {
 
     var body: some View {
         VStack {
+            if planetStore.walletAddress.count > 0 {
+                AccountBadgeView(walletAddress: planetStore.walletAddress)
+            }
             List(selection: $planetStore.selectedView) {
                 Section(header: Text("Smart Feeds")) {
                     HStack(spacing: 4) {

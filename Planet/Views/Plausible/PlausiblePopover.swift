@@ -32,8 +32,11 @@ struct PlausiblePopoverView: View {
                 Divider()
                 Button {
                     let plausibleServer = planet.plausibleAPIServer ?? "plausible.io"
-                    let url = URL(string: "https://\(plausibleServer)/\(String(plausibleDomain.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""))")!
-                    if NSWorkspace.shared.open(url) {
+                    do {
+                        let url = try URL(string: "https://\(plausibleServer)/\(String(plausibleDomain.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""))")!
+                        if NSWorkspace.shared.open(url) {
+                        }
+                    } catch {
                     }
                 } label: {
                     Text("Open Dashboard")

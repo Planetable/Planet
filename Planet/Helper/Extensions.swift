@@ -41,6 +41,12 @@ extension String {
         )
         return result != nil
     }
+
+    func shortWalletAddress() -> String {
+        let firstPart = String(self.prefix(6))
+        let lastPart = String(self.suffix(4))
+        return "\(firstPart)...\(lastPart)"
+    }
 }
 
 extension Notification.Name {
