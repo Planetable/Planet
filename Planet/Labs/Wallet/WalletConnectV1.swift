@@ -26,10 +26,9 @@ class WalletConnect {
     }
 
     func connect() -> String {
-        // gnosis wc bridge: https://safe-walletconnect.gnosis.io/
-        // test bridge with latest protocol version: https://bridge.walletconnect.org
+        // gnosis wc bridge: https://safe-walletconnect.safe.global/
         let wcUrl =  WCURL(topic: UUID().uuidString,
-                           bridgeURL: URL(string: "https://safe-walletconnect.gnosis.io/")!,
+                           bridgeURL: URL(string: "https://safe-walletconnect.safe.global/")!,
                            key: try! randomKey())
         let clientMeta = Session.ClientMeta(name: "Planet",
                                             description: "Build and host decentralized websites",
