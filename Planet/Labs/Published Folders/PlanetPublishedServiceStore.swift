@@ -16,6 +16,9 @@ class PlanetPublishedServiceStore: ObservableObject {
     static let removedListKey = "PlanetPublishedFolderRemovalList"
     static let pendingPrefixKey = "PlanetPublishedFolderPendingFolder-"
 
+    static let ttlString: String = "7200h"
+    static let ttl: Int = 3600*7199
+
     let timer = Timer.publish(every: 5, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
 
     @Published var timestamp: Int = Int(Date().timeIntervalSince1970)
@@ -89,14 +92,19 @@ class PlanetPublishedServiceStore: ObservableObject {
 
     func updatePendingPublishings() {
         guard autoPublish && publishedFolders.count > 0 else { return }
-        let next: Int = Int(Date().addingTimeInterval(86400).timeIntervalSince1970)
+        let now: Int = Int(Date().timeIntervalSince1970)
+        let next: Int = now + 86400
         Task { @MainActor in
             for folder in self.publishedFolders {
                 let key = Self.pendingPrefixKey + folder.id.uuidString
                 let value = UserDefaults.standard.integer(forKey: key)
                 let published = Int(folder.published?.timeIntervalSince1970 ?? 0)
                 if value <= published && published > 0 {
-                    continue
+                    if now - published < Self.ttl {
+                        continue
+                    } else {
+                        debugPrint("folder IPNS ttl expired, schedule a publishing...")
+                    }
                 }
                 if self.publishingFolders.contains(folder.id) {
                     UserDefaults.standard.set(next, forKey: key)
@@ -144,7 +152,7 @@ class PlanetPublishedServiceStore: ObservableObject {
                 "allow-offline": "1",
                 "key": keyName,
                 "quieter": "1",
-                "lifetime": "7200h",
+                "lifetime": Self.ttlString,
             ],
             timeout: 300
         )
