@@ -19,17 +19,36 @@ struct AccountBadgeView: View {
             if let avatarImage = avatarImage {
                 HStack(spacing: 0) {
                     Image(nsImage: avatarImage)
+                        .interpolation(Image.Interpolation.high)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 36, height: 36, alignment: .center)
                         .cornerRadius(36)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 36)
+                                .stroke(Color("BorderColor"), lineWidth: 0.5)
+                        )
+                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 2)
                 }.padding(2)
             } else {
-                Circle()
-                    .strokeBorder(Color("BorderColor"), lineWidth: 1)
-                    .background(Circle().foregroundColor(Color("AccountBadgeBackgroundColor")))
+                Text(" ")
+                    .font(Font.custom("Arial Rounded MT Bold", size: 18))
+                    .foregroundColor(Color.white)
+                    .contentShape(Rectangle())
+                    .frame(width: 36, height: 36, alignment: .center)
+                    .background(
+                        LinearGradient(
+                            gradient: ViewUtils.getPresetGradient(from: walletAddress),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .cornerRadius(36)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 36)
+                            .stroke(Color("BorderColor"), lineWidth: 1)
+                    )
                     .padding(2)
-                    .frame(width: 40)
                     
             }
 
@@ -56,7 +75,7 @@ struct AccountBadgeView: View {
             DispatchQueue.main.async {
                 self.displayName = walletAddress.shortWalletAddress()
             }
-            // Get avatar image
+            // Get ENS and avatar image
             let ensURL = URL(string: "https://api.ensideas.com/ens/resolve/\(walletAddress)")!
             URLSession.shared.dataTask(with: ensURL) { data, response, error in
                 if let data = data {
@@ -102,6 +121,9 @@ struct AccountBadgeView: View {
                     }
                 }
             }
+        }
+        .onTapGesture {
+            PlanetStore.shared.isShowingWalletAccount = true
         }
     }
 }

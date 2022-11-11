@@ -80,6 +80,9 @@ struct PlanetMainView: View {
         .sheet(isPresented: $planetStore.isShowingWalletConnectV1QRCode) {
             WalletConnectV1QRCodeView()
         }
+        .sheet(isPresented: $planetStore.isShowingWalletAccount) {
+            WalletAccountView(walletAddress: planetStore.walletAddress)
+        }
     }
 }
 

@@ -111,4 +111,11 @@ struct ViewUtils {
         let index = Int(leastSignificantUInt8) % presetGradients.count
         return presetGradients[index]
     }
+    
+    static func getPresetGradient(from walletAddress: String) -> Gradient {
+        let characters: [UInt8] = Array(walletAddress.utf8)
+        let lastCharUInt8 = characters.last!
+        let index = Int(lastCharUInt8) % presetGradients.count
+        return presetGradients[index]
+    }
 }

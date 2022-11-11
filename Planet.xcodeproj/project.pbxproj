@@ -85,6 +85,7 @@
 		6ABAB91828215FF30014F209 /* TemplatePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */; };
 		6AC01AEC291D139C00EB6B5F /* KeychainSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 6AC01AEB291D139C00EB6B5F /* KeychainSwift */; };
 		6AC01AEE291D258900EB6B5F /* AccountBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AED291D258900EB6B5F /* AccountBadgeView.swift */; };
+		6AC01AF0291ECC7E00EB6B5F /* WalletAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */; };
 		6AC0BC4728F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */; };
 		6ADF40B92914D88C007A24E8 /* MyPlanetIPNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */; };
 		6ADF40C429151407007A24E8 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 6ADF40C329151407007A24E8 /* Starscream */; };
@@ -227,6 +228,7 @@
 		6AB6E4FA2915227600F17328 /* WalletManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletManager.swift; sourceTree = "<group>"; };
 		6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePreviewView.swift; sourceTree = "<group>"; };
 		6AC01AED291D258900EB6B5F /* AccountBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBadgeView.swift; sourceTree = "<group>"; };
+		6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletAccountView.swift; sourceTree = "<group>"; };
 		6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetPodcastSettingsView.swift; sourceTree = "<group>"; };
 		6AC83749284C9A4D00C0F952 /* versioning.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = versioning.xcconfig; sourceTree = "<group>"; };
 		6AC8374B284C9A8500C0F952 /* marketing_version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = marketing_version.xcconfig; sourceTree = "<group>"; };
@@ -579,6 +581,7 @@
 				6AB6E4FA2915227600F17328 /* WalletManager.swift */,
 				6AABC6A6291A6216009FD13F /* WalletConnectV1.swift */,
 				6AABC6AB291A698B009FD13F /* WalletConnectV1QRCodeView.swift */,
+				6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */,
 			);
 			path = Wallet;
 			sourceTree = "<group>";
@@ -851,6 +854,7 @@
 				72114A65C35BF78B1A4B7D81 /* DraftModel.swift in Sources */,
 				2AE44EA928CD214800944786 /* PlanetSettingsView.swift in Sources */,
 				2A79FB2C2898184100F06DDF /* PlanetDownloadModel.swift in Sources */,
+				6AC01AF0291ECC7E00EB6B5F /* WalletAccountView.swift in Sources */,
 				721145603D528B27CC6091D1 /* WriterDragAndDrop.swift in Sources */,
 				72114D4918DAC507F6E3AF7F /* MarkdownUtils.swift in Sources */,
 				72114FE37ADE9340E448FF3E /* WriterViewModel.swift in Sources */,
