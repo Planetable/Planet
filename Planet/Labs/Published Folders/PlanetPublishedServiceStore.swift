@@ -116,7 +116,7 @@ class PlanetPublishedServiceStore: ObservableObject {
     }
 
     @MainActor
-    func publishFolder(_ folder: PlanetPublishedFolder) async throws {
+    func publishFolder(_ folder: PlanetPublishedFolder, skipCIDCheck: Bool = false) async throws {
         addPublishingFolder(folder)
         defer {
             removePublishingFolder(folder)
@@ -132,7 +132,7 @@ class PlanetPublishedServiceStore: ObservableObject {
         let cid = try await IPFSDaemon.shared.addDirectory(url: url)
         url.stopAccessingSecurityScopedResource()
         var versions = try loadPublishedVersions(byFolderKeyName: keyName)
-        if let lastVersion = versions.last, lastVersion.cid == cid {
+        if skipCIDCheck == false, let lastVersion = versions.last, lastVersion.cid == cid {
             throw PlanetError.PublishedServiceFolderUnchangedError
         }
         versions.append(PlanetPublishedFolderVersion(id: folder.id, cid: cid, created: Date()))
@@ -342,18 +342,15 @@ private class PlanetPublishedServiceMonitor {
     var url: URL
 
     init(url: URL) {
-        debugPrint("monitor init")
         self.url = url
         self.monitorQueue = DispatchQueue(label: "planet.monitor.\(url.absoluteString.md5())", attributes: .concurrent)
     }
 
     deinit {
-        debugPrint("monitor deinit")
         reset()
     }
 
     func reset() {
-        debugPrint("reset monitoring at \(url)")
         if directoryMonitorSource != nil {
             directoryMonitorSource?.cancel()
             directoryMonitorSource = nil
