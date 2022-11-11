@@ -16,6 +16,9 @@ class PlanetPublishedServiceStore: ObservableObject {
     static let removedListKey = "PlanetPublishedFolderRemovalList"
     static let pendingPrefixKey = "PlanetPublishedFolderPendingFolder-"
 
+    static let ttlString: String = "7200h"
+    static let ttl: Int = 3600*7199
+
     let timer = Timer.publish(every: 5, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
 
     @Published var timestamp: Int = Int(Date().timeIntervalSince1970)
@@ -89,14 +92,19 @@ class PlanetPublishedServiceStore: ObservableObject {
 
     func updatePendingPublishings() {
         guard autoPublish && publishedFolders.count > 0 else { return }
-        let next: Int = Int(Date().addingTimeInterval(86400).timeIntervalSince1970)
+        let now: Int = Int(Date().timeIntervalSince1970)
+        let next: Int = now + 86400
         Task { @MainActor in
             for folder in self.publishedFolders {
                 let key = Self.pendingPrefixKey + folder.id.uuidString
                 let value = UserDefaults.standard.integer(forKey: key)
                 let published = Int(folder.published?.timeIntervalSince1970 ?? 0)
                 if value <= published && published > 0 {
-                    continue
+                    if now - published < Self.ttl {
+                        continue
+                    } else {
+                        debugPrint("folder IPNS ttl expired, schedule a publishing...")
+                    }
                 }
                 if self.publishingFolders.contains(folder.id) {
                     UserDefaults.standard.set(next, forKey: key)
@@ -116,7 +124,7 @@ class PlanetPublishedServiceStore: ObservableObject {
     }
 
     @MainActor
-    func publishFolder(_ folder: PlanetPublishedFolder) async throws {
+    func publishFolder(_ folder: PlanetPublishedFolder, skipCIDCheck: Bool = false) async throws {
         addPublishingFolder(folder)
         defer {
             removePublishingFolder(folder)
@@ -132,7 +140,7 @@ class PlanetPublishedServiceStore: ObservableObject {
         let cid = try await IPFSDaemon.shared.addDirectory(url: url)
         url.stopAccessingSecurityScopedResource()
         var versions = try loadPublishedVersions(byFolderKeyName: keyName)
-        if let lastVersion = versions.last, lastVersion.cid == cid {
+        if skipCIDCheck == false, let lastVersion = versions.last, lastVersion.cid == cid {
             throw PlanetError.PublishedServiceFolderUnchangedError
         }
         versions.append(PlanetPublishedFolderVersion(id: folder.id, cid: cid, created: Date()))
@@ -144,7 +152,7 @@ class PlanetPublishedServiceStore: ObservableObject {
                 "allow-offline": "1",
                 "key": keyName,
                 "quieter": "1",
-                "lifetime": "7200h",
+                "lifetime": Self.ttlString,
             ],
             timeout: 300
         )
@@ -342,18 +350,15 @@ private class PlanetPublishedServiceMonitor {
     var url: URL
 
     init(url: URL) {
-        debugPrint("monitor init")
         self.url = url
         self.monitorQueue = DispatchQueue(label: "planet.monitor.\(url.absoluteString.md5())", attributes: .concurrent)
     }
 
     deinit {
-        debugPrint("monitor deinit")
         reset()
     }
 
     func reset() {
-        debugPrint("reset monitoring at \(url)")
         if directoryMonitorSource != nil {
             directoryMonitorSource?.cancel()
             directoryMonitorSource = nil

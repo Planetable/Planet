@@ -325,7 +325,7 @@ extension PlanetApp {
                             Button {
                                 Task { @MainActor in
                                     do {
-                                        try await self.serviceStore.publishFolder(folder)
+                                        try await self.serviceStore.publishFolder(folder, skipCIDCheck: true)
                                         let content = UNMutableNotificationContent()
                                         content.title = "Folder Published"
                                         content.subtitle = folder.url.absoluteString
