@@ -200,7 +200,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
         // TODO: If Writer is open, then the main window should not always get focus
         if let windows = (notification.object as? NSApplication)?.windows {
             var i = 0
-            for window in windows {
+            for window in windows where window.className == "SwiftUI.AppKitWindow" {
                 debugPrint("Planet window: \(window)")
                 debugPrint("window.isMainWindow: \(window.isMainWindow)")
                 debugPrint("window.isMiniaturized: \(window.isMiniaturized)")
@@ -338,9 +338,12 @@ extension PlanetApp {
                                             trigger: trigger
                                         )
                                         try? await UNUserNotificationCenter.current().add(request)
+                                    } catch PlanetError.PublishedServiceFolderUnchangedError {
+                                        planetStore.isShowingAlert = true
+                                        planetStore.alertTitle = "Failed to Publish Folder"
+                                        planetStore.alertMessage = "Folder content hasn't changed since last publish."
                                     } catch {
                                         debugPrint("Failed to publish folder: \(folder), error: \(error)")
-                                        serviceStore.removePublishingFolder(folder)
                                         planetStore.isShowingAlert = true
                                         planetStore.alertTitle = "Failed to Publish Folder"
                                         planetStore.alertMessage = error.localizedDescription
@@ -408,27 +411,18 @@ extension PlanetApp {
             }
             Divider()
             Menu("Options") {
-                Button {
-                    Task { @MainActor in
-                        self.serviceStore.autoPublish.toggle()
+                Toggle("Automatically Publish", isOn: $serviceStore.autoPublish)
+                    .onChange(of: serviceStore.autoPublish) { newValue in
+                        Task { @MainActor in
+                            self.serviceStore.autoPublish = newValue
+                        }
                     }
-                } label: {
-                    switch serviceStore.autoPublish {
-                        case true:
-                            HStack {
-                                Image(systemName: "checkmark")
-                                Text("Automatically Publish On")
-                            }
-                        default:
-                            HStack {
-                                Text("Automatically Publish Off")
-                            }
-                    }
-                }
+                    .help("Turn on to publish changes automatically.")
             }
         }
         .onReceive(serviceStore.timer) { _ in
             serviceStore.timestamp = Int(Date().timeIntervalSince1970)
+            serviceStore.updatePendingPublishings()
         }
     }
 }

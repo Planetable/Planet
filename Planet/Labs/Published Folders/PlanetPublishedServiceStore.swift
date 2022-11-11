@@ -16,7 +16,7 @@ class PlanetPublishedServiceStore: ObservableObject {
     static let removedListKey = "PlanetPublishedFolderRemovalList"
     static let pendingPrefixKey = "PlanetPublishedFolderPendingFolder-"
 
-    let timer = Timer.publish(every: 2, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
+    let timer = Timer.publish(every: 5, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
 
     @Published var timestamp: Int = Int(Date().timeIntervalSince1970)
     @Published var autoPublish: Bool = UserDefaults.standard.bool(forKey: "PlanetPublishedFolderAutoPublish") {
@@ -78,12 +78,49 @@ class PlanetPublishedServiceStore: ObservableObject {
     }
 
     func requestToPublishFolder(withURL url: URL) {
-        debugPrint("about to request to publishing changes at url: \(url) ...")
+        Task { @MainActor in
+            guard let folder = publishedFolders.first(where: { $0.url == url }) else { return }
+            let key = Self.pendingPrefixKey + folder.id.uuidString
+            let value = Int(Date().timeIntervalSince1970)
+            UserDefaults.standard.set(value, forKey: key)
+            debugPrint("content changed at: \(url), scheduled a pending publishing: \(key) at \(value)")
+        }
+    }
+
+    func updatePendingPublishings() {
+        guard autoPublish && publishedFolders.count > 0 else { return }
+        let next: Int = Int(Date().addingTimeInterval(86400).timeIntervalSince1970)
+        Task { @MainActor in
+            for folder in self.publishedFolders {
+                let key = Self.pendingPrefixKey + folder.id.uuidString
+                let value = UserDefaults.standard.integer(forKey: key)
+                let published = Int(folder.published?.timeIntervalSince1970 ?? 0)
+                if value <= published && published > 0 {
+                    continue
+                }
+                if self.publishingFolders.contains(folder.id) {
+                    UserDefaults.standard.set(next, forKey: key)
+                    continue
+                }
+                debugPrint("folder (\(folder.url)) is the first time to publish or has changes to publish...")
+                do {
+                    try await publishFolder(folder)
+                } catch PlanetError.PublishedServiceFolderUnchangedError {
+                    UserDefaults.standard.removeObject(forKey: key)
+                    debugPrint("folder \(folder.url) unchanged, abort auto publishing.")
+                } catch {
+                    debugPrint("failed to auto publish folder \(folder.url), error: \(error)")
+                }
+            }
+        }
     }
 
     @MainActor
     func publishFolder(_ folder: PlanetPublishedFolder) async throws {
         addPublishingFolder(folder)
+        defer {
+            removePublishingFolder(folder)
+        }
         let keyName = folder.id.uuidString
         if try await !IPFSDaemon.shared.checkKeyExists(name: keyName) {
             let _ = try await IPFSDaemon.shared.generateKey(name: keyName)
@@ -109,7 +146,7 @@ class PlanetPublishedServiceStore: ObservableObject {
                 "quieter": "1",
                 "lifetime": "7200h",
             ],
-            timeout: 600
+            timeout: 300
         )
         let decoder = JSONDecoder()
         let publishedStatus = try decoder.decode(IPFSPublished.self, from: result)
@@ -121,7 +158,6 @@ class PlanetPublishedServiceStore: ObservableObject {
                 return f
             }
         }
-        removePublishingFolder(folder)
         updatePublishedFolders(updatedFolders)
         debugPrint("Folder published -> \(folder.url)")
     }
@@ -146,8 +182,7 @@ class PlanetPublishedServiceStore: ObservableObject {
         publishingFolders.append(folder.id)
     }
 
-    @MainActor
-    func removePublishingFolder(_ folder: PlanetPublishedFolder) {
+    private func removePublishingFolder(_ folder: PlanetPublishedFolder) {
         guard publishingFolders.contains(folder.id) else { return }
         guard let _ = publishingFolders.removeFirst(item: folder.id) else { return }
     }
@@ -187,7 +222,7 @@ class PlanetPublishedServiceStore: ObservableObject {
                 "quieter": "1",
                 "lifetime": "24h",
             ],
-            timeout: 600
+            timeout: 300
         )
         let decoder = JSONDecoder()
         let publishedStatus = try decoder.decode(IPFSPublished.self, from: result)
@@ -206,8 +241,8 @@ class PlanetPublishedServiceStore: ObservableObject {
     private func updateMonitoring() {
         if autoPublish {
             for folder in publishedFolders {
+                if let _ = monitors.first(where: { $0.url == folder.url }) { continue }
                 let monitor = PlanetPublishedServiceMonitor(url: folder.url)
-                if let _ = monitors.first(where: { $0.url == monitor.url }) { continue }
                 monitor.startMonitoring()
                 monitors.append(monitor)
             }
