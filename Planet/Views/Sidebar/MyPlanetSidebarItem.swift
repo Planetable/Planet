@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 struct MyPlanetSidebarItem: View {
@@ -137,6 +138,12 @@ struct MyPlanetSidebarItem: View {
                     Text("Export Planet")
                 }
 
+                Button {
+                    airdropPlanet()
+                } label: {
+                    Text("Share Planet via AirDrop")
+                }
+
                 Divider()
 
                 Button {
@@ -228,5 +235,41 @@ struct MyPlanetSidebarItem: View {
         conf.hides = false
         conf.activates = true
         return conf
+    }
+
+    private func airdropPlanet() {
+        guard let service: NSSharingService = NSSharingService(named: .sendViaAirDrop) else {
+            Task { @MainActor in
+                self.planetStore.isShowingAlert = true
+                self.planetStore.alertTitle = "Failed to Start AirDrop Service"
+                self.planetStore.alertMessage = "Please check your system settings and try again later."
+            }
+            return
+        }
+        do {
+            let url = URL(fileURLWithPath: NSTemporaryDirectory())
+            let tmpExportPath = url.appendingPathComponent("\(planet.name.sanitized()).planet", isDirectory: true)
+            if FileManager.default.fileExists(atPath: tmpExportPath.path) {
+                try FileManager.default.removeItem(at: tmpExportPath)
+            }
+            try planet.exportBackup(to: url, isForAirDropSharing: true)
+            service.subject = "Share planet: \(planet.name)"
+            if service.canPerform(withItems: [tmpExportPath]) {
+                service.perform(withItems: [tmpExportPath])
+            } else {
+                Task { @MainActor in
+                    self.planetStore.isShowingAlert = true
+                    self.planetStore.alertTitle = "Failed to Share Planet"
+                    self.planetStore.alertMessage = "Please check your system settings and try again later."
+                }
+            }
+            try? FileManager.default.removeItem(at: tmpExportPath)
+        } catch {
+            Task { @MainActor in
+                self.planetStore.isShowingAlert = true
+                self.planetStore.alertTitle = "Failed to Share Planet"
+                self.planetStore.alertMessage = error.localizedDescription
+            }
+        }
     }
 }

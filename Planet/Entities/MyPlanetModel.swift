@@ -1023,7 +1023,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
-    func exportBackup(to directory: URL) throws {
+    func exportBackup(to directory: URL, isForAirDropSharing: Bool = false) throws {
         let exportPath = directory.appendingPathComponent(
             "\(name.sanitized()).planet",
             isDirectory: true
@@ -1111,7 +1111,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             throw PlanetError.ExportPlanetError
         }
 
-        NSWorkspace.shared.activateFileViewerSelecting([exportPath])
+        if !isForAirDropSharing {
+            NSWorkspace.shared.activateFileViewerSelecting([exportPath])
+        }
     }
 
     func save() throws {
