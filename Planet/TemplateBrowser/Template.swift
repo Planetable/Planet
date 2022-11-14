@@ -246,6 +246,10 @@ class Template: Codable, Identifiable {
                 def hello_world():
                     return "<p>Hello, World!</p>"
                 ```
+                
+                ### Blockquote
+                
+                > A dream you dream alone is only a dream. A dream you dream together is reality.
 
                 ---
                 """,
