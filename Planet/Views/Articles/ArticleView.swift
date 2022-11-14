@@ -79,11 +79,18 @@ struct ArticleView: View {
                     } label: {
                         Image(systemName: "info.circle")
                     }
-                case .followingPlanet:
+                case .followingPlanet(let planet):
                     Button {
                         planetStore.isShowingPlanetInfo = true
                     } label: {
                         Image(systemName: "info.circle")
+                    }
+                    if canTip(planet: planet) {
+                        Button {
+
+                        } label: {
+                            Image(systemName: "gift")
+                        }
                     }
                 default:
                     Text("")
@@ -191,5 +198,16 @@ struct ArticleView: View {
                 }
             }
         }
+    }
+
+    private func canTip(planet: FollowingPlanetModel) -> Bool {
+        debugPrint("Tipping: Following Planet \(planet.walletAddress)")
+        guard let walletAddress = planet.walletAddress else { return false }
+        let myWalletAddress = planetStore.walletAddress
+        debugPrint("Tipping: My Wallet \(myWalletAddress) / Author Wallet \(walletAddress)")
+        if myWalletAddress.count == 42, myWalletAddress.lowercased() != walletAddress.lowercased() {
+            return true
+        }
+        return false
     }
 }

@@ -282,7 +282,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     static func followENS(ens: String) async throws -> FollowingPlanetModel {
-        guard let resolver = try await ENSUtils.shared.resolver(name: ens) else {
+        var enskit = ENSKit(jsonrpcClient: EthereumAPI.OneRPC, ipfsClient: GoIPFSGateway())
+        var resolver = try await enskit.resolver(name: ens)
+        if resolver == nil {
+            enskit = ENSKit(jsonrpcClient: EthereumAPI.Cloudflare, ipfsClient: GoIPFSGateway())
+            resolver = try await enskit.resolver(name: ens)
+        }
+        guard let resolver = resolver else {
             throw PlanetError.InvalidPlanetURLError
         }
         let result: URL?
@@ -362,12 +368,15 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 Self.logger.info("Follow \(ens): found avatar in native planet")
                 planet.avatar = image
             }
-            
+
             // Resolve wallet address
-            
+
             if let walletAddress = try? await resolver.addr() {
-                planet.walletAddress = walletAddress
+                planet.walletAddress = "0x" + walletAddress
                 planet.walletAddressResolvedAt = Date()
+                debugPrint("Tipping: Got wallet address for \(ens): 0x\(walletAddress)")
+            } else {
+                debugPrint("Tipping: Did not get wallet address for \(ens)")
             }
 
             try planet.save()
@@ -397,6 +406,15 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 updated: now,
                 lastRetrieved: now
             )
+            // Resolve wallet address
+
+            if let walletAddress = try? await resolver.addr() {
+                planet.walletAddress = "0x" + walletAddress
+                planet.walletAddressResolvedAt = Date()
+                debugPrint("Tipping: Got wallet address for \(ens): \(walletAddress)")
+            } else {
+                debugPrint("Tipping: Did not get wallet address for \(ens)")
+            }
             if let publicArticles = feed.articles {
                 let items = deduplicate(publicArticles)
                 planet.articles = items.map {
@@ -979,6 +997,22 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             guard let resolver = try await ENSUtils.shared.resolver(name: link) else {
                 throw PlanetError.InvalidPlanetURLError
             }
+            if let walletAddress = try? await resolver.addr() {
+                debugPrint("Tipping: got wallet address for \(self.link): \(walletAddress)")
+                var saveNow: Bool = false
+                if self.walletAddress == nil || self.walletAddress != "0x" + walletAddress {
+                    saveNow = true
+                }
+                await MainActor.run {
+                    self.walletAddress = "0x" + walletAddress
+                    self.walletAddressResolvedAt = Date()
+                }
+                if saveNow {
+                    try save()
+                }
+            } else {
+                debugPrint("Tipping: no wallet address for \(self.link)")
+            }
             let result: URL?
             do {
                 result = try await resolver.contenthash()
@@ -998,12 +1032,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             else {
                 Self.logger.info("Planet \(self.name) has update")
-            }
-            if let walletAddress = try? await resolver.addr() {
-                await MainActor.run {
-                    self.walletAddress = walletAddress
-                    self.walletAddressResolvedAt = Date()
-                }
             }
             Task {
                 try await IPFSDaemon.shared.pin(cid: newCID)
