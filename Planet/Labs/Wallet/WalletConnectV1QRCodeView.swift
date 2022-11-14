@@ -41,6 +41,14 @@ struct WalletConnectV1QRCodeView: View {
             HStack(spacing: 8) {
                 HelpLinkButton(helpLink: URL(string: "https://planetable.xyz/guides/siwe/")!)
 
+                Button {
+                    let pboard = NSPasteboard.general
+                    pboard.clearContents()
+                    pboard.setString(planetStore.walletConnectV1ConnectionURL, forType: .string)
+                } label: {
+                    Text("Copy URL")
+                }
+
                 Spacer()
 
                 Button {

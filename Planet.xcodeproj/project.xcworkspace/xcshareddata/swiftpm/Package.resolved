@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Planetable/ENSKit",
       "state" : {
-        "revision" : "0842078e4ff0caa9eb9d457ff9de57c2020a8dd3",
-        "version" : "0.5.0"
+        "revision" : "e9060c5110ae0947503ebb5a745254818e8f5844",
+        "version" : "0.5.2"
       }
     },
     {
@@ -195,7 +195,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "7ccf26caf16eff87d0544043d7ae2265a206228f"
+        "revision" : "84197cd011da4b1986fc7a431cdf3f0f32199db1"
       }
     },
     {

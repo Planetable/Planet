@@ -1,3 +1,4 @@
+import ENSKit
 import Foundation
 import SwiftSoup
 import SwiftUI
@@ -30,6 +31,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     @Published var archived: Bool? = false
     @Published var archivedAt: Date?
+
+    @Published var walletAddress: String?
+    @Published var walletAddressResolvedAt: Date?
 
     @Published var isUpdating = false
 
@@ -87,6 +91,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         hasher.combine(lastRetrieved)
         hasher.combine(archived)
         hasher.combine(archivedAt)
+        hasher.combine(walletAddress)
+        hasher.combine(walletAddressResolvedAt)
         hasher.combine(isUpdating)
         hasher.combine(articles)
         hasher.combine(avatar)
@@ -110,6 +116,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             && lhs.lastRetrieved == rhs.lastRetrieved
             && lhs.archived == rhs.archived
             && lhs.archivedAt == rhs.archivedAt
+            && lhs.walletAddress == rhs.walletAddress
+            && lhs.walletAddressResolvedAt == rhs.walletAddressResolvedAt
             && lhs.isUpdating == rhs.isUpdating
             && lhs.articles == rhs.articles
             && lhs.avatar == rhs.avatar
@@ -118,7 +126,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     enum CodingKeys: String, CodingKey {
         case id, planetType, name, about, link,
              cid, created, updated, lastRetrieved,
-             archived, archivedAt
+             archived, archivedAt,
+             walletAddress, walletAddressResolvedAt
     }
 
     required init(from decoder: Decoder) throws {
@@ -134,6 +143,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         lastRetrieved = try container.decode(Date.self, forKey: .lastRetrieved)
         archived = try container.decodeIfPresent(Bool.self, forKey: .archived)
         archivedAt = try container.decodeIfPresent(Date.self, forKey: .archivedAt)
+        walletAddress = try container.decodeIfPresent(String.self, forKey: .walletAddress)
+        walletAddressResolvedAt = try container.decodeIfPresent(
+            Date.self,
+            forKey: .walletAddressResolvedAt
+        )
     }
 
     func encode(to encoder: Encoder) throws {
@@ -149,6 +163,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         try container.encode(lastRetrieved, forKey: .lastRetrieved)
         try container.encodeIfPresent(archived, forKey: .archived)
         try container.encodeIfPresent(archivedAt, forKey: .archivedAt)
+        try container.encodeIfPresent(walletAddress, forKey: .walletAddress)
+        try container.encodeIfPresent(walletAddressResolvedAt, forKey: .walletAddressResolvedAt)
     }
 
     init(
@@ -345,6 +361,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             {
                 Self.logger.info("Follow \(ens): found avatar in native planet")
                 planet.avatar = image
+            }
+            
+            // Resolve wallet address
+            
+            if let walletAddress = try? await resolver.addr() {
+                planet.walletAddress = walletAddress
+                planet.walletAddressResolvedAt = Date()
             }
 
             try planet.save()
@@ -976,6 +999,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             else {
                 Self.logger.info("Planet \(self.name) has update")
             }
+            if let walletAddress = try? await resolver.addr() {
+                await MainActor.run {
+                    self.walletAddress = walletAddress
+                    self.walletAddressResolvedAt = Date()
+                }
+            }
             Task {
                 try await IPFSDaemon.shared.pin(cid: newCID)
             }
@@ -1419,6 +1448,24 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     func delete() {
         try? FileManager.default.removeItem(at: basePath)
+    }
+
+    func resolveWalletAddress() async -> String? {
+        if self.planetType == .ens {
+            let enskit = ENSKit()
+            do {
+                if let resolver = try await enskit.resolver(name: link) {
+                    let address = try await resolver.addr()
+                    return address
+                } else {
+                    return nil
+                }
+            } catch {
+                return nil
+            }
+        } else {
+            return nil
+        }
     }
 
     func navigationSubtitle() -> String {
