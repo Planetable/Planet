@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 struct MyPlanetSidebarItem: View {
@@ -131,10 +132,17 @@ struct MyPlanetSidebarItem: View {
             }
 
             Group {
-                Button {
-                    isExportingPlanet = true
-                } label: {
-                    Text("Export Planet")
+                Menu("Export Planet") {
+                    Button {
+                        isExportingPlanet = true
+                    } label: {
+                        Text("Save as Planet Data File")
+                    }
+                    Button {
+                        airdropPlanet()
+                    } label: {
+                        Text("Share via AirDrop")
+                    }
                 }
 
                 Divider()
@@ -228,5 +236,37 @@ struct MyPlanetSidebarItem: View {
         conf.hides = false
         conf.activates = true
         return conf
+    }
+
+    private func airdropPlanet() {
+        func failedWithErrorDescription(_ description: String) {
+            Task { @MainActor in
+                self.planetStore.isShowingAlert = true
+                self.planetStore.alertTitle = "Failed to Start AirDrop Service"
+                self.planetStore.alertMessage = description
+            }
+        }
+
+        guard let service: NSSharingService = NSSharingService(named: .sendViaAirDrop) else {
+            failedWithErrorDescription("Please check your system settings and try again later.")
+            return
+        }
+        let url = URLUtils.temporaryPath
+        let planetPath = url.appendingPathComponent("\(planet.name.sanitized()).planet", isDirectory: true)
+        NSWorkspace.shared.activateFileViewerSelecting([planetPath])
+        do {
+            if FileManager.default.fileExists(atPath: planetPath.path) {
+                try FileManager.default.removeItem(at: planetPath)
+            }
+            try planet.exportBackup(to: url, isForAirDropSharing: true)
+            if service.canPerform(withItems: [planetPath]) {
+                service.perform(withItems: [planetPath])
+            } else {
+                failedWithErrorDescription("Please check your system settings and try again later.")
+            }
+        } catch {
+            try? FileManager.default.removeItem(at: planetPath)
+            failedWithErrorDescription(error.localizedDescription)
+        }
     }
 }
