@@ -15,9 +15,15 @@ struct URLUtils {
         create: true
     )
 
-
     static let documentsPath = try! FileManager.default.url(
         for: .documentDirectory,
+        in: .userDomainMask,
+        appropriateFor: nil,
+        create: true
+    )
+
+    static let cachesPath = try! FileManager.default.url(
+        for: .cachesDirectory,
         in: .userDomainMask,
         appropriateFor: nil,
         create: true
@@ -43,6 +49,12 @@ struct URLUtils {
 
     static let publishedFolderHistoryPath: URL = {
         let url = repoPath.appendingPathComponent("PublishedFolders", isDirectory: true)
+        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }()
+
+    static let temporaryPath: URL = {
+        let url = cachesPath.appendingPathComponent("tmp", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()

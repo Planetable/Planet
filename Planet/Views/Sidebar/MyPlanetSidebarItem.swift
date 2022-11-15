@@ -132,16 +132,17 @@ struct MyPlanetSidebarItem: View {
             }
 
             Group {
-                Button {
-                    isExportingPlanet = true
-                } label: {
-                    Text("Export Planet")
-                }
-
-                Button {
-                    airdropPlanet()
-                } label: {
-                    Text("Share Planet via AirDrop")
+                Menu("Export Planet") {
+                    Button {
+                        isExportingPlanet = true
+                    } label: {
+                        Text("Save as Planet Data File")
+                    }
+                    Button {
+                        airdropPlanet()
+                    } label: {
+                        Text("Share via AirDrop")
+                    }
                 }
 
                 Divider()
@@ -238,38 +239,34 @@ struct MyPlanetSidebarItem: View {
     }
 
     private func airdropPlanet() {
-        guard let service: NSSharingService = NSSharingService(named: .sendViaAirDrop) else {
+        func failedWithErrorDescription(_ description: String) {
             Task { @MainActor in
                 self.planetStore.isShowingAlert = true
                 self.planetStore.alertTitle = "Failed to Start AirDrop Service"
-                self.planetStore.alertMessage = "Please check your system settings and try again later."
+                self.planetStore.alertMessage = description
             }
+        }
+
+        guard let service: NSSharingService = NSSharingService(named: .sendViaAirDrop) else {
+            failedWithErrorDescription("Please check your system settings and try again later.")
             return
         }
+        let url = URLUtils.temporaryPath
+        let planetPath = url.appendingPathComponent("\(planet.name.sanitized()).planet", isDirectory: true)
+        NSWorkspace.shared.activateFileViewerSelecting([planetPath])
         do {
-            let url = URL(fileURLWithPath: NSTemporaryDirectory())
-            let tmpExportPath = url.appendingPathComponent("\(planet.name.sanitized()).planet", isDirectory: true)
-            if FileManager.default.fileExists(atPath: tmpExportPath.path) {
-                try FileManager.default.removeItem(at: tmpExportPath)
+            if FileManager.default.fileExists(atPath: planetPath.path) {
+                try FileManager.default.removeItem(at: planetPath)
             }
             try planet.exportBackup(to: url, isForAirDropSharing: true)
-            service.subject = "Share planet: \(planet.name)"
-            if service.canPerform(withItems: [tmpExportPath]) {
-                service.perform(withItems: [tmpExportPath])
+            if service.canPerform(withItems: [planetPath]) {
+                service.perform(withItems: [planetPath])
             } else {
-                Task { @MainActor in
-                    self.planetStore.isShowingAlert = true
-                    self.planetStore.alertTitle = "Failed to Share Planet"
-                    self.planetStore.alertMessage = "Please check your system settings and try again later."
-                }
+                failedWithErrorDescription("Please check your system settings and try again later.")
             }
-            try? FileManager.default.removeItem(at: tmpExportPath)
         } catch {
-            Task { @MainActor in
-                self.planetStore.isShowingAlert = true
-                self.planetStore.alertTitle = "Failed to Share Planet"
-                self.planetStore.alertMessage = error.localizedDescription
-            }
+            try? FileManager.default.removeItem(at: planetPath)
+            failedWithErrorDescription(error.localizedDescription)
         }
     }
 }
