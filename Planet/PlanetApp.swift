@@ -142,11 +142,14 @@ struct PlanetApp: App {
 
     @SceneBuilder
     private func planetMainWindowGroup() -> some Scene {
+        let mainEvent: Set<String> = Set(arrayLiteral: "planet://")
         WindowGroup {
             PlanetMainView()
                 .environmentObject(planetStore)
                 .frame(minWidth: 720, minHeight: 600)
+                .handlesExternalEvents(preferring: mainEvent, allowing: mainEvent)
         }
+        .handlesExternalEvents(matching: mainEvent)
     }
 
     @available(macOS 13.0, *)
