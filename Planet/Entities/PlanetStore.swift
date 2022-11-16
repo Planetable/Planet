@@ -93,6 +93,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var walletConnectV1ConnectionURL: String = ""
     @Published var walletAddress: String = ""
 
+    @Published var isShowingOnboarding = false
+
     @Published var isShowingAlert = false
     @Published var alertTitle: String = ""
     @Published var alertMessage: String = ""

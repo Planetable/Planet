@@ -8,5 +8,5 @@
 import Foundation
 
 struct PlanetUI {
-    
+    static let SHEET_WIDTH_LARGE: CGFloat = 720
 }

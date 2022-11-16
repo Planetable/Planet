@@ -89,7 +89,7 @@ extension URL {
     }
 
     var isPlanetWindowGroupLink: Bool {
-        let windowGroups: [String] = ["planet://Template", "planet://Onboarding"]
+        let windowGroups: [String] = ["planet://Template"]
         return windowGroups.contains(self.absoluteString)
     }
 }

@@ -91,7 +91,7 @@ struct PlanetApp: App {
                 SidebarCommands()
                 CommandGroup(replacing: .help) {
                     Button {
-                        openURL(URL(string: "planet://Onboarding")!)
+                        planetStore.isShowingOnboarding = true
                     } label: {
                         Text("What's New in Planet")
                     }
@@ -106,26 +106,6 @@ struct PlanetApp: App {
                 .handlesExternalEvents(preferring: templateEvent, allowing: templateEvent)
         }
         .handlesExternalEvents(matching: templateEvent)
-
-        let onboardingEvent: Set<String> = Set(arrayLiteral: "planet://Onboarding")
-        WindowGroup("Onboarding") {
-            OnboardingView()
-                .frame(width: 720, height: 528)
-                .onAppear {
-                    Task { @MainActor in
-                        NSApplication.shared.windows.forEach { window in
-                            if window.title == "Onboarding" {
-                                window.styleMask.subtract(.resizable)
-                                window.styleMask.subtract(.fullScreen)
-                            }
-                        }
-                    }
-                }
-                .handlesExternalEvents(preferring: onboardingEvent, allowing: onboardingEvent)
-        }
-        .windowStyle(.hiddenTitleBar)
-        .windowToolbarStyle(.unifiedCompact)
-        .handlesExternalEvents(matching: onboardingEvent)
 
         Settings {
             PlanetSettingsView()

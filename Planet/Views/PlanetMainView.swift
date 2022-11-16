@@ -83,6 +83,9 @@ struct PlanetMainView: View {
         .sheet(isPresented: $planetStore.isShowingWalletAccount) {
             WalletAccountView(walletAddress: planetStore.walletAddress)
         }
+        .sheet(isPresented: $planetStore.isShowingOnboarding) {
+            OnboardingView()
+        }
     }
 }
 

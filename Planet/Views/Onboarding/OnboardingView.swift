@@ -81,6 +81,7 @@ struct OnboardingView: View {
         }
         .padding(.vertical, 40)
         .background(Color(NSColor.textBackgroundColor))
+        .frame(width: PlanetUI.SHEET_WIDTH_LARGE, height: 520)
     }
 }
 
