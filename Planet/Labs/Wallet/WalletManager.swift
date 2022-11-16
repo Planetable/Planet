@@ -8,8 +8,9 @@
 import Foundation
 import Starscream
 import WalletConnectNetworking
-import WalletConnectRelay
 import WalletConnectPairing
+import WalletConnectRelay
+import WalletConnectSwift
 
 extension WebSocket: WebSocketConnecting { }
 

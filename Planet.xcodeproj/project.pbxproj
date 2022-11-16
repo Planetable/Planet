@@ -87,6 +87,8 @@
 		6AC01AEE291D258900EB6B5F /* AccountBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AED291D258900EB6B5F /* AccountBadgeView.swift */; };
 		6AC01AF0291ECC7E00EB6B5F /* WalletAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */; };
 		6AC0BC4728F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */; };
+		6ACF166529246BD800AE318B /* TipSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF166429246BD800AE318B /* TipSelectView.swift */; };
+		6ACF1667292570AF00AE318B /* PlanetUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF1666292570AF00AE318B /* PlanetUI.swift */; };
 		6ADF40B92914D88C007A24E8 /* MyPlanetIPNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */; };
 		6ADF40C429151407007A24E8 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 6ADF40C329151407007A24E8 /* Starscream */; };
 		6AE93656290CB10700BAC092 /* PlanetSettingsPlanetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */; };
@@ -232,6 +234,8 @@
 		6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetPodcastSettingsView.swift; sourceTree = "<group>"; };
 		6AC83749284C9A4D00C0F952 /* versioning.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = versioning.xcconfig; sourceTree = "<group>"; };
 		6AC8374B284C9A8500C0F952 /* marketing_version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = marketing_version.xcconfig; sourceTree = "<group>"; };
+		6ACF166429246BD800AE318B /* TipSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipSelectView.swift; sourceTree = "<group>"; };
+		6ACF1666292570AF00AE318B /* PlanetUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetUI.swift; sourceTree = "<group>"; };
 		6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetIPNSView.swift; sourceTree = "<group>"; };
 		6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsPlanetsView.swift; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
@@ -383,6 +387,7 @@
 				2AC4996927BB987B00F1C2D1 /* Info.plist */,
 				2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */,
 				7211404DFC1B4D23F84EA279 /* PlanetError.swift */,
+				6ACF1666292570AF00AE318B /* PlanetUI.swift */,
 				6A1DA07A28B4273C00C6B5A9 /* Labs */,
 				6A5E63A62807269400FB1E84 /* TemplateBrowser */,
 				2AC4996D27BB9F2200F1C2D1 /* Templates */,
@@ -582,6 +587,7 @@
 				6AABC6A6291A6216009FD13F /* WalletConnectV1.swift */,
 				6AABC6AB291A698B009FD13F /* WalletConnectV1QRCodeView.swift */,
 				6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */,
+				6ACF166429246BD800AE318B /* TipSelectView.swift */,
 			);
 			path = Wallet;
 			sourceTree = "<group>";
@@ -780,6 +786,7 @@
 				2AE07DDA27C9F4EA00377651 /* ArticleWebView.swift in Sources */,
 				2A09A36127C2582B0003A0B5 /* ArticleListView.swift in Sources */,
 				6A2F5F1128DB74C500034D55 /* Filebase.swift in Sources */,
+				6ACF166529246BD800AE318B /* TipSelectView.swift in Sources */,
 				2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */,
 				2AEEBF5428C0758000A0A092 /* ArticleWebViewModel.swift in Sources */,
 				6A669052282BD6E6009E56E2 /* TemplateBrowserPreviewWebView.swift in Sources */,
@@ -865,6 +872,7 @@
 				6AB6E4FB2915227600F17328 /* WalletManager.swift in Sources */,
 				2A7022F22897DF4600022F13 /* PlanetDownloadsWindow.swift in Sources */,
 				72114AFCB4EDB617C07192BB /* FollowingPlanetSidebarItem.swift in Sources */,
+				6ACF1667292570AF00AE318B /* PlanetUI.swift in Sources */,
 				6AC01AEE291D258900EB6B5F /* AccountBadgeView.swift in Sources */,
 				2A04DADF28EAD2610040D8E0 /* PlanetPublishedFolderModel.swift in Sources */,
 				721144941B29E9E78C05A89D /* Lifetimes.swift in Sources */,

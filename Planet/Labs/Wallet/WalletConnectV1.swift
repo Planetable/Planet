@@ -67,6 +67,57 @@ class WalletConnect {
             throw TestError.unknown
         }
     }
+
+    private func handleResponse(_ response: Response, expecting: String) {
+        DispatchQueue.main.async {
+            if let error = response.error {
+                debugPrint("Transaction Error: \(error.localizedDescription)")
+                return
+            }
+            do {
+                let result = try response.result(as: String.self)
+                debugPrint("Transaction Result: \(expecting) - \(result)")
+            } catch {
+                debugPrint("Transaction Error: Unexpected response type error: \(error)")
+            }
+        }
+    }
+
+    private func nonceRequest() -> Request {
+        return .eth_getTransactionCount(url: session.url, account: session.walletInfo!.accounts[0])
+    }
+
+    private func nonce(from response: Response) -> String? {
+        return try? response.result(as: String.self)
+    }
+
+    func sendTestTransaction(receiver: String, memo: String) {
+        try? client.send(nonceRequest()) { [weak self] response in
+            guard let self = self, let nonce = self.nonce(from: response) else { return }
+            let transaction = self.testTransaction(to: receiver, memo: memo, nonce: nonce)
+            try? self.client.eth_sendTransaction(url: response.url, transaction: transaction) { [weak self] response in
+                self?.handleResponse(response, expecting: "Hash")
+            }
+        }
+    }
+
+    func testTransaction(to receiver: String, memo: String, nonce: String) -> Client.Transaction {
+        let amount = 1 * 1_000_000_000_000_000 // Amount: X * 0.001 ETH
+        let value = String(amount, radix: 16)
+        let memoEncoded = memo.data(using: .utf8)!.toHexString()
+        return Client.Transaction(from: session.walletInfo!.accounts[0],
+                                  to: receiver,
+                                  data: memoEncoded,
+                                  gas: nil,
+                                  gasPrice: nil,
+                                  value: value,
+                                  nonce: nonce,
+                                  type: nil,
+                                  accessList: nil,
+                                  chainId: String(format: "0x%x", 5),
+                                  maxPriorityFeePerGas: nil,
+                                  maxFeePerGas: nil)
+    }
 }
 
 extension WalletConnect: ClientDelegate {
@@ -92,5 +143,15 @@ extension WalletConnect: ClientDelegate {
 
     func client(_ client: Client, didUpdate session: Session) {
         // do nothing
+    }
+}
+
+extension Request {
+    static func eth_getTransactionCount(url: WCURL, account: String) -> Request {
+        return try! Request(url: url, method: "eth_getTransactionCount", params: [account, "latest"])
+    }
+
+    static func eth_gasPrice(url: WCURL) -> Request {
+        return Request(url: url, method: "eth_gasPrice")
     }
 }

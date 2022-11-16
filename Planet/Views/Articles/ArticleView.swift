@@ -85,9 +85,9 @@ struct ArticleView: View {
                     } label: {
                         Image(systemName: "info.circle")
                     }
-                    if canTip(planet: planet) {
+                    if let receiver = canTip(planet: planet) {
                         Button {
-
+                            WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, memo: "planet:\(planet.link)")
                         } label: {
                             Image(systemName: "gift")
                         }
@@ -200,14 +200,14 @@ struct ArticleView: View {
         }
     }
 
-    private func canTip(planet: FollowingPlanetModel) -> Bool {
+    private func canTip(planet: FollowingPlanetModel) -> String? {
         debugPrint("Tipping: Following Planet \(planet.walletAddress)")
-        guard let walletAddress = planet.walletAddress else { return false }
+        guard let walletAddress = planet.walletAddress else { return nil }
         let myWalletAddress = planetStore.walletAddress
         debugPrint("Tipping: My Wallet \(myWalletAddress) / Author Wallet \(walletAddress)")
         if myWalletAddress.count == 42, myWalletAddress.lowercased() != walletAddress.lowercased() {
-            return true
+            return walletAddress
         }
-        return false
+        return nil
     }
 }
