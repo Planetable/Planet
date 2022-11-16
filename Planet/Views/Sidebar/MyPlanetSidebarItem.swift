@@ -253,7 +253,6 @@ struct MyPlanetSidebarItem: View {
         }
         let url = URLUtils.temporaryPath
         let planetPath = url.appendingPathComponent("\(planet.name.sanitized()).planet", isDirectory: true)
-        NSWorkspace.shared.activateFileViewerSelecting([planetPath])
         do {
             if FileManager.default.fileExists(atPath: planetPath.path) {
                 try FileManager.default.removeItem(at: planetPath)
