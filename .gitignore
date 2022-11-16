@@ -4,6 +4,3 @@
 local.xcconfig
 xcuserdata
 archive/
-
-# Ignore the machine generated files
-Planet.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
