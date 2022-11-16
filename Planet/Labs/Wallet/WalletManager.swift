@@ -12,6 +12,12 @@ import WalletConnectPairing
 import WalletConnectRelay
 import WalletConnectSwift
 
+enum EthereumChain: Int, Codable {
+    case mainnet = 1
+    case goerli = 5
+    case sepolia = 11155111
+}
+
 extension WebSocket: WebSocketConnecting { }
 
 struct SocketFactory: WebSocketFactory {
