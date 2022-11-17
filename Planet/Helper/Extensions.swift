@@ -18,6 +18,7 @@ extension Data {
 
 extension String {
     static let settingsPublicGatewayIndex: String = "PlanetSettingsPublicGatewayIndexKey"
+    static let settingsEthereumChainId: String = "PlanetSettingsEthereumChainId"
 
     func sanitized() -> String {
         // Reference: https://superuser.com/a/358861

@@ -12,10 +12,18 @@ import WalletConnectPairing
 import WalletConnectRelay
 import WalletConnectSwift
 
-enum EthereumChain: Int, Codable {
+enum EthereumChainID: Int, Codable, CaseIterable {
     case mainnet = 1
     case goerli = 5
     case sepolia = 11155111
+
+    var id: Int { return self.rawValue }
+
+    static let names: [Int: String] = [
+        1: "Mainnet",
+        5: "Goerli",
+        11155111: "Sepolia",
+    ]
 }
 
 extension WebSocket: WebSocketConnecting { }

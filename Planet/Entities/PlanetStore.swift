@@ -104,6 +104,9 @@ enum PlanetDetailViewType: Hashable, Equatable {
         if UserDefaults.standard.value(forKey: String.settingsPublicGatewayIndex) == nil {
             UserDefaults.standard.set(0, forKey: String.settingsPublicGatewayIndex)
         }
+        if UserDefaults.standard.value(forKey: String.settingsEthereumChainId) == nil {
+            UserDefaults.standard.set(1, forKey: String.settingsEthereumChainId)
+        }
 
         do {
             try load()
