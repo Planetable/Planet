@@ -14,6 +14,7 @@ struct WalletAccountView: View {
     @State private var ensName: String?
     @State private var displayName: String = " "
     @State private var displayBalance: String = " "
+    @State private var walletAppName: String = "a mobile wallet app"
     
     let AVATAR_SIZE: CGFloat = 64
 
@@ -94,7 +95,7 @@ struct WalletAccountView: View {
                     dismiss()
                 } label: {
                     Text("Disconnect")
-                }
+                }.help("Connected with \(walletAppName)")
                 
                 Spacer()
 
@@ -130,6 +131,9 @@ struct WalletAccountView: View {
         .frame(width: 480, height: 240, alignment: .top)
         .onAppear {
             self.displayName = walletAddress.shortWalletAddress()
+            if let walletAppName = WalletManager.shared.walletConnect.session.walletInfo?.peerMeta.name {
+                self.walletAppName = walletAppName
+            }
             // Get ENS and avatar image
             let ensURL = URL(string: "https://api.ensideas.com/ens/resolve/\(walletAddress)")!
             URLSession.shared.dataTask(with: ensURL) { data, response, error in

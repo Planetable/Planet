@@ -11,6 +11,7 @@ struct ArticleView: View {
     @State private var isSharing = false
 
     @State private var sharingItem: URL?
+    @State private var currentItemLink: String? = nil
 
     var body: some View {
         VStack {
@@ -25,6 +26,7 @@ struct ArticleView: View {
             if let myArticle = newArticle as? MyArticleModel {
                 url = myArticle.publicIndexPath
                 sharingItem = myArticle.browserURL?.absoluteURL
+                currentItemLink = myArticle.link
             }
             else if let followingArticle = newArticle as? FollowingArticleModel {
                 if let webviewURL = followingArticle.webviewURL {
@@ -35,15 +37,29 @@ struct ArticleView: View {
                     url = Self.noSelectionURL
                 }
                 sharingItem = followingArticle.browserURL?.absoluteURL
+                currentItemLink = followingArticle.link
             }
             else {
                 debugPrint("Failed to switch selected article - branch B")
                 url = Self.noSelectionURL
+                currentItemLink = nil
             }
+            if let linkString = currentItemLink, !linkString.hasPrefix("/"), let linkURL = URL(string: linkString) {
+                var link = linkURL.path
+                if let query = linkURL.query {
+                    link.append("?" + query)
+                }
+                if let fragment = linkURL.fragment {
+                    link.append("#" + fragment)
+                }
+                currentItemLink = link
+            }
+            debugPrint("Current item link is \(currentItemLink ?? "nil")")
             NotificationCenter.default.post(name: .loadArticle, object: nil)
         }
         .onChange(of: planetStore.selectedView) { _ in
             url = Self.noSelectionURL
+            currentItemLink = nil
             NotificationCenter.default.post(name: .loadArticle, object: nil)
         }
         .toolbar {
@@ -87,7 +103,11 @@ struct ArticleView: View {
                     }
                     if let receiver = canTip(planet: planet) {
                         Button {
-                            WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, memo: "planet:\(planet.link)")
+                            if let link = currentItemLink {
+                                WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, memo: "planet:\(planet.link)\(link)")
+                            } else {
+                                WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, memo: "planet:\(planet.link)")
+                            }
                         } label: {
                             Image(systemName: "gift")
                         }

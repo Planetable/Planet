@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import WalletConnectSwift
 
 protocol WalletConnectDelegate {
@@ -77,6 +78,14 @@ class WalletConnect {
             do {
                 let result = try response.result(as: String.self)
                 debugPrint("Transaction Result: \(expecting) - \(result)")
+                if result.hasPrefix("0x") {
+                    // Open etherscan.io after 1 second
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        if let etherscanURL: URL = URL(string: WalletManager.shared.etherscanURLString(tx: result)) {
+                            NSWorkspace.shared.open(etherscanURL)
+                        }
+                    }
+                }
             } catch {
                 debugPrint("Transaction Error: Unexpected response type error: \(error)")
             }

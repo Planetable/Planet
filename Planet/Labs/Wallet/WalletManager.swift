@@ -38,6 +38,27 @@ class WalletManager: NSObject {
     static let shared = WalletManager()
 
     var walletConnect: WalletConnect!
+    
+    // MARK: - Common
+    func currentNetwork() -> EthereumChainID? {
+        let chainId = UserDefaults.standard.integer(forKey: String.settingsEthereumChainId)
+        let chain = EthereumChainID.init(rawValue: chainId)
+        return chain
+    }
+    
+    func etherscanURLString(tx: String) -> String {
+        let chain = WalletManager.shared.currentNetwork()
+        switch (chain) {
+        case .mainnet:
+            return "https://etherscan.io/tx/" + tx
+        case .goerli:
+            return "https://goerli.etherscan.io/tx/" + tx
+        case .sepolia:
+            return "https://sepolia.otterscan.io/tx/" + tx
+        default:
+            return "https://etherscan.io/tx/" + tx
+        }
+    }
 
     // MARK: - V1
     func setupV1() {
