@@ -2,7 +2,6 @@ import SwiftUI
 
 struct MyPlanetEditView: View {
     let CONTROL_CAPTION_WIDTH: CGFloat = 80
-    let CONTROL_ROW_SPACING: CGFloat = 8
     let SOCIAL_CONTROL_CAPTION_WIDTH: CGFloat = 120
 
     @Environment(\.dismiss) var dismiss
@@ -66,7 +65,7 @@ struct MyPlanetEditView: View {
                 }
 
                 TabView {
-                    VStack(spacing: CONTROL_ROW_SPACING) {
+                    VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
                                 Text("Name")
@@ -141,7 +140,7 @@ struct MyPlanetEditView: View {
                         Text("Basic Info")
                     }
 
-                    VStack(spacing: CONTROL_ROW_SPACING) {
+                    VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
                                 Spacer()
@@ -194,8 +193,8 @@ struct MyPlanetEditView: View {
                         Text("Analytics")
                     }
 
-                    VStack(spacing: CONTROL_ROW_SPACING) {
-                        HStack(spacing: 8) {
+                    VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
+                        HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                             HStack {
                                 Spacer()
                                 Text("Twitter:")
@@ -206,7 +205,7 @@ struct MyPlanetEditView: View {
                                 .textFieldStyle(.roundedBorder)
                         }
 
-                        HStack(spacing: 8) {
+                        HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                             HStack {
                                 Spacer()
                                 Text("GitHub:")
@@ -217,7 +216,7 @@ struct MyPlanetEditView: View {
                                 .textFieldStyle(.roundedBorder)
                         }
 
-                        HStack(spacing: 8) {
+                        HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                             HStack {
                                 Spacer()
                                 Text("Telegram:")
@@ -233,7 +232,7 @@ struct MyPlanetEditView: View {
                         Text("Social")
                     }
 
-                    VStack(spacing: CONTROL_ROW_SPACING) {
+                    VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
                                 Spacer()
@@ -375,7 +374,7 @@ struct MyPlanetEditView: View {
                         Text("Pinning")
                     }
 
-                    VStack(spacing: CONTROL_ROW_SPACING) {
+                    VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
                                 Spacer()
@@ -414,7 +413,7 @@ struct MyPlanetEditView: View {
                     }
                 }
 
-                HStack(spacing: 8) {
+                HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                     Spacer()
 
                     Button {
