@@ -31,7 +31,7 @@ struct PlanetSettingsGeneralView: View {
                                     .tag(index)
                             }
                         }
-                        .pickerStyle(MenuPickerStyle())
+                        .pickerStyle(.menu)
                     }
 
                     VStack {
@@ -46,7 +46,7 @@ struct PlanetSettingsGeneralView: View {
                                     .tag(value)
                                 }
                             }
-                            .pickerStyle(MenuPickerStyle())
+                            .pickerStyle(.segmented)
                         }
                         HStack {
                             Text("")

@@ -26,6 +26,24 @@ enum EthereumChainID: Int, Codable, CaseIterable {
     ]
 }
 
+enum TipAmount: Int, Codable, CaseIterable {
+    case five = 5
+    case ten = 10
+    case twenty = 20
+    case hundred = 100
+
+    var id: Int { return self.rawValue }
+
+    var amount: Int { return self.rawValue }
+
+    static let names: [Int: String] = [
+        5: "0.05 Ξ",
+        10: "0.1 Ξ",
+        20: "0.2 Ξ",
+        100: "1 Ξ",
+    ]
+}
+
 extension WebSocket: WebSocketConnecting { }
 
 struct SocketFactory: WebSocketFactory {
@@ -38,14 +56,14 @@ class WalletManager: NSObject {
     static let shared = WalletManager()
 
     var walletConnect: WalletConnect!
-    
+
     // MARK: - Common
     func currentNetwork() -> EthereumChainID? {
         let chainId = UserDefaults.standard.integer(forKey: String.settingsEthereumChainId)
         let chain = EthereumChainID.init(rawValue: chainId)
         return chain
     }
-    
+
     func etherscanURLString(tx: String) -> String {
         let chain = WalletManager.shared.currentNetwork()
         switch (chain) {
