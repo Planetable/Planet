@@ -10,7 +10,8 @@ import CoreImage.CIFilterBuiltins
 
 struct WalletConnectV1QRCodeView: View {
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var planetStore: PlanetStore
+
+    var payload: String
 
     let context = CIContext()
     let filter = CIFilter.qrCodeGenerator()
@@ -24,7 +25,7 @@ struct WalletConnectV1QRCodeView: View {
 
             Divider()
 
-            if let qrCode: NSImage = generateQRCode(from: planetStore.walletConnectV1ConnectionURL) {
+            if let qrCode: NSImage = generateQRCode(from: payload) {
                 Image(nsImage: qrCode)
                     .interpolation(.none)
                     .resizable()
@@ -44,7 +45,7 @@ struct WalletConnectV1QRCodeView: View {
                 Button {
                     let pboard = NSPasteboard.general
                     pboard.clearContents()
-                    pboard.setString(planetStore.walletConnectV1ConnectionURL, forType: .string)
+                    pboard.setString(payload, forType: .string)
                 } label: {
                     Text("Copy URL")
                 }
@@ -79,6 +80,6 @@ struct WalletConnectV1QRCodeView: View {
 
 struct WalletConnectV1QRCodeView_Previews: PreviewProvider {
     static var previews: some View {
-        WalletConnectV1QRCodeView()
+        WalletConnectV1QRCodeView(payload: "https://walletconnect.org/")
     }
 }
