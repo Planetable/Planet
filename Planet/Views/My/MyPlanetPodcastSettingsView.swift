@@ -161,7 +161,7 @@ struct MyPlanetPodcastSettingsView: View {
                     .disabled(name.isEmpty)
                 }
 
-            }.padding(20)
+            }.padding(PlanetUI.SHEET_PADDING)
         }
         .padding(0)
         .frame(width: 520, height: 460, alignment: .top)

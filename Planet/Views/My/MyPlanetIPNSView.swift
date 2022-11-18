@@ -14,7 +14,7 @@ struct MyPlanetIPNSView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 8) {
+            VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                 HStack(spacing: 10) {
                     planet.smallAvatarAndNameView()
                     Spacer()
@@ -98,7 +98,7 @@ struct MyPlanetIPNSView: View {
                     .keyboardShortcut(.escape, modifiers: [])
                 }
 
-            }.padding(20)
+            }.padding(PlanetUI.SHEET_PADDING)
         }
         .padding(0)
         .frame(width: 620, height: 188, alignment: .top)

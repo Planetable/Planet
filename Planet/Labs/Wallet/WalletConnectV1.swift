@@ -100,7 +100,7 @@ class WalletConnect {
         return try? response.result(as: String.self)
     }
 
-    func sendTestTransaction(receiver: String, memo: String) {
+    func sendTestTransaction(receiver: String, memo: String, ens: String? = nil) {
         try? client.send(nonceRequest()) { [weak self] response in
             guard let self = self, let nonce = self.nonce(from: response) else { return }
             let transaction = self.testTransaction(to: receiver, memo: memo, nonce: nonce)

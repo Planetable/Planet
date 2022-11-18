@@ -103,10 +103,20 @@ struct ArticleView: View {
                     }
                     if let receiver = canTip(planet: planet) {
                         Button {
+                            let ens = planet.link
+                            let message: String
+                            message = "Sending 0.01 Ξ to **\(ens)** on test network, please confirm from your phone"
+                            Task { @MainActor in
+                                PlanetStore.shared.walletTransactionProgressMessage = message
+                                PlanetStore.shared.isShowingWalletTransactionProgress = true
+                            }
                             if let link = currentItemLink {
                                 WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, memo: "planet:\(planet.link)\(link)")
                             } else {
                                 WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, memo: "planet:\(planet.link)")
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                                PlanetStore.shared.isShowingWalletTransactionProgress = false
                             }
                         } label: {
                             Image(systemName: "gift")

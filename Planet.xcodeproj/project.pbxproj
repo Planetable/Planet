@@ -89,6 +89,7 @@
 		6AC0BC4728F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */; };
 		6ACF166529246BD800AE318B /* TipSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF166429246BD800AE318B /* TipSelectView.swift */; };
 		6ACF1667292570AF00AE318B /* PlanetUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF1666292570AF00AE318B /* PlanetUI.swift */; };
+		6ACF16692927267800AE318B /* WalletTransactionProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF16682927267800AE318B /* WalletTransactionProgressView.swift */; };
 		6ADF40B92914D88C007A24E8 /* MyPlanetIPNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */; };
 		6ADF40C429151407007A24E8 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 6ADF40C329151407007A24E8 /* Starscream */; };
 		6AE93656290CB10700BAC092 /* PlanetSettingsPlanetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */; };
@@ -236,6 +237,7 @@
 		6AC8374B284C9A8500C0F952 /* marketing_version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = marketing_version.xcconfig; sourceTree = "<group>"; };
 		6ACF166429246BD800AE318B /* TipSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipSelectView.swift; sourceTree = "<group>"; };
 		6ACF1666292570AF00AE318B /* PlanetUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetUI.swift; sourceTree = "<group>"; };
+		6ACF16682927267800AE318B /* WalletTransactionProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletTransactionProgressView.swift; sourceTree = "<group>"; };
 		6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetIPNSView.swift; sourceTree = "<group>"; };
 		6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsPlanetsView.swift; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
@@ -588,6 +590,7 @@
 				6AABC6AB291A698B009FD13F /* WalletConnectV1QRCodeView.swift */,
 				6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */,
 				6ACF166429246BD800AE318B /* TipSelectView.swift */,
+				6ACF16682927267800AE318B /* WalletTransactionProgressView.swift */,
 			);
 			path = Wallet;
 			sourceTree = "<group>";
@@ -839,6 +842,7 @@
 				72114842F65B9DF14A1B3F61 /* PlanetStore.swift in Sources */,
 				2A6F8282289A5DAF0099D87E /* PlanetDownloadsWebView.swift in Sources */,
 				6A8C3A6728C9361800339A86 /* DotBitKit.swift in Sources */,
+				6ACF16692927267800AE318B /* WalletTransactionProgressView.swift in Sources */,
 				721142A9C5080D3F17D23F1F /* JSONUtils.swift in Sources */,
 				721146EC85B1251B2669195C /* ENSUtils.swift in Sources */,
 				721145EEDE381A8BDED43E93 /* FeedUtils.swift in Sources */,

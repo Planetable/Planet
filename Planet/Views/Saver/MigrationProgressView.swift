@@ -14,8 +14,8 @@ struct MigrationProgressView: View {
             ProgressView()
                 .progressViewStyle(.linear)
         }
-        .frame(width: 300)
-        .padding(20)
+        .frame(width: PlanetUI.SHEET_WIDTH_PROGRESS_VIEW)
+        .padding(PlanetUI.SHEET_PADDING)
     }
 }
 

@@ -460,7 +460,7 @@ struct MyPlanetEditView: View {
                     .disabled(name.isEmpty)
                 }
 
-            }.padding(20)
+            }.padding(PlanetUI.SHEET_PADDING)
         }
         .padding(0)
         .frame(width: 520, height: 360, alignment: .top)
