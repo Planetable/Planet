@@ -114,6 +114,7 @@ class WalletConnect {
         let amount = 1 * 1_000_000_000_000_000 // Amount: X * 0.001 ETH
         let value = String(amount, radix: 16)
         let memoEncoded = memo.data(using: .utf8)!.toHexString()
+        let currentChainId = WalletManager.shared.currentNetwork()?.rawValue ?? 1
         return Client.Transaction(from: session.walletInfo!.accounts[0],
                                   to: receiver,
                                   data: memoEncoded,
@@ -123,7 +124,7 @@ class WalletConnect {
                                   nonce: nonce,
                                   type: nil,
                                   accessList: nil,
-                                  chainId: String(format: "0x%x", 5),
+                                  chainId: String(format: "0x%x", currentChainId),
                                   maxPriorityFeePerGas: nil,
                                   maxFeePerGas: nil)
     }
