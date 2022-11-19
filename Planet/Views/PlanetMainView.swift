@@ -91,6 +91,16 @@ struct PlanetMainView: View {
         .sheet(isPresented: $planetStore.isShowingWalletAccount) {
             WalletAccountView(walletAddress: planetStore.walletAddress)
         }
+        .confirmationDialog(
+            Text("Are you sure you want to disconnect?"),
+            isPresented: $planetStore.isShowingWalletDisconnectConfirmation
+        ) {
+            Button() {
+                try? WalletManager.shared.walletConnect.client.disconnect(from: WalletManager.shared.walletConnect.session)
+            } label: {
+                Text("Disconnect")
+            }
+        }
         .sheet(isPresented: $planetStore.isShowingOnboarding) {
             OnboardingView()
         }

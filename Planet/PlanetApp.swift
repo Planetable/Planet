@@ -82,11 +82,20 @@ struct PlanetApp: App {
                     }
                     .disabled(!updater.canCheckForUpdates)
 
-                    Button {
-                        WalletManager.shared.connectV1()
-                    } label: {
-                        Text("Connect Wallet")
+                    if planetStore.hasWalletAddress() {
+                        Button {
+                            planetStore.isShowingWalletDisconnectConfirmation = true
+                        } label: {
+                            Text("Disconnect Wallet")
+                        }
+                    } else {
+                        Button {
+                            WalletManager.shared.connectV1()
+                        } label: {
+                            Text("Connect Wallet")
+                        }
                     }
+
                 }
                 SidebarCommands()
                 CommandGroup(replacing: .help) {

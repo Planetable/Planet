@@ -49,7 +49,6 @@ struct AccountBadgeView: View {
                             .stroke(Color("BorderColor"), lineWidth: 1)
                     )
                     .padding(2)
-                    
             }
 
             VStack(spacing: 2) {
