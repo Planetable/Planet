@@ -11,8 +11,6 @@ struct PlanetSidebarView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @StateObject var ipfsState = IPFSState.shared
 
-    @State var isShowingDeleteConfirmation = false
-
     var body: some View {
         VStack {
             if planetStore.walletAddress.count > 0 {
