@@ -15,7 +15,8 @@ struct WalletAccountView: View {
     @State private var displayName: String = " "
     @State private var displayBalance: String = " "
     @State private var walletAppName: String = "a mobile wallet app"
-    
+    @State private var copied: Bool = false
+
     let AVATAR_SIZE: CGFloat = 64
 
     @Environment(\.dismiss) var dismiss
@@ -67,6 +68,15 @@ struct WalletAccountView: View {
                             .font(.body)
                             .foregroundColor(Color(.secondaryLabelColor))
                             .lineLimit(1)
+                            .onTapGesture {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(walletAddress, forType: .string)
+                                copied = true
+                            }
+                        if copied {
+                            Text("Copied")
+                                .font(.footnote)
+                        }
                         Spacer()
                     }
                     HStack {
@@ -96,7 +106,7 @@ struct WalletAccountView: View {
                 } label: {
                     Text("Disconnect")
                 }.help("Connected with \(walletAppName)")
-                
+
                 Spacer()
 
                 Button {

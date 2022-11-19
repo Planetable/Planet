@@ -11,6 +11,7 @@ struct ArticleView: View {
     @State private var isSharing = false
 
     @State private var sharingItem: URL?
+    @State private var currentItemHost: String? = nil
     @State private var currentItemLink: String? = nil
 
     var body: some View {
@@ -38,11 +39,19 @@ struct ArticleView: View {
                 }
                 sharingItem = followingArticle.browserURL?.absoluteURL
                 currentItemLink = followingArticle.link
+                if followingArticle.planet.planetType == .ens {
+                    currentItemHost = followingArticle.planet.link
+                }
+                if followingArticle.planet.planetType == .dotbit {
+                    currentItemHost = followingArticle.planet.link
+                }
+                planetStore.walletTransactionMemo = "planet:\(currentItemHost)\(currentItemLink)"
             }
             else {
                 debugPrint("Failed to switch selected article - branch B")
                 url = Self.noSelectionURL
                 currentItemLink = nil
+                planetStore.walletTransactionMemo = ""
             }
             if let linkString = currentItemLink, !linkString.hasPrefix("/"), let linkURL = URL(string: linkString) {
                 var link = linkURL.path
@@ -60,6 +69,7 @@ struct ArticleView: View {
         .onChange(of: planetStore.selectedView) { _ in
             url = Self.noSelectionURL
             currentItemLink = nil
+            planetStore.walletTransactionMemo = ""
             NotificationCenter.default.post(name: .loadArticle, object: nil)
         }
         .toolbar {
@@ -103,6 +113,8 @@ struct ArticleView: View {
                     }
                     if let receiver = canTip(planet: planet) {
                         Button {
+                            planetStore.isShowingWalletTipAmount = true
+                            /* Previous logic for sending test transaction
                             let ens = planet.link
                             let message: String
                             message = "Sending 0.01 Ξ to **\(ens)** on test network, please confirm from your phone"
@@ -118,9 +130,10 @@ struct ArticleView: View {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                                 PlanetStore.shared.isShowingWalletTransactionProgress = false
                             }
+                            */
                         } label: {
                             Image(systemName: "gift")
-                        }
+                        }.help("Tip")
                     }
                 default:
                     Text("")

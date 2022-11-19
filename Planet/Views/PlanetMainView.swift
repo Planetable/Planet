@@ -80,6 +80,11 @@ struct PlanetMainView: View {
         .sheet(isPresented: $planetStore.isShowingWalletConnectV1QRCode) {
             WalletConnectV1QRCodeView(payload: planetStore.walletConnectV1ConnectionURL)
         }
+        .sheet(isPresented: $planetStore.isShowingWalletTipAmount) {
+            if case .followingPlanet(let planet) = planetStore.selectedView, let receiver = planet.walletAddress, planet.link.hasSuffix(".eth") {
+                TipSelectView(receiver: receiver, ens: planet.link, memo: planetStore.walletTransactionMemo)
+            }
+        }
         .sheet(isPresented: $planetStore.isShowingWalletTransactionProgress) {
             WalletTransactionProgressView(message: planetStore.walletTransactionProgressMessage)
         }

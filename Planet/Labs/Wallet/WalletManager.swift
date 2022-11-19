@@ -64,6 +64,11 @@ class WalletManager: NSObject {
         return chain
     }
 
+    func currentNetworkName() -> String {
+        let chainId = self.currentNetwork() ?? .mainnet
+        return EthereumChainID.names[chainId.id] ?? "Mainnet"
+    }
+
     func etherscanURLString(tx: String) -> String {
         let chain = WalletManager.shared.currentNetwork()
         switch (chain) {
@@ -75,6 +80,20 @@ class WalletManager: NSObject {
             return "https://sepolia.otterscan.io/tx/" + tx
         default:
             return "https://etherscan.io/tx/" + tx
+        }
+    }
+
+    func etherscanURLString(address: String) -> String {
+        let chain = WalletManager.shared.currentNetwork()
+        switch (chain) {
+        case .mainnet:
+            return "https://etherscan.io/address/" + address
+        case .goerli:
+            return "https://goerli.etherscan.io/address/" + address
+        case .sepolia:
+            return "https://sepolia.otterscan.io/address/" + address
+        default:
+            return "https://etherscan.io/address/" + address
         }
     }
 

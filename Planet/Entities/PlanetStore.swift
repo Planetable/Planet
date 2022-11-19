@@ -91,8 +91,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isShowingWalletConnectV1QRCode: Bool = false
     @Published var isShowingWalletAccount: Bool = false
 
+    @Published var isShowingWalletTipAmount: Bool = false
     @Published var isShowingWalletTransactionProgress: Bool = false
     @Published var walletTransactionProgressMessage: String = ""
+    @Published var walletTransactionMemo: String = ""
 
     @Published var walletConnectV1ConnectionURL: String = ""
     @Published var walletAddress: String = ""
@@ -110,6 +112,9 @@ enum PlanetDetailViewType: Hashable, Equatable {
         }
         if UserDefaults.standard.value(forKey: String.settingsEthereumChainId) == nil {
             UserDefaults.standard.set(1, forKey: String.settingsEthereumChainId)
+        }
+        if UserDefaults.standard.value(forKey: String.settingsEthereumTipAmount) == nil {
+            UserDefaults.standard.set(5, forKey: String.settingsEthereumTipAmount)
         }
 
         do {

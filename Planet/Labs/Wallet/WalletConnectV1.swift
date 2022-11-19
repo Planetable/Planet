@@ -100,6 +100,39 @@ class WalletConnect {
         return try? response.result(as: String.self)
     }
 
+    // MARK: - Send Transaction
+
+    func sendTransaction(receiver: String, amount: Int, memo: String, ens: String? = nil) {
+        try? client.send(nonceRequest()) { [weak self] response in
+            guard let self = self, let nonce = self.nonce(from: response) else { return }
+            let transaction = self.tipTransaction(to: receiver, amount: amount, memo: memo, nonce: nonce)
+            try? self.client.eth_sendTransaction(url: response.url, transaction: transaction) { [weak self] response in
+                self?.handleResponse(response, expecting: "Hash")
+            }
+        }
+    }
+
+    func tipTransaction(to receiver: String, amount: Int, memo: String, nonce: String) -> Client.Transaction {
+        let tipAmount = amount * 10_000_000_000_000_000 // Tip Amount: X * 0.01 ETH
+        let value = String(tipAmount, radix: 16)
+        let memoEncoded = memo.data(using: .utf8)!.toHexString()
+        let currentChainId = WalletManager.shared.currentNetwork()?.rawValue ?? 1
+        return Client.Transaction(from: session.walletInfo!.accounts[0],
+                                  to: receiver,
+                                  data: memoEncoded,
+                                  gas: nil,
+                                  gasPrice: nil,
+                                  value: value,
+                                  nonce: nonce,
+                                  type: nil,
+                                  accessList: nil,
+                                  chainId: String(format: "0x%x", currentChainId),
+                                  maxPriorityFeePerGas: nil,
+                                  maxFeePerGas: nil)
+    }
+
+    // Mark: - Test Transaction
+
     func sendTestTransaction(receiver: String, memo: String, ens: String? = nil) {
         try? client.send(nonceRequest()) { [weak self] response in
             guard let self = self, let nonce = self.nonce(from: response) else { return }

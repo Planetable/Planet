@@ -45,7 +45,7 @@ extension String {
     }
 
     func shortWalletAddress() -> String {
-        let firstPart = String(self.prefix(6))
+        let firstPart = String(self.prefix(5))
         let lastPart = String(self.suffix(4))
         return "\(firstPart)...\(lastPart)"
     }
