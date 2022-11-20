@@ -8,6 +8,10 @@ Notes about our integration with WalletConnect.
 - [x] **Rainbow**: Can connect, can send transaction, cannot switch network
 - [x] **Trust** - Can connect only
 
+## To Do
+
+- [ ] Better visual clues about which wallet app was used for the connection
+
 ## WalletConnect V1 Deprecation Timeline
 
 Mar 1, 2023

@@ -70,6 +70,38 @@ struct AccountBadgeView: View {
         .cornerRadius(40)
         .frame(idealWidth: 200, maxWidth: 300, idealHeight: 40, maxHeight: 40)
         .padding(10)
+        .contextMenu {
+            Text(walletAddress)
+                .font(.footnote)
+                .foregroundColor(.secondary)
+
+            Divider()
+
+            Button {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(walletAddress, forType: .string)
+            } label: {
+                Text("Copy Address")
+            }
+
+            Divider()
+
+            Button {
+                if let url = URL(string: WalletManager.shared.etherscanURLString(address: walletAddress)) {
+                    NSWorkspace.shared.open(url)
+                }
+            } label: {
+                Text("View on Etherscan")
+            }
+
+            Divider()
+
+            Button {
+                PlanetStore.shared.isShowingWalletDisconnectConfirmation = true
+            } label: {
+                Text("Disconnect Wallet")
+            }
+        }
         .onAppear {
             DispatchQueue.main.async {
                 self.displayName = walletAddress.shortWalletAddress()
