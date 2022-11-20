@@ -176,6 +176,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 let planet = try MyPlanetModel.importBackup(from: url)
                 PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                PlanetStore.shared.selectedView = .myPlanet(planet)
             }
         }
     }
