@@ -122,11 +122,14 @@ struct ArticleView: View {
                                 PlanetStore.shared.walletTransactionProgressMessage = message
                                 PlanetStore.shared.isShowingWalletTransactionProgress = true
                             }
+                            let memo: String
                             if let link = currentItemLink {
-                                WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, memo: "planet:\(planet.link)\(link)")
+                                memo = "planet:\(planet.link)\(link)"
                             } else {
-                                WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, memo: "planet:\(planet.link)")
+                                memo = "planet:\(planet.link)"
                             }
+                            WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, amount: 5, memo: memo, ens: ens)
+                            // WalletManager.shared.walletConnect.sendTransaction(receiver: receiver, amount: 5, memo: memo, ens: ens)
                             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                                 PlanetStore.shared.isShowingWalletTransactionProgress = false
                             }

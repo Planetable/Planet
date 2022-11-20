@@ -115,7 +115,7 @@ class WalletConnect {
     func tipTransaction(to receiver: String, amount: Int, memo: String, nonce: String) -> Client.Transaction {
         let tipAmount = amount * 10_000_000_000_000_000 // Tip Amount: X * 0.01 ETH
         let value = String(tipAmount, radix: 16)
-        let memoEncoded = memo.data(using: .utf8)!.toHexString()
+        let memoEncoded: String = memo.data(using: .utf8)!.toHexString()
         let currentChainId = WalletManager.shared.currentNetwork()?.rawValue ?? 1
         return Client.Transaction(from: session.walletInfo!.accounts[0],
                                   to: receiver,
@@ -133,18 +133,18 @@ class WalletConnect {
 
     // Mark: - Test Transaction
 
-    func sendTestTransaction(receiver: String, memo: String, ens: String? = nil) {
+    func sendTestTransaction(receiver: String, amount: Int, memo: String, ens: String? = nil) {
         try? client.send(nonceRequest()) { [weak self] response in
             guard let self = self, let nonce = self.nonce(from: response) else { return }
-            let transaction = self.testTransaction(to: receiver, memo: memo, nonce: nonce)
+            let transaction = self.testTransaction(to: receiver, amount: amount, memo: memo, nonce: nonce)
             try? self.client.eth_sendTransaction(url: response.url, transaction: transaction) { [weak self] response in
                 self?.handleResponse(response, expecting: "Hash")
             }
         }
     }
 
-    func testTransaction(to receiver: String, memo: String, nonce: String) -> Client.Transaction {
-        let amount = 1 * 1_000_000_000_000_000 // Amount: X * 0.001 ETH
+    func testTransaction(to receiver: String, amount: Int, memo: String, nonce: String) -> Client.Transaction {
+        let amount = amount * 10 * 1_000_000_000_000_000 // Amount: X * 0.01 ETH
         let value = String(amount, radix: 16)
         let memoEncoded = memo.data(using: .utf8)!.toHexString()
         let currentChainId = WalletManager.shared.currentNetwork()?.rawValue ?? 1
