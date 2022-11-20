@@ -14,9 +14,15 @@ Mar 1, 2023
 
 https://twitter.com/WalletConnect/status/1585297184102047744
 
-## MetaMask Cconfirm Button is Not Working Right Now
+## WalletConnect V2 Sample Code for macOS
+
+https://github.com/WalletConnect/walletconnect-monorepo/discussions/1597
+
+## MetaMask Confirm Button is Not Working Right Now
 
 https://github.com/MetaMask/metamask-mobile/issues/5260
+
+https://www.reddit.com/r/Metamask/comments/yzm83t/comment/ix27lbk/
 
 ## Rainbow Cannot Switch Network?
 
