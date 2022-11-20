@@ -47,17 +47,29 @@ struct TipSelectView: View {
             HStack {
                 Text("Please select the amount")
                 Spacer()
-                Picker(selection: $ethereumChainId, label: Text("")) {
-                    ForEach(EthereumChainID.allCases, id: \.id) { value in
+                if WalletManager.shared.canSwitchNetwork() {
+                    Picker(selection: $ethereumChainId, label: Text("")) {
+                        ForEach(EthereumChainID.allCases, id: \.id) { value in
+                            Text(
+                                "\(EthereumChainID.names[value.rawValue] ?? "Unknown Chain ID \(value.rawValue)")"
+                            )
+                            .tag(value)
+                            .frame(width: 120)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(width: 120)
+                } else {
+                    if let connectedWalletChainId = WalletManager.shared.connectedWalletChainId(), let name = EthereumChainID.names[connectedWalletChainId] {
                         Text(
-                            "\(EthereumChainID.names[value.rawValue] ?? "Unknown Chain ID \(value.rawValue)")"
+                            "\(name)"
                         )
-                        .tag(value)
-                        .frame(width: 120)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .frame(width: 120, alignment: .trailing)
+                        .help("This transaction will be sent to \(name) network")
                     }
                 }
-                .pickerStyle(.menu)
-                .frame(width: 120)
             }.padding(10)
 
             GroupBox {

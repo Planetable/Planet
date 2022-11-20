@@ -69,6 +69,14 @@ class WalletManager: NSObject {
         return EthereumChainID.names[chainId.id] ?? "Mainnet"
     }
 
+    func connectedWalletChainId() -> Int? {
+        return self.walletConnect.session.walletInfo?.chainId
+    }
+
+    func canSwitchNetwork() -> Bool {
+        return self.walletConnect.session.walletInfo?.peerMeta.name.contains("MetaMask") ?? false
+    }
+
     func etherscanURLString(tx: String) -> String {
         let chain = WalletManager.shared.currentNetwork()
         switch (chain) {
