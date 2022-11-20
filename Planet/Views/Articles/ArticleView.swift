@@ -45,7 +45,12 @@ struct ArticleView: View {
                 if followingArticle.planet.planetType == .dotbit {
                     currentItemHost = followingArticle.planet.link
                 }
-                planetStore.walletTransactionMemo = "planet:\(currentItemHost)\(currentItemLink)"
+                if let host = currentItemHost {
+                    planetStore.walletTransactionMemo = "planet:\(host)"
+                    if let link = currentItemLink {
+                        planetStore.walletTransactionMemo = "planet:\(host)\(link)"
+                    }
+                }
             }
             else {
                 debugPrint("Failed to switch selected article - branch B")
@@ -71,6 +76,20 @@ struct ArticleView: View {
             currentItemLink = nil
             planetStore.walletTransactionMemo = ""
             NotificationCenter.default.post(name: .loadArticle, object: nil)
+            switch (planetStore.selectedView) {
+            case .followingPlanet(let followingPlanet):
+                planetStore.walletTransactionMemo = "planet:\(followingPlanet.link)"
+            default:
+                break
+            }
+        }
+        .onAppear {
+            switch (planetStore.selectedView) {
+            case .followingPlanet(let followingPlanet):
+                planetStore.walletTransactionMemo = "planet:\(followingPlanet.link)"
+            default:
+                break
+            }
         }
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {

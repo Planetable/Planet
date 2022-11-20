@@ -115,14 +115,14 @@ class WalletConnect {
     func tipTransaction(to receiver: String, amount: Int, memo: String, nonce: String) -> Client.Transaction {
         let tipAmount = amount * 10_000_000_000_000_000 // Tip Amount: X * 0.01 ETH
         let value = String(tipAmount, radix: 16)
-        let memoEncoded: String = memo.data(using: .utf8)!.toHexString()
+        let memoEncoded: String = "0x" + memo.data(using: .utf8)!.toHexString()
         let currentChainId = WalletManager.shared.currentNetwork()?.rawValue ?? 1
         return Client.Transaction(from: session.walletInfo!.accounts[0],
                                   to: receiver,
                                   data: memoEncoded,
                                   gas: nil,
                                   gasPrice: nil,
-                                  value: value,
+                                  value: "0x\(value)",
                                   nonce: nonce,
                                   type: nil,
                                   accessList: nil,
@@ -146,14 +146,14 @@ class WalletConnect {
     func testTransaction(to receiver: String, amount: Int, memo: String, nonce: String) -> Client.Transaction {
         let amount = amount * 10 * 1_000_000_000_000_000 // Amount: X * 0.01 ETH
         let value = String(amount, radix: 16)
-        let memoEncoded = memo.data(using: .utf8)!.toHexString()
+        let memoEncoded = "0x" + memo.data(using: .utf8)!.toHexString()
         let currentChainId = WalletManager.shared.currentNetwork()?.rawValue ?? 1
         return Client.Transaction(from: session.walletInfo!.accounts[0],
                                   to: receiver,
                                   data: memoEncoded,
                                   gas: nil,
                                   gasPrice: nil,
-                                  value: value,
+                                  value: "0x\(value)",
                                   nonce: nonce,
                                   type: nil,
                                   accessList: nil,
