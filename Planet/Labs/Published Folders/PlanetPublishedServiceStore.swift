@@ -379,10 +379,15 @@ private class PlanetPublishedServiceMonitor {
     func startMonitoring() throws {
         reset()
         let bookmarkKey = PlanetPublishedServiceStore.prefixKey + folderID.uuidString
-        guard let bookmarkData = UserDefaults.standard.data(forKey: bookmarkKey) else { throw PlanetError.InternalError }
+        guard let bookmarkData = UserDefaults.standard.data(forKey: bookmarkKey) else {
+            throw PlanetError.InternalError
+        }
         var isStale = false
         let targetURL = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale)
         url = targetURL
+        guard url.startAccessingSecurityScopedResource() else {
+            throw PlanetError.PublishedServiceFolderPermissionError
+        }
         monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
         directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: DispatchSource.FileSystemEvent.write, queue: self.monitorQueue) as? DispatchSource
         directoryMonitorSource?.setEventHandler{
