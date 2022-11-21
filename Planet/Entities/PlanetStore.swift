@@ -116,7 +116,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
             UserDefaults.standard.set(1, forKey: String.settingsEthereumChainId)
         }
         if UserDefaults.standard.value(forKey: String.settingsEthereumTipAmount) == nil {
-            UserDefaults.standard.set(5, forKey: String.settingsEthereumTipAmount)
+            UserDefaults.standard.set(2, forKey: String.settingsEthereumTipAmount)
         }
 
         do {

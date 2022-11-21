@@ -73,7 +73,9 @@ struct AccountBadgeView: View {
         .contextMenu {
             Text(walletAddress)
                 .font(.footnote)
-                .foregroundColor(.secondary)
+
+            Text("Connected with \(WalletManager.shared.getWalletAppName())")
+                .font(.footnote)
 
             Divider()
 
@@ -81,6 +83,7 @@ struct AccountBadgeView: View {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(walletAddress, forType: .string)
             } label: {
+                Image(systemName: "doc.on.doc")
                 Text("Copy Address")
             }
 
@@ -91,6 +94,7 @@ struct AccountBadgeView: View {
                     NSWorkspace.shared.open(url)
                 }
             } label: {
+                Image(systemName: "info.circle")
                 Text("View on Etherscan")
             }
 
@@ -99,6 +103,7 @@ struct AccountBadgeView: View {
             Button {
                 PlanetStore.shared.isShowingWalletDisconnectConfirmation = true
             } label: {
+                Image(systemName: "eject")
                 Text("Disconnect Wallet")
             }
         }

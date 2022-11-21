@@ -27,6 +27,7 @@ enum EthereumChainID: Int, Codable, CaseIterable {
 }
 
 enum TipAmount: Int, Codable, CaseIterable {
+    case two = 2
     case five = 5
     case ten = 10
     case twenty = 20
@@ -37,6 +38,7 @@ enum TipAmount: Int, Codable, CaseIterable {
     var amount: Int { return self.rawValue }
 
     static let names: [Int: String] = [
+        2: "0.02 Ξ",
         5: "0.05 Ξ",
         10: "0.1 Ξ",
         20: "0.2 Ξ",
@@ -103,6 +105,22 @@ class WalletManager: NSObject {
         default:
             return "https://etherscan.io/address/" + address
         }
+    }
+
+    func getWalletAppImageName() -> String? {
+        if let walletInfo = self.walletConnect.session.walletInfo {
+            if walletInfo.peerMeta.name.contains("MetaMask") {
+                return "WalletAppIconMetaMask"
+            }
+            if walletInfo.peerMeta.name.contains("Rainbow") {
+                return "WalletAppIconRainbow"
+            }
+        }
+        return nil
+    }
+
+    func getWalletAppName() -> String {
+        return self.walletConnect.session.walletInfo?.peerMeta.name ?? "Unknown Wallet"
     }
 
     // MARK: - V1
