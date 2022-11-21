@@ -106,16 +106,100 @@ struct ViewUtils {
         Gradient(colors: [Color(hex: 0x7FE9D7), Color(hex: 0x5DC6B8)]), // Cyan
     ]
 
+    static let emojiList: [String] = [
+        "🐶",
+        "🐱",
+        "🐭",
+        "🐹",
+        "🐰",
+        "🦊",
+        "🐻",
+        "🐼",
+        "🐨",
+        "🐯",
+        "🦁",
+        "🐮",
+        "🐷",
+        "🐸",
+        "🐵",
+        "🙈",
+        "🙉",
+        "🙊",
+        "🐒",
+        "🐔",
+        "🐧",
+        "🐦",
+        "🐤",
+        "🐣",
+        "🐥",
+        "🦆",
+        "🦅",
+        "🦉",
+        "🦇",
+        "🐺",
+        "🐗",
+        "🐴",
+        "🦄",
+        "🐝",
+        "🐛",
+        "🦋",
+        "🐌",
+        "🐞",
+        "🐜",
+        "🕷",
+        "🕸",
+        "🦂",
+        "🐢",
+        "🐍",
+        "🦎",
+        "🦖",
+        "🦕",
+        "🐙",
+        "🦑",
+        "🦐",
+        "🦞",
+        "🦀",
+        "🐡",
+        "🐠",
+        "🐟",
+        "🐬",
+        "🐳",
+        "🐋",
+        "🦈",
+        "🦭",
+        "🐊",
+        "🐅",
+        "🐆",
+        "🦓",
+        "🦍",
+        "🦧",
+        "🦣",
+        "🐘",
+        "🦛",
+        "🦏",
+        "🐪",
+        "🐫",
+        "🦒",
+        "🦘"
+    ]
+
     static func getPresetGradient(from uuid: UUID) -> Gradient {
         let leastSignificantUInt8 = uuid.uuid.15
         let index = Int(leastSignificantUInt8) % presetGradients.count
         return presetGradients[index]
     }
-    
+
     static func getPresetGradient(from walletAddress: String) -> Gradient {
         let characters: [UInt8] = Array(walletAddress.utf8)
         let lastCharUInt8 = characters.last!
         let index = Int(lastCharUInt8) % presetGradients.count
         return presetGradients[index]
+    }
+
+    static func getEmoji(from walletAddress: String) -> String {
+        let characters: [UInt8] = Array(walletAddress.utf8)
+        let lastCharUInt8 = characters.last!
+        let index = Int(lastCharUInt8) % emojiList.count
+        return emojiList[index]
     }
 }

@@ -31,8 +31,8 @@ struct AccountBadgeView: View {
                         .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 2)
                 }.padding(2)
             } else {
-                Text(" ")
-                    .font(Font.custom("Arial Rounded MT Bold", size: 18))
+                Text(ViewUtils.getEmoji(from: walletAddress))
+                    .font(Font.custom("Arial Rounded MT Bold", size: 24))
                     .foregroundColor(Color.white)
                     .contentShape(Rectangle())
                     .frame(width: 36, height: 36, alignment: .center)
