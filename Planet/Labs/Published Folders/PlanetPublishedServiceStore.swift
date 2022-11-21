@@ -17,7 +17,7 @@ class PlanetPublishedServiceStore: ObservableObject {
     static let pendingPrefixKey = "PlanetPublishedFolderPendingFolder-"
 
     static let ttlString: String = "7200h"
-    static let ttl: Int = 3600*7199
+    static let ttl: Int = 3600*7200 - 60
 
     let timer = Timer.publish(every: 5, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
 
@@ -250,8 +250,14 @@ class PlanetPublishedServiceStore: ObservableObject {
         if autoPublish {
             for folder in publishedFolders {
                 if let _ = monitors.first(where: { $0.url == folder.url }) { continue }
-                let monitor = PlanetPublishedServiceMonitor(url: folder.url)
-                monitor.startMonitoring()
+                let monitor = PlanetPublishedServiceMonitor(url: folder.url, folderID: folder.id)
+                do {
+                    try monitor.startMonitoring()
+                } catch {
+                    debugPrint("failed to start monitoring at: \(folder.url), error: \(error)")
+                    monitor.reset()
+                    continue
+                }
                 monitors.append(monitor)
             }
         } else {
@@ -348,9 +354,11 @@ private class PlanetPublishedServiceMonitor {
     var monitoredDirectoryFileDescriptor: CInt = -1
     var directoryMonitorSource: DispatchSource?
     var url: URL
+    var folderID: UUID
 
-    init(url: URL) {
+    init(url: URL, folderID: UUID) {
         self.url = url
+        self.folderID = folderID
         self.monitorQueue = DispatchQueue(label: "planet.monitor.\(url.absoluteString.md5())", attributes: .concurrent)
     }
 
@@ -368,8 +376,13 @@ private class PlanetPublishedServiceMonitor {
         }
     }
 
-    func startMonitoring() {
+    func startMonitoring() throws {
         reset()
+        let bookmarkKey = PlanetPublishedServiceStore.prefixKey + folderID.uuidString
+        guard let bookmarkData = UserDefaults.standard.data(forKey: bookmarkKey) else { throw PlanetError.InternalError }
+        var isStale = false
+        let targetURL = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale)
+        url = targetURL
         monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
         directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: DispatchSource.FileSystemEvent.write, queue: self.monitorQueue) as? DispatchSource
         directoryMonitorSource?.setEventHandler{
@@ -379,6 +392,7 @@ private class PlanetPublishedServiceMonitor {
             close(self.monitoredDirectoryFileDescriptor)
             self.monitoredDirectoryFileDescriptor = -1
             self.directoryMonitorSource = nil
+            self.url.stopAccessingSecurityScopedResource()
         }
         directoryMonitorSource?.resume()
     }
