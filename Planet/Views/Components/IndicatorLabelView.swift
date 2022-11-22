@@ -89,8 +89,8 @@ struct IndicatorLabelView_Previews: PreviewProvider {
             IndicatorLabelView(title: "Welcome", subtitle: nil)
                 .frame(width: 122, height: 44)
 
-            IndicatorLabelView(title: "Welcome", subtitle: "Description Here")
-                .frame(width: 160, height: 44)
+            IndicatorLabelView(dotColor: .orange, foregroundColor: .primary, title: "Busy Now", subtitle: "Online Account: 111")
+                .frame(width: 180, height: 44)
         }
         .frame(width: 200, height: 400)
     }
