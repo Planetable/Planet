@@ -153,11 +153,17 @@ struct TipSelectView: View {
             return
         }
         let ethereumChainName = WalletManager.shared.currentNetworkName()
+        var walletAppString: String = ""
+        if let walletAppName = WalletManager.shared.walletConnect.session.walletInfo?.peerMeta.name {
+            walletAppString = walletAppName + " on"
+        } else {
+            walletAppString = "the wallet app on"
+        }
         let message: String
         if let ens = ens {
-            message = "Sending \(tipAmountLabel) to **\(ens)** on \(ethereumChainName), please confirm from your phone"
+            message = "Sending \(tipAmountLabel) to **\(ens)** on \(ethereumChainName), please confirm from \(walletAppString) your phone"
         } else {
-            message = "Sending \(tipAmountLabel) to **\(receiver)** on \(ethereumChainName), please confirm from your phone"
+            message = "Sending \(tipAmountLabel) to **\(receiver)** on \(ethereumChainName), please confirm from \(walletAppString) your phone"
         }
         dismiss()
         Task { @MainActor in
