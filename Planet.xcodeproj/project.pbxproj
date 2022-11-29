@@ -88,6 +88,7 @@
 		6AC01AEE291D258900EB6B5F /* AccountBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AED291D258900EB6B5F /* AccountBadgeView.swift */; };
 		6AC01AF0291ECC7E00EB6B5F /* WalletAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */; };
 		6AC0BC4728F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */; };
+		6AC33B932934159A001ABBCF /* EthereumTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC33B922934159A001ABBCF /* EthereumTransaction.swift */; };
 		6ACF166529246BD800AE318B /* TipSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF166429246BD800AE318B /* TipSelectView.swift */; };
 		6ACF1667292570AF00AE318B /* PlanetUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF1666292570AF00AE318B /* PlanetUI.swift */; };
 		6ACF16692927267800AE318B /* WalletTransactionProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF16682927267800AE318B /* WalletTransactionProgressView.swift */; };
@@ -235,6 +236,7 @@
 		6AC01AED291D258900EB6B5F /* AccountBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBadgeView.swift; sourceTree = "<group>"; };
 		6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletAccountView.swift; sourceTree = "<group>"; };
 		6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetPodcastSettingsView.swift; sourceTree = "<group>"; };
+		6AC33B922934159A001ABBCF /* EthereumTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EthereumTransaction.swift; sourceTree = "<group>"; };
 		6AC83749284C9A4D00C0F952 /* versioning.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = versioning.xcconfig; sourceTree = "<group>"; };
 		6AC8374B284C9A8500C0F952 /* marketing_version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = marketing_version.xcconfig; sourceTree = "<group>"; };
 		6ACF166429246BD800AE318B /* TipSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipSelectView.swift; sourceTree = "<group>"; };
@@ -593,6 +595,7 @@
 				6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */,
 				6ACF166429246BD800AE318B /* TipSelectView.swift */,
 				6ACF16682927267800AE318B /* WalletTransactionProgressView.swift */,
+				6AC33B922934159A001ABBCF /* EthereumTransaction.swift */,
 			);
 			path = Wallet;
 			sourceTree = "<group>";
@@ -889,6 +892,7 @@
 				2AE44EAC28CD218200944786 /* PlanetSettingsGeneralView.swift in Sources */,
 				721149A15F84CEDB799EC15B /* AudioPlayer.swift in Sources */,
 				7211436A6E9CCC30D85E8E18 /* WriterAudioView.swift in Sources */,
+				6AC33B932934159A001ABBCF /* EthereumTransaction.swift in Sources */,
 				2AE44EB028CD223C00944786 /* PlanetSettingsViewModel.swift in Sources */,
 				2A052AC1290971E80028E88F /* ArtworkView.swift in Sources */,
 				7211475AEDACC392B139F1FC /* PlausiblePopover.swift in Sources */,

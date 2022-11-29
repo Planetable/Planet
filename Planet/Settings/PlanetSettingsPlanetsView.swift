@@ -36,7 +36,7 @@ struct PlanetSettingsPlanetsView: View {
                         }
                     }.padding(4)
                 }
-            }
+            }.tableStyle(.bordered)
 
             Table(store.followingArchivedPlanets) {
                 TableColumn("Archived Following Planet") { planet in
@@ -58,7 +58,7 @@ struct PlanetSettingsPlanetsView: View {
                         }
                     }.padding(4)
                 }
-            }
+            }.tableStyle(.bordered)
         }.padding()
     }
 }

@@ -29,7 +29,7 @@ struct PlanetSettingsView: View {
                     Label("Planets", systemImage: "tray.full")
                 }
                 .tag(PlanetSettingsTab.planets)
-                .frame(width: 420, height: 500)
+                .frame(width: 420, height: 490)
                 .environmentObject(store)
         }
     }

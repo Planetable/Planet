@@ -28,13 +28,17 @@ class WalletConnect {
 
     func connect() -> String {
         // gnosis wc bridge: https://safe-walletconnect.safe.global/
-        let wcUrl =  WCURL(topic: UUID().uuidString,
-                           bridgeURL: URL(string: "https://safe-walletconnect.safe.global/")!,
-                           key: try! randomKey())
-        let clientMeta = Session.ClientMeta(name: "Planet",
-                                            description: "Build and host decentralized websites",
-                                            icons: [URL(string: "https://github.com/Planetable.png")!],
-                                            url: URL(string: "https://planetable.xyz")!)
+        let wcUrl = WCURL(
+            topic: UUID().uuidString,
+            bridgeURL: URL(string: "https://safe-walletconnect.safe.global/")!,
+            key: try! randomKey()
+        )
+        let clientMeta = Session.ClientMeta(
+            name: "Planet",
+            description: "Build and host decentralized websites",
+            icons: [URL(string: "https://github.com/Planetable.png")!],
+            url: URL(string: "https://planetable.xyz")!
+        )
         let dAppInfo = Session.DAppInfo(peerId: UUID().uuidString, peerMeta: clientMeta)
         client = Client(delegate: self, dAppInfo: dAppInfo)
 
@@ -46,7 +50,8 @@ class WalletConnect {
 
     func reconnectIfNeeded() {
         if let oldSessionObject = UserDefaults.standard.object(forKey: sessionKey) as? Data,
-            let session = try? JSONDecoder().decode(Session.self, from: oldSessionObject) {
+            let session = try? JSONDecoder().decode(Session.self, from: oldSessionObject)
+        {
             client = Client(delegate: self, dAppInfo: session.dAppInfo)
             if let _ = try? client.reconnect(to: session) {
                 self.session = session
@@ -60,7 +65,8 @@ class WalletConnect {
         let status = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         if status == errSecSuccess {
             return Data(bytes: bytes, count: 32).toHexString()
-        } else {
+        }
+        else {
             // we don't care in the example app
             enum TestError: Error {
                 case unknown
@@ -81,12 +87,15 @@ class WalletConnect {
                 if result.hasPrefix("0x") {
                     // Open etherscan.io after 1 second
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        if let etherscanURL: URL = URL(string: WalletManager.shared.etherscanURLString(tx: result)) {
+                        if let etherscanURL: URL = URL(
+                            string: WalletManager.shared.etherscanURLString(tx: result)
+                        ) {
                             NSWorkspace.shared.open(etherscanURL)
                         }
                     }
                 }
-            } catch {
+            }
+            catch {
                 debugPrint("Transaction Error: Unexpected response type error: \(error)")
             }
         }
@@ -105,30 +114,62 @@ class WalletConnect {
     func sendTransaction(receiver: String, amount: Int, memo: String, ens: String? = nil) {
         try? client.send(nonceRequest()) { [weak self] response in
             guard let self = self, let nonce = self.nonce(from: response) else { return }
-            let transaction = self.tipTransaction(to: receiver, amount: amount, memo: memo, nonce: nonce)
-            try? self.client.eth_sendTransaction(url: response.url, transaction: transaction) { [weak self] response in
+            let transaction = self.tipTransaction(
+                to: receiver,
+                amount: amount,
+                memo: memo,
+                nonce: nonce
+            )
+            try? self.client.eth_sendTransaction(url: response.url, transaction: transaction) {
+                [weak self] response in
                 self?.handleResponse(response, expecting: "Hash")
+                do {
+                    let result = try response.result(as: String.self)
+                    if result.hasPrefix("0x") {
+                        // Result is a txid string
+                        debugPrint("Transaction: saving \(result)")
+                        let currentChainId = WalletManager.shared.currentNetwork()?.rawValue ?? 1
+                        let record = EthereumTransaction(
+                            id: result,
+                            chainID: currentChainId,
+                            from: self?.session.walletInfo!.accounts[0] ?? "error",
+                            to: receiver,
+                            toENS: ens,
+                            amount: amount,
+                            memo: memo
+                        )
+                        try? record.save()
+                    }
+                }
+                catch {
+                    debugPrint("Transaction Error: Unexpected response type error: \(error)")
+                }
+
             }
         }
     }
 
-    func tipTransaction(to receiver: String, amount: Int, memo: String, nonce: String) -> Client.Transaction {
-        let tipAmount = amount * 10_000_000_000_000_000 // Tip Amount: X * 0.01 ETH
+    func tipTransaction(to receiver: String, amount: Int, memo: String, nonce: String)
+        -> Client.Transaction
+    {
+        let tipAmount = amount * 10_000_000_000_000_000  // Tip Amount: X * 0.01 ETH
         let value = String(tipAmount, radix: 16)
         let memoEncoded: String = "0x" + memo.data(using: .utf8)!.toHexString()
         let currentChainId = WalletManager.shared.currentNetwork()?.rawValue ?? 1
-        return Client.Transaction(from: session.walletInfo!.accounts[0],
-                                  to: receiver,
-                                  data: memoEncoded,
-                                  gas: nil,
-                                  gasPrice: nil,
-                                  value: "0x\(value)",
-                                  nonce: nonce,
-                                  type: nil,
-                                  accessList: nil,
-                                  chainId: String(format: "0x%x", currentChainId),
-                                  maxPriorityFeePerGas: nil,
-                                  maxFeePerGas: nil)
+        return Client.Transaction(
+            from: session.walletInfo!.accounts[0],
+            to: receiver,
+            data: memoEncoded,
+            gas: nil,
+            gasPrice: nil,
+            value: "0x\(value)",
+            nonce: nonce,
+            type: nil,
+            accessList: nil,
+            chainId: String(format: "0x%x", currentChainId),
+            maxPriorityFeePerGas: nil,
+            maxFeePerGas: nil
+        )
     }
 
     // Mark: - Test Transaction
@@ -136,30 +177,40 @@ class WalletConnect {
     func sendTestTransaction(receiver: String, amount: Int, memo: String, ens: String? = nil) {
         try? client.send(nonceRequest()) { [weak self] response in
             guard let self = self, let nonce = self.nonce(from: response) else { return }
-            let transaction = self.testTransaction(to: receiver, amount: amount, memo: memo, nonce: nonce)
-            try? self.client.eth_sendTransaction(url: response.url, transaction: transaction) { [weak self] response in
+            let transaction = self.testTransaction(
+                to: receiver,
+                amount: amount,
+                memo: memo,
+                nonce: nonce
+            )
+            try? self.client.eth_sendTransaction(url: response.url, transaction: transaction) {
+                [weak self] response in
                 self?.handleResponse(response, expecting: "Hash")
             }
         }
     }
 
-    func testTransaction(to receiver: String, amount: Int, memo: String, nonce: String) -> Client.Transaction {
-        let amount = amount * 10 * 1_000_000_000_000_000 // Amount: X * 0.01 ETH
+    func testTransaction(to receiver: String, amount: Int, memo: String, nonce: String)
+        -> Client.Transaction
+    {
+        let amount = amount * 10 * 1_000_000_000_000_000  // Amount: X * 0.01 ETH
         let value = String(amount, radix: 16)
         let memoEncoded = "0x" + memo.data(using: .utf8)!.toHexString()
         let currentChainId = WalletManager.shared.currentNetwork()?.rawValue ?? 1
-        return Client.Transaction(from: session.walletInfo!.accounts[0],
-                                  to: receiver,
-                                  data: memoEncoded,
-                                  gas: nil,
-                                  gasPrice: nil,
-                                  value: "0x\(value)",
-                                  nonce: nonce,
-                                  type: nil,
-                                  accessList: nil,
-                                  chainId: String(format: "0x%x", currentChainId),
-                                  maxPriorityFeePerGas: nil,
-                                  maxFeePerGas: nil)
+        return Client.Transaction(
+            from: session.walletInfo!.accounts[0],
+            to: receiver,
+            data: memoEncoded,
+            gas: nil,
+            gasPrice: nil,
+            value: "0x\(value)",
+            nonce: nonce,
+            type: nil,
+            accessList: nil,
+            chainId: String(format: "0x%x", currentChainId),
+            maxPriorityFeePerGas: nil,
+            maxFeePerGas: nil
+        )
     }
 }
 
@@ -191,7 +242,11 @@ extension WalletConnect: ClientDelegate {
 
 extension Request {
     static func eth_getTransactionCount(url: WCURL, account: String) -> Request {
-        return try! Request(url: url, method: "eth_getTransactionCount", params: [account, "latest"])
+        return try! Request(
+            url: url,
+            method: "eth_getTransactionCount",
+            params: [account, "latest"]
+        )
     }
 
     static func eth_gasPrice(url: WCURL) -> Request {

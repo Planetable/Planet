@@ -24,6 +24,12 @@ enum EthereumChainID: Int, Codable, CaseIterable {
         5: "Goerli",
         11155111: "Sepolia",
     ]
+
+    static let etherscanURL: [Int: String] = [
+        1: "https://etherscan.io",
+        5: "https://goerli.etherscan.io",
+        11155111: "https://sepolia.otterscan.io",
+    ]
 }
 
 enum TipAmount: Int, Codable, CaseIterable {
@@ -79,8 +85,8 @@ class WalletManager: NSObject {
         return self.walletConnect.session.walletInfo?.peerMeta.name.contains("MetaMask") ?? false
     }
 
-    func etherscanURLString(tx: String) -> String {
-        let chain = WalletManager.shared.currentNetwork()
+    func etherscanURLString(tx: String, chain: EthereumChainID? = nil) -> String {
+        let chain = chain ?? WalletManager.shared.currentNetwork()
         switch (chain) {
         case .mainnet:
             return "https://etherscan.io/tx/" + tx
@@ -93,8 +99,8 @@ class WalletManager: NSObject {
         }
     }
 
-    func etherscanURLString(address: String) -> String {
-        let chain = WalletManager.shared.currentNetwork()
+    func etherscanURLString(address: String, chain: EthereumChainID? = nil) -> String {
+        let chain = chain ?? WalletManager.shared.currentNetwork()
         switch (chain) {
         case .mainnet:
             return "https://etherscan.io/address/" + address
@@ -199,5 +205,14 @@ extension PlanetStore {
         } else {
             return false
         }
+    }
+}
+
+// MARK: Extension for Int
+
+extension Int {
+    func showAsEthers() -> String {
+        var ethers: Float = Float(self) / 100
+        return String(format: "%.2f Ξ", ethers)
     }
 }
