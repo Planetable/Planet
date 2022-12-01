@@ -131,8 +131,8 @@ struct PlanetApp: App {
 
     @SceneBuilder
     private func planetMainWindowGroup() -> some Scene {
-        let mainEvent: Set<String> = Set(arrayLiteral: "planet://")
-        WindowGroup {
+        let mainEvent: Set<String> = Set(arrayLiteral: "planet://Planet")
+        WindowGroup("Planet") {
             PlanetMainView()
                 .environmentObject(planetStore)
                 .frame(minWidth: 720, minHeight: 600)
