@@ -11,6 +11,7 @@ import WalletConnectNetworking
 import WalletConnectPairing
 import WalletConnectRelay
 import WalletConnectSwift
+import Web3
 
 enum EthereumChainID: Int, Codable, CaseIterable {
     case mainnet = 1
@@ -23,6 +24,12 @@ enum EthereumChainID: Int, Codable, CaseIterable {
         1: "Mainnet",
         5: "Goerli",
         11155111: "Sepolia",
+    ]
+
+    static let coinNames: [Int: String] = [
+        1: "ETH",
+        5: "GoerliETH",
+        11155111: "SEP",
     ]
 
     static let etherscanURL: [Int: String] = [

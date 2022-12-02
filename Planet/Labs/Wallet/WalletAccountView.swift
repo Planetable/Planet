@@ -18,6 +18,7 @@ struct WalletAccountView: View {
     @State private var copied: Bool = false
     @State private var transactions: [EthereumTransaction] = []
     @State private var sorting = [KeyPathComparator(\EthereumTransaction.created)]
+    @AppStorage(String.settingsEthereumChainId) private var currentActiveChainID = 1
 
     let AVATAR_SIZE: CGFloat = 64
 
@@ -182,6 +183,9 @@ struct WalletAccountView: View {
             self.loadBalance()
             self.loadTransactions()
         }
+        .onChange(of: currentActiveChainID) { _ in
+            self.loadBalance()
+        }
     }
 
     private func loadTransactions() {
@@ -253,24 +257,30 @@ struct WalletAccountView: View {
 
     private func loadBalance() {
         // Get balance with Web3.swift
-        let web3 = Web3(rpcURL: "https://cloudflare-eth.com")
-        web3.eth.blockNumber { response in
+        let web3: Web3
+        let currentActiveChain = WalletManager.shared.currentNetwork() ?? .mainnet
+        switch currentActiveChain {
+            case .mainnet:
+                web3 = Web3(rpcURL: "https://cloudflare-eth.com")
+            case .goerli:
+                web3 = Web3(rpcURL: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
+            case .sepolia:
+                web3 = Web3(rpcURL: "https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
+        }
+        web3.eth.blockNumber() { response in
             if response.status.isSuccess, let blockNumber = response.result {
                 print("Block number: \(blockNumber)")
                 if let address = try? EthereumAddress(hex: walletAddress, eip55: false) {
-                    web3.eth.getBalance(address: address, block: .block(blockNumber.quantity)) {
-                        response in
+                    web3.eth.getBalance(address: address, block: .block(blockNumber.quantity)) { response in
                         if response.status.isSuccess, let balance = response.result {
                             print("Balance: \(balance)")
                             // Format the balance
-                            let ethers =
-                                Double(balance.quantity) / Double(1_000_000_000_000_000_000)
+                            let ethers = Double(balance.quantity) / Double(1000000000000000000)
                             debugPrint("ethers: \(ethers)")
                             DispatchQueue.main.async {
-                                displayBalance = String(format: "%.2f ETH", ethers)
+                                displayBalance = String(format: "%.2f \(EthereumChainID.coinNames[currentActiveChainID] ?? "ETH")", ethers)
                             }
-                        }
-                        else {
+                        } else {
                             print("Error: \(response.error!)")
                         }
                     }
