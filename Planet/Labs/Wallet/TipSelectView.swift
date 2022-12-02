@@ -93,7 +93,7 @@ struct TipSelectView: View {
             Divider()
 
             HStack(spacing: 8) {
-                HelpLinkButton(helpLink: URL(string: "https://planetable.xyz/guides/")!)
+                HelpLinkButton(helpLink: URL(string: "https://www.planetable.xyz/guides/walletconnect/")!)
 
                 Button {
                     if let etherscanURL = URL(string: WalletManager.shared.etherscanURLString(address: receiver)) {

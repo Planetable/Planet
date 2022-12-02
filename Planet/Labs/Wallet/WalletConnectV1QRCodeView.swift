@@ -40,7 +40,7 @@ struct WalletConnectV1QRCodeView: View {
             Divider()
 
             HStack(spacing: 8) {
-                HelpLinkButton(helpLink: URL(string: "https://planetable.xyz/guides/siwe/")!)
+                HelpLinkButton(helpLink: URL(string: "https://www.planetable.xyz/guides/walletconnect/")!)
 
                 Button {
                     let pboard = NSPasteboard.general
