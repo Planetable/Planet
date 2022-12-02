@@ -21,6 +21,7 @@ struct PlanetMainView: View {
             ArticleListView()
 
             ArticleView()
+                .edgesIgnoringSafeArea(.vertical)
         }
         .alert(isPresented: $planetStore.isShowingAlert) {
             Alert(

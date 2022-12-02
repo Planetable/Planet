@@ -46,6 +46,7 @@ struct TemplateBrowserView: View {
                         }.help("Refresh")
                     }
                 }
+                .edgesIgnoringSafeArea(.vertical)
         }
     }
 
