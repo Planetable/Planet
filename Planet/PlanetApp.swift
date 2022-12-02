@@ -212,6 +212,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
         if #available(macOS 13.0, *) {
         } else {
             for w in NSApp.windows {
+                debugPrint("Window Info: \(w) frameAutosaveName: \(w.frameAutosaveName)")
                 if w.canHide && w.canBecomeMain && w.styleMask.contains(.closable) {
                     w.delegate = self
                 }
