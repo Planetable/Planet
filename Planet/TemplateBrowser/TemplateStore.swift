@@ -15,6 +15,7 @@ class TemplateStore: ObservableObject {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "TemplateStore")
 
     @Published var templates: [Template] = []
+    @Published var selectedTemplateID: Template.ID?
 
     init() {
         do {

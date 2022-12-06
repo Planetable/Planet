@@ -14,7 +14,7 @@ extension CGFloat {
     static let templateSidebarMaxWidth: CGFloat = 300
     static let templateInspectorWidth: CGFloat = 200
     static let templateInspectorMaxWidth: CGFloat = 300
-    static let templateContentWidth: CGFloat = 300
+    static let templateContentWidth: CGFloat = 400
 }
 
 
@@ -24,6 +24,7 @@ extension Notification.Name {
 
 
 extension String {
+    static let selectedTemplateID = "TemplateBrowserView.selectedTemplateID"
     static let templateContainerViewIdentifier = "TemplateBrowserContainerViewController"
 }
 

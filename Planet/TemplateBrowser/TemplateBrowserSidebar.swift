@@ -8,11 +8,14 @@
 import SwiftUI
 
 struct TemplateBrowserSidebar: View {
-    @StateObject var store = TemplateStore.shared
-    @Binding var selection: Template.ID?
+    @StateObject private var store: TemplateStore
+    
+    init() {
+        _store = StateObject(wrappedValue: TemplateStore.shared)
+    }
 
     var body: some View {
-        List(selection: $selection) {
+        List(selection: $store.selectedTemplateID) {
             ForEach(store.templates, id: \.id) { template in
                 HStack {
                     Text(template.name)
@@ -65,7 +68,7 @@ struct TemplateBrowserSidebar: View {
                 }
             }
         }
-        .frame(minWidth: 200)
+        .frame(minWidth: .templateSidebarWidth, maxWidth: .templateSidebarMaxWidth)
     }
 
     private func hasiTerm() -> Bool {

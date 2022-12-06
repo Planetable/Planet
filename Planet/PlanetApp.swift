@@ -34,7 +34,7 @@ struct PlanetApp: App {
                 }
                 CommandMenu("Tools") {
                     Button {
-                        openURL(URL(string: "planet://Template")!)
+                        PlanetAppDelegate.shared.openTemplateWindow()
                     } label: {
                         Text("Template Browser")
                     }
@@ -107,15 +107,6 @@ struct PlanetApp: App {
                 }
             }
 
-        let templateEvent: Set<String> = Set(arrayLiteral: "planet://Template")
-        WindowGroup("Planet Templates") {
-            TemplateBrowserView()
-                .environmentObject(templateStore)
-                .frame(minWidth: 720, minHeight: 480)
-                .handlesExternalEvents(preferring: templateEvent, allowing: templateEvent)
-        }
-        .handlesExternalEvents(matching: templateEvent)
-
         Settings {
             PlanetSettingsView()
         }
@@ -155,6 +146,7 @@ struct PlanetApp: App {
 class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     static let shared = PlanetAppDelegate()
 
+    var templateWindowController: TBWindowController?
     var downloadsWindowController: PlanetDownloadsWindowController?
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -489,6 +481,13 @@ extension PlanetAppDelegate {
             downloadsWindowController = PlanetDownloadsWindowController()
         }
         downloadsWindowController?.showWindow(nil)
+    }
+    
+    func openTemplateWindow() {
+        if templateWindowController == nil {
+            templateWindowController = TBWindowController()
+        }
+        templateWindowController?.showWindow(nil)
     }
 }
 

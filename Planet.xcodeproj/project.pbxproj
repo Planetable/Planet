@@ -366,11 +366,11 @@
 		2A2556B6293E1EE4006462D8 /* Window Controller */ = {
 			isa = PBXGroup;
 			children = (
-				2A2556AE293E1E7D006462D8 /* TBWindowController.swift */,
 				2A2556B0293E1E98006462D8 /* TB+Extension.swift */,
 				2A2556B2293E1EB4006462D8 /* TBWindow.swift */,
-				2A2556B4293E1ED0006462D8 /* TBViewController.swift */,
+				2A2556AE293E1E7D006462D8 /* TBWindowController.swift */,
 				2A2556B7293E1F13006462D8 /* TBContainerViewController.swift */,
+				2A2556B4293E1ED0006462D8 /* TBViewController.swift */,
 				2A2556B9293E1F35006462D8 /* TBSidebarViewController.swift */,
 				2A2556BD293E1F92006462D8 /* TBInspectorViewController.swift */,
 			);

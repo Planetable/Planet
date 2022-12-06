@@ -8,32 +8,39 @@
 import SwiftUI
 
 struct TemplatePreviewView: View {
-    @StateObject var store = TemplateStore.shared
-    @Binding var templateId: Template.ID?
-
-    @State var url: URL = Bundle.main.url(forResource: "TemplatePlaceholder", withExtension: "html")!
+    @StateObject private var store: TemplateStore
+    @State private var url: URL = Bundle.main.url(forResource: "TemplatePlaceholder", withExtension: "html")!
+    
+    init() {
+        _store = StateObject(wrappedValue: TemplateStore.shared)
+    }
 
     var body: some View {
-        if templateId != nil {
-            // Render the template into a temporary folder and load the result
-            TemplateBrowserPreviewWebView(url: $url)
-                .task(priority: .utility) {
-                    if let template = store[templateId] {
-                        preview(template)
+        VStack {
+            if let templateId = store.selectedTemplateID {
+                // Render the template into a temporary folder and load the result
+                TemplateBrowserPreviewWebView(url: $url)
+                    .task(priority: .utility) {
+                        if let template = store[templateId] {
+                            preview(template)
+                        }
                     }
-                }
-                .onChange(of: templateId) { newTemplateId in
-                    if let newTemplate = store[newTemplateId] {
-                        preview(newTemplate)
+                    .onChange(of: templateId) { newTemplateId in
+                        if let newTemplate = store[newTemplateId] {
+                            preview(newTemplate)
+                        }
                     }
-                }.onReceive(NotificationCenter.default.publisher(for: .refreshTemplatePreview, object: nil)) { _ in
-                    if let template = store[templateId] {
-                        preview(template)
+                    .onReceive(NotificationCenter.default.publisher(for: .refreshTemplatePreview, object: nil)) { _ in
+                        if let template = store[templateId] {
+                            preview(template)
+                        }
                     }
-                }
-        } else {
-            Text("No Template Selected")
+            } else {
+                Text("No Template Selected")
+            }
         }
+        .edgesIgnoringSafeArea(.vertical)
+        .frame(minWidth: .templateContentWidth, maxWidth: .infinity, minHeight: 320, maxHeight: .infinity, alignment: .center)
     }
 
     private func preview(_ template: Template) {
