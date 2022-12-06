@@ -42,6 +42,7 @@ struct PlanetMainView: View {
                 do {
                     let planet = try MyPlanetModel.importBackup(from: url)
                     PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                    planetStore.selectedView = .myPlanet(planet)
                 } catch {
                     PlanetStore.shared.alert(title: "Failed to import planet")
                 }
