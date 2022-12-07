@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Alamofire/Alamofire.git",
       "state" : {
-        "revision" : "8dd85aee02e39dd280c75eef88ffdb86eed4b07b",
-        "version" : "5.6.2"
+        "revision" : "78424be314842833c04bc3bef5b72e85fff99204",
+        "version" : "5.6.4"
       }
     },
     {
@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Planetable/ENSKit",
       "state" : {
-        "revision" : "e9060c5110ae0947503ebb5a745254818e8f5844",
-        "version" : "0.5.2"
+        "revision" : "be9861d1920c6e2b41c66c4ff4819939e338f09f",
+        "version" : "0.5.3"
       }
     },
     {
@@ -174,10 +174,10 @@
     {
       "identity" : "uint256",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/stdc105/UInt256.git",
+      "location" : "https://github.com/hyugit/UInt256.git",
       "state" : {
-        "revision" : "39268c507a732d0583ae813a7f957a4b0bd74d8a",
-        "version" : "0.3.0"
+        "revision" : "1a499a1bf08afd10b9fcd0fd6d90b6dd9196be50",
+        "version" : "0.2.2"
       }
     },
     {
@@ -195,7 +195,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "84197cd011da4b1986fc7a431cdf3f0f32199db1"
+        "revision" : "41966b44442a0f77378ab55f70d89ec3f1c35c66"
       }
     },
     {

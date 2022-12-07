@@ -41,7 +41,7 @@ class TBWindowController: NSWindowController {
     override func windowDidLoad() {
         super.windowDidLoad()
     }
-    
+
     private func setupToolbar() {
         guard let w = self.window else { return }
         let toolbar = NSToolbar(identifier: .templateToolbarIdentifier)
@@ -140,7 +140,7 @@ extension TBWindowController: NSToolbarItemValidation {
                 return true
             case .templateInspectorItem:
                 return true
-            case .templateInspectorSeparactorItem:
+            case .templateInspectorSeparatorItem:
                 return true
             case .templatePreviewItems:
                 return true
@@ -189,7 +189,7 @@ extension TBWindowController: NSToolbarDelegate {
                 item.isBordered = true
                 item.image = NSImage(systemSymbolName: "sidebar.right", accessibilityDescription: "Toggle Inspector View")
                 return item
-            case .templateInspectorSeparactorItem:
+            case .templateInspectorSeparatorItem:
                 if let vc = self.window?.contentViewController as? TBContainerViewController, let inspectorItem = vc.splitViewItems.last {
                     if inspectorItem.isCollapsed {
                         return nil
@@ -236,8 +236,8 @@ extension TBWindowController: NSToolbarDelegate {
                 return item
             case .templatePreviewItems:
                 guard
-                    let indexImage: NSImage = NSImage(systemSymbolName: "globe", accessibilityDescription: "Index"),
-                    let blogImage: NSImage = NSImage(systemSymbolName: "book", accessibilityDescription: "Blog")
+                    let indexImage: NSImage = NSImage(systemSymbolName: "list.bullet.rectangle", accessibilityDescription: "Index"),
+                    let blogImage: NSImage = NSImage(systemSymbolName: "doc.richtext", accessibilityDescription: "Blog")
                 else {
                     return nil
                 }
@@ -253,7 +253,7 @@ extension TBWindowController: NSToolbarDelegate {
                 return nil
         }
     }
-    
+
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return [
             .space,
@@ -278,7 +278,7 @@ extension TBWindowController: NSToolbarDelegate {
             .templateVSCodeItem,
             .templateRevealItem,
             .templateReloadItem,
-            .templateInspectorSeparactorItem,
+            .templateInspectorSeparatorItem,
             .flexibleSpace,
             .templateInspectorItem
         ]

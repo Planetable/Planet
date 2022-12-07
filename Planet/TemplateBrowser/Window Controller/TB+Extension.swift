@@ -41,7 +41,7 @@ extension NSToolbar.Identifier {
 extension NSToolbarItem.Identifier {
     static let templateSidebarSeparatorItem = NSToolbarItem.Identifier("TemplateBrowserToolbarSidebarSeparatorItem")
     static let templateSidebarItem = NSToolbarItem.Identifier("TemplateBrowserToolbarSidebarItem")
-    static let templateInspectorSeparactorItem = NSToolbarItem.Identifier("TemplateBrowserToolbarInspectorSeparatorItem")
+    static let templateInspectorSeparatorItem = NSToolbarItem.Identifier("TemplateBrowserToolbarInspectorSeparatorItem")
     static let templateInspectorItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarInspectorItem")
     static let templateReloadItem = NSToolbarItem.Identifier("TemplateBrowserToolbarReloadItem")
     static let templateRevealItem = NSToolbarItem.Identifier("TemplateBrowserToolbarRevealItem")
