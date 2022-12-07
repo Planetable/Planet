@@ -196,7 +196,7 @@ class Template: Codable, Identifiable {
         }
     }
 
-    func renderPreview() -> URL? {
+    func renderPreview(withPreviewIndex index: Int = 0) -> URL? {
         let templatePreviewDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(name)
         let assetsPreviewPath = templatePreviewDirectory.appendingPathComponent("assets", isDirectory: true)
         do {
@@ -219,7 +219,7 @@ class Template: Codable, Identifiable {
             }
         }
 
-        let articlePath = articleFolderPath.appendingPathComponent("blog.html")
+        let articlePath = articleFolderPath.appendingPathComponent(index == 1 ? "index.html" : "blog.html")
         let id = UUID()
         let article = PublicArticleModel(
             id: id,
@@ -274,9 +274,10 @@ class Template: Codable, Identifiable {
             "article": article,
             "content_html": content_html
         ]
-        let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
+        let targetPath = index == 1 ? indexPath : blogPath
+        let loader = FileSystemLoader(paths: [Path(targetPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.common])
-        let stencilTemplateName = blogPath.lastPathComponent
+        let stencilTemplateName = targetPath.lastPathComponent
         do {
             let output: String = try environment.renderTemplate(name: stencilTemplateName, context: context)
             try output.data(using: .utf8)?.write(to: articlePath)

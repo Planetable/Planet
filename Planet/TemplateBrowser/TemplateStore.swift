@@ -15,10 +15,21 @@ class TemplateStore: ObservableObject {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "TemplateStore")
 
     @Published var templates: [Template] = []
+    @Published var selectedTemplateID: Template.ID? {
+        willSet(newValue) {
+            UserDefaults.standard.set(newValue, forKey: String.selectedTemplateID)
+        }
+        didSet {
+            NotificationCenter.default.post(name: .templateTitleSubtitleUpdated, object: nil)
+        }
+    }
 
     init() {
         do {
             try load()
+            if let id = UserDefaults.standard.object(forKey: String.selectedTemplateID) as? Template.ID {
+                selectedTemplateID = id
+            }
         } catch {
             logger.error("Failed to load templates, cause: \(error.localizedDescription)")
         }
