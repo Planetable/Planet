@@ -32,7 +32,7 @@ struct TemplatePreviewView: View {
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .refreshTemplatePreview, object: nil)) { _ in
                         if let template = store[templateId] {
-                            preview(template)
+                            preview(template, withPreviewIndex: UserDefaults.standard.integer(forKey: String.selectedPreviewIndex))
                         }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .templatePreviewIndexUpdated)) { n in
