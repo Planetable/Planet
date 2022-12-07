@@ -16,7 +16,7 @@
 		2A2556AF293E1E7D006462D8 /* TBWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556AE293E1E7D006462D8 /* TBWindowController.swift */; };
 		2A2556B1293E1E98006462D8 /* TB+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556B0293E1E98006462D8 /* TB+Extension.swift */; };
 		2A2556B3293E1EB4006462D8 /* TBWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556B2293E1EB4006462D8 /* TBWindow.swift */; };
-		2A2556B5293E1ED0006462D8 /* TBViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556B4293E1ED0006462D8 /* TBViewController.swift */; };
+		2A2556B5293E1ED0006462D8 /* TBContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556B4293E1ED0006462D8 /* TBContentViewController.swift */; };
 		2A2556B8293E1F13006462D8 /* TBContainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556B7293E1F13006462D8 /* TBContainerViewController.swift */; };
 		2A2556BA293E1F35006462D8 /* TBSidebarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556B9293E1F35006462D8 /* TBSidebarViewController.swift */; };
 		2A2556BC293E1F53006462D8 /* TemplateBrowserInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556BB293E1F53006462D8 /* TemplateBrowserInspectorView.swift */; };
@@ -177,7 +177,7 @@
 		2A2556AE293E1E7D006462D8 /* TBWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBWindowController.swift; sourceTree = "<group>"; };
 		2A2556B0293E1E98006462D8 /* TB+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TB+Extension.swift"; sourceTree = "<group>"; };
 		2A2556B2293E1EB4006462D8 /* TBWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBWindow.swift; sourceTree = "<group>"; };
-		2A2556B4293E1ED0006462D8 /* TBViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBViewController.swift; sourceTree = "<group>"; };
+		2A2556B4293E1ED0006462D8 /* TBContentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBContentViewController.swift; sourceTree = "<group>"; };
 		2A2556B7293E1F13006462D8 /* TBContainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBContainerViewController.swift; sourceTree = "<group>"; };
 		2A2556B9293E1F35006462D8 /* TBSidebarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBSidebarViewController.swift; sourceTree = "<group>"; };
 		2A2556BB293E1F53006462D8 /* TemplateBrowserInspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserInspectorView.swift; sourceTree = "<group>"; };
@@ -370,7 +370,7 @@
 				2A2556B2293E1EB4006462D8 /* TBWindow.swift */,
 				2A2556AE293E1E7D006462D8 /* TBWindowController.swift */,
 				2A2556B7293E1F13006462D8 /* TBContainerViewController.swift */,
-				2A2556B4293E1ED0006462D8 /* TBViewController.swift */,
+				2A2556B4293E1ED0006462D8 /* TBContentViewController.swift */,
 				2A2556B9293E1F35006462D8 /* TBSidebarViewController.swift */,
 				2A2556BD293E1F92006462D8 /* TBInspectorViewController.swift */,
 			);
@@ -864,7 +864,7 @@
 				2A7D1BF427CA1B0A00D3C091 /* MyPlanetEditView.swift in Sources */,
 				6ADF40B92914D88C007A24E8 /* MyPlanetIPNSView.swift in Sources */,
 				6A0624D22876BF130014DDDD /* MigrationProgressView.swift in Sources */,
-				2A2556B5293E1ED0006462D8 /* TBViewController.swift in Sources */,
+				2A2556B5293E1ED0006462D8 /* TBContentViewController.swift in Sources */,
 				2AF4006427F37992005DF1A9 /* WriterPreview.swift in Sources */,
 				6A5E63AC28072AD400FB1E84 /* TemplateBrowserView.swift in Sources */,
 				2AE44EAE28CD219700944786 /* PlanetSettingsModel.swift in Sources */,

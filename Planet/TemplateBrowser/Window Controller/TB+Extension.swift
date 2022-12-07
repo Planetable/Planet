@@ -15,16 +15,20 @@ extension CGFloat {
     static let templateInspectorWidth: CGFloat = 200
     static let templateInspectorMaxWidth: CGFloat = 300
     static let templateContentWidth: CGFloat = 400
+    static let templateContentHeight: CGFloat = 420
 }
 
 
 extension Notification.Name {
     static let templateInspectorIsCollapsedStatusChanged = Notification.Name("TemplateBrowserInspectorIsCollapsedStatusChangedNotification")
+    static let templateTitleSubtitleUpdated = Notification.Name("TemplateBrowserTitleAndSubtitleUpdatedNotification")
+    static let templatePreviewIndexUpdated = Notification.Name("TemplateBrowserPreviewIndexUpdatedNotification")
 }
 
 
 extension String {
     static let selectedTemplateID = "TemplateBrowserView.selectedTemplateID"
+    static let selectedPreviewIndex = "TemplateBrowserView.selectedPreviewIndex"
     static let templateContainerViewIdentifier = "TemplateBrowserContainerViewController"
 }
 
@@ -39,7 +43,8 @@ extension NSToolbarItem.Identifier {
     static let templateSidebarItem = NSToolbarItem.Identifier("TemplateBrowserToolbarSidebarItem")
     static let templateInspectorSeparactorItem = NSToolbarItem.Identifier("TemplateBrowserToolbarInspectorSeparatorItem")
     static let templateInspectorItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarInspectorItem")
-    static let reloadItem = NSToolbarItem.Identifier("TemplateBrowserToolbarReloadItem")
-    static let revealItem = NSToolbarItem.Identifier("TemplateBrowserToolbarRevealItem")
-    static let vsCodeItem = NSToolbarItem.Identifier("TemplateBrowserToolbarVSCodeItem")
+    static let templateReloadItem = NSToolbarItem.Identifier("TemplateBrowserToolbarReloadItem")
+    static let templateRevealItem = NSToolbarItem.Identifier("TemplateBrowserToolbarRevealItem")
+    static let templateVSCodeItem = NSToolbarItem.Identifier("TemplateBrowserToolbarVSCodeItem")
+    static let templatePreviewItems = NSToolbarItem.Identifier("TemplateBrowserToolbarPreviewItemGroup")
 }

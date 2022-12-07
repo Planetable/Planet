@@ -22,12 +22,12 @@ struct TemplatePreviewView: View {
                 TemplateBrowserPreviewWebView(url: $url)
                     .task(priority: .utility) {
                         if let template = store[templateId] {
-                            preview(template)
+                            preview(template, withPreviewIndex: UserDefaults.standard.integer(forKey: String.selectedPreviewIndex))
                         }
                     }
                     .onChange(of: templateId) { newTemplateId in
                         if let newTemplate = store[newTemplateId] {
-                            preview(newTemplate)
+                            preview(newTemplate, withPreviewIndex: UserDefaults.standard.integer(forKey: String.selectedPreviewIndex))
                         }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .refreshTemplatePreview, object: nil)) { _ in
@@ -35,17 +35,21 @@ struct TemplatePreviewView: View {
                             preview(template)
                         }
                     }
+                    .onReceive(NotificationCenter.default.publisher(for: .templatePreviewIndexUpdated)) { n in
+                        guard let template = store[templateId], let index = n.object as? NSNumber else { return }
+                        preview(template, withPreviewIndex: index.intValue)
+                    }
             } else {
                 Text("No Template Selected")
             }
         }
         .edgesIgnoringSafeArea(.vertical)
-        .frame(minWidth: .templateContentWidth, maxWidth: .infinity, minHeight: 320, maxHeight: .infinity, alignment: .center)
+        .frame(minWidth: .templateContentWidth, maxWidth: .infinity, minHeight: .templateContentHeight, maxHeight: .infinity, alignment: .center)
     }
 
-    private func preview(_ template: Template) {
+    private func preview(_ template: Template, withPreviewIndex index: Int = 0) {
         debugPrint("New Template: \(template.name)")
-        if let newURL = template.renderPreview() {
+        if let newURL = template.renderPreview(withPreviewIndex: index) {
             debugPrint("New Template Preview URL: \(newURL)")
             // trigger refresh even when URL is the same
             url = newURL.appendingQueryParameters(

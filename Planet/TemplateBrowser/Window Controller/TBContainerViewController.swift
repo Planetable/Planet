@@ -11,7 +11,7 @@ import Cocoa
 class TBContainerViewController: NSSplitViewController {
 
     lazy var sidebarViewController = TBSidebarViewController()
-    lazy var viewController = TBViewController()
+    lazy var contentViewController = TBContentViewController()
     lazy var inspectorViewController = TBInspectorViewController()
     
     private var observer: NSKeyValueObservation?
@@ -42,10 +42,9 @@ extension TBContainerViewController {
         splitView.dividerStyle = .thin
         splitView.autosaveName = NSSplitView.AutosaveName(stringLiteral: String.templateContainerViewIdentifier)
         splitView.identifier = NSUserInterfaceItemIdentifier(String.templateContainerViewIdentifier)
-        
-        sidebarViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: .templateSidebarWidth).isActive = true
-        viewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: .templateContentWidth).isActive = true
-        inspectorViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: .templateInspectorWidth).isActive = true
+        sidebarViewController.view.widthAnchor.constraint(lessThanOrEqualToConstant: .templateSidebarMaxWidth).isActive = true
+        contentViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: .templateContentWidth).isActive = true
+        inspectorViewController.view.widthAnchor.constraint(lessThanOrEqualToConstant: .templateInspectorMaxWidth).isActive = true
     }
 
     private func setupLayout() {
@@ -56,7 +55,8 @@ extension TBContainerViewController {
         sidebarItem.allowsFullHeightLayout = true
         addSplitViewItem(sidebarItem)
 
-        let contentItem = NSSplitViewItem(viewController: viewController)
+        let contentItem = NSSplitViewItem(viewController: contentViewController)
+        contentItem.titlebarSeparatorStyle = .line
         addSplitViewItem(contentItem)
 
         let inspectorItem = NSSplitViewItem(viewController: inspectorViewController)
@@ -67,7 +67,8 @@ extension TBContainerViewController {
         addSplitViewItem(inspectorItem)
 
         observer = inspectorItem.observe(\.isCollapsed, options: [.new], changeHandler: { item, _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            let animationValue: CGFloat = item.isCollapsed ? 0.05 : 0.15
+            DispatchQueue.main.asyncAfter(deadline: .now() + animationValue) {
                 NotificationCenter.default.post(name: .templateInspectorIsCollapsedStatusChanged, object: nil)
             }
         })

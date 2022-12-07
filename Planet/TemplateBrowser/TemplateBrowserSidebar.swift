@@ -68,7 +68,8 @@ struct TemplateBrowserSidebar: View {
                 }
             }
         }
-        .frame(minWidth: .templateSidebarWidth, maxWidth: .templateSidebarMaxWidth)
+        .listStyle(.sidebar)
+        .frame(minWidth: .templateSidebarWidth, maxWidth: .templateSidebarMaxWidth, minHeight: .templateContentHeight, maxHeight: .infinity)
     }
 
     private func hasiTerm() -> Bool {

@@ -9,7 +9,7 @@ import Cocoa
 import SwiftUI
 
 
-class TBViewController: NSViewController {
+class TBContentViewController: NSViewController {
 
     init() {
         super.init(nibName: nil, bundle: nil)
