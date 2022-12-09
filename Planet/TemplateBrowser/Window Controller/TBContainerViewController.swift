@@ -40,8 +40,6 @@ extension TBContainerViewController {
         view.layer?.backgroundColor = .clear
 
         splitView.dividerStyle = .thin
-        splitView.autosaveName = NSSplitView.AutosaveName(stringLiteral: String.templateContainerViewIdentifier)
-        splitView.identifier = NSUserInterfaceItemIdentifier(String.templateContainerViewIdentifier)
         sidebarViewController.view.widthAnchor.constraint(lessThanOrEqualToConstant: .templateSidebarMaxWidth).isActive = true
         contentViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: .templateContentWidth).isActive = true
         inspectorViewController.view.widthAnchor.constraint(lessThanOrEqualToConstant: .templateInspectorMaxWidth).isActive = true
@@ -65,6 +63,9 @@ extension TBContainerViewController {
         inspectorItem.canCollapse = true
         inspectorItem.holdingPriority = .defaultLow
         addSplitViewItem(inspectorItem)
+
+        splitView.autosaveName = NSSplitView.AutosaveName(stringLiteral: String.templateContainerViewIdentifier)
+        splitView.identifier = NSUserInterfaceItemIdentifier(String.templateContainerViewIdentifier)
 
         observer = inspectorItem.observe(\.isCollapsed, options: [.new], changeHandler: { item, _ in
             let animationValue: CGFloat = item.isCollapsed ? 0.05 : 0.15
