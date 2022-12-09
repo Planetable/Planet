@@ -109,6 +109,7 @@ class TBWindowController: NSWindowController {
             case .templateInspectorItem:
                 if let vc = self.window?.contentViewController as? TBContainerViewController, let inspectorItem = vc.splitViewItems.last {
                     inspectorItem.animator().isCollapsed.toggle()
+                    UserDefaults.standard.set(inspectorItem.isCollapsed, forKey: String.templateInspectorIsCollapsed)
                 }
             case .templateReloadItem:
                 refresh()
