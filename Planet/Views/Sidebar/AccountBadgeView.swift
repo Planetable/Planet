@@ -14,6 +14,7 @@ struct AccountBadgeView: View {
     @State private var displayName: String = ""
     @State private var displayBalance: String = ""
     @AppStorage(String.settingsEthereumChainId) private var currentActiveChainID = 1
+    @State private var currentBackgroundColor = Color("AccountBadgeBackgroundColor")
 
     var body: some View {
         HStack(spacing: 8) {
@@ -67,7 +68,7 @@ struct AccountBadgeView: View {
             }
 
         }
-        .background(Color("AccountBadgeBackgroundColor"))
+        .background(currentBackgroundColor)
         .cornerRadius(40)
         .frame(idealWidth: 200, maxWidth: 300, idealHeight: 40, maxHeight: 40)
         .padding(10)
@@ -117,6 +118,11 @@ struct AccountBadgeView: View {
         }
         .onChange(of: currentActiveChainID) { _ in
             self.loadBalance()
+        }
+        .onHover { isHovering in
+            withAnimation(Animation.easeInOut(duration: 0.25)) {
+                self.currentBackgroundColor = isHovering ? Color("AccountBadgeBackgroundColorHover") : Color("AccountBadgeBackgroundColor")
+            }
         }
         .onTapGesture {
             PlanetStore.shared.isShowingWalletAccount = true
