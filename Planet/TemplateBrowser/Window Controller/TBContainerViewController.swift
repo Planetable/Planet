@@ -69,6 +69,7 @@ extension TBContainerViewController {
         splitView.identifier = NSUserInterfaceItemIdentifier(String.templateContainerViewIdentifier)
 
         observer = inspectorItem.observe(\.isCollapsed, options: [.new], changeHandler: { item, _ in
+            UserDefaults.standard.set(item.isCollapsed, forKey: String.templateInspectorIsCollapsed)
             let animationValue: CGFloat = item.isCollapsed ? 0.05 : 0.15
             DispatchQueue.main.asyncAfter(deadline: .now() + animationValue) {
                 NotificationCenter.default.post(name: .templateInspectorIsCollapsedStatusChanged, object: nil)
