@@ -133,6 +133,7 @@ class Template: Codable, Identifiable {
             "assets_prefix": "../",
             "article": article.publicArticle,
             "article_title": article.title,
+            "article_summary": article.summary,
             "page_title": article.title,
             "content_html": content_html,
             "build_timestamp": Int(Date().timeIntervalSince1970),
@@ -246,9 +247,9 @@ class Template: Codable, Identifiable {
                 def hello_world():
                     return "<p>Hello, World!</p>"
                 ```
-                
+
                 ### Blockquote
-                
+
                 > A dream you dream alone is only a dream. A dream you dream together is reality.
 
                 ---
