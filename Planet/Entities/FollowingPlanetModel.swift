@@ -487,6 +487,24 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
         try planet.save()
         try planet.articles.forEach { try $0.save() }
+
+        if let walletAddress = try? await resolver.addr() {
+            debugPrint("Tipping: got wallet address for \(planet.link): \(walletAddress)")
+            var saveNow: Bool = false
+            if planet.walletAddress == nil || planet.walletAddress != "0x" + walletAddress {
+                saveNow = true
+            }
+            await MainActor.run {
+                planet.walletAddress = "0x" + walletAddress
+                planet.walletAddressResolvedAt = Date()
+            }
+            if saveNow {
+                try planet.save()
+            }
+        } else {
+            debugPrint("Tipping: no wallet address for \(planet.link)")
+        }
+
         return planet
     }
 
