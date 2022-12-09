@@ -29,6 +29,7 @@ extension Notification.Name {
 extension String {
     static let selectedTemplateID = "TemplateBrowserView.selectedTemplateID"
     static let selectedPreviewIndex = "TemplateBrowserView.selectedPreviewIndex"
+    static let templateInspectorIsCollapsed = "TemplateBrowserInspectorIsCollapsed"
     static let templateContainerViewIdentifier = "TemplateBrowserContainerViewController"
 }
 

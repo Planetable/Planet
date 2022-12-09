@@ -62,6 +62,7 @@ extension TBContainerViewController {
         sidebarItem.titlebarSeparatorStyle = .automatic
         inspectorItem.canCollapse = true
         inspectorItem.holdingPriority = .defaultLow
+        inspectorItem.isCollapsed = UserDefaults.standard.bool(forKey: String.templateInspectorIsCollapsed)
         addSplitViewItem(inspectorItem)
 
         splitView.autosaveName = NSSplitView.AutosaveName(stringLiteral: String.templateContainerViewIdentifier)
