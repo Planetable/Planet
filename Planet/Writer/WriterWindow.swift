@@ -41,7 +41,7 @@ class WriterWindow: NSWindow {
 
             close()
         } catch {
-            PlanetStore.shared.alert(title: "Failed to send article")
+            PlanetStore.shared.alert(title: "Failed to send article: \(error)")
         }
     }
 

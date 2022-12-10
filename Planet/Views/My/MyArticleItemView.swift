@@ -120,7 +120,7 @@ struct MyArticleItemView: View {
                         }
                     }
                 } catch {
-                    PlanetStore.shared.alert(title: "Failed to delete article")
+                    PlanetStore.shared.alert(title: "Failed to delete article: \(error)")
                 }
             } label: {
                 Text("Delete")

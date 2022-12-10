@@ -47,6 +47,16 @@ struct StencilExtension {
             }
             return value
         }
+        ext.registerFilter("formatDateC") { value in
+            if let value = value,
+               let date = value as? Date {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+                let formattedDate = formatter.string(from: date)
+                return formattedDate
+            }
+            return value
+        }
         ext.registerFilter("ymd") { value in
             if let value = value,
                let date = value as? Date {
