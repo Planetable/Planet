@@ -60,8 +60,6 @@ extension Notification.Name {
     static let attachVideo = Notification.Name("PlanetAttachVideoNotification")
     static let attachPhoto = Notification.Name("PlanetAttachPhotoNotification")
 
-    static let closeTemplateBrowserWindow = Notification.Name("PlanetCloseTemplateBrowserWindowNotification")
-
     static let updateAvatar = Notification.Name("PlanetUpdateAvatarNotification")
 
     static let publishPlanet = Notification.Name("PlanetPublishPlanetNotification")

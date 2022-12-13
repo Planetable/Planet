@@ -12,7 +12,7 @@ import WebKit
 /*
  https://stackoverflow.com/questions/28801032/how-can-the-context-menu-in-wkwebview-on-the-mac-be-modified-or-overridden
  */
-private class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
+class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
     
     public private(set) static var instance = GlobalScriptMessageHandler()
     

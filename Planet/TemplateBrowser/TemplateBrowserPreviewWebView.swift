@@ -19,7 +19,7 @@ struct TemplateBrowserPreviewWebView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> WKWebView {
-        let wv = WKWebView()
+        let wv = TemplateWebView()
 
         wv.navigationDelegate = context.coordinator
         wv.setValue(false, forKey: "drawsBackground")
