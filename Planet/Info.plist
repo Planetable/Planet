@@ -46,6 +46,8 @@
 	<string>$(ORGANIZATION_IDENTIFIER_PREFIX)</string>
 	<key>WALLETCONNECTV2_PROJECT_ID</key>
 	<string>$(WALLETCONNECTV2_PROJECT_ID)</string>
+	<key>WALLETCONNECTV2_ENABLED</key>
+	<false/>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>
