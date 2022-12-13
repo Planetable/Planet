@@ -1,16 +1,16 @@
 //
-//  PlanetDownloadsWebView.swift
+//  TemplateWebView.swift
 //  Planet
 //
-//  Created by Kai on 8/3/22.
+//  Created by Kai on 12/13/22.
 //
 
 import Cocoa
 import WebKit
 
 
-class PlanetDownloadsWebView: WKWebView {
-    
+class TemplateWebView: WKWebView {
+
     init() {
         super.init(frame: CGRect(), configuration: WKWebViewConfiguration())
         GlobalScriptMessageHandler.instance.ensureHandles(configuration: self.configuration)
@@ -19,9 +19,14 @@ class PlanetDownloadsWebView: WKWebView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func willOpenMenu(_ menu: NSMenu, with event: NSEvent) {
-        let menuItemsToHide: [NSUserInterfaceItemIdentifier] = [Self.goBackIdentifier, Self.goForwardIdentifier, Self.openFrameInNewWindowIdentifier]
+        let menuItemsToHide: [NSUserInterfaceItemIdentifier] = [
+            Self.reloadIdentifier,
+            Self.goBackIdentifier,
+            Self.goForwardIdentifier,
+            Self.openFrameInNewWindowIdentifier
+        ]
         for menuItem in menu.items {
             guard let identifier = menuItem.identifier else { continue }
             if menuItemsToHide.contains(identifier) {
@@ -29,49 +34,16 @@ class PlanetDownloadsWebView: WKWebView {
                 continue
             }
             switch identifier {
-            case Self.openLinkIdentifier:
+            case Self.openLinkIdentifier, Self.openLinkInNewWindowIdentifier, Self.downloadLinkedFileIdentifier:
                 menuItem.target = self
                 menuItem.action = #selector(openLinkAction(_:))
-                menuItem.isHidden = shouldHideSelectedMenuItem()
-            case Self.openLinkInNewWindowIdentifier:
-                menuItem.target = self
-                menuItem.action = #selector(openLinkAction(_:))
-                menuItem.isHidden = shouldHideSelectedMenuItem()
-            case Self.downloadLinkedFileIdentifier:
-                menuItem.target = self
-                menuItem.action = #selector(downloadFileAction(_:))
-                menuItem.isHidden = shouldHideSelectedMenuItem(isDownloadableTarget: true)
-            case Self.openImageInNewWindowIdentifier:
+            case Self.openImageInNewWindowIdentifier, Self.downloadImageIdentifier:
                 menuItem.target = self
                 menuItem.action = #selector(openImageAction(_:))
-                menuItem.isHidden = shouldHideSelectedMenuItem()
-            case Self.downloadImageIdentifier:
-                menuItem.target = self
-                menuItem.action = #selector(downloadFileAction(_:))
-                menuItem.isHidden = shouldHideSelectedMenuItem()
             default:
                 break
             }
         }
-    }
-    
-    private func shouldHideSelectedMenuItem(isDownloadableTarget: Bool = false) -> Bool {
-        if isDownloadableTarget {
-            var url: URL?
-            if let _ = GlobalScriptMessageHandler.instance.src, let href = GlobalScriptMessageHandler.instance.href {
-                url = URL(string: href)
-            } else if let src = GlobalScriptMessageHandler.instance.src {
-                url = URL(string: src)
-            } else if let href = GlobalScriptMessageHandler.instance.href {
-                url = URL(string: href)
-            }
-            if let url = url {
-                return !PlanetDownloadItem.downloadableFileExtensions().contains(url.pathExtension)
-            } else {
-                return true
-            }
-        }
-        return GlobalScriptMessageHandler.instance.href == nil && GlobalScriptMessageHandler.instance.src == nil
     }
     
     @objc private func openLinkAction(_ sender: NSMenuItem) {
@@ -87,16 +59,6 @@ class PlanetDownloadsWebView: WKWebView {
             }
         }
     }
-
-    @objc private func downloadFileAction(_ sender: NSMenuItem) {
-        if let _ = GlobalScriptMessageHandler.instance.href, let srcString = GlobalScriptMessageHandler.instance.src {
-            self.load(URLRequest(url: URL(string: srcString)!))
-        } else if let urlString = GlobalScriptMessageHandler.instance.href {
-            self.load(URLRequest(url: URL(string: urlString)!))
-        } else if let srcString = GlobalScriptMessageHandler.instance.src {
-            self.load(URLRequest(url: URL(string: srcString)!))
-        }
-    }
     
     @objc private func openImageAction(_ sender: NSMenuItem) {
         if let _ = GlobalScriptMessageHandler.instance.href, let srcString = GlobalScriptMessageHandler.instance.src {
@@ -107,11 +69,10 @@ class PlanetDownloadsWebView: WKWebView {
             NSWorkspace.shared.open(URL(string: srcString)!)
         }
     }
-    
 }
 
 
-extension PlanetDownloadsWebView {
+extension TemplateWebView {
     static let reloadIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierReload")
     static let goBackIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierGoBack")
     static let goForwardIdentifier = NSUserInterfaceItemIdentifier(rawValue: "WKMenuItemIdentifierGoForward")
