@@ -381,10 +381,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
         }
 
         debugPrint("refresh UI")
-        selectedArticle = nil
-        selectedView = nil
-        selectedArticleList = nil
-        refreshSelectedArticles()
+
+        Task { @MainActor in
+            selectedView = .myPlanet(finalPlanet)
+            refreshSelectedArticles()
+        }
 
         debugPrint("publish changes ...")
         Task {

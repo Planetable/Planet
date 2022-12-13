@@ -167,10 +167,10 @@ class MyArticleModel: ArticleModel, Codable {
         try JSONEncoder.shared.encode(self).write(to: path)
     }
 
-    func delete() throws {
+    func delete() {
         planet.articles.removeAll { $0.id == id }
-        try FileManager.default.removeItem(at: path)
-        try FileManager.default.removeItem(at: publicBasePath)
+        try? FileManager.default.removeItem(at: path)
+        try? FileManager.default.removeItem(at: publicBasePath)
     }
 }
 
