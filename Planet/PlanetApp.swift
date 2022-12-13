@@ -96,6 +96,13 @@ struct PlanetApp: App {
                         }
                     }
 
+                    if planetStore.walletConnectV2Ready {
+                        Button {
+                            WalletManager.shared.connectV2()
+                        } label: {
+                            Text("Connect Wallet V2")
+                        }
+                    }
                 }
                 SidebarCommands()
                 CommandGroup(replacing: .help) {
@@ -237,9 +244,16 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
 
         PlanetUpdater.shared.checkForUpdatesInBackground()
 
-        // Connect Wallet
+        // Connect Wallet V1
 
         WalletManager.shared.setupV1()
+
+        // Connect Wallet V2
+        do {
+            try WalletManager.shared.setupV2()
+        } catch {
+            debugPrint("WalletConnectV2: Failed to prepare the connection: \(error)")
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -482,7 +496,7 @@ extension PlanetAppDelegate {
         }
         downloadsWindowController?.showWindow(nil)
     }
-    
+
     func openTemplateWindow() {
         if templateWindowController == nil {
             templateWindowController = TBWindowController()

@@ -21,6 +21,7 @@ enum PlanetError: Error {
     case PublishedServiceFolderUnchangedError
     case PublishedServiceFolderPermissionError
     case MovePublishingPlanetArticleError
+    case WalletConnectV2ProjectIDMissingError
     case InternalError
     case UnknownError(Error)
 }

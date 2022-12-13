@@ -160,22 +160,34 @@ class WalletManager: NSObject {
 
     // MARK: - V2
 
-    func setupV2() {
+    func setupV2() throws {
         let metadata = AppMetadata(
             name: "Planet",
-            description: "Build decentralized websites on IPFS + ENS",
-            url: "wallet.planetable.xyz",
+            description: "Build decentralized websites on ENS",
+            url: "https://planetable.xyz",
             icons: ["https://github.com/Planetable.png"])
 
-        // TODO: Read PROJECT_ID from local.xcconfig
-        Networking.configure(projectId: "", socketFactory: SocketFactory())
-        Pair.configure(metadata: metadata)
+        if let projectId = Bundle.main.object(forInfoDictionaryKey: "WALLETCONNECTV2_PROJECT_ID") as? String {
+            Networking.configure(projectId: projectId, socketFactory: SocketFactory())
+            Pair.configure(metadata: metadata)
+            Task { @MainActor in
+                PlanetStore.shared.walletConnectV2Ready = true
+            }
+        } else {
+            throw PlanetError.WalletConnectV2ProjectIDMissingError
+        }
+
     }
 
     func connectV2() {
         Task {
             let uri = try await Pair.instance.create()
             debugPrint("WalletConnect 2.0 URI: \(uri)")
+            debugPrint("WalletConnect 2.0 URI Absolute String: \(uri.absoluteString)")
+            Task { @MainActor in
+                PlanetStore.shared.walletConnectV2ConnectionURL = uri.absoluteString
+                PlanetStore.shared.isShowingWalletConnectV2QRCode = true
+            }
         }
     }
 }
