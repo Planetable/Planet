@@ -34,23 +34,14 @@ class TemplateWebView: WKWebView {
                 continue
             }
             switch identifier {
-                case Self.openLinkIdentifier:
-                    menuItem.target = self
-                    menuItem.action = #selector(openLinkAction(_:))
-                case Self.openLinkInNewWindowIdentifier:
-                    menuItem.target = self
-                    menuItem.action = #selector(openLinkAction(_:))
-                case Self.downloadLinkedFileIdentifier:
-                    menuItem.target = self
-                    menuItem.action = #selector(openLinkAction(_:))
-                case Self.openImageInNewWindowIdentifier:
-                    menuItem.target = self
-                    menuItem.action = #selector(openImageAction(_:))
-                case Self.downloadImageIdentifier:
-                    menuItem.target = self
-                    menuItem.action = #selector(openImageAction(_:))
-                default:
-                    break
+            case Self.openLinkIdentifier, Self.openLinkInNewWindowIdentifier, Self.downloadLinkedFileIdentifier:
+                menuItem.target = self
+                menuItem.action = #selector(openLinkAction(_:))
+            case Self.openImageInNewWindowIdentifier, Self.downloadImageIdentifier:
+                menuItem.target = self
+                menuItem.action = #selector(openImageAction(_:))
+            default:
+                break
             }
         }
     }
