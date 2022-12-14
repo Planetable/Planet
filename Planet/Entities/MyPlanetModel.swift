@@ -158,6 +158,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
+    var ogImageURLString: String {
+        if let domain = domainWithGateway {
+            return "https://\(domain)/avatar.png"
+        } else {
+            return "https://ipfs.io/ipns/\(ipns)/avatar.png"
+        }
+    }
+
     var browserURL: URL? {
         if let domainWithGateway = domainWithGateway {
             return URL(string: "https://" + domainWithGateway + "/")
@@ -932,6 +940,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             "planet": publicPlanet,
             "my_planet": self,
             "has_avatar": hasAvatar,
+            "og_image_url": ogImageURLString,
             "has_podcast": publicPlanet.hasAudioContent(),
             "has_podcast_cover_art": hasPodcastCoverArt
         ]
