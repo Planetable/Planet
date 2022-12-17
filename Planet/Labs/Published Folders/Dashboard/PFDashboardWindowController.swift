@@ -10,14 +10,6 @@ import Cocoa
 
 class PFDashboardWindowController: NSWindowController {
 
-    private var accessoryStatusViewController: PFDashboardAccessoryStatusViewController?
-    private var accessoryStatusViewButton: NSToolbarItem?
-    private var accessoryStatusViewIsHidden: Bool = UserDefaults.standard.bool(forKey: String.settingsShowAccessoryStatusView) {
-        didSet {
-            UserDefaults.standard.set(accessoryStatusViewIsHidden, forKey: String.settingsShowAccessoryStatusView)
-        }
-    }
-
     override init(window: NSWindow?) {
         let windowSize = NSSize(width: .sidebarWidth + .contentWidth + .inspectorWidth, height: 320)
         let screenSize = NSScreen.main?.frame.size ?? .zero
@@ -27,7 +19,6 @@ class PFDashboardWindowController: NSWindowController {
         w.toolbarStyle = .unified
         super.init(window: w)
         self.setupToolbar()
-        self.setupAccessoryStatusView()
         self.window?.setFrameAutosaveName("Published Folders Dashboard Window")
         NotificationCenter.default.addObserver(forName: .dashboardInspectorIsCollapsedStatusChanged, object: nil, queue: .main) { _ in
             self.setupToolbar()
@@ -47,7 +38,7 @@ class PFDashboardWindowController: NSWindowController {
         let toolbar = NSToolbar(identifier: .dashboardToolbarIdentifier)
         toolbar.delegate = self
         toolbar.allowsUserCustomization = false
-        toolbar.autosavesConfiguration = false
+        toolbar.autosavesConfiguration = true
         toolbar.displayMode = .iconOnly
         w.title = "Published Folders Dashboard"
         w.toolbar = toolbar
@@ -65,14 +56,12 @@ class PFDashboardWindowController: NSWindowController {
                 break
             case .dashboardShareItem:
                 break
-            case .dashboardSearchItem:
+            case .dashboardActionItem:
                 break
             case .dashboardInspectorItem:
                 if let vc = self.window?.contentViewController as? PFDashboardContainerViewController, let inspectorItem = vc.splitViewItems.last {
                     inspectorItem.animator().isCollapsed.toggle()
                 }
-            case .dashboardAccessoryStatusViewItem:
-                self.toggleAccessoryStatusView()
             default:
                 break
         }
@@ -89,11 +78,9 @@ extension PFDashboardWindowController: NSToolbarItemValidation {
                 return true
             case .dashboardShareItem:
                 return true
-            case .dashboardSidebarItem:
+            case .dashboardActionItem:
                 return true
-            case .dashboardAccessoryStatusViewItem:
-                return self.accessoryStatusViewController != nil
-            case .dashboardSearchItem:
+            case .dashboardSidebarItem:
                 return true
             case .dashboardInspectorItem:
                 return true
@@ -125,20 +112,6 @@ extension PFDashboardWindowController: NSToolbarDelegate {
                 } else {
                     return nil
                 }
-            case .dashboardAccessoryStatusViewItem:
-                let item = NSToolbarItem(itemIdentifier: itemIdentifier)
-                item.target = self
-                item.action = #selector(self.toolbarItemAction(_:))
-                item.label = self.accessoryStatusViewIsHidden ? "Show" : "Hide"
-                item.paletteLabel = "Toggle Status View"
-                item.toolTip = self.accessoryStatusViewIsHidden ? "Show Status View" : "Hide Status View"
-                item.isBordered = true
-                item.image = NSImage(systemSymbolName: self.accessoryStatusViewIsHidden ? "info.circle" : "info.circle.fill", accessibilityDescription: "Toggle Status View")
-//                if #available(macOS 13.0, *) {
-//                    item.possibleLabels = ["Show", "Hide"]
-//                }
-                self.accessoryStatusViewButton = item
-                return item
             case .dashboardAddItem:
                 let item = NSToolbarItem(itemIdentifier: itemIdentifier)
                 item.target = self
@@ -154,12 +127,6 @@ extension PFDashboardWindowController: NSToolbarDelegate {
                 item.delegate = self
                 item.menuFormRepresentation?.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
                 item.toolTip = "Share"
-                return item
-            case .dashboardSearchItem:
-                let item = NSSearchToolbarItem(itemIdentifier: itemIdentifier)
-                item.resignsFirstResponderWithCancel = true
-                item.searchField.delegate = self
-                item.toolTip = "Search"
                 return item
             case .dashboardInspectorItem:
                 let item = NSToolbarItem(itemIdentifier: itemIdentifier)
@@ -194,8 +161,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardSidebarItem,
             .dashboardAddItem,
             .dashboardShareItem,
-            .dashboardSearchItem,
-            .dashboardAccessoryStatusViewItem,
+            .dashboardActionItem,
             .dashboardInspectorItem
         ]
     }
@@ -208,7 +174,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardSidebarSeparatorItem,
             .flexibleSpace,
             .dashboardShareItem,
-            .dashboardSearchItem,
+            .dashboardActionItem,
             .dashboardInspectorSeparactorItem,
             .flexibleSpace,
             .dashboardInspectorItem
@@ -242,54 +208,12 @@ extension PFDashboardWindowController: NSToolbarDelegate {
 }
 
 
-// MARK: - Titlebar Accessory Status View
-
-extension PFDashboardWindowController {
-    private func setupAccessoryStatusView() {
-        let controller = PFDashboardAccessoryStatusViewController()
-        controller.layoutAttribute = .bottom
-        controller.fullScreenMinHeight = controller.view.bounds.height
-        self.window?.addTitlebarAccessoryViewController(controller)
-        self.accessoryStatusViewController = controller
-        self.accessoryStatusViewController?.isHidden = self.accessoryStatusViewIsHidden
-    }
-
-    func toggleAccessoryStatusView() {
-        self.accessoryStatusViewIsHidden.toggle()
-        self.accessoryStatusViewController?.isHidden = self.accessoryStatusViewIsHidden
-        switch self.accessoryStatusViewIsHidden {
-            case true:
-                self.accessoryStatusViewButton?.label = "Show"
-                self.accessoryStatusViewButton?.toolTip = "Show Published Folders Status"
-                self.accessoryStatusViewButton?.image = NSImage(systemSymbolName: "info.circle", accessibilityDescription: "Show Published Folders Status")
-            default:
-                self.accessoryStatusViewButton?.label = "Hide"
-                self.accessoryStatusViewButton?.toolTip = "Hide Published Folders Status"
-                self.accessoryStatusViewButton?.image = NSImage(systemSymbolName: "info.circle.fill", accessibilityDescription: "Hide Published Folders Status")
-        }
-    }
-}
-
-
 // MARK: - Sharing Service
 
 extension PFDashboardWindowController: NSSharingServicePickerToolbarItemDelegate {
     func items(for pickerToolbarItem: NSSharingServicePickerToolbarItem) -> [Any] {
+        // MARK: TODO: share current published folder url.
         let sharableItems = [URL(string: "https://www.apple.com/")!]
         return sharableItems
-    }
-}
-
-
-// MARK: - Search Field
-
-extension PFDashboardWindowController: NSSearchFieldDelegate {
-    func searchFieldDidStartSearching(_ sender: NSSearchField) {
-        debugPrint("search field did start: \(sender.stringValue)")
-    }
-
-    func searchFieldDidEndSearching(_ sender: NSSearchField) {
-        debugPrint("search field did end: \(sender.stringValue)")
-        let _ = sender.resignFirstResponder()
     }
 }

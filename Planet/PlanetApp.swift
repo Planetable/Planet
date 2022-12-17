@@ -155,6 +155,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
 
     var templateWindowController: TBWindowController?
     var downloadsWindowController: PlanetDownloadsWindowController?
+    var publishedFoldersDashboardWindowController: PFDashboardWindowController?
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         return true
@@ -410,6 +411,12 @@ extension PlanetApp {
                 Text("Add Folder")
             }
             Divider()
+            Button {
+                PlanetAppDelegate.shared.openPublishedFoldersDashboardWindow()
+            } label: {
+                Text("Dashboard")
+            }
+            .keyboardShortcut("f", modifiers: [.command, .shift])
             Menu("Options") {
                 Toggle("Automatically Publish", isOn: $serviceStore.autoPublish)
                     .onChange(of: serviceStore.autoPublish) { newValue in
@@ -504,6 +511,13 @@ extension PlanetAppDelegate {
             templateWindowController = TBWindowController()
         }
         templateWindowController?.showWindow(nil)
+    }
+    
+    func openPublishedFoldersDashboardWindow() {
+        if publishedFoldersDashboardWindowController == nil {
+            publishedFoldersDashboardWindowController = PFDashboardWindowController()
+        }
+        publishedFoldersDashboardWindowController?.showWindow(nil)
     }
 }
 

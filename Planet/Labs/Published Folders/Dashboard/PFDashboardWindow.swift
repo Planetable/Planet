@@ -25,7 +25,7 @@ extension PFDashboardWindow: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
         if let window = notification.object as? PFDashboardWindow {
             window.delegate = nil
-//            PFDashboardAppDelegate.shared.dashboardWindowController = nil
+            PlanetAppDelegate.shared.publishedFoldersDashboardWindowController = nil
         }
     }
 

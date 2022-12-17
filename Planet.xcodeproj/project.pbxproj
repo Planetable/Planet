@@ -42,9 +42,7 @@
 		2AA797312948A1B50031E873 /* WKScriptHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA797302948A1B50031E873 /* WKScriptHelper.swift */; };
 		2AA7973E29496F730031E873 /* PFDashboardContainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973229496F720031E873 /* PFDashboardContainerViewController.swift */; };
 		2AA7973F29496F730031E873 /* PFDashboardInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973329496F720031E873 /* PFDashboardInspectorView.swift */; };
-		2AA7974029496F730031E873 /* PFDashboardAccessoryStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973429496F720031E873 /* PFDashboardAccessoryStatusView.swift */; };
 		2AA7974129496F730031E873 /* PFDashboardSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973529496F730031E873 /* PFDashboardSidebarView.swift */; };
-		2AA7974229496F730031E873 /* PFDashboardAccessoryStatusViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973629496F730031E873 /* PFDashboardAccessoryStatusViewController.swift */; };
 		2AA7974329496F730031E873 /* PFDashboardSidebarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973729496F730031E873 /* PFDashboardSidebarViewController.swift */; };
 		2AA7974429496F730031E873 /* PFDashboardWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973829496F730031E873 /* PFDashboardWindow.swift */; };
 		2AA7974529496F730031E873 /* PFDashboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973929496F730031E873 /* PFDashboardViewController.swift */; };
@@ -219,9 +217,7 @@
 		2AA797302948A1B50031E873 /* WKScriptHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKScriptHelper.swift; sourceTree = "<group>"; };
 		2AA7973229496F720031E873 /* PFDashboardContainerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PFDashboardContainerViewController.swift; sourceTree = "<group>"; };
 		2AA7973329496F720031E873 /* PFDashboardInspectorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PFDashboardInspectorView.swift; sourceTree = "<group>"; };
-		2AA7973429496F720031E873 /* PFDashboardAccessoryStatusView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PFDashboardAccessoryStatusView.swift; sourceTree = "<group>"; };
 		2AA7973529496F730031E873 /* PFDashboardSidebarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PFDashboardSidebarView.swift; sourceTree = "<group>"; };
-		2AA7973629496F730031E873 /* PFDashboardAccessoryStatusViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PFDashboardAccessoryStatusViewController.swift; sourceTree = "<group>"; };
 		2AA7973729496F730031E873 /* PFDashboardSidebarViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PFDashboardSidebarViewController.swift; sourceTree = "<group>"; };
 		2AA7973829496F730031E873 /* PFDashboardWindow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PFDashboardWindow.swift; sourceTree = "<group>"; };
 		2AA7973929496F730031E873 /* PFDashboardViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PFDashboardViewController.swift; sourceTree = "<group>"; };
@@ -437,8 +433,6 @@
 		2AA7974A29496F780031E873 /* Dashboard */ = {
 			isa = PBXGroup;
 			children = (
-				2AA7973429496F720031E873 /* PFDashboardAccessoryStatusView.swift */,
-				2AA7973629496F730031E873 /* PFDashboardAccessoryStatusViewController.swift */,
 				2AA7973229496F720031E873 /* PFDashboardContainerViewController.swift */,
 				2AA7973329496F720031E873 /* PFDashboardInspectorView.swift */,
 				2AA7973D29496F730031E873 /* PFDashboardInspectorViewController.swift */,
@@ -927,7 +921,6 @@
 				2AF4006427F37992005DF1A9 /* WriterPreview.swift in Sources */,
 				6A5E63AC28072AD400FB1E84 /* TemplateBrowserView.swift in Sources */,
 				2AE44EAE28CD219700944786 /* PlanetSettingsModel.swift in Sources */,
-				2AA7974029496F730031E873 /* PFDashboardAccessoryStatusView.swift in Sources */,
 				2A04DADD28EAD2250040D8E0 /* PlanetPublishedServiceStore.swift in Sources */,
 				2AFFD51B28AD760400EDB020 /* HelpLinkButton.swift in Sources */,
 				72114F25F504270EB29068C9 /* PlanetError.swift in Sources */,
@@ -994,7 +987,6 @@
 				721145BB829F2234DC279697 /* WriterVideoView.swift in Sources */,
 				2AE44EAC28CD218200944786 /* PlanetSettingsGeneralView.swift in Sources */,
 				2A2556B1293E1E98006462D8 /* TB+Extension.swift in Sources */,
-				2AA7974229496F730031E873 /* PFDashboardAccessoryStatusViewController.swift in Sources */,
 				2A2556B3293E1EB4006462D8 /* TBWindow.swift in Sources */,
 				721149A15F84CEDB799EC15B /* AudioPlayer.swift in Sources */,
 				7211436A6E9CCC30D85E8E18 /* WriterAudioView.swift in Sources */,

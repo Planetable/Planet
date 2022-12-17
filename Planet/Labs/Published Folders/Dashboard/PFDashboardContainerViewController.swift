@@ -37,6 +37,9 @@ extension PFDashboardContainerViewController {
     private func setupViewControllers() {
         view.wantsLayer = true
         view.layer?.backgroundColor = .clear
+        
+        splitView.dividerStyle = .thin
+
         sidebarViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: .sidebarWidth).isActive = true
         contentViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: .contentWidth).isActive = true
         inspectorViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: .inspectorWidth).isActive = true
@@ -60,9 +63,8 @@ extension PFDashboardContainerViewController {
         inspectorItem.holdingPriority = .defaultLow
         self.addSplitViewItem(inspectorItem)
 
-        self.splitView.dividerStyle = .thin
+        self.splitView.autosaveName = NSSplitView.AutosaveName(stringLiteral: String.dashboardContainerViewIdentifier)
         self.splitView.identifier = NSUserInterfaceItemIdentifier(String.dashboardContainerViewIdentifier)
-        self.splitView.autosaveName = NSSplitView.AutosaveName(format: "%@", String.dashboardContainerViewIdentifier)
 
         observer = inspectorItem.observe(\.isCollapsed, options: [.new], changeHandler: { item, _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
