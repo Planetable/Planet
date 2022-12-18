@@ -8,19 +8,26 @@
 import SwiftUI
 
 struct PFDashboardSidebarView: View {
+    @StateObject private var serviceStore: PlanetPublishedServiceStore
+    @StateObject private var planetStore: PlanetStore
+
+    init() {
+        _serviceStore = StateObject(wrappedValue: PlanetPublishedServiceStore.shared)
+        _planetStore = StateObject(wrappedValue: PlanetStore.shared)
+    }
+    
     var body: some View {
-        VStack {
-            List {
-                ForEach(0..<100) { i in
-                    HStack {
-                        Text("[SwiftUI] Sidebar \(i)")
-                        Spacer()
-                    }
+        VStack (spacing: 18) {
+            List(selection: $serviceStore.selectedFolderID) {
+                ForEach(serviceStore.publishedFolders, id: \.id) { folder in
+                    PFDashboardSidebarItemView(folder: folder)
+                        .environmentObject(serviceStore)
+                        .environmentObject(planetStore)
                 }
             }
             .listStyle(.sidebar)
         }
-        .frame(width: .sidebarWidth)
+        .frame(minWidth: .sidebarWidth, maxWidth: .infinity, minHeight: 320, maxHeight: .infinity)
     }
 }
 

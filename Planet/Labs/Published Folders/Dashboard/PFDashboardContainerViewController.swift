@@ -61,13 +61,16 @@ extension PFDashboardContainerViewController {
         sidebarItem.titlebarSeparatorStyle = .automatic
         inspectorItem.canCollapse = true
         inspectorItem.holdingPriority = .defaultLow
+        inspectorItem.isCollapsed = UserDefaults.standard.bool(forKey: String.dashboardInspectorIsCollapsed)
         self.addSplitViewItem(inspectorItem)
 
         self.splitView.autosaveName = NSSplitView.AutosaveName(stringLiteral: String.dashboardContainerViewIdentifier)
         self.splitView.identifier = NSUserInterfaceItemIdentifier(String.dashboardContainerViewIdentifier)
 
         observer = inspectorItem.observe(\.isCollapsed, options: [.new], changeHandler: { item, _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            UserDefaults.standard.set(item.isCollapsed, forKey: String.dashboardInspectorIsCollapsed)
+            let animationValue: CGFloat = item.isCollapsed ? 0.05 : 0.15
+            DispatchQueue.main.asyncAfter(deadline: .now() + animationValue) {
                 NotificationCenter.default.post(name: .dashboardInspectorIsCollapsedStatusChanged, object: nil)
             }
         })

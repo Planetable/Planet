@@ -28,6 +28,16 @@ class PlanetPublishedServiceStore: ObservableObject {
             updateMonitoring()
         }
     }
+    @Published var selectedFolderID: UUID? {
+        didSet {
+            if let id = selectedFolderID {
+                UserDefaults.standard.set(id.uuidString, forKey: String.selectedPublishedFolderID)
+            } else {
+                UserDefaults.standard.removeObject(forKey: String.selectedPublishedFolderID)
+            }
+        }
+    }
+    
     @Published private(set) var publishedFolders: [PlanetPublishedFolder] = [] {
         didSet {
             updateMonitoring()
@@ -40,6 +50,9 @@ class PlanetPublishedServiceStore: ObservableObject {
     init() {
         do {
             publishedFolders = try loadPublishedFolders()
+            if let value = UserDefaults.standard.object(forKey: String.selectedPublishedFolderID) as? String {
+                selectedFolderID = UUID(uuidString: value)
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                 Task(priority: .background) {
                     let removedIDs: [String] = UserDefaults.standard.stringArray(forKey: Self.removedListKey) ?? []
@@ -58,6 +71,10 @@ class PlanetPublishedServiceStore: ObservableObject {
     }
 
     func addToRemovingPublishedFolderQueue(_ folder: PlanetPublishedFolder) {
+        // remove selected index if equals
+        if selectedFolderID == folder.id {
+            selectedFolderID = nil
+        }
         // remove bookmark data
         removeBookmarkData(forFolder: folder)
         // remove monitor if exists
@@ -345,6 +362,52 @@ extension PlanetPublishedServiceStore {
 
     func removeBookmarkData(forFolder folder: PlanetPublishedFolder) {
         UserDefaults.standard.removeObject(forKey: Self.prefixKey + folder.id.uuidString)
+    }
+    
+    func addFolder() {
+        let panel = NSOpenPanel()
+        panel.message = "Choose Folder to Publish"
+        panel.prompt = "Choose"
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.folder]
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        let response = panel.runModal()
+        guard response == .OK, let url = panel.url else { return }
+        var folders = self.publishedFolders
+        var exists = false
+        for f in folders {
+            if f.url.absoluteString.md5() == url.absoluteString.md5() {
+                exists = true
+                break
+            }
+        }
+        if exists {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Add Folder"
+            alert.informativeText = "Selected folder has already been added."
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        let folder = PlanetPublishedFolder(id: UUID(), url: url, created: Date())
+        do {
+            try self.saveBookmarkData(forFolder: folder)
+            folders.insert(folder, at: 0)
+            let updatedFolders = folders
+            Task { @MainActor in
+                self.updatePublishedFolders(updatedFolders)
+            }
+        } catch {
+            debugPrint("failed to add folder: \(error)")
+            let alert = NSAlert()
+            alert.messageText = "Failed to Add Folder"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
     }
 }
 

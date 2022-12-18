@@ -16,17 +16,22 @@ class PFDashboardWindowController: NSWindowController {
         let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
         let w = PFDashboardWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .resizable, .titled, .fullSizeContentView, .unifiedTitleAndToolbar], backing: .buffered, defer: true)
         w.minSize = windowSize
+        w.maxSize = NSSize(width: screenSize.width, height: .infinity)
         w.toolbarStyle = .unified
         super.init(window: w)
         self.setupToolbar()
         self.window?.setFrameAutosaveName("Published Folders Dashboard Window")
-        NotificationCenter.default.addObserver(forName: .dashboardInspectorIsCollapsedStatusChanged, object: nil, queue: .main) { _ in
-            self.setupToolbar()
+        NotificationCenter.default.addObserver(forName: .dashboardInspectorIsCollapsedStatusChanged, object: nil, queue: .main) { [weak self] _ in
+            self?.setupToolbar()
         }
     }
 
     required init?(coder: NSCoder) {
         fatalError()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: .dashboardInspectorIsCollapsedStatusChanged, object: nil)
     }
 
     override func windowDidLoad() {
@@ -53,7 +58,7 @@ class PFDashboardWindowController: NSWindowController {
                     vc.toggleSidebar(sender)
                 }
             case .dashboardAddItem:
-                break
+                addFolder()
             case .dashboardShareItem:
                 break
             case .dashboardActionItem:
@@ -61,10 +66,20 @@ class PFDashboardWindowController: NSWindowController {
             case .dashboardInspectorItem:
                 if let vc = self.window?.contentViewController as? PFDashboardContainerViewController, let inspectorItem = vc.splitViewItems.last {
                     inspectorItem.animator().isCollapsed.toggle()
+                    UserDefaults.standard.set(inspectorItem.isCollapsed, forKey: String.dashboardInspectorIsCollapsed)
                 }
             default:
                 break
         }
+    }
+}
+
+
+// MARK: - Toolbar Item Actions
+
+extension PFDashboardWindowController {
+    func addFolder() {
+        PlanetPublishedServiceStore.shared.addFolder()
     }
 }
 

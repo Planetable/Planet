@@ -21,6 +21,8 @@ extension Notification.Name {
 
 extension String {
     static let dashboardContainerViewIdentifier = "PublishedFoldersDashboardContainerViewController"
+    static let dashboardInspectorIsCollapsed = "PublishedFoldersDashboardInspectorIsCollapsed"
+    static let selectedPublishedFolderID = "PublishedFoldersDashboardSelectedFolderID"
 }
 
 
@@ -37,4 +39,7 @@ extension NSToolbarItem.Identifier {
     static let dashboardAddItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarAddItem")
     static let dashboardShareItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarShareItem")
     static let dashboardActionItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarActionItem")
+    static let dashboardBackwardItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarBackwardItem")
+    static let dashboardForwardItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarForwardItem")
+    static let dashboardReloadItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarReloadItem")
 }

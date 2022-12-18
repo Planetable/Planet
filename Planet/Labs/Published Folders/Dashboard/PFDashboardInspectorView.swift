@@ -10,16 +10,9 @@ import SwiftUI
 struct PFDashboardInspectorView: View {
     var body: some View {
         VStack {
-            List {
-                ForEach(0..<100) { i in
-                    HStack {
-                        Text("[SwiftUI] Inspector \(i)")
-                        Spacer()
-                    }
-                }
-            }
+            Text("Inspector")
         }
-        .frame(width: .inspectorWidth)
+        .frame(minWidth: .inspectorWidth, maxWidth: .infinity, minHeight: 320, maxHeight: .infinity)
     }
 }
 
