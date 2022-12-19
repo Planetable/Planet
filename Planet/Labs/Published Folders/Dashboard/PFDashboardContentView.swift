@@ -23,12 +23,16 @@ struct PFDashboardContentView: NSViewRepresentable {
         wv.navigationDelegate = context.coordinator
         wv.setValue(false, forKey: "drawsBackground")
         wv.load(URLRequest(url: url))
+        NotificationCenter.default.addObserver(forName: .dashboardReloadCurrentURL, object: nil, queue: .main) { _ in
+            wv.load(URLRequest(url: self.url))
+        }
         return wv
     }
     
     func updateNSView(_ nsView: PFDashboardWebView, context: Context) {
+        nsView.load(URLRequest(url: url))
     }
-    
+
     class Coordinator: NSObject, WKNavigationDelegate {
         let parent: PFDashboardContentView
         

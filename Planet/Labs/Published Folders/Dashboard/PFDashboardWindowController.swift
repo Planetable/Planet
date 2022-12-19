@@ -6,10 +6,11 @@
 //
 
 import Cocoa
+import UserNotifications
 
 
 class PFDashboardWindowController: NSWindowController {
-
+    
     override init(window: NSWindow?) {
         let windowSize = NSSize(width: .sidebarWidth + .contentWidth + .inspectorWidth, height: 320)
         let screenSize = NSScreen.main?.frame.size ?? .zero
@@ -24,8 +25,20 @@ class PFDashboardWindowController: NSWindowController {
         NotificationCenter.default.addObserver(forName: .dashboardInspectorIsCollapsedStatusChanged, object: nil, queue: .main) { [weak self] _ in
             self?.setupToolbar()
         }
+        NotificationCenter.default.addObserver(forName: .dashboardRefreshToolbar, object: nil, queue: .main) { [weak self] _ in
+            self?.setupToolbar()
+            let serviceStore = PlanetPublishedServiceStore.shared
+            if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }) {
+                self?.window?.subtitle = "Never Published"
+                if let date = folder.published {
+                    self?.window?.subtitle = "Last Published: " + date.relativeDateDescription()
+                }
+            } else {
+                self?.window?.subtitle = ""
+            }
+        }
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError()
     }
@@ -33,11 +46,11 @@ class PFDashboardWindowController: NSWindowController {
     deinit {
         NotificationCenter.default.removeObserver(self, name: .dashboardInspectorIsCollapsedStatusChanged, object: nil)
     }
-
+    
     override func windowDidLoad() {
         super.windowDidLoad()
     }
-
+    
     private func setupToolbar() {
         guard let w = self.window else { return }
         let toolbar = NSToolbar(identifier: .dashboardToolbarIdentifier)
@@ -48,28 +61,140 @@ class PFDashboardWindowController: NSWindowController {
         w.title = "Published Folders Dashboard"
         w.toolbar = toolbar
         w.toolbar?.validateVisibleItems()
+        let serviceStore = PlanetPublishedServiceStore.shared
+        if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }) {
+            w.subtitle = "Never Published"
+            if let date = folder.published {
+                w.subtitle = "Last Published: " + date.relativeDateDescription()
+            }
+        } else {
+            w.subtitle = ""
+        }
     }
-
+    
+    @objc func openInPublicGateway(_ sender: Any) {
+        guard let object = sender as? NSMenuItem, let url = object.representedObject as? URL else { return }
+        NSWorkspace.shared.open(url)
+    }
+    
+    @objc func openInLocalhost(_ sender: Any) {
+        guard let object = sender as? NSMenuItem, let url = object.representedObject as? URL else { return }
+        NSWorkspace.shared.open(url)
+    }
+    
+    @objc func revealInFinder(_ sender: Any) {
+        guard let object = sender as? NSMenuItem, let folder = object.representedObject as? PlanetPublishedFolder else { return }
+        let serviceStore = PlanetPublishedServiceStore.shared
+        do {
+            let url = try serviceStore.restoreFolderAccess(forFolder: folder)
+            guard url.startAccessingSecurityScopedResource() else {
+                throw PlanetError.PublishedServiceFolderPermissionError
+            }
+            NSWorkspace.shared.open(url)
+            url.stopAccessingSecurityScopedResource()
+        } catch {
+            debugPrint("failed to request access to folder: \(folder), error: \(error)")
+            let alert = NSAlert()
+            alert.messageText = "Failed to Access to Folder"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
+    }
+    
+    @objc func publishFolder(_ sender: Any) {
+        guard let object = sender as? NSMenuItem, let folder = object.representedObject as? PlanetPublishedFolder else { return }
+        let serviceStore = PlanetPublishedServiceStore.shared
+        guard !serviceStore.publishingFolders.contains(folder.id) else {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Publish Folder"
+            alert.informativeText = "Folder is in publishing progress, please try again later."
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        Task { @MainActor in
+            do {
+                try await serviceStore.publishFolder(folder, skipCIDCheck: true)
+                let content = UNMutableNotificationContent()
+                content.title = "Folder Published"
+                content.subtitle = folder.url.absoluteString
+                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                let request = UNNotificationRequest(
+                    identifier: folder.id.uuidString,
+                    content: content,
+                    trigger: trigger
+                )
+                try? await UNUserNotificationCenter.current().add(request)
+            } catch PlanetError.PublishedServiceFolderUnchangedError {
+                let alert = NSAlert()
+                alert.messageText = "Failed to Publish Folder"
+                alert.informativeText = "Folder content hasn't changed since last publish."
+                alert.alertStyle = .informational
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+            } catch {
+                debugPrint("Failed to publish folder: \(folder), error: \(error)")
+                let alert = NSAlert()
+                alert.messageText = "Failed to Publish Folder"
+                alert.informativeText = error.localizedDescription
+                alert.alertStyle = .informational
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+            }
+        }
+    }
+    
+    @objc func removeFolder(_ sender: Any) {
+        guard let object = sender as? NSMenuItem, let folder = object.representedObject as? PlanetPublishedFolder else { return }
+        let serviceStore = PlanetPublishedServiceStore.shared
+        guard !serviceStore.publishingFolders.contains(folder.id) else {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Remove Folder"
+            alert.informativeText = "Folder is in publishing progress, please try again later."
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        serviceStore.addToRemovingPublishedFolderQueue(folder)
+        let updatedFolders = serviceStore.publishedFolders.filter { f in
+            return f.id != folder.id
+        }
+        Task { @MainActor in
+            serviceStore.updatePublishedFolders(updatedFolders)
+        }
+    }
+    
     @objc func toolbarItemAction(_ sender: Any) {
         guard let item = sender as? NSToolbarItem else { return }
         switch item.itemIdentifier {
-            case .dashboardSidebarItem:
-                if let vc = self.window?.contentViewController as? PFDashboardContainerViewController {
-                    vc.toggleSidebar(sender)
-                }
-            case .dashboardAddItem:
-                addFolder()
-            case .dashboardShareItem:
-                break
-            case .dashboardActionItem:
-                break
-            case .dashboardInspectorItem:
-                if let vc = self.window?.contentViewController as? PFDashboardContainerViewController, let inspectorItem = vc.splitViewItems.last {
-                    inspectorItem.animator().isCollapsed.toggle()
-                    UserDefaults.standard.set(inspectorItem.isCollapsed, forKey: String.dashboardInspectorIsCollapsed)
-                }
-            default:
-                break
+        case .dashboardSidebarItem:
+            if let vc = self.window?.contentViewController as? PFDashboardContainerViewController {
+                vc.toggleSidebar(sender)
+            }
+        case .dashboardAddItem:
+            addFolder()
+        case .dashboardShareItem:
+            break
+        case .dashboardActionItem:
+            break
+        case .dashboardReloadItem:
+            let serviceStore = PlanetPublishedServiceStore.shared
+            if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }), let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+                NotificationCenter.default.post(name: .dashboardPreviewURL, object: url)
+            } else {
+                NotificationCenter.default.post(name: .dashboardReloadCurrentURL, object: nil)
+            }
+        case .dashboardInspectorItem:
+            if let vc = self.window?.contentViewController as? PFDashboardContainerViewController, let inspectorItem = vc.splitViewItems.last {
+                inspectorItem.animator().isCollapsed.toggle()
+                UserDefaults.standard.set(inspectorItem.isCollapsed, forKey: String.dashboardInspectorIsCollapsed)
+            }
+        default:
+            break
         }
     }
 }
@@ -89,18 +214,20 @@ extension PFDashboardWindowController {
 extension PFDashboardWindowController: NSToolbarItemValidation {
     func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
         switch item.itemIdentifier {
-            case .dashboardAddItem:
-                return true
-            case .dashboardShareItem:
-                return true
-            case .dashboardActionItem:
-                return true
-            case .dashboardSidebarItem:
-                return true
-            case .dashboardInspectorItem:
-                return true
-            default:
-                return false    // disabled
+        case .dashboardAddItem:
+            return true
+        case .dashboardShareItem:
+            return true
+        case .dashboardActionItem:
+            return true
+        case .dashboardReloadItem:
+            return true
+        case .dashboardSidebarItem:
+            return true
+        case .dashboardInspectorItem:
+            return true
+        default:
+            return false    // disabled
         }
     }
 }
@@ -110,65 +237,131 @@ extension PFDashboardWindowController: NSToolbarItemValidation {
 extension PFDashboardWindowController: NSToolbarDelegate {
     func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
         switch itemIdentifier {
-            case .dashboardSidebarItem:
-                let item = NSToolbarItem(itemIdentifier: itemIdentifier)
-                item.target = self
-                item.action = #selector(self.toolbarItemAction(_:))
-                item.label = "Toggle Sidebar"
-                item.paletteLabel = "Toggle Sidebar"
-                item.toolTip = "Toggle Sidebar"
-                item.isBordered = true
-                item.image = NSImage(systemSymbolName: "sidebar.left", accessibilityDescription: "Toggle Sidebar")
+        case .dashboardSidebarItem:
+            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+            item.target = self
+            item.action = #selector(self.toolbarItemAction(_:))
+            item.label = "Toggle Sidebar"
+            item.paletteLabel = "Toggle Sidebar"
+            item.toolTip = "Toggle Sidebar"
+            item.isBordered = true
+            item.image = NSImage(systemSymbolName: "sidebar.left", accessibilityDescription: "Toggle Sidebar")
+            return item
+        case .dashboardSidebarSeparatorItem:
+            if let vc = self.window?.contentViewController as? PFDashboardContainerViewController {
+                let item = NSTrackingSeparatorToolbarItem(identifier: itemIdentifier, splitView: vc.splitView, dividerIndex: 0)
                 return item
-            case .dashboardSidebarSeparatorItem:
-                if let vc = self.window?.contentViewController as? PFDashboardContainerViewController {
-                    let item = NSTrackingSeparatorToolbarItem(identifier: itemIdentifier, splitView: vc.splitView, dividerIndex: 0)
-                    return item
-                } else {
-                    return nil
-                }
-            case .dashboardAddItem:
-                let item = NSToolbarItem(itemIdentifier: itemIdentifier)
-                item.target = self
-                item.action = #selector(self.toolbarItemAction(_:))
-                item.label = "Add"
-                item.paletteLabel = "Add Folder"
-                item.toolTip = "Add Folder"
-                item.isBordered = true
-                item.image = NSImage(systemSymbolName: "plus", accessibilityDescription: "Add Folder")
-                return item
-            case .dashboardShareItem:
-                let item = NSSharingServicePickerToolbarItem(itemIdentifier: itemIdentifier)
-                item.delegate = self
-                item.menuFormRepresentation?.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
-                item.toolTip = "Share"
-                return item
-            case .dashboardInspectorItem:
-                let item = NSToolbarItem(itemIdentifier: itemIdentifier)
-                item.target = self
-                item.action = #selector(self.toolbarItemAction(_:))
-                item.label = "Toggle Inspector View"
-                item.paletteLabel = "Toggle Inspector View"
-                item.toolTip = "Toggle Inspector View"
-                item.isBordered = true
-                item.image = NSImage(systemSymbolName: "sidebar.right", accessibilityDescription: "Toggle Inspector View")
-                return item
-            case .dashboardInspectorSeparactorItem:
-                if let vc = self.window?.contentViewController as? PFDashboardContainerViewController, let inspectorItem = vc.splitViewItems.last {
-                    if inspectorItem.isCollapsed {
-                        return nil
-                    } else {
-                        let item = NSTrackingSeparatorToolbarItem(identifier: itemIdentifier, splitView: vc.splitView, dividerIndex: 1)
-                        return item
-                    }
-                } else {
-                    return nil
-                }
-            default:
+            } else {
                 return nil
+            }
+        case .dashboardAddItem:
+            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+            item.target = self
+            item.action = #selector(self.toolbarItemAction(_:))
+            item.label = "Add"
+            item.paletteLabel = "Add Folder"
+            item.toolTip = "Add Folder"
+            item.isBordered = true
+            item.image = NSImage(systemSymbolName: "plus", accessibilityDescription: "Add Folder")
+            return item
+        case .dashboardShareItem:
+            let item = NSSharingServicePickerToolbarItem(itemIdentifier: itemIdentifier)
+            item.delegate = self
+            item.menuFormRepresentation?.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
+            item.toolTip = "Share"
+            return item
+        case .dashboardReloadItem:
+            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+            item.target = self
+            item.action = #selector(self.toolbarItemAction(_:))
+            item.label = "Reload"
+            item.paletteLabel = "Reload"
+            item.toolTip = "Reload"
+            item.isBordered = true
+            item.image = NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: "Reload")
+            return item
+        case .dashboardActionItem:
+            let item = NSMenuToolbarItem(itemIdentifier: itemIdentifier)
+            item.showsIndicator = true
+            item.label = "More"
+            item.paletteLabel = "More Actions"
+            item.toolTip = "Displays available actions"
+            item.isBordered = true
+            item.image = NSImage(systemSymbolName: "ellipsis.circle", accessibilityDescription: "")
+            let serviceStore = PlanetPublishedServiceStore.shared
+            if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }) {
+                let menu = NSMenu()
+                if let _ = folder.published, let publishedLink = folder.publishedLink {
+                    if let gatewayURL = URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(publishedLink)") {
+                        let publicGatewayActionItem = NSMenuItem()
+                        publicGatewayActionItem.representedObject = gatewayURL
+                        publicGatewayActionItem.title = "Open in Public Gateway"
+                        publicGatewayActionItem.target = self
+                        publicGatewayActionItem.action = #selector(self.openInPublicGateway(_:))
+                        menu.addItem(publicGatewayActionItem)
+                    }
+                    if let localhostURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+                        let localhostActionItem = NSMenuItem()
+                        localhostActionItem.representedObject = localhostURL
+                        localhostActionItem.title = "Open in Localhost"
+                        localhostActionItem.target = self
+                        localhostActionItem.action = #selector(self.openInLocalhost(_:))
+                        menu.addItem(localhostActionItem)
+                    }
+                }
+                
+                let revealFinderItem = NSMenuItem()
+                revealFinderItem.representedObject = folder
+                revealFinderItem.title = "Reveal in Finder"
+                revealFinderItem.target = self
+                revealFinderItem.action = #selector(self.revealInFinder(_:))
+                menu.addItem(revealFinderItem)
+                
+                let publishFolderItem = NSMenuItem()
+                publishFolderItem.representedObject = folder
+                publishFolderItem.title = "Publish Folder"
+                publishFolderItem.target = self
+                publishFolderItem.action = #selector(self.publishFolder(_:))
+                menu.addItem(publishFolderItem)
+                
+                menu.addItem(NSMenuItem.separator())
+                
+                let removeFolderItem = NSMenuItem()
+                removeFolderItem.representedObject = folder
+                removeFolderItem.title = "Remove Folder"
+                removeFolderItem.target = self
+                removeFolderItem.action = #selector(self.removeFolder(_:))
+                menu.addItem(removeFolderItem)
+                
+                item.menu = menu
+            }
+            return item
+        case .dashboardInspectorItem:
+            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+            item.target = self
+            item.action = #selector(self.toolbarItemAction(_:))
+            item.label = "Toggle Inspector View"
+            item.paletteLabel = "Toggle Inspector View"
+            item.toolTip = "Toggle Inspector View"
+            item.isBordered = true
+            item.image = NSImage(systemSymbolName: "sidebar.right", accessibilityDescription: "Toggle Inspector View")
+            return item
+        case .dashboardInspectorSeparactorItem:
+            if let vc = self.window?.contentViewController as? PFDashboardContainerViewController, let inspectorItem = vc.splitViewItems.last {
+                if inspectorItem.isCollapsed {
+                    return nil
+                } else {
+                    let item = NSTrackingSeparatorToolbarItem(identifier: itemIdentifier, splitView: vc.splitView, dividerIndex: 1)
+                    return item
+                }
+            } else {
+                return nil
+            }
+        default:
+            return nil
         }
     }
-
+    
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return [
             .space,
@@ -176,11 +369,12 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardSidebarItem,
             .dashboardAddItem,
             .dashboardShareItem,
+            .dashboardReloadItem,
             .dashboardActionItem,
             .dashboardInspectorItem
         ]
     }
-
+    
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return [
             .dashboardSidebarItem,
@@ -188,6 +382,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardAddItem,
             .dashboardSidebarSeparatorItem,
             .flexibleSpace,
+            .dashboardReloadItem,
             .dashboardShareItem,
             .dashboardActionItem,
             .dashboardInspectorSeparactorItem,
@@ -195,7 +390,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardInspectorItem
         ]
     }
-
+    
     func toolbarImmovableItemIdentifiers(_ toolbar: NSToolbar) -> Set<NSToolbarItem.Identifier> {
         return [
             .flexibleSpace,
@@ -206,15 +401,15 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardInspectorSeparactorItem
         ]
     }
-
+    
     func toolbarWillAddItem(_ notification: Notification) {
     }
-
+    
     func toolbarDidRemoveItem(_ notification: Notification) {
         debugPrint("toolbarDidRemoveItem: \(notification)")
         setupToolbar()
     }
-
+    
     func toolbarSelectableItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         // Return the identifiers you'd like to show as "selected" when clicked.
         // Similar to how they look in typical Preferences windows.
@@ -227,8 +422,9 @@ extension PFDashboardWindowController: NSToolbarDelegate {
 
 extension PFDashboardWindowController: NSSharingServicePickerToolbarItemDelegate {
     func items(for pickerToolbarItem: NSSharingServicePickerToolbarItem) -> [Any] {
-        // MARK: TODO: share current published folder url.
-        let sharableItems = [URL(string: "https://www.apple.com/")!]
+        let serviceStore = PlanetPublishedServiceStore.shared
+        guard let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(publishedLink)") else { return [] }
+        let sharableItems = [url]
         return sharableItems
     }
 }

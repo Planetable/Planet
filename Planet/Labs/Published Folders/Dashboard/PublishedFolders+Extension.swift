@@ -16,6 +16,9 @@ extension CGFloat {
 
 extension Notification.Name {
     static let dashboardInspectorIsCollapsedStatusChanged = Notification.Name("PublishedFoldersDashboardInspectorIsCollapsedStatusChangedNotification")
+    static let dashboardRefreshToolbar = Notification.Name("PublishedFoldersDashboardRefreshToolbarNotification")
+    static let dashboardPreviewURL = Notification.Name("PublishedFoldersDashboardPreviewURLNotification")
+    static let dashboardReloadCurrentURL = Notification.Name("PublishedFoldersDashboardReloadCurrentURLNotification")
 }
 
 

@@ -306,7 +306,6 @@ extension PlanetApp {
                                     Text("Open in Localhost")
                                 }
                             }
-
                             Button {
                                 do {
                                     let url = try serviceStore.restoreFolderAccess(forFolder: folder)
@@ -317,14 +316,16 @@ extension PlanetApp {
                                     url.stopAccessingSecurityScopedResource()
                                 } catch {
                                     debugPrint("failed to request access to folder: \(folder), error: \(error)")
-                                    planetStore.isShowingAlert = true
-                                    planetStore.alertTitle = "Failed to Access to Folder"
-                                    planetStore.alertMessage = error.localizedDescription
+                                    let alert = NSAlert()
+                                    alert.messageText = "Failed to Access to Folder"
+                                    alert.informativeText = error.localizedDescription
+                                    alert.alertStyle = .informational
+                                    alert.addButton(withTitle: "OK")
+                                    alert.runModal()
                                 }
                             } label: {
                                 Text("Reveal in Finder")
                             }
-
                             Button {
                                 Task { @MainActor in
                                     do {
@@ -340,23 +341,27 @@ extension PlanetApp {
                                         )
                                         try? await UNUserNotificationCenter.current().add(request)
                                     } catch PlanetError.PublishedServiceFolderUnchangedError {
-                                        planetStore.isShowingAlert = true
-                                        planetStore.alertTitle = "Failed to Publish Folder"
-                                        planetStore.alertMessage = "Folder content hasn't changed since last publish."
+                                        let alert = NSAlert()
+                                        alert.messageText = "Failed to Publish Folder"
+                                        alert.informativeText = "Folder content hasn't changed since last publish."
+                                        alert.alertStyle = .informational
+                                        alert.addButton(withTitle: "OK")
+                                        alert.runModal()
                                     } catch {
                                         debugPrint("Failed to publish folder: \(folder), error: \(error)")
-                                        planetStore.isShowingAlert = true
-                                        planetStore.alertTitle = "Failed to Publish Folder"
-                                        planetStore.alertMessage = error.localizedDescription
+                                        let alert = NSAlert()
+                                        alert.messageText = "Failed to Publish Folder"
+                                        alert.informativeText = error.localizedDescription
+                                        alert.alertStyle = .informational
+                                        alert.addButton(withTitle: "OK")
+                                        alert.runModal()
                                     }
                                 }
                             } label: {
                                 Text("Publish")
                             }
                         }
-
                         Divider()
-
                         Button {
                             serviceStore.addToRemovingPublishedFolderQueue(folder)
                             let updatedFolders = serviceStore.publishedFolders.filter { f in

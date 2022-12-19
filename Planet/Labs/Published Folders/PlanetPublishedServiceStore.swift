@@ -29,12 +29,18 @@ class PlanetPublishedServiceStore: ObservableObject {
         }
     }
     @Published var selectedFolderID: UUID? {
+        willSet(newValue) {
+            if let folder = publishedFolders.first(where: { $0.id == newValue }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+                NotificationCenter.default.post(name: .dashboardPreviewURL, object: url)
+            }
+        }
         didSet {
             if let id = selectedFolderID {
                 UserDefaults.standard.set(id.uuidString, forKey: String.selectedPublishedFolderID)
             } else {
                 UserDefaults.standard.removeObject(forKey: String.selectedPublishedFolderID)
             }
+            NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
         }
     }
     
