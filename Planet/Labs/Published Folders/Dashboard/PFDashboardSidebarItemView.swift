@@ -36,10 +36,60 @@ struct PFDashboardSidebarItemView: View {
                             try await self.serviceStore.publishFolder(folder, skipCIDCheck: true)
                         } catch {
                             debugPrint("failed to publish folder: \(folder), error: \(error)")
+                            let alert = NSAlert()
+                            alert.messageText = "Failed to Publish Folder"
+                            alert.informativeText = error.localizedDescription
+                            alert.alertStyle = .informational
+                            alert.addButton(withTitle: "OK")
+                            alert.runModal()
                         }
                     }
                 } label: {
                     Text("Publish Folder")
+                }
+                
+                Button {
+                    do {
+                        let url = try self.serviceStore.restoreFolderAccess(forFolder: folder)
+                        guard url.startAccessingSecurityScopedResource() else {
+                            throw PlanetError.PublishedServiceFolderPermissionError
+                        }
+                        NSWorkspace.shared.open(url)
+                        url.stopAccessingSecurityScopedResource()
+                    } catch {
+                        debugPrint("failed to request access to folder: \(folder), error: \(error)")
+                        let alert = NSAlert()
+                        alert.messageText = "Failed to Access to Folder"
+                        alert.informativeText = error.localizedDescription
+                        alert.alertStyle = .informational
+                        alert.addButton(withTitle: "OK")
+                        alert.runModal()
+                    }
+                } label: {
+                    Text("Reveal in Finder")
+                }
+                
+                Divider()
+                
+                Button {
+                    guard !self.serviceStore.publishingFolders.contains(folder.id) else {
+                        let alert = NSAlert()
+                        alert.messageText = "Failed to Remove Folder"
+                        alert.informativeText = "Folder is in publishing progress, please try again later."
+                        alert.alertStyle = .informational
+                        alert.addButton(withTitle: "OK")
+                        alert.runModal()
+                        return
+                    }
+                    self.serviceStore.addToRemovingPublishedFolderQueue(folder)
+                    let updatedFolders = self.serviceStore.publishedFolders.filter { f in
+                        return f.id != folder.id
+                    }
+                    Task { @MainActor in
+                        self.serviceStore.updatePublishedFolders(updatedFolders)
+                    }
+                } label: {
+                    Text("Remove Folder")
                 }
             }
         }

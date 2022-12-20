@@ -439,11 +439,11 @@
 		2AA7974A29496F780031E873 /* Dashboard */ = {
 			isa = PBXGroup;
 			children = (
-				2A9B09A0294DF3BC0002719C /* PFDashboardSidebarItemView.swift */,
 				2AA7973229496F720031E873 /* PFDashboardContainerViewController.swift */,
 				2AA7973329496F720031E873 /* PFDashboardInspectorView.swift */,
 				2AA7973D29496F730031E873 /* PFDashboardInspectorViewController.swift */,
 				2AA7973529496F730031E873 /* PFDashboardSidebarView.swift */,
+				2A9B09A0294DF3BC0002719C /* PFDashboardSidebarItemView.swift */,
 				2AA7973729496F730031E873 /* PFDashboardSidebarViewController.swift */,
 				2AA7973A29496F730031E873 /* PFDashboardView.swift */,
 				2AA7973929496F730031E873 /* PFDashboardViewController.swift */,
