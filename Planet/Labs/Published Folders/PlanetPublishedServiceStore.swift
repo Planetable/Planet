@@ -190,6 +190,7 @@ class PlanetPublishedServiceStore: ObservableObject {
             }
         }
         updatePublishedFolders(updatedFolders)
+        NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
         debugPrint("Folder published -> \(folder.url)")
     }
 

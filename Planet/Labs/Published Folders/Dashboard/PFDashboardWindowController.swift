@@ -27,15 +27,6 @@ class PFDashboardWindowController: NSWindowController {
         }
         NotificationCenter.default.addObserver(forName: .dashboardRefreshToolbar, object: nil, queue: .main) { [weak self] _ in
             self?.setupToolbar()
-            let serviceStore = PlanetPublishedServiceStore.shared
-            if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }) {
-                self?.window?.subtitle = "Never Published"
-                if let date = folder.published {
-                    self?.window?.subtitle = "Last Published: " + date.relativeDateDescription()
-                }
-            } else {
-                self?.window?.subtitle = ""
-            }
         }
     }
     
@@ -59,16 +50,16 @@ class PFDashboardWindowController: NSWindowController {
         toolbar.autosavesConfiguration = true
         toolbar.displayMode = .iconOnly
         w.title = "Published Folders Dashboard"
+        w.subtitle = ""
         w.toolbar = toolbar
         w.toolbar?.validateVisibleItems()
         let serviceStore = PlanetPublishedServiceStore.shared
         if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }) {
+            w.title = folder.url.lastPathComponent
             w.subtitle = "Never Published"
             if let date = folder.published {
                 w.subtitle = "Last Published: " + date.relativeDateDescription()
             }
-        } else {
-            w.subtitle = ""
         }
     }
     

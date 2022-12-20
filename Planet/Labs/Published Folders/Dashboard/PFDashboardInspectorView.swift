@@ -35,8 +35,38 @@ struct PFDashboardInspectorView: View {
     @ViewBuilder
     private func inspectorView(forFolder folder: PlanetPublishedFolder) -> some View {
         ScrollView {
-            Text("Inspector")
+            Section("General") {
+                sectionInformationView(name: "Name", content: folder.url.lastPathComponent)
+                
+                Divider()
+                
+                sectionInformationView(name: "Directory", content: folder.url.path)
+                
+                Divider()
+                
+                sectionInformationView(name: "Last Published", content: folder.published?.relativeDateDescription() ?? "Never")
+            }
+            .padding(.top, 8)
         }
+    }
+    
+    @ViewBuilder
+    private func sectionInformationView(name: String, content: String) -> some View {
+        VStack {
+            HStack {
+                Text(name)
+                Spacer(minLength: 1)
+            }
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+            
+            HStack {
+                Text(content)
+                Spacer(minLength: 1)
+            }
+            .font(.subheadline)
+        }
+        .padding(.horizontal, 8)
     }
 }
 
