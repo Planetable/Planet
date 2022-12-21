@@ -69,4 +69,5 @@ struct PublicArticleModel: Codable {
     let audioDuration: Int?
     let audioByteLength: Int?
     let attachments: [String]?
+    let heroImage: String?
 }

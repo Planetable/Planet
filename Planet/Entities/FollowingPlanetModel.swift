@@ -451,7 +451,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioFilename: nil,
                 audioDuration: nil,
                 audioByteLength: nil,
-                attachments: nil
+                attachments: nil,
+                heroImage: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)
@@ -641,7 +642,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioFilename: nil,
                 audioDuration: nil,
                 audioByteLength: nil,
-                attachments: nil
+                attachments: nil,
+                heroImage: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)
@@ -875,7 +877,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioFilename: nil,
                 audioDuration: nil,
                 audioByteLength: nil,
-                attachments: nil
+                attachments: nil,
+                heroImage: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)

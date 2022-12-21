@@ -27,7 +27,8 @@ class MyArticleModel: ArticleModel, Codable {
             audioFilename: audioFilename,
             audioDuration: getAudioDuration(name: audioFilename),
             audioByteLength: getAttachmentByteLength(name: audioFilename),
-            attachments: attachments
+            attachments: attachments,
+            heroImage: getHeroImage()
         )
     }
     var browserURL: URL? {
@@ -152,6 +153,46 @@ class MyArticleModel: ArticleModel, Codable {
         let asset = AVURLAsset(url: url)
         let duration = asset.duration
         return Int(CMTimeGetSeconds(duration))
+    }
+
+    func getHeroImage() -> String? {
+        debugPrint("HeroImage: finding from \(attachments)")
+        let images: [String]? = attachments?.compactMap {
+            if $0.hasSuffix(".avif") || $0.hasSuffix(".jpeg") || $0.hasSuffix(".jpg") || $0.hasSuffix(".png") || $0.hasSuffix(".webp") || $0.hasSuffix(".gif") || $0.hasSuffix(".tiff") {
+                return $0
+            } else {
+                return nil
+            }
+        }
+        debugPrint("HeroImage candidates: \(images?.count) \(images)")
+        var firstImage: String? = nil
+        if let items = images {
+            for item in items {
+                let imagePath = publicBasePath.appendingPathComponent(item, isDirectory: false)
+                if let url = URL(string: imagePath.absoluteString) {
+                    debugPrint("HeroImage: checking size of \(url.absoluteString)")
+                    if let image = NSImage(contentsOf: url) {
+                        if firstImage == nil {
+                            firstImage = item
+                        }
+                        debugPrint("HeroImage: created NSImage from \(url.absoluteString)")
+                        debugPrint("HeroImage: candidate size: \(image.size)")
+                        if image.size.width >= 600 && image.size.height >= 400 {
+                            debugPrint("HeroImage: \(item)")
+                            return item
+                        }
+                    }
+                } else {
+                    debugPrint("HeroImage: invalid URL for item: \(item) \(imagePath)")
+                }
+            }
+        }
+        if firstImage != nil {
+            debugPrint("HeroImage: return the first image anyway: \(firstImage)")
+            return firstImage
+        }
+        debugPrint("HeroImage: NOT FOUND")
+        return nil
     }
 
     func savePublic() throws {

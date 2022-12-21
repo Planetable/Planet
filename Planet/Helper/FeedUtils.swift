@@ -243,7 +243,8 @@ struct FeedUtils {
             audioFilename: nil,
             audioDuration: nil,
             audioByteLength: nil,
-            attachments: nil
+            attachments: nil,
+            heroImage: nil
         )
     }
 
@@ -288,7 +289,8 @@ struct FeedUtils {
                     audioFilename: nil,
                     audioDuration: nil,
                     audioByteLength: nil,
-                    attachments: nil
+                    attachments: nil,
+                    heroImage: nil
                 )
             }
             return (name, about, nil, articles)
@@ -321,7 +323,8 @@ struct FeedUtils {
                     audioFilename: nil,
                     audioDuration: nil,
                     audioByteLength: nil,
-                    attachments: nil
+                    attachments: nil,
+                    heroImage: nil
                 )
             }
             return (name, about, nil, articles)

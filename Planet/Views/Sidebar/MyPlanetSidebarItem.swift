@@ -122,6 +122,7 @@ struct MyPlanetSidebarItem: View {
 
                 Button {
                     if let url = planet.browserURL {
+                        debugPrint("My Planet Browser URL: \(url.absoluteString)")
                         NSWorkspace.shared.open(url)
                     }
                 } label: {

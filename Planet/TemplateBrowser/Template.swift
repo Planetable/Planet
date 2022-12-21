@@ -261,7 +261,8 @@ class Template: Codable, Identifiable {
             audioFilename: nil,
             audioDuration: nil,
             audioByteLength: nil,
-            attachments: nil
+            attachments: nil,
+            heroImage: nil
         )
 
         // render markdown
