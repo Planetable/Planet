@@ -145,14 +145,19 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     var domainWithGateway: String? {
-        if let domain = domain {
+        if let domain: String = domain {
+            let domain = domain.trim()
             if domain.hasSuffix(".eth") {
                 return "\(domain).limo"
             }
             if domain.hasSuffix(".bit") {
                 return "\(domain).cc"
             }
-            return domain
+            if domain.count > 0 {
+                return domain
+            } else {
+                return nil
+            }
         } else {
             return nil
         }
