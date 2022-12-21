@@ -44,7 +44,7 @@ struct PFDashboardInspectorView: View {
                 
                 Divider()
                 
-                sectionInformationView(name: "Last Published", content: folder.published?.relativeDateDescription() ?? "Never")
+                sectionInformationView(name: "Last Published", content: folder.published?.dateDescription() ?? "Never")
             }
             .padding(.top, 8)
         }
