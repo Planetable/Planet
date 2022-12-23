@@ -179,12 +179,11 @@ class PFDashboardWindowController: NSWindowController {
             debugPrint("go forward:")
             break
         case .dashboardReloadItem:
-            let serviceStore = PlanetPublishedServiceStore.shared
-            if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }), let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
-                NotificationCenter.default.post(name: .dashboardPreviewURL, object: url)
-            } else {
-                NotificationCenter.default.post(name: .dashboardReloadCurrentURL, object: nil)
-            }
+//            let serviceStore = PlanetPublishedServiceStore.shared
+//            if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }), let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+//            }
+            // MARK: TODO: reload
+            NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: nil)
         case .dashboardInspectorItem:
             if let vc = self.window?.contentViewController as? PFDashboardContainerViewController, let inspectorItem = vc.splitViewItems.last {
                 inspectorItem.animator().isCollapsed.toggle()

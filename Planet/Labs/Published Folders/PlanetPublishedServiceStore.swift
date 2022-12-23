@@ -31,10 +31,12 @@ class PlanetPublishedServiceStore: ObservableObject {
     @Published var selectedFolderID: UUID? {
         willSet(newValue) {
             if let folder = publishedFolders.first(where: { $0.id == newValue }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
-                NotificationCenter.default.post(name: .dashboardPreviewURL, object: url)
+                NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: url)
+                selectedFolderURL = url
             }
             selectedFolderCanGoForward = false
             selectedFolderCanGoBackward = false
+            selectedFolderURLForwardList.removeAll()
         }
         didSet {
             if let id = selectedFolderID {
@@ -45,8 +47,18 @@ class PlanetPublishedServiceStore: ObservableObject {
             NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
         }
     }
-    @Published var selectedFolderCanGoForward: Bool = false
-    @Published var selectedFolderCanGoBackward: Bool = false
+    @Published private(set) var selectedFolderCanGoForward: Bool = false
+    @Published private(set) var selectedFolderCanGoBackward: Bool = false
+    @Published private(set) var selectedFolderURL: URL? {
+        didSet {
+
+        }
+    }
+    @Published var selectedFolderURLForwardList: [URL] = [] {
+        didSet {
+
+        }
+    }
     
     @Published private(set) var publishedFolders: [PlanetPublishedFolder] = [] {
         didSet {

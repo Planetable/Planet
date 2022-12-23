@@ -12,7 +12,7 @@ import WebKit
 
 struct PFDashboardContentView: NSViewRepresentable {
     
-    var url: URL
+    @Binding var url: URL
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -24,24 +24,17 @@ struct PFDashboardContentView: NSViewRepresentable {
         wv.setValue(false, forKey: "drawsBackground")
         wv.load(URLRequest(url: url))
         wv.allowsBackForwardNavigationGestures = false
-        NotificationCenter.default.addObserver(forName: .dashboardReloadCurrentURL, object: nil, queue: .main) { _ in
-            wv.load(URLRequest(url: self.url))
+        NotificationCenter.default.addObserver(forName: .dashboardLoadPreviewURL, object: nil, queue: .main) { n in
+            if let previewURL = n.object as? URL {
+                wv.load(URLRequest(url: previewURL))
+            } else {
+                wv.load(URLRequest(url: self.url))
+            }
         }
         return wv
     }
     
     func updateNSView(_ nsView: PFDashboardWebView, context: Context) {
-        nsView.load(URLRequest(url: url))
-        
-        debugPrint("update web view at url: \(url) ")
-        
-        let forwardList = nsView.backForwardList.forwardList
-        let backwardList = nsView.backForwardList.backList
-        let serviceStore = PlanetPublishedServiceStore.shared
-        Task { @MainActor in
-            serviceStore.selectedFolderCanGoForward = nsView.canGoForward
-            serviceStore.selectedFolderCanGoBackward = nsView.canGoBack
-        }
     }
 
     class Coordinator: NSObject, WKNavigationDelegate {
@@ -56,5 +49,10 @@ struct PFDashboardContentView: NSViewRepresentable {
         func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
             completionHandler(.performDefaultHandling, nil)
         }
+        
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            debugPrint("web view did finish navigation: \(navigation.description), finished link: \(webView.url)")
+        }
+        
     }
 }
