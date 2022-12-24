@@ -25,10 +25,36 @@ struct PFDashboardContentView: NSViewRepresentable {
         wv.load(URLRequest(url: url))
         wv.allowsBackForwardNavigationGestures = false
         NotificationCenter.default.addObserver(forName: .dashboardLoadPreviewURL, object: nil, queue: .main) { n in
+            let targetURL: URL
             if let previewURL = n.object as? URL {
-                wv.load(URLRequest(url: previewURL))
+                targetURL = previewURL
+                if wv.canGoBack, let backItem = wv.backForwardList.backList.first {
+                    wv.go(to: backItem)
+                }
+            } else if let currentURL = PlanetPublishedServiceStore.shared.selectedFolderCurrentURL {
+                targetURL = currentURL
             } else {
-                wv.load(URLRequest(url: self.url))
+                targetURL = self.url
+            }
+            wv.load(URLRequest(url: targetURL))
+        }
+        NotificationCenter.default.addObserver(forName: .dashboardWebViewGoForward, object: nil, queue: .main) { _ in
+            wv.goForward()
+        }
+        NotificationCenter.default.addObserver(forName: .dashboardWebViewGoBackward, object: nil, queue: .main) { _ in
+            wv.goBack()
+        }
+        NotificationCenter.default.addObserver(forName: .dashboardResetWebViewHistory, object: nil, queue: .main) { _ in
+            if wv.canGoBack, let backItem = wv.backForwardList.backList.first {
+                wv.go(to: backItem)
+            }
+        }
+        NotificationCenter.default.addObserver(forName: .dashboardReloadWebView, object: nil, queue: .main) { _ in
+            wv.reload()
+        }
+        NotificationCenter.default.addObserver(forName: .dashboardWebViewGoHome, object: nil, queue: .main) { _ in
+            if wv.canGoBack, let backItem = wv.backForwardList.backList.first {
+                wv.go(to: backItem)
             }
         }
         return wv
@@ -51,7 +77,11 @@ struct PFDashboardContentView: NSViewRepresentable {
         }
         
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            debugPrint("web view did finish navigation: \(navigation.description), finished link: \(webView.url)")
+            let serviceStore = PlanetPublishedServiceStore.shared
+            guard let currentURL = webView.url else { return }
+            Task { @MainActor in
+                serviceStore.updateSelectedFolderNavigation(withCurrentURL: currentURL, canGoForward: webView.canGoForward, forwardURL: webView.backForwardList.forwardItem?.url, canGoBackward: webView.canGoBack, backwardURL: webView.backForwardList.backItem?.url)
+            }
         }
         
     }

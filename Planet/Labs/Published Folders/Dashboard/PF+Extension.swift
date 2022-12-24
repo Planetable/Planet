@@ -18,6 +18,11 @@ extension Notification.Name {
     static let dashboardInspectorIsCollapsedStatusChanged = Notification.Name("PublishedFoldersDashboardInspectorIsCollapsedStatusChangedNotification")
     static let dashboardRefreshToolbar = Notification.Name("PublishedFoldersDashboardRefreshToolbarNotification")
     static let dashboardLoadPreviewURL = Notification.Name("PublishedFoldersDashboardLoadPreviewURLNotification")
+    static let dashboardResetWebViewHistory = Notification.Name("PublishedFoldersDashboardResetWebViewHistoryNotification")
+    static let dashboardReloadWebView = Notification.Name("PublishedFoldersDashboardReloadWebViewNotification")
+    static let dashboardWebViewGoHome = Notification.Name("PublishedFoldersDashboardWebViewGoHomeNotification")
+    static let dashboardWebViewGoBackward = Notification.Name("PublishedFoldersDashboardWebViewGoBackwardNotification")
+    static let dashboardWebViewGoForward = Notification.Name("PublishedFoldersDashboardWebViewGoForwardNotification")
 }
 
 
@@ -44,4 +49,5 @@ extension NSToolbarItem.Identifier {
     static let dashboardBackwardItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarBackwardItem")
     static let dashboardForwardItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarForwardItem")
     static let dashboardReloadItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarReloadItem")
+    static let dashboardHomeItem = NSToolbarItem.Identifier("PublishedFoldersDashboardToolbarHomeItem")
 }

@@ -191,7 +191,7 @@ actor IPFSDaemon {
                             await updateOnlineStatus()
                         }
                         // refresh published folders
-                        Task.detached(priority: .utility) {
+                        Task.detached(priority: .utility) { @MainActor in
                             NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: nil)
                         }
                         // let onboarding = UserDefaults.standard.string(forKey: "PlanetOnboarding")

@@ -31,12 +31,10 @@ class PlanetPublishedServiceStore: ObservableObject {
     @Published var selectedFolderID: UUID? {
         willSet(newValue) {
             if let folder = publishedFolders.first(where: { $0.id == newValue }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+                selectedFolderIDChanged = true
+                NotificationCenter.default.post(name: .dashboardResetWebViewHistory, object: nil)
                 NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: url)
-                selectedFolderURL = url
             }
-            selectedFolderCanGoForward = false
-            selectedFolderCanGoBackward = false
-            selectedFolderURLForwardList.removeAll()
         }
         didSet {
             if let id = selectedFolderID {
@@ -47,18 +45,13 @@ class PlanetPublishedServiceStore: ObservableObject {
             NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
         }
     }
+    
+    @Published private(set) var selectedFolderIDChanged: Bool = false
     @Published private(set) var selectedFolderCanGoForward: Bool = false
     @Published private(set) var selectedFolderCanGoBackward: Bool = false
-    @Published private(set) var selectedFolderURL: URL? {
-        didSet {
-
-        }
-    }
-    @Published var selectedFolderURLForwardList: [URL] = [] {
-        didSet {
-
-        }
-    }
+    @Published private(set) var selectedFolderBackwardURL: URL?
+    @Published private(set) var selectedFolderForwardURL: URL?
+    @Published private(set) var selectedFolderCurrentURL: URL?
     
     @Published private(set) var publishedFolders: [PlanetPublishedFolder] = [] {
         didSet {
@@ -90,6 +83,43 @@ class PlanetPublishedServiceStore: ObservableObject {
         } catch {
             debugPrint("failed to load published folders: \(error)")
         }
+    }
+    
+    @MainActor
+    func updateSelectedFolderNavigation(withCurrentURL currentURL: URL, canGoForward: Bool, forwardURL: URL?, canGoBackward: Bool, backwardURL: URL?) {
+        guard let _ = selectedFolderID else { return }
+        guard selectedFolderIDChanged == false else {
+            // reset web view backward history when switching between selected folders, leave current url unchanged.
+            selectedFolderIDChanged = false
+            selectedFolderCanGoForward = false
+            selectedFolderForwardURL = nil
+            selectedFolderCanGoBackward = false
+            selectedFolderBackwardURL = nil
+            return
+        }
+        
+        debugPrint("updating navigation ... previous current url: \(selectedFolderCurrentURL), updated url: \(currentURL)")
+
+        selectedFolderCurrentURL = currentURL
+        selectedFolderCanGoForward = canGoForward
+        selectedFolderForwardURL = canGoForward ? forwardURL : nil
+        selectedFolderCanGoBackward = canGoBackward
+        selectedFolderBackwardURL = canGoBackward ? backwardURL : nil
+        
+        if currentURL == backwardURL {
+            selectedFolderCanGoBackward = false
+            selectedFolderBackwardURL = nil
+        }
+        if currentURL == forwardURL {
+            selectedFolderCanGoForward = false
+            selectedFolderForwardURL = nil
+        }
+        
+        debugPrint("navigation updated:")
+        debugPrint("can go forward: \(selectedFolderCanGoForward)")
+        debugPrint("forward: \(selectedFolderForwardURL)")
+        debugPrint("can go backward: \(selectedFolderCanGoBackward)")
+        debugPrint("backward: \(selectedFolderBackwardURL)")
     }
 
     func addToRemovingPublishedFolderQueue(_ folder: PlanetPublishedFolder) {

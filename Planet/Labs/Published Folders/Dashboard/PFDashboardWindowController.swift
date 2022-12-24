@@ -173,17 +173,15 @@ class PFDashboardWindowController: NSWindowController {
         case .dashboardActionItem:
             break
         case .dashboardBackwardItem:
-            debugPrint("go backward:")
+            NotificationCenter.default.post(name: .dashboardWebViewGoBackward, object: nil)
             break
         case .dashboardForwardItem:
-            debugPrint("go forward:")
+            NotificationCenter.default.post(name: .dashboardWebViewGoForward, object: nil)
             break
         case .dashboardReloadItem:
-//            let serviceStore = PlanetPublishedServiceStore.shared
-//            if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }), let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
-//            }
-            // MARK: TODO: reload
-            NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: nil)
+            NotificationCenter.default.post(name: .dashboardReloadWebView, object: nil)
+        case .dashboardHomeItem:
+            NotificationCenter.default.post(name: .dashboardWebViewGoHome, object: nil)
         case .dashboardInspectorItem:
             if let vc = self.window?.contentViewController as? PFDashboardContainerViewController, let inspectorItem = vc.splitViewItems.last {
                 inspectorItem.animator().isCollapsed.toggle()
@@ -221,6 +219,8 @@ extension PFDashboardWindowController: NSToolbarItemValidation {
         case .dashboardForwardItem:
             return PlanetPublishedServiceStore.shared.selectedFolderCanGoForward
         case .dashboardReloadItem:
+            return true
+        case .dashboardHomeItem:
             return true
         case .dashboardSidebarItem:
             return true
@@ -289,6 +289,16 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             item.toolTip = "Forward"
             item.isBordered = true
             item.image = NSImage(systemSymbolName: "chevron.forward", accessibilityDescription: "Forward")
+            return item
+        case .dashboardHomeItem:
+            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+            item.target = self
+            item.action = #selector(self.toolbarItemAction(_:))
+            item.label = "Home"
+            item.paletteLabel = "Home"
+            item.toolTip = "Home"
+            item.isBordered = true
+            item.image = NSImage(systemSymbolName: "house", accessibilityDescription: "Home")
             return item
         case .dashboardReloadItem:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
@@ -392,6 +402,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardBackwardItem,
             .dashboardForwardItem,
             .dashboardReloadItem,
+            .dashboardHomeItem,
             .dashboardActionItem,
             .dashboardInspectorItem
         ]
@@ -406,6 +417,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardBackwardItem,
             .dashboardForwardItem,
             .flexibleSpace,
+            .dashboardHomeItem,
             .dashboardReloadItem,
             .dashboardShareItem,
             .dashboardActionItem,
