@@ -22,8 +22,8 @@ jobs:
       - name: Checkout LFS objects
         run: git lfs pull
 
-      - name: Fix Package Dependencies
-        run: xcodebuild -resolvePackageDependencies
+      #- name: Fix Package Dependencies
+      #  run: xcodebuild -resolvePackageDependencies
 
       - name: Show Build Version
         run: xcodebuild -version
