@@ -5,7 +5,7 @@ on:
     branches: [ experimental* ]
 
 jobs:
-  insider:
+  experimental:
     runs-on: self-hosted
 
     strategy:
