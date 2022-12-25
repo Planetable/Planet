@@ -94,7 +94,7 @@ jobs:
 
       - name: Staple
         run: |
-          xcrun stapler staple to-be-signed/Planet.app
+          xcrun stapler staple -v to-be-signed/Planet.app
 
       - name: Prepare for Release
         run: |
