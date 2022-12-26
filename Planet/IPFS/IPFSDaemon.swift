@@ -192,7 +192,7 @@ actor IPFSDaemon {
                         }
                         // refresh published folders
                         Task.detached(priority: .utility) { @MainActor in
-                            NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: nil)
+                            NotificationCenter.default.post(name: .dashboardWebViewGoHome, object: nil)
                         }
                         // let onboarding = UserDefaults.standard.string(forKey: "PlanetOnboarding")
                         // if onboarding == nil {

@@ -27,6 +27,10 @@ extension Notification.Name {
 
 
 extension String {
+    static let folderPrefixKey = "PlanetPublishedFolder-"
+    static let folderPendingPrefixKey = "PlanetPublishedFolderPendingFolder-"
+    static let folderRemovedListKey = "PlanetPublishedFolderRemovalList"
+    static let folderAutoPublishOptionKey = "PlanetPublishedFolderAutoPublish"
     static let dashboardContainerViewIdentifier = "PublishedFoldersDashboardContainerViewController"
     static let dashboardInspectorIsCollapsed = "PublishedFoldersDashboardInspectorIsCollapsed"
     static let selectedPublishedFolderID = "PublishedFoldersDashboardSelectedFolderID"

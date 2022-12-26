@@ -37,13 +37,10 @@ struct PFDashboardView: View {
             }
         }
         .frame(minWidth: .contentWidth, idealWidth: .contentWidth, maxWidth: .infinity, minHeight: 320, idealHeight: 320, maxHeight: .infinity, alignment: .center)
-        .onReceive(NotificationCenter.default.publisher(for: .dashboardLoadPreviewURL)) { n in
-            guard let previewURL = n.object as? URL else { return }
-            self.url = previewURL
-            debugPrint("loading url: \(previewURL)")
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .dashboardResetWebViewHistory)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .dashboardResetWebViewHistory)) { n in
+            guard let targetFolderID = n.object as? UUID else { return }
             if let selectedID = self.serviceStore.selectedFolderID, let folder = self.serviceStore.publishedFolders.first(where: { $0.id == selectedID }) {
+                guard targetFolderID == selectedID else { return }
                 self.url = folder.url
                 self.contentView = PFDashboardContentView(url: self.$url)
                 debugPrint("reset history to url: \(folder.url)")

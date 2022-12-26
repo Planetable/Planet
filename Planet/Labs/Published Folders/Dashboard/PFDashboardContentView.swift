@@ -44,17 +44,23 @@ struct PFDashboardContentView: NSViewRepresentable {
         NotificationCenter.default.addObserver(forName: .dashboardWebViewGoBackward, object: nil, queue: .main) { _ in
             wv.goBack()
         }
-        NotificationCenter.default.addObserver(forName: .dashboardResetWebViewHistory, object: nil, queue: .main) { _ in
-            if wv.canGoBack, let backItem = wv.backForwardList.backList.first {
-                wv.go(to: backItem)
-            }
-        }
         NotificationCenter.default.addObserver(forName: .dashboardReloadWebView, object: nil, queue: .main) { _ in
             wv.reload()
         }
         NotificationCenter.default.addObserver(forName: .dashboardWebViewGoHome, object: nil, queue: .main) { _ in
             if wv.canGoBack, let backItem = wv.backForwardList.backList.first {
+                if backItem.url.lastPathComponent == "NoSelection.html" {
+                    if let secondLastItem = wv.backForwardList.backList.dropFirst().first {
+                        wv.go(to: secondLastItem)
+                    }
+                    return
+                }
                 wv.go(to: backItem)
+            } else {
+                let serviceStore = PlanetPublishedServiceStore.shared
+                Task { @MainActor in
+                    serviceStore.restoreSelectedFolderNavigation()
+                }
             }
         }
         return wv

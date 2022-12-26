@@ -12,9 +12,9 @@ import SwiftUI
 class PlanetPublishedServiceStore: ObservableObject {
     static let shared = PlanetPublishedServiceStore()
 
-    static let prefixKey = "PlanetPublishedFolder-"
-    static let removedListKey = "PlanetPublishedFolderRemovalList"
-    static let pendingPrefixKey = "PlanetPublishedFolderPendingFolder-"
+    static let prefixKey: String = .folderPrefixKey
+    static let removedListKey: String = .folderRemovedListKey
+    static let pendingPrefixKey: String = .folderPendingPrefixKey
 
     static let ttlString: String = "7200h"
     static let ttl: Int = 3600*7200 - 60
@@ -22,18 +22,16 @@ class PlanetPublishedServiceStore: ObservableObject {
     let timer = Timer.publish(every: 5, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
 
     @Published var timestamp: Int = Int(Date().timeIntervalSince1970)
-    @Published var autoPublish: Bool = UserDefaults.standard.bool(forKey: "PlanetPublishedFolderAutoPublish") {
+    @Published var autoPublish: Bool = UserDefaults.standard.bool(forKey: String.folderAutoPublishOptionKey) {
         didSet {
-            UserDefaults.standard.set(autoPublish, forKey: "PlanetPublishedFolderAutoPublish")
+            UserDefaults.standard.set(autoPublish, forKey: String.folderAutoPublishOptionKey)
             updateMonitoring()
         }
     }
     @Published var selectedFolderID: UUID? {
         willSet(newValue) {
-            if let folder = publishedFolders.first(where: { $0.id == newValue }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
-                selectedFolderIDChanged = true
-                NotificationCenter.default.post(name: .dashboardResetWebViewHistory, object: nil)
-                NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: url)
+            Task { @MainActor in
+                self.restoreSelectedFolderNavigation()
             }
         }
         didSet {
@@ -86,8 +84,20 @@ class PlanetPublishedServiceStore: ObservableObject {
     }
     
     @MainActor
+    func restoreSelectedFolderNavigation() {
+        if let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+            NotificationCenter.default.post(name: .dashboardResetWebViewHistory, object: id)
+            selectedFolderIDChanged = true
+            NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: url)
+        }
+    }
+    
+    @MainActor
     func updateSelectedFolderNavigation(withCurrentURL currentURL: URL, canGoForward: Bool, forwardURL: URL?, canGoBackward: Bool, backwardURL: URL?) {
         guard let _ = selectedFolderID else { return }
+        defer {
+            NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
+        }
         guard selectedFolderIDChanged == false else {
             // reset web view backward history when switching between selected folders, leave current url unchanged.
             selectedFolderIDChanged = false
@@ -97,8 +107,6 @@ class PlanetPublishedServiceStore: ObservableObject {
             selectedFolderBackwardURL = nil
             return
         }
-        
-        debugPrint("updating navigation ... previous current url: \(selectedFolderCurrentURL), updated url: \(currentURL)")
 
         selectedFolderCurrentURL = currentURL
         selectedFolderCanGoForward = canGoForward
@@ -114,12 +122,10 @@ class PlanetPublishedServiceStore: ObservableObject {
             selectedFolderCanGoForward = false
             selectedFolderForwardURL = nil
         }
-        
-        debugPrint("navigation updated:")
-        debugPrint("can go forward: \(selectedFolderCanGoForward)")
-        debugPrint("forward: \(selectedFolderForwardURL)")
-        debugPrint("can go backward: \(selectedFolderCanGoBackward)")
-        debugPrint("backward: \(selectedFolderBackwardURL)")
+        if selectedFolderCanGoBackward && selectedFolderBackwardURL?.lastPathComponent == "NoSelection.html" {
+            selectedFolderCanGoBackward = false
+            selectedFolderBackwardURL = nil
+        }
     }
 
     func addToRemovingPublishedFolderQueue(_ folder: PlanetPublishedFolder) {
