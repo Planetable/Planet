@@ -68,7 +68,7 @@ jobs:
         env:
           scheme: ${{ matrix.run-config['scheme'] }}
         run: |
-          xcodebuild archive -scheme ${scheme} -xcconfig "Planet/Release.xcconfig" -archivePath archive/Planet.xcarchive -showBuildTimingSummary -allowProvisioningUpdates
+          xcodebuild archive -scheme ${scheme} -archivePath archive/Planet.xcarchive -showBuildTimingSummary -allowProvisioningUpdates
 
       - name: Prepare for Codesign
         run: |
@@ -94,7 +94,7 @@ jobs:
 
       - name: Staple
         run: |
-          xcrun stapler staple to-be-signed/Planet.app
+          xcrun stapler staple -v to-be-signed/Planet.app
 
       - name: Prepare for Release
         run: |
