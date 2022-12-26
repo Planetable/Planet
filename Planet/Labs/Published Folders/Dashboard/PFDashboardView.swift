@@ -12,9 +12,11 @@ struct PFDashboardView: View {
     @StateObject private var serviceStore: PlanetPublishedServiceStore
     
     @State private var url: URL = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
+    @State private var contentView: PFDashboardContentView
 
     init() {
         _serviceStore = StateObject(wrappedValue: PlanetPublishedServiceStore.shared)
+        _contentView = State(wrappedValue: PFDashboardContentView(url: .constant(Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!)))
     }
 
     var body: some View {
@@ -26,7 +28,7 @@ struct PFDashboardView: View {
                 } else if folderIsPublishing {
                     publishingFolderView(folder: folder)
                 } else if let _ = folder.published {
-                    PFDashboardContentView(url: $url)
+                    contentView
                 } else {
                     readyToPublishFolderView(folder: folder)
                 }
@@ -37,7 +39,15 @@ struct PFDashboardView: View {
         .frame(minWidth: .contentWidth, idealWidth: .contentWidth, maxWidth: .infinity, minHeight: 320, idealHeight: 320, maxHeight: .infinity, alignment: .center)
         .onReceive(NotificationCenter.default.publisher(for: .dashboardLoadPreviewURL)) { n in
             guard let previewURL = n.object as? URL else { return }
-            url = previewURL
+            self.url = previewURL
+            debugPrint("loading url: \(previewURL)")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dashboardResetWebViewHistory)) { _ in
+            if let selectedID = self.serviceStore.selectedFolderID, let folder = self.serviceStore.publishedFolders.first(where: { $0.id == selectedID }) {
+                self.url = folder.url
+                self.contentView = PFDashboardContentView(url: self.$url)
+                debugPrint("reset history to url: \(folder.url)")
+            }
         }
     }
     
