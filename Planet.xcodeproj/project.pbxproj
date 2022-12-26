@@ -1267,8 +1267,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Planetable/PlanetSiteTemplates.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.3.1;
+				branch = main;
+				kind = branch;
 			};
 		};
 		BBFE51EA27F3AABC0055A51A /* XCRemoteSwiftPackageReference "ENSKit" */ = {
