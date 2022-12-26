@@ -100,14 +100,20 @@ jobs:
         run: |
           ditto -c -k --keepParent to-be-signed/Planet.app Planet.zip
 
+      - name: Generate Release Tag
+        id: tag
+        run: |
+          echo "::set-output name=release_tag::Experimental-$(date +"%Y%m%d%H%M")"
+      
       - name: Release App
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.tag.outputs.release_tag }}
           prerelease: true
           files: Planet.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Cleanup Keychain
         if: ${{ always() }}
         run: |
