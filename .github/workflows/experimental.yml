@@ -103,7 +103,7 @@ jobs:
       - name: Generate Release Tag
         id: tag
         run: |
-          echo "::set-output name=release_tag::Experimental-$(date +"%Y%m%d%H%M")"
+          echo "release_tag=Experimental-$(date +"%Y%m%d%H%M")" >> $GITHUB_OUTPUT
       
       - name: Release App
         uses: softprops/action-gh-release@v1
