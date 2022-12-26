@@ -10,6 +10,8 @@ import SwiftUI
 struct PFDashboardInspectorView: View {
     @StateObject private var serviceStore: PlanetPublishedServiceStore
     @StateObject private var planetStore: PlanetStore
+    
+    @State private var isHoveringInDirectorySection: Bool = false
 
     init() {
         _serviceStore = StateObject(wrappedValue: PlanetPublishedServiceStore.shared)
@@ -40,7 +42,29 @@ struct PFDashboardInspectorView: View {
                 
                 Divider()
                 
-                sectionInformationView(name: "Directory", content: folder.url.path)
+                ZStack {
+                    sectionInformationView(name: "Directory", content: folder.url.path)
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Button {
+                                debugPrint("reveal in finder")
+                            } label: {
+                                Image(systemName: "magnifyingglass.circle.fill")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 11, height: 11)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.horizontal, 8)
+                        Spacer()
+                    }
+                    .opacity(isHoveringInDirectorySection ? 1.0 : 0.0)
+                }
+                .onHover { hovering in
+                    self.isHoveringInDirectorySection = hovering
+                }
                 
                 Divider()
                 
