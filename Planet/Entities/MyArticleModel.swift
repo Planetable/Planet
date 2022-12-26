@@ -156,6 +156,9 @@ class MyArticleModel: ArticleModel, Codable {
     }
 
     func getHeroImage() -> String? {
+        if self.hasVideoContent() {
+            return "_videoThumbnail.png"
+        }
         debugPrint("HeroImage: finding from \(attachments)")
         let images: [String]? = attachments?.compactMap {
             if $0.hasSuffix(".avif") || $0.hasSuffix(".jpeg") || $0.hasSuffix(".jpg") || $0.hasSuffix(".png") || $0.hasSuffix(".webp") || $0.hasSuffix(".gif") || $0.hasSuffix(".tiff") {
@@ -201,6 +204,9 @@ class MyArticleModel: ArticleModel, Codable {
         }
         let articleHTML = try template.render(article: self)
         try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
+        if self.hasVideoContent() {
+            self.saveVideoThumbnail()
+        }
         try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
     }
 
@@ -212,6 +218,46 @@ class MyArticleModel: ArticleModel, Codable {
         planet.articles.removeAll { $0.id == id }
         try? FileManager.default.removeItem(at: path)
         try? FileManager.default.removeItem(at: publicBasePath)
+    }
+
+    func hasVideoContent() -> Bool {
+        return videoFilename != nil
+    }
+
+    func hasAudioContent() -> Bool {
+        return audioFilename != nil
+    }
+
+    func saveVideoThumbnail() {
+        let videoThumbnailFilename = "_videoThumbnail.png"
+        let videoThumbnailPath = publicBasePath.appendingPathComponent(videoThumbnailFilename)
+        if let thumbnail = self.getVideoThumbnail(),
+           let resizedImage = thumbnail.resizeSquare(maxLength: 640),
+           let data = resizedImage.PNGData {
+            try? data.write(to: videoThumbnailPath)
+        }
+    }
+
+    func getVideoThumbnail() -> NSImage? {
+        if self.hasVideoContent() {
+            guard let videoFilename = self.videoFilename else {
+                return nil
+            }
+            do {
+                let url = self.publicBasePath.appendingPathComponent(videoFilename)
+                let asset = AVURLAsset(url: url)
+                let imageGenerator = AVAssetImageGenerator(asset: asset)
+                imageGenerator.appliesPreferredTrackTransform = true
+                let cgImage = try imageGenerator.copyCGImage(at: .zero,
+                                                            actualTime: nil)
+                return NSImage(cgImage: cgImage, size: .zero)
+            } catch {
+                print(error.localizedDescription)
+
+                return nil
+            }
+        }
+        return nil
     }
 }
 
