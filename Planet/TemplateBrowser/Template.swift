@@ -272,11 +272,35 @@ class Template: Codable, Identifiable {
             return nil
         }
 
+        let publicPlanet = PublicPlanetModel(
+            id: UUID(),
+            name: "Template Preview \(name)",
+            about: "Template Preview \(name)",
+            ipns: "k51",
+            created: Date(),
+            updated: Date(),
+            articles: [article],
+            plausibleEnabled: false,
+            plausibleDomain: nil,
+            plausibleAPIServer: nil,
+            twitterUsername: "PlanetableXYZ",
+            githubUsername: "Planetable",
+            telegramUsername: "",
+            podcastCategories: [:],
+            podcastLanguage: "en-US",
+            podcastExplicit: false
+        )
+
         // render stencil template
         let context: [String: Any] = [
             "assets_prefix": "../",
             "article": article,
-            "content_html": content_html
+            "articles": [article],
+            "content_html": content_html,
+            "page_title": index == 1 ? self.name : article.title,
+            "page_description": "Template preview for \(self.name)",
+            "page_description_html": "Template preview for <strong>\(self.name)</strong>",
+            "planet": publicPlanet
         ]
         let targetPath = index == 1 ? indexPath : blogPath
         let loader = FileSystemLoader(paths: [Path(targetPath.deletingLastPathComponent().path)])
