@@ -48,7 +48,7 @@ struct PFDashboardInspectorView: View {
                         HStack {
                             Spacer()
                             Button {
-                                debugPrint("reveal in finder")
+                                serviceStore.revealFolderInFinder(folder)
                             } label: {
                                 Image(systemName: "magnifyingglass.circle.fill")
                                     .resizable()

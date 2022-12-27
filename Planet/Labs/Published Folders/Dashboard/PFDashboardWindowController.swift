@@ -76,22 +76,7 @@ class PFDashboardWindowController: NSWindowController {
     @objc func revealInFinder(_ sender: Any) {
         guard let object = sender as? NSMenuItem, let folder = object.representedObject as? PlanetPublishedFolder else { return }
         let serviceStore = PlanetPublishedServiceStore.shared
-        do {
-            let url = try serviceStore.restoreFolderAccess(forFolder: folder)
-            guard url.startAccessingSecurityScopedResource() else {
-                throw PlanetError.PublishedServiceFolderPermissionError
-            }
-            NSWorkspace.shared.open(url)
-            url.stopAccessingSecurityScopedResource()
-        } catch {
-            debugPrint("failed to request access to folder: \(folder), error: \(error)")
-            let alert = NSAlert()
-            alert.messageText = "Failed to Access to Folder"
-            alert.informativeText = error.localizedDescription
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
-        }
+        serviceStore.revealFolderInFinder(folder)
     }
     
     @objc func publishFolder(_ sender: Any) {
@@ -137,20 +122,11 @@ class PFDashboardWindowController: NSWindowController {
             }
         }
     }
-    
+
     @objc func backupFolderKey(_ sender: Any) {
         guard let object = sender as? NSMenuItem, let folder = object.representedObject as? PlanetPublishedFolder else { return }
         let serviceStore = PlanetPublishedServiceStore.shared
-        do {
-            try serviceStore.exportFolderKey(folder)
-        } catch {
-            let alert = NSAlert()
-            alert.messageText = "Failed to Backup Folder Key"
-            alert.informativeText = error.localizedDescription
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
-        }
+        serviceStore.exportFolderKey(folder)
     }
     
     @objc func removeFolder(_ sender: Any) {

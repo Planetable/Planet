@@ -49,22 +49,7 @@ struct PFDashboardSidebarItemView: View {
                 }
                 
                 Button {
-                    do {
-                        let url = try self.serviceStore.restoreFolderAccess(forFolder: folder)
-                        guard url.startAccessingSecurityScopedResource() else {
-                            throw PlanetError.PublishedServiceFolderPermissionError
-                        }
-                        NSWorkspace.shared.open(url)
-                        url.stopAccessingSecurityScopedResource()
-                    } catch {
-                        debugPrint("failed to request access to folder: \(folder), error: \(error)")
-                        let alert = NSAlert()
-                        alert.messageText = "Failed to Access to Folder"
-                        alert.informativeText = error.localizedDescription
-                        alert.alertStyle = .informational
-                        alert.addButton(withTitle: "OK")
-                        alert.runModal()
-                    }
+                    serviceStore.revealFolderInFinder(folder)
                 } label: {
                     Text("Reveal in Finder")
                 }
@@ -72,16 +57,7 @@ struct PFDashboardSidebarItemView: View {
                 Divider()
                 
                 Button {
-                    do {
-                        try serviceStore.exportFolderKey(folder)
-                    } catch {
-                        let alert = NSAlert()
-                        alert.messageText = "Failed to Backup Folder Key"
-                        alert.informativeText = error.localizedDescription
-                        alert.alertStyle = .informational
-                        alert.addButton(withTitle: "OK")
-                        alert.runModal()
-                    }
+                    serviceStore.exportFolderKey(folder)
                 } label: {
                     Text("Backup Folder Key")
                 }

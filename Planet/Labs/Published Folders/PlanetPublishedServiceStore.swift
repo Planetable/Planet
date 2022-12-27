@@ -423,6 +423,25 @@ extension PlanetPublishedServiceStore {
         UserDefaults.standard.removeObject(forKey: Self.prefixKey + folder.id.uuidString)
     }
     
+    func revealFolderInFinder(_ folder: PlanetPublishedFolder) {
+        do {
+            let url = try self.restoreFolderAccess(forFolder: folder)
+            guard url.startAccessingSecurityScopedResource() else {
+                throw PlanetError.PublishedServiceFolderPermissionError
+            }
+            NSWorkspace.shared.open(url)
+            url.stopAccessingSecurityScopedResource()
+        } catch {
+            debugPrint("failed to request access to folder: \(folder), error: \(error)")
+            let alert = NSAlert()
+            alert.messageText = "Failed to Access to Folder"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
+    }
+    
     func addFolder() {
         let panel = NSOpenPanel()
         panel.message = "Choose Folder to Publish"
@@ -469,13 +488,41 @@ extension PlanetPublishedServiceStore {
         }
     }
     
-    func exportFolderKey(_ folder: PlanetPublishedFolder) throws {
-        // MARK: TODO: backup folder key
+    func exportFolderKey(_ folder: PlanetPublishedFolder) {
+        guard let _ = folder.published else {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Export Folder Key"
+            alert.informativeText = "Folder key doesn't exist, please make sure this folder has been successfully published."
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        let panel = NSOpenPanel()
+        panel.message = "Choose Directory to Save Folder Key"
+        panel.prompt = "Choose"
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.folder]
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        let response = panel.runModal()
+        guard response == .OK, let url = panel.url else { return }
+        let folderName = folder.url.lastPathComponent.sanitized()
+        let keyPath = url.appendingPathComponent(folderName + ".key")
+        do {
+            try IPFSCommand.exportKey(name: folder.id.uuidString, target: keyPath).run()
+            NSWorkspace.shared.activateFileViewerSelecting([keyPath])
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Export Folder Key"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
     }
     
-    func importAndReplaceFolderKey(_ folder: PlanetPublishedFolder, keyPath: URL) throws {
-        
-    }
+    func importAndReplaceFolderKey(_ folder: PlanetPublishedFolder, keyPath: URL) {}
 }
 
 
