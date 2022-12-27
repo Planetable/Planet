@@ -18,6 +18,7 @@ class Template: Codable, Identifiable {
     var path: URL! = nil
     let author: String
     let version: String
+    let buildNumber: Int? = 0
 
     var id: String { name }
 
@@ -54,6 +55,7 @@ class Template: Codable, Identifiable {
         case description
         case author
         case version
+        case buildNumber
     }
 
     static func from(path: URL) -> Template? {
