@@ -231,13 +231,15 @@ class MyArticleModel: ArticleModel, Codable {
     func saveVideoThumbnail() {
         let videoThumbnailFilename = "_videoThumbnail.png"
         let videoThumbnailPath = publicBasePath.appendingPathComponent(videoThumbnailFilename)
-        if let thumbnail = self.getVideoThumbnail(),
-           let data = thumbnail.PNGData {
-            try? data.write(to: videoThumbnailPath)
+        Task {
+            if let thumbnail = await self.getVideoThumbnail(),
+               let data = thumbnail.PNGData {
+                try? data.write(to: videoThumbnailPath)
+            }
         }
     }
 
-    func getVideoThumbnail() -> NSImage? {
+    func getVideoThumbnail() async -> NSImage? {
         if self.hasVideoContent() {
             guard let videoFilename = self.videoFilename else {
                 return nil
