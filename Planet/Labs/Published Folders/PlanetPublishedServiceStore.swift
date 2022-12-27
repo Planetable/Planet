@@ -468,6 +468,14 @@ extension PlanetPublishedServiceStore {
             alert.runModal()
         }
     }
+    
+    func exportFolderKey(_ folder: PlanetPublishedFolder) throws {
+        // MARK: TODO: backup folder key
+    }
+    
+    func importAndReplaceFolderKey(_ folder: PlanetPublishedFolder, keyPath: URL) throws {
+        
+    }
 }
 
 

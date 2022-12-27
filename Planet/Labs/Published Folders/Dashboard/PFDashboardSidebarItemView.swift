@@ -72,6 +72,23 @@ struct PFDashboardSidebarItemView: View {
                 Divider()
                 
                 Button {
+                    do {
+                        try serviceStore.exportFolderKey(folder)
+                    } catch {
+                        let alert = NSAlert()
+                        alert.messageText = "Failed to Backup Folder Key"
+                        alert.informativeText = error.localizedDescription
+                        alert.alertStyle = .informational
+                        alert.addButton(withTitle: "OK")
+                        alert.runModal()
+                    }
+                } label: {
+                    Text("Backup Folder Key")
+                }
+                
+                Divider()
+                
+                Button {
                     guard !self.serviceStore.publishingFolders.contains(folder.id) else {
                         let alert = NSAlert()
                         alert.messageText = "Failed to Remove Folder"

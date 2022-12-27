@@ -138,6 +138,21 @@ class PFDashboardWindowController: NSWindowController {
         }
     }
     
+    @objc func backupFolderKey(_ sender: Any) {
+        guard let object = sender as? NSMenuItem, let folder = object.representedObject as? PlanetPublishedFolder else { return }
+        let serviceStore = PlanetPublishedServiceStore.shared
+        do {
+            try serviceStore.exportFolderKey(folder)
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Backup Folder Key"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
+    }
+    
     @objc func removeFolder(_ sender: Any) {
         guard let object = sender as? NSMenuItem, let folder = object.representedObject as? PlanetPublishedFolder else { return }
         let serviceStore = PlanetPublishedServiceStore.shared
@@ -356,6 +371,15 @@ extension PFDashboardWindowController: NSToolbarDelegate {
                 
                 menu.addItem(NSMenuItem.separator())
                 
+                let backupFolderKeyItem = NSMenuItem()
+                backupFolderKeyItem.representedObject = folder
+                backupFolderKeyItem.title = "Backup Folder Key"
+                backupFolderKeyItem.target = self
+                backupFolderKeyItem.action = #selector(self.backupFolderKey(_:))
+                menu.addItem(backupFolderKeyItem)
+                
+                menu.addItem(NSMenuItem.separator())
+
                 let removeFolderItem = NSMenuItem()
                 removeFolderItem.representedObject = folder
                 removeFolderItem.title = "Remove Folder"
