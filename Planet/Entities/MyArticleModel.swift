@@ -232,8 +232,7 @@ class MyArticleModel: ArticleModel, Codable {
         let videoThumbnailFilename = "_videoThumbnail.png"
         let videoThumbnailPath = publicBasePath.appendingPathComponent(videoThumbnailFilename)
         if let thumbnail = self.getVideoThumbnail(),
-           let resizedImage = thumbnail.resizeSquare(maxLength: 640),
-           let data = resizedImage.PNGData {
+           let data = thumbnail.PNGData {
             try? data.write(to: videoThumbnailPath)
         }
     }
