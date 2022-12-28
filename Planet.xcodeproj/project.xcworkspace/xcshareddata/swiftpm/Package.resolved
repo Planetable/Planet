@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Alamofire/Alamofire.git",
       "state" : {
-        "revision" : "78424be314842833c04bc3bef5b72e85fff99204",
-        "version" : "5.6.4"
+        "revision" : "8dd85aee02e39dd280c75eef88ffdb86eed4b07b",
+        "version" : "5.6.2"
       }
     },
     {
@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Planetable/ENSKit",
       "state" : {
-        "branch" : "main",
-        "revision" : "d366b3268c9617c163bd8c48489674e2d62495cd"
+        "revision" : "e9060c5110ae0947503ebb5a745254818e8f5844",
+        "version" : "0.5.2"
       }
     },
     {
@@ -86,8 +86,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "b8837c3051e3aa7a6de7dea1fd8975be6f74196d"
+        "revision" : "3eb8677155b8b2af6bfbdfc790cc298df2a9e3b0",
+        "version" : "0.6.12"
       }
     },
     {
@@ -113,8 +113,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sparkle-project/Sparkle",
       "state" : {
-        "revision" : "9d85a02fe7916caa7531847452c4933d331503a5",
-        "version" : "2.3.1"
+        "revision" : "2a98381dfe72e24bf593c5c06d2c4fc1763c3f19",
+        "version" : "2.3.0"
       }
     },
     {
@@ -174,10 +174,10 @@
     {
       "identity" : "uint256",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/hyugit/UInt256.git",
+      "location" : "https://github.com/stdc105/UInt256.git",
       "state" : {
-        "revision" : "1a499a1bf08afd10b9fcd0fd6d90b6dd9196be50",
-        "version" : "0.2.2"
+        "revision" : "39268c507a732d0583ae813a7f957a4b0bd74d8a",
+        "version" : "0.3.0"
       }
     },
     {
@@ -203,8 +203,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/WalletConnect/Web3.swift",
       "state" : {
-        "revision" : "569255adcfff0b37e4cb8004aea29d0e2d6266df",
-        "version" : "1.0.2"
+        "revision" : "a628f094f8088ec72a95792de18eeea24b997462",
+        "version" : "1.0.0"
       }
     }
   ],

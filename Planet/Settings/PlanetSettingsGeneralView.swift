@@ -32,6 +32,9 @@ struct PlanetSettingsGeneralView: View {
                             }
                         }
                         .pickerStyle(.menu)
+                        .onChange(of: publicGatewayIndex) { newValue in
+                            NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
+                        }
                     }
 
                     VStack {
