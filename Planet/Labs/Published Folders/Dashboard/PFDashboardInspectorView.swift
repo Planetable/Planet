@@ -78,19 +78,24 @@ struct PFDashboardInspectorView: View {
             
             Section {
                 ZStack {
-                    sectionInformationView(name: "CID", content: "".md5())
+                    sectionInformationView(name: "CID", content: serviceStore.loadPublishedFolderCID(byFolderID: folder.id) ?? "")
                     VStack {
                         HStack {
                             Spacer()
-                            Button {
-                                // copy
-                            } label: {
-                                Image(systemName: "doc.on.clipboard")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 11, height: 11)
+                            if let folderCID = serviceStore.loadPublishedFolderCID(byFolderID: folder.id) {
+                                Button {
+                                    let pboard = NSPasteboard.general
+                                    pboard.clearContents()
+                                    pboard.setString(folderCID, forType: .string)
+                                } label: {
+                                    Image(systemName: "doc.on.clipboard")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 11, height: 11)
+                                }
+                                .buttonStyle(.plain)
+                                .help("Copy Folder CID")
                             }
-                            .buttonStyle(.plain)
                         }
                         .padding(.horizontal, 8)
                         Spacer()
@@ -126,6 +131,7 @@ struct PFDashboardInspectorView: View {
                             }
                             .buttonStyle(.plain)
                             .disabled(folder.publishedLink == nil)
+                            .help("Copy Folder IPNS")
                         }
                         .padding(.horizontal, 8)
                         Spacer()

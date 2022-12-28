@@ -22,10 +22,9 @@ struct PFDashboardView: View {
     var body: some View {
         VStack {
             if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }) {
-                let folderIsPublishing: Bool = serviceStore.publishingFolders.contains(folder.id)
                 if !FileManager.default.fileExists(atPath: folder.url.path) {
                     missingPublishedFolderView(folder: folder)
-                } else if folderIsPublishing {
+                } else if serviceStore.publishingFolders.contains(folder.id) {
                     publishingFolderView(folder: folder)
                 } else if let _ = folder.published {
                     contentView

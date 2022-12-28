@@ -59,8 +59,6 @@ class PlanetPublishedServiceStore: ObservableObject {
     @Published private(set) var publishingFolders: [UUID] = []
 
     private var monitors: [PlanetPublishedServiceMonitor] = []
-    
-    private var cachedDirectoryResults: [URL: Bool] = [:]
 
     init() {
         do {
@@ -244,6 +242,9 @@ class PlanetPublishedServiceStore: ObservableObject {
         }
         updatePublishedFolders(updatedFolders)
         NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            NotificationCenter.default.post(name: .dashboardWebViewGoHome, object: nil)
+        }
         debugPrint("Folder published -> \(folder.url)")
     }
 
@@ -373,6 +374,14 @@ extension PlanetPublishedServiceStore {
         let encoder = JSONEncoder()
         let data = try encoder.encode(self.publishedFolders)
         try data.write(to: folderHistoryURL)
+    }
+    
+    func loadPublishedFolderCID(byFolderID id: UUID) -> String? {
+        do {
+            var versions = try loadPublishedVersions(byFolderKeyName: id.uuidString)
+            return versions.last?.cid
+        } catch {}
+        return nil
     }
 
     func loadPublishedVersions(byFolderKeyName name: String) throws -> [PlanetPublishedFolderVersion] {
