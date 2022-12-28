@@ -59,6 +59,8 @@ class PlanetPublishedServiceStore: ObservableObject {
     @Published private(set) var publishingFolders: [UUID] = []
 
     private var monitors: [PlanetPublishedServiceMonitor] = []
+    
+    private var cachedDirectoryResults: [URL: Bool] = [:]
 
     init() {
         do {
@@ -83,7 +85,6 @@ class PlanetPublishedServiceStore: ObservableObject {
         }
     }
     
-    @MainActor
     func restoreSelectedFolderNavigation() {
         if let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
             NotificationCenter.default.post(name: .dashboardResetWebViewHistory, object: id)
@@ -440,6 +441,25 @@ extension PlanetPublishedServiceStore {
             alert.addButton(withTitle: "OK")
             alert.runModal()
         }
+    }
+    
+    func folderDirectoryContentHasHTMLContent(_ url: URL) async -> Bool {
+        if url.hasDirectoryPath {
+            if let _ = url.scheme, let host = url.host, let port = url.port {
+                if (host == "127.0.0.1" || host == "localhost") && UInt16(port) == IPFSDaemon.shared.gatewayPort {
+                    let indexPage = url.appendingPathComponent("index.html")
+                    do {
+                        let request = URLRequest(url: indexPage, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 0.01)
+                        let (_, response) = try await URLSession.shared.data(for: request)
+                        if let httpResponse = response as? HTTPURLResponse {
+                            let result = httpResponse.statusCode == 200
+                            return result
+                        }
+                    } catch {}
+                }
+            }
+        }
+        return false
     }
     
     func addFolder() {

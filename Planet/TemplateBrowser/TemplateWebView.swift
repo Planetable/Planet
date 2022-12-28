@@ -13,7 +13,7 @@ class TemplateWebView: WKWebView {
 
     init() {
         super.init(frame: CGRect(), configuration: WKWebViewConfiguration())
-        GlobalScriptMessageHandler.instance.ensureHandles(configuration: self.configuration)
+        DownloadsScriptMessageHandler.instance.ensureHandles(configuration: self.configuration)
     }
     
     required init?(coder: NSCoder) {
@@ -47,7 +47,7 @@ class TemplateWebView: WKWebView {
     }
     
     @objc private func openLinkAction(_ sender: NSMenuItem) {
-        guard let urlString = GlobalScriptMessageHandler.instance.href else { return }
+        guard let urlString = DownloadsScriptMessageHandler.instance.href else { return }
         if urlString.hasPrefix("file:///") {
             let targetURL = URL(fileURLWithPath: urlString)
             ArticleWebViewModel.shared.processInternalFileLink(targetURL)
@@ -61,11 +61,11 @@ class TemplateWebView: WKWebView {
     }
     
     @objc private func openImageAction(_ sender: NSMenuItem) {
-        if let _ = GlobalScriptMessageHandler.instance.href, let srcString = GlobalScriptMessageHandler.instance.src {
+        if let _ = DownloadsScriptMessageHandler.instance.href, let srcString = DownloadsScriptMessageHandler.instance.src {
             NSWorkspace.shared.open(URL(string: srcString)!)
-        } else if let urlString = GlobalScriptMessageHandler.instance.href {
+        } else if let urlString = DownloadsScriptMessageHandler.instance.href {
             NSWorkspace.shared.open(URL(string: urlString)!)
-        } else if let srcString = GlobalScriptMessageHandler.instance.src {
+        } else if let srcString = DownloadsScriptMessageHandler.instance.src {
             NSWorkspace.shared.open(URL(string: srcString)!)
         }
     }

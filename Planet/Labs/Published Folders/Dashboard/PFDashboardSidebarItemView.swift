@@ -56,13 +56,14 @@ struct PFDashboardSidebarItemView: View {
                 
                 Divider()
                 
-                Button {
-                    serviceStore.exportFolderKey(folder)
-                } label: {
-                    Text("Backup Folder Key")
+                if let _ = folder.published, let _ = folder.publishedLink {
+                    Button {
+                        serviceStore.exportFolderKey(folder)
+                    } label: {
+                        Text("Backup Folder Key")
+                    }
+                    Divider()
                 }
-                
-                Divider()
                 
                 Button {
                     guard !self.serviceStore.publishingFolders.contains(folder.id) else {

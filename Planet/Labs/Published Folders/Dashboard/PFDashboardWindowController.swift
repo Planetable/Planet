@@ -347,14 +347,15 @@ extension PFDashboardWindowController: NSToolbarDelegate {
                 
                 menu.addItem(NSMenuItem.separator())
                 
-                let backupFolderKeyItem = NSMenuItem()
-                backupFolderKeyItem.representedObject = folder
-                backupFolderKeyItem.title = "Backup Folder Key"
-                backupFolderKeyItem.target = self
-                backupFolderKeyItem.action = #selector(self.backupFolderKey(_:))
-                menu.addItem(backupFolderKeyItem)
-                
-                menu.addItem(NSMenuItem.separator())
+                if folder.published != nil && folder.publishedLink != nil {
+                    let backupFolderKeyItem = NSMenuItem()
+                    backupFolderKeyItem.representedObject = folder
+                    backupFolderKeyItem.title = "Backup Folder Key"
+                    backupFolderKeyItem.target = self
+                    backupFolderKeyItem.action = #selector(self.backupFolderKey(_:))
+                    menu.addItem(backupFolderKeyItem)
+                    menu.addItem(NSMenuItem.separator())
+                }
 
                 let removeFolderItem = NSMenuItem()
                 removeFolderItem.representedObject = folder

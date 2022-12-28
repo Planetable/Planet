@@ -362,6 +362,14 @@ extension PlanetApp {
                             }
                         }
                         Divider()
+                        if let _ = folder.published, let _ = folder.publishedLink {
+                            Button {
+                                serviceStore.exportFolderKey(folder)
+                            } label: {
+                                Text("Backup Folder Key")
+                            }
+                            Divider()
+                        }
                         Button {
                             serviceStore.addToRemovingPublishedFolderQueue(folder)
                             let updatedFolders = serviceStore.publishedFolders.filter { f in

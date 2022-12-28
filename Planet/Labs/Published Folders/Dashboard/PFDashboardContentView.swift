@@ -38,6 +38,11 @@ struct PFDashboardContentView: NSViewRepresentable {
             }
             wv.load(URLRequest(url: targetURL))
         }
+        NotificationCenter.default.addObserver(forName: .dashboardProcessDirectoryURL, object: nil, queue: nil) { n in
+            Task { @MainActor in
+                try? await wv.evaluateJavaScript("document.getElementById('page-header').outerHTML = '';")
+            }
+        }
         NotificationCenter.default.addObserver(forName: .dashboardWebViewGoForward, object: nil, queue: .main) { _ in
             wv.goForward()
         }
@@ -58,9 +63,7 @@ struct PFDashboardContentView: NSViewRepresentable {
                 wv.go(to: backItem)
             } else {
                 let serviceStore = PlanetPublishedServiceStore.shared
-                Task { @MainActor in
-                    serviceStore.restoreSelectedFolderNavigation()
-                }
+                serviceStore.restoreSelectedFolderNavigation()
             }
         }
         return wv
@@ -82,13 +85,35 @@ struct PFDashboardContentView: NSViewRepresentable {
             completionHandler(.performDefaultHandling, nil)
         }
         
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
+//            if let url = navigationAction.request.url {
+//                debugPrint("dashboard decide policy for url: \(url)")
+//            }
+            return (.allow, preferences)
+        }
+        
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             let serviceStore = PlanetPublishedServiceStore.shared
             guard let currentURL = webView.url else { return }
             Task { @MainActor in
                 serviceStore.updateSelectedFolderNavigation(withCurrentURL: currentURL, canGoForward: webView.canGoForward, forwardURL: webView.backForwardList.forwardItem?.url, canGoBackward: webView.canGoBack, backwardURL: webView.backForwardList.backItem?.url)
             }
+//            debugPrint("dashboard finished url: \(currentURL)")
         }
         
+        func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+            let serviceStore = PlanetPublishedServiceStore.shared
+            guard let currentURL = webView.url else { return }
+            guard let selectedID = serviceStore.selectedFolderID, let currentFolder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }) else { return }
+            Task (priority: .userInitiated) {
+                let hasHTMLContent = await serviceStore.folderDirectoryContentHasHTMLContent(currentURL)
+                debugPrint("[\(currentFolder.url.lastPathComponent)] url: \(currentURL) has html content -> \(hasHTMLContent)")
+                if !hasHTMLContent {
+                    let info = ["folder": currentFolder, "url": currentURL]
+                    NotificationCenter.default.post(name: .dashboardProcessDirectoryURL, object: info)
+                }
+            }
+//            debugPrint("dashboard commit url: \(currentURL)")
+        }
     }
 }

@@ -18,6 +18,7 @@ extension Notification.Name {
     static let dashboardInspectorIsCollapsedStatusChanged = Notification.Name("PublishedFoldersDashboardInspectorIsCollapsedStatusChangedNotification")
     static let dashboardRefreshToolbar = Notification.Name("PublishedFoldersDashboardRefreshToolbarNotification")
     static let dashboardLoadPreviewURL = Notification.Name("PublishedFoldersDashboardLoadPreviewURLNotification")
+    static let dashboardProcessDirectoryURL = Notification.Name("PublishedFoldersDabhaordProcessDirectoryURLNotification")
     static let dashboardResetWebViewHistory = Notification.Name("PublishedFoldersDashboardResetWebViewHistoryNotification")
     static let dashboardReloadWebView = Notification.Name("PublishedFoldersDashboardReloadWebViewNotification")
     static let dashboardWebViewGoHome = Notification.Name("PublishedFoldersDashboardWebViewGoHomeNotification")

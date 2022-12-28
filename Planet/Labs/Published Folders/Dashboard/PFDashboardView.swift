@@ -36,6 +36,7 @@ struct PFDashboardView: View {
                 noPublishedFolderSelectedView()
             }
         }
+        .edgesIgnoringSafeArea(.top)
         .frame(minWidth: .contentWidth, idealWidth: .contentWidth, maxWidth: .infinity, minHeight: 320, idealHeight: 320, maxHeight: .infinity, alignment: .center)
         .onReceive(NotificationCenter.default.publisher(for: .dashboardResetWebViewHistory)) { n in
             guard let targetFolderID = n.object as? UUID else { return }
@@ -43,7 +44,6 @@ struct PFDashboardView: View {
                 guard targetFolderID == selectedID else { return }
                 self.url = folder.url
                 self.contentView = PFDashboardContentView(url: self.$url)
-                debugPrint("reset history to url: \(folder.url)")
             }
         }
     }
