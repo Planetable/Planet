@@ -29,11 +29,6 @@ class PlanetPublishedServiceStore: ObservableObject {
         }
     }
     @Published var selectedFolderID: UUID? {
-        willSet(newValue) {
-            Task { @MainActor in
-                self.restoreSelectedFolderNavigation()
-            }
-        }
         didSet {
             if let id = selectedFolderID {
                 UserDefaults.standard.set(id.uuidString, forKey: String.selectedPublishedFolderID)
@@ -41,6 +36,9 @@ class PlanetPublishedServiceStore: ObservableObject {
                 UserDefaults.standard.removeObject(forKey: String.selectedPublishedFolderID)
             }
             NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
+            Task { @MainActor in
+                self.restoreSelectedFolderNavigation()
+            }
         }
     }
     
@@ -49,7 +47,6 @@ class PlanetPublishedServiceStore: ObservableObject {
     @Published private(set) var selectedFolderCanGoBackward: Bool = false
     @Published private(set) var selectedFolderBackwardURL: URL?
     @Published private(set) var selectedFolderForwardURL: URL?
-    @Published private(set) var selectedFolderCurrentURL: URL?
     
     @Published private(set) var publishedFolders: [PlanetPublishedFolder] = [] {
         didSet {
@@ -98,7 +95,6 @@ class PlanetPublishedServiceStore: ObservableObject {
             NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
         }
         guard selectedFolderIDChanged == false else {
-            // reset web view backward history when switching between selected folders, leave current url unchanged.
             selectedFolderIDChanged = false
             selectedFolderCanGoForward = false
             selectedFolderForwardURL = nil
@@ -107,7 +103,6 @@ class PlanetPublishedServiceStore: ObservableObject {
             return
         }
 
-        selectedFolderCurrentURL = currentURL
         selectedFolderCanGoForward = canGoForward
         selectedFolderForwardURL = canGoForward ? forwardURL : nil
         selectedFolderCanGoBackward = canGoBackward
@@ -121,7 +116,7 @@ class PlanetPublishedServiceStore: ObservableObject {
             selectedFolderCanGoForward = false
             selectedFolderForwardURL = nil
         }
-        if selectedFolderCanGoBackward && selectedFolderBackwardURL?.lastPathComponent == "NoSelection.html" {
+        if selectedFolderCanGoBackward && selectedFolderBackwardURL == Bundle.main.url(forResource: "NoSelection.html", withExtension: "") {
             selectedFolderCanGoBackward = false
             selectedFolderBackwardURL = nil
         }
@@ -450,25 +445,6 @@ extension PlanetPublishedServiceStore {
             alert.addButton(withTitle: "OK")
             alert.runModal()
         }
-    }
-    
-    func folderDirectoryContentHasHTMLContent(_ url: URL) async -> Bool {
-        if url.hasDirectoryPath {
-            if let _ = url.scheme, let host = url.host, let port = url.port {
-                if (host == "127.0.0.1" || host == "localhost") && UInt16(port) == IPFSDaemon.shared.gatewayPort {
-                    let indexPage = url.appendingPathComponent("index.html")
-                    do {
-                        let request = URLRequest(url: indexPage, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 0.01)
-                        let (_, response) = try await URLSession.shared.data(for: request)
-                        if let httpResponse = response as? HTTPURLResponse {
-                            let result = httpResponse.statusCode == 200
-                            return result
-                        }
-                    } catch {}
-                }
-            }
-        }
-        return false
     }
     
     func addFolder() {

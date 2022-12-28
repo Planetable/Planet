@@ -23,15 +23,9 @@ class PFDashboardWindow: NSWindow {
 
 extension PFDashboardWindow: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
-        if let window = notification.object as? PFDashboardWindow {
-            window.delegate = nil
-            PlanetAppDelegate.shared.publishedFoldersDashboardWindowController = nil
-        }
     }
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
-        sender.contentView = nil
-        sender.contentViewController = nil
         return true
     }
 }

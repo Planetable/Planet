@@ -40,7 +40,9 @@ struct PFDashboardInspectorView: View {
     private func inspectorView(forFolder folder: PlanetPublishedFolder) -> some View {
         ScrollView {
             Section {
-                sectionInformationView(name: "Name", content: folder.url.lastPathComponent)
+                ZStack {
+                    sectionInformationView(name: "Name", content: folder.url.lastPathComponent)
+                }
                 
                 Divider()
                 
@@ -154,9 +156,8 @@ struct PFDashboardInspectorView: View {
                 .font(.headline)
             Spacer(minLength: 1)
         }
-        .padding(.horizontal, 8)
-        .padding(.top, 8)
-        .padding(.bottom, 0)
+        .padding(7)
+        .padding(.bottom, -7)
     }
     
     @ViewBuilder

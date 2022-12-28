@@ -165,14 +165,11 @@ class PFDashboardWindowController: NSWindowController {
             break
         case .dashboardBackwardItem:
             NotificationCenter.default.post(name: .dashboardWebViewGoBackward, object: nil)
-            break
         case .dashboardForwardItem:
             NotificationCenter.default.post(name: .dashboardWebViewGoForward, object: nil)
-            break
         case .dashboardReloadItem:
             NotificationCenter.default.post(name: .dashboardReloadWebView, object: nil)
         case .dashboardHomeItem:
-            PlanetPublishedServiceStore.shared.restoreSelectedFolderNavigation()
             NotificationCenter.default.post(name: .dashboardWebViewGoHome, object: nil)
         case .dashboardInspectorItem:
             if let vc = self.window?.contentViewController as? PFDashboardContainerViewController, let inspectorItem = vc.splitViewItems.last {
