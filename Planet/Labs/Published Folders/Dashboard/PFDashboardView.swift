@@ -45,6 +45,9 @@ struct PFDashboardView: View {
                 self.contentView = PFDashboardContentView(url: self.$url)
             }
         }
+        .task {
+            serviceStore.restoreSelectedFolderNavigation()
+        }
     }
     
     @ViewBuilder

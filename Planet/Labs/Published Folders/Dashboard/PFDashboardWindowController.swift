@@ -417,7 +417,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardForwardItem,
             .flexibleSpace,
             .dashboardHomeItem,
-            .dashboardReloadItem,
+//            .dashboardReloadItem,
             .dashboardShareItem,
             .dashboardActionItem,
             .dashboardInspectorSeparactorItem,
