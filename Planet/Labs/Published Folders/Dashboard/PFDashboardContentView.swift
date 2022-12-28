@@ -21,7 +21,6 @@ struct PFDashboardContentView: NSViewRepresentable {
     func makeNSView(context: Context) -> PFDashboardWebView {
         let wv = PFDashboardWebView()
         wv.navigationDelegate = context.coordinator
-        wv.setValue(false, forKey: "drawsBackground")
         wv.load(URLRequest(url: url))
         wv.allowsBackForwardNavigationGestures = false
         NotificationCenter.default.addObserver(forName: .dashboardLoadPreviewURL, object: nil, queue: .main) { n in
@@ -43,11 +42,9 @@ struct PFDashboardContentView: NSViewRepresentable {
         }
         NotificationCenter.default.addObserver(forName: .dashboardWebViewGoForward, object: nil, queue: .main) { _ in
             wv.goForward()
-            resetNavigationHome()
         }
         NotificationCenter.default.addObserver(forName: .dashboardWebViewGoBackward, object: nil, queue: .main) { _ in
             wv.goBack()
-            resetNavigationHome()
         }
         NotificationCenter.default.addObserver(forName: .dashboardReloadWebView, object: nil, queue: .main) { _ in
             wv.reload()
@@ -80,7 +77,6 @@ struct PFDashboardContentView: NSViewRepresentable {
             }
             let noSelectionURL = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
             if let url = navigationAction.request.url {
-                debugPrint("decide policy for url: \(url) ...")
                 // handle requests from non-daemon servers with system browsers
                 if url.isFileURL {
                 } else if url == noSelectionURL {
@@ -111,7 +107,7 @@ struct PFDashboardContentView: NSViewRepresentable {
                 if (host == "127.0.0.1" || host == "localhost") && UInt16(port) == IPFSDaemon.shared.gatewayPort {
                     let indexPage = currentURL.appendingPathComponent("index.html")
                     do {
-                        let request = URLRequest(url: indexPage, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 0.01)
+                        let request = URLRequest(url: indexPage, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 0.05)
                         let (_, response) = try await URLSession.shared.data(for: request)
                         if let httpResponse = response as? HTTPURLResponse {
                             if httpResponse.statusCode != 200 {

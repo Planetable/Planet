@@ -29,12 +29,9 @@ class PlanetPublishedServiceStore: ObservableObject {
         }
     }
     @Published var selectedFolderID: UUID? {
-        didSet {
-            if let id = selectedFolderID {
-                UserDefaults.standard.set(id.uuidString, forKey: String.selectedPublishedFolderID)
-            } else {
-                UserDefaults.standard.removeObject(forKey: String.selectedPublishedFolderID)
-            }
+        willSet(newValue) {
+            guard let newValue = newValue, newValue != selectedFolderID else { return }
+            UserDefaults.standard.set(newValue.uuidString, forKey: String.selectedPublishedFolderID)
             NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
             Task { @MainActor in
                 self.restoreSelectedFolderNavigation()
@@ -82,6 +79,7 @@ class PlanetPublishedServiceStore: ObservableObject {
     
     func restoreSelectedFolderNavigation() {
         if let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+            debugPrint("restore navigation for folder: \(folder.url.lastPathComponent)")
             NotificationCenter.default.post(name: .dashboardResetWebViewHistory, object: id)
             selectedFolderIDChanged = true
             NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: url)
