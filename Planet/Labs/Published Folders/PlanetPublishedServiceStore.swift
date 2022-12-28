@@ -12,9 +12,9 @@ import SwiftUI
 class PlanetPublishedServiceStore: ObservableObject {
     static let shared = PlanetPublishedServiceStore()
 
-    static let prefixKey = "PlanetPublishedFolder-"
-    static let removedListKey = "PlanetPublishedFolderRemovalList"
-    static let pendingPrefixKey = "PlanetPublishedFolderPendingFolder-"
+    static let prefixKey: String = .folderPrefixKey
+    static let removedListKey: String = .folderRemovedListKey
+    static let pendingPrefixKey: String = .folderPendingPrefixKey
 
     static let ttlString: String = "7200h"
     static let ttl: Int = 3600*7200 - 60
@@ -22,12 +22,29 @@ class PlanetPublishedServiceStore: ObservableObject {
     let timer = Timer.publish(every: 5, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
 
     @Published var timestamp: Int = Int(Date().timeIntervalSince1970)
-    @Published var autoPublish: Bool = UserDefaults.standard.bool(forKey: "PlanetPublishedFolderAutoPublish") {
+    @Published var autoPublish: Bool = UserDefaults.standard.bool(forKey: String.folderAutoPublishOptionKey) {
         didSet {
-            UserDefaults.standard.set(autoPublish, forKey: "PlanetPublishedFolderAutoPublish")
+            UserDefaults.standard.set(autoPublish, forKey: String.folderAutoPublishOptionKey)
             updateMonitoring()
         }
     }
+    @Published var selectedFolderID: UUID? {
+        willSet(newValue) {
+            guard let newValue = newValue, newValue != selectedFolderID else { return }
+            UserDefaults.standard.set(newValue.uuidString, forKey: String.selectedPublishedFolderID)
+            NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
+            Task { @MainActor in
+                self.restoreSelectedFolderNavigation()
+            }
+        }
+    }
+    
+    @Published private(set) var selectedFolderIDChanged: Bool = false
+    @Published private(set) var selectedFolderCanGoForward: Bool = false
+    @Published private(set) var selectedFolderCanGoBackward: Bool = false
+    @Published private(set) var selectedFolderBackwardURL: URL?
+    @Published private(set) var selectedFolderForwardURL: URL?
+    
     @Published private(set) var publishedFolders: [PlanetPublishedFolder] = [] {
         didSet {
             updateMonitoring()
@@ -40,6 +57,9 @@ class PlanetPublishedServiceStore: ObservableObject {
     init() {
         do {
             publishedFolders = try loadPublishedFolders()
+            if let value = UserDefaults.standard.object(forKey: String.selectedPublishedFolderID) as? String {
+                selectedFolderID = UUID(uuidString: value)
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                 Task(priority: .background) {
                     let removedIDs: [String] = UserDefaults.standard.stringArray(forKey: Self.removedListKey) ?? []
@@ -56,8 +76,55 @@ class PlanetPublishedServiceStore: ObservableObject {
             debugPrint("failed to load published folders: \(error)")
         }
     }
+    
+    func restoreSelectedFolderNavigation() {
+        if let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+            debugPrint("restore navigation for folder: \(folder.url.lastPathComponent)")
+            NotificationCenter.default.post(name: .dashboardResetWebViewHistory, object: id)
+            selectedFolderIDChanged = true
+            NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: url)
+        }
+    }
+    
+    @MainActor
+    func updateSelectedFolderNavigation(withCurrentURL currentURL: URL, canGoForward: Bool, forwardURL: URL?, canGoBackward: Bool, backwardURL: URL?) {
+        guard let _ = selectedFolderID else { return }
+        defer {
+            NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
+        }
+        guard selectedFolderIDChanged == false else {
+            selectedFolderIDChanged = false
+            selectedFolderCanGoForward = false
+            selectedFolderForwardURL = nil
+            selectedFolderCanGoBackward = false
+            selectedFolderBackwardURL = nil
+            return
+        }
+
+        selectedFolderCanGoForward = canGoForward
+        selectedFolderForwardURL = canGoForward ? forwardURL : nil
+        selectedFolderCanGoBackward = canGoBackward
+        selectedFolderBackwardURL = canGoBackward ? backwardURL : nil
+        
+        if currentURL == backwardURL {
+            selectedFolderCanGoBackward = false
+            selectedFolderBackwardURL = nil
+        }
+        if currentURL == forwardURL {
+            selectedFolderCanGoForward = false
+            selectedFolderForwardURL = nil
+        }
+        if selectedFolderCanGoBackward && selectedFolderBackwardURL == Bundle.main.url(forResource: "NoSelection.html", withExtension: "") {
+            selectedFolderCanGoBackward = false
+            selectedFolderBackwardURL = nil
+        }
+    }
 
     func addToRemovingPublishedFolderQueue(_ folder: PlanetPublishedFolder) {
+        // remove selected index if equals
+        if selectedFolderID == folder.id {
+            selectedFolderID = nil
+        }
         // remove bookmark data
         removeBookmarkData(forFolder: folder)
         // remove monitor if exists
@@ -167,6 +234,10 @@ class PlanetPublishedServiceStore: ObservableObject {
             }
         }
         updatePublishedFolders(updatedFolders)
+        NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            NotificationCenter.default.post(name: .dashboardWebViewGoHome, object: nil)
+        }
         debugPrint("Folder published -> \(folder.url)")
     }
 
@@ -297,6 +368,14 @@ extension PlanetPublishedServiceStore {
         let data = try encoder.encode(self.publishedFolders)
         try data.write(to: folderHistoryURL)
     }
+    
+    func loadPublishedFolderCID(byFolderID id: UUID) -> String? {
+        do {
+            var versions = try loadPublishedVersions(byFolderKeyName: id.uuidString)
+            return versions.last?.cid
+        } catch {}
+        return nil
+    }
 
     func loadPublishedVersions(byFolderKeyName name: String) throws -> [PlanetPublishedFolderVersion] {
         let decoder = JSONDecoder()
@@ -346,6 +425,107 @@ extension PlanetPublishedServiceStore {
     func removeBookmarkData(forFolder folder: PlanetPublishedFolder) {
         UserDefaults.standard.removeObject(forKey: Self.prefixKey + folder.id.uuidString)
     }
+    
+    func revealFolderInFinder(_ folder: PlanetPublishedFolder) {
+        do {
+            let url = try self.restoreFolderAccess(forFolder: folder)
+            guard url.startAccessingSecurityScopedResource() else {
+                throw PlanetError.PublishedServiceFolderPermissionError
+            }
+            NSWorkspace.shared.open(url)
+            url.stopAccessingSecurityScopedResource()
+        } catch {
+            debugPrint("failed to request access to folder: \(folder), error: \(error)")
+            let alert = NSAlert()
+            alert.messageText = "Failed to Access to Folder"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
+    }
+    
+    func addFolder() {
+        let panel = NSOpenPanel()
+        panel.message = "Choose Folder to Publish"
+        panel.prompt = "Choose"
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.folder]
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        let response = panel.runModal()
+        guard response == .OK, let url = panel.url else { return }
+        var folders = self.publishedFolders
+        var exists = false
+        for f in folders {
+            if f.url.absoluteString.md5() == url.absoluteString.md5() {
+                exists = true
+                break
+            }
+        }
+        if exists {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Add Folder"
+            alert.informativeText = "Selected folder has already been added."
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        let folder = PlanetPublishedFolder(id: UUID(), url: url, created: Date())
+        do {
+            try self.saveBookmarkData(forFolder: folder)
+            folders.insert(folder, at: 0)
+            let updatedFolders = folders
+            Task { @MainActor in
+                self.updatePublishedFolders(updatedFolders)
+            }
+        } catch {
+            debugPrint("failed to add folder: \(error)")
+            let alert = NSAlert()
+            alert.messageText = "Failed to Add Folder"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
+    }
+    
+    func exportFolderKey(_ folder: PlanetPublishedFolder) {
+        guard let _ = folder.published else {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Export Folder Key"
+            alert.informativeText = "Folder key doesn't exist, please make sure this folder has been successfully published."
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        let panel = NSOpenPanel()
+        panel.message = "Choose Directory to Save Folder Key"
+        panel.prompt = "Choose"
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.folder]
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        let response = panel.runModal()
+        guard response == .OK, let url = panel.url else { return }
+        let folderName = folder.url.lastPathComponent.sanitized()
+        let keyPath = url.appendingPathComponent(folderName + ".key")
+        do {
+            try IPFSCommand.exportKey(name: folder.id.uuidString, target: keyPath).run()
+            NSWorkspace.shared.activateFileViewerSelecting([keyPath])
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Export Folder Key"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
+    }
+    
+    func importAndReplaceFolderKey(_ folder: PlanetPublishedFolder, keyPath: URL) {}
 }
 
 

@@ -12,9 +12,9 @@ import WebKit
 /*
  https://stackoverflow.com/questions/28801032/how-can-the-context-menu-in-wkwebview-on-the-mac-be-modified-or-overridden
  */
-class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
+class DownloadsScriptMessageHandler: NSObject, WKScriptMessageHandler {
 
-    public private(set) static var instance = GlobalScriptMessageHandler()
+    public private(set) static var instance = DownloadsScriptMessageHandler()
     
     public private(set) var nodeName: String?
     public private(set) var nodeId: String?
@@ -66,7 +66,7 @@ class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
     public func ensureHandles(configuration: WKWebViewConfiguration) {
         var alreadyHandling = false
         for userScript in configuration.userContentController.userScripts {
-            if userScript.source == GlobalScriptMessageHandler.contextMenuScript {
+            if userScript.source == DownloadsScriptMessageHandler.contextMenuScript {
                 alreadyHandling = true
             }
         }
@@ -75,9 +75,9 @@ class GlobalScriptMessageHandler: NSObject, WKScriptMessageHandler {
             let userContentController = configuration.userContentController
             userContentController.add(self, name: "oncontextmenu")
             userContentController.add(self, name: "buttonclicked")
-            let contextMenuScript = WKUserScript(source: GlobalScriptMessageHandler.contextMenuScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+            let contextMenuScript = WKUserScript(source: DownloadsScriptMessageHandler.contextMenuScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
             userContentController.addUserScript(contextMenuScript)
-            let internalLinkScript = WKUserScript(source: GlobalScriptMessageHandler.internalLinkScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+            let internalLinkScript = WKUserScript(source: DownloadsScriptMessageHandler.internalLinkScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
             userContentController.addUserScript(internalLinkScript)
         }
     }

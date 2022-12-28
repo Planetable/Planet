@@ -13,7 +13,7 @@ class PlanetDownloadsWebView: WKWebView {
     
     init() {
         super.init(frame: CGRect(), configuration: WKWebViewConfiguration())
-        GlobalScriptMessageHandler.instance.ensureHandles(configuration: self.configuration)
+        DownloadsScriptMessageHandler.instance.ensureHandles(configuration: self.configuration)
     }
     
     required init?(coder: NSCoder) {
@@ -58,11 +58,11 @@ class PlanetDownloadsWebView: WKWebView {
     private func shouldHideSelectedMenuItem(isDownloadableTarget: Bool = false) -> Bool {
         if isDownloadableTarget {
             var url: URL?
-            if let _ = GlobalScriptMessageHandler.instance.src, let href = GlobalScriptMessageHandler.instance.href {
+            if let _ = DownloadsScriptMessageHandler.instance.src, let href = DownloadsScriptMessageHandler.instance.href {
                 url = URL(string: href)
-            } else if let src = GlobalScriptMessageHandler.instance.src {
+            } else if let src = DownloadsScriptMessageHandler.instance.src {
                 url = URL(string: src)
-            } else if let href = GlobalScriptMessageHandler.instance.href {
+            } else if let href = DownloadsScriptMessageHandler.instance.href {
                 url = URL(string: href)
             }
             if let url = url {
@@ -71,11 +71,11 @@ class PlanetDownloadsWebView: WKWebView {
                 return true
             }
         }
-        return GlobalScriptMessageHandler.instance.href == nil && GlobalScriptMessageHandler.instance.src == nil
+        return DownloadsScriptMessageHandler.instance.href == nil && DownloadsScriptMessageHandler.instance.src == nil
     }
     
     @objc private func openLinkAction(_ sender: NSMenuItem) {
-        guard let urlString = GlobalScriptMessageHandler.instance.href else { return }
+        guard let urlString = DownloadsScriptMessageHandler.instance.href else { return }
         if urlString.hasPrefix("file:///") {
             let targetURL = URL(fileURLWithPath: urlString)
             ArticleWebViewModel.shared.processInternalFileLink(targetURL)
@@ -89,21 +89,21 @@ class PlanetDownloadsWebView: WKWebView {
     }
 
     @objc private func downloadFileAction(_ sender: NSMenuItem) {
-        if let _ = GlobalScriptMessageHandler.instance.href, let srcString = GlobalScriptMessageHandler.instance.src {
+        if let _ = DownloadsScriptMessageHandler.instance.href, let srcString = DownloadsScriptMessageHandler.instance.src {
             self.load(URLRequest(url: URL(string: srcString)!))
-        } else if let urlString = GlobalScriptMessageHandler.instance.href {
+        } else if let urlString = DownloadsScriptMessageHandler.instance.href {
             self.load(URLRequest(url: URL(string: urlString)!))
-        } else if let srcString = GlobalScriptMessageHandler.instance.src {
+        } else if let srcString = DownloadsScriptMessageHandler.instance.src {
             self.load(URLRequest(url: URL(string: srcString)!))
         }
     }
     
     @objc private func openImageAction(_ sender: NSMenuItem) {
-        if let _ = GlobalScriptMessageHandler.instance.href, let srcString = GlobalScriptMessageHandler.instance.src {
+        if let _ = DownloadsScriptMessageHandler.instance.href, let srcString = DownloadsScriptMessageHandler.instance.src {
             NSWorkspace.shared.open(URL(string: srcString)!)
-        } else if let urlString = GlobalScriptMessageHandler.instance.href {
+        } else if let urlString = DownloadsScriptMessageHandler.instance.href {
             NSWorkspace.shared.open(URL(string: urlString)!)
-        } else if let srcString = GlobalScriptMessageHandler.instance.src {
+        } else if let srcString = DownloadsScriptMessageHandler.instance.src {
             NSWorkspace.shared.open(URL(string: srcString)!)
         }
     }

@@ -155,6 +155,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
 
     var templateWindowController: TBWindowController?
     var downloadsWindowController: PlanetDownloadsWindowController?
+    var publishedFoldersDashboardWindowController: PFDashboardWindowController?
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         return true
@@ -305,7 +306,6 @@ extension PlanetApp {
                                     Text("Open in Localhost")
                                 }
                             }
-
                             Button {
                                 do {
                                     let url = try serviceStore.restoreFolderAccess(forFolder: folder)
@@ -316,14 +316,16 @@ extension PlanetApp {
                                     url.stopAccessingSecurityScopedResource()
                                 } catch {
                                     debugPrint("failed to request access to folder: \(folder), error: \(error)")
-                                    planetStore.isShowingAlert = true
-                                    planetStore.alertTitle = "Failed to Access to Folder"
-                                    planetStore.alertMessage = error.localizedDescription
+                                    let alert = NSAlert()
+                                    alert.messageText = "Failed to Access to Folder"
+                                    alert.informativeText = error.localizedDescription
+                                    alert.alertStyle = .informational
+                                    alert.addButton(withTitle: "OK")
+                                    alert.runModal()
                                 }
                             } label: {
                                 Text("Reveal in Finder")
                             }
-
                             Button {
                                 Task { @MainActor in
                                     do {
@@ -339,23 +341,35 @@ extension PlanetApp {
                                         )
                                         try? await UNUserNotificationCenter.current().add(request)
                                     } catch PlanetError.PublishedServiceFolderUnchangedError {
-                                        planetStore.isShowingAlert = true
-                                        planetStore.alertTitle = "Failed to Publish Folder"
-                                        planetStore.alertMessage = "Folder content hasn't changed since last publish."
+                                        let alert = NSAlert()
+                                        alert.messageText = "Failed to Publish Folder"
+                                        alert.informativeText = "Folder content hasn't changed since last publish."
+                                        alert.alertStyle = .informational
+                                        alert.addButton(withTitle: "OK")
+                                        alert.runModal()
                                     } catch {
                                         debugPrint("Failed to publish folder: \(folder), error: \(error)")
-                                        planetStore.isShowingAlert = true
-                                        planetStore.alertTitle = "Failed to Publish Folder"
-                                        planetStore.alertMessage = error.localizedDescription
+                                        let alert = NSAlert()
+                                        alert.messageText = "Failed to Publish Folder"
+                                        alert.informativeText = error.localizedDescription
+                                        alert.alertStyle = .informational
+                                        alert.addButton(withTitle: "OK")
+                                        alert.runModal()
                                     }
                                 }
                             } label: {
                                 Text("Publish")
                             }
                         }
-
                         Divider()
-
+                        if let _ = folder.published, let _ = folder.publishedLink {
+                            Button {
+                                serviceStore.exportFolderKey(folder)
+                            } label: {
+                                Text("Backup Folder Key")
+                            }
+                            Divider()
+                        }
                         Button {
                             serviceStore.addToRemovingPublishedFolderQueue(folder)
                             let updatedFolders = serviceStore.publishedFolders.filter { f in
@@ -374,42 +388,17 @@ extension PlanetApp {
                 Divider()
             }
             Button {
-                let panel = NSOpenPanel()
-                panel.message = "Choose Folder to Publish"
-                panel.prompt = "Choose"
-                panel.allowsMultipleSelection = false
-                panel.allowedContentTypes = [.folder]
-                panel.canChooseDirectories = true
-                panel.canChooseFiles = false
-                let response = panel.runModal()
-                guard response == .OK, let url = panel.url else { return }
-                var folders = serviceStore.publishedFolders
-                var exists = false
-                for f in folders {
-                    if f.url.absoluteString.md5() == url.absoluteString.md5() {
-                        exists = true
-                        break
-                    }
-                }
-                if exists { return }
-                let folder = PlanetPublishedFolder(id: UUID(), url: url, created: Date())
-                do {
-                    try serviceStore.saveBookmarkData(forFolder: folder)
-                    folders.insert(folder, at: 0)
-                    let updatedFolders = folders
-                    Task { @MainActor in
-                        serviceStore.updatePublishedFolders(updatedFolders)
-                    }
-                } catch {
-                    debugPrint("failed to add folder: \(error)")
-                    planetStore.isShowingAlert = true
-                    planetStore.alertTitle = "Failed to Add Folder"
-                    planetStore.alertMessage = error.localizedDescription
-                }
+                serviceStore.addFolder()
             } label: {
                 Text("Add Folder")
             }
             Divider()
+            Button {
+                PlanetAppDelegate.shared.openPublishedFoldersDashboardWindow()
+            } label: {
+                Text("Dashboard")
+            }
+            .keyboardShortcut("f", modifiers: [.command, .shift])
             Menu("Options") {
                 Toggle("Automatically Publish", isOn: $serviceStore.autoPublish)
                     .onChange(of: serviceStore.autoPublish) { newValue in
@@ -504,6 +493,13 @@ extension PlanetAppDelegate {
             templateWindowController = TBWindowController()
         }
         templateWindowController?.showWindow(nil)
+    }
+    
+    func openPublishedFoldersDashboardWindow() {
+        if publishedFoldersDashboardWindowController == nil {
+            publishedFoldersDashboardWindowController = PFDashboardWindowController()
+        }
+        publishedFoldersDashboardWindowController?.showWindow(nil)
     }
 }
 

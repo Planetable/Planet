@@ -47,7 +47,7 @@ class TBWindowController: NSWindowController {
         let toolbar = NSToolbar(identifier: .templateToolbarIdentifier)
         toolbar.delegate = self
         toolbar.allowsUserCustomization = false
-        toolbar.autosavesConfiguration = false
+        toolbar.autosavesConfiguration = true
         toolbar.displayMode = .iconOnly
         if #available(macOS 13.0, *) {
             toolbar.centeredItemIdentifiers = [.templatePreviewItems]
