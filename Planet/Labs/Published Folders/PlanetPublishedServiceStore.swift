@@ -60,6 +60,7 @@ class PlanetPublishedServiceStore: ObservableObject {
             if let value = UserDefaults.standard.object(forKey: String.selectedPublishedFolderID) as? String {
                 selectedFolderID = UUID(uuidString: value)
             }
+            // MARK: TODO: wait until daemon online.
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                 Task(priority: .background) {
                     let removedIDs: [String] = UserDefaults.standard.stringArray(forKey: Self.removedListKey) ?? []

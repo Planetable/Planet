@@ -32,6 +32,10 @@ struct PlanetSettingsGeneralView: View {
                             }
                         }
                         .pickerStyle(.menu)
+                        .onChange(of: publicGatewayIndex) { newValue in
+                            // Refresh Published Folders Dashboard Toolbar
+                            NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
+                        }
                     }
 
                     VStack {
