@@ -8,9 +8,6 @@
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
 
-DEVELOPMENT_TEAM = 66KP7KX9MX
-CODE_SIGN_STYLE = Automatic
-CODE_SIGN_IDENTITY = Apple Development
 ORGANIZATION_IDENTIFIER_PREFIX = xyz.planetable
 
 #include "marketing_version.xcconfig"

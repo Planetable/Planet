@@ -46,6 +46,15 @@ struct FollowingPlanetSidebarItem: View {
                     Text("Copy URL")
                 }
 
+                Button {
+                    if let url = planet.browserURL {
+                        debugPrint("Following Planet Browser URL: \(url.absoluteString)")
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Text("Open in Browser")
+                }
+
                 Divider()
 
                 Button {

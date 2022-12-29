@@ -84,6 +84,7 @@ struct FeedUtils {
                 return (nil, soup)
             }
             guard let bestFeed = selectBestFeed(availableFeeds) else { return (nil, soup) }
+            debugPrint("FeedUtils: proceeds with the selection: \(bestFeed)")
             guard let feedURL = URL(string: bestFeed.url) else { return (nil, soup) }
             // fetch feed
             guard let (data, response) = try? await URLSession.shared.data(from: feedURL) else {
@@ -242,7 +243,8 @@ struct FeedUtils {
             audioFilename: nil,
             audioDuration: nil,
             audioByteLength: nil,
-            attachments: nil
+            attachments: nil,
+            heroImage: nil
         )
     }
 
@@ -287,7 +289,8 @@ struct FeedUtils {
                     audioFilename: nil,
                     audioDuration: nil,
                     audioByteLength: nil,
-                    attachments: nil
+                    attachments: nil,
+                    heroImage: nil
                 )
             }
             return (name, about, nil, articles)
@@ -320,7 +323,8 @@ struct FeedUtils {
                     audioFilename: nil,
                     audioDuration: nil,
                     audioByteLength: nil,
-                    attachments: nil
+                    attachments: nil,
+                    heroImage: nil
                 )
             }
             return (name, about, nil, articles)

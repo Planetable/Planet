@@ -8,11 +8,14 @@
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
 
+// As of Dec 24, 2022, this file is not in use because of this error in Xcode 14:
+// https://forums.swift.org/t/xcode-14-beta-code-signing-issues-when-spm-targets-include-resources/59685/14
 
 ORGANIZATION_IDENTIFIER_PREFIX = xyz.planetable
+CODE_SIGN_STYLE = Manual
 DEVELOPMENT_TEAM = 66KP7KX9MX
 CODE_SIGN_IDENTITY = Developer ID Application
-CODE_SIGN_STYLE = Manual
+PROVISIONING_PROFILE_SPECIFIER = Developer ID Profile
 CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO
 OTHER_CODE_SIGN_FLAGS = --timestamp
 

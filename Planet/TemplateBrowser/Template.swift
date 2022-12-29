@@ -18,6 +18,7 @@ class Template: Codable, Identifiable {
     var path: URL! = nil
     let author: String
     let version: String
+    let buildNumber: Int? = 0
 
     var id: String { name }
 
@@ -54,6 +55,7 @@ class Template: Codable, Identifiable {
         case description
         case author
         case version
+        case buildNumber
     }
 
     static func from(path: URL) -> Template? {
@@ -261,7 +263,8 @@ class Template: Codable, Identifiable {
             audioFilename: nil,
             audioDuration: nil,
             audioByteLength: nil,
-            attachments: nil
+            attachments: nil,
+            heroImage: nil
         )
 
         // render markdown
@@ -269,11 +272,35 @@ class Template: Codable, Identifiable {
             return nil
         }
 
+        let publicPlanet = PublicPlanetModel(
+            id: UUID(),
+            name: "Template Preview \(name)",
+            about: "Template Preview \(name)",
+            ipns: "k51",
+            created: Date(),
+            updated: Date(),
+            articles: [article],
+            plausibleEnabled: false,
+            plausibleDomain: nil,
+            plausibleAPIServer: nil,
+            twitterUsername: "PlanetableXYZ",
+            githubUsername: "Planetable",
+            telegramUsername: "",
+            podcastCategories: [:],
+            podcastLanguage: "en-US",
+            podcastExplicit: false
+        )
+
         // render stencil template
         let context: [String: Any] = [
             "assets_prefix": "../",
             "article": article,
-            "content_html": content_html
+            "articles": [article],
+            "content_html": content_html,
+            "page_title": index == 1 ? self.name : article.title,
+            "page_description": "Template preview for \(self.name)",
+            "page_description_html": "Template preview for <strong>\(self.name)</strong>",
+            "planet": publicPlanet
         ]
         let targetPath = index == 1 ? indexPath : blogPath
         let loader = FileSystemLoader(paths: [Path(targetPath.deletingLastPathComponent().path)])

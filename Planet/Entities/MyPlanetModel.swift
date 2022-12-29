@@ -145,16 +145,29 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     var domainWithGateway: String? {
-        if let domain = domain {
+        if let domain: String = domain {
+            let domain = domain.trim()
             if domain.hasSuffix(".eth") {
                 return "\(domain).limo"
             }
             if domain.hasSuffix(".bit") {
                 return "\(domain).cc"
             }
-            return domain
+            if domain.count > 0 {
+                return domain
+            } else {
+                return nil
+            }
         } else {
             return nil
+        }
+    }
+
+    var ogImageURLString: String {
+        if let domain = domainWithGateway {
+            return "https://\(domain)/avatar.png"
+        } else {
+            return "https://ipfs.io/ipns/\(ipns)/avatar.png"
         }
     }
 
@@ -932,6 +945,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             "planet": publicPlanet,
             "my_planet": self,
             "has_avatar": hasAvatar,
+            "og_image_url": ogImageURLString,
             "has_podcast": publicPlanet.hasAudioContent(),
             "has_podcast_cover_art": hasPodcastCoverArt
         ]

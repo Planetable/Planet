@@ -15,6 +15,7 @@ struct AccountBadgeView: View {
     @State private var displayBalance: String = ""
     @AppStorage(String.settingsEthereumChainId) private var currentActiveChainID = 1
     @State private var currentBackgroundColor = Color("AccountBadgeBackgroundColor")
+    let timer = Timer.publish(every: 20, on: .main, in: .common).autoconnect()
 
     var body: some View {
         HStack(spacing: 8) {
@@ -126,6 +127,9 @@ struct AccountBadgeView: View {
         }
         .onTapGesture {
             PlanetStore.shared.isShowingWalletAccount = true
+        }
+        .onReceive(timer) { _ in
+            self.loadBalance()
         }
     }
 

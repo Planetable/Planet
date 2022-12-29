@@ -1,11 +1,11 @@
-name: insider
+name: experimental
 
 on:
   push:
-    tags: [ insider* ]
+    branches: [ experimental* ]
 
 jobs:
-  insider:
+  experimental:
     runs-on: self-hosted
 
     strategy:
@@ -100,14 +100,20 @@ jobs:
         run: |
           ditto -c -k --keepParent to-be-signed/Planet.app Planet.zip
 
+      - name: Generate Release Tag
+        id: tag
+        run: |
+          echo "release_tag=Experimental-$(date +"%Y%m%d%H%M")" >> $GITHUB_OUTPUT
+      
       - name: Release App
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.tag.outputs.release_tag }}
           prerelease: true
           files: Planet.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Cleanup Keychain
         if: ${{ always() }}
         run: |

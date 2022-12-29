@@ -67,6 +67,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         return URL(string: link)
     }
     var browserURL: URL? {
+        if planetType == .ens {
+            return URL(string: "https://\(link).limo")
+        }
         if let cid = cid {
             return URL(string: "\(IPFSDaemon.preferredGateway())/ipfs/\(cid)/")
         }
@@ -125,9 +128,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     enum CodingKeys: String, CodingKey {
         case id, planetType, name, about, link,
-             cid, created, updated, lastRetrieved,
-             archived, archivedAt,
-             walletAddress, walletAddressResolvedAt
+            cid, created, updated, lastRetrieved,
+            archived, archivedAt,
+            walletAddress, walletAddressResolvedAt
     }
 
     required init(from decoder: Decoder) throws {
@@ -232,7 +235,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 if !links.contains(article.link) {
                     links.append(article.link)
                     consolidatedArticles.append(article)
-                } else {
+                }
+                else {
                     article.delete()
                 }
             }
@@ -375,7 +379,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 planet.walletAddress = "0x" + walletAddress
                 planet.walletAddressResolvedAt = Date()
                 debugPrint("Tipping: Got wallet address for \(ens): 0x\(walletAddress)")
-            } else {
+            }
+            else {
                 debugPrint("Tipping: Did not get wallet address for \(ens)")
             }
 
@@ -412,7 +417,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 planet.walletAddress = "0x" + walletAddress
                 planet.walletAddressResolvedAt = Date()
                 debugPrint("Tipping: Got wallet address for \(ens): \(walletAddress)")
-            } else {
+            }
+            else {
                 debugPrint("Tipping: Did not get wallet address for \(ens)")
             }
             if let publicArticles = feed.articles {
@@ -451,7 +457,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioFilename: nil,
                 audioDuration: nil,
                 audioByteLength: nil,
-                attachments: nil
+                attachments: nil,
+                heroImage: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)
@@ -501,7 +508,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             if saveNow {
                 try planet.save()
             }
-        } else {
+        }
+        else {
             debugPrint("Tipping: no wallet address for \(planet.link)")
         }
 
@@ -515,9 +523,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         let cid: String
         if dweb.type == .ipfs {
             cid = dweb.value
-        } else {
+        }
+        else {
             debugPrint("DotBit: resolving \(dweb)")
-            guard let resolved = try? await IPFSDaemon.shared.resolveIPNSorDNSLink(name: dweb.value) else {
+            guard let resolved = try? await IPFSDaemon.shared.resolveIPNSorDNSLink(name: dweb.value)
+            else {
                 throw PlanetError.DotBitIPNSResolveError
             }
             cid = resolved
@@ -641,7 +651,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioFilename: nil,
                 audioDuration: nil,
                 audioByteLength: nil,
-                attachments: nil
+                attachments: nil,
+                heroImage: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)
@@ -875,7 +886,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioFilename: nil,
                 audioDuration: nil,
                 audioByteLength: nil,
-                attachments: nil
+                attachments: nil,
+                heroImage: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)
@@ -1028,7 +1040,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 if saveNow {
                     try save()
                 }
-            } else {
+            }
+            else {
                 debugPrint("Tipping: no wallet address for \(self.link)")
             }
             let result: URL?
@@ -1169,8 +1182,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             let newCID: String
             if dweb.type == .ipfs {
                 newCID = dweb.value
-            } else {
-                guard let resolved = try? await IPFSDaemon.shared.resolveIPNSorDNSLink(name: dweb.value) else {
+            }
+            else {
+                guard
+                    let resolved = try? await IPFSDaemon.shared.resolveIPNSorDNSLink(
+                        name: dweb.value
+                    )
+                else {
                     throw PlanetError.DotBitIPNSResolveError
                 }
                 newCID = resolved
@@ -1503,13 +1521,16 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 if let resolver = try await enskit.resolver(name: link) {
                     let address = try await resolver.addr()
                     return address
-                } else {
+                }
+                else {
                     return nil
                 }
-            } catch {
+            }
+            catch {
                 return nil
             }
-        } else {
+        }
+        else {
             return nil
         }
     }
@@ -1532,17 +1553,20 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 .aspectRatio(contentMode: .fit)
                 .frame(width: size, height: size, alignment: .center)
                 .cornerRadius(size / 2)
-        } else {
+        }
+        else {
             Text(self.nameInitials)
                 .font(Font.custom("Arial Rounded MT Bold", size: size / 2))
                 .foregroundColor(Color.white)
                 .contentShape(Rectangle())
                 .frame(width: size, height: size, alignment: .center)
-                .background(LinearGradient(
-                    gradient: ViewUtils.getPresetGradient(from: self.id),
-                    startPoint: .top,
-                    endPoint: .bottom
-                ))
+                .background(
+                    LinearGradient(
+                        gradient: ViewUtils.getPresetGradient(from: self.id),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
                 .cornerRadius(size / 2)
         }
     }
