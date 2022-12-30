@@ -63,6 +63,15 @@ extension NSImage {
         }
         return nil
     }
+
+    var JPEGData: Data? {
+        if let tiff = tiffRepresentation,
+           let bitmap = NSBitmapImageRep(data: tiff),
+           let jpeg = bitmap.representation(using: .jpeg, properties: [:]) {
+            return jpeg
+        }
+        return nil
+    }
 }
 
 extension Color {

@@ -250,13 +250,18 @@ class MyArticleModel: ArticleModel, Codable {
         guard let heroImageFilename = self.getHeroImage() else { return }
         let heroImagePath = publicBasePath.appendingPathComponent(heroImageFilename, isDirectory: false)
         guard let heroImage = NSImage(contentsOf: heroImagePath) else { return }
-        let heroGridFilename = "_grid.png"
-        let heroGridPath = publicBasePath.appendingPathComponent(heroGridFilename)
+        let heroGridPNGFilename = "_grid.png"
+        let heroGridPNGPath = publicBasePath.appendingPathComponent(heroGridPNGFilename)
+        let heroGridJPEGFilename = "_grid.jpg"
+        let heroGridJPEGPath = publicBasePath.appendingPathComponent(heroGridJPEGFilename)
         Task {
-            if let grid = heroImage.resizeSquare(maxLength: 512),
-            let gridData = grid.PNGData
-            {
-                try gridData.write(to: heroGridPath)
+            if let grid = heroImage.resizeSquare(maxLength: 512) {
+                if let gridPNGData = grid.PNGData {
+                    try? gridPNGData.write(to: heroGridPNGPath)
+                }
+                if let gridJPEGData = grid.JPEGData {
+                    try? gridJPEGData.write(to: heroGridJPEGPath)
+                }
             }
         }
     }
