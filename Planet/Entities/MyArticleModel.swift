@@ -207,6 +207,9 @@ class MyArticleModel: ArticleModel, Codable {
         if self.hasVideoContent() {
             self.saveVideoThumbnail()
         }
+        if self.hasHeroImage() {
+            self.saveHeroGrid()
+        }
         try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
     }
 
@@ -218,6 +221,10 @@ class MyArticleModel: ArticleModel, Codable {
         planet.articles.removeAll { $0.id == id }
         try? FileManager.default.removeItem(at: path)
         try? FileManager.default.removeItem(at: publicBasePath)
+    }
+
+    func hasHeroImage() -> Bool {
+        return self.getHeroImage() != nil
     }
 
     func hasVideoContent() -> Bool {
@@ -235,6 +242,21 @@ class MyArticleModel: ArticleModel, Codable {
             if let thumbnail = await self.getVideoThumbnail(),
                let data = thumbnail.PNGData {
                 try? data.write(to: videoThumbnailPath)
+            }
+        }
+    }
+
+    func saveHeroGrid() {
+        guard let heroImageFilename = self.getHeroImage() else { return }
+        let heroImagePath = publicBasePath.appendingPathComponent(heroImageFilename, isDirectory: false)
+        guard let heroImage = NSImage(contentsOf: heroImagePath) else { return }
+        let heroGridFilename = "_grid.png"
+        let heroGridPath = publicBasePath.appendingPathComponent(heroGridFilename)
+        Task {
+            if let grid = heroImage.resizeSquare(maxLength: 512),
+            let gridData = grid.PNGData
+            {
+                try gridData.write(to: heroGridPath)
             }
         }
     }
