@@ -35,6 +35,7 @@ class PlanetPublishedServiceStore: ObservableObject {
             NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
             Task { @MainActor in
                 self.restoreSelectedFolderNavigation()
+                self.updateWindowTitles()
             }
         }
     }
@@ -80,11 +81,21 @@ class PlanetPublishedServiceStore: ObservableObject {
     
     func restoreSelectedFolderNavigation() {
         if let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
-            debugPrint("restore navigation for folder: \(folder.url.lastPathComponent)")
             NotificationCenter.default.post(name: .dashboardResetWebViewHistory, object: id)
             selectedFolderIDChanged = true
             NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: url)
         }
+    }
+    
+    func updateWindowTitles() {
+        guard let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }) else { return }
+        var titles: [String: String] = [:]
+        titles["title"] = folder.url.lastPathComponent
+        titles["subtitle"] = "Never Published"
+        if let date = folder.published {
+            titles["subtitle"] = "Last Published: " + date.relativeDateDescription()
+        }
+        NotificationCenter.default.post(name: .dashboardUpdateWindowTitles, object: titles)
     }
     
     @MainActor
@@ -236,8 +247,9 @@ class PlanetPublishedServiceStore: ObservableObject {
         }
         updatePublishedFolders(updatedFolders)
         NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             NotificationCenter.default.post(name: .dashboardWebViewGoHome, object: nil)
+            self?.updateWindowTitles()
         }
         debugPrint("Folder published -> \(folder.url)")
     }

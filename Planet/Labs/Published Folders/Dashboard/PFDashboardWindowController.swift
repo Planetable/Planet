@@ -28,6 +28,15 @@ class PFDashboardWindowController: NSWindowController {
         NotificationCenter.default.addObserver(forName: .dashboardRefreshToolbar, object: nil, queue: .main) { [weak self] _ in
             self?.setupToolbar()
         }
+        NotificationCenter.default.addObserver(forName: .dashboardUpdateWindowTitles, object: nil, queue: .main) { [weak self] n in
+            guard let titles = n.object as? [String: String] else { return }
+            if let theTitle = titles["title"], theTitle != "" {
+                self?.window?.title = theTitle
+            }
+            if let theSubtitle = titles["subtitle"], theSubtitle != "" {
+                self?.window?.subtitle = theSubtitle
+            }
+        }
     }
     
     required init?(coder: NSCoder) {
@@ -49,18 +58,8 @@ class PFDashboardWindowController: NSWindowController {
         toolbar.allowsUserCustomization = false
         toolbar.autosavesConfiguration = true
         toolbar.displayMode = .iconOnly
-        w.title = "Published Folders Dashboard"
-        w.subtitle = ""
         w.toolbar = toolbar
         w.toolbar?.validateVisibleItems()
-        let serviceStore = PlanetPublishedServiceStore.shared
-        if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }) {
-            w.title = folder.url.lastPathComponent
-            w.subtitle = "Never Published"
-            if let date = folder.published {
-                w.subtitle = "Last Published: " + date.relativeDateDescription()
-            }
-        }
     }
     
     @objc func openInPublicGateway(_ sender: Any) {

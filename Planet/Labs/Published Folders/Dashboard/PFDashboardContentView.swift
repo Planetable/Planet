@@ -107,7 +107,7 @@ struct PFDashboardContentView: NSViewRepresentable {
                 if (host == "127.0.0.1" || host == "localhost") && UInt16(port) == IPFSDaemon.shared.gatewayPort {
                     let indexPage = currentURL.appendingPathComponent("index.html")
                     do {
-                        let request = URLRequest(url: indexPage, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 0.05)
+                        let request = URLRequest(url: indexPage, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 0.1)
                         let (_, response) = try await URLSession.shared.data(for: request)
                         if let httpResponse = response as? HTTPURLResponse {
                             if httpResponse.statusCode != 200 {
