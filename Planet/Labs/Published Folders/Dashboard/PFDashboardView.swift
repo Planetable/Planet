@@ -45,6 +45,9 @@ struct PFDashboardView: View {
                 self.contentView = PFDashboardContentView(url: self.$url)
             }
         }
+        .onReceive(serviceStore.timer, perform: { _ in
+            serviceStore.updateWindowTitles()
+        })
         .task {
             serviceStore.restoreSelectedFolderNavigation()
         }
