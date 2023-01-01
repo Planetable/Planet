@@ -42,6 +42,12 @@ class MyArticleModel: ArticleModel, Codable {
         }
         return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.ipns)\(link)")
     }
+    var socialImageURL: URL? {
+        if let heroImage = getHeroImage(), let baseURL = browserURL {
+            return URL(string: "\(baseURL.absoluteString)\(heroImage)")
+        }
+        return nil
+    }
 
     enum CodingKeys: String, CodingKey {
         case id, link, title, content, summary, created, starred, videoFilename, audioFilename, attachments
