@@ -271,7 +271,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         article.audioFilename = audioFilename
         if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content), let soup = try? SwiftSoup.parseBodyFragment(contentHTML), let summary = try? soup.text() {
             if summary.count > 280 {
-                article.summary = summary + "..."
+                article.summary = summary.prefix(280) + "..."
             } else {
                 article.summary = summary
             }
