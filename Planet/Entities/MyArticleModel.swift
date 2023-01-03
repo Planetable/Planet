@@ -44,7 +44,7 @@ class MyArticleModel: ArticleModel, Codable {
     }
     var socialImageURL: URL? {
         if let heroImage = getHeroImage(), let baseURL = browserURL {
-            return URL(string: "\(baseURL.absoluteString)\(heroImage)")
+            return baseURL.appendingPathComponent(heroImage)
         }
         return nil
     }
