@@ -196,10 +196,16 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         return attachment
     }
 
-    func deleteAttachment(name: String) throws {
+    func deleteAttachment(name: String) {
         if let attachment = attachments.first(where: { $0.name == name }) {
-            try FileManager.default.removeItem(at: attachment.path)
-            attachments.removeAll { $0.name == name }
+            do {
+                if FileManager.default.fileExists(atPath: attachment.path.path) {
+                    try FileManager.default.removeItem(at: attachment.path)
+                }
+                attachments.removeAll { $0.name == name }
+            } catch {
+                debugPrint("\(error)")
+            }
         }
     }
 
