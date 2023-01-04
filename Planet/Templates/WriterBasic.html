@@ -76,12 +76,16 @@
     }
 
     .content {
-      margin: -20px 0 0 0;
+      margin: 0px 0 0 0;
       line-height: 160%;
       font-size: 1em;
       color: var(--foreground-color);
     }
-        
+
+    p:first-child {
+      margin-top: 0;
+    }
+
     li:has(input[type="checkbox"]) {
       list-style-type: none;
       margin-left: 0px;
