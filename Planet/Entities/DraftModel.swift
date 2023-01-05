@@ -14,6 +14,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Draft")
 
     let id: UUID
+    @Published var date: Date = Date()
     @Published var title: String
     @Published var content: String
     @Published var attachments: [Attachment]
