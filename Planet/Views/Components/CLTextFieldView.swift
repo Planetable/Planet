@@ -63,11 +63,6 @@ private struct CLTextFieldBaseView: NSViewRepresentable {
         textField.isBordered = false
         textField.drawsBackground = false
         textField.bezelStyle = .roundedBezel
-        if colorScheme == .light {
-            textField.backgroundColor = NSColor.textBackgroundColor
-        } else {
-            textField.backgroundColor = NSColor.textBackgroundColor
-        }
         return textField
     }
 
