@@ -55,6 +55,18 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     // example markdown when adding image: [example](example.png)
     lazy var previewPath = attachmentsPath.appendingPathComponent("preview.html", isDirectory: false)
 
+    func contentRaw() -> String {
+        let attachmentNames: String = attachments.map { $0.name }.joined(separator: ",")
+        let currentContent = "\(title)\(content)\(attachmentNames)"
+        return currentContent
+    }
+    func contentSHA256() -> String {
+        let currentContent = contentRaw()
+        debugPrint("currentContent: \(currentContent)")
+        return currentContent.sha256()
+    }
+    var initialContentSHA256: String = ""
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
@@ -98,6 +110,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         self.content = content
         self.attachments = attachments
         self.target = target
+        self.initialContentSHA256 = self.contentSHA256()
     }
 
     static func load(from directoryPath: URL, planet: MyPlanetModel) throws -> DraftModel {
@@ -105,6 +118,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let data = try Data(contentsOf: draftPath)
         let draft = try JSONDecoder.shared.decode(DraftModel.self, from: data)
         draft.target = .myPlanet(Unowned(planet))
+        draft.initialContentSHA256 = draft.contentSHA256()
         draft.attachments.forEach { attachment in
             attachment.draft = draft
             attachment.loadThumbnail()
@@ -117,6 +131,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let data = try Data(contentsOf: draftPath)
         let draft = try JSONDecoder.shared.decode(DraftModel.self, from: data)
         draft.target = .article(Unowned(article))
+        draft.initialContentSHA256 = draft.contentSHA256()
         draft.attachments.forEach { attachment in
             attachment.draft = draft
             attachment.loadThumbnail()

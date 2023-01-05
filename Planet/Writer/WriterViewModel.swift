@@ -8,7 +8,8 @@ import UniformTypeIdentifiers
     @Published var allowMultipleSelection = false
     @Published var isMediaTrayOpen = false
     @Published var isShowingEmptyTitleAlert = false
-    @Published var isShowingClosingWindowConfirmation = false
+    @Published var isShowingDiscardConfirmation = false
+    @Published var madeDiscardChoice = false
 
     func chooseImages() {
         attachmentType = .image

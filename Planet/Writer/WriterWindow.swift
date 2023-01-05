@@ -28,6 +28,14 @@ class WriterWindow: NSWindow {
         center()
         setFrameAutosaveName("PlanetWriter-\(draft.planetUUIDString)")
         makeKeyAndOrderFront(nil)
+        NotificationCenter.default.addObserver(
+            forName: .writerNotification(.close, for: draft),
+            object: nil,
+            queue: .main
+        ) { _ in
+            // Close this window
+            self.close()
+        }
     }
 
     @objc func send(_ sender: Any?) {
@@ -179,7 +187,17 @@ extension WriterWindow: NSToolbarDelegate {
 
 extension WriterWindow: NSWindowDelegate {
     func windowShouldClose(_ sender: NSWindow) -> Bool {
-        true
+        if (viewModel.madeDiscardChoice) {
+            return true
+        }
+        let draftCurrentContentSHA256 = draft.contentSHA256()
+        debugPrint("Draft Content SHA256: current - \(draftCurrentContentSHA256) / initial - \(draft.initialContentSHA256)")
+        if draftCurrentContentSHA256 != draft.initialContentSHA256 {
+            viewModel.isShowingDiscardConfirmation = true
+            return false
+        }
+        debugPrint("Draft Window Should Close: \(viewModel)")
+        return true
     }
 
     func windowWillClose(_ notification: Notification) {

@@ -115,21 +115,31 @@ struct WriterView: View {
                     try? draft.save()
                 }
             }
-            // .confirmationDialog(
-            //     Text("Do you want to save your changes as a draft?"),
-            //     isPresented: $viewModel.isShowingClosingWindowConfirmation
-            // ) {
-            //     Button {
-            //         try? draft.save()
-            //     } label: {
-            //         Text("Save Draft")
-            //     }
-            //     Button(role: .destructive) {
-            //         try? draft.delete()
-            //     } label: {
-            //         Text("Discard Changes")
-            //     }
-            // }
+            .confirmationDialog(
+                Text("Do you want to save your changes as a draft?"),
+                isPresented: $viewModel.isShowingDiscardConfirmation
+            ) {
+                Button {
+                    viewModel.madeDiscardChoice = true
+                    try? draft.save()
+                    NotificationCenter.default.post(
+                        name: .writerNotification(.close, for: draft),
+                        object: nil
+                    )
+                } label: {
+                    Text("Save Draft")
+                }
+                Button(role: .destructive) {
+                    viewModel.madeDiscardChoice = true
+                    try? draft.delete()
+                    NotificationCenter.default.post(
+                        name: .writerNotification(.close, for: draft),
+                        object: nil
+                    )
+                } label: {
+                    Text("Discard Changes")
+                }
+            }
             .onDrop(of: [.fileURL], delegate: dragAndDrop)
     }
 }

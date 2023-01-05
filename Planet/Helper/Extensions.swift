@@ -83,6 +83,7 @@ extension Notification.Name {
     static let moveCursorEnd = Notification.Name("PlanetWriterMoveCursorEndNotification")
     static let loadPreview = Notification.Name("PlanetWriterLoadDraftPreviewNotification")
     static let pauseMedia = Notification.Name("PlanetWriterPauseMediaNotification")
+    static let close = Notification.Name("PlanetWriterCloseWindowNotification")
 
     static func writerNotification(_ notification: Notification.Name, for draft: DraftModel) -> Notification.Name {
         Notification.Name(notification.rawValue + "-" + draft.id.uuidString)
