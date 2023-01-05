@@ -14,6 +14,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Draft")
 
     let id: UUID
+    @Published var date: Date
     @Published var title: String
     @Published var content: String
     @Published var attachments: [Attachment]
@@ -57,7 +58,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
 
     func contentRaw() -> String {
         let attachmentNames: String = attachments.map { $0.name }.joined(separator: ",")
-        let currentContent = "\(title)\(content)\(attachmentNames)"
+        let currentContent = "\(date)\(title)\(content)\(attachmentNames)"
         return currentContent
     }
     func contentSHA256() -> String {
@@ -85,12 +86,13 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, title, content, attachments
+        case id, date, title, content, attachments
     }
 
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
+        date = try container.decode(Date.self, forKey: .date)
         title = try container.decode(String.self, forKey: .title)
         content = try container.decode(String.self, forKey: .content)
         attachments = try container.decode([Attachment].self, forKey: .attachments)
@@ -99,13 +101,15 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
+        try container.encode(date, forKey: .date)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
         try container.encode(attachments, forKey: .attachments)
     }
 
-    init(id: UUID, title: String, content: String, attachments: [Attachment], target: DraftTarget) {
+    init(id: UUID, date: Date = Date(), title: String, content: String, attachments: [Attachment], target: DraftTarget) {
         self.id = id
+        self.date = date
         self.title = title
         self.content = content
         self.attachments = attachments
@@ -153,6 +157,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     static func create(from article: MyArticleModel) throws -> DraftModel {
         let draft = DraftModel(
             id: UUID(),
+            date: article.created,
             title: article.title,
             content: article.content,
             attachments: [],
@@ -261,15 +266,23 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         switch target! {
         case .myPlanet(let wrapper):
             planet = wrapper.value
-            article = try MyArticleModel.compose(link: nil, title: title, content: content, summary: nil, planet: planet)
-            planet.articles.insert(article, at: 0)
+            article = try MyArticleModel.compose(link: nil, date: date, title: title, content: content, summary: nil, planet: planet)
+            var articles = planet.articles
+            articles?.append(article)
+            articles?.sort(by: { $0.created > $1.created })
+            planet.articles = articles
         case .article(let wrapper):
             article = wrapper.value
             planet = article.planet
             // workaround: force reset link
             article.link = "/\(article.id)/"
+            article.created = date
             article.title = title
             article.content = content
+            // reorder articles after editing.
+            var articles = planet.articles
+            articles?.sort(by: { $0.created > $1.created })
+            planet.articles = articles
         }
         try FileManager.default.contentsOfDirectory(at: article.publicBasePath, includingPropertiesForKeys: nil)
             .forEach { try FileManager.default.removeItem(at: $0) }

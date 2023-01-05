@@ -23,17 +23,9 @@ struct WriterView: View {
                 WriterAudioView(audioAttachment: audioAttachment)
             }
 
-            TextField("Title", text: $draft.title)
-                .frame(height: 34, alignment: .leading)
-                .padding(.bottom, 2)
-                .padding(.horizontal, 16)
-                .font(.system(size: 15, weight: .regular, design: .default))
-                .background(Color(NSColor.textBackgroundColor))
-                .textFieldStyle(PlainTextFieldStyle())
-                .focused($focusTitle)
+            WriterTitleView(date: $draft.date, title: $draft.title, focusTitle: _focusTitle)
 
             Divider()
-
 
             GeometryReader { geometry in
                 HSplitView {
@@ -41,9 +33,9 @@ struct WriterView: View {
                         .frame(minWidth: geometry.size.width / 2, minHeight: 300)
                     WriterPreview(draft: draft)
                         .frame(minWidth: geometry.size.width / 2, minHeight: 300)
-                }.frame(minWidth: 640, minHeight: 300)
+                }
+                .frame(minWidth: 640, minHeight: 300)
             }
-
 
             if viewModel.isMediaTrayOpen {
                 Divider()
@@ -57,9 +49,9 @@ struct WriterView: View {
                         }
                     }
                 }
-                    .frame(height: 80)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.secondary.opacity(0.03))
+                .frame(height: 80)
+                .frame(maxWidth: .infinity)
+                .background(Color.secondary.opacity(0.03))
             }
         }
         .frame(minWidth: 640, minHeight: 440)
@@ -68,6 +60,9 @@ struct WriterView: View {
                 isPresented: $viewModel.isShowingEmptyTitleAlert
             ) {
                 Button("OK", role: .cancel) { }
+            }
+            .onChange(of: draft.date) { _ in
+                try? draft.save()
             }
             .onChange(of: draft.title) { _ in
                 try? draft.save()

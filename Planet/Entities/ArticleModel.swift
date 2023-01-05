@@ -4,7 +4,7 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
     let id: UUID
     @Published var title: String
     @Published var content: String
-    let created: Date
+    var created: Date
     @Published var starred: Date? = nil
     @Published var videoFilename: String?
     @Published var audioFilename: String?

@@ -306,7 +306,6 @@ class ArticleWebViewModel: NSObject {
     }
 
     func removeInternalLinks() {
-        debugPrint("cleanup internal links")
         linkValidationQueue.async {
             self.internalLinks.removeAll()
         }

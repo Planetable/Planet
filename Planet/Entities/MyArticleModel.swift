@@ -113,7 +113,7 @@ class MyArticleModel: ArticleModel, Codable {
         return article
     }
 
-    static func compose(link: String?, title: String, content: String, summary: String?, planet: MyPlanetModel) throws -> MyArticleModel {
+    static func compose(link: String?, date: Date = Date(), title: String, content: String, summary: String?, planet: MyPlanetModel) throws -> MyArticleModel {
         let id = UUID()
         let article = MyArticleModel(
             id: id,
@@ -121,7 +121,7 @@ class MyArticleModel: ArticleModel, Codable {
             title: title,
             content: content,
             summary: summary,
-            created: Date(),
+            created: date,
             starred: nil,
             videoFilename: nil,
             audioFilename: nil,
