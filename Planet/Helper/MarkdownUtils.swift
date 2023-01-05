@@ -1,5 +1,6 @@
 import Foundation
 import Stencil
+import SwiftSoup
 import libcmark_gfm
 import HTMLEntities
 
@@ -33,6 +34,34 @@ struct StencilExtension {
                let md = value as? String {
                 if let html = CMarkRenderer.renderMarkdownHTML(markdown: md) {
                     return html
+                }
+            }
+            return value
+        }
+        ext.registerFilter("absoluteImageURL") { (value: Any?, arguments: [Any?]) in
+            if let input = value as? String,
+               let doc = try? SwiftSoup.parseBodyFragment(input) {
+                let images = try? doc.select("img")
+                if let images = images {
+                    for image in images {
+                        if let src = try? image.attr("src") {
+                            if src.hasPrefix("https://") || src.hasPrefix("http://") {
+                                continue
+                            } else {
+                                // Convert relative img src to absolute full URL
+                                if let site = arguments.first as? String,
+                                   let articleID: UUID = arguments[1] as? UUID {
+                                    let prefix = "\(site)/\(articleID.uuidString)/"
+                                    debugPrint("prefix: \(prefix)")
+                                    let absoluteURL = prefix + src
+                                    try? image.attr("src", absoluteURL)
+                                }
+                            }
+                        }
+                    }
+                }
+                if let output = try? doc.body()?.html() {
+                    return output
                 }
             }
             return value

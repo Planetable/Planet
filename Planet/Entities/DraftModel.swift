@@ -110,6 +110,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         self.content = content
         self.attachments = attachments
         self.target = target
+        debugPrint("Computing initial content SHA256 during init")
         self.initialContentSHA256 = self.contentSHA256()
     }
 
@@ -118,6 +119,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let data = try Data(contentsOf: draftPath)
         let draft = try JSONDecoder.shared.decode(DraftModel.self, from: data)
         draft.target = .myPlanet(Unowned(planet))
+        debugPrint("Computing initial content SHA256 during load/planet")
         draft.initialContentSHA256 = draft.contentSHA256()
         draft.attachments.forEach { attachment in
             attachment.draft = draft
@@ -131,6 +133,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let data = try Data(contentsOf: draftPath)
         let draft = try JSONDecoder.shared.decode(DraftModel.self, from: data)
         draft.target = .article(Unowned(article))
+        debugPrint("Computing initial content SHA256 during load/article")
         draft.initialContentSHA256 = draft.contentSHA256()
         draft.attachments.forEach { attachment in
             attachment.draft = draft

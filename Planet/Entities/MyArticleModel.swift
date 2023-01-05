@@ -28,7 +28,7 @@ class MyArticleModel: ArticleModel, Codable {
             audioDuration: getAudioDuration(name: audioFilename),
             audioByteLength: getAttachmentByteLength(name: audioFilename),
             attachments: attachments,
-            heroImage: getHeroImage()
+            heroImage: socialImageURL?.absoluteString
         )
     }
     var browserURL: URL? {

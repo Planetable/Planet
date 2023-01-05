@@ -31,12 +31,15 @@
         <link>{{ root_prefix }}/{{ article.id }}/</link>
         <guid>{{ root_prefix }}/{{ article.id }}/</guid>
         <pubDate>{{ article.created|rfc822 }}</pubDate>
+        {% if article.heroImage %}
+        <itunes:image href="{{ article.heroImage }}" />    
+        {% endif %}
         {% if podcast %}
         <enclosure url="{{ root_prefix }}/{{ article.id }}/{{ article.audioFilename }}" length="{{ article.audioByteLength }}" type="audio/mpeg" />
         <itunes:duration>{{ article.audioDuration|hhmmss }}</itunes:duration>
         {% endif %}
         <description><![CDATA[
-            {{ article.content|md2html }}
+            {{ article.content|md2html|absoluteImageURL:root_prefix,article.id }}
         ]]></description>
     </item>
     {% endfor %}
