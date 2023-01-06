@@ -141,7 +141,7 @@ class Template: Codable, Identifiable {
             "build_timestamp": Int(Date().timeIntervalSince1970),
             "style_css_sha256": styleCSSHash ?? "",
             "current_item_type": "blog",
-            "social_image_url": article.socialImageURL?.absoluteString ?? "",
+            "social_image_url": article.socialImageURL?.absoluteString ?? article.planet.ogImageURLString,
         ]
         context.merge(renderCustomCode(planet: planet, context: context)) { (_, new) in new }
         let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
