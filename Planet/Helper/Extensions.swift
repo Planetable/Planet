@@ -104,6 +104,13 @@ extension Date {
         format.timeStyle = .medium
         return format.string(from: self)
     }
+    
+    func simpleDateDescription() -> String {
+        let format = DateFormatter()
+        format.dateStyle = .medium
+        format.timeStyle = .short
+        return format.string(from: self)
+    }
 
     func mmddyyyy() -> String {
         let format = DateFormatter()
