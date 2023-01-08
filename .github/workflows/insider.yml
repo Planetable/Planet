@@ -21,6 +21,9 @@ jobs:
       
       - name: Checkout LFS objects
         run: git lfs pull
+      
+      - name: Set insider SUFeedURL
+        run: /usr/libexec/PlistBuddy -c "Set :SUFeedURL https://opensource.planetable.xyz/planet-insider/appcast.xml" Planet/Info.plist
 
       - name: Fix Package Dependencies
         run: xcodebuild -resolvePackageDependencies -onlyUsePackageVersionsFromResolvedFile

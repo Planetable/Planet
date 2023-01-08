@@ -9,6 +9,7 @@
 // https://help.apple.com/xcode/#/dev745c5c974
 
 ORGANIZATION_IDENTIFIER_PREFIX = xyz.planetable
+SPARKLE_UPDATE_FEED_URL = https://opensource.planetable.xyz/planet/appcast.xml
 
 #include "marketing_version.xcconfig"
 #include "versioning.xcconfig"

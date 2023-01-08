@@ -44,16 +44,12 @@
 	</array>
 	<key>ORGANIZATION_IDENTIFIER_PREFIX</key>
 	<string>$(ORGANIZATION_IDENTIFIER_PREFIX)</string>
-	<key>WALLETCONNECTV2_PROJECT_ID</key>
-	<string>$(WALLETCONNECTV2_PROJECT_ID)</string>
-	<key>WALLETCONNECTV2_ENABLED</key>
-	<false/>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://opensource.planetable.xyz/planet/appcast.xml</string>
+	<string>$(SPARKLE_UPDATE_FEED_URL)</string>
 	<key>SUPublicEDKey</key>
 	<string>ciHPM+QD+p7Rceljd0MT42MfrcVhZchEVJTUW98R3Wk=</string>
 	<key>UTExportedTypeDeclarations</key>
@@ -114,5 +110,9 @@
 			</dict>
 		</dict>
 	</array>
+	<key>WALLETCONNECTV2_ENABLED</key>
+	<false/>
+	<key>WALLETCONNECTV2_PROJECT_ID</key>
+	<string>$(WALLETCONNECTV2_PROJECT_ID)</string>
 </dict>
 </plist>
