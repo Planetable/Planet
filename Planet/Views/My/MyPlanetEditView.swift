@@ -7,7 +7,11 @@ struct MyPlanetEditView: View {
     @Environment(\.dismiss) var dismiss
 
     @EnvironmentObject var planetStore: PlanetStore
+
     @ObservedObject var planet: MyPlanetModel
+
+    @State private var selectedTab: String = "basic"
+
     @State private var name: String
     @State private var about: String
     @State private var domain: String
@@ -64,7 +68,7 @@ struct MyPlanetEditView: View {
                     Spacer()
                 }
 
-                TabView {
+                TabView(selection: $selectedTab) {
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
@@ -139,6 +143,7 @@ struct MyPlanetEditView: View {
                     .tabItem {
                         Text("Basic Info")
                     }
+                    .tag("basic")
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack {
@@ -192,6 +197,7 @@ struct MyPlanetEditView: View {
                     .tabItem {
                         Text("Analytics")
                     }
+                    .tag("analytics")
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
@@ -231,6 +237,7 @@ struct MyPlanetEditView: View {
                     .tabItem {
                         Text("Social")
                     }
+                    .tag("social")
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack {
@@ -373,6 +380,7 @@ struct MyPlanetEditView: View {
                     .tabItem {
                         Text("Pinning")
                     }
+                    .tag("pinning")
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack {
@@ -383,6 +391,7 @@ struct MyPlanetEditView: View {
                                 .toggleStyle(.checkbox)
                                 .frame(alignment: .leading)
                             Spacer()
+                            HelpLinkButton(helpLink: URL(string: "https://www.planetable.xyz/guides/dweb-services-xyz/")!)
                         }
 
                         HStack {
@@ -411,6 +420,7 @@ struct MyPlanetEditView: View {
                     .tabItem {
                         Text("Integrations")
                     }
+                    .tag("integrations")
                 }
 
                 HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
