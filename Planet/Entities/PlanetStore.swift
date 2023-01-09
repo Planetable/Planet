@@ -262,7 +262,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         case .myPlanet(let planet):
             selectedArticleList = planet.articles
             navigationTitle = planet.name
-            navigationSubtitle = "\(planet.articles.count) articles"
+            navigationSubtitle = planet.navigationSubtitle()
         case .followingPlanet(let planet):
             selectedArticleList = planet.articles
             navigationTitle = planet.name

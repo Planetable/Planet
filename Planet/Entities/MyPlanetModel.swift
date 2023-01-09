@@ -1158,6 +1158,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 }
 
+extension MyPlanetModel {
+    func navigationSubtitle() -> String {
+        if articles.count > 0 {
+            if articles.count > 1 {
+                return "\(articles.count) articles"
+            } else {
+                return "1 article"
+            }
+        } else {
+            return "No articles"
+        }
+    }
+}
+
 struct PublicPlanetModel: Codable {
     let id: UUID
     let name: String

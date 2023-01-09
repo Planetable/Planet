@@ -73,7 +73,11 @@ struct MyArticleItemView: View {
                 } label: {
                     Text("Settings")
                 }
+
+                Divider()
                 moveArticleItem()
+                Divider()
+
                 Button {
                     isShowingDeleteConfirmation = true
                 } label: {
