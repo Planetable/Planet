@@ -23,10 +23,10 @@ jobs:
         run: git lfs pull
       
       - name: Set insider SUFeedURL
-        run: /usr/libexec/PlistBuddy -c "Set :SUFeedURL https://opensource.planetable.xyz/planet-insider/appcast.xml" Planet/Info.plist
+        run: /usr/bin/sed -i '' 's/planet\/appcast/planet-insider\/appcast/g' Planet/Release.xcconfig
 
       - name: Set insider icon
-        run: /usr/libexec/PlistBuddy -c "Set :PLANET_APP_ICON_NAME AppIcon-Insider" Planet/Info.plist
+        run: /usr/bin/sed -i '' 's/AppIcon/AppIcon-Insider/g' Planet/Release.xcconfig
 
       - name: Fix Package Dependencies
         run: xcodebuild -resolvePackageDependencies -onlyUsePackageVersionsFromResolvedFile
