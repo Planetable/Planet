@@ -101,6 +101,7 @@
 		6A71896D2947FD0500279D77 /* Web3PromiseKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6A71896C2947FD0500279D77 /* Web3PromiseKit */; };
 		6A8C3A6728C9361800339A86 /* DotBitKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8C3A6628C9361800339A86 /* DotBitKit.swift */; };
 		6A8C3A6A28C939E800339A86 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 6A8C3A6928C939E800339A86 /* Alamofire */; };
+		6A900193296C9F3800BC088E /* MyArticleSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */; };
 		6AABC6A7291A6216009FD13F /* WalletConnectV1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AABC6A6291A6216009FD13F /* WalletConnectV1.swift */; };
 		6AABC6AA291A62A9009FD13F /* WalletConnectSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 6AABC6A9291A62A9009FD13F /* WalletConnectSwift */; };
 		6AABC6AC291A698B009FD13F /* WalletConnectV1QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AABC6AB291A698B009FD13F /* WalletConnectV1QRCodeView.swift */; };
@@ -279,6 +280,7 @@
 		6A6A1467282159DC009644B6 /* TemplateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateStore.swift; sourceTree = "<group>"; };
 		6A7189652947FA2D00279D77 /* WalletConnectV2QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV2QRCodeView.swift; sourceTree = "<group>"; };
 		6A8C3A6628C9361800339A86 /* DotBitKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotBitKit.swift; sourceTree = "<group>"; };
+		6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyArticleSettingsView.swift; sourceTree = "<group>"; };
 		6AA2BC3227DC09AE00AC96B5 /* Planet v3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v3.xcdatamodel"; sourceTree = "<group>"; };
 		6AABC6A6291A6216009FD13F /* WalletConnectV1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV1.swift; sourceTree = "<group>"; };
 		6AABC6AB291A698B009FD13F /* WalletConnectV1QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV1QRCodeView.swift; sourceTree = "<group>"; };
@@ -634,6 +636,7 @@
 			children = (
 				721144D264DD084A74B49BF8 /* MyPlanetInfoView.swift */,
 				2A7D1BF327CA1B0A00D3C091 /* MyPlanetEditView.swift */,
+				6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */,
 				6A373A3B28E8178500750256 /* MyPlanetCustomCodeView.swift */,
 				7211477C97CD9725E13B885E /* MyArticleItemView.swift */,
 				6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */,
@@ -948,6 +951,7 @@
 				721148F88BE8ABCC52FEB501 /* IPFSDaemon.swift in Sources */,
 				7211431A5867D4CF2960EC39 /* IPFSCommand.swift in Sources */,
 				7211453BC07C2E4A588D1618 /* URLUtils.swift in Sources */,
+				6A900193296C9F3800BC088E /* MyArticleSettingsView.swift in Sources */,
 				72114A84BE7EC3DA2AAF14F5 /* Planet.swift in Sources */,
 				7211466B9B1D3BAF1FC23CA1 /* PlanetArticle.swift in Sources */,
 				72114A48526B9490A72FD92A /* MyArticleModel.swift in Sources */,

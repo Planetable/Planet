@@ -67,6 +67,12 @@ struct MyArticleItemView: View {
                 } label: {
                     Text("Edit Article")
                 }
+                Button {
+                    PlanetStore.shared.selectedArticle = article
+                    PlanetStore.shared.isShowingMyArticleSettings = true
+                } label: {
+                    Text("Settings")
+                }
                 moveArticleItem()
                 Button {
                     isShowingDeleteConfirmation = true

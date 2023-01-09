@@ -295,6 +295,23 @@ class MyArticleModel: ArticleModel, Codable {
     }
 }
 
+extension MyArticleModel {
+    static var placeholder: MyArticleModel {
+        MyArticleModel(
+            id: UUID(),
+            link: "/example/",
+            title: "Example Article",
+            content: "This is an example article.",
+            summary: "This is an example article.",
+            created: Date(),
+            starred: nil,
+            videoFilename: nil,
+            audioFilename: nil,
+            attachments: nil
+        )
+    }
+}
+
 struct BackupArticleModel: Codable {
     let id: UUID
     let link: String

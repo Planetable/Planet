@@ -61,6 +61,11 @@ struct PlanetMainView: View {
                 MyPlanetEditView(planet: planet)
             }
         }
+        .sheet(isPresented: $planetStore.isShowingMyArticleSettings) {
+            if let article: MyArticleModel = planetStore.selectedArticle as? MyArticleModel {
+                MyArticleSettingsView(article: article)
+            }
+        }
         .sheet(isPresented: $planetStore.isEditingPlanetCustomCode) {
             if case .myPlanet(let planet) = planetStore.selectedView {
                 MyPlanetCustomCodeView(planet: planet)
