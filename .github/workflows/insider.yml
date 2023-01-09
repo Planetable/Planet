@@ -25,6 +25,9 @@ jobs:
       - name: Set insider SUFeedURL
         run: /usr/libexec/PlistBuddy -c "Set :SUFeedURL https://opensource.planetable.xyz/planet-insider/appcast.xml" Planet/Info.plist
 
+      - name: Set insider icon
+        run: /usr/libexec/PlistBuddy -c "Set :PLANET_APP_ICON_NAME AppIcon-Insider" Planet/Info.plist
+
       - name: Fix Package Dependencies
         run: xcodebuild -resolvePackageDependencies -onlyUsePackageVersionsFromResolvedFile
 

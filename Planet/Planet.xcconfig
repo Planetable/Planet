@@ -10,6 +10,7 @@
 
 ORGANIZATION_IDENTIFIER_PREFIX = xyz.planetable
 SPARKLE_UPDATE_FEED_URL = https://opensource.planetable.xyz/planet/appcast.xml
+PLANET_APP_ICON_NAME = AppIcon
 
 #include "marketing_version.xcconfig"
 #include "versioning.xcconfig"
