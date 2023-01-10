@@ -23,7 +23,7 @@ jobs:
         run: git lfs pull
       
       - name: Set insider SUFeedURL
-        run: /usr/bin/sed -i '' 's/planet\/appcast/planet-insider\/appcast/g' Planet/Release.xcconfig
+        run: /usr/libexec/PlistBuddy -c "Set :SUFeedURL https://opensource.planetable.xyz/planet-insider/appcast.xml" Planet/Info.plist
 
       - name: Set insider icon
         run: /usr/bin/sed -i '' 's/AppIcon/AppIcon-Insider/g' Planet/Release.xcconfig
