@@ -11,6 +11,8 @@
 // As of Dec 24, 2022, this file is not in use because of this error in Xcode 14:
 // https://forums.swift.org/t/xcode-14-beta-code-signing-issues-when-spm-targets-include-resources/59685/14
 
+// This configuration is for Release/Insider
+
 ORGANIZATION_IDENTIFIER_PREFIX = xyz.planetable
 CODE_SIGN_STYLE = Manual
 DEVELOPMENT_TEAM = 66KP7KX9MX

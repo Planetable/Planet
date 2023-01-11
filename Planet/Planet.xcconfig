@@ -8,9 +8,11 @@
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
 
+// This configuration is for Debug
+
 ORGANIZATION_IDENTIFIER_PREFIX = xyz.planetable
 SPARKLE_UPDATE_FEED_URL = https://opensource.planetable.xyz/planet/appcast.xml
-PLANET_APP_ICON_NAME = AppIcon
+PLANET_APP_ICON_NAME = AppIcon-Debug
 
 #include "marketing_version.xcconfig"
 #include "versioning.xcconfig"
