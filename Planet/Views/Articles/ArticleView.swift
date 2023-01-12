@@ -155,8 +155,8 @@ struct ArticleView: View {
                             }
                             */
                         } label: {
-                            Image(systemName: "gift")
-                        }.help("Tip")
+                            Image("custom.ethereum")
+                        }.help("Tip with Ethereum")
                     }
                 default:
                     Text("")
