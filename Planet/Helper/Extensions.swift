@@ -20,6 +20,8 @@ extension String {
     static let settingsPublicGatewayIndex: String = "PlanetSettingsPublicGatewayIndexKey"
     static let settingsEthereumChainId: String = "PlanetSettingsEthereumChainId"
     static let settingsEthereumTipAmount: String = "PlanetSettingsEthereumTipAmount"
+    static let settingsAPIEnabled: String = "PlanetSettingsAPIEnabledKey"
+    static let settingsAPIPort: String = "PlanetSettingsAPIPortKey"
 
     func sanitized() -> String {
         // Reference: https://superuser.com/a/358861
