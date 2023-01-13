@@ -7,7 +7,7 @@
       "size" : "16x16"
     },
     {
-      "filename" : "Planetable Lite 32-1.png",
+      "filename" : "Planetable Lite 32.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "16x16"
@@ -31,7 +31,7 @@
       "size" : "128x128"
     },
     {
-      "filename" : "Planetable Lite 256-1.png",
+      "filename" : "Planetable Lite 256.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "128x128"
@@ -43,7 +43,7 @@
       "size" : "256x256"
     },
     {
-      "filename" : "Planetable Lite 512-1.png",
+      "filename" : "Planetable Lite 512.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "256x256"
