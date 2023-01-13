@@ -16,8 +16,8 @@ struct ArticleView: View {
 
     var body: some View {
         VStack {
-            ArticleAudioPlayer()
             ArticleWebView(url: $url)
+            ArticleAudioPlayer()
         }
         .frame(minWidth: 400)
         .background(
