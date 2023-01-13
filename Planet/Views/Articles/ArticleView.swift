@@ -15,7 +15,7 @@ struct ArticleView: View {
     @State private var currentItemLink: String? = nil
 
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             ArticleWebView(url: $url)
             ArticleAudioPlayer()
         }
