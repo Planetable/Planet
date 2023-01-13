@@ -145,9 +145,6 @@ extension PlanetAPI {
         var about: String = ""
         var templateName: String = ""
         for param in params {
-            if param.0 == "name" {
-                name = param.1
-            }
             switch param.0 {
             case "name":
                 name = param.1
@@ -208,10 +205,52 @@ extension PlanetAPI {
     // MARK: POST /v0/planets/my/:uuid
     private func modifyPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .invalid }
-        if let uuid = planetUUIDFromRequest(r) {
-            debugPrint("modify planet info for uuid: \(uuid), content: \(r.parseUrlencodedForm()), body: \(r.body)")
+        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
+            // MARK: TODO: support more planet properties.
+            let params = r.parseUrlencodedForm()
+            var name: String = ""
+            var about: String = ""
+            var templateName: String = ""
+            for param in params {
+                switch param.0 {
+                case "name":
+                    name = param.1
+                case "about":
+                    about = param.1
+                case "template":
+                    templateName = param.1
+                default:
+                    break
+                }
+            }
+            let planetName = name
+            let planetAbout = about
+            let planetTemplateName = templateName
+            Task { @MainActor in
+                if planetName != "" {
+                    planet.name = planetName
+                }
+                if planetAbout != "" {
+                    planet.about = planetAbout
+                }
+                if planetTemplateName != "" {
+                    planet.templateName = planetTemplateName
+                }
+                do {
+                    try planet.save()
+                    try planet.copyTemplateAssets()
+                    try planet.articles.forEach { try $0.savePublic() }
+                    try planet.savePublic()
+                    NotificationCenter.default.post(name: .loadArticle, object: nil)
+                    try await planet.publish()
+                } catch {
+                    debugPrint("failed to modify planet info: \(planet), error: \(error)")
+                }
+            }
+            return .okay
+        } else {
+            return .invalid
         }
-        return .okay
     }
     
     // MARK: POST /v0/planets/my/:uuid/publish
@@ -268,10 +307,46 @@ extension PlanetAPI {
     // MARK: POST /v0/planets/my/:uuid/articles
     private func createPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .invalid }
-        if let uuid = planetUUIDFromRequest(r) {
-            debugPrint("create planet article for uuid: \(uuid)")
+        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
+            // MARK: TODO: support attachments.
+            let params = r.parseUrlencodedForm()
+            var title: String = ""
+            var date: String = ""
+            var content: String = ""
+            for param in params {
+                switch param.0 {
+                case "title":
+                    title = param.1
+                case "date":
+                    date = param.1
+                case "content":
+                    content = param.1
+                default:
+                    break
+                }
+            }
+            let articleTitle = title
+            let articleDateString = date
+            let articleContent = content
+            Task { @MainActor in
+                do {
+                    let draft = try DraftModel.create(for: planet)
+                    draft.title = articleTitle
+                    if articleDateString == "" {
+                        draft.date = Date()
+                    } else {
+                        draft.date = DateFormatter().date(from: articleDateString) ?? Date()
+                    }
+                    draft.content = articleContent
+                    try draft.saveToArticle()
+                } catch {
+                    debugPrint("failed to create article for planet: \(planet), error: \(error)")
+                }
+            }
+            return .okay
+        } else {
+            return .invalid
         }
-        return .okay
     }
     
     // MARK: GET /v0/planets/my/:uuid/articles/:uuid
@@ -301,9 +376,49 @@ extension PlanetAPI {
         guard validateRequest(r) else { return .invalid }
         let results = planetUUIDAndArticleUUIDFromRequest(r)
         if let planetUUID = results.0, let articleUUID = results.1 {
-            debugPrint("modify planet article for uuid: \(planetUUID), article uuid: \(articleUUID)")
+            if let planet = myPlanets.first(where: { $0.id == planetUUID }), let article = planet.articles.first(where: { $0.id == articleUUID }) {
+                // MARK: TODO: support attachments.
+                let params = r.parseUrlencodedForm()
+                var title: String = ""
+                var date: String = ""
+                var content: String = ""
+                for param in params {
+                    switch param.0 {
+                    case "title":
+                        title = param.1
+                    case "date":
+                        date = param.1
+                    case "content":
+                        content = param.1
+                    default:
+                        break
+                    }
+                }
+                let articleTitle = title
+                let articleDateString = date
+                let articleContent = content
+                Task { @MainActor in
+                    do {
+                        let draft = try DraftModel.create(from: article)
+                        draft.title = articleTitle
+                        if articleDateString == "" {
+                            draft.date = Date()
+                        } else {
+                            draft.date = DateFormatter().date(from: articleDateString) ?? Date()
+                        }
+                        draft.content = articleContent
+                        try draft.saveToArticle()
+                    } catch {
+                        debugPrint("failed to modify article for planet: \(planet), error: \(error)")
+                    }
+                }
+                return .okay
+            } else {
+                return .invalid
+            }
+        } else {
+            return .invalid
         }
-        return .okay
     }
     
     // MARK: DELETE /v0/planets/my/:uuid/articles/:uuid
