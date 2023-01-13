@@ -26,15 +26,12 @@ struct PlanetSettingsAPIView: View {
                             }
                         Spacer()
                     }
-                    HStack(spacing: 4) {
-                        TextField("API Server Port", text: $apiPort)
-                            .disabled(!apiEnabled)
-                            .textFieldStyle(.roundedBorder)
-                            .onChange(of: apiPort) { newValue in
-                                reloadAPIServer()
-                            }
-                        Spacer()
-                    }
+                    TextField("API Server Port", text: $apiPort)
+                        .disabled(!apiEnabled)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: apiPort) { newValue in
+                            reloadAPIServer()
+                        }
                 }
             }
             Spacer()
