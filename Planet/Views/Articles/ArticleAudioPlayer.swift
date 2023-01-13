@@ -12,18 +12,24 @@ struct ArticleAudioPlayer: View {
 
     var body: some View {
         if let url = viewModel.url {
-            HStack {
-                AudioPlayer(url: url, title: viewModel.title, isPlaying: true)
-                Button {
-                    viewModel.url = nil
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                }
+            VStack {
+                Divider()
+                HStack {
+                    AudioPlayer(url: url, title: viewModel.title, isPlaying: true)
+                    Button {
+                        viewModel.url = nil
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                    }
                     .buttonStyle(.borderless)
                     .frame(width: 24, height: 24)
+                }
+                .padding(.horizontal, 8)
+                .padding(.bottom, 6)
+                .onAppear {
+
+                }
             }
-                .frame(height: 34)
-                .padding(.horizontal, 16)
         }
     }
 }
