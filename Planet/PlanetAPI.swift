@@ -140,6 +140,51 @@ extension PlanetAPI {
     // MARK: POST /v0/planets/my
     private func createPlanet(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .invalid }
+        let params = r.parseUrlencodedForm()
+        var name: String = ""
+        var about: String = ""
+        var templateName: String = ""
+        for param in params {
+            if param.0 == "name" {
+                name = param.1
+            }
+            switch param.0 {
+            case "name":
+                name = param.1
+            case "about":
+                about = param.1
+            case "template":
+                templateName = param.1
+            default:
+                break
+            }
+        }
+        if name == "" {
+            return .invalid
+        }
+        if !TemplateStore.shared.templates.contains(where: { t in
+            return t.name.lowercased() == templateName.lowercased()
+        }) {
+            templateName = TemplateStore.shared.templates.first!.name
+        }
+        let planetName = name
+        let planetAbout = about
+        let planetTemplateName = templateName
+        Task { @MainActor in
+            do {
+                let planet = try await MyPlanetModel.create(
+                    name: planetName,
+                    about: planetAbout,
+                    templateName: planetTemplateName
+                )
+                PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                PlanetStore.shared.selectedView = .myPlanet(planet)
+                try planet.save()
+                try planet.savePublic()
+            } catch {
+                PlanetStore.shared.alert(title: "Failed to create planet")
+            }
+        }
         return .okay
     }
 
@@ -172,10 +217,18 @@ extension PlanetAPI {
     // MARK: POST /v0/planets/my/:uuid/publish
     private func publishPlanet(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .invalid }
-        if let uuid = planetUUIDFromRequest(r) {
-            debugPrint("publish planet for uuid: \(uuid)")
+        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
+            Task {
+                do {
+                    try await planet.publish()
+                } catch {
+                    debugPrint("failed to publish planet: \(planet), error: \(error)")
+                }
+            }
+            return .okay
+        } else {
+            return .invalid
         }
-        return .okay
     }
     
     // MARK: GET /v0/planets/my/:uuid/public
@@ -259,9 +312,9 @@ extension PlanetAPI {
         let results = planetUUIDAndArticleUUIDFromRequest(r)
         if let planetUUID = results.0, let articleUUID = results.1 {
             if let planet = myPlanets.first(where: { $0.id == planetUUID }), let article = planet.articles.first(where: { $0.id == articleUUID }) {
-                Task(priority: .utility) {
-                    article.delete()
+                Task(priority: .background) {
                     await MainActor.run {
+                        article.delete()
                         planet.updated = Date()
                         do {
                             try planet.save()
