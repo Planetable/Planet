@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MyPlanetEditView: View {
-    let CONTROL_CAPTION_WIDTH: CGFloat = 80
+    let CONTROL_CAPTION_WIDTH: CGFloat = 100
     let SOCIAL_CONTROL_CAPTION_WIDTH: CGFloat = 120
 
     @Environment(\.dismiss) var dismiss
@@ -15,6 +15,7 @@ struct MyPlanetEditView: View {
     @State private var name: String
     @State private var about: String
     @State private var domain: String
+    @State private var authorName: String
     @State private var templateName: String
 
     @State private var plausibleEnabled: Bool = false
@@ -43,6 +44,7 @@ struct MyPlanetEditView: View {
         _name = State(wrappedValue: planet.name)
         _about = State(wrappedValue: planet.about)
         _domain = State(wrappedValue: planet.domain ?? "")
+        _authorName = State(wrappedValue: planet.authorName ?? "")
         _templateName = State(wrappedValue: planet.templateName)
         _plausibleEnabled = State(wrappedValue: planet.plausibleEnabled ?? false)
         _plausibleDomain = State(wrappedValue: planet.plausibleDomain ?? "")
@@ -72,7 +74,7 @@ struct MyPlanetEditView: View {
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
-                                Text("Name")
+                                Text("Site Name")
                                 Spacer()
                             }
                             .frame(width: CONTROL_CAPTION_WIDTH)
@@ -123,6 +125,17 @@ struct MyPlanetEditView: View {
                                     RoundedRectangle(cornerRadius: 6)
                                         .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
                                 )
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("Author Name")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+
+                            TextField("", text: $authorName)
+                                .textFieldStyle(.roundedBorder)
                         }
 
                         Picker(selection: $templateName) {
@@ -440,6 +453,13 @@ struct MyPlanetEditView: View {
                         }
                         planet.about = about
                         planet.domain = domain.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if planet.authorName != authorName {
+                            if authorName == "" {
+                                planet.authorName = nil
+                            } else {
+                                planet.authorName = authorName
+                            }
+                        }
                         planet.templateName = templateName
                         planet.plausibleEnabled = plausibleEnabled
                         planet.plausibleDomain = plausibleDomain
@@ -473,11 +493,6 @@ struct MyPlanetEditView: View {
             }.padding(PlanetUI.SHEET_PADDING)
         }
         .padding(0)
-        .frame(width: 520, height: 360, alignment: .top)
-        .task {
-            name = planet.name
-            about = planet.about
-            templateName = planet.templateName
-        }
+        .frame(width: 520, height: 400, alignment: .top)
     }
 }

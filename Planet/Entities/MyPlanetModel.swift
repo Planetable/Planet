@@ -11,6 +11,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var name: String
     @Published var about: String
     @Published var domain: String?
+    @Published var authorName: String?
     let created: Date
     let ipns: String
     @Published var updated: Date
@@ -183,6 +184,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(name)
         hasher.combine(about)
         hasher.combine(domain)
+        hasher.combine(authorName)
         hasher.combine(created)
         hasher.combine(ipns)
         hasher.combine(updated)
@@ -233,6 +235,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.name == rhs.name
             && lhs.about == rhs.about
             && lhs.domain == rhs.domain
+            && lhs.authorName == rhs.authorName
             && lhs.created == rhs.created
             && lhs.ipns == rhs.ipns
             && lhs.updated == rhs.updated
@@ -273,7 +276,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, about, domain, ipns,
+        case id, name, about, domain, authorName, ipns,
              created, updated,
              templateName, lastPublished, lastPublishedCID,
              archived, archivedAt,
@@ -293,6 +296,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         name = try container.decode(String.self, forKey: .name)
         about = try container.decode(String.self, forKey: .about)
         domain = try container.decodeIfPresent(String.self, forKey: .domain)
+        authorName = try container.decodeIfPresent(String.self, forKey: .authorName)
         ipns = try container.decode(String.self, forKey: .ipns)
         created = try container.decode(Date.self, forKey: .created)
         updated = try container.decode(Date.self, forKey: .updated)
@@ -333,6 +337,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encode(name, forKey: .name)
         try container.encode(about, forKey: .about)
         try container.encodeIfPresent(domain, forKey: .domain)
+        try container.encodeIfPresent(authorName, forKey: .authorName)
         try container.encode(ipns, forKey: .ipns)
         try container.encode(created, forKey: .created)
         try container.encode(updated, forKey: .updated)
@@ -523,6 +528,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         // Restore domain
         if backupPlanet.domain != nil {
             planet.domain = backupPlanet.domain
+        }
+
+        // Restore authorName
+        if backupPlanet.authorName != nil {
+            planet.authorName = backupPlanet.authorName
         }
 
         // Restore last published CID
@@ -1051,6 +1061,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             name: name,
             about: about,
             domain: domain,
+            authorName: authorName,
             ipns: ipns,
             created: created,
             updated: updated,
@@ -1215,6 +1226,7 @@ struct BackupMyPlanetModel: Codable {
     let name: String
     let about: String
     let domain: String?
+    let authorName: String?
     let ipns: String
     let created: Date
     let updated: Date
