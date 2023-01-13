@@ -12,6 +12,9 @@ import Swifter
 class PlanetAPI: NSObject {
     static let shared = PlanetAPI()
     
+    private(set) var myPlanets: [MyPlanetModel] = []
+    private(set) var myArticles: [MyArticleModel] = []
+    
     private var server: HttpServer
     
     override init() {
@@ -106,6 +109,15 @@ class PlanetAPI: NSObject {
     func shutdown() {
         server.stop()
     }
+    
+    func updateMyPlanets(_ planets: [MyPlanetModel]) {
+        myPlanets = planets
+        var articles: [MyArticleModel] = []
+        for planet in planets {
+            articles.append(contentsOf: planet.articles)
+        }
+        myArticles = articles
+    }
 }
 
 
@@ -115,7 +127,14 @@ extension PlanetAPI {
     // MARK: GET /v0/planets/my
     private func getPlanets(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .invalid }
-        return .okay
+        let encoder = JSONEncoder()
+        do {
+            let data = try encoder.encode(myPlanets)
+            let jsonObject = try JSONSerialization.jsonObject(with: data)
+            return .ok(.json(jsonObject))
+        } catch {
+            return .error
+        }
     }
     
     // MARK: POST /v0/planets/my
@@ -127,10 +146,18 @@ extension PlanetAPI {
     // MARK: GET /v0/planets/my/:uuid
     private func getPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .invalid }
-        if let uuid = planetUUIDFromRequest(r) {
-            debugPrint("get planet info for uuid: \(uuid)")
+        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
+            let encoder = JSONEncoder()
+            do {
+                let data = try encoder.encode(planet)
+                let jsonObject = try JSONSerialization.jsonObject(with: data)
+                return .ok(.json(jsonObject))
+            } catch {
+                return .error
+            }
+        } else {
+            return .invalid
         }
-        return .okay
     }
     
     // MARK: POST /v0/planets/my/:uuid
@@ -154,19 +181,35 @@ extension PlanetAPI {
     // MARK: GET /v0/planets/my/:uuid/public
     private func getPlanetPublicContent(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .invalid }
-        if let uuid = planetUUIDFromRequest(r) {
-            debugPrint("get planet public content for uuid: \(uuid)")
+        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
+            let planetJSONURL = planet.publicBasePath.appendingPathComponent("planet.json")
+            do {
+                let data = try Data(contentsOf: planetJSONURL)
+                let jsonObject = try JSONSerialization.jsonObject(with: data)
+                return .ok(.json(jsonObject))
+            } catch {
+                return .error
+            }
+        } else {
+            return .invalid
         }
-        return .okay
     }
     
     // MARK: GET /v0/planets/my/:uuid/articles
     private func getPlanetArticles(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .invalid }
-        if let uuid = planetUUIDFromRequest(r) {
-            debugPrint("get planet articles for uuid: \(uuid)")
+        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
+            let encoder = JSONEncoder()
+            do {
+                let data = try encoder.encode(planet.articles)
+                let jsonObject = try JSONSerialization.jsonObject(with: data)
+                return .ok(.json(jsonObject))
+            } catch {
+                return .error
+            }
+        } else {
+            return .invalid
         }
-        return .okay
     }
     
     // MARK: POST /v0/planets/my/:uuid/articles
@@ -183,9 +226,21 @@ extension PlanetAPI {
         guard validateRequest(r) else { return .invalid }
         let results = planetUUIDAndArticleUUIDFromRequest(r)
         if let planetUUID = results.0, let articleUUID = results.1 {
-            debugPrint("get planet article for uuid: \(planetUUID), article uuid: \(articleUUID)")
+            if let planet = myPlanets.first(where: { $0.id == planetUUID }), let article = planet.articles.first(where: { $0.id == articleUUID }) {
+                let encoder = JSONEncoder()
+                do {
+                    let data = try encoder.encode(article)
+                    let jsonObject = try JSONSerialization.jsonObject(with: data)
+                    return .ok(.json(jsonObject))
+                } catch {
+                    return .error
+                }
+            } else {
+                return .invalid
+            }
+        } else {
+            return .invalid
         }
-        return .okay
     }
     
     // MARK: POST /v0/planets/my/:uuid/articles/:uuid
@@ -203,9 +258,33 @@ extension PlanetAPI {
         guard validateRequest(r) else { return .invalid }
         let results = planetUUIDAndArticleUUIDFromRequest(r)
         if let planetUUID = results.0, let articleUUID = results.1 {
-            debugPrint("delete planet article for uuid: \(planetUUID), article uuid: \(articleUUID)")
+            if let planet = myPlanets.first(where: { $0.id == planetUUID }), let article = planet.articles.first(where: { $0.id == articleUUID }) {
+                Task(priority: .utility) {
+                    article.delete()
+                    await MainActor.run {
+                        planet.updated = Date()
+                        do {
+                            try planet.save()
+                            try planet.savePublic()
+                            if PlanetStore.shared.selectedArticle == article {
+                                PlanetStore.shared.selectedArticle = nil
+                            }
+                            if let selectedArticles = PlanetStore.shared.selectedArticleList,
+                               selectedArticles.contains(article) {
+                                PlanetStore.shared.refreshSelectedArticles()
+                            }
+                        } catch {
+                            debugPrint("failed to delete planet article: \(articleUUID), error: \(error)")
+                        }
+                    }
+                }
+                return .okay
+            } else {
+                return .invalid
+            }
+        } else {
+            return .invalid
         }
-        return .okay
     }
 }
 
@@ -240,7 +319,7 @@ extension PlanetAPI {
 // MARK: - API Extensions -
 
 extension HttpResponse {
-    // MARK: TODO: more details, json data output.
+    // MARK: TODO: more details: json data output, status code.
     static let error = HttpResponse.ok(.text("Error"))
     static let okay = HttpResponse.ok(.text("Okay"))
     static let invalid = HttpResponse.ok(.text("Invalid"))
