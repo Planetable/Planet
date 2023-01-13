@@ -12,7 +12,7 @@ struct ArticleAudioPlayer: View {
 
     var body: some View {
         if let url = viewModel.url {
-            VStack {
+            VStack(alignment: .leading, spacing: 0) {
                 Divider()
                 HStack {
                     AudioPlayer(url: url, title: viewModel.title, isPlaying: true)
@@ -24,11 +24,9 @@ struct ArticleAudioPlayer: View {
                     .buttonStyle(.borderless)
                     .frame(width: 24, height: 24)
                 }
+                .padding(.top, 6)
                 .padding(.horizontal, 8)
                 .padding(.bottom, 6)
-                .onAppear {
-
-                }
             }
         }
     }
