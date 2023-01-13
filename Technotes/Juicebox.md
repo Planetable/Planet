@@ -14,6 +14,8 @@ So we can ask user to provide a mainnet project ID or a testnet project ID.
 - juiceboxProjectID
 - juiceboxProjectIDGoerli
 
+If the user provides both IDs, we will use the mainnet one.
+
 That should be sufficient to get the project info from their subgraph.
 
 https://api.thegraph.com/subgraphs/id/QmcKc84SeJy1BJVH74YGJpfnjgbZtdG6MuifH9BfSf9fKP/graphql?query=query+project%28%24id%3A+ID%21%29+%7B%0A++project%28id%3A+%24id%29+%7B%0A++++++metadataUri%0A++++++owner%0A++++++handle%0A++++++totalPaid%0A++++++totalRedeemed%0A++++++trendingPaymentsCount%0A++++++trendingVolume%0A++++++currentBalance%0A++++++createdAt%0A++%7D%0A%7D
