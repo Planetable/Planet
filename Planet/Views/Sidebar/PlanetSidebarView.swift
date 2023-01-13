@@ -12,7 +12,7 @@ struct PlanetSidebarView: View {
     @StateObject var ipfsState = IPFSState.shared
 
     var body: some View {
-        VStack {
+        VStack(alignment: .leading, spacing: 0) {
             if planetStore.walletAddress.count > 0 {
                 AccountBadgeView(walletAddress: planetStore.walletAddress)
             }
