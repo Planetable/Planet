@@ -38,6 +38,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
             Task { @MainActor in
                 ArticleWebViewModel.shared.updateMyPlanets(myPlanets)
             }
+            let planets = myPlanets
+            Task(priority: .utility) {
+                PlanetAPI.shared.updateMyPlanets(planets)
+            }
         }
     }
 

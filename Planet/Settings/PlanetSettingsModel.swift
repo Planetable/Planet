@@ -11,4 +11,5 @@ import Foundation
 enum PlanetSettingsTab: Hashable {
     case general
     case planets
+    case api
 }
