@@ -42,7 +42,7 @@ Before you try this app out, please be advised that it is still at an early stag
 
 ## Build the macOS App
 
-Git LFS is required for working with this code base. You can install git-lfs with Hoembrew:
+Git LFS is required for working with this code base. You can install git-lfs with Homebrew:
 
 ```
 brew install git-lfs
