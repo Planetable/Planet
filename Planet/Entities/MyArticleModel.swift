@@ -213,7 +213,7 @@ class MyArticleModel: ArticleModel, Codable {
         if self.hasVideoContent() {
             self.saveVideoThumbnail()
         }
-        if self.hasHeroImage() {
+        if self.hasHeroImage() || self.hasVideoContent() {
             self.saveHeroGrid()
         }
         try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
