@@ -234,4 +234,8 @@ extension Int {
         var ethers: Float = Float(self) / 100
         return String(format: "%.2f Ξ", ethers)
     }
+    
+    func stringValue() -> String {
+        return String(self)
+    }
 }

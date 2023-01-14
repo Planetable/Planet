@@ -54,6 +54,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var podcastLanguage: String? = "en"
     @Published var podcastExplicit: Bool? = false
 
+    @Published var juiceboxEnabled: Bool? = false
+    @Published var juiceboxProjectID: Int?
+    @Published var juiceboxProjectIDGoerli: Int?
+
     @Published var metrics: Metrics?
 
     @Published var isPublishing = false
@@ -218,6 +222,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(podcastCategories)
         hasher.combine(podcastLanguage)
         hasher.combine(podcastExplicit)
+        hasher.combine(juiceboxEnabled)
+        hasher.combine(juiceboxProjectID)
+        hasher.combine(juiceboxProjectIDGoerli)
         hasher.combine(avatar)
         hasher.combine(podcastCoverArt)
         hasher.combine(drafts)
@@ -269,6 +276,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.podcastCategories == rhs.podcastCategories
             && lhs.podcastLanguage == rhs.podcastLanguage
             && lhs.podcastExplicit == rhs.podcastExplicit
+            && lhs.juiceboxEnabled == rhs.juiceboxEnabled
+            && lhs.juiceboxProjectID == rhs.juiceboxProjectID
+            && lhs.juiceboxProjectIDGoerli == rhs.juiceboxProjectIDGoerli
             && lhs.avatar == rhs.avatar
             && lhs.podcastCoverArt == rhs.podcastCoverArt
             && lhs.drafts == rhs.drafts
@@ -285,7 +295,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
              dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey,
              filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, filebasePinCID,
              customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart, customCodeBodyEndEnabled, customCodeBodyEnd,
-             podcastCategories, podcastLanguage, podcastExplicit
+             podcastCategories, podcastLanguage, podcastExplicit,
+             juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -329,6 +340,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         podcastCategories = try container.decodeIfPresent(Dictionary.self, forKey: .podcastCategories)
         podcastLanguage = try container.decodeIfPresent(String.self, forKey: .podcastLanguage)
         podcastExplicit = try container.decodeIfPresent(Bool.self, forKey: .podcastExplicit)
+        juiceboxEnabled = try container.decodeIfPresent(Bool.self, forKey: .juiceboxEnabled)
+        juiceboxProjectID = try container.decodeIfPresent(Int.self, forKey: .juiceboxProjectID)
+        juiceboxProjectIDGoerli = try container.decodeIfPresent(Int.self, forKey: .juiceboxProjectIDGoerli)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -370,6 +384,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(podcastCategories, forKey: .podcastCategories)
         try container.encodeIfPresent(podcastLanguage, forKey: .podcastLanguage)
         try container.encodeIfPresent(podcastExplicit, forKey: .podcastExplicit)
+        try container.encodeIfPresent(juiceboxEnabled, forKey: .juiceboxEnabled)
+        try container.encodeIfPresent(juiceboxProjectID, forKey: .juiceboxProjectID)
+        try container.encodeIfPresent(juiceboxProjectIDGoerli, forKey: .juiceboxProjectIDGoerli)
     }
 
     init(
@@ -632,6 +649,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         if backupPlanet.podcastExplicit != nil {
             planet.podcastExplicit = backupPlanet.podcastExplicit
+        }
+
+        // Restore Juicebox settings
+        if backupPlanet.juiceboxEnabled != nil {
+            planet.juiceboxEnabled = backupPlanet.juiceboxEnabled
+        }
+        if backupPlanet.juiceboxProjectID != nil {
+            planet.juiceboxProjectID = backupPlanet.juiceboxProjectID
+        }
+        if backupPlanet.juiceboxProjectIDGoerli != nil {
+            planet.juiceboxProjectIDGoerli = backupPlanet.juiceboxProjectIDGoerli
         }
 
         // delete existing planet files if exists
@@ -1094,6 +1122,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             podcastCategories: podcastCategories,
             podcastLanguage: podcastLanguage,
             podcastExplicit: podcastExplicit,
+            juiceboxEnabled: juiceboxEnabled,
+            juiceboxProjectID: juiceboxProjectID,
+            juiceboxProjectIDGoerli: juiceboxProjectIDGoerli,
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,
@@ -1259,5 +1290,8 @@ struct BackupMyPlanetModel: Codable {
     let podcastCategories: [String: [String]]?
     let podcastLanguage: String?
     let podcastExplicit: Bool?
+    let juiceboxEnabled: Bool?
+    let juiceboxProjectID: Int?
+    let juiceboxProjectIDGoerli: Int?
     let articles: [BackupArticleModel]
 }

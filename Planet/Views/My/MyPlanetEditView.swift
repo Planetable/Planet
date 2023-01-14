@@ -31,6 +31,10 @@ struct MyPlanetEditView: View {
     @State private var dWebServicesDomain: String
     @State private var dWebServicesAPIKey: String
 
+    @State private var juiceboxEnabled: Bool = false
+    @State private var juiceboxProjectID: String
+    @State private var juiceboxProjectIDGoerli: String
+
     @State private var filebaseEnabled: Bool = false
     @State private var filebasePinName: String
     @State private var filebaseAPIToken: String
@@ -56,6 +60,9 @@ struct MyPlanetEditView: View {
         _dWebServicesEnabled = State(wrappedValue: planet.dWebServicesEnabled ?? false)
         _dWebServicesDomain = State(wrappedValue: planet.dWebServicesDomain ?? "")
         _dWebServicesAPIKey = State(wrappedValue: planet.dWebServicesAPIKey ?? "")
+        _juiceboxEnabled = State(wrappedValue: planet.juiceboxEnabled ?? false)
+        _juiceboxProjectID = State(wrappedValue: planet.juiceboxProjectID?.stringValue() ?? "")
+        _juiceboxProjectIDGoerli = State(wrappedValue: planet.juiceboxProjectIDGoerli?.stringValue() ?? "")
         _filebaseEnabled = State(wrappedValue: planet.filebaseEnabled ?? false)
         _filebasePinName = State(wrappedValue: planet.filebasePinName ?? "")
         _filebaseAPIToken = State(wrappedValue: planet.filebaseAPIToken ?? "")
@@ -400,6 +407,41 @@ struct MyPlanetEditView: View {
                             HStack {
                                 Spacer()
                             }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
+                            Toggle("Enable Juicebox Integration", isOn: $juiceboxEnabled)
+                                .toggleStyle(.checkbox)
+                                .frame(alignment: .leading)
+                            Spacer()
+                            HelpLinkButton(helpLink: URL(string: "https://www.planetable.xyz/guides/juicebox/")!)
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("Project ID")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                            TextField("", text: $juiceboxProjectID)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("Project ID (Goerli)")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                            TextField("", text: $juiceboxProjectIDGoerli)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        Divider()
+
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
                             Toggle("Enable dWebServices.xyz for IPNS", isOn: $dWebServicesEnabled)
                                 .toggleStyle(.checkbox)
                                 .frame(alignment: .leading)
@@ -471,6 +513,9 @@ struct MyPlanetEditView: View {
                         planet.dWebServicesEnabled = dWebServicesEnabled
                         planet.dWebServicesDomain = dWebServicesDomain
                         planet.dWebServicesAPIKey = dWebServicesAPIKey
+                        planet.juiceboxEnabled = juiceboxEnabled
+                        planet.juiceboxProjectID = Int(juiceboxProjectID)
+                        planet.juiceboxProjectIDGoerli = Int(juiceboxProjectIDGoerli)
                         planet.filebaseEnabled = filebaseEnabled
                         planet.filebasePinName = filebasePinName
                         planet.filebaseAPIToken = filebaseAPIToken
