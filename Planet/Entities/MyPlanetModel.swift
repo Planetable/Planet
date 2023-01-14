@@ -910,6 +910,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     plausibleEnabled: plausibleEnabled,
                     plausibleDomain: plausibleDomain,
                     plausibleAPIServer: plausibleAPIServer,
+                    juiceboxEnabled: juiceboxEnabled,
+                    juiceboxProjectID: juiceboxProjectID,
+                    juiceboxProjectIDGoerli: juiceboxProjectIDGoerli,
                     twitterUsername: twitterUsername,
                     githubUsername: githubUsername,
                     telegramUsername: telegramUsername,
@@ -970,6 +973,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             plausibleEnabled: plausibleEnabled,
             plausibleDomain: plausibleDomain,
             plausibleAPIServer: plausibleAPIServer,
+            juiceboxEnabled: juiceboxEnabled,
+            juiceboxProjectID: juiceboxProjectID,
+            juiceboxProjectIDGoerli: juiceboxProjectIDGoerli,
             twitterUsername: twitterUsername,
             githubUsername: githubUsername,
             telegramUsername: telegramUsername,
@@ -1222,9 +1228,15 @@ struct PublicPlanetModel: Codable {
     let created: Date
     let updated: Date
     let articles: [PublicArticleModel]
+
     let plausibleEnabled: Bool?
     let plausibleDomain: String?
     let plausibleAPIServer: String?
+
+    let juiceboxEnabled: Bool?
+    let juiceboxProjectID: Int?
+    let juiceboxProjectIDGoerli: Int?
+
     let twitterUsername: String?
     let githubUsername: String?
     let telegramUsername: String?
