@@ -21,7 +21,10 @@ extension String {
     static let settingsEthereumChainId: String = "PlanetSettingsEthereumChainId"
     static let settingsEthereumTipAmount: String = "PlanetSettingsEthereumTipAmount"
     static let settingsAPIEnabled: String = "PlanetSettingsAPIEnabledKey"
+    static let settingsAPIUsesPasscode: String = "PlanetSettingsAPIUsesPasscodeKey"
     static let settingsAPIPort: String = "PlanetSettingsAPIPortKey"
+    static let settingsAPIUsername: String = "PlanetSettingsAPIUsernameKey"
+    static let settingsAPIPasscode: String = "PlanetSettingsAPIPasscodeKey"
 
     func sanitized() -> String {
         // Reference: https://superuser.com/a/358861

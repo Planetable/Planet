@@ -7,6 +7,7 @@
 
 import Foundation
 import Swifter
+import KeychainSwift
 
 
 class PlanetAPI: NSObject {
@@ -26,6 +27,12 @@ class PlanetAPI: NSObject {
         if defaults.value(forKey: .settingsAPIEnabled) == nil {
             defaults.set(false, forKey: .settingsAPIEnabled)
         }
+        if defaults.value(forKey: .settingsAPIUsername) == nil {
+            defaults.set("Planet", forKey: .settingsAPIUsername)
+        }
+        if defaults.value(forKey: .settingsAPIUsesPasscode) == nil {
+            defaults.set(false, forKey: .settingsAPIUsesPasscode)
+        }
         super.init()
         self.updateServerSettings()
     }
@@ -37,59 +44,59 @@ class PlanetAPI: NSObject {
         server["/v0/planets/my"] = { [weak self] r in
             switch r.method {
             case "GET":
-                return self?.getPlanets(forRequest: r) ?? .error
+                return self?.getPlanets(forRequest: r) ?? .error()
             case "POST":
-                return self?.createPlanet(forRequest: r) ?? .error
+                return self?.createPlanet(forRequest: r) ?? .error()
             default:
-                return .error
+                return .error()
             }
         }
         server["/v0/planets/my/:a"] = { [weak self] r in
             switch r.method {
             case "GET":
-                return self?.getPlanetInfo(forRequest: r) ?? .error
+                return self?.getPlanetInfo(forRequest: r) ?? .error()
             case "POST":
-                return self?.modifyPlanetInfo(forRequest: r) ?? .error
+                return self?.modifyPlanetInfo(forRequest: r) ?? .error()
             default:
-                return .error
+                return .error()
             }
         }
         server["/v0/planets/my/:a/publish"] = { [weak self] r in
             switch r.method {
             case "POST":
-                return self?.publishPlanet(forRequest: r) ?? .error
+                return self?.publishPlanet(forRequest: r) ?? .error()
             default:
-                return .error
+                return .error()
             }
         }
         server["/v0/planets/my/:a/public"] = { [weak self] r in
             switch r.method {
             case "GET":
-                return self?.getPlanetPublicContent(forRequest: r) ?? .error
+                return self?.getPlanetPublicContent(forRequest: r) ?? .error()
             default:
-                return .error
+                return .error()
             }
         }
         server["/v0/planets/my/:a/articles"] = { [weak self] r in
             switch r.method {
             case "GET":
-                return self?.getPlanetArticles(forRequest: r) ?? .error
+                return self?.getPlanetArticles(forRequest: r) ?? .error()
             case "POST":
-                return self?.createPlanetArticle(forRequest: r) ?? .error
+                return self?.createPlanetArticle(forRequest: r) ?? .error()
             default:
-                return .error
+                return .error()
             }
         }
         server["/v0/planets/my/:a/articles/:b"] = { [weak self] r in
             switch r.method {
             case "GET":
-                return self?.getPlanetArticle(forRequest: r) ?? .error
+                return self?.getPlanetArticle(forRequest: r) ?? .error()
             case "POST":
-                return self?.modifyPlanetArticle(forRequest: r) ?? .error
+                return self?.modifyPlanetArticle(forRequest: r) ?? .error()
             case "DELETE":
-                return self?.deletePlanetArticle(forRequest: r) ?? .error
+                return self?.deletePlanetArticle(forRequest: r) ?? .error()
             default:
-                return .error
+                return .error()
             }
         }
         if let portString = UserDefaults.standard.string(forKey: .settingsAPIPort), let port = Int(portString) {
@@ -133,7 +140,7 @@ extension PlanetAPI {
             let jsonObject = try JSONSerialization.jsonObject(with: data)
             return .ok(.json(jsonObject))
         } catch {
-            return .error
+            return .error(error.localizedDescription)
         }
     }
     
@@ -157,7 +164,7 @@ extension PlanetAPI {
             }
         }
         if name == "" {
-            return .invalid
+            return .error("'name' is empty.")
         }
         if !TemplateStore.shared.templates.contains(where: { t in
             return t.name.lowercased() == templateName.lowercased()
@@ -182,7 +189,7 @@ extension PlanetAPI {
                 PlanetStore.shared.alert(title: "Failed to create planet")
             }
         }
-        return .okay
+        return .success()
     }
 
     // MARK: GET /v0/planets/my/:uuid
@@ -195,7 +202,7 @@ extension PlanetAPI {
                 let jsonObject = try JSONSerialization.jsonObject(with: data)
                 return .ok(.json(jsonObject))
             } catch {
-                return .error
+                return .error(error.localizedDescription)
             }
         } else {
             return .invalid
@@ -247,7 +254,7 @@ extension PlanetAPI {
                     debugPrint("failed to modify planet info: \(planet), error: \(error)")
                 }
             }
-            return .okay
+            return .success()
         } else {
             return .invalid
         }
@@ -264,7 +271,7 @@ extension PlanetAPI {
                     debugPrint("failed to publish planet: \(planet), error: \(error)")
                 }
             }
-            return .okay
+            return .success()
         } else {
             return .invalid
         }
@@ -280,7 +287,7 @@ extension PlanetAPI {
                 let jsonObject = try JSONSerialization.jsonObject(with: data)
                 return .ok(.json(jsonObject))
             } catch {
-                return .error
+                return .error(error.localizedDescription)
             }
         } else {
             return .invalid
@@ -297,7 +304,7 @@ extension PlanetAPI {
                 let jsonObject = try JSONSerialization.jsonObject(with: data)
                 return .ok(.json(jsonObject))
             } catch {
-                return .error
+                return .error(error.localizedDescription)
             }
         } else {
             return .invalid
@@ -343,7 +350,7 @@ extension PlanetAPI {
                     debugPrint("failed to create article for planet: \(planet), error: \(error)")
                 }
             }
-            return .okay
+            return .success()
         } else {
             return .invalid
         }
@@ -361,7 +368,7 @@ extension PlanetAPI {
                     let jsonObject = try JSONSerialization.jsonObject(with: data)
                     return .ok(.json(jsonObject))
                 } catch {
-                    return .error
+                    return .error(error.localizedDescription)
                 }
             } else {
                 return .invalid
@@ -412,7 +419,7 @@ extension PlanetAPI {
                         debugPrint("failed to modify article for planet: \(planet), error: \(error)")
                     }
                 }
-                return .okay
+                return .success()
             } else {
                 return .invalid
             }
@@ -446,7 +453,7 @@ extension PlanetAPI {
                         }
                     }
                 }
-                return .okay
+                return .success()
             } else {
                 return .invalid
             }
@@ -471,7 +478,16 @@ extension PlanetAPI {
     }
     
     private func validateRequest(_ r: HttpRequest) -> Bool {
-        // MARK: TODO: validate with passcode if needed, from keychain.
+        let apiUsesPasscode = UserDefaults.standard.bool(forKey: .settingsAPIUsesPasscode)
+        let username = UserDefaults.standard.string(forKey: .settingsAPIUsername) ?? "Planet"
+        let keychain = KeychainSwift()
+        if apiUsesPasscode, let passcode = keychain.get(.settingsAPIPasscode), passcode != "" {
+            if let auth = r.headers["authorization"], let encoded = auth.components(separatedBy: "Basic ").last, encoded != "", let usernameAndPasscode = encoded.base64Decoded(), usernameAndPasscode == "\(username):\(passcode)" {
+                return true
+            } else {
+                return false
+            }
+        }
         return true
     }
 
@@ -487,8 +503,34 @@ extension PlanetAPI {
 // MARK: - API Extensions -
 
 extension HttpResponse {
-    // MARK: TODO: more details: json data output, status code.
-    static let error = HttpResponse.ok(.text("Error"))
-    static let okay = HttpResponse.ok(.text("Okay"))
-    static let invalid = HttpResponse.ok(.text("Invalid"))
+    static let invalid = HttpResponse.unauthorized
+    static func error(_ message: String = "Error") -> HttpResponse {
+        let encoder = JSONEncoder()
+        do {
+            let info = ["status": "Error", "description": message]
+            let data = try encoder.encode(info)
+            let jsonObject = try JSONSerialization.jsonObject(with: data)
+            return HttpResponse.badRequest(.json(jsonObject))
+        } catch {
+            return HttpResponse.badRequest(.text(message))
+        }
+    }
+    static func success(_ message: String = "") -> HttpResponse {
+        let encoder = JSONEncoder()
+        do {
+            let info = ["status": "Successful", "description": message]
+            let data = try encoder.encode(info)
+            let jsonObject = try JSONSerialization.jsonObject(with: data)
+            return HttpResponse.ok(.json(jsonObject))
+        } catch {
+            return HttpResponse.ok(.text(message))
+        }
+    }
+}
+
+extension String {
+    func base64Decoded() -> String? {
+        guard let data = Data(base64Encoded: self) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
 }
