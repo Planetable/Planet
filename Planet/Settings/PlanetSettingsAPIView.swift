@@ -19,6 +19,7 @@ struct PlanetSettingsAPIView: View {
         .standard.string(forKey: String.settingsAPIPort) ?? "9191"
     
     @State private var apiPasscode: String = ""
+    @State private var isShowingPasscode: Bool = false
 
     var body: some View {
         Form {
@@ -58,7 +59,13 @@ struct PlanetSettingsAPIView: View {
                             }
                             reloadAPIServer()
                         }
-                    SecureField("API Server Passcode", text: $apiPasscode)
+                    HStack {
+                        ZStack {
+                            TextField("API Server Passcode", text: $apiPasscode)
+                                .opacity(isShowingPasscode ? 1.0 : 0.0)
+                            SecureField("API Server Passcode", text: $apiPasscode)
+                                .opacity(!isShowingPasscode ? 1.0 : 0.0)
+                        }
                         .disabled(!apiEnabled)
                         .textFieldStyle(.roundedBorder)
                         .onChange(of: apiPasscode) { newValue in
@@ -70,6 +77,16 @@ struct PlanetSettingsAPIView: View {
                                 reloadAPIServer()
                             }
                         }
+                        Button {
+                            isShowingPasscode.toggle()
+                        } label: {
+                            Image(systemName: !isShowingPasscode ? "eye.slash" : "eye")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 14, height: 14, alignment: .center)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
             Spacer()

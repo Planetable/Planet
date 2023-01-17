@@ -504,7 +504,7 @@ extension PlanetAPI {
 
 extension HttpResponse {
     static let invalid = HttpResponse.unauthorized
-    static func error(_ message: String = "Error") -> HttpResponse {
+    static func error(_ message: String = "") -> HttpResponse {
         let encoder = JSONEncoder()
         do {
             let info = ["status": "Error", "description": message]
