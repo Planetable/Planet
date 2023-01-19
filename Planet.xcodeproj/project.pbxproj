@@ -105,6 +105,7 @@
 		6A8C3A6728C9361800339A86 /* DotBitKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8C3A6628C9361800339A86 /* DotBitKit.swift */; };
 		6A8C3A6A28C939E800339A86 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 6A8C3A6928C939E800339A86 /* Alamofire */; };
 		6A900193296C9F3800BC088E /* MyArticleSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */; };
+		6A9C211029792464005A815E /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A9C210F29792464005A815E /* AVKit.framework */; };
 		6AABC6A7291A6216009FD13F /* WalletConnectV1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AABC6A6291A6216009FD13F /* WalletConnectV1.swift */; };
 		6AABC6AA291A62A9009FD13F /* WalletConnectSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 6AABC6A9291A62A9009FD13F /* WalletConnectSwift */; };
 		6AABC6AC291A698B009FD13F /* WalletConnectV1QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AABC6AB291A698B009FD13F /* WalletConnectV1QRCodeView.swift */; };
@@ -286,6 +287,7 @@
 		6A7189652947FA2D00279D77 /* WalletConnectV2QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV2QRCodeView.swift; sourceTree = "<group>"; };
 		6A8C3A6628C9361800339A86 /* DotBitKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotBitKit.swift; sourceTree = "<group>"; };
 		6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyArticleSettingsView.swift; sourceTree = "<group>"; };
+		6A9C210F29792464005A815E /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		6AA2BC3227DC09AE00AC96B5 /* Planet v3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v3.xcdatamodel"; sourceTree = "<group>"; };
 		6AABC6A6291A6216009FD13F /* WalletConnectV1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV1.swift; sourceTree = "<group>"; };
 		6AABC6AB291A698B009FD13F /* WalletConnectV1QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV1QRCodeView.swift; sourceTree = "<group>"; };
@@ -359,6 +361,7 @@
 				6AB6E515291527B800F17328 /* WalletConnectPairing in Frameworks */,
 				BB7FC8752898C70A00359802 /* libcmark_gfm in Frameworks */,
 				BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */,
+				6A9C211029792464005A815E /* AVKit.framework in Frameworks */,
 				BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */,
 				2AB6A93E29703825007186A7 /* Swifter in Frameworks */,
 				BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */,
@@ -473,6 +476,7 @@
 			children = (
 				2AC4994727BB6E7500F1C2D1 /* Planet */,
 				2AC4994627BB6E7500F1C2D1 /* Products */,
+				6A9C210E29792464005A815E /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -687,6 +691,14 @@
 				2A2556B6293E1EE4006462D8 /* Window Controller */,
 			);
 			path = TemplateBrowser;
+			sourceTree = "<group>";
+		};
+		6A9C210E29792464005A815E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6A9C210F29792464005A815E /* AVKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		6AB6E4F92915226400F17328 /* Wallet */ = {
