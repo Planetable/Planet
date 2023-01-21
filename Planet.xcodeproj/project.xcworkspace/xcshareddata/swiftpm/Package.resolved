@@ -95,8 +95,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mxcl/PromiseKit.git",
       "state" : {
-        "revision" : "43772616c46a44a9977e41924ae01d0e55f2f9ca",
-        "version" : "6.18.1"
+        "revision" : "cea8fb613440c6745678295d58dea476d8a1e685",
+        "version" : "6.19.0"
       }
     },
     {
@@ -204,7 +204,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "53e3c5f290a29a88cf98bd7c9d1da1be031a3012"
+        "revision" : "a3422611aae60de03ef97a5a73799338b25997b5"
       }
     },
     {
