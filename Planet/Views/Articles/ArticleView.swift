@@ -158,6 +158,16 @@ struct ArticleView: View {
                             Image("custom.ethereum")
                         }.help("Tip with Ethereum")
                     }
+                    if planet.planetType == .ens {
+                        Button {
+                            let url = URL(string: "https://app.ens.domains/name/\(planet.link)/details")
+                            if let url = url {
+                                openInChromium(url)
+                            }
+                        } label: {
+                            Image("custom.ens")
+                        }.help("Get ENS Info")
+                    }
                 default:
                     Text("")
                 }
@@ -275,5 +285,37 @@ struct ArticleView: View {
             return walletAddress
         }
         return nil
+    }
+
+    private func openInChromium(_ url: URL) {
+        let supportedChromiumBrowsers = [
+            "com.google.Chrome",
+            "com.brave.Browser",
+            "com.google.Chrome.canary"
+        ]
+        let appUrl: URL? = {
+            for item in supportedChromiumBrowsers {
+                if let found = NSWorkspace.shared.urlForApplication(withBundleIdentifier: item) {
+                    return found
+                }
+            }
+            return nil
+        }()
+        guard
+            let appUrl = appUrl
+        else {
+            NSWorkspace.shared.open(url)
+            return
+        }
+
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
+    }
+
+    private func openConfiguration() -> NSWorkspace.OpenConfiguration {
+        let conf = NSWorkspace.OpenConfiguration()
+        conf.hidesOthers = false
+        conf.hides = false
+        conf.activates = true
+        return conf
     }
 }
