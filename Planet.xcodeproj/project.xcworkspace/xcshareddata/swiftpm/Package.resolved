@@ -87,7 +87,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "4d8ddb75fd10130d88b2452d1118e62770746881"
+        "revision" : "23e29d71e2ff45f50ac7419d43ac8a2f7a42fdbc"
       }
     },
     {
@@ -95,8 +95,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mxcl/PromiseKit.git",
       "state" : {
-        "revision" : "cea8fb613440c6745678295d58dea476d8a1e685",
-        "version" : "6.19.0"
+        "revision" : "065a93d0077d54710c03e9d738e4d3998615fe82",
+        "version" : "6.20.0"
       }
     },
     {
@@ -158,8 +158,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/httpswift/swifter",
       "state" : {
-        "revision" : "9483a5d459b45c3ffd059f7b55f9638e268632fd",
-        "version" : "1.5.0"
+        "branch" : "stable",
+        "revision" : "1e4f51c92d7ca486242d8bf0722b99de2c3531aa"
       }
     },
     {

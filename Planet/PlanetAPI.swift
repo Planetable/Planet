@@ -133,7 +133,7 @@ class PlanetAPI: NSObject {
 extension PlanetAPI {
     // MARK: GET /v0/planets/my
     private func getPlanets(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .invalid }
+        guard validateRequest(r) else { return .unauthorized(nil) }
         let encoder = JSONEncoder()
         do {
             let data = try encoder.encode(myPlanets)
@@ -146,7 +146,7 @@ extension PlanetAPI {
     
     // MARK: POST /v0/planets/my
     private func createPlanet(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .invalid }
+        guard validateRequest(r) else { return .unauthorized(nil) }
         let params = r.parseUrlencodedForm()
         var name: String = ""
         var about: String = ""
@@ -194,7 +194,7 @@ extension PlanetAPI {
 
     // MARK: GET /v0/planets/my/:uuid
     private func getPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .invalid }
+        guard validateRequest(r) else { return HttpResponse.unauthorized(nil) }
         if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
             let encoder = JSONEncoder()
             do {
@@ -205,13 +205,13 @@ extension PlanetAPI {
                 return .error(error.localizedDescription)
             }
         } else {
-            return .invalid
+            return .notFound()
         }
     }
     
     // MARK: POST /v0/planets/my/:uuid
     private func modifyPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .invalid }
+        guard validateRequest(r) else { return HttpResponse.unauthorized(nil) }
         if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
             // MARK: TODO: support more planet properties.
             let params = r.parseUrlencodedForm()
@@ -256,13 +256,13 @@ extension PlanetAPI {
             }
             return .success()
         } else {
-            return .invalid
+            return .notFound()
         }
     }
     
     // MARK: POST /v0/planets/my/:uuid/publish
     private func publishPlanet(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .invalid }
+        guard validateRequest(r) else { return .unauthorized(nil) }
         if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
             Task {
                 do {
@@ -273,13 +273,13 @@ extension PlanetAPI {
             }
             return .success()
         } else {
-            return .invalid
+            return .notFound()
         }
     }
     
     // MARK: GET /v0/planets/my/:uuid/public
     private func getPlanetPublicContent(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .invalid }
+        guard validateRequest(r) else { return .unauthorized(nil) }
         if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
             let planetJSONURL = planet.publicBasePath.appendingPathComponent("planet.json")
             do {
@@ -290,13 +290,13 @@ extension PlanetAPI {
                 return .error(error.localizedDescription)
             }
         } else {
-            return .invalid
+            return .notFound()
         }
     }
     
     // MARK: GET /v0/planets/my/:uuid/articles
     private func getPlanetArticles(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .invalid }
+        guard validateRequest(r) else { return .unauthorized(nil) }
         if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
             let encoder = JSONEncoder()
             do {
@@ -307,13 +307,13 @@ extension PlanetAPI {
                 return .error(error.localizedDescription)
             }
         } else {
-            return .invalid
+            return .notFound()
         }
     }
     
     // MARK: POST /v0/planets/my/:uuid/articles
     private func createPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .invalid }
+        guard validateRequest(r) else { return .unauthorized(nil) }
         if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
             // MARK: TODO: support attachments.
             let params = r.parseUrlencodedForm()
@@ -352,13 +352,13 @@ extension PlanetAPI {
             }
             return .success()
         } else {
-            return .invalid
+            return .notFound()
         }
     }
     
     // MARK: GET /v0/planets/my/:uuid/articles/:uuid
     private func getPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .invalid }
+        guard validateRequest(r) else { return .unauthorized(nil) }
         let results = planetUUIDAndArticleUUIDFromRequest(r)
         if let planetUUID = results.0, let articleUUID = results.1 {
             if let planet = myPlanets.first(where: { $0.id == planetUUID }), let article = planet.articles.first(where: { $0.id == articleUUID }) {
@@ -370,17 +370,14 @@ extension PlanetAPI {
                 } catch {
                     return .error(error.localizedDescription)
                 }
-            } else {
-                return .invalid
             }
-        } else {
-            return .invalid
         }
+        return .notFound()
     }
     
     // MARK: POST /v0/planets/my/:uuid/articles/:uuid
     private func modifyPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .invalid }
+        guard validateRequest(r) else { return .unauthorized(nil) }
         let results = planetUUIDAndArticleUUIDFromRequest(r)
         if let planetUUID = results.0, let articleUUID = results.1 {
             if let planet = myPlanets.first(where: { $0.id == planetUUID }), let article = planet.articles.first(where: { $0.id == articleUUID }) {
@@ -420,17 +417,14 @@ extension PlanetAPI {
                     }
                 }
                 return .success()
-            } else {
-                return .invalid
             }
-        } else {
-            return .invalid
         }
+        return .notFound()
     }
     
     // MARK: DELETE /v0/planets/my/:uuid/articles/:uuid
     private func deletePlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .invalid }
+        guard validateRequest(r) else { return .unauthorized(nil) }
         let results = planetUUIDAndArticleUUIDFromRequest(r)
         if let planetUUID = results.0, let articleUUID = results.1 {
             if let planet = myPlanets.first(where: { $0.id == planetUUID }), let article = planet.articles.first(where: { $0.id == articleUUID }) {
@@ -454,12 +448,9 @@ extension PlanetAPI {
                     }
                 }
                 return .success()
-            } else {
-                return .invalid
             }
-        } else {
-            return .invalid
         }
+        return .notFound()
     }
 }
 
@@ -503,7 +494,6 @@ extension PlanetAPI {
 // MARK: - API Extensions -
 
 extension HttpResponse {
-    static let invalid = HttpResponse.unauthorized
     static func error(_ message: String = "") -> HttpResponse {
         let encoder = JSONEncoder()
         do {
@@ -527,6 +517,7 @@ extension HttpResponse {
         }
     }
 }
+
 
 extension String {
     func base64Decoded() -> String? {
