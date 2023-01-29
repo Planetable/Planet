@@ -30,6 +30,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var twitterUsername: String?
     @Published var githubUsername: String?
     @Published var telegramUsername: String?
+    @Published var mastodonUsername: String?
 
     @Published var dWebServicesEnabled: Bool? = false
     @Published var dWebServicesDomain: String?
@@ -205,6 +206,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(twitterUsername)
         hasher.combine(githubUsername)
         hasher.combine(telegramUsername)
+        hasher.combine(mastodonUsername)
         hasher.combine(dWebServicesEnabled)
         hasher.combine(dWebServicesDomain)
         hasher.combine(dWebServicesAPIKey)
@@ -259,6 +261,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.twitterUsername == rhs.twitterUsername
             && lhs.githubUsername == rhs.githubUsername
             && lhs.telegramUsername == rhs.telegramUsername
+            && lhs.mastodonUsername == rhs.mastodonUsername
             && lhs.dWebServicesEnabled == rhs.dWebServicesEnabled
             && lhs.dWebServicesDomain == rhs.dWebServicesDomain
             && lhs.dWebServicesAPIKey == rhs.dWebServicesAPIKey
@@ -291,7 +294,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
              templateName, lastPublished, lastPublishedCID,
              archived, archivedAt,
              plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer,
-             twitterUsername, githubUsername, telegramUsername,
+             twitterUsername, githubUsername, telegramUsername, mastodonUsername,
              dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey,
              filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, filebasePinCID,
              customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart, customCodeBodyEndEnabled, customCodeBodyEnd,
@@ -323,6 +326,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         twitterUsername = try container.decodeIfPresent(String.self, forKey: .twitterUsername)
         githubUsername = try container.decodeIfPresent(String.self, forKey: .githubUsername)
         telegramUsername = try container.decodeIfPresent(String.self, forKey: .telegramUsername)
+        mastodonUsername = try container.decodeIfPresent(String.self, forKey: .mastodonUsername)
         dWebServicesEnabled = try container.decodeIfPresent(Bool.self, forKey: .dWebServicesEnabled)
         dWebServicesDomain = try container.decodeIfPresent(String.self, forKey: .dWebServicesDomain)
         dWebServicesAPIKey = try container.decodeIfPresent(String.self, forKey: .dWebServicesAPIKey)
@@ -367,6 +371,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(twitterUsername, forKey: .twitterUsername)
         try container.encodeIfPresent(githubUsername, forKey: .githubUsername)
         try container.encodeIfPresent(telegramUsername, forKey: .telegramUsername)
+        try container.encodeIfPresent(mastodonUsername, forKey: .mastodonUsername)
         try container.encodeIfPresent(dWebServicesEnabled, forKey: .dWebServicesEnabled)
         try container.encodeIfPresent(dWebServicesDomain, forKey: .dWebServicesDomain)
         try container.encodeIfPresent(dWebServicesAPIKey, forKey: .dWebServicesAPIKey)
@@ -590,6 +595,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         if backupPlanet.telegramUsername != nil {
             planet.telegramUsername = backupPlanet.telegramUsername
+        }
+        if backupPlanet.mastodonUsername != nil {
+            planet.mastodonUsername = backupPlanet.mastodonUsername
         }
 
         // Restore DWebServices
@@ -916,6 +924,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     twitterUsername: twitterUsername,
                     githubUsername: githubUsername,
                     telegramUsername: telegramUsername,
+                    mastodonUsername: mastodonUsername,
                     podcastCategories: podcastCategories,
                     podcastLanguage: podcastLanguage,
                     podcastExplicit: podcastExplicit
@@ -979,6 +988,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             twitterUsername: twitterUsername,
             githubUsername: githubUsername,
             telegramUsername: telegramUsername,
+            mastodonUsername: mastodonUsername,
             podcastCategories: podcastCategories,
             podcastLanguage: podcastLanguage,
             podcastExplicit: podcastExplicit
@@ -1111,6 +1121,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             twitterUsername: twitterUsername,
             githubUsername: githubUsername,
             telegramUsername: telegramUsername,
+            mastodonUsername: mastodonUsername,
             dWebServicesEnabled: dWebServicesEnabled,
             dWebServicesDomain: dWebServicesDomain,
             dWebServicesAPIKey: dWebServicesAPIKey,
@@ -1240,6 +1251,7 @@ struct PublicPlanetModel: Codable {
     let twitterUsername: String?
     let githubUsername: String?
     let telegramUsername: String?
+    let mastodonUsername: String?
 
     let podcastCategories: [String: [String]]?
     let podcastLanguage: String?
@@ -1285,6 +1297,7 @@ struct BackupMyPlanetModel: Codable {
     let twitterUsername: String?
     let githubUsername: String?
     let telegramUsername: String?
+    let mastodonUsername: String?
     let dWebServicesEnabled: Bool?
     let dWebServicesDomain: String?
     let dWebServicesAPIKey: String?

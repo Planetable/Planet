@@ -126,6 +126,7 @@ class Template: Codable, Identifiable {
             twitterUsername: planet.twitterUsername ?? nil,
             githubUsername: planet.githubUsername ?? nil,
             telegramUsername: planet.telegramUsername ?? nil,
+            mastodonUsername: planet.mastodonUsername ?? nil,
             podcastCategories: planet.podcastCategories ?? [:],
             podcastLanguage: planet.podcastLanguage ?? "en",
             podcastExplicit: planet.podcastExplicit ?? false
@@ -293,6 +294,7 @@ class Template: Codable, Identifiable {
             twitterUsername: "PlanetableXYZ",
             githubUsername: "Planetable",
             telegramUsername: "",
+            mastodonUsername: "",
             podcastCategories: [:],
             podcastLanguage: "en-US",
             podcastExplicit: false

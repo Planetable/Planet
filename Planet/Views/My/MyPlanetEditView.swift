@@ -26,6 +26,7 @@ struct MyPlanetEditView: View {
     @State private var twitterUsername: String
     @State private var githubUsername: String
     @State private var telegramUsername: String
+    @State private var mastodonUsername: String
 
     @State private var dWebServicesEnabled: Bool = false
     @State private var dWebServicesDomain: String
@@ -57,6 +58,7 @@ struct MyPlanetEditView: View {
         _twitterUsername = State(wrappedValue: planet.twitterUsername ?? "")
         _githubUsername = State(wrappedValue: planet.githubUsername ?? "")
         _telegramUsername = State(wrappedValue: planet.telegramUsername ?? "")
+        _mastodonUsername = State(wrappedValue: planet.mastodonUsername ?? "")
         _dWebServicesEnabled = State(wrappedValue: planet.dWebServicesEnabled ?? false)
         _dWebServicesDomain = State(wrappedValue: planet.dWebServicesDomain ?? "")
         _dWebServicesAPIKey = State(wrappedValue: planet.dWebServicesAPIKey ?? "")
@@ -220,6 +222,17 @@ struct MyPlanetEditView: View {
                     .tag("analytics")
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
+                        HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
+                            HStack {
+                                Spacer()
+                                Text("Mastodon:")
+                            }
+                            .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
+
+                            TextField("", text: $mastodonUsername)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
                         HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                             HStack {
                                 Spacer()
@@ -490,26 +503,27 @@ struct MyPlanetEditView: View {
                     .keyboardShortcut(.escape, modifiers: [])
 
                     Button {
-                        if !name.isEmpty {
-                            planet.name = name
+                        if !name.trim().isEmpty {
+                            planet.name = name.trim()
                         }
-                        planet.about = about
-                        planet.domain = domain.trimmingCharacters(in: .whitespacesAndNewlines)
+                        planet.about = about.trim()
+                        planet.domain = domain.trim()
                         if planet.authorName != authorName {
                             if authorName == "" {
                                 planet.authorName = nil
                             } else {
-                                planet.authorName = authorName
+                                planet.authorName = authorName.trim()
                             }
                         }
                         planet.templateName = templateName
                         planet.plausibleEnabled = plausibleEnabled
-                        planet.plausibleDomain = plausibleDomain
+                        planet.plausibleDomain = plausibleDomain.trim()
                         planet.plausibleAPIKey = plausibleAPIKey
                         planet.plausibleAPIServer = plausibleAPIServer
-                        planet.twitterUsername = twitterUsername
-                        planet.githubUsername = githubUsername
-                        planet.telegramUsername = telegramUsername
+                        planet.twitterUsername = twitterUsername.sanitized().trim()
+                        planet.githubUsername = githubUsername.sanitized().trim()
+                        planet.telegramUsername = telegramUsername.sanitized().trim()
+                        planet.mastodonUsername = mastodonUsername.sanitized().trim()
                         planet.dWebServicesEnabled = dWebServicesEnabled
                         planet.dWebServicesDomain = dWebServicesDomain
                         planet.dWebServicesAPIKey = dWebServicesAPIKey
