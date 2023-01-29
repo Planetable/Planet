@@ -72,7 +72,7 @@ class PlanetAPI: NSObject {
         server["/v0/planets/my/:a/public"] = { [weak self] r in
             switch r.method {
             case "GET":
-                return self?.getPlanetPublicContent(forRequest: r) ?? .error()
+                return self?.exposePlanetPublicContent(inDirectory: URLUtils.repoPath.appendingPathComponent("Public", conformingTo: .folder).path, forRequest: r) ?? .error()
             default:
                 return .error()
             }
@@ -278,19 +278,47 @@ extension PlanetAPI {
     }
     
     // MARK: GET /v0/planets/my/:uuid/public
-    private func getPlanetPublicContent(forRequest r: HttpRequest) -> HttpResponse {
+    private func exposePlanetPublicContent(inDirectory dir: String, forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
-        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
-            let planetJSONURL = planet.publicBasePath.appendingPathComponent("planet.json")
-            do {
-                let data = try Data(contentsOf: planetJSONURL)
-                let jsonObject = try JSONSerialization.jsonObject(with: data)
-                return .ok(.json(jsonObject))
-            } catch {
-                return .error(error.localizedDescription)
-            }
-        } else {
+        guard let (_, value) = r.params.first else {
             return .notFound()
+        }
+        // MARK: TODO: browse subdirectories.
+        let filePath = dir + String.pathSeparator + value
+        do {
+            guard try filePath.exists() else {
+                return .notFound()
+            }
+            if try filePath.directory() {
+                var files = try filePath.files()
+                files.sort(by: {$0.lowercased() < $1.lowercased()})
+                return scopes {
+                    html {
+                        body {
+                            table(files) { file in
+                                tr {
+                                    td {
+                                        a {
+                                            href = r.path + "/" + file
+                                            inner = file
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    }(r)
+            } else {
+                guard let file = try? filePath.openForReading() else {
+                    return .notFound()
+                }
+                return .raw(200, "OK", [:], { writer in
+                    try? writer.write(file)
+                    file.close()
+                })
+            }
+        } catch {
+            return HttpResponse.internalServerError(.text("Internal Server Error"))
         }
     }
     
