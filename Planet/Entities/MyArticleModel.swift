@@ -39,6 +39,9 @@ class MyArticleModel: ArticleModel, Codable {
             if domain.hasSuffix(".bit") {
                 return URL(string: "https://\(domain).cc/\(id.uuidString)/")
             }
+            if domain.hasCommonTLDSuffix() {
+                return URL(string: "https://\(domain)/\(id.uuidString)/")
+            }
         }
         return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.ipns)\(link)")
     }

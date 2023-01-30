@@ -54,6 +54,16 @@ extension String {
         let lastPart = String(self.suffix(4))
         return "\(firstPart)...\(lastPart)"
     }
+
+    func hasCommonTLDSuffix() -> Bool {
+        let commonTLDs = [".com", ".co", ".net", ".org", ".io", ".xyz"]
+        for tld in commonTLDs {
+            if self.hasSuffix(tld) {
+                return true
+            }
+        }
+        return false
+    }
 }
 
 extension Notification.Name {
@@ -109,7 +119,7 @@ extension Date {
         format.timeStyle = .medium
         return format.string(from: self)
     }
-    
+
     func simpleDateDescription() -> String {
         let format = DateFormatter()
         format.dateStyle = .medium
