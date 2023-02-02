@@ -16,12 +16,16 @@ struct AttachmentThumbnailView: View {
             }
 
             if attachment.type == .image || attachment.type == .file {
-                VStack {
+                ZStack {
+                    Rectangle()
+                        .foregroundColor(Color("SelectedFillColor"))
+                        .opacity(isShowingControl ? 0.6 : 0.0)
                     HStack {
-                        Image(systemName: "plus.circle.fill")
+                        Image(systemName: "plus")
                             .resizable()
+                            .foregroundColor(Color.secondary)
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 18, height: 18, alignment: .center)
+                            .frame(width: 24, height: 24, alignment: .center)
                             .opacity(isShowingControl ? 1.0 : 0.0)
                     }
                 }
