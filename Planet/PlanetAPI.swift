@@ -69,14 +69,6 @@ class PlanetAPI: NSObject {
                 return .error()
             }
         }
-        server["/v0/planets/my/:a/public"] = { [weak self] r in
-            switch r.method {
-            case "GET":
-                return self?.exposePlanetPublicContent(inDirectory: URLUtils.repoPath.appendingPathComponent("Public", conformingTo: .folder).path, forRequest: r) ?? .error()
-            default:
-                return .error()
-            }
-        }
         server["/v0/planets/my/:a/articles"] = { [weak self] r in
             switch r.method {
             case "GET":
@@ -118,12 +110,36 @@ class PlanetAPI: NSObject {
     }
     
     func updateMyPlanets(_ planets: [MyPlanetModel]) {
+        let repoPath = URLUtils.repoPath.appendingPathComponent("Public", conformingTo: .folder)
         myPlanets = planets
         var articles: [MyArticleModel] = []
         for planet in planets {
             articles.append(contentsOf: planet.articles)
+            let planetPublicURL = repoPath.appendingPathComponent(planet.id.uuidString)
+            let planetRootPath = "/v0/planets/my/\(planet.id.uuidString)/public"
+            server[planetRootPath] = { [weak self] r in
+                if r.method == "GET" {
+                    return self?.exposePlanetPublicContent(inDirectory: planetPublicURL.path, forRequest: r) ?? .error()
+                } else {
+                    return .error()
+                }
+            }
+            if let subpaths = FileManager.default.subpaths(atPath: planetPublicURL.path) {
+                for subpath in subpaths {
+                    let urlPath = planetRootPath + "/" + subpath
+                    let targetPath = planetPublicURL.appendingPathComponent(subpath).path
+                    server[urlPath] = { [weak self] r in
+                        if r.method == "GET" {
+                            return self?.exposePlanetPublicContent(inDirectory: targetPath, forRequest: r) ?? .error()
+                        } else {
+                            return .error()
+                        }
+                    }
+                }
+            }
         }
         myArticles = articles
+        try? relaunch()
     }
 }
 
@@ -280,11 +296,7 @@ extension PlanetAPI {
     // MARK: GET /v0/planets/my/:uuid/public
     private func exposePlanetPublicContent(inDirectory dir: String, forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
-        guard let (_, value) = r.params.first else {
-            return .notFound()
-        }
-        // MARK: TODO: browse subdirectories.
-        let filePath = dir + String.pathSeparator + value
+        let filePath = dir
         do {
             guard try filePath.exists() else {
                 return .notFound()
@@ -312,6 +324,7 @@ extension PlanetAPI {
                 guard let file = try? filePath.openForReading() else {
                     return .notFound()
                 }
+                // MARK: TODO: write file data to body.
                 return .raw(200, "OK", [:], { writer in
                     try? writer.write(file)
                     file.close()
