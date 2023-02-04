@@ -110,33 +110,10 @@ class PlanetAPI: NSObject {
     }
     
     func updateMyPlanets(_ planets: [MyPlanetModel]) {
-        let repoPath = URLUtils.repoPath.appendingPathComponent("Public", conformingTo: .folder)
         myPlanets = planets
         var articles: [MyArticleModel] = []
         for planet in planets {
             articles.append(contentsOf: planet.articles)
-            let planetPublicURL = repoPath.appendingPathComponent(planet.id.uuidString)
-            let planetRootPath = "/v0/planets/my/\(planet.id.uuidString)/public"
-            server[planetRootPath] = { [weak self] r in
-                if r.method == "GET" {
-                    return self?.exposePlanetPublicContent(inDirectory: planetPublicURL.path, forRequest: r) ?? .error()
-                } else {
-                    return .error()
-                }
-            }
-            if let subpaths = FileManager.default.subpaths(atPath: planetPublicURL.path) {
-                for subpath in subpaths {
-                    let urlPath = planetRootPath + "/" + subpath
-                    let targetPath = planetPublicURL.appendingPathComponent(subpath).path
-                    server[urlPath] = { [weak self] r in
-                        if r.method == "GET" {
-                            return self?.exposePlanetPublicContent(inDirectory: targetPath, forRequest: r) ?? .error()
-                        } else {
-                            return .error()
-                        }
-                    }
-                }
-            }
         }
         myArticles = articles
         try? relaunch()
@@ -528,6 +505,32 @@ extension PlanetAPI {
         if !UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
             shutdown()
             return
+        }
+        let planets = myPlanets
+        let repoPath = URLUtils.repoPath.appendingPathComponent("Public", conformingTo: .folder)
+        for planet in planets {
+            let planetPublicURL = repoPath.appendingPathComponent(planet.id.uuidString)
+            let planetRootPath = "/v0/planets/my/\(planet.id.uuidString)/public"
+            server[planetRootPath] = { [weak self] r in
+                if r.method == "GET" {
+                    return self?.exposePlanetPublicContent(inDirectory: planetPublicURL.path, forRequest: r) ?? .error()
+                } else {
+                    return .error()
+                }
+            }
+            if let subpaths = FileManager.default.subpaths(atPath: planetPublicURL.path) {
+                for subpath in subpaths {
+                    let urlPath = planetRootPath + "/" + subpath
+                    let targetPath = planetPublicURL.appendingPathComponent(subpath).path
+                    server[urlPath] = { [weak self] r in
+                        if r.method == "GET" {
+                            return self?.exposePlanetPublicContent(inDirectory: targetPath, forRequest: r) ?? .error()
+                        } else {
+                            return .error()
+                        }
+                    }
+                }
+            }
         }
     }
 }
