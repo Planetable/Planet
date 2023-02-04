@@ -187,7 +187,7 @@ extension PlanetAPI {
 
     // MARK: GET /v0/planets/my/:uuid
     private func getPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return HttpResponse.unauthorized(nil) }
+        guard validateRequest(r) else { return .unauthorized(nil) }
         if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
             let encoder = JSONEncoder()
             do {
@@ -204,7 +204,7 @@ extension PlanetAPI {
     
     // MARK: POST /v0/planets/my/:uuid
     private func modifyPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return HttpResponse.unauthorized(nil) }
+        guard validateRequest(r) else { return .unauthorized(nil) }
         if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
             // MARK: TODO: support more planet properties.
             let params = r.parseUrlencodedForm()
