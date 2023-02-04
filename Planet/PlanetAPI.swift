@@ -321,13 +321,14 @@ extension PlanetAPI {
                     }
                     }(r)
             } else {
-                guard let file = try? filePath.openForReading() else {
-                    return .notFound()
+                let mimeType = filePath.mimeType()
+                var responseHeader: [String: String] = ["Content-Type": mimeType]
+                if let attr = try? FileManager.default.attributesOfItem(atPath: filePath), let fileSize = attr[FileAttributeKey.size] as? UInt64 {
+                    responseHeader["Content-Length"] = try? String(fileSize)
                 }
-                // MARK: TODO: write file data to body.
-                return .raw(200, "OK", [:], { writer in
-                    try? writer.write(file)
-                    file.close()
+                let data = try Data(contentsOf: URL(fileURLWithPath: filePath))
+                return .raw(200, "OK", responseHeader, { writer in
+                    try? writer.write(data)
                 })
             }
         } catch {
