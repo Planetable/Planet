@@ -271,9 +271,8 @@ extension PlanetAPI {
     }
     
     // MARK: GET /v0/planets/my/:uuid/public
-    private func exposePlanetPublicContent(inDirectory dir: String, forRequest r: HttpRequest) -> HttpResponse {
+    private func exposePlanetPublicContent(inDirectory filePath: String, forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
-        let filePath = dir
         do {
             guard try filePath.exists() else {
                 return .notFound()
@@ -288,7 +287,7 @@ extension PlanetAPI {
                                 tr {
                                     td {
                                         a {
-                                            href = r.path + "/" + file
+                                            href = URL(fileURLWithPath: r.path).appendingPathComponent(file).path
                                             inner = file
                                         }
                                     }
@@ -303,6 +302,7 @@ extension PlanetAPI {
                 if let attr = try? FileManager.default.attributesOfItem(atPath: filePath), let fileSize = attr[FileAttributeKey.size] as? UInt64 {
                     responseHeader["Content-Length"] = try? String(fileSize)
                 }
+                // MARK: TODO: handle large size data.
                 let data = try Data(contentsOf: URL(fileURLWithPath: filePath))
                 return .raw(200, "OK", responseHeader, { writer in
                     try? writer.write(data)
