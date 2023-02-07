@@ -144,6 +144,7 @@ extension PlanetAPI {
         var name: String = ""
         var about: String = ""
         var templateName: String = ""
+        // MARK: TODO: support attachment: avatar.
         for param in params {
             switch param.0 {
             case "name":
