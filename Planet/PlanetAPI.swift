@@ -8,6 +8,7 @@
 import Foundation
 import Swifter
 import KeychainSwift
+import Cocoa
 
 
 class PlanetAPI: NSObject {
@@ -140,19 +141,25 @@ extension PlanetAPI {
     // MARK: POST /v0/planets/my
     private func createPlanet(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
-        let params = r.parseUrlencodedForm()
+        let multipartDatas = r.parseMultiPartFormData()
         var name: String = ""
         var about: String = ""
         var templateName: String = ""
-        // MARK: TODO: support attachment: avatar.
-        for param in params {
-            switch param.0 {
+        var avatarImage: NSImage?
+        for multipartData in multipartDatas {
+            guard let propertyName = multipartData.name else { continue }
+            switch propertyName {
             case "name":
-                name = param.1
+                name = String(decoding: multipartData.body, as: UTF8.self)
             case "about":
-                about = param.1
+                about = String(decoding: multipartData.body, as: UTF8.self)
             case "template":
-                templateName = param.1
+                templateName = String(decoding: multipartData.body, as: UTF8.self)
+            case "avatar":
+                let data = Data(bytes: multipartData.body, count: multipartData.body.count)
+                if let image = NSImage(data: data) {
+                    avatarImage = image
+                }
             default:
                 break
             }
@@ -168,6 +175,7 @@ extension PlanetAPI {
         let planetName = name
         let planetAbout = about
         let planetTemplateName = templateName
+        let planetAvatarImage = avatarImage
         Task { @MainActor in
             do {
                 let planet = try await MyPlanetModel.create(
@@ -175,6 +183,7 @@ extension PlanetAPI {
                     about: planetAbout,
                     templateName: planetTemplateName
                 )
+                planet.avatar = planetAvatarImage
                 PlanetStore.shared.myPlanets.insert(planet, at: 0)
                 PlanetStore.shared.selectedView = .myPlanet(planet)
                 try planet.save()
