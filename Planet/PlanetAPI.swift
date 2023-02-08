@@ -146,6 +146,7 @@ extension PlanetAPI {
         var about: String = ""
         var templateName: String = ""
         var avatarImage: NSImage?
+        let supportedContentTypes: [String] = ["image/jpeg", "image/png", "image/tiff"]
         for multipartData in multipartDatas {
             guard let propertyName = multipartData.name else { continue }
             switch propertyName {
@@ -157,7 +158,7 @@ extension PlanetAPI {
                 templateName = String(decoding: multipartData.body, as: UTF8.self)
             case "avatar":
                 let data = Data(bytes: multipartData.body, count: multipartData.body.count)
-                if let image = NSImage(data: data) {
+                if let contentType = multipartData.headers["content-type"], contentType != "", supportedContentTypes.contains(contentType), let image = NSImage(data: data), image.isValid {
                     avatarImage = image
                 }
             default:
