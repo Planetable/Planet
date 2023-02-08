@@ -1024,6 +1024,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Task { @MainActor in
                 self.isPublishing = false
             }
+            if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
+                do {
+                    try PlanetAPI.shared.relaunch()
+                } catch {
+                    debugPrint("failed to relaunch server api: \(error)")
+                }
+            }
         }
         let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
         // Send the latest CID to dWebServices.xyz if enabled
