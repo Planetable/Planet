@@ -195,10 +195,6 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         attachments.contains { $0.name == name }
     }
 
-    @discardableResult func addAttachment(path: URL) throws -> Attachment {
-        try addAttachment(path: path, type: AttachmentType.from(path))
-    }
-
     @discardableResult func addAttachment(path: URL, type: AttachmentType) throws -> Attachment {
         let name = path.lastPathComponent
         let targetPath = attachmentsPath.appendingPathComponent(name, isDirectory: false)
