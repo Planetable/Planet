@@ -141,30 +141,11 @@ extension PlanetAPI {
     // MARK: POST /v0/planets/my
     private func createPlanet(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
-        let multipartDatas = r.parseMultiPartFormData()
-        var name: String = ""
-        var about: String = ""
-        var templateName: String = ""
-        var avatarImage: NSImage?
-        let supportedContentTypes: [String] = ["image/jpeg", "image/png", "image/tiff"]
-        for multipartData in multipartDatas {
-            guard let propertyName = multipartData.name else { continue }
-            switch propertyName {
-            case "name":
-                name = String(decoding: multipartData.body, as: UTF8.self)
-            case "about":
-                about = String(decoding: multipartData.body, as: UTF8.self)
-            case "template":
-                templateName = String(decoding: multipartData.body, as: UTF8.self)
-            case "avatar":
-                let data = Data(bytes: multipartData.body, count: multipartData.body.count)
-                if let contentType = multipartData.headers["content-type"], contentType != "", supportedContentTypes.contains(contentType), let image = NSImage(data: data), image.isValid {
-                    avatarImage = image
-                }
-            default:
-                break
-            }
-        }
+        let info: [String: Any] = processPlanetInfoRequest(r)
+        var name: String = info["name"] as? String ?? ""
+        var about: String = info["about"] as? String ?? ""
+        var templateName: String = info["template"] as? String ?? ""
+        var avatarImage: NSImage? = info["avatar"] as? NSImage ?? nil
         if name == "" {
             return .error("'name' is empty.")
         }
@@ -217,26 +198,11 @@ extension PlanetAPI {
     private func modifyPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
-            // MARK: TODO: support more planet properties.
-            let params = r.parseUrlencodedForm()
-            var name: String = ""
-            var about: String = ""
-            var templateName: String = ""
-            for param in params {
-                switch param.0 {
-                case "name":
-                    name = param.1
-                case "about":
-                    about = param.1
-                case "template":
-                    templateName = param.1
-                default:
-                    break
-                }
-            }
-            let planetName = name
-            let planetAbout = about
-            let planetTemplateName = templateName
+            let info: [String: Any] = processPlanetInfoRequest(r)
+            let planetName = info["name"] as? String ?? ""
+            let planetAbout = info["about"] as? String ?? ""
+            let planetTemplateName = info["template"] as? String ?? ""
+            let planetAvatarImage = info["avatar"] as? NSImage ?? nil
             Task { @MainActor in
                 if planetName != "" {
                     planet.name = planetName
@@ -246,6 +212,9 @@ extension PlanetAPI {
                 }
                 if planetTemplateName != "" {
                     planet.templateName = planetTemplateName
+                }
+                if planetAvatarImage != nil {
+                    planet.avatar = planetAvatarImage
                 }
                 do {
                     try planet.save()
@@ -510,6 +479,31 @@ extension PlanetAPI {
             }
         }
         return true
+    }
+    
+    private func processPlanetInfoRequest(_ r: HttpRequest) -> [String: Any] {
+        var info: [String: Any] = [:]
+        let multipartDatas = r.parseMultiPartFormData()
+        let supportedContentTypes: [String] = ["image/jpeg", "image/png", "image/tiff"]
+        for multipartData in multipartDatas {
+            guard let propertyName = multipartData.name else { continue }
+            switch propertyName {
+            case "name":
+                info["name"] = String(decoding: multipartData.body, as: UTF8.self)
+            case "about":
+                info["about"] = String(decoding: multipartData.body, as: UTF8.self)
+            case "template":
+                info["template"] = String(decoding: multipartData.body, as: UTF8.self)
+            case "avatar":
+                let data = Data(bytes: multipartData.body, count: multipartData.body.count)
+                if let contentType = multipartData.headers["content-type"], contentType != "", supportedContentTypes.contains(contentType), let image = NSImage(data: data), image.isValid {
+                    info["avatar"] = image
+                }
+            default:
+                break
+            }
+        }
+        return info
     }
 
     private func updateServerSettings() {
