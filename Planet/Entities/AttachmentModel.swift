@@ -7,6 +7,10 @@ enum AttachmentType: String, Codable {
     case video
     case audio
     case file
+    
+    static var supportedImageContentTypes: [String] = ["image/jpeg", "image/png", "image/tiff", "image/gif"]
+    static var supportedAudioContentTypes: [String] = ["audio/aac", "audio/mpeg", "audio/ogg", "audio/wav", "audio/webm"]
+    static var supportedVideoContentTypes: [String] = ["video/mp4", "video/mpeg", "video/ogg", "video/webm", "video/x-msvideo", "application/octet-stream"]
 
     static func from(_ path: URL) -> Self {
         if let id = try? path.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier,
@@ -25,14 +29,11 @@ enum AttachmentType: String, Codable {
     }
     
     static func fromContentType(_ contentType: String) -> Self {
-        let imageContentTypes: [String] = ["image/jpeg", "image/png", "image/tiff", "image/gif"]
-        let videoContentTypes: [String] = ["video/mp4", "video/mpeg", "video/ogg", "video/webm", "video/x-msvideo", "application/octet-stream"]
-        let audioContentTypes: [String] = ["audio/aac", "audio/mpeg", "audio/ogg", "audio/wav", "audio/webm"]
-        if imageContentTypes.contains(contentType) {
+        if self.supportedImageContentTypes.contains(contentType) {
             return .image
-        } else if audioContentTypes.contains(contentType) {
+        } else if self.supportedAudioContentTypes.contains(contentType) {
             return .audio
-        } else if videoContentTypes.contains(contentType) {
+        } else if self.supportedVideoContentTypes.contains(contentType) {
             return .video
         }
         return .file

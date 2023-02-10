@@ -395,26 +395,10 @@ extension PlanetAPI {
         else {
             return .notFound()
         }
-        // MARK: TODO: support attachments.
-        let params = r.parseUrlencodedForm()
-        var title: String = ""
-        var date: String = ""
-        var content: String = ""
-        for param in params {
-            switch param.0 {
-            case "title":
-                title = param.1
-            case "date":
-                date = param.1
-            case "content":
-                content = param.1
-            default:
-                break
-            }
-        }
-        let articleTitle = title
-        let articleDateString = date
-        let articleContent = content
+        let info: [String: Any] = processPlanetArticleRequest(r)
+        let articleTitle = info["title"] as? String ?? ""
+        let articleDateString = info["date"] as? String ?? Date().dateDescription()
+        let articleContent = info["content"] as? String ?? ""
         Task { @MainActor in
             do {
                 let draft = try DraftModel.create(from: article)
@@ -425,6 +409,21 @@ extension PlanetAPI {
                     draft.date = DateFormatter().date(from: articleDateString) ?? Date()
                 }
                 draft.content = articleContent
+                for existingAttachment in draft.attachments {
+                    draft.deleteAttachment(name: existingAttachment.name)
+                }
+                for key in info.keys {
+                    guard key.hasPrefix("attachment") else { continue }
+                    guard let attachment: [String: Any] = info[key] as? [String : Any] else { continue }
+                    guard
+                        let attachmentData = attachment["data"] as? Data,
+                        let attachmentFileName = attachment["fileName"] as? String,
+                        let attachmentContentType = attachment["contentType"] as? String
+                    else {
+                        continue
+                    }
+                    try draft.addAttachmentFromData(data: attachmentData, fileName: attachmentFileName, forContentType: attachmentContentType)
+                }
                 try draft.saveToArticle()
             } catch {
                 debugPrint("failed to modify article for planet: \(planet), error: \(error)")
@@ -529,7 +528,7 @@ extension PlanetAPI {
     private func processPlanetArticleRequest(_ r: HttpRequest) -> [String: Any] {
         var info: [String: Any] = [:]
         let multipartDatas = r.parseMultiPartFormData()
-        let supportedContentTypes: [String] = ["image/jpeg", "image/png", "image/tiff", "image/gif", "audio/aac", "audio/mpeg", "audio/ogg", "audio/wav", "audio/webm", "video/mp4", "video/mpeg", "video/ogg", "video/webm", "video/x-msvideo", "application/octet-stream"]
+        let supportedContentTypes: [String] = AttachmentType.supportedImageContentTypes + AttachmentType.supportedAudioContentTypes + AttachmentType.supportedVideoContentTypes
         for multipartData in multipartDatas {
             guard let propertyName = multipartData.name else { continue }
             switch propertyName {
