@@ -23,6 +23,20 @@ enum AttachmentType: String, Codable {
         }
         return .file
     }
+    
+    static func fromContentType(_ contentType: String) -> Self {
+        let imageContentTypes: [String] = ["image/jpeg", "image/png", "image/tiff", "image/gif"]
+        let videoContentTypes: [String] = ["video/mp4", "video/mpeg", "video/ogg", "video/webm", "video/x-msvideo", "application/octet-stream"]
+        let audioContentTypes: [String] = ["audio/aac", "audio/mpeg", "audio/ogg", "audio/wav", "audio/webm"]
+        if imageContentTypes.contains(contentType) {
+            return .image
+        } else if audioContentTypes.contains(contentType) {
+            return .audio
+        } else if videoContentTypes.contains(contentType) {
+            return .video
+        }
+        return .file
+    }
 }
 
 class Attachment: Codable, Equatable, Hashable, ObservableObject {

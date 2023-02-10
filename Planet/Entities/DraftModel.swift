@@ -214,6 +214,25 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         attachment.loadThumbnail()
         return attachment
     }
+    
+    @discardableResult func addAttachmentFromData(data: Data, fileName: String, forContentType contentType: String) throws -> Attachment {
+        let targetPath = attachmentsPath.appendingPathComponent(fileName, isDirectory: false)
+        if FileManager.default.fileExists(atPath: targetPath.path) {
+            try FileManager.default.removeItem(at: targetPath)
+        }
+        try data.write(to: targetPath, options: .atomic)
+        let type = AttachmentType.fromContentType(contentType)
+        if type == .video {
+            attachments.removeAll { $0.type == .video || $0.name == fileName }
+        } else {
+            attachments.removeAll { $0.name == fileName }
+        }
+        let attachment = Attachment(name: fileName, type: type)
+        attachment.draft = self
+        attachments.append(attachment)
+        attachment.loadThumbnail()
+        return attachment
+    }
 
     func deleteAttachment(name: String) {
         if let attachment = attachments.first(where: { $0.name == name }) {

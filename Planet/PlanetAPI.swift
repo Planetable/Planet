@@ -142,10 +142,10 @@ extension PlanetAPI {
     private func createPlanet(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         let info: [String: Any] = processPlanetInfoRequest(r)
-        var name: String = info["name"] as? String ?? ""
-        var about: String = info["about"] as? String ?? ""
+        let name: String = info["name"] as? String ?? ""
+        let about: String = info["about"] as? String ?? ""
         var templateName: String = info["template"] as? String ?? ""
-        var avatarImage: NSImage? = info["avatar"] as? NSImage ?? nil
+        let avatarImage: NSImage? = info["avatar"] as? NSImage ?? nil
         if name == "" {
             return .error("'name' is empty.")
         }
@@ -180,74 +180,80 @@ extension PlanetAPI {
     // MARK: GET /v0/planets/my/:uuid
     private func getPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
-        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
-            let encoder = JSONEncoder()
-            do {
-                let data = try encoder.encode(planet)
-                let jsonObject = try JSONSerialization.jsonObject(with: data)
-                return .ok(.json(jsonObject))
-            } catch {
-                return .error(error.localizedDescription)
-            }
-        } else {
+        guard
+            let uuid = planetUUIDFromRequest(r),
+            let planet = myPlanets.first(where: { $0.id == uuid })
+        else {
             return .notFound()
+        }
+        let encoder = JSONEncoder()
+        do {
+            let data = try encoder.encode(planet)
+            let jsonObject = try JSONSerialization.jsonObject(with: data)
+            return .ok(.json(jsonObject))
+        } catch {
+            return .error(error.localizedDescription)
         }
     }
     
     // MARK: POST /v0/planets/my/:uuid
     private func modifyPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
-        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
-            let info: [String: Any] = processPlanetInfoRequest(r)
-            let planetName = info["name"] as? String ?? ""
-            let planetAbout = info["about"] as? String ?? ""
-            let planetTemplateName = info["template"] as? String ?? ""
-            let planetAvatarImage = info["avatar"] as? NSImage ?? nil
-            Task { @MainActor in
-                if planetName != "" {
-                    planet.name = planetName
-                }
-                if planetAbout != "" {
-                    planet.about = planetAbout
-                }
-                if planetTemplateName != "" {
-                    planet.templateName = planetTemplateName
-                }
-                if planetAvatarImage != nil {
-                    planet.avatar = planetAvatarImage
-                }
-                do {
-                    try planet.save()
-                    try planet.copyTemplateAssets()
-                    try planet.articles.forEach { try $0.savePublic() }
-                    try planet.savePublic()
-                    NotificationCenter.default.post(name: .loadArticle, object: nil)
-                    try await planet.publish()
-                } catch {
-                    debugPrint("failed to modify planet info: \(planet), error: \(error)")
-                }
-            }
-            return .success()
-        } else {
+        guard
+            let uuid = planetUUIDFromRequest(r),
+            let planet = myPlanets.first(where: { $0.id == uuid })
+        else {
             return .notFound()
         }
+        let info: [String: Any] = processPlanetInfoRequest(r)
+        let planetName = info["name"] as? String ?? ""
+        let planetAbout = info["about"] as? String ?? ""
+        let planetTemplateName = info["template"] as? String ?? ""
+        let planetAvatarImage = info["avatar"] as? NSImage ?? nil
+        Task { @MainActor in
+            if planetName != "" {
+                planet.name = planetName
+            }
+            if planetAbout != "" {
+                planet.about = planetAbout
+            }
+            if planetTemplateName != "" {
+                planet.templateName = planetTemplateName
+            }
+            if planetAvatarImage != nil {
+                planet.avatar = planetAvatarImage
+            }
+            do {
+                try planet.save()
+                try planet.copyTemplateAssets()
+                try planet.articles.forEach { try $0.savePublic() }
+                try planet.savePublic()
+                NotificationCenter.default.post(name: .loadArticle, object: nil)
+                try await planet.publish()
+            } catch {
+                debugPrint("failed to modify planet info: \(planet), error: \(error)")
+            }
+        }
+        return .success()
     }
     
     // MARK: POST /v0/planets/my/:uuid/publish
     private func publishPlanet(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
-        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
-            Task {
-                do {
-                    try await planet.publish()
-                } catch {
-                    debugPrint("failed to publish planet: \(planet), error: \(error)")
-                }
-            }
-            return .success()
-        } else {
+        guard
+            let uuid = planetUUIDFromRequest(r),
+            let planet = myPlanets.first(where: { $0.id == uuid })
+        else {
             return .notFound()
         }
+        Task {
+            do {
+                try await planet.publish()
+            } catch {
+                debugPrint("failed to publish planet: \(planet), error: \(error)")
+            }
+        }
+        return .success()
     }
     
     // MARK: GET /v0/planets/my/:uuid/public
@@ -289,70 +295,73 @@ extension PlanetAPI {
                 })
             }
         } catch {
-            return HttpResponse.internalServerError(.text("Internal Server Error"))
+            return .error(error.localizedDescription)
         }
     }
     
     // MARK: GET /v0/planets/my/:uuid/articles
     private func getPlanetArticles(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
-        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
-            let encoder = JSONEncoder()
-            do {
-                let data = try encoder.encode(planet.articles)
-                let jsonObject = try JSONSerialization.jsonObject(with: data)
-                return .ok(.json(jsonObject))
-            } catch {
-                return .error(error.localizedDescription)
-            }
-        } else {
+        guard
+            let uuid = planetUUIDFromRequest(r),
+                let planet = myPlanets.first(where: { $0.id == uuid })
+        else {
             return .notFound()
+        }
+        let encoder = JSONEncoder()
+        do {
+            let data = try encoder.encode(planet.articles)
+            let jsonObject = try JSONSerialization.jsonObject(with: data)
+            return .ok(.json(jsonObject))
+        } catch {
+            return .error(error.localizedDescription)
         }
     }
     
     // MARK: POST /v0/planets/my/:uuid/articles
     private func createPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
-        if let uuid = planetUUIDFromRequest(r), let planet = myPlanets.first(where: { $0.id == uuid }) {
-            // MARK: TODO: support attachments.
-            let params = r.parseUrlencodedForm()
-            var title: String = ""
-            var date: String = ""
-            var content: String = ""
-            for param in params {
-                switch param.0 {
-                case "title":
-                    title = param.1
-                case "date":
-                    date = param.1
-                case "content":
-                    content = param.1
-                default:
-                    break
-                }
-            }
-            let articleTitle = title
-            let articleDateString = date
-            let articleContent = content
-            Task { @MainActor in
-                do {
-                    let draft = try DraftModel.create(for: planet)
-                    draft.title = articleTitle
-                    if articleDateString == "" {
-                        draft.date = Date()
-                    } else {
-                        draft.date = DateFormatter().date(from: articleDateString) ?? Date()
-                    }
-                    draft.content = articleContent
-                    try draft.saveToArticle()
-                } catch {
-                    debugPrint("failed to create article for planet: \(planet), error: \(error)")
-                }
-            }
-            return .success()
-        } else {
+        guard
+            let uuid = planetUUIDFromRequest(r),
+            let planet = myPlanets.first(where: { $0.id == uuid })
+        else {
             return .notFound()
         }
+        let info: [String: Any] = processPlanetArticleRequest(r)
+        let articleTitle = info["title"] as? String ?? ""
+        let articleDateString = info["date"] as? String ?? Date().dateDescription()
+        let articleContent = info["content"] as? String ?? ""
+        if articleTitle == "" {
+            return .error("'title' is empty.")
+        }
+        Task { @MainActor in
+            do {
+                let draft = try DraftModel.create(for: planet)
+                draft.title = articleTitle
+                if articleDateString == "" {
+                    draft.date = Date()
+                } else {
+                    draft.date = DateFormatter().date(from: articleDateString) ?? Date()
+                }
+                draft.content = articleContent
+                for key in info.keys {
+                    guard key.hasPrefix("attachment") else { continue }
+                    guard let attachment: [String: Any] = info[key] as? [String : Any] else { continue }
+                    guard
+                        let attachmentData = attachment["data"] as? Data,
+                        let attachmentFileName = attachment["fileName"] as? String,
+                        let attachmentContentType = attachment["contentType"] as? String
+                    else {
+                        continue
+                    }
+                    try draft.addAttachmentFromData(data: attachmentData, fileName: attachmentFileName, forContentType: attachmentContentType)
+                }
+                try draft.saveToArticle()
+            } catch {
+                debugPrint("failed to create article for planet: \(planet), error: \(error)")
+            }
+        }
+        return .success()
     }
     
     // MARK: GET /v0/planets/my/:uuid/articles/:uuid
@@ -378,47 +387,50 @@ extension PlanetAPI {
     private func modifyPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         let results = planetUUIDAndArticleUUIDFromRequest(r)
-        if let planetUUID = results.0, let articleUUID = results.1 {
-            if let planet = myPlanets.first(where: { $0.id == planetUUID }), let article = planet.articles.first(where: { $0.id == articleUUID }) {
-                // MARK: TODO: support attachments.
-                let params = r.parseUrlencodedForm()
-                var title: String = ""
-                var date: String = ""
-                var content: String = ""
-                for param in params {
-                    switch param.0 {
-                    case "title":
-                        title = param.1
-                    case "date":
-                        date = param.1
-                    case "content":
-                        content = param.1
-                    default:
-                        break
-                    }
-                }
-                let articleTitle = title
-                let articleDateString = date
-                let articleContent = content
-                Task { @MainActor in
-                    do {
-                        let draft = try DraftModel.create(from: article)
-                        draft.title = articleTitle
-                        if articleDateString == "" {
-                            draft.date = Date()
-                        } else {
-                            draft.date = DateFormatter().date(from: articleDateString) ?? Date()
-                        }
-                        draft.content = articleContent
-                        try draft.saveToArticle()
-                    } catch {
-                        debugPrint("failed to modify article for planet: \(planet), error: \(error)")
-                    }
-                }
-                return .success()
+        guard
+            let planetUUID = results.0,
+            let articleUUID = results.1,
+            let planet = myPlanets.first(where: { $0.id == planetUUID }),
+            let article = planet.articles.first(where: { $0.id == articleUUID })
+        else {
+            return .notFound()
+        }
+        // MARK: TODO: support attachments.
+        let params = r.parseUrlencodedForm()
+        var title: String = ""
+        var date: String = ""
+        var content: String = ""
+        for param in params {
+            switch param.0 {
+            case "title":
+                title = param.1
+            case "date":
+                date = param.1
+            case "content":
+                content = param.1
+            default:
+                break
             }
         }
-        return .notFound()
+        let articleTitle = title
+        let articleDateString = date
+        let articleContent = content
+        Task { @MainActor in
+            do {
+                let draft = try DraftModel.create(from: article)
+                draft.title = articleTitle
+                if articleDateString == "" {
+                    draft.date = Date()
+                } else {
+                    draft.date = DateFormatter().date(from: articleDateString) ?? Date()
+                }
+                draft.content = articleContent
+                try draft.saveToArticle()
+            } catch {
+                debugPrint("failed to modify article for planet: \(planet), error: \(error)")
+            }
+        }
+        return .success()
     }
     
     // MARK: DELETE /v0/planets/my/:uuid/articles/:uuid
@@ -458,12 +470,24 @@ extension PlanetAPI {
 
 extension PlanetAPI {
     private func planetUUIDFromRequest(_ r: HttpRequest) -> UUID? {
-        guard let uuidString = r.params[":a"], let uuid = UUID(uuidString: uuidString) else { return nil }
+        guard
+            let uuidString = r.params[":a"],
+            let uuid = UUID(uuidString: uuidString)
+        else {
+            return nil
+        }
         return uuid
     }
     
     private func planetUUIDAndArticleUUIDFromRequest(_ r: HttpRequest) -> (UUID?, UUID?) {
-        guard let planetUUIDString = r.params[":a"], let planetUUID = UUID(uuidString: planetUUIDString), let articleUUIDString = r.params[":b"], let articleUUID = UUID(uuidString: articleUUIDString) else { return (nil, nil) }
+        guard
+            let planetUUIDString = r.params[":a"],
+            let planetUUID = UUID(uuidString: planetUUIDString),
+            let articleUUIDString = r.params[":b"],
+            let articleUUID = UUID(uuidString: articleUUIDString)
+        else {
+            return (nil, nil)
+        }
         return (planetUUID, articleUUID)
     }
     
@@ -488,16 +512,44 @@ extension PlanetAPI {
         for multipartData in multipartDatas {
             guard let propertyName = multipartData.name else { continue }
             switch propertyName {
-            case "name":
-                info["name"] = String(decoding: multipartData.body, as: UTF8.self)
-            case "about":
-                info["about"] = String(decoding: multipartData.body, as: UTF8.self)
-            case "template":
-                info["template"] = String(decoding: multipartData.body, as: UTF8.self)
+            case "name", "about", "template":
+                info[propertyName] = String(decoding: multipartData.body, as: UTF8.self)
             case "avatar":
                 let data = Data(bytes: multipartData.body, count: multipartData.body.count)
-                if let contentType = multipartData.headers["content-type"], contentType != "", supportedContentTypes.contains(contentType), let image = NSImage(data: data), image.isValid {
+                if let contentType = multipartData.headers["content-type"], supportedContentTypes.contains(contentType), let image = NSImage(data: data), image.isValid {
                     info["avatar"] = image
+                }
+            default:
+                break
+            }
+        }
+        return info
+    }
+    
+    private func processPlanetArticleRequest(_ r: HttpRequest) -> [String: Any] {
+        var info: [String: Any] = [:]
+        let multipartDatas = r.parseMultiPartFormData()
+        let supportedContentTypes: [String] = ["image/jpeg", "image/png", "image/tiff", "image/gif", "audio/aac", "audio/mpeg", "audio/ogg", "audio/wav", "audio/webm", "video/mp4", "video/mpeg", "video/ogg", "video/webm", "video/x-msvideo", "application/octet-stream"]
+        for multipartData in multipartDatas {
+            guard let propertyName = multipartData.name else { continue }
+            switch propertyName {
+            case "title", "date", "content":
+                info[propertyName] = String(decoding: multipartData.body, as: UTF8.self)
+            case "attachment":
+                let data = Data(bytes: multipartData.body, count: multipartData.body.count)
+                if let fileName = multipartData.fileName, data.count > 0, let contentType = multipartData.headers["content-type"], supportedContentTypes.contains(contentType) {
+                    let attachmentData: [String: Any] = ["data": data, "fileName": fileName, "contentType": contentType]
+                    if info[propertyName] == nil {
+                        info[propertyName] = attachmentData
+                    } else {
+                        var index: Int = 1
+                        var keyName = propertyName + "-" + String(index)
+                        while info[keyName] != nil {
+                            index += 1
+                            keyName = propertyName + "-" + String(index)
+                        }
+                        info[keyName] = attachmentData
+                    }
                 }
             default:
                 break
