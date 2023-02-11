@@ -146,7 +146,7 @@ extension PlanetAPI {
         let about: String = info["about"] as? String ?? ""
         var templateName: String = info["template"] as? String ?? ""
         let avatarImage: NSImage? = info["avatar"] as? NSImage ?? nil
-        if name == "" {
+        if name == "" || name == " " {
             return .error("'name' is empty.")
         }
         if !TemplateStore.shared.templates.contains(where: { t in
@@ -331,7 +331,7 @@ extension PlanetAPI {
         let articleTitle = info["title"] as? String ?? ""
         let articleDateString = info["date"] as? String ?? Date().dateDescription()
         let articleContent = info["content"] as? String ?? ""
-        if articleTitle == "" {
+        if articleTitle == "" || articleTitle == " " {
             return .error("'title' is empty.")
         }
         Task { @MainActor in
@@ -403,7 +403,7 @@ extension PlanetAPI {
             do {
                 let draft = try DraftModel.create(from: article)
                 draft.title = articleTitle
-                if articleDateString == "" {
+                if articleDateString == "" || articleDateString == " " {
                     draft.date = Date()
                 } else {
                     draft.date = DateFormatter().date(from: articleDateString) ?? Date()
