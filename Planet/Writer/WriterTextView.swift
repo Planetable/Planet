@@ -219,7 +219,7 @@ class WriterEditorTextView: NSTextView {
     override func draggingEnded(_ sender: NSDraggingInfo) {
         guard urls.count > 0 else { return }
         urls.forEach { url in
-            if let attachment = try? draft.addAttachment(path: url),
+            if let attachment = try? draft.addAttachment(path: url, type: AttachmentType.from(url)),
                let markdown = attachment.markdown {
                 NotificationCenter.default.post(
                     name: .writerNotification(.insertText, for: attachment.draft),

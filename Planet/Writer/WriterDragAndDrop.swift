@@ -28,7 +28,7 @@ class WriterDragAndDrop: ObservableObject, DropDelegate {
                    let data = item as? Data,
                    let path = URL(dataRepresentation: data, relativeTo: nil),
                    supportedExtensions.contains(path.pathExtension) {
-                    try draft.addAttachment(path: path)
+                    try draft.addAttachment(path: path, type: AttachmentType.from(path))
                 }
                 try draft.save()
             }
