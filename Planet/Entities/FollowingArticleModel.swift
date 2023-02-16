@@ -165,7 +165,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, summary, created, read, starred, videoFilename, audioFilename, attachments
+        case id, link, title, content, summary, created, read, starred, starType, videoFilename, audioFilename, attachments
     }
 
     required init(from decoder: Decoder) throws {
@@ -178,6 +178,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         let created = try container.decode(Date.self, forKey: .created)
         read = try container.decodeIfPresent(Date.self, forKey: .read)
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
+        let starType: ArticleStarType = try container.decodeIfPresent(ArticleStarType.self, forKey: .starType) ?? .star
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
         let audioFilename = try container.decodeIfPresent(String.self, forKey: .audioFilename)
         let attachments = try container.decodeIfPresent([String].self, forKey: .attachments)
@@ -194,6 +195,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         try container.encode(created, forKey: .created)
         try container.encodeIfPresent(read, forKey: .read)
         try container.encodeIfPresent(starred, forKey: .starred)
+        try container.encodeIfPresent(starType, forKey: .starType)
         try container.encodeIfPresent(videoFilename, forKey: .videoFilename)
         try container.encodeIfPresent(audioFilename, forKey: .audioFilename)
         try container.encodeIfPresent(attachments, forKey: .attachments)
@@ -207,6 +209,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         created: Date,
         read: Date?,
         starred: Date?,
+        starType: ArticleStarType = .star,
         videoFilename: String?,
         audioFilename: String?,
         attachments: [String]?
@@ -214,7 +217,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         self.link = link
         self.read = read
         self.summary = FollowingArticleModel.extractSummary(content: content)
-        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename, attachments: attachments)
+        super.init(id: id, title: title, content: content, created: created, starred: starred, starType: starType, videoFilename: videoFilename, audioFilename: audioFilename, attachments: attachments)
     }
 
     static func load(from filePath: URL, planet: FollowingPlanetModel) throws -> FollowingArticleModel {
@@ -255,6 +258,7 @@ class FollowingArticleModel: ArticleModel, Codable {
             created: publicArticle.created,
             read: nil,
             starred: nil,
+            starType: .star,
             videoFilename: publicArticle.videoFilename,
             audioFilename: publicArticle.audioFilename,
             attachments: publicArticle.attachments

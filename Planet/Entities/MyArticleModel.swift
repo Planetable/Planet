@@ -53,7 +53,7 @@ class MyArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, summary, created, starred, videoFilename, audioFilename, attachments
+        case id, link, title, content, summary, created, starred, starType, videoFilename, audioFilename, attachments
     }
 
     required init(from decoder: Decoder) throws {
@@ -65,6 +65,7 @@ class MyArticleModel: ArticleModel, Codable {
         summary = try container.decodeIfPresent(String.self, forKey: .summary)
         let created = try container.decode(Date.self, forKey: .created)
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
+        let starType: ArticleStarType = try container.decodeIfPresent(ArticleStarType.self, forKey: .starType) ?? .star
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
         let audioFilename = try container.decodeIfPresent(String.self, forKey: .audioFilename)
         let attachments = try container.decodeIfPresent([String].self, forKey: .attachments)
@@ -73,6 +74,7 @@ class MyArticleModel: ArticleModel, Codable {
                    content: content,
                    created: created,
                    starred: starred,
+                   starType: starType,
                    videoFilename: videoFilename,
                    audioFilename: audioFilename,
                    attachments: attachments)
@@ -87,15 +89,16 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encode(summary, forKey: .summary)
         try container.encode(created, forKey: .created)
         try container.encodeIfPresent(starred, forKey: .starred)
+        try container.encodeIfPresent(starType, forKey: .starType)
         try container.encodeIfPresent(videoFilename, forKey: .videoFilename)
         try container.encodeIfPresent(audioFilename, forKey: .audioFilename)
         try container.encodeIfPresent(attachments, forKey: .attachments)
     }
 
-    init(id: UUID, link: String, title: String, content: String, summary: String?, created: Date, starred: Date?, videoFilename: String?, audioFilename: String?, attachments: [String]?) {
+    init(id: UUID, link: String, title: String, content: String, summary: String?, created: Date, starred: Date?, starType: ArticleStarType, videoFilename: String?, audioFilename: String?, attachments: [String]?) {
         self.link = link
         self.summary = summary
-        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename, attachments: attachments)
+        super.init(id: id, title: title, content: content, created: created, starred: starred, starType: starType, videoFilename: videoFilename, audioFilename: audioFilename, attachments: attachments)
     }
 
     static func load(from filePath: URL, planet: MyPlanetModel) throws -> MyArticleModel {
@@ -126,6 +129,7 @@ class MyArticleModel: ArticleModel, Codable {
             summary: summary,
             created: date,
             starred: nil,
+            starType: .star,
             videoFilename: nil,
             audioFilename: nil,
             attachments: nil
@@ -308,6 +312,7 @@ extension MyArticleModel {
             summary: "This is an example article.",
             created: Date(),
             starred: nil,
+            starType: .star,
             videoFilename: nil,
             audioFilename: nil,
             attachments: nil
@@ -321,6 +326,8 @@ struct BackupArticleModel: Codable {
     let title: String
     let content: String
     let summary: String?
+    let starred: Date?
+    let starType: ArticleStarType
     let created: Date
     let videoFilename: String?
     let audioFilename: String?

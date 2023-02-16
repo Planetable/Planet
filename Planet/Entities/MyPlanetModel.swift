@@ -720,6 +720,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     summary: backupArticle.summary,
                     created: backupArticle.created,
                     starred: nil,
+                    starType: backupArticle.starType,
                     videoFilename: backupArticle.videoFilename,
                     audioFilename: backupArticle.audioFilename,
                     attachments: backupArticle.attachments
@@ -1156,6 +1157,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     title: $0.title,
                     content: $0.content,
                     summary: $0.summary,
+                    starred: $0.starred,
+                    starType: $0.starType,
                     created: $0.created,
                     videoFilename: $0.videoFilename,
                     audioFilename: $0.audioFilename,

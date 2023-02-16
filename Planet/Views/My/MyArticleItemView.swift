@@ -8,11 +8,9 @@ struct MyArticleItemView: View {
     var body: some View {
         HStack {
             VStack {
-                Image(systemName: "star.fill")
-                    .renderingMode(.original)
-                    .frame(width: 8, height: 8)
-                    .padding(.all, 4)
-                    .visibility(article.starred == nil ? .invisible : .visible)
+                if article.starred != nil {
+                    article.starView()
+                }
                 Spacer()
             }
             VStack(alignment: .leading, spacing: 4) {
@@ -82,6 +80,55 @@ struct MyArticleItemView: View {
                     isShowingDeleteConfirmation = true
                 } label: {
                     Text("Delete Article")
+                }
+                if article.starred != nil {
+                    Menu("Set Article Star Type") {
+                        Button {
+                            article.starType = .star
+                            try? article.save()
+                        } label: {
+                            HStack {
+                                Image(systemName: "star.fill")
+                                Text("Star")
+                            }
+                        }
+                        Button {
+                            article.starType = .done
+                            try? article.save()
+                        } label: {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                Text("Done")
+                            }
+                        }
+                        Button {
+                            article.starType = .sparkles
+                            try? article.save()
+                        } label: {
+                            HStack {
+                                Image(systemName: "sparkles")
+                                Text("Sparkles")
+                            }
+                        }
+                        Button {
+                            article.starType = .question
+                            try? article.save()
+                        } label: {
+                            HStack {
+                                Image(systemName: "questionmark.circle.fill")
+                                Text("Question")
+                            }
+                        }
+                        Button {
+                            article.starType = .paperplane
+                            try? article.save()
+                        } label: {
+                            HStack {
+                                Image(systemName: "paperplane.circle.fill")
+                                Text("Paperplane")
+                            }
+                        }
+                    }
                 }
                 Button {
                     if article.starred == nil {

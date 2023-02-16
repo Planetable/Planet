@@ -82,6 +82,7 @@ class PlanetArticle: NSManagedObject {
             summary: articleSummary,
             created: articleCreated,
             starred: articleStarred,
+            starType: .star,
             videoFilename: nil,
             audioFilename: nil,
             attachments: nil
