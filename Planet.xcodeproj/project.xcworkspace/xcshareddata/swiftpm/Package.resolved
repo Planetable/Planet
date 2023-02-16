@@ -42,7 +42,7 @@
       "location" : "https://github.com/Planetable/ENSKit",
       "state" : {
         "branch" : "main",
-        "revision" : "d366b3268c9617c163bd8c48489674e2d62495cd"
+        "revision" : "5150a8dbc868d0af681c53b20c96f274ffde5ea7"
       }
     },
     {
@@ -87,7 +87,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "23e29d71e2ff45f50ac7419d43ac8a2f7a42fdbc"
+        "revision" : "1bfd9013c14ee6164fe67fab67e1d5bd22df861e"
       }
     },
     {
@@ -95,8 +95,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mxcl/PromiseKit.git",
       "state" : {
-        "revision" : "065a93d0077d54710c03e9d738e4d3998615fe82",
-        "version" : "6.20.0"
+        "revision" : "5b90042bb419e6f3b1719c973f37e1eab46ce991",
+        "version" : "6.21.0"
       }
     },
     {
@@ -113,8 +113,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sparkle-project/Sparkle",
       "state" : {
-        "revision" : "9d85a02fe7916caa7531847452c4933d331503a5",
-        "version" : "2.3.1"
+        "revision" : "dda155c7d3ef38c53d29f8584cb2aad2a1a54dba",
+        "version" : "2.3.2"
       }
     },
     {
@@ -204,7 +204,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "a3422611aae60de03ef97a5a73799338b25997b5"
+        "revision" : "a11d26ce67b422f05505f38584445f16c3510985"
       }
     },
     {
