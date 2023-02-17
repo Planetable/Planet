@@ -112,6 +112,15 @@ struct FollowingArticleItemView: View {
                             }
                         }
                         Button {
+                            article.starType = .heart
+                            try? article.save()
+                        } label: {
+                            HStack {
+                                Image(systemName: "heart.fill")
+                                Text("Heart")
+                            }
+                        }
+                        Button {
                             article.starType = .question
                             try? article.save()
                         } label: {
