@@ -91,6 +91,25 @@ struct MyArticleItemView: View {
                                 Text("Star")
                             }
                         }
+                        Divider()
+                        Button {
+                            article.starType = .plan
+                            try? article.save()
+                        } label: {
+                            HStack {
+                                Image(systemName: "circle.dotted")
+                                Text("Plan")
+                            }
+                        }
+                        Button {
+                            article.starType = .todo
+                            try? article.save()
+                        } label: {
+                            HStack {
+                                Image(systemName: "circle")
+                                Text("To Do")
+                            }
+                        }
                         Button {
                             article.starType = .done
                             try? article.save()
@@ -100,6 +119,7 @@ struct MyArticleItemView: View {
                                 Text("Done")
                             }
                         }
+                        Divider()
                         Button {
                             article.starType = .sparkles
                             try? article.save()

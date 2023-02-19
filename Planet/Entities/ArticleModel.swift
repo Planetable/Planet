@@ -8,6 +8,8 @@ enum ArticleStarType: Int, Codable {
     case heart = 3 // a red heart.fill
     case question = 4 // an orange questionmark.circle.fill
     case paperplane = 5 // a blue paperplane.circle.fill
+    case todo = 6 // a secondary color circle
+    case plan = 7 // a secondary color circle.dotted
 }
 
 class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
@@ -74,6 +76,18 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
         case .star:
             Image(systemName: "star.fill")
                 .renderingMode(.original)
+                .frame(width: 8, height: 8)
+                .padding(.all, 4)
+        case .plan:
+            Image(systemName: "circle.dotted")
+                .renderingMode(.original)
+                .foregroundColor(.secondary)
+                .frame(width: 8, height: 8)
+                .padding(.all, 4)
+        case .todo:
+            Image(systemName: "circle")
+                .renderingMode(.original)
+                .foregroundColor(.secondary)
                 .frame(width: 8, height: 8)
                 .padding(.all, 4)
         case .done:
