@@ -8,9 +8,8 @@ struct MyArticleItemView: View {
     var body: some View {
         HStack {
             VStack {
-                if article.starred != nil {
-                    article.starView()
-                }
+                article.starView()
+                    .visibility(article.starred != nil ? .visible : .invisible)
                 Spacer()
             }
             VStack(alignment: .leading, spacing: 4) {
