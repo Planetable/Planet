@@ -165,11 +165,13 @@ extension PlanetAPI {
                     about: planetAbout,
                     templateName: planetTemplateName
                 )
-                planet.avatar = planetAvatarImage
-                PlanetStore.shared.myPlanets.insert(planet, at: 0)
-                PlanetStore.shared.selectedView = .myPlanet(planet)
+                if let planetAvatarImage {
+                    try planet.uploadAvatar(image: planetAvatarImage)
+                }
                 try planet.save()
                 try planet.savePublic()
+                PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                PlanetStore.shared.selectedView = .myPlanet(planet)
             } catch {
                 PlanetStore.shared.alert(title: "Failed to create planet")
             }
@@ -220,10 +222,10 @@ extension PlanetAPI {
             if planetTemplateName != "" {
                 planet.templateName = planetTemplateName
             }
-            if planetAvatarImage != nil {
-                planet.avatar = planetAvatarImage
-            }
             do {
+                if let planetAvatarImage {
+                    try planet.uploadAvatar(image: planetAvatarImage)
+                }
                 try planet.save()
                 try planet.copyTemplateAssets()
                 try planet.articles.forEach { try $0.savePublic() }
