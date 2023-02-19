@@ -80,14 +80,12 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
                 .padding(.all, 4)
         case .plan:
             Image(systemName: "circle.dotted")
-                .renderingMode(.original)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(NSColor.tertiaryLabelColor))
                 .frame(width: 8, height: 8)
                 .padding(.all, 4)
         case .todo:
             Image(systemName: "circle")
-                .renderingMode(.original)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(NSColor.tertiaryLabelColor))
                 .frame(width: 8, height: 8)
                 .padding(.all, 4)
         case .done:
