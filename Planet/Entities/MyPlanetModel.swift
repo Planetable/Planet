@@ -793,6 +793,25 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         avatar = resizedImage
     }
+    
+    func uploadAvatar(image: NSImage) throws {
+        guard
+            let resizedImage = image.resizeSquare(maxLength: 144),
+            let data = resizedImage.PNGData
+        else {
+            throw PlanetError.AvatarError
+        }
+        try data.write(to: avatarPath)
+        try data.write(to: publicAvatarPath)
+        // write 32x32 favicon.ico
+        if let resizedIcon = image.resizeSquare(maxLength: 32),
+            let iconData = resizedIcon.PNGData
+        {
+            try iconData.write(to: faviconPath)
+            try iconData.write(to: publicFaviconPath)
+        }
+        avatar = resizedImage
+    }
 
     func removeAvatar() throws {
         try FileManager.default.removeItem(at: avatarPath)

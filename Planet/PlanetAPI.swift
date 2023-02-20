@@ -165,11 +165,13 @@ extension PlanetAPI {
                     about: planetAbout,
                     templateName: planetTemplateName
                 )
-                planet.avatar = planetAvatarImage
-                PlanetStore.shared.myPlanets.insert(planet, at: 0)
-                PlanetStore.shared.selectedView = .myPlanet(planet)
+                if let planetAvatarImage {
+                    try planet.uploadAvatar(image: planetAvatarImage)
+                }
                 try planet.save()
                 try planet.savePublic()
+                PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                PlanetStore.shared.selectedView = .myPlanet(planet)
             } catch {
                 PlanetStore.shared.alert(title: "Failed to create planet")
             }
@@ -220,10 +222,10 @@ extension PlanetAPI {
             if planetTemplateName != "" {
                 planet.templateName = planetTemplateName
             }
-            if planetAvatarImage != nil {
-                planet.avatar = planetAvatarImage
-            }
             do {
+                if let planetAvatarImage {
+                    try planet.uploadAvatar(image: planetAvatarImage)
+                }
                 try planet.save()
                 try planet.copyTemplateAssets()
                 try planet.articles.forEach { try $0.savePublic() }
@@ -285,11 +287,9 @@ extension PlanetAPI {
             } else {
                 let mimeType = filePath.mimeType()
                 var responseHeader: [String: String] = ["Content-Type": mimeType]
-                if let attr = try? FileManager.default.attributesOfItem(atPath: filePath), let fileSize = attr[FileAttributeKey.size] as? UInt64 {
-                    responseHeader["Content-Length"] = try? String(fileSize)
-                }
                 // MARK: TODO: handle large size data.
                 let data = try Data(contentsOf: URL(fileURLWithPath: filePath))
+                responseHeader["Content-Length"] = String(data.count)
                 return .raw(200, "OK", responseHeader, { writer in
                     try? writer.write(data)
                 })
