@@ -35,6 +35,10 @@ struct FollowingPlanetInfoView: View {
 
                 Spacer()
 
+                planet.socialViews()
+
+                Divider()
+
                 HStack {
                     Button {
                         isSharing = true
@@ -42,6 +46,7 @@ struct FollowingPlanetInfoView: View {
                         Text("Share")
                     }
                 }
+                .padding(10)
             }
             .background(
                 SharingServicePicker(isPresented: $isSharing, sharingItems: [planet.shareLink])
@@ -67,10 +72,10 @@ struct FollowingPlanetInfoView: View {
                     .keyboardShortcut(.cancelAction)
                 }
                 Spacer()
-            }
+            }.padding(10)
         }
-        .padding()
-        .frame(width: 320, height: 260, alignment: .center)
+        .padding(0)
+        .frame(width: 320, height: 360, alignment: .center)
     }
 
     private func lastUpdatedText() -> String {

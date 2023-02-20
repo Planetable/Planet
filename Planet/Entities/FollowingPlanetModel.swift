@@ -41,6 +41,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     @Published var articles: [FollowingArticleModel]! = nil
     @Published var avatar: NSImage? = nil
 
+    // social usernames
+    @Published var twitterUsername: String?
+    @Published var githubUsername: String?
+    @Published var telegramUsername: String?
+    @Published var mastodonUsername: String?
+
     static let followingPlanetsPath: URL = {
         // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Following/
         let url = URLUtils.repoPath.appendingPathComponent("Following", isDirectory: true)
@@ -99,6 +105,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         hasher.combine(isUpdating)
         hasher.combine(articles)
         hasher.combine(avatar)
+        hasher.combine(twitterUsername)
+        hasher.combine(githubUsername)
+        hasher.combine(telegramUsername)
+        hasher.combine(mastodonUsername)
     }
 
     static func == (lhs: FollowingPlanetModel, rhs: FollowingPlanetModel) -> Bool {
@@ -124,13 +134,21 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             && lhs.isUpdating == rhs.isUpdating
             && lhs.articles == rhs.articles
             && lhs.avatar == rhs.avatar
+            && lhs.twitterUsername == rhs.twitterUsername
+            && lhs.githubUsername == rhs.githubUsername
+            && lhs.telegramUsername == rhs.telegramUsername
+            && lhs.mastodonUsername == rhs.mastodonUsername
     }
 
     enum CodingKeys: String, CodingKey {
         case id, planetType, name, about, link,
             cid, created, updated, lastRetrieved,
             archived, archivedAt,
-            walletAddress, walletAddressResolvedAt
+            walletAddress, walletAddressResolvedAt,
+            twitterUsername,
+            githubUsername,
+            telegramUsername,
+            mastodonUsername
     }
 
     required init(from decoder: Decoder) throws {
@@ -151,6 +169,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             Date.self,
             forKey: .walletAddressResolvedAt
         )
+        twitterUsername = try container.decodeIfPresent(String.self, forKey: .twitterUsername)
+        githubUsername = try container.decodeIfPresent(String.self, forKey: .githubUsername)
+        telegramUsername = try container.decodeIfPresent(String.self, forKey: .telegramUsername)
+        mastodonUsername = try container.decodeIfPresent(String.self, forKey: .mastodonUsername)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -168,6 +190,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         try container.encodeIfPresent(archivedAt, forKey: .archivedAt)
         try container.encodeIfPresent(walletAddress, forKey: .walletAddress)
         try container.encodeIfPresent(walletAddressResolvedAt, forKey: .walletAddressResolvedAt)
+        try container.encodeIfPresent(twitterUsername, forKey: .twitterUsername)
+        try container.encodeIfPresent(githubUsername, forKey: .githubUsername)
+        try container.encodeIfPresent(telegramUsername, forKey: .telegramUsername)
+        try container.encodeIfPresent(mastodonUsername, forKey: .mastodonUsername)
     }
 
     init(
@@ -177,6 +203,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         about: String,
         link: String,
         cid: String?,
+        twitterUsername: String? = nil,
+        githubUsername: String? = nil,
+        telegramUsername: String? = nil,
+        mastodonUsername: String? = nil,
         created: Date,
         updated: Date,
         lastRetrieved: Date
@@ -188,6 +218,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         self.planetType = planetType
         self.link = link
         self.cid = cid
+        self.twitterUsername = twitterUsername
+        self.githubUsername = githubUsername
+        self.telegramUsername = telegramUsername
+        self.mastodonUsername = mastodonUsername
         self.updated = updated
         self.lastRetrieved = lastRetrieved
     }
@@ -331,6 +365,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 about: publicPlanet.about,
                 link: ens,
                 cid: cid,
+                twitterUsername: publicPlanet.twitterUsername,
+                githubUsername: publicPlanet.githubUsername,
+                telegramUsername: publicPlanet.telegramUsername,
+                mastodonUsername: publicPlanet.mastodonUsername,
                 created: publicPlanet.created,
                 updated: publicPlanet.updated,
                 lastRetrieved: Date()
@@ -955,6 +993,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         name = publicPlanet.name
                         about = publicPlanet.about
                         updated = publicPlanet.updated
+
+                        twitterUsername = publicPlanet.twitterUsername
+                        githubUsername = publicPlanet.githubUsername
+                        telegramUsername = publicPlanet.telegramUsername
+                        mastodonUsername = publicPlanet.mastodonUsername
                     }
 
                     try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
@@ -1083,6 +1126,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         name = publicPlanet.name
                         about = publicPlanet.about
                         updated = publicPlanet.updated
+
+                        twitterUsername = publicPlanet.twitterUsername
+                        githubUsername = publicPlanet.githubUsername
+                        telegramUsername = publicPlanet.telegramUsername
+                        mastodonUsername = publicPlanet.mastodonUsername
                     }
 
                     try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
@@ -1219,6 +1267,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         name = publicPlanet.name
                         about = publicPlanet.about
                         updated = publicPlanet.updated
+
+                        twitterUsername = publicPlanet.twitterUsername
+                        githubUsername = publicPlanet.githubUsername
+                        telegramUsername = publicPlanet.telegramUsername
+                        mastodonUsername = publicPlanet.mastodonUsername
                     }
 
                     try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
@@ -1568,6 +1621,90 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     )
                 )
                 .cornerRadius(size / 2)
+        }
+    }
+
+    func mastodonURL() -> URL? {
+        guard let username = self.mastodonUsername else {
+            return nil
+        }
+        let components = username.components(separatedBy: "@")
+        guard components.count == 3 else {
+            // The first component is empty
+            return nil // Invalid input
+        }
+        let domain = components[2]
+        let user = components[1]
+        return URL(string: "https://\(domain)/@\(user)")
+    }
+
+    @ViewBuilder
+    func socialViews() -> some View {
+        if let twitterUsername = self.twitterUsername {
+            Divider()
+
+            HStack(spacing: 10) {
+                Image("custom.twitter")
+                    .renderingMode(.original)
+                    .resizable()
+                    .frame(width: 16, height: 16, alignment: .center)
+                Button {
+                    if let twitterURL = URL(string: "https://twitter.com/@\(twitterUsername)") {
+                        NSWorkspace.shared.open(twitterURL)
+                    }
+                } label: {
+                    Text(twitterUsername)
+                }.buttonStyle(.link)
+            }
+        }
+        if let githubUsername = self.githubUsername {
+            Divider()
+
+            HStack(spacing: 10) {
+                Image("custom.github")
+                    .resizable()
+                    .frame(width: 16, height: 16, alignment: .center)
+                Button {
+                    if let githubURL = URL(string: "https://github.com/\(githubUsername)") {
+                        NSWorkspace.shared.open(githubURL)
+                    }
+                } label: {
+                    Text(githubUsername)
+                }.buttonStyle(.link)
+            }
+        }
+        if let telegramUsername = self.telegramUsername {
+            Divider()
+
+            HStack(spacing: 10) {
+                Image("custom.telegram")
+                    .resizable()
+                    .frame(width: 16, height: 16, alignment: .center)
+                Button {
+                    if let telegramURL = URL(string: "https://t.me/\(telegramUsername)") {
+                        NSWorkspace.shared.open(telegramURL)
+                    }
+                } label: {
+                    Text(telegramUsername)
+                }.buttonStyle(.link)
+            }
+        }
+        if let mastodonUsername = self.mastodonUsername {
+            Divider()
+
+            HStack(spacing: 10) {
+                Image("custom.mastodon.fill")
+                    .renderingMode(.original)
+                    .resizable()
+                    .frame(width: 16, height: 16, alignment: .center)
+                Button {
+                    if let mastodonURL = self.mastodonURL() {
+                        NSWorkspace.shared.open(mastodonURL)
+                    }
+                } label: {
+                    Text(mastodonUsername)
+                }.buttonStyle(.link)
+            }
         }
     }
 }
