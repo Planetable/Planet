@@ -1647,6 +1647,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 Image("custom.twitter")
                     .renderingMode(.original)
                     .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: 16, height: 16, alignment: .center)
                 Button {
                     if let twitterURL = URL(string: "https://twitter.com/@\(twitterUsername)") {
@@ -1663,6 +1664,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             HStack(spacing: 10) {
                 Image("custom.github")
                     .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: 16, height: 16, alignment: .center)
                 Button {
                     if let githubURL = URL(string: "https://github.com/\(githubUsername)") {
@@ -1679,6 +1681,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             HStack(spacing: 10) {
                 Image("custom.telegram")
                     .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: 16, height: 16, alignment: .center)
                 Button {
                     if let telegramURL = URL(string: "https://t.me/\(telegramUsername)") {
@@ -1696,6 +1699,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 Image("custom.mastodon.fill")
                     .renderingMode(.original)
                     .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: 16, height: 16, alignment: .center)
                 Button {
                     if let mastodonURL = self.mastodonURL() {
