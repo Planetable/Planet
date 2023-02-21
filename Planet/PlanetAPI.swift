@@ -357,6 +357,8 @@ extension PlanetAPI {
                     try draft.addAttachmentFromData(data: attachmentData, fileName: attachmentFileName, forContentType: attachmentContentType)
                 }
                 try draft.saveToArticle()
+                let planets = PlanetStore.shared.myPlanets
+                updateMyPlanets(planets)
             } catch {
                 debugPrint("failed to create article for planet: \(planet), error: \(error)")
             }
