@@ -41,6 +41,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     @Published var articles: [FollowingArticleModel]! = nil
     @Published var avatar: NSImage? = nil
 
+    // juicebox
+    @Published var juiceboxEnabled: Bool? = false
+    @Published var juiceboxProjectID: Int?
+    @Published var juiceboxProjectIDGoerli: Int?
+
     // social usernames
     @Published var twitterUsername: String?
     @Published var githubUsername: String?
@@ -109,6 +114,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         hasher.combine(githubUsername)
         hasher.combine(telegramUsername)
         hasher.combine(mastodonUsername)
+        hasher.combine(juiceboxEnabled)
+        hasher.combine(juiceboxProjectID)
+        hasher.combine(juiceboxProjectIDGoerli)
     }
 
     static func == (lhs: FollowingPlanetModel, rhs: FollowingPlanetModel) -> Bool {
@@ -138,6 +146,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             && lhs.githubUsername == rhs.githubUsername
             && lhs.telegramUsername == rhs.telegramUsername
             && lhs.mastodonUsername == rhs.mastodonUsername
+            && lhs.juiceboxEnabled == rhs.juiceboxEnabled
+            && lhs.juiceboxProjectID == rhs.juiceboxProjectID
+            && lhs.juiceboxProjectIDGoerli == rhs.juiceboxProjectIDGoerli
     }
 
     enum CodingKeys: String, CodingKey {
@@ -148,7 +159,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             twitterUsername,
             githubUsername,
             telegramUsername,
-            mastodonUsername
+            mastodonUsername,
+            juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli
     }
 
     required init(from decoder: Decoder) throws {
@@ -173,6 +185,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         githubUsername = try container.decodeIfPresent(String.self, forKey: .githubUsername)
         telegramUsername = try container.decodeIfPresent(String.self, forKey: .telegramUsername)
         mastodonUsername = try container.decodeIfPresent(String.self, forKey: .mastodonUsername)
+
+        juiceboxEnabled = try container.decodeIfPresent(Bool.self, forKey: .juiceboxEnabled)
+        juiceboxProjectID = try container.decodeIfPresent(Int.self, forKey: .juiceboxProjectID)
+        juiceboxProjectIDGoerli = try container.decodeIfPresent(Int.self, forKey: .juiceboxProjectIDGoerli)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -194,6 +210,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         try container.encodeIfPresent(githubUsername, forKey: .githubUsername)
         try container.encodeIfPresent(telegramUsername, forKey: .telegramUsername)
         try container.encodeIfPresent(mastodonUsername, forKey: .mastodonUsername)
+        try container.encodeIfPresent(juiceboxEnabled, forKey: .juiceboxEnabled)
+        try container.encodeIfPresent(juiceboxProjectID, forKey: .juiceboxProjectID)
+        try container.encodeIfPresent(juiceboxProjectIDGoerli, forKey: .juiceboxProjectIDGoerli)
     }
 
     init(
@@ -207,6 +226,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         githubUsername: String? = nil,
         telegramUsername: String? = nil,
         mastodonUsername: String? = nil,
+        juiceboxEnabled: Bool? = false,
+        juiceboxProjectID: Int? = nil,
+        juiceboxProjectIDGoerli: Int? = nil,
         created: Date,
         updated: Date,
         lastRetrieved: Date
@@ -222,6 +244,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         self.githubUsername = githubUsername
         self.telegramUsername = telegramUsername
         self.mastodonUsername = mastodonUsername
+        self.juiceboxEnabled = juiceboxEnabled
+        self.juiceboxProjectID = juiceboxProjectID
+        self.juiceboxProjectIDGoerli = juiceboxProjectIDGoerli
         self.updated = updated
         self.lastRetrieved = lastRetrieved
     }
@@ -369,6 +394,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 githubUsername: publicPlanet.githubUsername,
                 telegramUsername: publicPlanet.telegramUsername,
                 mastodonUsername: publicPlanet.mastodonUsername,
+                juiceboxEnabled: publicPlanet.juiceboxEnabled,
+                juiceboxProjectID: publicPlanet.juiceboxProjectID,
+                juiceboxProjectIDGoerli: publicPlanet.juiceboxProjectIDGoerli,
                 created: publicPlanet.created,
                 updated: publicPlanet.updated,
                 lastRetrieved: Date()
@@ -826,6 +854,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 about: publicPlanet.about,
                 link: name,
                 cid: cid,
+                juiceboxEnabled: publicPlanet.juiceboxEnabled,
+                juiceboxProjectID: publicPlanet.juiceboxProjectID,
+                juiceboxProjectIDGoerli: publicPlanet.juiceboxProjectIDGoerli,
                 created: publicPlanet.created,
                 updated: publicPlanet.updated,
                 lastRetrieved: Date()
@@ -998,6 +1029,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         githubUsername = publicPlanet.githubUsername
                         telegramUsername = publicPlanet.telegramUsername
                         mastodonUsername = publicPlanet.mastodonUsername
+
+                        juiceboxEnabled = publicPlanet.juiceboxEnabled
+                        juiceboxProjectID = publicPlanet.juiceboxProjectID
+                        juiceboxProjectIDGoerli = publicPlanet.juiceboxProjectIDGoerli
                     }
 
                     try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
@@ -1639,7 +1674,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     @ViewBuilder
-    func socialViews() -> some View {
+    func twitterLabel() -> some View {
         if let twitterUsername = self.twitterUsername {
             Divider()
 
@@ -1658,6 +1693,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }.buttonStyle(.link)
             }
         }
+    }
+
+    @ViewBuilder
+    func githubLabel() -> some View {
         if let githubUsername = self.githubUsername {
             Divider()
 
@@ -1675,6 +1714,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }.buttonStyle(.link)
             }
         }
+    }
+
+    @ViewBuilder
+    func telegramLabel() -> some View {
         if let telegramUsername = self.telegramUsername {
             Divider()
 
@@ -1692,6 +1735,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }.buttonStyle(.link)
             }
         }
+    }
+
+    @ViewBuilder
+    func mastodonLabel() -> some View {
         if let mastodonUsername = self.mastodonUsername {
             Divider()
 
@@ -1710,5 +1757,33 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }.buttonStyle(.link)
             }
         }
+    }
+
+    @ViewBuilder
+    func juiceboxLabel() -> some View {
+        if let juiceboxEnabled = self.juiceboxEnabled, juiceboxEnabled, (self.juiceboxProjectID != nil || self.juiceboxProjectIDGoerli != nil) {
+            Divider()
+
+            HStack(spacing: 10) {
+                Image("custom.juicebox")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16, alignment: .center)
+                Button {
+
+                } label: {
+                    Text("juicebox.money")
+                }.buttonStyle(.link)
+            }
+        }
+    }
+
+    @ViewBuilder
+    func socialViews() -> some View {
+        self.twitterLabel()
+        self.juiceboxLabel()
+        self.githubLabel()
+        self.telegramLabel()
+        self.mastodonLabel()
     }
 }
