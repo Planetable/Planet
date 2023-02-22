@@ -260,7 +260,6 @@ extension PlanetAPI {
     
     // MARK: GET /v0/planets/my/:uuid/public
     private func exposePlanetPublicContent(inDirectory filePath: String, forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .unauthorized(nil) }
         do {
             guard try filePath.exists() else {
                 return .notFound()
