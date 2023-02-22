@@ -31,9 +31,10 @@ class PlanetAPI: NSObject {
         if defaults.value(forKey: .settingsAPIUsername) == nil {
             defaults.set("Planet", forKey: .settingsAPIUsername)
         }
+        // disable api authentication if no passcode found.
         let keychain = KeychainSwift()
         if keychain.get(.settingsAPIPasscode) == nil {
-            keychain.set(false, forKey: .settingsAPIUsesPasscode)
+            defaults.set(false, forKey: .settingsAPIUsesPasscode)
         }
         super.init()
         self.updateServerSettings()
