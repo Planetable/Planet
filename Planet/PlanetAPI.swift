@@ -31,8 +31,9 @@ class PlanetAPI: NSObject {
         if defaults.value(forKey: .settingsAPIUsername) == nil {
             defaults.set("Planet", forKey: .settingsAPIUsername)
         }
-        if defaults.value(forKey: .settingsAPIUsesPasscode) == nil {
-            defaults.set(false, forKey: .settingsAPIUsesPasscode)
+        let keychain = KeychainSwift()
+        if keychain.get(.settingsAPIPasscode) == nil {
+            keychain.set(false, forKey: .settingsAPIUsesPasscode)
         }
         super.init()
         self.updateServerSettings()
