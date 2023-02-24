@@ -31,7 +31,9 @@ class PlanetAPI: NSObject {
         if defaults.value(forKey: .settingsAPIUsername) == nil {
             defaults.set("Planet", forKey: .settingsAPIUsername)
         }
-        if defaults.value(forKey: .settingsAPIUsesPasscode) == nil {
+        // disable api authentication if no passcode found.
+        let keychain = KeychainSwift()
+        if keychain.get(.settingsAPIPasscode) == nil {
             defaults.set(false, forKey: .settingsAPIUsesPasscode)
         }
         super.init()
@@ -260,7 +262,6 @@ extension PlanetAPI {
     
     // MARK: GET /v0/planets/my/:uuid/public
     private func exposePlanetPublicContent(inDirectory filePath: String, forRequest r: HttpRequest) -> HttpResponse {
-        guard validateRequest(r) else { return .unauthorized(nil) }
         do {
             guard try filePath.exists() else {
                 return .notFound()
