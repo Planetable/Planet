@@ -12,7 +12,7 @@ struct PlanetSettingsGeneralView: View {
 
     @EnvironmentObject private var viewModel: PlanetSettingsViewModel
     
-    @AppStorage(.settingsLibraryLocation) private var libraryLocation: String = UserDefaults.standard.string(forKey: .settingsLibraryLocation) ?? URLUtils.repoPath.path
+    @AppStorage(.settingsLibraryLocation) private var libraryLocation: String = UserDefaults.standard.string(forKey: .settingsLibraryLocation) ?? ""
 
     @AppStorage(String.settingsPublicGatewayIndex) private var publicGatewayIndex: Int =
         UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
@@ -29,15 +29,10 @@ struct PlanetSettingsGeneralView: View {
                             .frame(width: CAPTION_WIDTH, alignment: .trailing)
                         Text(libraryLocation)
                             .lineLimit(3)
-                        Button {
-                            let url = URL(fileURLWithPath: libraryLocation)
-                            NSWorkspace.shared.open(url)
-                        } label: {
-                            Image(systemName: "magnifyingglass.circle")
-                                .resizable()
-                                .frame(width: 12, height: 12)
-                        }
-                        .buttonStyle(.plain)
+                            .onTapGesture {
+                                let url = URL(fileURLWithPath: libraryLocation)
+                                NSWorkspace.shared.open(url)
+                            }
                         Spacer(minLength: 1)
                     }
                     HStack(spacing: 12) {
@@ -116,10 +111,32 @@ struct PlanetSettingsGeneralView: View {
             Spacer()
         }
         .padding()
+        .task {
+            if libraryLocation == "" || !FileManager.default.fileExists(atPath: libraryLocation) {
+                resetLibraryLocation()
+            }
+        }
     }
-    
+
     private func resetLibraryLocation() {
         UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
+        libraryLocation = URLUtils.repoPath.path
+    }
+    
+    private func validateExistingLibraryLocation(_ url: URL) throws -> Bool {
+        let folders: [URL] = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: [], options: .skipsHiddenFiles)
+        let publishedFoldersCount = PlanetPublishedServiceStore.shared.publishedFolders.count
+        var validPlanetLibraryNames = ["Following", "My", "Public", "Templates"]
+        if publishedFoldersCount > 0 {
+            validPlanetLibraryNames.append("PublishedFolders")
+        }
+        if folders.count == validPlanetLibraryNames.count && folders.filter({ targetURL in
+            let folderName = targetURL.lastPathComponent
+            return !validPlanetLibraryNames.contains(folderName)
+        }).count == 0 {
+            return true
+        }
+        return false
     }
     
     private func updateLibraryLocation() throws {
@@ -132,28 +149,28 @@ struct PlanetSettingsGeneralView: View {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         let response = panel.runModal()
-        guard response == .OK, let url = panel.url else {
-            let alert = NSAlert()
-            alert.messageText = "Failed to Choose Library Location"
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
-            throw PlanetError.InternalError
-        }
+        guard response == .OK, let url = panel.url else { return }
         let planetURL = url.appendingPathComponent("Planet")
+        var useAsExistingLibraryLocation: Bool = false
         if FileManager.default.fileExists(atPath: planetURL.path) {
-            let alert = NSAlert()
-            alert.messageText = "Failed to Choose Library Location"
-            alert.informativeText = "\(planetURL.path) already exists."
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
-            throw PlanetError.InternalError
+            if try !validateExistingLibraryLocation(planetURL) {
+                let alert = NSAlert()
+                alert.messageText = "Failed to Choose Library Location"
+                alert.informativeText = "Planet library location at \(planetURL.path) is not valid."
+                alert.alertStyle = .informational
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+                throw PlanetError.InternalError
+            } else {
+                useAsExistingLibraryLocation = true
+            }
         }
         let bookmarkKey = url.path.md5()
         let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
         UserDefaults.standard.set(bookmarkData, forKey: bookmarkKey)
-        try FileManager.default.copyItem(at: URLUtils.repoPath, to: planetURL)
+        if !useAsExistingLibraryLocation {
+            try FileManager.default.copyItem(at: URLUtils.repoPath, to: planetURL)
+        }
         UserDefaults.standard.set(url.path, forKey: .settingsLibraryLocation)
     }
 }
