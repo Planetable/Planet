@@ -72,7 +72,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     static let myPlanetsPath: URL = {
         // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/My/
-        let url = URLUtils.repoPath.appendingPathComponent("My", isDirectory: true)
+        let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
@@ -88,7 +88,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     static let publicPlanetsPath: URL = {
         // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Public/
-        let url = URLUtils.repoPath.appendingPathComponent("Public", isDirectory: true)
+        let url = URLUtils.repoPath().appendingPathComponent("Public", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()

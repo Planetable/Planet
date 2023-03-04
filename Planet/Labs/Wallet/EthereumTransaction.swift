@@ -35,7 +35,7 @@ class EthereumTransaction: Codable, Identifiable {
 
     static let walletsInfoPath: URL = {
         // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Wallets/
-        let url = URLUtils.repoPath.appendingPathComponent("Wallets", isDirectory: true)
+        let url = URLUtils.repoPath().appendingPathComponent("Wallets", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()

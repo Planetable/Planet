@@ -58,7 +58,7 @@ struct PlanetSettingsGeneralView: View {
                         } label: {
                             Text("Reset")
                         }
-                        .disabled(URLUtils.repoPath.path == libraryLocation)
+                        .disabled(URLUtils.repoPath().path == libraryLocation)
                         Spacer()
                     }
                     .padding(.top, -10)
@@ -120,7 +120,7 @@ struct PlanetSettingsGeneralView: View {
 
     private func resetLibraryLocation() {
         UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
-        libraryLocation = URLUtils.repoPath.path
+        libraryLocation = URLUtils.repoPath().path
     }
     
     private func validateExistingLibraryLocation(_ url: URL) throws -> Bool {
@@ -169,9 +169,10 @@ struct PlanetSettingsGeneralView: View {
         let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
         UserDefaults.standard.set(bookmarkData, forKey: bookmarkKey)
         if !useAsExistingLibraryLocation {
-            try FileManager.default.copyItem(at: URLUtils.repoPath, to: planetURL)
+            try FileManager.default.copyItem(at: URLUtils.repoPath(), to: planetURL)
         }
         UserDefaults.standard.set(url.path, forKey: .settingsLibraryLocation)
+        try? TemplateStore.shared.load()
     }
 }
 

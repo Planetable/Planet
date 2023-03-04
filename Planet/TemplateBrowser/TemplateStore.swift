@@ -3,13 +3,6 @@ import os
 import PlanetSiteTemplates
 
 class TemplateStore: ObservableObject {
-    static let templatesPath: URL = {
-        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Templates/
-        let url = URLUtils.repoPath.appendingPathComponent("Templates", isDirectory: true)
-        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-        return url
-    }()
-
     static let shared = TemplateStore()
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "TemplateStore")
@@ -36,8 +29,10 @@ class TemplateStore: ObservableObject {
     }
 
     func load() throws {
+        let templatesPath = URLUtils.repoPath().appendingPathComponent("Templates", isDirectory: true)
+        try? FileManager.default.createDirectory(at: templatesPath, withIntermediateDirectories: true)
         let directories = try FileManager.default.contentsOfDirectory(
-            at: Self.templatesPath,
+            at: templatesPath,
             includingPropertiesForKeys: nil
         ).filter { $0.hasDirectoryPath }
         var templatesMapping: [String: Template] = [:]
@@ -65,7 +60,7 @@ class TemplateStore: ObservableObject {
                 logger.info("Overwriting local built-in template \(builtInTemplate.name)")
                 let source = builtInTemplate.base!
                 let directoryName = source.lastPathComponent
-                let destination = Self.templatesPath.appendingPathComponent(directoryName, isDirectory: true)
+                let destination = templatesPath.appendingPathComponent(directoryName, isDirectory: true)
                 try? FileManager.default.removeItem(at: destination)
                 try FileManager.default.copyItem(at: source, to: destination)
                 let newTemplate = Template.from(path: destination)!

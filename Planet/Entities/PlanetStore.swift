@@ -27,7 +27,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
 @MainActor class PlanetStore: ObservableObject {
     static let shared = PlanetStore()
     static let version = 1
-    static let repoVersionPath = URLUtils.repoPath.appendingPathComponent("Version")
+    static let repoVersionPath = URLUtils.repoPath().appendingPathComponent("Version")
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PlanetStore")
 

@@ -35,7 +35,7 @@ struct URLUtils {
 
     static let legacyDraftPath = applicationSupportPath.appendingPathComponent("drafts", isDirectory: true)
 
-    static let repoPath: URL = {
+    static func repoPath() -> URL {
         if let libraryLocation = UserDefaults.standard.string(forKey: .settingsLibraryLocation), FileManager.default.fileExists(atPath: libraryLocation) {
             let libraryURL = URL(fileURLWithPath: libraryLocation)
             let planetURL = libraryURL.appendingPathComponent("Planet", isDirectory: true)
@@ -65,25 +65,13 @@ struct URLUtils {
                 UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
             }
         }
-        let url = documentsPath.appendingPathComponent("Planet", isDirectory: true)
+        let url = Self.documentsPath.appendingPathComponent("Planet", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
-    }()
-
-    static let templatesPath: URL = {
-        let url = repoPath.appendingPathComponent("Templates", isDirectory: true)
-        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-        return url
-    }()
-
-    static let publishedFolderHistoryPath: URL = {
-        let url = repoPath.appendingPathComponent("PublishedFolders", isDirectory: true)
-        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-        return url
-    }()
+    }
 
     static let temporaryPath: URL = {
-        let url = cachesPath.appendingPathComponent("tmp", isDirectory: true)
+        let url = Self.cachesPath.appendingPathComponent("tmp", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
