@@ -355,11 +355,19 @@ class PlanetPublishedServiceStore: ObservableObject {
 
 extension PlanetPublishedServiceStore {
     private var folderHistoryURL: URL {
-        return URLUtils.publishedFolderHistoryPath.appendingPathComponent("history.json")
+        let publishedFolderHistoryPath = URLUtils.repoPath().appendingPathComponent("PublishedFolders", isDirectory: true)
+        if !FileManager.default.fileExists(atPath: publishedFolderHistoryPath.path) {
+            try? FileManager.default.createDirectory(at: publishedFolderHistoryPath, withIntermediateDirectories: true)
+        }
+        return publishedFolderHistoryPath.appendingPathComponent("history.json")
     }
 
     private var folderVersionURL: URL {
-        let url = URLUtils.publishedFolderHistoryPath.appendingPathComponent("versions", conformingTo: .directory)
+        let publishedFolderHistoryPath = URLUtils.repoPath().appendingPathComponent("PublishedFolders", isDirectory: true)
+        if !FileManager.default.fileExists(atPath: publishedFolderHistoryPath.path) {
+            try? FileManager.default.createDirectory(at: publishedFolderHistoryPath, withIntermediateDirectories: true)
+        }
+        let url = publishedFolderHistoryPath.appendingPathComponent("versions", conformingTo: .directory)
         if !FileManager.default.fileExists(atPath: url.path) {
             try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         }
@@ -384,7 +392,7 @@ extension PlanetPublishedServiceStore {
     
     func loadPublishedFolderCID(byFolderID id: UUID) -> String? {
         do {
-            var versions = try loadPublishedVersions(byFolderKeyName: id.uuidString)
+            let versions = try loadPublishedVersions(byFolderKeyName: id.uuidString)
             return versions.last?.cid
         } catch {}
         return nil

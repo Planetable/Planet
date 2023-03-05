@@ -35,26 +35,43 @@ struct URLUtils {
 
     static let legacyDraftPath = applicationSupportPath.appendingPathComponent("drafts", isDirectory: true)
 
-    static let repoPath: URL = {
-        let url = documentsPath.appendingPathComponent("Planet", isDirectory: true)
+    static func repoPath() -> URL {
+        if let libraryLocation = UserDefaults.standard.string(forKey: .settingsLibraryLocation), FileManager.default.fileExists(atPath: libraryLocation) {
+            let libraryURL = URL(fileURLWithPath: libraryLocation)
+            let planetURL = libraryURL.appendingPathComponent("Planet", isDirectory: true)
+            if FileManager.default.fileExists(atPath: planetURL.path) {
+                do {
+                    let bookmarkKey = libraryURL.path.md5()
+                    if let bookmarkData = UserDefaults.standard.data(forKey: bookmarkKey) {
+                        var isStale = false
+                        let url = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale)
+                        if isStale {
+                            let updatedBookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+                            UserDefaults.standard.set(updatedBookmarkData, forKey: bookmarkKey)
+                        }
+                        if url.startAccessingSecurityScopedResource() {
+                            debugPrint("alternative library path is active: \(url.path)")
+                            return planetURL
+                        } else {
+                            UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
+                            debugPrint("failed to start accessing security scoped resource, abort.")
+                        }
+                    }
+                } catch {
+                    debugPrint("failed to get planet library location: \(error), restore to default.")
+                    UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
+                }
+            } else {
+                UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
+            }
+        }
+        let url = Self.documentsPath.appendingPathComponent("Planet", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
-    }()
-
-    static let templatesPath: URL = {
-        let url = repoPath.appendingPathComponent("Templates", isDirectory: true)
-        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-        return url
-    }()
-
-    static let publishedFolderHistoryPath: URL = {
-        let url = repoPath.appendingPathComponent("PublishedFolders", isDirectory: true)
-        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-        return url
-    }()
+    }
 
     static let temporaryPath: URL = {
-        let url = cachesPath.appendingPathComponent("tmp", isDirectory: true)
+        let url = Self.cachesPath.appendingPathComponent("tmp", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()

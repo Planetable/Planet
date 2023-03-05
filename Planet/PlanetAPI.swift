@@ -566,7 +566,7 @@ extension PlanetAPI {
             return
         }
         let planets = myPlanets
-        let repoPath = URLUtils.repoPath.appendingPathComponent("Public", conformingTo: .folder)
+        let repoPath = URLUtils.repoPath().appendingPathComponent("Public", conformingTo: .folder)
         for planet in planets {
             let planetPublicURL = repoPath.appendingPathComponent(planet.id.uuidString)
             let planetRootPath = "/v0/planets/my/\(planet.id.uuidString)/public"

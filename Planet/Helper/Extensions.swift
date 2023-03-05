@@ -17,6 +17,7 @@ extension Data {
 }
 
 extension String {
+    static let settingsLibraryLocation: String = "PlanetSettingsLibraryLocationKey"
     static let settingsPublicGatewayIndex: String = "PlanetSettingsPublicGatewayIndexKey"
     static let settingsEthereumChainId: String = "PlanetSettingsEthereumChainId"
     static let settingsEthereumTipAmount: String = "PlanetSettingsEthereumTipAmount"

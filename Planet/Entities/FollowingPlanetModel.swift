@@ -54,7 +54,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     static let followingPlanetsPath: URL = {
         // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Following/
-        let url = URLUtils.repoPath.appendingPathComponent("Following", isDirectory: true)
+        let url = URLUtils.repoPath().appendingPathComponent("Following", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
