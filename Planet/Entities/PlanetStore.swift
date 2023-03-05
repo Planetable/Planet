@@ -27,7 +27,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
 @MainActor class PlanetStore: ObservableObject {
     static let shared = PlanetStore()
     static let version = 1
-    static let repoVersionPath = URLUtils.repoPath().appendingPathComponent("Version")
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PlanetStore")
 
@@ -170,7 +169,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
     func load() throws {
         logger.info("Loading from planet repo")
         let myPlanetDirectories = try FileManager.default.contentsOfDirectory(
-            at: MyPlanetModel.myPlanetsPath,
+            at: MyPlanetModel.myPlanetsPath(),
             includingPropertiesForKeys: nil
         ).filter { $0.hasDirectoryPath }
         logger.info("Found \(myPlanetDirectories.count) my planets in repo")
@@ -181,7 +180,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         myPlanets = Array(myAllPlanets[myPlanetPartition...])
 
         let followingPlanetDirectories = try FileManager.default.contentsOfDirectory(
-            at: FollowingPlanetModel.followingPlanetsPath,
+            at: FollowingPlanetModel.followingPlanetsPath(),
             includingPropertiesForKeys: nil
         ).filter { $0.hasDirectoryPath }
         logger.info("Found \(followingPlanetDirectories.count) following planets in repo")
@@ -335,7 +334,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         try FileManager.default.copyItem(at: fromArticlePublicPath, to: targetArticlePublicPath)
 
         debugPrint("delete previous article")
-        try article.delete()
+        article.delete()
 
         let movedArticle = article
         movedArticle.planet = toPlanet

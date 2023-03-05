@@ -18,12 +18,6 @@ class Saver: NSObject {
     static let coreDataPath: URL = applicationSupportDirectory.appendingPathComponent("Planet").appendingPathComponent("Planet.sqlite")
     static let documentDirectory: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
 
-    static let repoDirectory: URL = documentDirectory.appendingPathComponent("Planet", isDirectory: true)
-    static let publicDirectory: URL = MyPlanetModel.publicPlanetsPath
-
-    static let myPlanetsDirectory: URL = MyPlanetModel.myPlanetsPath
-    static let followingPlanetsDirectory: URL = FollowingPlanetModel.followingPlanetsPath
-
     private override init() {
         super.init()
     }
@@ -56,10 +50,10 @@ class Saver: NSObject {
 
     func prepareAllDirectories() {
         let directories: [URL] = [
-            Saver.repoDirectory,
-            Saver.publicDirectory,
-            Saver.myPlanetsDirectory,
-            Saver.followingPlanetsDirectory
+            URLUtils.repoPath(),
+            MyPlanetModel.publicPlanetsPath(),
+            MyPlanetModel.myPlanetsPath(),
+            FollowingPlanetModel.followingPlanetsPath()
         ]
 
         for directory in directories {
@@ -87,9 +81,9 @@ class Saver: NSObject {
             let fileName: String = "planet.json"
             var planetURL: URL
             if planet.isMyPlanet() {
-                planetURL = Saver.myPlanetsDirectory.appendingPathComponent(planetID.uuidString)
+                planetURL = MyPlanetModel.myPlanetsPath().appendingPathComponent(planetID.uuidString)
             } else {
-                planetURL = Saver.followingPlanetsDirectory.appendingPathComponent(planetID.uuidString)
+                planetURL = FollowingPlanetModel.followingPlanetsPath().appendingPathComponent(planetID.uuidString)
             }
             if FileManager.default.fileExists(atPath: planetURL.path) == false {
                 try? FileManager.default.createDirectory(at: planetURL, withIntermediateDirectories: true, attributes: nil)
@@ -177,7 +171,7 @@ class Saver: NSObject {
             }
 
             let legacyDirectory = Saver.applicationSupportDirectory.appendingPathComponent("planets").appendingPathComponent(planetID.uuidString)
-            let newDirectory = Saver.publicDirectory.appendingPathComponent(planetID.uuidString)
+            let newDirectory = MyPlanetModel.publicPlanetsPath().appendingPathComponent(planetID.uuidString)
 
             if FileManager.default.fileExists(atPath: legacyDirectory.path) {
                 try? FileManager.default.copyItem(at: legacyDirectory, to: newDirectory)

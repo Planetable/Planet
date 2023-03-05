@@ -70,63 +70,68 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var drafts: [DraftModel]! = nil
     @Published var articles: [MyArticleModel]! = nil
 
-    static let myPlanetsPath: URL = {
-        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/My/
+    static func myPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
-    }()
-    lazy var basePath = Self.myPlanetsPath.appendingPathComponent(id.uuidString, isDirectory: true)
-    lazy var infoPath = basePath.appendingPathComponent("planet.json", isDirectory: false)
-    lazy var articlesPath = basePath.appendingPathComponent("Articles", isDirectory: true)
-    lazy var avatarPath = basePath.appendingPathComponent("avatar.png", isDirectory: false)
-    lazy var faviconPath = basePath.appendingPathComponent("favicon.ico", isDirectory: false)
-    lazy var podcastCoverArtPath = basePath.appendingPathComponent("podcastCoverArt.png", isDirectory: false)
+    }
+    var basePath: URL {
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+    }
+    var infoPath: URL {
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("planet.json", isDirectory: false)
+    }
+    var articlesPath: URL {
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("Articles", isDirectory: true)
+    }
+    var avatarPath: URL {
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("avatar.png", isDirectory: false)
+    }
+    var faviconPath: URL {
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("favicon.ico", isDirectory: false)
+    }
+    var podcastCoverArtPath: URL {
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("podcastCoverArt.png", isDirectory: false)
+    }
+    var draftsPath: URL {
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("Drafts", isDirectory: true)
+    }
+    var articleDraftsPath: URL {
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("Drafts", isDirectory: true)
+    }
 
-    lazy var draftsPath = basePath.appendingPathComponent("Drafts", isDirectory: true)
-    lazy var articleDraftsPath = articlesPath.appendingPathComponent("Drafts", isDirectory: true)
-
-    static let publicPlanetsPath: URL = {
-        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Public/
+    static func publicPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("Public", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
-    }()
-    lazy var publicBasePath = Self.publicPlanetsPath.appendingPathComponent(
-        id.uuidString,
-        isDirectory: true
-    )
-    lazy var publicInfoPath = publicBasePath.appendingPathComponent(
-        "planet.json",
-        isDirectory: false
-    )
-    lazy var publicAvatarPath = publicBasePath.appendingPathComponent(
-        "avatar.png",
-        isDirectory: false
-    )
-    lazy var publicFaviconPath = publicBasePath.appendingPathComponent(
-        "favicon.ico",
-        isDirectory: false
-    )
-    lazy var publicPodcastCoverArtPath = publicBasePath.appendingPathComponent(
-        "podcastCoverArt.png",
-        isDirectory: false
-    )
-
-    lazy var publicIndexPath = publicBasePath.appendingPathComponent(
-        "index.html",
-        isDirectory: false
-    )
-    lazy var publicRSSPath = publicBasePath.appendingPathComponent(
-        "rss.xml",
-        isDirectory: false
-    )
-    lazy var publicPodcastPath = publicBasePath.appendingPathComponent(
-        "podcast.xml",
-        isDirectory: false
-    )
-
-    lazy var publicAssetsPath = publicBasePath.appendingPathComponent("assets", isDirectory: true)
+    }
+    var publicBasePath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+    }
+    var publicInfoPath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("planet.json", isDirectory: false)
+    }
+    var publicAvatarPath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("avatar.png", isDirectory: false)
+    }
+    var publicFaviconPath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("favicon.ico", isDirectory: false)
+    }
+    var publicPodcastCoverArtPath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("podcastCoverArt.png", isDirectory: false)
+    }
+    var publicIndexPath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("index.html", isDirectory: false)
+    }
+    var publicRSSPath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("rss.xml", isDirectory: false)
+    }
+    var publicPodcastPath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("podcast.xml", isDirectory: false)
+    }
+    var publicAssetsPath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("assets", isDirectory: true)
+    }
 
     var template: Template? {
         TemplateStore.shared[templateName]

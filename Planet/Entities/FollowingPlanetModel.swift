@@ -52,19 +52,23 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     @Published var telegramUsername: String?
     @Published var mastodonUsername: String?
 
-    static let followingPlanetsPath: URL = {
-        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Following/
+    static func followingPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("Following", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
-    }()
-    lazy var basePath = Self.followingPlanetsPath.appendingPathComponent(
-        id.uuidString,
-        isDirectory: true
-    )
-    lazy var infoPath = basePath.appendingPathComponent("planet.json", isDirectory: false)
-    lazy var articlesPath = basePath.appendingPathComponent("Articles", isDirectory: true)
-    lazy var avatarPath = basePath.appendingPathComponent("avatar.png", isDirectory: false)
+    }
+    var basePath: URL {
+        return Self.followingPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+    }
+    var infoPath: URL {
+        return Self.followingPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("planet.json", isDirectory: false)
+    }
+    var articlesPath: URL {
+        return Self.followingPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("Articles", isDirectory: true)
+    }
+    var avatarPath: URL {
+        return Self.followingPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("avatar.png", isDirectory: false)
+    }
 
     var nameInitials: String {
         let initials = name.components(separatedBy: .whitespaces).map { $0.prefix(1).capitalized }

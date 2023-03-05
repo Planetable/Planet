@@ -12,7 +12,24 @@ struct PlanetSettingsGeneralView: View {
 
     @EnvironmentObject private var viewModel: PlanetSettingsViewModel
     
-    @AppStorage(.settingsLibraryLocation) private var libraryLocation: String = UserDefaults.standard.string(forKey: .settingsLibraryLocation) ?? ""
+    @State private var libraryLocation: String = URLUtils.repoPath().path {
+        didSet {
+            Task(priority: .userInitiated) {
+                await MainActor.run {
+                    do {
+                        try PlanetStore.shared.load()
+                        try TemplateStore.shared.load()
+                        PlanetStore.shared.selectedArticle = nil
+                        PlanetStore.shared.selectedView = nil
+                        PlanetStore.shared.selectedArticleList = nil
+                        PlanetStore.shared.refreshSelectedArticles()
+                    } catch {
+                        debugPrint("failed to reload: \(error)")
+                    }
+                }
+            }
+        }
+    }
 
     @AppStorage(String.settingsPublicGatewayIndex) private var publicGatewayIndex: Int =
         UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
@@ -58,7 +75,7 @@ struct PlanetSettingsGeneralView: View {
                         } label: {
                             Text("Reset")
                         }
-                        .disabled(URLUtils.repoPath().path == libraryLocation)
+                        .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
                         Spacer()
                     }
                     .padding(.top, -10)
@@ -146,8 +163,7 @@ struct PlanetSettingsGeneralView: View {
             try FileManager.default.copyItem(at: URLUtils.repoPath(), to: planetURL)
         }
         UserDefaults.standard.set(url.path, forKey: .settingsLibraryLocation)
-        try? TemplateStore.shared.load()
-        // MARK: TODO: restart planet.app
+        libraryLocation = URLUtils.repoPath().path
     }
 }
 
