@@ -1,19 +1,21 @@
 <!doctype HTML>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <meta content="True" name="HandheldFriendly">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#fff">
-    <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
-    <title>Preview</title>
-    <style>
+
+<head>
+  <meta charset="UTF-8">
+  <meta content="True" name="HandheldFriendly">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff">
+  <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
+  <title>Preview</title>
+  <style>
     :root {
       --background-color: transparent;
       --foreground-color: #000;
       --link-color: #336bad;
       --foreground-secondary-color: #666;
       --border-color: #e2e2e2;
+      --code-background-color: #f8f8f8;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -23,6 +25,7 @@
         --link-color: #6699ff;
         --foreground-secondary-color: #adadaf;
         --border-color: #2b2b2d;
+        --code-background-color: #2b2b2d;
       }
     }
 
@@ -35,7 +38,7 @@
       background-color: var(--background-color);
       padding: 20px;
       margin: 0;
-      font-family: helvetica neue,Arial,hiragino sans gb,microsoft yahei,sans-serif;
+      font-family: helvetica neue, Arial, hiragino sans gb, microsoft yahei, sans-serif;
     }
 
     h1 {
@@ -52,7 +55,9 @@
       margin-bottom: 1em;
     }
 
-    a:link, a:visited, a:active {
+    a:link,
+    a:visited,
+    a:active {
       color: var(--link-color);
       text-decoration: none;
       line-break: anywhere;
@@ -82,7 +87,9 @@
       color: var(--foreground-color);
     }
 
-    p:first-child, ul:first-child, ol:first-child {
+    p:first-child,
+    ul:first-child,
+    ol:first-child {
       margin-top: 0;
     }
 
@@ -90,23 +97,75 @@
       list-style-type: none;
       margin-left: 0px;
     }
-    </style>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        let pos = JSON.parse(localStorage.getItem('scrollpos'));
-        if (pos) {
-          window.scrollTo(0, pos);
-        }
-      });
-      function scrollPosition(positionPercent) {
-        window.scrollTo(0, document.body.scrollHeight * positionPercent);
-        localStorage.setItem('scrollpos', JSON.stringify(window.scrollY));
+
+    /* start: table */
+
+    .content table {
+      table-layout: fixed;
+      width: 100%;
+      padding: 0;
+      border-collapse: collapse;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02),
+        0 2px 4px rgba(0, 0, 0, 0.02),
+        0 4px 8px rgba(0, 0, 0, 0.02),
+        0 8px 16px rgba(0, 0, 0, 0.02);
+    }
+
+    .content table tr {
+      border-top: 1px solid var(--border-color);
+      background-color: var(--background-color);
+      margin: 0;
+      padding: 0;
+    }
+
+    .content table tr:nth-child(2n) {
+      background-color: var(--code-background-color);
+    }
+
+    .content table tr th {
+      font-weight: bold;
+      border: 1px solid var(--border-color);
+      margin: 0;
+      padding: 6px 12px;
+      background-color: var(--code-background-color);
+    }
+
+    .content table tr td {
+      border: 1px solid var(--border-color);
+      margin: 0;
+      padding: 6px 12px;
+    }
+
+    .content table tr th :first-child,
+    .content table tr td :first-child {
+      margin-top: 0;
+    }
+
+    .content table tr th :last-child,
+    .content table tr td :last-child {
+      margin-bottom: 0;
+    }
+
+    /* end: table */
+  </style>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let pos = JSON.parse(localStorage.getItem('scrollpos'));
+      if (pos) {
+        window.scrollTo(0, pos);
       }
-    </script>
-  </head>
-  <body>
-    <div class="content">
-      {{ content_html }}
-    </div>
-  </body>
+    });
+    function scrollPosition(positionPercent) {
+      window.scrollTo(0, document.body.scrollHeight * positionPercent);
+      localStorage.setItem('scrollpos', JSON.stringify(window.scrollY));
+    }
+  </script>
+</head>
+
+<body>
+  <div class="content">
+    {{ content_html }}
+  </div>
+</body>
+
 </html>
