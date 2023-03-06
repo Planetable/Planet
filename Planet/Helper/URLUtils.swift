@@ -50,25 +50,28 @@ struct URLUtils {
                             UserDefaults.standard.set(updatedBookmarkData, forKey: bookmarkKey)
                         }
                         if url.startAccessingSecurityScopedResource() {
-                            debugPrint("alternative library path is active: \(url.path)")
                             return planetURL
                         } else {
                             UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
-                            debugPrint("failed to start accessing security scoped resource, abort.")
+                            debugPrint("failed to start accessing security scoped resource, abort & restore to default.")
                         }
                     }
                 } catch {
-                    debugPrint("failed to get planet library location: \(error), restore to default.")
                     UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
+                    debugPrint("failed to get planet library location: \(error), restore to default.")
                 }
             } else {
                 UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
             }
         }
+        return Self.defaultRepoPath
+    }
+    
+    static let defaultRepoPath: URL = {
         let url = Self.documentsPath.appendingPathComponent("Planet", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
-    }
+    }()
 
     static let temporaryPath: URL = {
         let url = Self.cachesPath.appendingPathComponent("tmp", isDirectory: true)

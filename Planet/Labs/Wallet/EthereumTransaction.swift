@@ -33,13 +33,6 @@ class EthereumTransaction: Codable, Identifiable {
     let memo: String
     let created: Date
 
-    static let walletsInfoPath: URL = {
-        // ~/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Wallets/
-        let url = URLUtils.repoPath().appendingPathComponent("Wallets", isDirectory: true)
-        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-        return url
-    }()
-
     enum CodingKeys: String, CodingKey {
         case id
         case chainID
@@ -82,8 +75,14 @@ class EthereumTransaction: Codable, Identifiable {
         }
     }
 
+    static func walletsInfoPath() -> URL {
+        let url = URLUtils.repoPath().appendingPathComponent("Wallets", isDirectory: true)
+        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+
     func save() throws {
-        let walletPath = EthereumTransaction.walletsInfoPath.appendingPathComponent(
+        let walletPath = Self.walletsInfoPath().appendingPathComponent(
             from,
             isDirectory: true
         )

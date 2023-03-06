@@ -12,7 +12,24 @@ struct PlanetSettingsGeneralView: View {
 
     @EnvironmentObject private var viewModel: PlanetSettingsViewModel
     
-    @AppStorage(.settingsLibraryLocation) private var libraryLocation: String = UserDefaults.standard.string(forKey: .settingsLibraryLocation) ?? ""
+    @State private var libraryLocation: String = URLUtils.repoPath().path {
+        didSet {
+            Task(priority: .userInitiated) {
+                await MainActor.run {
+                    do {
+                        try PlanetStore.shared.load()
+                        try TemplateStore.shared.load()
+                        PlanetStore.shared.selectedArticle = nil
+                        PlanetStore.shared.selectedView = nil
+                        PlanetStore.shared.selectedArticleList = nil
+                        PlanetStore.shared.refreshSelectedArticles()
+                    } catch {
+                        debugPrint("failed to reload: \(error)")
+                    }
+                }
+            }
+        }
+    }
 
     @AppStorage(String.settingsPublicGatewayIndex) private var publicGatewayIndex: Int =
         UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
@@ -58,7 +75,7 @@ struct PlanetSettingsGeneralView: View {
                         } label: {
                             Text("Reset")
                         }
-                        .disabled(URLUtils.repoPath().path == libraryLocation)
+                        .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
                         Spacer()
                     }
                     .padding(.top, -10)
@@ -123,22 +140,6 @@ struct PlanetSettingsGeneralView: View {
         libraryLocation = URLUtils.repoPath().path
     }
     
-    private func validateExistingLibraryLocation(_ url: URL) throws -> Bool {
-        let folders: [URL] = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: [], options: .skipsHiddenFiles)
-        let publishedFoldersCount = PlanetPublishedServiceStore.shared.publishedFolders.count
-        var validPlanetLibraryNames = ["Following", "My", "Public", "Templates"]
-        if publishedFoldersCount > 0 {
-            validPlanetLibraryNames.append("PublishedFolders")
-        }
-        if folders.count == validPlanetLibraryNames.count && folders.filter({ targetURL in
-            let folderName = targetURL.lastPathComponent
-            return !validPlanetLibraryNames.contains(folderName)
-        }).count == 0 {
-            return true
-        }
-        return false
-    }
-    
     private func updateLibraryLocation() throws {
         let panel = NSOpenPanel()
         panel.message = "Choose Library Location"
@@ -153,17 +154,7 @@ struct PlanetSettingsGeneralView: View {
         let planetURL = url.appendingPathComponent("Planet")
         var useAsExistingLibraryLocation: Bool = false
         if FileManager.default.fileExists(atPath: planetURL.path) {
-            if try !validateExistingLibraryLocation(planetURL) {
-                let alert = NSAlert()
-                alert.messageText = "Failed to Choose Library Location"
-                alert.informativeText = "Planet library location at \(planetURL.path) is not valid."
-                alert.alertStyle = .informational
-                alert.addButton(withTitle: "OK")
-                alert.runModal()
-                throw PlanetError.InternalError
-            } else {
-                useAsExistingLibraryLocation = true
-            }
+            useAsExistingLibraryLocation = true
         }
         let bookmarkKey = url.path.md5()
         let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
@@ -172,7 +163,7 @@ struct PlanetSettingsGeneralView: View {
             try FileManager.default.copyItem(at: URLUtils.repoPath(), to: planetURL)
         }
         UserDefaults.standard.set(url.path, forKey: .settingsLibraryLocation)
-        try? TemplateStore.shared.load()
+        libraryLocation = URLUtils.repoPath().path
     }
 }
 

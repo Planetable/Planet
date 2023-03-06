@@ -190,7 +190,7 @@ struct WalletAccountView: View {
 
     private func loadTransactions() {
         debugPrint("Loading from the transactions folder")
-        let walletPath = EthereumTransaction.walletsInfoPath.appendingPathComponent(
+        let walletPath = EthereumTransaction.walletsInfoPath().appendingPathComponent(
             walletAddress,
             isDirectory: true
         )
