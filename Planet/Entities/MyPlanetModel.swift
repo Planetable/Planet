@@ -1238,6 +1238,21 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     func delete() throws {
         try FileManager.default.removeItem(at: basePath)
         // try FileManager.default.removeItem(at: publicBasePath)
+        Task(priority: .utility) {
+            do {
+                try await IPFSDaemon.shared.removeKey(name: id.uuidString)
+            } catch {
+                debugPrint("failed to remove key from planet: \(id.uuidString), error: \(error)")
+            }
+        #if DEBUG
+            do {
+                let keys = try await IPFSDaemon.shared.listKeys()
+                debugPrint("available keys: \(keys)")
+            } catch {
+                debugPrint("failed to get keys: \(error)")
+            }
+        #endif
+        }
     }
 
     func updateTrafficAnalytics() async {

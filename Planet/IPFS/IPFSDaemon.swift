@@ -353,13 +353,25 @@ actor IPFSDaemon {
         if ret == 0 {
             if let output = String(data: out, encoding: .utf8)?.trimmingCharacters(in: .whitespaces) {
                 let keyList = output.components(separatedBy: .newlines)
-                Self.logger.error("IPFS keypairs: \(String(describing: keyList))")
                 return keyList.contains(name)
             } else {
                 Self.logger.error("Failed to parse list IPFS keypairs: \(String(describing: out))")
             }
         }
         return false
+    }
+    
+    func listKeys() throws -> [String] {
+        Self.logger.info("List IPFS keypairs")
+        let (ret, out, _) = try IPFSCommand.listKeys().run()
+        if ret == 0 {
+            if let output = String(data: out, encoding: .utf8)?.trimmingCharacters(in: .whitespaces) {
+                return output.components(separatedBy: .newlines).filter({ $0 != "" && $0 != "self" })
+            } else {
+                Self.logger.error("Failed to parse list IPFS keypairs: \(String(describing: out))")
+            }
+        }
+        return []
     }
 
     func addDirectory(url: URL) throws -> String {
