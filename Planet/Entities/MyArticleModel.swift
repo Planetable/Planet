@@ -174,7 +174,8 @@ class MyArticleModel: ArticleModel, Codable {
         }
         debugPrint("HeroImage: finding from \(attachments)")
         let images: [String]? = attachments?.compactMap {
-            if $0.hasSuffix(".avif") || $0.hasSuffix(".jpeg") || $0.hasSuffix(".jpg") || $0.hasSuffix(".png") || $0.hasSuffix(".webp") || $0.hasSuffix(".gif") || $0.hasSuffix(".tiff") {
+            let imageNameLowercased = $0.lowercased()
+            if imageNameLowercased.hasSuffix(".avif") || imageNameLowercased.hasSuffix(".jpeg") || imageNameLowercased.hasSuffix(".jpg") || imageNameLowercased.hasSuffix(".png") || imageNameLowercased.hasSuffix(".webp") || imageNameLowercased.hasSuffix(".gif") || imageNameLowercased.hasSuffix(".tiff") {
                 return $0
             } else {
                 return nil
