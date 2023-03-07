@@ -23,6 +23,9 @@ enum PlanetError: Error {
     case MovePublishingPlanetArticleError
     case WalletConnectV2ProjectIDMissingError
     case PublicAPIError
+    case KeychainSaveKeyError
+    case KeychainLoadKeyError
+    case KeychainDeleteKeyError
     case InternalError
     case UnknownError(Error)
 }

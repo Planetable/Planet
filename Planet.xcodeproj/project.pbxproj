@@ -78,6 +78,7 @@
 		2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF4006727F37C27005DF1A9 /* WriterBasic.html */; };
 		2AF4006A27F37C27005DF1A9 /* WriterBasicPlaceholder.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF4006827F37C27005DF1A9 /* WriterBasicPlaceholder.html */; };
 		2AF9C5BC289263BC00327A8F /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF9C5BB289263BC00327A8F /* Updater.swift */; };
+		2AFB896429B7ACF3003D893E /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB896329B7ACF3003D893E /* KeychainHelper.swift */; };
 		2AFFD51B28AD760400EDB020 /* HelpLinkButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */; };
 		6A0624D22876BF130014DDDD /* MigrationProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0624D12876BF130014DDDD /* MigrationProgressView.swift */; };
 		6A1DA07D28B4278300C6B5A9 /* DecentralizedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1DA07C28B4278300C6B5A9 /* DecentralizedApp.swift */; };
@@ -265,6 +266,7 @@
 		2AF4006727F37C27005DF1A9 /* WriterBasic.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WriterBasic.html; sourceTree = "<group>"; };
 		2AF4006827F37C27005DF1A9 /* WriterBasicPlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WriterBasicPlaceholder.html; sourceTree = "<group>"; };
 		2AF9C5BB289263BC00327A8F /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
+		2AFB896329B7ACF3003D893E /* KeychainHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpLinkButton.swift; sourceTree = "<group>"; };
 		6A0624D12876BF130014DDDD /* MigrationProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationProgressView.swift; sourceTree = "<group>"; };
 		6A0FB8A427FBA3A3008E203D /* Planet v4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v4.xcdatamodel"; sourceTree = "<group>"; };
@@ -546,6 +548,7 @@
 				6A8C3A6628C9361800339A86 /* DotBitKit.swift */,
 				6A4825C928F22DAC004CE2C0 /* PodcastUtils.swift */,
 				2AA797302948A1B50031E873 /* WKScriptHelper.swift */,
+				2AFB896329B7ACF3003D893E /* KeychainHelper.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -971,6 +974,7 @@
 				6A2D6B8D285141A60078F531 /* Saver.swift in Sources */,
 				72114509730D9D97178E0E82 /* IPFSState.swift in Sources */,
 				6A2F5F1328DB75F700034D55 /* Plausible.swift in Sources */,
+				2AFB896429B7ACF3003D893E /* KeychainHelper.swift in Sources */,
 				721148F88BE8ABCC52FEB501 /* IPFSDaemon.swift in Sources */,
 				7211431A5867D4CF2960EC39 /* IPFSCommand.swift in Sources */,
 				7211453BC07C2E4A588D1618 /* URLUtils.swift in Sources */,
