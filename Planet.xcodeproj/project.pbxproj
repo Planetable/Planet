@@ -79,6 +79,11 @@
 		2AF4006A27F37C27005DF1A9 /* WriterBasicPlaceholder.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF4006827F37C27005DF1A9 /* WriterBasicPlaceholder.html */; };
 		2AF9C5BC289263BC00327A8F /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF9C5BB289263BC00327A8F /* Updater.swift */; };
 		2AFB896429B7ACF3003D893E /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB896329B7ACF3003D893E /* KeychainHelper.swift */; };
+		2AFB896929BA1455003D893E /* PlanetKeyManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB896829BA1455003D893E /* PlanetKeyManagerView.swift */; };
+		2AFB896C29BA1477003D893E /* PlanetKeyManagerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB896B29BA1477003D893E /* PlanetKeyManagerViewModel.swift */; };
+		2AFB896E29BA167D003D893E /* PlanetKeyManagerWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB896D29BA167D003D893E /* PlanetKeyManagerWindow.swift */; };
+		2AFB897029BA17CB003D893E /* PlanetKeyManagerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB896F29BA17CB003D893E /* PlanetKeyManagerWindowController.swift */; };
+		2AFB897229BA181F003D893E /* PlanetKeyManagerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB897129BA181F003D893E /* PlanetKeyManagerViewController.swift */; };
 		2AFFD51B28AD760400EDB020 /* HelpLinkButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */; };
 		6A0624D22876BF130014DDDD /* MigrationProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0624D12876BF130014DDDD /* MigrationProgressView.swift */; };
 		6A1DA07D28B4278300C6B5A9 /* DecentralizedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1DA07C28B4278300C6B5A9 /* DecentralizedApp.swift */; };
@@ -267,6 +272,11 @@
 		2AF4006827F37C27005DF1A9 /* WriterBasicPlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WriterBasicPlaceholder.html; sourceTree = "<group>"; };
 		2AF9C5BB289263BC00327A8F /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		2AFB896329B7ACF3003D893E /* KeychainHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		2AFB896829BA1455003D893E /* PlanetKeyManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetKeyManagerView.swift; sourceTree = "<group>"; };
+		2AFB896B29BA1477003D893E /* PlanetKeyManagerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetKeyManagerViewModel.swift; sourceTree = "<group>"; };
+		2AFB896D29BA167D003D893E /* PlanetKeyManagerWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetKeyManagerWindow.swift; sourceTree = "<group>"; };
+		2AFB896F29BA17CB003D893E /* PlanetKeyManagerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetKeyManagerWindowController.swift; sourceTree = "<group>"; };
+		2AFB897129BA181F003D893E /* PlanetKeyManagerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetKeyManagerViewController.swift; sourceTree = "<group>"; };
 		2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpLinkButton.swift; sourceTree = "<group>"; };
 		6A0624D12876BF130014DDDD /* MigrationProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationProgressView.swift; sourceTree = "<group>"; };
 		6A0FB8A427FBA3A3008E203D /* Planet v4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v4.xcdatamodel"; sourceTree = "<group>"; };
@@ -504,6 +514,7 @@
 				6A2F5F0F28DB74AB00034D55 /* Integrations */,
 				2AC4995E27BB759000F1C2D1 /* Helper */,
 				2AF4003727F231F8005DF1A9 /* Writer */,
+				2AFB896A29BA145A003D893E /* Key Manager */,
 				2A09A35D27C257E40003A0B5 /* Views */,
 				2A7022EE2897DF1B00022F13 /* Downloads */,
 				2AE44EAA28CD215C00944786 /* Settings */,
@@ -595,6 +606,18 @@
 				72114341F4E465B909F76B33 /* WriterAudioView.swift */,
 			);
 			path = Writer;
+			sourceTree = "<group>";
+		};
+		2AFB896A29BA145A003D893E /* Key Manager */ = {
+			isa = PBXGroup;
+			children = (
+				2AFB896829BA1455003D893E /* PlanetKeyManagerView.swift */,
+				2AFB896B29BA1477003D893E /* PlanetKeyManagerViewModel.swift */,
+				2AFB896D29BA167D003D893E /* PlanetKeyManagerWindow.swift */,
+				2AFB896F29BA17CB003D893E /* PlanetKeyManagerWindowController.swift */,
+				2AFB897129BA181F003D893E /* PlanetKeyManagerViewController.swift */,
+			);
+			path = "Key Manager";
 			sourceTree = "<group>";
 		};
 		6A0624D02876BF020014DDDD /* Saver */ = {
@@ -935,6 +958,7 @@
 				2A441BB027C4DD980008A694 /* CreatePlanetView.swift in Sources */,
 				2A2E33F227F4A93B0093F405 /* AttachmentThumbnailView.swift in Sources */,
 				2AC4997427BC0EBA00F1C2D1 /* Planet.xcdatamodeld in Sources */,
+				2AFB896E29BA167D003D893E /* PlanetKeyManagerWindow.swift in Sources */,
 				2A7022F02897DF3100022F13 /* PlanetDownloadsWindowController.swift in Sources */,
 				2AC4994927BB6E7500F1C2D1 /* PlanetApp.swift in Sources */,
 				2A7022ED2897DF1700022F13 /* PlanetDownloadsView.swift in Sources */,
@@ -942,8 +966,10 @@
 				2AA7974929496F730031E873 /* PFDashboardInspectorViewController.swift in Sources */,
 				2A09A35F27C2581F0003A0B5 /* PlanetSidebarView.swift in Sources */,
 				2AF1318727C7CDAF007792FE /* ArticleView.swift in Sources */,
+				2AFB896C29BA1477003D893E /* PlanetKeyManagerViewModel.swift in Sources */,
 				2A441BAC27C40AAC0008A694 /* WriterWindow.swift in Sources */,
 				6A1DA07D28B4278300C6B5A9 /* DecentralizedApp.swift in Sources */,
+				2AFB897229BA181F003D893E /* PlanetKeyManagerViewController.swift in Sources */,
 				2AF4003927F2321F005DF1A9 /* WriterTextView.swift in Sources */,
 				6A6A1468282159DC009644B6 /* TemplateStore.swift in Sources */,
 				2AF9C5BC289263BC00327A8F /* Updater.swift in Sources */,
@@ -1028,6 +1054,7 @@
 				6AB6E4FB2915227600F17328 /* WalletManager.swift in Sources */,
 				2A7022F22897DF4600022F13 /* PlanetDownloadsWindow.swift in Sources */,
 				72114AFCB4EDB617C07192BB /* FollowingPlanetSidebarItem.swift in Sources */,
+				2AFB896929BA1455003D893E /* PlanetKeyManagerView.swift in Sources */,
 				6ACF1667292570AF00AE318B /* PlanetUI.swift in Sources */,
 				2AA7974429496F730031E873 /* PFDashboardWindow.swift in Sources */,
 				2A6247AE292CC5F400714BFA /* IndicatorLabelView.swift in Sources */,
@@ -1044,6 +1071,7 @@
 				6AC33B932934159A001ABBCF /* EthereumTransaction.swift in Sources */,
 				6A7189662947FA2D00279D77 /* WalletConnectV2QRCodeView.swift in Sources */,
 				2AA797312948A1B50031E873 /* WKScriptHelper.swift in Sources */,
+				2AFB897029BA17CB003D893E /* PlanetKeyManagerWindowController.swift in Sources */,
 				2AE44EB028CD223C00944786 /* PlanetSettingsViewModel.swift in Sources */,
 				2A052AC1290971E80028E88F /* ArtworkView.swift in Sources */,
 				2A2556AF293E1E7D006462D8 /* TBWindowController.swift in Sources */,
