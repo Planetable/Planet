@@ -84,6 +84,17 @@ class KeychainHelper: NSObject {
         return value
     }
     
+    func check(forKey key: String) -> Bool {
+        let loadQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: kCFBooleanFalse!,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        let status = SecItemCopyMatching(loadQuery as CFDictionary, nil)
+        return status == errSecSuccess
+    }
+    
     func delete(forKey key: String, withICloudSync sync: Bool = false) throws {
         let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword as String,

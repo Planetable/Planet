@@ -84,6 +84,8 @@
 		2AFB896E29BA167D003D893E /* PlanetKeyManagerWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB896D29BA167D003D893E /* PlanetKeyManagerWindow.swift */; };
 		2AFB897029BA17CB003D893E /* PlanetKeyManagerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB896F29BA17CB003D893E /* PlanetKeyManagerWindowController.swift */; };
 		2AFB897229BA181F003D893E /* PlanetKeyManagerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB897129BA181F003D893E /* PlanetKeyManagerViewController.swift */; };
+		2AFB897429BA35D6003D893E /* PlanetKeyManager+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB897329BA35D6003D893E /* PlanetKeyManager+Extension.swift */; };
+		2AFB897629BA3ED8003D893E /* PlanetKeyManagerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB897529BA3ED8003D893E /* PlanetKeyManagerModel.swift */; };
 		2AFFD51B28AD760400EDB020 /* HelpLinkButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */; };
 		6A0624D22876BF130014DDDD /* MigrationProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0624D12876BF130014DDDD /* MigrationProgressView.swift */; };
 		6A1DA07D28B4278300C6B5A9 /* DecentralizedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1DA07C28B4278300C6B5A9 /* DecentralizedApp.swift */; };
@@ -275,6 +277,8 @@
 		2AFB896D29BA167D003D893E /* PlanetKeyManagerWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetKeyManagerWindow.swift; sourceTree = "<group>"; };
 		2AFB896F29BA17CB003D893E /* PlanetKeyManagerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetKeyManagerWindowController.swift; sourceTree = "<group>"; };
 		2AFB897129BA181F003D893E /* PlanetKeyManagerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetKeyManagerViewController.swift; sourceTree = "<group>"; };
+		2AFB897329BA35D6003D893E /* PlanetKeyManager+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlanetKeyManager+Extension.swift"; sourceTree = "<group>"; };
+		2AFB897529BA3ED8003D893E /* PlanetKeyManagerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetKeyManagerModel.swift; sourceTree = "<group>"; };
 		2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpLinkButton.swift; sourceTree = "<group>"; };
 		6A0624D12876BF130014DDDD /* MigrationProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationProgressView.swift; sourceTree = "<group>"; };
 		6A0FB8A427FBA3A3008E203D /* Planet v4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v4.xcdatamodel"; sourceTree = "<group>"; };
@@ -612,6 +616,8 @@
 				2AFB896D29BA167D003D893E /* PlanetKeyManagerWindow.swift */,
 				2AFB896F29BA17CB003D893E /* PlanetKeyManagerWindowController.swift */,
 				2AFB897129BA181F003D893E /* PlanetKeyManagerViewController.swift */,
+				2AFB897329BA35D6003D893E /* PlanetKeyManager+Extension.swift */,
+				2AFB897529BA3ED8003D893E /* PlanetKeyManagerModel.swift */,
 			);
 			path = "Key Manager";
 			sourceTree = "<group>";
@@ -952,6 +958,7 @@
 				2AC4997427BC0EBA00F1C2D1 /* Planet.xcdatamodeld in Sources */,
 				2AFB896E29BA167D003D893E /* PlanetKeyManagerWindow.swift in Sources */,
 				2A7022F02897DF3100022F13 /* PlanetDownloadsWindowController.swift in Sources */,
+				2AFB897429BA35D6003D893E /* PlanetKeyManager+Extension.swift in Sources */,
 				2AC4994927BB6E7500F1C2D1 /* PlanetApp.swift in Sources */,
 				2A7022ED2897DF1700022F13 /* PlanetDownloadsView.swift in Sources */,
 				6AABC6A7291A6216009FD13F /* WalletConnectV1.swift in Sources */,
@@ -1061,6 +1068,7 @@
 				721149A15F84CEDB799EC15B /* AudioPlayer.swift in Sources */,
 				7211436A6E9CCC30D85E8E18 /* WriterAudioView.swift in Sources */,
 				6AC33B932934159A001ABBCF /* EthereumTransaction.swift in Sources */,
+				2AFB897629BA3ED8003D893E /* PlanetKeyManagerModel.swift in Sources */,
 				6A7189662947FA2D00279D77 /* WalletConnectV2QRCodeView.swift in Sources */,
 				2AA797312948A1B50031E873 /* WKScriptHelper.swift in Sources */,
 				2AFB897029BA17CB003D893E /* PlanetKeyManagerWindowController.swift in Sources */,
