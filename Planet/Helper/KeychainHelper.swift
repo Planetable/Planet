@@ -12,12 +12,12 @@ import os
 class KeychainHelper: NSObject {
     static let shared = KeychainHelper()
     
-    func saveData(_ data: Data, forKey key: String, syncWithICloud: Bool = false) throws {
+    func saveData(_ data: Data, forKey key: String, withICloudSync sync: Bool = false) throws {
         let saveQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword as String,
             kSecAttrAccount as String: key,
             kSecValueData as String: data,
-            kSecAttrSynchronizable as String: syncWithICloud ? kCFBooleanTrue! : kCFBooleanFalse!
+            kSecAttrSynchronizable as String: sync ? kCFBooleanTrue! : kCFBooleanFalse!
         ]
         SecItemDelete(saveQuery as CFDictionary)
         let status = SecItemAdd(saveQuery as CFDictionary, nil)
@@ -26,13 +26,13 @@ class KeychainHelper: NSObject {
         }
     }
 
-    func loadData(forKey key: String, syncWithICloud: Bool = false) throws -> Data {
+    func loadData(forKey key: String, withICloudSync sync: Bool = false) throws -> Data {
         let loadQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
             kSecReturnData as String: kCFBooleanTrue!,
             kSecMatchLimit as String: kSecMatchLimitOne,
-            kSecAttrSynchronizable as String: syncWithICloud ? kCFBooleanTrue! : kCFBooleanFalse!
+            kSecAttrSynchronizable as String: sync ? kCFBooleanTrue! : kCFBooleanFalse!
         ]
         var item: CFTypeRef?
         let status = SecItemCopyMatching(loadQuery as CFDictionary, &item)
@@ -45,7 +45,7 @@ class KeychainHelper: NSObject {
         return data
     }
     
-    func saveValue(_ value: String, forKey key: String, syncWithICloud: Bool = false) throws {
+    func saveValue(_ value: String, forKey key: String, withICloudSync sync: Bool = false) throws {
         guard value.count > 0, let data = value.data(using: .utf8) else {
             throw PlanetError.KeychainSavingKeyError
         }
@@ -53,7 +53,7 @@ class KeychainHelper: NSObject {
             kSecClass as String: kSecClassGenericPassword as String,
             kSecAttrAccount as String: key,
             kSecValueData as String: data,
-            kSecAttrSynchronizable as String: syncWithICloud ? kCFBooleanTrue! : kCFBooleanFalse!
+            kSecAttrSynchronizable as String: sync ? kCFBooleanTrue! : kCFBooleanFalse!
         ]
         SecItemDelete(saveQuery as CFDictionary)
         let status = SecItemAdd(saveQuery as CFDictionary, nil)
@@ -62,13 +62,13 @@ class KeychainHelper: NSObject {
         }
     }
 
-    func loadValue(forKey key: String, syncWithICloud: Bool = false) throws -> String {
+    func loadValue(forKey key: String, withICloudSync sync: Bool = false) throws -> String {
         let loadQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
             kSecReturnData as String: kCFBooleanTrue!,
             kSecMatchLimit as String: kSecMatchLimitOne,
-            kSecAttrSynchronizable as String: syncWithICloud ? kCFBooleanTrue! : kCFBooleanFalse!
+            kSecAttrSynchronizable as String: sync ? kCFBooleanTrue! : kCFBooleanFalse!
         ]
         var item: CFTypeRef?
         let status = SecItemCopyMatching(loadQuery as CFDictionary, &item)
@@ -84,11 +84,11 @@ class KeychainHelper: NSObject {
         return value
     }
     
-    func delete(forKey key: String, syncWithICloud: Bool = false) throws {
+    func delete(forKey key: String, withICloudSync sync: Bool = false) throws {
         let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword as String,
             kSecAttrAccount as String: key,
-            kSecAttrSynchronizable as String: syncWithICloud ? kCFBooleanTrue! : kCFBooleanFalse!
+            kSecAttrSynchronizable as String: sync ? kCFBooleanTrue! : kCFBooleanFalse!
         ]
         let status = SecItemDelete(deleteQuery as CFDictionary)
         if status != errSecSuccess {

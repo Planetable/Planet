@@ -7,7 +7,6 @@
 
 import Foundation
 import Swifter
-import KeychainSwift
 import Cocoa
 
 
@@ -32,8 +31,12 @@ class PlanetAPI: NSObject {
             defaults.set("Planet", forKey: .settingsAPIUsername)
         }
         // disable api authentication if no passcode found.
-        let keychain = KeychainSwift()
-        if keychain.get(.settingsAPIPasscode) == nil {
+        do {
+            let passcode = try KeychainHelper.shared.loadValue(forKey: .settingsAPIPasscode)
+            if passcode == "" {
+                defaults.set(false, forKey: .settingsAPIUsesPasscode)
+            }
+        } catch {
             defaults.set(false, forKey: .settingsAPIUsesPasscode)
         }
         super.init()
@@ -496,11 +499,16 @@ extension PlanetAPI {
     private func validateRequest(_ r: HttpRequest) -> Bool {
         let apiUsesPasscode = UserDefaults.standard.bool(forKey: .settingsAPIUsesPasscode)
         let username = UserDefaults.standard.string(forKey: .settingsAPIUsername) ?? "Planet"
-        let keychain = KeychainSwift()
-        if apiUsesPasscode, let passcode = keychain.get(.settingsAPIPasscode), passcode != "" {
-            if let auth = r.headers["authorization"], let encoded = auth.components(separatedBy: "Basic ").last, encoded != "", let usernameAndPasscode = encoded.base64Decoded(), usernameAndPasscode == "\(username):\(passcode)" {
-                return true
-            } else {
+        if apiUsesPasscode {
+            do {
+                let passcode = try KeychainHelper.shared.loadValue(forKey: .settingsAPIPasscode)
+                if passcode != "" {
+                    if let auth = r.headers["authorization"], let encoded = auth.components(separatedBy: "Basic ").last, encoded != "", let usernameAndPasscode = encoded.base64Decoded(), usernameAndPasscode == "\(username):\(passcode)" {
+                        return true
+                    }
+                }
+                return false
+            } catch {
                 return false
             }
         }
