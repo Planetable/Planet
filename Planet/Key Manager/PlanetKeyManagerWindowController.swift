@@ -63,9 +63,35 @@ class PlanetKeyManagerWindowController: NSWindowController {
     }
     
     private func syncForSelectedKeyItem() throws {
-        let (keyItem, keyData) = try generateKeyData()
-        try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + keyItem.keyName)
-        reloadPlanetKeys()
+        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeychainGeneratingKeyError }
+        let keychainExists: Bool = KeychainHelper.shared.check(forKey: .keyPrefix + keyItem.keyName)
+        let keystoreExists: Bool = PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName)
+        defer {
+            reloadPlanetKeys()
+            let tmpKeyPath = URLUtils.temporaryPath.appendingPathComponent(keyItem.keyName).appendingPathExtension("pem")
+            if FileManager.default.fileExists(atPath: tmpKeyPath.path) {
+                try? FileManager.default.removeItem(at: tmpKeyPath)
+            }
+        }
+        /*
+            0. abort if not exists in both locations.
+            1. keystore -> keychain
+            2. keychain -> keystore
+         */
+        if !keychainExists && !keystoreExists {
+            throw PlanetError.KeychainGeneratingKeyError
+        } else if keystoreExists && !keychainExists {
+            let (_, keyData) = try generateKeyData()
+            try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + keyItem.keyName)
+        } else if keychainExists && !keystoreExists {
+            let theKeyData = try KeychainHelper.shared.loadData(forKey: .keyPrefix + keyItem.keyName, withICloudSync: true)
+            let tmpKeyPath = URLUtils.temporaryPath.appendingPathComponent(keyItem.keyName).appendingPathExtension("pem")
+            if FileManager.default.fileExists(atPath: tmpKeyPath.path) {
+                try FileManager.default.removeItem(at: tmpKeyPath)
+            }
+            try theKeyData.write(to: tmpKeyPath)
+            try IPFSCommand.importKey(name: keyItem.keyName, target: tmpKeyPath, format: "pem-pkcs8-cleartext").run()
+        }
     }
     
     private func importForSelectedKeyItem() throws {

@@ -1064,11 +1064,25 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 self.isPublishing = false
             }
             if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-                do {
-                    try PlanetAPI.shared.relaunch()
-                } catch {
-                    debugPrint("failed to relaunch server api: \(error)")
+                try? PlanetAPI.shared.relaunch()
+            }
+            let tmpKeyPath = URLUtils.temporaryPath.appendingPathComponent(id.uuidString).appendingPathExtension("pem")
+            if FileManager.default.fileExists(atPath: tmpKeyPath.path) {
+                try? FileManager.default.removeItem(at: tmpKeyPath)
+            }
+        }
+        // Make sure planet key is available in keystore or in keychain, abort publishing if not.
+        if try await !IPFSDaemon.shared.checkKeyExists(name: id.uuidString) {
+            if KeychainHelper.shared.check(forKey: .keyPrefix + id.uuidString) {
+                let keyData = try KeychainHelper.shared.loadData(forKey: .keyPrefix + id.uuidString, withICloudSync: true)
+                let tmpKeyPath = URLUtils.temporaryPath.appendingPathComponent(id.uuidString).appendingPathExtension("pem")
+                if FileManager.default.fileExists(atPath: tmpKeyPath.path) {
+                    try FileManager.default.removeItem(at: tmpKeyPath)
                 }
+                try keyData.write(to: tmpKeyPath)
+                try IPFSCommand.importKey(name: id.uuidString, target: tmpKeyPath, format: "pem-pkcs8-cleartext").run()
+            } else {
+                throw PlanetError.MissingKeyError
             }
         }
         let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)

@@ -30,6 +30,7 @@ enum PlanetError: Error {
     case KeychainImportingKeyError
     case KeychainImportingKeyExistsError
     case KeychainExportingKeyExistsError
+    case MissingKeyError
     case InternalError
     case UnknownError(Error)
 }
