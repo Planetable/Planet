@@ -1082,7 +1082,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 try keyData.write(to: tmpKeyPath)
                 try IPFSCommand.importKey(name: id.uuidString, target: tmpKeyPath, format: "pem-pkcs8-cleartext").run()
             } else {
-                throw PlanetError.MissingKeyError
+                throw PlanetError.MissingPlanetKeyError
             }
         }
         let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)

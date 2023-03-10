@@ -23,7 +23,7 @@ class KeychainHelper: NSObject {
             SecItemDelete(saveQuery as CFDictionary)
             let status = SecItemAdd(saveQuery as CFDictionary, nil)
             if status != errSecSuccess {
-                throw PlanetError.KeychainSavingKeyError
+                throw PlanetError.KeyManagerSavingKeyError
             }
         }
     }
@@ -39,17 +39,17 @@ class KeychainHelper: NSObject {
         var item: CFTypeRef?
         let status = SecItemCopyMatching(loadQuery as CFDictionary, &item)
         guard status == errSecSuccess else {
-            throw PlanetError.KeychainLoadingKeyError
+            throw PlanetError.KeyManagerLoadingKeyError
         }
         guard let data = item as? Data else {
-            throw PlanetError.KeychainLoadingKeyError
+            throw PlanetError.KeyManagerLoadingKeyError
         }
         return data
     }
     
     func saveValue(_ value: String, forKey key: String, withICloudSync sync: Bool = false) throws {
         guard value.count > 0, let data = value.data(using: .utf8) else {
-            throw PlanetError.KeychainSavingKeyError
+            throw PlanetError.KeyManagerSavingKeyError
         }
         let saveQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword as String,
@@ -61,7 +61,7 @@ class KeychainHelper: NSObject {
             SecItemDelete(saveQuery as CFDictionary)
             let status = SecItemAdd(saveQuery as CFDictionary, nil)
             if status != errSecSuccess {
-                throw PlanetError.KeychainSavingKeyError
+                throw PlanetError.KeyManagerSavingKeyError
             }
         }
     }
@@ -77,13 +77,13 @@ class KeychainHelper: NSObject {
         var item: CFTypeRef?
         let status = SecItemCopyMatching(loadQuery as CFDictionary, &item)
         guard status == errSecSuccess else {
-            throw PlanetError.KeychainLoadingKeyError
+            throw PlanetError.KeyManagerLoadingKeyError
         }
         guard let data = item as? Data else {
-            throw PlanetError.KeychainLoadingKeyError
+            throw PlanetError.KeyManagerLoadingKeyError
         }
         guard let value = String(data: data, encoding: .utf8) else {
-            throw PlanetError.KeychainLoadingKeyError
+            throw PlanetError.KeyManagerLoadingKeyError
         }
         return value
     }
@@ -108,7 +108,7 @@ class KeychainHelper: NSObject {
         Task(priority: .utility) {
             let status = SecItemDelete(deleteQuery as CFDictionary)
             if status != errSecSuccess {
-                throw PlanetError.KeychainDeletingKeyError
+                throw PlanetError.KeyManagerDeletingKeyError
             }
         }
     }

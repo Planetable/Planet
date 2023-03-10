@@ -41,7 +41,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
     }
     
     private func generateKeyData() throws -> (PlanetKeyItem, Data) {
-        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeychainGeneratingKeyError }
+        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeyManagerGeneratingKeyError }
         let tmpKeyPath = URLUtils.temporaryPath.appendingPathComponent(keyItem.keyName).appendingPathExtension("pem")
         defer {
             try? FileManager.default.removeItem(at: tmpKeyPath)
@@ -62,8 +62,9 @@ class PlanetKeyManagerWindowController: NSWindowController {
         }
     }
     
+    @MainActor
     private func syncForSelectedKeyItem() throws {
-        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeychainGeneratingKeyError }
+        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeyManagerGeneratingKeyError }
         let keychainExists: Bool = KeychainHelper.shared.check(forKey: .keyPrefix + keyItem.keyName)
         let keystoreExists: Bool = PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName)
         defer {
@@ -79,7 +80,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
             2. keychain -> keystore
          */
         if !keychainExists && !keystoreExists {
-            throw PlanetError.KeychainGeneratingKeyError
+            throw PlanetError.KeyManagerGeneratingKeyError
         } else if keystoreExists && !keychainExists {
             let (_, keyData) = try generateKeyData()
             try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + keyItem.keyName)
@@ -94,10 +95,11 @@ class PlanetKeyManagerWindowController: NSWindowController {
         }
     }
     
+    @MainActor
     private func importForSelectedKeyItem() throws {
-        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeychainImportingKeyError }
+        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeyManagerImportingKeyError }
         if PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName) {
-            throw PlanetError.KeychainImportingKeyExistsError
+            throw PlanetError.KeyManagerImportingKeyExistsError
         } else {
             let panel = NSOpenPanel()
             panel.message = "Choose key file to import"
@@ -114,6 +116,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
         }
     }
     
+    @MainActor
     private func exportForSelectedKeyItem() throws {
         let (keyItem, keyData) = try generateKeyData()
         let panel = NSOpenPanel()
@@ -128,7 +131,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
         guard response == .OK, let url = panel.url else { return }
         let targetKeyPath = url.appendingPathComponent("\(keyItem.planetName.sanitized()).pem")
         if FileManager.default.fileExists(atPath: targetKeyPath.path) {
-            throw PlanetError.KeychainExportingKeyExistsError
+            throw PlanetError.KeyManagerExportingKeyExistsError
         }
         try keyData.write(to: targetKeyPath)
         NSWorkspace.shared.activateFileViewerSelecting([targetKeyPath])
@@ -140,37 +143,43 @@ class PlanetKeyManagerWindowController: NSWindowController {
         case .keyManagerReloadItem:
             reloadPlanetKeys()
         case .keyManagerImportItem:
-            do {
-                try importForSelectedKeyItem()
-            } catch {
-                debugPrint("failed to import for selected key item: \(error)")
-                let alert = NSAlert()
-                alert.messageText = "Failed to Import Planet Key"
-                alert.informativeText = error.localizedDescription
-                alert.addButton(withTitle: "Cancel")
-                let _ = alert.runModal()
+            Task { @MainActor in
+                do {
+                    try importForSelectedKeyItem()
+                } catch {
+                    debugPrint("failed to import for selected key item: \(error)")
+                    let alert = NSAlert()
+                    alert.messageText = "Failed to Import Planet Key"
+                    alert.informativeText = error.localizedDescription
+                    alert.addButton(withTitle: "Cancel")
+                    let _ = alert.runModal()
+                }
             }
         case .keyManagerExportItem:
-            do {
-                try exportForSelectedKeyItem()
-            } catch {
-                debugPrint("failed to export for selected key item: \(error)")
-                let alert = NSAlert()
-                alert.messageText = "Failed to Export Planet Key"
-                alert.informativeText = error.localizedDescription
-                alert.addButton(withTitle: "Cancel")
-                let _ = alert.runModal()
+            Task { @MainActor in
+                do {
+                    try exportForSelectedKeyItem()
+                } catch {
+                    debugPrint("failed to export for selected key item: \(error)")
+                    let alert = NSAlert()
+                    alert.messageText = "Failed to Export Planet Key"
+                    alert.informativeText = error.localizedDescription
+                    alert.addButton(withTitle: "Cancel")
+                    let _ = alert.runModal()
+                }
             }
         case .keyManagerSyncItem:
-            do {
-                try syncForSelectedKeyItem()
-            } catch {
-                debugPrint("failed to sync for selected key item: \(error)")
-                let alert = NSAlert()
-                alert.messageText = "Failed to Sync Planet Key to Keychain"
-                alert.informativeText = error.localizedDescription
-                alert.addButton(withTitle: "Cancel")
-                let _ = alert.runModal()
+            Task { @MainActor in
+                do {
+                    try syncForSelectedKeyItem()
+                } catch {
+                    debugPrint("failed to sync for selected key item: \(error)")
+                    let alert = NSAlert()
+                    alert.messageText = "Failed to Sync Planet Key to Keychain"
+                    alert.informativeText = error.localizedDescription
+                    alert.addButton(withTitle: "Cancel")
+                    let _ = alert.runModal()
+                }
             }
         default:
             break
