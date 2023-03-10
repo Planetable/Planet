@@ -119,7 +119,9 @@ class PlanetAPI: NSObject {
         myPlanets = planets
         var articles: [MyArticleModel] = []
         for planet in planets {
-            articles.append(contentsOf: planet.articles)
+            if planet.articles != nil && planet.articles.count > 0 {
+                articles.append(contentsOf: planet.articles)
+            }
         }
         myArticles = articles
         try? relaunch()

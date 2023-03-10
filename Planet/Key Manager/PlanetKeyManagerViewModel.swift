@@ -15,6 +15,19 @@ class PlanetKeyManagerViewModel: ObservableObject {
     @Published var refreshing: Bool = false
     @Published var selectedKeyItemID: UUID?
     @Published private(set) var keys: [PlanetKeyItem] = []
+    @Published private(set) var keysInKeystore: [String] = []
+    
+    @MainActor
+    func updateKeyItem(_ item: PlanetKeyItem) {
+        keys = keys.map() { it in
+            if it.id == item.id {
+                return item
+            }
+            return it
+        }.sorted(by: { a, b in
+            return a.created > b.created
+        })
+    }
     
     @MainActor
     func reloadPlanetKeys() async {
@@ -41,5 +54,15 @@ class PlanetKeyManagerViewModel: ObservableObject {
         self.keys = items.sorted(by: { a, b in
             return a.created > b.created
         })
+        do {
+            let (ret, out, _) = try IPFSCommand.listKeys().run()
+            if ret == 0 {
+                if let output = String(data: out, encoding: .utf8)?.trimmingCharacters(in: .whitespaces) {
+                    keysInKeystore = output.components(separatedBy: .newlines).filter({ $0 != "" && $0 != "self" })
+                }
+            }
+        } catch {
+            debugPrint("failed to list keys: \(error)")
+        }
     }
 }

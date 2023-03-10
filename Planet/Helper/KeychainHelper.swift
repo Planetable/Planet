@@ -19,10 +19,12 @@ class KeychainHelper: NSObject {
             kSecValueData as String: data,
             kSecAttrSynchronizable as String: sync ? kCFBooleanTrue! : kCFBooleanFalse!
         ]
-        SecItemDelete(saveQuery as CFDictionary)
-        let status = SecItemAdd(saveQuery as CFDictionary, nil)
-        if status != errSecSuccess {
-            throw PlanetError.KeychainSavingKeyError
+        Task(priority: .utility) {
+            SecItemDelete(saveQuery as CFDictionary)
+            let status = SecItemAdd(saveQuery as CFDictionary, nil)
+            if status != errSecSuccess {
+                throw PlanetError.KeychainSavingKeyError
+            }
         }
     }
 
@@ -55,10 +57,12 @@ class KeychainHelper: NSObject {
             kSecValueData as String: data,
             kSecAttrSynchronizable as String: sync ? kCFBooleanTrue! : kCFBooleanFalse!
         ]
-        SecItemDelete(saveQuery as CFDictionary)
-        let status = SecItemAdd(saveQuery as CFDictionary, nil)
-        if status != errSecSuccess {
-            throw PlanetError.KeychainSavingKeyError
+        Task(priority: .utility) {
+            SecItemDelete(saveQuery as CFDictionary)
+            let status = SecItemAdd(saveQuery as CFDictionary, nil)
+            if status != errSecSuccess {
+                throw PlanetError.KeychainSavingKeyError
+            }
         }
     }
 
@@ -101,9 +105,11 @@ class KeychainHelper: NSObject {
             kSecAttrAccount as String: key,
             kSecAttrSynchronizable as String: sync ? kCFBooleanTrue! : kCFBooleanFalse!
         ]
-        let status = SecItemDelete(deleteQuery as CFDictionary)
-        if status != errSecSuccess {
-            throw PlanetError.KeychainDeletingKeyError
+        Task(priority: .utility) {
+            let status = SecItemDelete(deleteQuery as CFDictionary)
+            if status != errSecSuccess {
+                throw PlanetError.KeychainDeletingKeyError
+            }
         }
     }
 }

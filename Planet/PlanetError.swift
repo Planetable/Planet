@@ -26,6 +26,10 @@ enum PlanetError: Error {
     case KeychainSavingKeyError
     case KeychainLoadingKeyError
     case KeychainDeletingKeyError
+    case KeychainGeneratingKeyError
+    case KeychainImportingKeyError
+    case KeychainImportingKeyExistsError
+    case KeychainExportingKeyExistsError
     case InternalError
     case UnknownError(Error)
 }

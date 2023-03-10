@@ -20,3 +20,13 @@ extension NSToolbarItem.Identifier {
     static let keyManagerImportItem = NSToolbarItem.Identifier("PlanetKeyManagerToolbarImportItem")
     static let keyManagerExportItem = NSToolbarItem.Identifier("PlanetKeyManagerToolbarExportItem")
 }
+
+
+extension Notification.Name {
+    static let keyManagerReloadUI = Notification.Name("PlanetKeyManagerReloadUINotification")
+}
+
+
+extension String {
+    static let keyPrefix = "PLANETKEY-"
+}

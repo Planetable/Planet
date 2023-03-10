@@ -194,6 +194,11 @@ actor IPFSDaemon {
                         Task.detached(priority: .utility) { @MainActor in
                             NotificationCenter.default.post(name: .dashboardWebViewGoHome, object: nil)
                         }
+                        // refresh key manager
+                        Task.detached(priority: .utility) { @MainActor in
+                            NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
+                        }
+
                         // let onboarding = UserDefaults.standard.string(forKey: "PlanetOnboarding")
                         // if onboarding == nil {
                         //     Task { @MainActor in

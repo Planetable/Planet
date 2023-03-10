@@ -40,24 +40,72 @@ class PlanetKeyManagerWindowController: NSWindowController {
         w.toolbar?.validateVisibleItems()
     }
     
+    private func generateKeyData() throws -> (PlanetKeyItem, Data) {
+        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeychainGeneratingKeyError }
+        let tmpKeyPath = URLUtils.temporaryPath.appendingPathComponent(keyItem.keyName).appendingPathExtension("pem")
+        defer {
+            try? FileManager.default.removeItem(at: tmpKeyPath)
+        }
+        if FileManager.default.fileExists(atPath: tmpKeyPath.path) {
+            try FileManager.default.removeItem(at: tmpKeyPath)
+        }
+        let (ret, _, _) = try IPFSCommand.exportKey(name: keyItem.keyName, target: tmpKeyPath, format: "pem-pkcs8-cleartext").run()
+        if ret != 0 {
+            throw PlanetError.IPFSError
+        }
+        return (keyItem, try Data(contentsOf: tmpKeyPath))
+    }
+    
     private func reloadPlanetKeys() {
         Task { @MainActor in
             await PlanetKeyManagerViewModel.shared.reloadPlanetKeys()
         }
     }
     
-    private func syncForSelectedKeyItem() {
-        let viewModel = PlanetKeyManagerViewModel.shared
-        guard let selectedKeyItemID = viewModel.selectedKeyItemID, let keyItem = viewModel.keys.first(where: { $0.id == selectedKeyItemID }) else { return }
-        // MARK: TODO: sync into keychain
+    private func syncForSelectedKeyItem() throws {
+        let (keyItem, keyData) = try generateKeyData()
+        try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + keyItem.keyName)
+        reloadPlanetKeys()
     }
     
-    private func importForSelectedKeyItem() {
-        debugPrint("import item")
+    private func importForSelectedKeyItem() throws {
+        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeychainImportingKeyError }
+        if PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName) {
+            throw PlanetError.KeychainImportingKeyExistsError
+        } else {
+            let panel = NSOpenPanel()
+            panel.message = "Choose key file to import"
+            panel.prompt = "Choose"
+            panel.allowsMultipleSelection = false
+            panel.allowedContentTypes = [.data]
+            panel.canChooseDirectories = false
+            let response = panel.runModal()
+            guard response == .OK, let url = panel.url else { return }
+            let keyData = try Data(contentsOf: url)
+            try IPFSCommand.importKey(name: keyItem.keyName, target: url, format: "pem-pkcs8-cleartext").run()
+            try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + keyItem.keyName)
+            self.reloadPlanetKeys()
+        }
     }
     
-    private func exportForSelectedKeyItem() {
-        debugPrint("export item")
+    private func exportForSelectedKeyItem() throws {
+        let (keyItem, keyData) = try generateKeyData()
+        let panel = NSOpenPanel()
+        panel.message = "Choose location to save planet key"
+        panel.prompt = "Choose"
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.folder]
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        let response = panel.runModal()
+        guard response == .OK, let url = panel.url else { return }
+        let targetKeyPath = url.appendingPathComponent("\(keyItem.planetName.sanitized()).pem")
+        if FileManager.default.fileExists(atPath: targetKeyPath.path) {
+            throw PlanetError.KeychainExportingKeyExistsError
+        }
+        try keyData.write(to: targetKeyPath)
+        NSWorkspace.shared.activateFileViewerSelecting([targetKeyPath])
     }
     
     @objc private func toolbarItemAction(_ sender: Any) {
@@ -66,11 +114,38 @@ class PlanetKeyManagerWindowController: NSWindowController {
         case .keyManagerReloadItem:
             reloadPlanetKeys()
         case .keyManagerImportItem:
-            importForSelectedKeyItem()
+            do {
+                try importForSelectedKeyItem()
+            } catch {
+                debugPrint("failed to import for selected key item: \(error)")
+                let alert = NSAlert()
+                alert.messageText = "Failed to Import Planet Key"
+                alert.informativeText = error.localizedDescription
+                alert.addButton(withTitle: "Cancel")
+                let _ = alert.runModal()
+            }
         case .keyManagerExportItem:
-            exportForSelectedKeyItem()
+            do {
+                try exportForSelectedKeyItem()
+            } catch {
+                debugPrint("failed to export for selected key item: \(error)")
+                let alert = NSAlert()
+                alert.messageText = "Failed to Export Planet Key"
+                alert.informativeText = error.localizedDescription
+                alert.addButton(withTitle: "Cancel")
+                let _ = alert.runModal()
+            }
         case .keyManagerSyncItem:
-            syncForSelectedKeyItem()
+            do {
+                try syncForSelectedKeyItem()
+            } catch {
+                debugPrint("failed to sync for selected key item: \(error)")
+                let alert = NSAlert()
+                alert.messageText = "Failed to Sync Planet Key to Keychain"
+                alert.informativeText = error.localizedDescription
+                alert.addButton(withTitle: "Cancel")
+                let _ = alert.runModal()
+            }
         default:
             break
         }
@@ -117,7 +192,7 @@ extension PlanetKeyManagerWindowController: NSToolbarDelegate {
             item.paletteLabel = "Sync to Keychain"
             item.toolTip = "Sync to Keychain"
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "key", accessibilityDescription: "Sync to Keychain")
+            item.image = NSImage(systemSymbolName: "key.icloud", accessibilityDescription: "Sync to Keychain")
             return item
         case .keyManagerImportItem:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
@@ -127,7 +202,7 @@ extension PlanetKeyManagerWindowController: NSToolbarDelegate {
             item.paletteLabel = "Import Planet Key"
             item.toolTip = "Import Planet Key"
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "square.and.arrow.down", accessibilityDescription: "Import Planet Key")
+            item.image = NSImage(systemSymbolName: "arrow.down.doc", accessibilityDescription: "Import Planet Key")
             return item
         case .keyManagerExportItem:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
@@ -137,7 +212,7 @@ extension PlanetKeyManagerWindowController: NSToolbarDelegate {
             item.paletteLabel = "Export Planet Key"
             item.toolTip = "Export Planet Key"
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Export Planet Key")
+            item.image = NSImage(systemSymbolName: "arrow.up.doc", accessibilityDescription: "Export Planet Key")
             return item
         default:
             return nil

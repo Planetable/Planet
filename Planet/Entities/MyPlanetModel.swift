@@ -498,6 +498,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             withIntermediateDirectories: true
         )
         try planet.copyTemplateAssets()
+        // save key data in Keychain
+        let tmpKeyPath = URLUtils.temporaryPath.appendingPathComponent(id.uuidString).appendingPathExtension("pem")
+        defer {
+            try? FileManager.default.removeItem(at: tmpKeyPath)
+        }
+        if FileManager.default.fileExists(atPath: tmpKeyPath.path) {
+            try FileManager.default.removeItem(at: tmpKeyPath)
+        }
+        let (ret, _, _) = try IPFSCommand.exportKey(name: id.uuidString, target: tmpKeyPath, format: "pem-pkcs8-cleartext").run()
+        if ret != 0 {
+            throw PlanetError.IPFSError
+        }
+        let keyData = try Data(contentsOf: tmpKeyPath)
+        try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + id.uuidString)
         return planet
     }
 
@@ -1241,17 +1255,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Task(priority: .utility) {
             do {
                 try await IPFSDaemon.shared.removeKey(name: id.uuidString)
+                try KeychainHelper.shared.delete(forKey: .keyPrefix + id.uuidString)
             } catch {
                 debugPrint("failed to remove key from planet: \(id.uuidString), error: \(error)")
             }
-        #if DEBUG
-            do {
-                let keys = try await IPFSDaemon.shared.listKeys()
-                debugPrint("available keys: \(keys)")
-            } catch {
-                debugPrint("failed to get keys: \(error)")
-            }
-        #endif
         }
     }
 

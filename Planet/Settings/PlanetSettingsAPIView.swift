@@ -83,8 +83,8 @@ struct PlanetSettingsAPIView: View {
                         apiUsesPasscode = false
                     }
                     Task {
-                        await self.updatePasscode(newValue)
-                        reloadAPIServer()
+                        self.updatePasscode(newValue)
+                        self.reloadAPIServer()
                     }
                 }
             }
@@ -112,7 +112,7 @@ struct PlanetSettingsAPIView: View {
         }
     }
     
-    private func updatePasscode(_ passcode: String) async {
+    private func updatePasscode(_ passcode: String) {
         guard passcode != "" else { return }
         do {
             try KeychainHelper.shared.saveValue(passcode, forKey: .settingsAPIPasscode)

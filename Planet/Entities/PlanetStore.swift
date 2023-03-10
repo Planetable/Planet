@@ -41,6 +41,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
             Task(priority: .utility) {
                 PlanetAPI.shared.updateMyPlanets(planets)
             }
+            Task(priority: .utility) {
+                await MainActor.run {
+                    NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
+                }
+            }
         }
     }
 
