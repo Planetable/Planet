@@ -189,10 +189,10 @@ extension PlanetKeyManagerWindowController: NSToolbarDelegate {
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
             item.label = "Sync"
-            item.paletteLabel = "Sync to Keychain"
-            item.toolTip = "Sync to Keychain"
+            item.paletteLabel = "Sync with Keychain"
+            item.toolTip = "Sync with Keychain"
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "key.icloud", accessibilityDescription: "Sync to Keychain")
+            item.image = NSImage(systemSymbolName: "key.icloud", accessibilityDescription: "Sync with Keychain")
             return item
         case .keyManagerImportItem:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
