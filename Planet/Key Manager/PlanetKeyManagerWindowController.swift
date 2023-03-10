@@ -83,7 +83,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
             throw PlanetError.KeyManagerGeneratingKeyError
         } else if keystoreExists && !keychainExists {
             let (_, keyData) = try generateKeyData()
-            try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + keyItem.keyName)
+            try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + keyItem.keyName, withICloudSync: true)
         } else if keychainExists && !keystoreExists {
             let theKeyData = try KeychainHelper.shared.loadData(forKey: .keyPrefix + keyItem.keyName, withICloudSync: true)
             let tmpKeyPath = URLUtils.temporaryPath.appendingPathComponent(keyItem.keyName).appendingPathExtension("pem")
@@ -111,7 +111,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
             guard response == .OK, let url = panel.url else { return }
             let keyData = try Data(contentsOf: url)
             try IPFSCommand.importKey(name: keyItem.keyName, target: url, format: "pem-pkcs8-cleartext").run()
-            try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + keyItem.keyName)
+            try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + keyItem.keyName, withICloudSync: true)
             self.reloadPlanetKeys()
         }
     }

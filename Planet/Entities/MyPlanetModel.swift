@@ -511,7 +511,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             throw PlanetError.IPFSError
         }
         let keyData = try Data(contentsOf: tmpKeyPath)
-        try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + id.uuidString)
+        try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + id.uuidString, withICloudSync: true)
         return planet
     }
 
@@ -1269,7 +1269,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Task(priority: .utility) {
             do {
                 try await IPFSDaemon.shared.removeKey(name: id.uuidString)
-                try KeychainHelper.shared.delete(forKey: .keyPrefix + id.uuidString)
+                try KeychainHelper.shared.delete(forKey: .keyPrefix + id.uuidString, withICloudSync: true)
             } catch {
                 debugPrint("failed to remove key from planet: \(id.uuidString), error: \(error)")
             }
