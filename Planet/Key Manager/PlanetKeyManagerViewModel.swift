@@ -31,6 +31,7 @@ class PlanetKeyManagerViewModel: ObservableObject {
     
     @MainActor
     func reloadPlanetKeys() async {
+        selectedKeyItemID = nil
         refreshing = true
         defer {
             refreshing = false

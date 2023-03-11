@@ -40,22 +40,6 @@ class PlanetKeyManagerWindowController: NSWindowController {
         w.toolbar?.validateVisibleItems()
     }
     
-    private func generateKeyData() throws -> (PlanetKeyItem, Data) {
-        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeyManagerGeneratingKeyError }
-        let tmpKeyPath = URLUtils.temporaryPath.appendingPathComponent(keyItem.keyName).appendingPathExtension("pem")
-        defer {
-            try? FileManager.default.removeItem(at: tmpKeyPath)
-        }
-        if FileManager.default.fileExists(atPath: tmpKeyPath.path) {
-            try FileManager.default.removeItem(at: tmpKeyPath)
-        }
-        let (ret, _, _) = try IPFSCommand.exportKey(name: keyItem.keyName, target: tmpKeyPath, format: "pem-pkcs8-cleartext").run()
-        if ret != 0 {
-            throw PlanetError.IPFSError
-        }
-        return (keyItem, try Data(contentsOf: tmpKeyPath))
-    }
-    
     private func reloadPlanetKeys() {
         Task { @MainActor in
             await PlanetKeyManagerViewModel.shared.reloadPlanetKeys()
@@ -67,32 +51,19 @@ class PlanetKeyManagerWindowController: NSWindowController {
         guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeyManagerGeneratingKeyError }
         let keychainExists: Bool = KeychainHelper.shared.check(forKey: .keyPrefix + keyItem.keyName)
         let keystoreExists: Bool = PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName)
-        defer {
-            reloadPlanetKeys()
-            let tmpKeyPath = URLUtils.temporaryPath.appendingPathComponent(keyItem.keyName).appendingPathExtension("pem")
-            if FileManager.default.fileExists(atPath: tmpKeyPath.path) {
-                try? FileManager.default.removeItem(at: tmpKeyPath)
-            }
-        }
         /*
-            0. abort if not exists in both locations.
-            1. keystore -> keychain
-            2. keychain -> keystore
+            0. Abort if not exists in both locations.
+            1. Sync: keystore -> keychain
+            2. Sync: keychain -> keystore
          */
         if !keychainExists && !keystoreExists {
             throw PlanetError.KeyManagerGeneratingKeyError
         } else if keystoreExists && !keychainExists {
-            let (_, keyData) = try generateKeyData()
-            try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + keyItem.keyName, withICloudSync: true)
+            try KeychainHelper.shared.exportKeyToKeychain(forPlanetKeyName: keyItem.keyName)
         } else if keychainExists && !keystoreExists {
-            let theKeyData = try KeychainHelper.shared.loadData(forKey: .keyPrefix + keyItem.keyName, withICloudSync: true)
-            let tmpKeyPath = URLUtils.temporaryPath.appendingPathComponent(keyItem.keyName).appendingPathExtension("pem")
-            if FileManager.default.fileExists(atPath: tmpKeyPath.path) {
-                try FileManager.default.removeItem(at: tmpKeyPath)
-            }
-            try theKeyData.write(to: tmpKeyPath)
-            try IPFSCommand.importKey(name: keyItem.keyName, target: tmpKeyPath, format: "pem-pkcs8-cleartext").run()
+            try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: keyItem.keyName)
         }
+        reloadPlanetKeys()
     }
     
     @MainActor
@@ -109,16 +80,14 @@ class PlanetKeyManagerWindowController: NSWindowController {
             panel.canChooseDirectories = false
             let response = panel.runModal()
             guard response == .OK, let url = panel.url else { return }
-            let keyData = try Data(contentsOf: url)
-            try IPFSCommand.importKey(name: keyItem.keyName, target: url, format: "pem-pkcs8-cleartext").run()
-            try KeychainHelper.shared.saveData(keyData, forKey: .keyPrefix + keyItem.keyName, withICloudSync: true)
-            self.reloadPlanetKeys()
+            try KeychainHelper.shared.importKeyFile(forPlanetKeyName: keyItem.keyName, fileURL: url)
         }
+        reloadPlanetKeys()
     }
     
     @MainActor
     private func exportForSelectedKeyItem() throws {
-        let (keyItem, keyData) = try generateKeyData()
+        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeyManagerImportingKeyError }
         let panel = NSOpenPanel()
         panel.message = "Choose location to save planet key"
         panel.prompt = "Choose"
@@ -129,11 +98,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
         panel.canCreateDirectories = true
         let response = panel.runModal()
         guard response == .OK, let url = panel.url else { return }
-        let targetKeyPath = url.appendingPathComponent("\(keyItem.planetName.sanitized()).pem")
-        if FileManager.default.fileExists(atPath: targetKeyPath.path) {
-            throw PlanetError.KeyManagerExportingKeyExistsError
-        }
-        try keyData.write(to: targetKeyPath)
+        let targetKeyPath = try KeychainHelper.shared.exportKeyFile(forPlanetName: keyItem.planetName, planetKeyName: keyItem.keyName, toDirectory: url)
         NSWorkspace.shared.activateFileViewerSelecting([targetKeyPath])
     }
     
@@ -147,7 +112,6 @@ class PlanetKeyManagerWindowController: NSWindowController {
                 do {
                     try importForSelectedKeyItem()
                 } catch {
-                    debugPrint("failed to import for selected key item: \(error)")
                     let alert = NSAlert()
                     alert.messageText = "Failed to Import Planet Key"
                     alert.informativeText = error.localizedDescription
@@ -160,7 +124,6 @@ class PlanetKeyManagerWindowController: NSWindowController {
                 do {
                     try exportForSelectedKeyItem()
                 } catch {
-                    debugPrint("failed to export for selected key item: \(error)")
                     let alert = NSAlert()
                     alert.messageText = "Failed to Export Planet Key"
                     alert.informativeText = error.localizedDescription
@@ -173,7 +136,6 @@ class PlanetKeyManagerWindowController: NSWindowController {
                 do {
                     try syncForSelectedKeyItem()
                 } catch {
-                    debugPrint("failed to sync for selected key item: \(error)")
                     let alert = NSAlert()
                     alert.messageText = "Failed to Sync Planet Key to Keychain"
                     alert.informativeText = error.localizedDescription
