@@ -50,6 +50,7 @@ struct URLUtils {
                             UserDefaults.standard.set(updatedBookmarkData, forKey: bookmarkKey)
                         }
                         if url.startAccessingSecurityScopedResource() {
+                            // MARK: Add repo path monitoring
                             return planetURL
                         } else {
                             UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
@@ -64,6 +65,7 @@ struct URLUtils {
                 UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
             }
         }
+        // MARK: Remove repo path monitoring
         return Self.defaultRepoPath
     }
     

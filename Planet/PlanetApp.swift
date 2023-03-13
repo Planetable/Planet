@@ -64,6 +64,16 @@ struct PlanetApp: App {
                         Text("Publish My Planets")
                     }
                     .keyboardShortcut("p", modifiers: [.command, .shift])
+                    
+                    Button {
+                        Task { @MainActor in
+                            try PlanetStore.shared.load()
+                            try TemplateStore.shared.load()
+                        }
+                    } label: {
+                        Text("Reload My Planets")
+                    }
+                    .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
 
                     Button {
                         planetStore.updateFollowingPlanets()
