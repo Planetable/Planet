@@ -628,7 +628,8 @@ private class PlanetPublishedServiceMonitor {
         monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
         directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: [.attrib, .write, .delete], queue: self.monitorQueue) as? DispatchSource
         directoryMonitorSource?.setEventHandler{
-            // MARK: TODO: reloading gracefully.
+            // MARK: TODO: reloading gracefully or manually for now.
+            /*
             Task(priority: .userInitiated) {
                 await MainActor.run {
                     do {
@@ -643,6 +644,7 @@ private class PlanetPublishedServiceMonitor {
                     }
                 }
             }
+             */
         }
         directoryMonitorSource?.setCancelHandler{
             close(self.monitoredDirectoryFileDescriptor)

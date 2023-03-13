@@ -64,6 +64,26 @@ struct PlanetApp: App {
                         Text("Publish My Planets")
                     }
                     .keyboardShortcut("p", modifiers: [.command, .shift])
+                    
+                    Button {
+                        Task(priority: .userInitiated) {
+                            await MainActor.run {
+                                do {
+                                    try PlanetStore.shared.load()
+                                    try TemplateStore.shared.load()
+                                    PlanetStore.shared.selectedView = nil
+                                    PlanetStore.shared.selectedArticle = nil
+                                    PlanetStore.shared.selectedArticleList = nil
+                                    PlanetStore.shared.refreshSelectedArticles()
+                                } catch {
+                                    debugPrint("failed to reload: \(error)")
+                                }
+                            }
+                        }
+                    } label: {
+                        Text("Reload My Planets")
+                    }
+                    .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
 
                     Button {
                         planetStore.updateFollowingPlanets()
