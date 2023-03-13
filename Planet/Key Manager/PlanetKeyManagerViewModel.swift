@@ -38,19 +38,9 @@ class PlanetKeyManagerViewModel: ObservableObject {
         }
         var items: [PlanetKeyItem] = []
         let planets = PlanetStore.shared.myPlanets
-        do {
-            let allKeys = try await IPFSDaemon.shared.listKeys()
-            for key in allKeys {
-                for planet in planets {
-                    if planet.id.uuidString == key {
-                        let item = PlanetKeyItem(id: UUID(), planetID: planet.id, planetName: planet.name, keyName: planet.id.uuidString, keyID: planet.ipns, created: planet.created, modified: planet.created)
-                        items.append(item)
-                        break
-                    }
-                }
-            }
-        } catch {
-            debugPrint("failed to prepare planet keys, error: \(error)")
+        for planet in planets {
+            let item = PlanetKeyItem(id: UUID(), planetID: planet.id, planetName: planet.name, keyName: planet.id.uuidString, keyID: planet.ipns, created: planet.created, modified: planet.created)
+            items.append(item)
         }
         self.keys = items.sorted(by: { a, b in
             return a.created > b.created
