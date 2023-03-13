@@ -157,8 +157,25 @@ extension PlanetKeyManagerWindowController: NSToolbarItemValidation {
         switch item.itemIdentifier {
         case .keyManagerReloadItem:
             return true
-        case .keyManagerSyncItem, .keyManagerImportItem, .keyManagerExportItem:
-            return PlanetKeyManagerViewModel.shared.selectedKeyItemID != nil
+        case .keyManagerSyncItem:
+            if let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) {
+                let keychainExists: Bool = KeychainHelper.shared.check(forKey: .keyPrefix + keyItem.keyName)
+                let keystoreExists: Bool = PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName)
+                return !keychainExists || !keystoreExists
+            }
+            return false
+        case .keyManagerImportItem:
+            if let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) {
+                let keystoreExists: Bool = PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName)
+                return !keystoreExists
+            }
+            return false
+        case .keyManagerExportItem:
+            if let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) {
+                let keystoreExists: Bool = PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName)
+                return keystoreExists
+            }
+            return false
         default:
             return false
         }
