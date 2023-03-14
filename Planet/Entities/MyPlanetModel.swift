@@ -498,6 +498,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             withIntermediateDirectories: true
         )
         try planet.copyTemplateAssets()
+        try? KeychainHelper.shared.exportKeyToKeychain(forPlanetKeyName: id.uuidString)
         return planet
     }
 
@@ -536,6 +537,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 name: backupPlanet.id.uuidString,
                 target: backupPrivateKeyPath
             ).run()
+            // also export key to keychain
+            try? KeychainHelper.shared.exportKeyToKeychain(forPlanetKeyName: backupPlanet.id.uuidString)
         }
         catch {
             throw PlanetError.IPFSError
@@ -1050,12 +1053,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 self.isPublishing = false
             }
             if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-                do {
-                    try PlanetAPI.shared.relaunch()
-                } catch {
-                    debugPrint("failed to relaunch server api: \(error)")
-                }
+                try? PlanetAPI.shared.relaunch()
             }
+        }
+        // Make sure planet key is available in keystore or in keychain, abort publishing if not.
+        if try await !IPFSDaemon.shared.checkKeyExists(name: id.uuidString) {
+            try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: id.uuidString)
         }
         let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
         // Send the latest CID to dWebServices.xyz if enabled
@@ -1238,6 +1241,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     func delete() throws {
         try FileManager.default.removeItem(at: basePath)
         // try FileManager.default.removeItem(at: publicBasePath)
+        Task(priority: .utility) {
+            do {
+                try await IPFSDaemon.shared.removeKey(name: id.uuidString)
+                try KeychainHelper.shared.delete(forKey: .keyPrefix + id.uuidString, withICloudSync: true)
+            } catch {
+                debugPrint("failed to remove key from planet: \(id.uuidString), error: \(error)")
+            }
+        }
     }
 
     func updateTrafficAnalytics() async {

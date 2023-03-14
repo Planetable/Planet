@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import KeychainSwift
 
 
 struct PlanetSettingsAPIView: View {
@@ -84,8 +83,8 @@ struct PlanetSettingsAPIView: View {
                         apiUsesPasscode = false
                     }
                     Task {
-                        await self.updatePasscode(newValue)
-                        reloadAPIServer()
+                        self.updatePasscode(newValue)
+                        self.reloadAPIServer()
                     }
                 }
             }
@@ -93,24 +92,33 @@ struct PlanetSettingsAPIView: View {
         }
         .padding()
         .task {
-            let keychain = KeychainSwift()
-            if let passcode = keychain.get(.settingsAPIPasscode) {
-                apiPasscode = passcode
-            } else {
+            do {
+                let passcode = try KeychainHelper.shared.loadValue(forKey: .settingsAPIPasscode)
+                if passcode != "" {
+                    apiPasscode = passcode
+                }
+            } catch {
                 apiPasscode = ""
                 apiUsesPasscode = false
                 UserDefaults.standard.set(false, forKey: .settingsAPIUsesPasscode)
                 Task { @MainActor in
-                    keychain.delete(.settingsAPIPasscode)
+                    do {
+                        try KeychainHelper.shared.delete(forKey: .settingsAPIPasscode)
+                    } catch {
+                        debugPrint("failed to delete api passcode from keychain: \(error)")
+                    }
                 }
             }
         }
     }
     
-    private func updatePasscode(_ passcode: String) async {
+    private func updatePasscode(_ passcode: String) {
         guard passcode != "" else { return }
-        let keychain = KeychainSwift()
-        keychain.set(passcode, forKey: .settingsAPIPasscode)
+        do {
+            try KeychainHelper.shared.saveValue(passcode, forKey: .settingsAPIPasscode)
+        } catch {
+            debugPrint("failed to save passcode to keychain: \(error)")
+        }
     }
     
     private func reloadAPIServer() {

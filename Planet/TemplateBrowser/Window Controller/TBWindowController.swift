@@ -99,7 +99,7 @@ class TBWindowController: NSWindowController {
         self.window?.subtitle = "\(template.author) · Version \(template.version)"
     }
 
-    @objc func toolbarItemAction(_ sender: Any) {
+    @objc private func toolbarItemAction(_ sender: Any) {
         guard let item = sender as? NSToolbarItem else { return }
         switch item.itemIdentifier {
             case .templateSidebarItem:

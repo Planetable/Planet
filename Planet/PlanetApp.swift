@@ -39,6 +39,13 @@ struct PlanetApp: App {
                         Text("Template Browser")
                     }
                     .keyboardShortcut("l", modifiers: [.command, .shift])
+                    
+                    Button {
+                        PlanetAppDelegate.shared.openKeyManagerWindow()
+                    } label: {
+                        Text("Key Manager")
+                    }
+                    .keyboardShortcut("k", modifiers: [.command, .shift])
 
                     Button {
                         PlanetAppDelegate.shared.openDownloadsWindow()
@@ -57,6 +64,26 @@ struct PlanetApp: App {
                         Text("Publish My Planets")
                     }
                     .keyboardShortcut("p", modifiers: [.command, .shift])
+                    
+                    Button {
+                        Task(priority: .userInitiated) {
+                            await MainActor.run {
+                                do {
+                                    try PlanetStore.shared.load()
+                                    try TemplateStore.shared.load()
+                                    PlanetStore.shared.selectedView = nil
+                                    PlanetStore.shared.selectedArticle = nil
+                                    PlanetStore.shared.selectedArticleList = nil
+                                    PlanetStore.shared.refreshSelectedArticles()
+                                } catch {
+                                    debugPrint("failed to reload: \(error)")
+                                }
+                            }
+                        }
+                    } label: {
+                        Text("Reload My Planets")
+                    }
+                    .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
 
                     Button {
                         planetStore.updateFollowingPlanets()
@@ -156,6 +183,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     var templateWindowController: TBWindowController?
     var downloadsWindowController: PlanetDownloadsWindowController?
     var publishedFoldersDashboardWindowController: PFDashboardWindowController?
+    var keyManagerWindowController: PlanetKeyManagerWindowController?
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         return true
@@ -283,7 +311,8 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-// MARK: -
+// MARK: - Published Folders Menu UI
+
 extension PlanetApp {
     @ViewBuilder
     private func publishedFoldersMenu() -> some View {
@@ -424,7 +453,8 @@ extension PlanetApp {
     }
 }
 
-// MARK: -
+// MARK: - User Notifications
+
 extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
     func setupNotification() {
         let center = UNUserNotificationCenter.current()
@@ -487,7 +517,8 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
     }
 }
 
-// MARK: -
+// MARK: - Window Controllers
+
 extension PlanetAppDelegate {
     func openDownloadsWindow() {
         if downloadsWindowController == nil {
@@ -508,6 +539,13 @@ extension PlanetAppDelegate {
             publishedFoldersDashboardWindowController = PFDashboardWindowController()
         }
         publishedFoldersDashboardWindowController?.showWindow(nil)
+    }
+    
+    func openKeyManagerWindow() {
+        if keyManagerWindowController == nil {
+            keyManagerWindowController = PlanetKeyManagerWindowController()
+        }
+        keyManagerWindowController?.showWindow(nil)
     }
 }
 

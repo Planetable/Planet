@@ -1,5 +1,6 @@
 import Foundation
 
+
 struct IPFSCommand {
     // executables are under <project_root>/Planet/IPFS/go-ipfs-executables
     // version: 0.16.0, last updated 2022-10-04
@@ -183,12 +184,20 @@ struct IPFSCommand {
         IPFSCommand(arguments: ["add", file.path, "--cid-version=1", "--only-hash"])
     }
 
-    static func exportKey(name: String, target: URL) -> IPFSCommand {
-        IPFSCommand(arguments: ["key", "export", name, "-o", target.path])
+    static func exportKey(name: String, target: URL, format: String = "") -> IPFSCommand {
+        var arguments: [String] = ["key", "export", name, "-o", target.path]
+        if format != "" {
+            arguments.append("--format=\(format)")
+        }
+        return IPFSCommand(arguments: arguments)
     }
 
-    static func importKey(name: String, target: URL) -> IPFSCommand {
-        IPFSCommand(arguments: ["key", "import", name, target.path])
+    static func importKey(name: String, target: URL, format: String = "") -> IPFSCommand {
+        var arguments: [String] = ["key", "import", name, target.path]
+        if format != "" {
+            arguments.append("--format=\(format)")
+        }
+        return IPFSCommand(arguments: arguments)
     }
 
     // NOTE: IPFS CLI calls internal HTTP API to communicate

@@ -41,6 +41,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
             Task(priority: .utility) {
                 PlanetAPI.shared.updateMyPlanets(planets)
             }
+            Task(priority: .utility) {
+                await MainActor.run {
+                    NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
+                }
+            }
         }
     }
 
@@ -152,6 +157,14 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 selectedView = .starred
             }
         }
+        
+        // Update library path monitoring
+        if URLUtils.repoPath() == URLUtils.defaultRepoPath {
+            PlanetPublishedServiceStore.shared.stopRepoPathMonitoring()
+        } else {
+            PlanetPublishedServiceStore.shared.startRepoPathMonitoring(targetURL: URLUtils.repoPath())
+        }
+        
         // Publish my planets every 30 minutes
         RunLoop.main.add(Timer(timeInterval: 1800, repeats: true) { [self] timer in
             publishMyPlanets()
