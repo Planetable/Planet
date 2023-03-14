@@ -33,73 +33,83 @@ struct PlanetApp: App {
                 CommandGroup(replacing: .newItem) {
                 }
                 CommandMenu("Tools") {
-                    Button {
-                        PlanetAppDelegate.shared.openTemplateWindow()
-                    } label: {
-                        Text("Template Browser")
+                    Group {
+                        Button {
+                            PlanetAppDelegate.shared.openTemplateWindow()
+                        } label: {
+                            Text("Template Browser")
+                        }
+                        .keyboardShortcut("l", modifiers: [.command, .shift])
+                        
+                        Button {
+                            PlanetAppDelegate.shared.openKeyManagerWindow()
+                        } label: {
+                            Text("Key Manager")
+                        }
+                        .keyboardShortcut("k", modifiers: [.command, .shift])
+
+                        Button {
+                            PlanetAppDelegate.shared.openDownloadsWindow()
+                        } label: {
+                            Text("Downloads")
+                        }
+                        .keyboardShortcut("d", modifiers: [.command, .shift])
+
+                        publishedFoldersMenu()
+
+                        Divider()
                     }
-                    .keyboardShortcut("l", modifiers: [.command, .shift])
+
+                    Group {
+                        Button {
+                            planetStore.publishMyPlanets()
+                        } label: {
+                            Text("Publish My Planets")
+                        }
+                        .keyboardShortcut("p", modifiers: [.command, .shift])
+
+                        Button {
+                            planetStore.updateFollowingPlanets()
+                        } label: {
+                            Text("Update Following Planets")
+                        }
+                        .keyboardShortcut("r", modifiers: [.command, .shift])
+                        
+                        Divider()
+                    }
                     
-                    Button {
-                        PlanetAppDelegate.shared.openKeyManagerWindow()
-                    } label: {
-                        Text("Key Manager")
-                    }
-                    .keyboardShortcut("k", modifiers: [.command, .shift])
-
-                    Button {
-                        PlanetAppDelegate.shared.openDownloadsWindow()
-                    } label: {
-                        Text("Downloads")
-                    }
-                    .keyboardShortcut("d", modifiers: [.command, .shift])
-
-                    publishedFoldersMenu()
-
-                    Divider()
-
-                    Button {
-                        planetStore.publishMyPlanets()
-                    } label: {
-                        Text("Publish My Planets")
-                    }
-                    .keyboardShortcut("p", modifiers: [.command, .shift])
-                    
-                    Button {
-                        Task(priority: .userInitiated) {
-                            await MainActor.run {
-                                do {
-                                    try PlanetStore.shared.load()
-                                    try TemplateStore.shared.load()
-                                    PlanetStore.shared.selectedView = nil
-                                    PlanetStore.shared.selectedArticle = nil
-                                    PlanetStore.shared.selectedArticleList = nil
-                                    PlanetStore.shared.refreshSelectedArticles()
-                                } catch {
-                                    debugPrint("failed to reload: \(error)")
+                    Group {
+                        Button {
+                            Task(priority: .userInitiated) {
+                                await MainActor.run {
+                                    do {
+                                        try PlanetStore.shared.load()
+                                        try TemplateStore.shared.load()
+                                        PlanetStore.shared.selectedView = nil
+                                        PlanetStore.shared.selectedArticle = nil
+                                        PlanetStore.shared.selectedArticleList = nil
+                                        PlanetStore.shared.refreshSelectedArticles()
+                                    } catch {
+                                        debugPrint("failed to reload: \(error)")
+                                    }
                                 }
                             }
+                        } label: {
+                            Text("Reload Planets")
                         }
-                    } label: {
-                        Text("Reload My Planets")
-                    }
-                    .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
+                        .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
 
-                    Button {
-                        planetStore.updateFollowingPlanets()
-                    } label: {
-                        Text("Update Following Planets")
+                        Divider()
                     }
-                    .keyboardShortcut("r", modifiers: [.command, .shift])
 
-                    Divider()
-
-                    Button {
-                        planetStore.isImportingPlanet = true
-                    } label: {
-                        Text("Import Planet")
+                    Group {
+                        Button {
+                            planetStore.isImportingPlanet = true
+                        } label: {
+                            Text("Import Planet")
+                        }
+                        .keyboardShortcut("i", modifiers: [.command, .shift])
                     }
-                    .keyboardShortcut("i", modifiers: [.command, .shift])
                 }
                 CommandGroup(after: .appInfo) {
                     Button {

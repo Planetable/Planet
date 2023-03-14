@@ -158,12 +158,14 @@ enum PlanetDetailViewType: Hashable, Equatable {
             }
         }
         
+        /*
         // Update library path monitoring
         if URLUtils.repoPath() == URLUtils.defaultRepoPath {
             PlanetPublishedServiceStore.shared.stopRepoPathMonitoring()
         } else {
             PlanetPublishedServiceStore.shared.startRepoPathMonitoring(targetURL: URLUtils.repoPath())
         }
+         */
         
         // Publish my planets every 30 minutes
         RunLoop.main.add(Timer(timeInterval: 1800, repeats: true) { [self] timer in
