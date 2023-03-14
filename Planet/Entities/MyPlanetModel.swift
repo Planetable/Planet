@@ -801,7 +801,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         avatar = resizedImage
     }
-    
+
     func uploadAvatar(image: NSImage) throws {
         guard
             let resizedImage = image.resizeSquare(maxLength: 144),
@@ -835,6 +835,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 .aspectRatio(contentMode: .fit)
                 .frame(width: size, height: size, alignment: .center)
                 .cornerRadius(size / 2)
+                .overlay(RoundedRectangle(cornerRadius: size / 2)
+                                               .stroke(Color("BorderColor"), lineWidth: 0.5))
+                                               .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                .padding(2)
         } else {
             Text(self.nameInitials)
                 .font(Font.custom("Arial Rounded MT Bold", size: size / 2))
@@ -847,6 +851,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     endPoint: .bottom
                 ))
                 .cornerRadius(size / 2)
+                .overlay(RoundedRectangle(cornerRadius: size / 2)
+                                               .stroke(Color("BorderColor"), lineWidth: 0.5))
+                                               .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                .padding(2)
         }
     }
 
