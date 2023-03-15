@@ -11,7 +11,7 @@ import Cocoa
 
 class PlanetKeyManagerWindowController: NSWindowController {
     override init(window: NSWindow?) {
-        let windowSize = NSSize(width: 320, height: 480)
+        let windowSize = NSSize(width: 480, height: 320)
         let screenSize = NSScreen.main?.frame.size ?? .zero
         let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
         let w = PlanetKeyManagerWindow(contentRect: rect, styleMask: [], backing: .buffered, defer: true)
@@ -34,7 +34,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
         toolbar.delegate = self
         toolbar.allowsUserCustomization = false
         toolbar.autosavesConfiguration = true
-        toolbar.displayMode = .iconOnly
+        toolbar.displayMode = .iconAndLabel
         w.title = "Key Manager"
         w.toolbar = toolbar
         w.toolbar?.validateVisibleItems()
@@ -197,6 +197,7 @@ extension PlanetKeyManagerWindowController: NSToolbarDelegate {
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
             item.label = "Reload"
+            item.title = "Reload"
             item.paletteLabel = "Reload Planet Keys"
             item.toolTip = "Reload Planet Keys"
             item.isBordered = true
@@ -207,6 +208,7 @@ extension PlanetKeyManagerWindowController: NSToolbarDelegate {
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
             item.label = "Sync"
+            item.title = "Sync"
             item.paletteLabel = "Sync with Keychain"
             item.toolTip = "Sync with Keychain"
             item.isBordered = true
@@ -217,6 +219,7 @@ extension PlanetKeyManagerWindowController: NSToolbarDelegate {
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
             item.label = "Import"
+            item.title = "Import"
             item.paletteLabel = "Import Planet Key"
             item.toolTip = "Import Planet Key"
             item.isBordered = true
@@ -227,6 +230,7 @@ extension PlanetKeyManagerWindowController: NSToolbarDelegate {
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
             item.label = "Export"
+            item.title = "Export"
             item.paletteLabel = "Export Planet Key"
             item.toolTip = "Export Planet Key"
             item.isBordered = true
