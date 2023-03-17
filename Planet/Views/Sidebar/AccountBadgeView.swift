@@ -72,7 +72,10 @@ struct AccountBadgeView: View {
         .background(currentBackgroundColor)
         .cornerRadius(40)
         .frame(idealWidth: 200, maxWidth: 300, idealHeight: 40, maxHeight: 40)
-        .padding(10)
+        .padding(.top, 0)
+        .padding(.bottom, 10)
+        .padding(.leading, 10)
+        .padding(.trailing, 10)
         .contextMenu {
             Text(walletAddress)
                 .font(.footnote)
