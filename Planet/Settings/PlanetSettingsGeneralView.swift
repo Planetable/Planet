@@ -164,6 +164,19 @@ struct PlanetSettingsGeneralView: View {
         if FileManager.default.fileExists(atPath: planetURL.path) {
             useAsExistingLibraryLocation = true
         }
+        // prompt to user when existing planet library location found:
+        if useAsExistingLibraryLocation {
+            let alert = NSAlert()
+            alert.messageText = "Existing Planet Library Found"
+            alert.alertStyle = .warning
+            alert.informativeText = "Would you like to use new library location at: \(url.path), current database including following planets will be replaced with contents at this location."
+            alert.addButton(withTitle: "Cancel")
+            alert.addButton(withTitle: "Continue & Update")
+            let result = alert.runModal()
+            if result == .alertFirstButtonReturn {
+                return
+            }
+        }
         let bookmarkKey = url.path.md5()
         let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
         UserDefaults.standard.set(bookmarkData, forKey: bookmarkKey)
