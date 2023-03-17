@@ -246,17 +246,6 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // use hide instead of close for main windows to keep reopen position.
-        if #available(macOS 13.0, *) {
-        } else {
-            for w in NSApp.windows {
-                debugPrint("Window Info: \(w) frameAutosaveName: \(w.frameAutosaveName)")
-                if w.canHide && w.canBecomeMain && w.styleMask.contains(.closable) {
-                    w.delegate = self
-                }
-            }
-        }
-
         setupNotification()
 
         let saver = Saver.shared
@@ -556,19 +545,5 @@ extension PlanetAppDelegate {
             keyManagerWindowController = PlanetKeyManagerWindowController()
         }
         keyManagerWindowController?.showWindow(nil)
-    }
-}
-
-// MARK: -
-// Hide main window instead of closing to keep window position.
-// https://stackoverflow.com/questions/71506416/restoring-macos-window-size-after-close-using-swiftui-windowsgroup
-extension PlanetAppDelegate: NSWindowDelegate {
-    func windowShouldClose(_ sender: NSWindow) -> Bool {
-        if #available(macOS 13.0, *) {
-            return true
-        } else {
-            NSApp.hide(nil)
-            return false
-        }
     }
 }
