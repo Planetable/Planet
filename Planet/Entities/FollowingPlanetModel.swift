@@ -1685,9 +1685,25 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         return URL(string: "https://\(domain)/@\(user)")
     }
 
+    func juiceboxURL() -> URL? {
+        if self.juiceboxEnabled == false {
+            return nil
+        }
+        if self.juiceboxProjectID == nil && self.juiceboxProjectIDGoerli == nil {
+            return nil
+        }
+        if let projectID = self.juiceboxProjectID {
+            return URL(string: "https://juicebox.money/v2/p/\(projectID)")
+        }
+        if let projectIDGoerli = self.juiceboxProjectIDGoerli {
+            return URL(string: "https://goerli.juicebox.money/v2/p/\(projectIDGoerli)")
+        }
+        return nil
+    }
+
     @ViewBuilder
     func twitterLabel() -> some View {
-        if let twitterUsername = self.twitterUsername {
+        if let twitterUsername = self.twitterUsername, twitterUsername.count > 0 {
             Divider()
 
             HStack(spacing: 10) {
@@ -1709,7 +1725,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     @ViewBuilder
     func githubLabel() -> some View {
-        if let githubUsername = self.githubUsername {
+        if let githubUsername = self.githubUsername, githubUsername.count > 0 {
             Divider()
 
             HStack(spacing: 10) {
@@ -1730,7 +1746,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     @ViewBuilder
     func telegramLabel() -> some View {
-        if let telegramUsername = self.telegramUsername {
+        if let telegramUsername = self.telegramUsername, telegramUsername.count > 0 {
             Divider()
 
             HStack(spacing: 10) {
@@ -1751,7 +1767,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     @ViewBuilder
     func mastodonLabel() -> some View {
-        if let mastodonUsername = self.mastodonUsername {
+        if let mastodonUsername = self.mastodonUsername, mastodonUsername.count > 0 {
             Divider()
 
             HStack(spacing: 10) {
@@ -1782,9 +1798,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 16, height: 16, alignment: .center)
                 Button {
-
+                    if let projectURL = self.juiceboxURL() {
+                        NSWorkspace.shared.open(projectURL)
+                    }
                 } label: {
-                    Text("juicebox.money")
+                    Text(self.juiceboxURL()?.absoluteString.dropFirst(8) ?? "Juicebox Project")
                 }.buttonStyle(.link)
             }
         }
