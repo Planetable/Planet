@@ -33,10 +33,11 @@ class PlanetKeyManagerWindowController: NSWindowController {
         let toolbar = NSToolbar(identifier: .keyManagerToolbarIdentifier)
         toolbar.delegate = self
         toolbar.allowsUserCustomization = false
-        toolbar.autosavesConfiguration = true
-        toolbar.displayMode = .iconAndLabel
+        toolbar.autosavesConfiguration = false
+        toolbar.displayMode = .iconOnly
         w.title = "Key Manager"
         w.toolbar = toolbar
+        w.toolbarStyle = .unified
         w.toolbar?.validateVisibleItems()
     }
     
