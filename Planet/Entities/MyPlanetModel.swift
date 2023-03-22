@@ -1252,7 +1252,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Task(priority: .utility) {
             do {
                 try await IPFSDaemon.shared.removeKey(name: id.uuidString)
-                try KeychainHelper.shared.delete(forKey: .keyPrefix + id.uuidString, withICloudSync: true)
+                try KeychainHelper.shared.delete(forKey: id.uuidString)
             } catch {
                 debugPrint("failed to remove key from planet: \(id.uuidString), error: \(error)")
             }

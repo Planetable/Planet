@@ -50,7 +50,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
     @MainActor
     private func syncForSelectedKeyItem() throws {
         guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeyManagerGeneratingKeyError }
-        let keychainExists: Bool = KeychainHelper.shared.check(forKey: .keyPrefix + keyItem.keyName)
+        let keychainExists: Bool = KeychainHelper.shared.check(forKey: keyItem.keyName)
         let keystoreExists: Bool = PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName)
         /*
             0. Abort if not exists in both locations.
@@ -160,7 +160,7 @@ extension PlanetKeyManagerWindowController: NSToolbarItemValidation {
             return true
         case .keyManagerSyncItem:
             if let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) {
-                let keychainExists: Bool = KeychainHelper.shared.check(forKey: .keyPrefix + keyItem.keyName)
+                let keychainExists: Bool = KeychainHelper.shared.check(forKey: keyItem.keyName)
                 let keystoreExists: Bool = PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName)
                 if !keychainExists && !keystoreExists {
                     return false
