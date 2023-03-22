@@ -56,7 +56,7 @@ struct PlanetKeyManagerView: View {
                 }
             }
             TableColumn("Keychain Status") { item in
-                if KeychainHelper.shared.check(forKey: .keyPrefix + item.keyName) {
+                if KeychainHelper.shared.check(forKey: item.keyName) {
                     Label("In Keychain", systemImage: "checkmark.circle")
                         .foregroundColor(.green)
                 } else {

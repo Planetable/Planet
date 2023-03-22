@@ -25,8 +25,3 @@ extension NSToolbarItem.Identifier {
 extension Notification.Name {
     static let keyManagerReloadUI = Notification.Name("PlanetKeyManagerReloadUINotification")
 }
-
-
-extension String {
-    static let keyPrefix = "PLANETKEY-"
-}
