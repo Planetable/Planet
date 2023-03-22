@@ -14,9 +14,9 @@ class KeychainHelper: NSObject {
     
     private var appServiceName: String {
         if let name = Bundle.main.object(forInfoDictionaryKey: "ORGANIZATION_IDENTIFIER_PREFIX") as? String {
-            return name + ".planet"
+            return name + ".Planet"
         }
-        return "xyz.planetable.planet"
+        return "xyz.planetable.Planet"
     }
     
     private var appICloudSync: Bool {
