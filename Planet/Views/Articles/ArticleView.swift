@@ -52,7 +52,9 @@ struct ArticleView: View {
                 currentItemLink = nil
                 planetStore.walletTransactionMemo = ""
             }
-            if let linkString = currentItemLink, !linkString.hasPrefix("/"), let linkURL = URL(string: linkString) {
+            if let linkString = currentItemLink, !linkString.hasPrefix("/"),
+                let linkURL = URL(string: linkString)
+            {
                 var link = linkURL.path
                 if let query = linkURL.query {
                     link.append("?" + query)
@@ -69,7 +71,9 @@ struct ArticleView: View {
                     planetStore.walletTransactionMemo = "planet:\(host)\(link)"
                 }
             }
-            debugPrint("Current prepared transaction memo is \(planetStore.walletTransactionMemo ?? "nil")")
+            debugPrint(
+                "Current prepared transaction memo is \(planetStore.walletTransactionMemo ?? "nil")"
+            )
             NotificationCenter.default.post(name: .loadArticle, object: nil)
         }
         .onChange(of: planetStore.selectedView) { _ in
@@ -77,7 +81,7 @@ struct ArticleView: View {
             currentItemLink = nil
             planetStore.walletTransactionMemo = ""
             NotificationCenter.default.post(name: .loadArticle, object: nil)
-            switch (planetStore.selectedView) {
+            switch planetStore.selectedView {
             case .followingPlanet(let followingPlanet):
                 planetStore.walletTransactionMemo = "planet:\(followingPlanet.link)"
             default:
@@ -85,7 +89,7 @@ struct ArticleView: View {
             }
         }
         .onAppear {
-            switch (planetStore.selectedView) {
+            switch planetStore.selectedView {
             case .followingPlanet(let followingPlanet):
                 planetStore.walletTransactionMemo = "planet:\(followingPlanet.link)"
             default:
@@ -94,83 +98,8 @@ struct ArticleView: View {
         }
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
-                switch planetStore.selectedView {
-                case .myPlanet(let planet):
-                    Button {
-                        do {
-                            try WriterStore.shared.newArticle(for: planet)
-                        }
-                        catch {
-                            PlanetStore.shared.alert(title: "Failed to launch writer")
-                        }
-                    } label: {
-                        Image(systemName: "square.and.pencil")
-                    }
-                    if let plausibleEnabled = planet.plausibleEnabled, plausibleEnabled {
-                        Button {
-                            isShowingAnalyticsPopover = true
-                            Task(priority: .userInitiated) {
-                                await planet.updateTrafficAnalytics()
-                            }
-                        } label: {
-                            Image(systemName: "chart.xyaxis.line")
-                        }
-                        .popover(isPresented: $isShowingAnalyticsPopover, arrowEdge: .bottom) {
-                            PlausiblePopoverView(planet: planet)
-                        }
-                    }
-
-                    Button {
-                        planetStore.isShowingPlanetInfo = true
-                    } label: {
-                        Image(systemName: "info.circle")
-                    }
-                case .followingPlanet(let planet):
-                    Button {
-                        planetStore.isShowingPlanetInfo = true
-                    } label: {
-                        Image(systemName: "info.circle")
-                    }
-                    if let receiver = canTip(planet: planet) {
-                        Button {
-                            planetStore.isShowingWalletTipAmount = true
-                            /* Previous logic for sending test transaction
-                            let ens = planet.link
-                            let message: String
-                            message = "Sending 0.01 Ξ to **\(ens)** on test network, please confirm from your phone"
-                            Task { @MainActor in
-                                PlanetStore.shared.walletTransactionProgressMessage = message
-                                PlanetStore.shared.isShowingWalletTransactionProgress = true
-                            }
-                            let memo: String
-                            if let link = currentItemLink {
-                                memo = "planet:\(planet.link)\(link)"
-                            } else {
-                                memo = "planet:\(planet.link)"
-                            }
-                            WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, amount: 5, memo: memo, ens: ens)
-                            // WalletManager.shared.walletConnect.sendTransaction(receiver: receiver, amount: 5, memo: memo, ens: ens)
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                                PlanetStore.shared.isShowingWalletTransactionProgress = false
-                            }
-                            */
-                        } label: {
-                            Image("custom.ethereum")
-                        }.help("Tip with Ethereum")
-                    }
-                    if planet.planetType == .ens {
-                        Button {
-                            let url = URL(string: "https://app.ens.domains/name/\(planet.link)/details")
-                            if let url = url {
-                                openInChromium(url)
-                            }
-                        } label: {
-                            Image("custom.ens")
-                        }.help("Get ENS Info")
-                    }
-                default:
-                    Text("")
-                }
+                // Functions for the current selected planet
+                toolbarPlanetView()
             }
 
             ToolbarItemGroup(placement: .automatic) {
@@ -178,14 +107,14 @@ struct ArticleView: View {
                 if let article = planetStore.selectedArticle,
                     article.hasAudio
                 {
-                    self.toolbarAudioView(article: article)
+                    toolbarAudioView(article: article)
                 }
 
                 // Menu for accessing the attachments if any
                 if let article = planetStore.selectedArticle, let attachments = article.attachments,
                     attachments.count > 0
                 {
-                    self.toolbarAttachmentsView(article: article)
+                    toolbarAttachmentsView(article: article)
                 }
             }
 
@@ -198,7 +127,12 @@ struct ArticleView: View {
                         Image(systemName: "square.and.arrow.up")
                     }
                     .background(
-                        SharingServicePicker(isPresented: $isSharing, sharingItems: [sharingItem ?? URL(string: "https://planetable.eth.limo")!])
+                        SharingServicePicker(
+                            isPresented: $isSharing,
+                            sharingItems: [
+                                sharingItem ?? URL(string: "https://planetable.eth.limo")!
+                            ]
+                        )
                     )
                 }
             }
@@ -220,7 +154,7 @@ struct ArticleView: View {
         let supportedChromiumBrowsers = [
             "com.google.Chrome",
             "com.brave.Browser",
-            "com.google.Chrome.canary"
+            "com.google.Chrome.canary",
         ]
         let appUrl: URL? = {
             for item in supportedChromiumBrowsers {
@@ -237,7 +171,12 @@ struct ArticleView: View {
             return
         }
 
-        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
+        NSWorkspace.shared.open(
+            [url],
+            withApplicationAt: appUrl,
+            configuration: self.openConfiguration(),
+            completionHandler: nil
+        )
     }
 
     private func openConfiguration() -> NSWorkspace.OpenConfiguration {
@@ -247,7 +186,7 @@ struct ArticleView: View {
         conf.activates = true
         return conf
     }
-    
+
     @ViewBuilder
     private func toolbarAttachmentsView(article: ArticleModel) -> some View {
         if let attachments = article.attachments {
@@ -304,7 +243,7 @@ struct ArticleView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private func toolbarAudioView(article: ArticleModel?) -> some View {
         if let myArticle = article as? MyArticleModel,
@@ -328,6 +267,87 @@ struct ArticleView: View {
             } label: {
                 Label("Play Audio", systemImage: "headphones")
             }
+        }
+    }
+
+    @ViewBuilder
+    private func toolbarPlanetView() -> some View {
+        switch planetStore.selectedView {
+        case .myPlanet(let planet):
+            Button {
+                do {
+                    try WriterStore.shared.newArticle(for: planet)
+                }
+                catch {
+                    PlanetStore.shared.alert(title: "Failed to launch writer")
+                }
+            } label: {
+                Image(systemName: "square.and.pencil")
+            }
+            if let plausibleEnabled = planet.plausibleEnabled, plausibleEnabled {
+                Button {
+                    isShowingAnalyticsPopover = true
+                    Task(priority: .userInitiated) {
+                        await planet.updateTrafficAnalytics()
+                    }
+                } label: {
+                    Image(systemName: "chart.xyaxis.line")
+                }
+                .popover(isPresented: $isShowingAnalyticsPopover, arrowEdge: .bottom) {
+                    PlausiblePopoverView(planet: planet)
+                }
+            }
+
+            Button {
+                planetStore.isShowingPlanetInfo = true
+            } label: {
+                Image(systemName: "info.circle")
+            }
+        case .followingPlanet(let planet):
+            Button {
+                planetStore.isShowingPlanetInfo = true
+            } label: {
+                Image(systemName: "info.circle")
+            }
+            if let receiver = canTip(planet: planet) {
+                Button {
+                    planetStore.isShowingWalletTipAmount = true
+                    /* Previous logic for sending test transaction
+                        let ens = planet.link
+                        let message: String
+                        message = "Sending 0.01 Ξ to **\(ens)** on test network, please confirm from your phone"
+                        Task { @MainActor in
+                            PlanetStore.shared.walletTransactionProgressMessage = message
+                            PlanetStore.shared.isShowingWalletTransactionProgress = true
+                        }
+                        let memo: String
+                        if let link = currentItemLink {
+                            memo = "planet:\(planet.link)\(link)"
+                        } else {
+                            memo = "planet:\(planet.link)"
+                        }
+                        WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, amount: 5, memo: memo, ens: ens)
+                        // WalletManager.shared.walletConnect.sendTransaction(receiver: receiver, amount: 5, memo: memo, ens: ens)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                            PlanetStore.shared.isShowingWalletTransactionProgress = false
+                        }
+                        */
+                } label: {
+                    Image("custom.ethereum")
+                }.help("Tip with Ethereum")
+            }
+            if planet.planetType == .ens {
+                Button {
+                    let url = URL(string: "https://app.ens.domains/name/\(planet.link)/details")
+                    if let url = url {
+                        openInChromium(url)
+                    }
+                } label: {
+                    Image("custom.ens")
+                }.help("Get ENS Info")
+            }
+        default:
+            Text("")
         }
     }
 }
