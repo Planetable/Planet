@@ -178,28 +178,7 @@ struct ArticleView: View {
                 if let article = planetStore.selectedArticle,
                     article.hasAudio
                 {
-                    if let myArticle = article as? MyArticleModel,
-                        let name = myArticle.audioFilename,
-                        let url = myArticle.getAttachmentURL(name: name)
-                    {
-                        Button {
-                            ArticleAudioPlayerViewModel.shared.url = url
-                            ArticleAudioPlayerViewModel.shared.title = article.title
-                        } label: {
-                            Label("Play Audio", systemImage: "headphones")
-                        }
-                    }
-                    if let followingArticle = article as? FollowingArticleModel,
-                        let name = followingArticle.audioFilename,
-                        let url = followingArticle.getAttachmentURL(name: name)
-                    {
-                        Button {
-                            ArticleAudioPlayerViewModel.shared.url = url
-                            ArticleAudioPlayerViewModel.shared.title = article.title
-                        } label: {
-                            Label("Play Audio", systemImage: "headphones")
-                        }
-                    }
+                    self.toolbarAudioView(article: article)
                 }
 
                 // Menu for accessing the attachments if any
@@ -317,5 +296,31 @@ struct ArticleView: View {
         conf.hides = false
         conf.activates = true
         return conf
+    }
+    
+    @ViewBuilder
+    private func toolbarAudioView(article: ArticleModel?) -> some View {
+        if let myArticle = article as? MyArticleModel,
+            let name = myArticle.audioFilename,
+            let url = myArticle.getAttachmentURL(name: name)
+        {
+            Button {
+                ArticleAudioPlayerViewModel.shared.url = url
+                ArticleAudioPlayerViewModel.shared.title = myArticle.title
+            } label: {
+                Label("Play Audio", systemImage: "headphones")
+            }
+        }
+        if let followingArticle = article as? FollowingArticleModel,
+            let name = followingArticle.audioFilename,
+            let url = followingArticle.getAttachmentURL(name: name)
+        {
+            Button {
+                ArticleAudioPlayerViewModel.shared.url = url
+                ArticleAudioPlayerViewModel.shared.title = followingArticle.title
+            } label: {
+                Label("Play Audio", systemImage: "headphones")
+            }
+        }
     }
 }
