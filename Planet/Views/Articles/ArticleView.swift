@@ -1,5 +1,119 @@
 import SwiftUI
 
+struct ArticleToolbarStarView: View {
+    @ObservedObject var article: ArticleModel
+
+    var body: some View {
+        article.starView()
+    }
+}
+
+struct ArticleSetStarView: View {
+    @ObservedObject var article: ArticleModel
+
+    var body: some View {
+        Button {
+            article.starred = Date()
+            article.starType = .star
+            try? article.saveArticle()
+        } label: {
+            HStack {
+                Image(systemName: "star.fill")
+                Text("Star")
+            }
+        }
+        if article.starred != nil {
+            Divider()
+            Button {
+                article.starred = nil
+                try? article.saveArticle()
+            } label: {
+                HStack {
+                    Spacer()
+                    Text("Remove Star")
+                }
+            }
+        }
+        Divider()
+        todoStars()
+        Divider()
+        Button {
+            article.starred = Date()
+            article.starType = .sparkles
+            try? article.saveArticle()
+        } label: {
+            HStack {
+                Image(systemName: "sparkles")
+                Text("Sparkles")
+            }
+        }
+        Button {
+            article.starred = Date()
+            article.starType = .heart
+            try? article.saveArticle()
+        } label: {
+            HStack {
+                Image(systemName: "heart.fill")
+                Text("Heart")
+            }
+        }
+        Button {
+            article.starred = Date()
+            article.starType = .question
+            try? article.saveArticle()
+        } label: {
+            HStack {
+                Image(systemName: "questionmark.circle.fill")
+                Text("Question")
+            }
+        }
+        Button {
+            article.starred = Date()
+            article.starType = .paperplane
+            try? article.saveArticle()
+        } label: {
+            HStack {
+                Image(systemName: "paperplane.circle.fill")
+                Text("Paperplane")
+            }
+        }
+    }
+
+    @ViewBuilder
+    func todoStars() -> some View {
+        Button {
+            article.starred = Date()
+            article.starType = .plan
+            try? article.saveArticle()
+        } label: {
+            HStack {
+                Image(systemName: "circle.dotted")
+                Text("Plan")
+            }
+        }
+        Button {
+            article.starred = Date()
+            article.starType = .todo
+            try? article.saveArticle()
+        } label: {
+            HStack {
+                Image(systemName: "circle")
+                Text("To Do")
+            }
+        }
+        Button {
+            article.starred = Date()
+            article.starType = .done
+            try? article.saveArticle()
+        } label: {
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                Text("Done")
+            }
+        }
+    }
+}
+
 struct ArticleView: View {
     static let noSelectionURL = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
     @EnvironmentObject var planetStore: PlanetStore
@@ -104,6 +218,13 @@ struct ArticleView: View {
 
             ToolbarItemGroup(placement: .automatic) {
                 Spacer()
+                if let article = planetStore.selectedArticle {
+                    Menu {
+                        ArticleSetStarView(article: article)
+                    } label: {
+                        ArticleToolbarStarView(article: article)
+                    }
+                }
                 if let article = planetStore.selectedArticle,
                     article.hasAudio
                 {

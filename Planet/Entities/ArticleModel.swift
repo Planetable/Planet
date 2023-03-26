@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-enum ArticleStarType: Int, Codable {
+enum ArticleStarType: Int, Codable, CaseIterable {
     case star = 0 // a yellow star.full
     case done = 1 // a blue checkmark.circle.fill
     case sparkles = 2 // a yellow sparkles
@@ -70,49 +70,65 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
         return true
     }
 
+    func saveArticle() throws {
+        if let myArticle = self as? MyArticleModel {
+            try? myArticle.save()
+        }
+        if let followingArticle = self as? FollowingArticleModel {
+            try? followingArticle.save()
+        }
+    }
+
     @ViewBuilder
     func starView() -> some View {
-        switch starType {
-        case .star:
-            Image(systemName: "star.fill")
+        if starred == nil {
+            Image(systemName: "star")
                 .renderingMode(.original)
                 .frame(width: 8, height: 8)
                 .padding(.all, 4)
-        case .plan:
-            Image(systemName: "circle.dotted")
-                .foregroundColor(Color(NSColor.tertiaryLabelColor))
-                .frame(width: 8, height: 8)
-                .padding(.all, 4)
-        case .todo:
-            Image(systemName: "circle")
-                .foregroundColor(Color(NSColor.tertiaryLabelColor))
-                .frame(width: 8, height: 8)
-                .padding(.all, 4)
-        case .done:
-            Image(systemName: "checkmark.circle.fill")
-                .renderingMode(.original)
-                .frame(width: 8, height: 8)
-                .padding(.all, 4)
-        case .sparkles:
-            Image(systemName: "sparkles")
-                .renderingMode(.original)
-                .frame(width: 8, height: 8)
-                .padding(.all, 4)
-        case .heart:
-            Image(systemName: "heart.fill")
-                .renderingMode(.original)
-                .frame(width: 8, height: 8)
-                .padding(.all, 4)
-        case .question:
-            Image(systemName: "questionmark.circle.fill")
-                .renderingMode(.original)
-                .frame(width: 8, height: 8)
-                .padding(.all, 4)
-        case .paperplane:
-            Image(systemName: "paperplane.circle.fill")
-                .renderingMode(.original)
-                .frame(width: 8, height: 8)
-                .padding(.all, 4)
+        } else {
+            switch starType {
+            case .star:
+                Image(systemName: "star.fill")
+                    .renderingMode(.original)
+                    .frame(width: 8, height: 8)
+                    .padding(.all, 4)
+            case .plan:
+                Image(systemName: "circle.dotted")
+                    .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                    .frame(width: 8, height: 8)
+                    .padding(.all, 4)
+            case .todo:
+                Image(systemName: "circle")
+                    .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                    .frame(width: 8, height: 8)
+                    .padding(.all, 4)
+            case .done:
+                Image(systemName: "checkmark.circle.fill")
+                    .renderingMode(.original)
+                    .frame(width: 8, height: 8)
+                    .padding(.all, 4)
+            case .sparkles:
+                Image(systemName: "sparkles")
+                    .renderingMode(.original)
+                    .frame(width: 8, height: 8)
+                    .padding(.all, 4)
+            case .heart:
+                Image(systemName: "heart.fill")
+                    .renderingMode(.original)
+                    .frame(width: 8, height: 8)
+                    .padding(.all, 4)
+            case .question:
+                Image(systemName: "questionmark.circle.fill")
+                    .renderingMode(.original)
+                    .frame(width: 8, height: 8)
+                    .padding(.all, 4)
+            case .paperplane:
+                Image(systemName: "paperplane.circle.fill")
+                    .renderingMode(.original)
+                    .frame(width: 8, height: 8)
+                    .padding(.all, 4)
+            }
         }
     }
 }

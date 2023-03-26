@@ -80,93 +80,16 @@ struct MyArticleItemView: View {
                 } label: {
                     Text("Delete Article")
                 }
-                if article.starred != nil {
-                    Menu("Set Article Star Type") {
-                        Button {
-                            article.starType = .star
-                            try? article.save()
-                        } label: {
-                            HStack {
-                                Image(systemName: "star.fill")
-                                Text("Star")
-                            }
-                        }
-                        Divider()
-                        Button {
-                            article.starType = .plan
-                            try? article.save()
-                        } label: {
-                            HStack {
-                                Image(systemName: "circle.dotted")
-                                Text("Plan")
-                            }
-                        }
-                        Button {
-                            article.starType = .todo
-                            try? article.save()
-                        } label: {
-                            HStack {
-                                Image(systemName: "circle")
-                                Text("To Do")
-                            }
-                        }
-                        Button {
-                            article.starType = .done
-                            try? article.save()
-                        } label: {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                Text("Done")
-                            }
-                        }
-                        Divider()
-                        Button {
-                            article.starType = .sparkles
-                            try? article.save()
-                        } label: {
-                            HStack {
-                                Image(systemName: "sparkles")
-                                Text("Sparkles")
-                            }
-                        }
-                        Button {
-                            article.starType = .heart
-                            try? article.save()
-                        } label: {
-                            HStack {
-                                Image(systemName: "heart.fill")
-                                Text("Heart")
-                            }
-                        }
-                        Button {
-                            article.starType = .question
-                            try? article.save()
-                        } label: {
-                            HStack {
-                                Image(systemName: "questionmark.circle.fill")
-                                Text("Question")
-                            }
-                        }
-                        Button {
-                            article.starType = .paperplane
-                            try? article.save()
-                        } label: {
-                            HStack {
-                                Image(systemName: "paperplane.circle.fill")
-                                Text("Paperplane")
-                            }
-                        }
-                    }
+                Menu("Star") {
+                    ArticleSetStarView(article: article)
                 }
-                Button {
-                    if article.starred == nil {
-                        article.starred = Date()
-                    } else {
+                if article.starred != nil {
+                    Button {
                         article.starred = nil
+                        try? article.save()
+                    } label: {
+                        Text("Remove Star")
                     }
-                    try? article.save()
-                } label: {
-                    Text(article.starred == nil ? "Star" : "Unstar")
                 }
                 Button {
                     if let url = article.browserURL {

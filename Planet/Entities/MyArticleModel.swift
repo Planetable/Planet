@@ -1,5 +1,6 @@
-import Foundation
 import AVKit
+import Foundation
+import SwiftUI
 
 class MyArticleModel: ArticleModel, Codable {
     @Published var link: String
@@ -9,10 +10,22 @@ class MyArticleModel: ArticleModel, Codable {
     unowned var planet: MyPlanetModel! = nil
     var draft: DraftModel? = nil
 
-    lazy var path = planet.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
-    lazy var publicBasePath = planet.publicBasePath.appendingPathComponent(id.uuidString, isDirectory: true)
-    lazy var publicIndexPath = publicBasePath.appendingPathComponent("index.html", isDirectory: false)
-    lazy var publicInfoPath = publicBasePath.appendingPathComponent("article.json", isDirectory: false)
+    lazy var path = planet.articlesPath.appendingPathComponent(
+        "\(id.uuidString).json",
+        isDirectory: false
+    )
+    lazy var publicBasePath = planet.publicBasePath.appendingPathComponent(
+        id.uuidString,
+        isDirectory: true
+    )
+    lazy var publicIndexPath = publicBasePath.appendingPathComponent(
+        "index.html",
+        isDirectory: false
+    )
+    lazy var publicInfoPath = publicBasePath.appendingPathComponent(
+        "article.json",
+        isDirectory: false
+    )
 
     var publicArticle: PublicArticleModel {
         PublicArticleModel(
@@ -53,7 +66,8 @@ class MyArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, summary, created, starred, starType, videoFilename, audioFilename, attachments
+        case id, link, title, content, summary, created, starred, starType, videoFilename,
+            audioFilename, attachments
     }
 
     required init(from decoder: Decoder) throws {
@@ -65,19 +79,22 @@ class MyArticleModel: ArticleModel, Codable {
         summary = try container.decodeIfPresent(String.self, forKey: .summary)
         let created = try container.decode(Date.self, forKey: .created)
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
-        let starType: ArticleStarType = try container.decodeIfPresent(ArticleStarType.self, forKey: .starType) ?? .star
+        let starType: ArticleStarType =
+            try container.decodeIfPresent(ArticleStarType.self, forKey: .starType) ?? .star
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
         let audioFilename = try container.decodeIfPresent(String.self, forKey: .audioFilename)
         let attachments = try container.decodeIfPresent([String].self, forKey: .attachments)
-        super.init(id: id,
-                   title: title,
-                   content: content,
-                   created: created,
-                   starred: starred,
-                   starType: starType,
-                   videoFilename: videoFilename,
-                   audioFilename: audioFilename,
-                   attachments: attachments)
+        super.init(
+            id: id,
+            title: title,
+            content: content,
+            created: created,
+            starred: starred,
+            starType: starType,
+            videoFilename: videoFilename,
+            audioFilename: audioFilename,
+            attachments: attachments
+        )
     }
 
     func encode(to encoder: Encoder) throws {
@@ -95,10 +112,32 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(attachments, forKey: .attachments)
     }
 
-    init(id: UUID, link: String, title: String, content: String, summary: String?, created: Date, starred: Date?, starType: ArticleStarType, videoFilename: String?, audioFilename: String?, attachments: [String]?) {
+    init(
+        id: UUID,
+        link: String,
+        title: String,
+        content: String,
+        summary: String?,
+        created: Date,
+        starred: Date?,
+        starType: ArticleStarType,
+        videoFilename: String?,
+        audioFilename: String?,
+        attachments: [String]?
+    ) {
         self.link = link
         self.summary = summary
-        super.init(id: id, title: title, content: content, created: created, starred: starred, starType: starType, videoFilename: videoFilename, audioFilename: audioFilename, attachments: attachments)
+        super.init(
+            id: id,
+            title: title,
+            content: content,
+            created: created,
+            starred: starred,
+            starType: starType,
+            videoFilename: videoFilename,
+            audioFilename: audioFilename,
+            attachments: attachments
+        )
     }
 
     static func load(from filePath: URL, planet: MyPlanetModel) throws -> MyArticleModel {
@@ -112,14 +151,24 @@ class MyArticleModel: ArticleModel, Codable {
             throw PlanetError.PersistenceError
         }
         article.planet = planet
-        let draftPath = planet.articleDraftsPath.appendingPathComponent(id.uuidString, isDirectory: true)
+        let draftPath = planet.articleDraftsPath.appendingPathComponent(
+            id.uuidString,
+            isDirectory: true
+        )
         if FileManager.default.fileExists(atPath: draftPath.path) {
             article.draft = try? DraftModel.load(from: draftPath, article: article)
         }
         return article
     }
 
-    static func compose(link: String?, date: Date = Date(), title: String, content: String, summary: String?, planet: MyPlanetModel) throws -> MyArticleModel {
+    static func compose(
+        link: String?,
+        date: Date = Date(),
+        title: String,
+        content: String,
+        summary: String?,
+        planet: MyPlanetModel
+    ) throws -> MyArticleModel {
         let id = UUID()
         let article = MyArticleModel(
             id: id,
@@ -135,7 +184,10 @@ class MyArticleModel: ArticleModel, Codable {
             attachments: nil
         )
         article.planet = planet
-        try FileManager.default.createDirectory(at: article.publicBasePath, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: article.publicBasePath,
+            withIntermediateDirectories: true
+        )
         return article
     }
 
@@ -154,7 +206,8 @@ class MyArticleModel: ArticleModel, Codable {
         do {
             let attr = try FileManager.default.attributesOfItem(atPath: url.path)
             return attr[.size] as? Int
-        } catch {
+        }
+        catch {
             return nil
         }
     }
@@ -175,9 +228,14 @@ class MyArticleModel: ArticleModel, Codable {
         debugPrint("HeroImage: finding from \(attachments)")
         let images: [String]? = attachments?.compactMap {
             let imageNameLowercased = $0.lowercased()
-            if imageNameLowercased.hasSuffix(".avif") || imageNameLowercased.hasSuffix(".jpeg") || imageNameLowercased.hasSuffix(".jpg") || imageNameLowercased.hasSuffix(".png") || imageNameLowercased.hasSuffix(".webp") || imageNameLowercased.hasSuffix(".gif") || imageNameLowercased.hasSuffix(".tiff") {
+            if imageNameLowercased.hasSuffix(".avif") || imageNameLowercased.hasSuffix(".jpeg")
+                || imageNameLowercased.hasSuffix(".jpg") || imageNameLowercased.hasSuffix(".png")
+                || imageNameLowercased.hasSuffix(".webp") || imageNameLowercased.hasSuffix(".gif")
+                || imageNameLowercased.hasSuffix(".tiff")
+            {
                 return $0
-            } else {
+            }
+            else {
                 return nil
             }
         }
@@ -199,7 +257,8 @@ class MyArticleModel: ArticleModel, Codable {
                             return item
                         }
                     }
-                } else {
+                }
+                else {
                     debugPrint("HeroImage: invalid URL for item: \(item) \(imagePath)")
                 }
             }
@@ -254,7 +313,8 @@ class MyArticleModel: ArticleModel, Codable {
         let videoThumbnailPath = publicBasePath.appendingPathComponent(videoThumbnailFilename)
         Task {
             if let thumbnail = await self.getVideoThumbnail(),
-               let data = thumbnail.PNGData {
+                let data = thumbnail.PNGData
+            {
                 try? data.write(to: videoThumbnailPath)
             }
         }
@@ -262,7 +322,10 @@ class MyArticleModel: ArticleModel, Codable {
 
     func saveHeroGrid() {
         guard let heroImageFilename = self.getHeroImage() else { return }
-        let heroImagePath = publicBasePath.appendingPathComponent(heroImageFilename, isDirectory: false)
+        let heroImagePath = publicBasePath.appendingPathComponent(
+            heroImageFilename,
+            isDirectory: false
+        )
         guard let heroImage = NSImage(contentsOf: heroImagePath) else { return }
         let heroGridPNGFilename = "_grid.png"
         let heroGridPNGPath = publicBasePath.appendingPathComponent(heroGridPNGFilename)
@@ -290,10 +353,13 @@ class MyArticleModel: ArticleModel, Codable {
                 let asset = AVURLAsset(url: url)
                 let imageGenerator = AVAssetImageGenerator(asset: asset)
                 imageGenerator.appliesPreferredTrackTransform = true
-                let cgImage = try imageGenerator.copyCGImage(at: .zero,
-                                                            actualTime: nil)
+                let cgImage = try imageGenerator.copyCGImage(
+                    at: .zero,
+                    actualTime: nil
+                )
                 return NSImage(cgImage: cgImage, size: .zero)
-            } catch {
+            }
+            catch {
                 print(error.localizedDescription)
 
                 return nil

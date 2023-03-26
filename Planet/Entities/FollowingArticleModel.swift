@@ -1,5 +1,6 @@
 import Foundation
 import SwiftSoup
+import SwiftUI
 
 class FollowingArticleModel: ArticleModel, Codable {
     var link: String
