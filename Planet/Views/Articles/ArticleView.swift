@@ -185,57 +185,7 @@ struct ArticleView: View {
                 if let article = planetStore.selectedArticle, let attachments = article.attachments,
                     attachments.count > 0
                 {
-                    Menu {
-                        ForEach(attachments, id: \.self) { attachment in
-                            Button {
-                                let downloadsPath = FileManager.default.urls(
-                                    for: .downloadsDirectory,
-                                    in: .userDomainMask
-                                ).first
-                                if let myArticle = article as? MyArticleModel {
-                                    if let attachmentURL = myArticle.getAttachmentURL(
-                                        name: attachment
-                                    ),
-                                        let destinationURL = downloadsPath?.appendingPathComponent(
-                                            attachment
-                                        )
-                                    {
-                                        if !FileManager.default.fileExists(
-                                            atPath: destinationURL.path
-                                        ) {
-                                            try? FileManager.default.copyItem(
-                                                at: attachmentURL,
-                                                to: destinationURL
-                                            )
-                                        }
-                                        NSWorkspace.shared.activateFileViewerSelecting([
-                                            destinationURL
-                                        ])
-                                    }
-                                }
-                                if let followingArticle = article as? FollowingArticleModel {
-                                    if let attachmentURL = followingArticle.getAttachmentURL(
-                                        name: attachment
-                                    ) {
-                                        // MARK: TODO: should hide download button if any
-                                        if PlanetDownloadItem.downloadableFileExtensions().contains(
-                                            attachmentURL.pathExtension
-                                        ) {
-                                            NotificationCenter.default.post(
-                                                name: .downloadArticleAttachment,
-                                                object: attachmentURL
-                                            )
-                                        }
-                                    }
-                                }
-                            } label: {
-                                Text(attachment)
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "paperclip")
-                        Text("\(attachments.count)")
-                    }
+                    self.toolbarAttachmentsView(article: article)
                 }
             }
 
@@ -296,6 +246,63 @@ struct ArticleView: View {
         conf.hides = false
         conf.activates = true
         return conf
+    }
+    
+    @ViewBuilder
+    private func toolbarAttachmentsView(article: ArticleModel) -> some View {
+        if let attachments = article.attachments {
+            Menu {
+                ForEach(attachments, id: \.self) { attachment in
+                    Button {
+                        let downloadsPath = FileManager.default.urls(
+                            for: .downloadsDirectory,
+                            in: .userDomainMask
+                        ).first
+                        if let myArticle = article as? MyArticleModel {
+                            if let attachmentURL = myArticle.getAttachmentURL(
+                                name: attachment
+                            ),
+                                let destinationURL = downloadsPath?.appendingPathComponent(
+                                    attachment
+                                )
+                            {
+                                if !FileManager.default.fileExists(
+                                    atPath: destinationURL.path
+                                ) {
+                                    try? FileManager.default.copyItem(
+                                        at: attachmentURL,
+                                        to: destinationURL
+                                    )
+                                }
+                                NSWorkspace.shared.activateFileViewerSelecting([
+                                    destinationURL
+                                ])
+                            }
+                        }
+                        if let followingArticle = article as? FollowingArticleModel {
+                            if let attachmentURL = followingArticle.getAttachmentURL(
+                                name: attachment
+                            ) {
+                                // MARK: TODO: should hide download button if any
+                                if PlanetDownloadItem.downloadableFileExtensions().contains(
+                                    attachmentURL.pathExtension
+                                ) {
+                                    NotificationCenter.default.post(
+                                        name: .downloadArticleAttachment,
+                                        object: attachmentURL
+                                    )
+                                }
+                            }
+                        }
+                    } label: {
+                        Text(attachment)
+                    }
+                }
+            } label: {
+                Image(systemName: "paperclip")
+                Text("\(attachments.count)")
+            }
+        }
     }
     
     @ViewBuilder
