@@ -12,7 +12,7 @@ import UserNotifications
 class PFDashboardWindowController: NSWindowController {
     
     override init(window: NSWindow?) {
-        let windowSize = NSSize(width: .sidebarWidth + .contentWidth + .inspectorWidth, height: 320)
+        let windowSize = NSSize(width: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN + PlanetUI.WINDOW_CONTENT_WIDTH_MIN + PlanetUI.WINDOW_INSPECTOR_WIDTH_MIN, height: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN)
         let screenSize = NSScreen.main?.frame.size ?? .zero
         let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
         let w = PFDashboardWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .resizable, .titled, .fullSizeContentView, .unifiedTitleAndToolbar], backing: .buffered, defer: true)

@@ -28,12 +28,12 @@ struct PFDashboardInspectorView: View {
                 noInspectorView()
             }
         }
-        .frame(minWidth: .inspectorWidth, maxWidth: .infinity, minHeight: 320, maxHeight: .infinity)
+        .frame(minWidth: PlanetUI.WINDOW_INSPECTOR_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_INSPECTOR_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity)
     }
     
     @ViewBuilder
     private func noInspectorView() -> some View {
-        Text("No Published Folder Selected")
+        Text("")
     }
     
     @ViewBuilder

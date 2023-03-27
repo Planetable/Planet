@@ -44,7 +44,7 @@ struct TemplatePreviewView: View {
             }
         }
         .edgesIgnoringSafeArea(.vertical)
-        .frame(minWidth: .templateContentWidth, maxWidth: .infinity, minHeight: .templateContentHeight, maxHeight: .infinity, alignment: .center)
+        .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
     }
 
     private func preview(_ template: Template, withPreviewIndex index: Int = 0) {

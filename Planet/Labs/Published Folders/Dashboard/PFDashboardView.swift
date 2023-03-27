@@ -36,7 +36,7 @@ struct PFDashboardView: View {
             }
         }
         .edgesIgnoringSafeArea(.top)
-        .frame(minWidth: .contentWidth, idealWidth: .contentWidth, maxWidth: .infinity, minHeight: 320, idealHeight: 320, maxHeight: .infinity, alignment: .center)
+        .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
         .onReceive(NotificationCenter.default.publisher(for: .dashboardResetWebViewHistory)) { n in
             guard let targetFolderID = n.object as? UUID else { return }
             if let selectedID = self.serviceStore.selectedFolderID, let folder = self.serviceStore.publishedFolders.first(where: { $0.id == selectedID }) {
