@@ -27,10 +27,14 @@ struct FollowingPlanetInfoView: View {
                 ) {
                     Text(attributedString)
                         .font(.body)
+                        .padding(.top, 10)
+                        .padding(.bottom, 10)
                 }
                 else {
                     Text(planet.about)
                         .font(.body)
+                        .padding(.top, 10)
+                        .padding(.bottom, 10)
                 }
 
                 Spacer()
@@ -75,7 +79,8 @@ struct FollowingPlanetInfoView: View {
             }.padding(10)
         }
         .padding(0)
-        .frame(width: 320, height: 360, alignment: .center)
+        .frame(width: 320, height: 420, alignment: .center)
+        // TODO: We can probably use a dynamic height here based on how many social views it has
     }
 
     private func lastUpdatedText() -> String {
