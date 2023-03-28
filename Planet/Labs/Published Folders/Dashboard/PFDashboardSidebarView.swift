@@ -27,7 +27,7 @@ struct PFDashboardSidebarView: View {
             }
             .listStyle(.sidebar)
         }
-        .frame(minWidth: .sidebarWidth, maxWidth: .infinity, minHeight: 320, maxHeight: .infinity)
+        .frame(minWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, maxWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MAX, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity)
     }
 }
 

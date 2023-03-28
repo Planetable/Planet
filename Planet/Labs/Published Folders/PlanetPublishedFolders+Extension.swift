@@ -8,12 +8,6 @@
 import Cocoa
 
 
-extension CGFloat {
-    static let sidebarWidth: CGFloat = 200
-    static let inspectorWidth: CGFloat = 200
-    static let contentWidth: CGFloat = 300
-}
-
 extension Notification.Name {
     static let dashboardInspectorIsCollapsedStatusChanged = Notification.Name("PublishedFoldersDashboardInspectorIsCollapsedStatusChangedNotification")
     static let dashboardRefreshToolbar = Notification.Name("PublishedFoldersDashboardRefreshToolbarNotification")

@@ -40,9 +40,9 @@ extension PFDashboardContainerViewController {
         
         splitView.dividerStyle = .thin
 
-        sidebarViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: .sidebarWidth).isActive = true
-        contentViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: .contentWidth).isActive = true
-        inspectorViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: .inspectorWidth).isActive = true
+        sidebarViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN).isActive = true
+        contentViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: PlanetUI.WINDOW_CONTENT_WIDTH_MIN).isActive = true
+        inspectorViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: PlanetUI.WINDOW_INSPECTOR_WIDTH_MIN).isActive = true
     }
 
     private func setupLayout() {

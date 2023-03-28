@@ -9,16 +9,6 @@ import Foundation
 import Cocoa
 
 
-extension CGFloat {
-    static let templateSidebarWidth: CGFloat = 200
-    static let templateSidebarMaxWidth: CGFloat = 300
-    static let templateInspectorWidth: CGFloat = 200
-    static let templateInspectorMaxWidth: CGFloat = 300
-    static let templateContentWidth: CGFloat = 400
-    static let templateContentHeight: CGFloat = 420
-}
-
-
 extension Notification.Name {
     static let templateInspectorIsCollapsedStatusChanged = Notification.Name("TemplateBrowserInspectorIsCollapsedStatusChangedNotification")
     static let templateTitleSubtitleUpdated = Notification.Name("TemplateBrowserTitleAndSubtitleUpdatedNotification")

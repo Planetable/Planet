@@ -40,7 +40,7 @@ struct TemplateBrowserInspectorView: View {
                 Spacer()
             }
         }
-        .frame(minWidth: .templateInspectorWidth, maxWidth: .templateInspectorMaxWidth, minHeight: .templateContentHeight, maxHeight: .infinity)
+        .frame(minWidth: PlanetUI.WINDOW_INSPECTOR_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_INSPECTOR_WIDTH_MIN, maxWidth: PlanetUI.WINDOW_INSPECTOR_WIDTH_MAX, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity)
         .edgesIgnoringSafeArea(.bottom)
     }
 }
