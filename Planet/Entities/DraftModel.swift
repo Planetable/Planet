@@ -57,6 +57,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     lazy var previewPath = attachmentsPath.appendingPathComponent("preview.html", isDirectory: false)
 
     func contentRaw() -> String {
+        // Sort attachments by name to make sure the order is consistent
+        attachments.sort { $0.name < $1.name }
         let attachmentNames: String = attachments.map { $0.name }.joined(separator: ",")
         let currentContent = "\(date)\(title)\(content)\(attachmentNames)"
         return currentContent
@@ -114,8 +116,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         self.content = content
         self.attachments = attachments
         self.target = target
-        debugPrint("Computing initial content SHA256 during init")
-        self.initialContentSHA256 = self.contentSHA256()
+        let contentSHA256String = self.contentSHA256()
+        debugPrint("Computed contentSHA256 for \(self.title) during init: \(contentSHA256String)")
+        self.initialContentSHA256 = contentSHA256String
     }
 
     static func load(from directoryPath: URL, planet: MyPlanetModel) throws -> DraftModel {
@@ -123,8 +126,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let data = try Data(contentsOf: draftPath)
         let draft = try JSONDecoder.shared.decode(DraftModel.self, from: data)
         draft.target = .myPlanet(Unowned(planet))
-        debugPrint("Computing initial content SHA256 during load/planet")
-        draft.initialContentSHA256 = draft.contentSHA256()
+        let contentSHA256String = draft.contentSHA256()
+        debugPrint("Computed contentSHA256 for \(draft.title) during load/planet: \(contentSHA256String)")
+        draft.initialContentSHA256 = contentSHA256String
         draft.attachments.forEach { attachment in
             attachment.draft = draft
             attachment.loadThumbnail()
@@ -137,8 +141,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let data = try Data(contentsOf: draftPath)
         let draft = try JSONDecoder.shared.decode(DraftModel.self, from: data)
         draft.target = .article(Unowned(article))
-        debugPrint("Computing initial content SHA256 during load/article")
-        draft.initialContentSHA256 = draft.contentSHA256()
+        let contentSHA256String = draft.contentSHA256()
+        debugPrint("Computed contentSHA256 for \(draft.title) during load/article: \(contentSHA256String)")
+        draft.initialContentSHA256 = contentSHA256String
         draft.attachments.forEach { attachment in
             attachment.draft = draft
             attachment.loadThumbnail()
@@ -187,6 +192,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                 return attachment
             }
 
+        draft.initialContentSHA256 = draft.contentSHA256()
+
         try draft.save()
         return draft
     }
@@ -214,7 +221,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         attachment.loadThumbnail()
         return attachment
     }
-    
+
     @discardableResult func addAttachmentFromData(data: Data, fileName: String, forContentType contentType: String) throws -> Attachment {
         let targetPath = attachmentsPath.appendingPathComponent(fileName, isDirectory: false)
         if FileManager.default.fileExists(atPath: targetPath.path) {

@@ -116,7 +116,6 @@ struct WriterView: View {
             ) {
                 Button {
                     viewModel.madeDiscardChoice = true
-                    draft.initialContentSHA256 = draft.contentSHA256()
                     try? draft.save()
                     NotificationCenter.default.post(
                         name: .writerNotification(.close, for: draft),

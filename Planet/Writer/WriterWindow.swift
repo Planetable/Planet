@@ -191,7 +191,7 @@ extension WriterWindow: NSWindowDelegate {
             return true
         }
         let draftCurrentContentSHA256 = draft.contentSHA256()
-        debugPrint("Draft Content SHA256: current - \(draftCurrentContentSHA256) / initial - \(draft.initialContentSHA256)")
+        debugPrint("Draft contentSHA256: current - \(draftCurrentContentSHA256) / initial - \(draft.initialContentSHA256)")
         if draftCurrentContentSHA256 != draft.initialContentSHA256 {
             viewModel.isShowingDiscardConfirmation = true
             return false
