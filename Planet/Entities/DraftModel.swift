@@ -374,6 +374,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             let article = wrapper.value
             article.draft = nil
         }
-        try FileManager.default.removeItem(at: basePath)
+        if FileManager.default.fileExists(atPath: basePath.path) {
+            try FileManager.default.removeItem(at: basePath)
+        }
     }
 }
