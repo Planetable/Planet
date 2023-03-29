@@ -92,6 +92,7 @@ struct FollowingPlanetSidebarItem: View {
         ) {
             Button(role: .destructive) {
                 planetStore.followingPlanets.removeAll { $0.id == planet.id }
+                planet.unpin()
                 planet.delete()
                 if case .followingPlanet(let selectedPlanet) = planetStore.selectedView,
                     planet == selectedPlanet

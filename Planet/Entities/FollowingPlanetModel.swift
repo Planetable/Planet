@@ -1602,6 +1602,15 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
     }
 
+    func unpin() {
+        Task.init(priority: .background) {
+            if let lastCID = cid {
+                debugPrint("Unpinning \(lastCID)")
+                try? await IPFSDaemon.shared.unpin(cid: lastCID)
+            }
+        }
+    }
+
     func delete() {
         try? FileManager.default.removeItem(at: basePath)
     }

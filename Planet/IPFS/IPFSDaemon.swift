@@ -365,7 +365,7 @@ actor IPFSDaemon {
         }
         return false
     }
-    
+
     func listKeys() throws -> [String] {
         Self.logger.info("List IPFS keypairs")
         let (ret, out, _) = try IPFSCommand.listKeys().run()
@@ -523,6 +523,20 @@ actor IPFSDaemon {
               httpResponse.ok
         else {
             throw IPFSDaemonError.IPFSAPIError
+        }
+        // debugPrint the response
+        if let responseString = String(data: data, encoding: .utf8) {
+            if path == "swarm/peers" {
+                let decoder = JSONDecoder()
+                var peers = 0
+                if let swarmPeers = try? decoder.decode(IPFSPeers.self, from: data) {
+                    peers = swarmPeers.peers?.count ?? 0
+                    debugPrint("IPFS API Response for \(path): \(peers) peers")
+                }
+            } else {
+                debugPrint("IPFS API Response for \(path) / \(args): \(responseString)")
+            }
+
         }
         return data
     }
