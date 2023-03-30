@@ -192,7 +192,7 @@ actor IPFSDaemon {
                         }
                         // refresh published folders
                         Task.detached(priority: .utility) { @MainActor in
-                            NotificationCenter.default.post(name: .dashboardWebViewGoHome, object: nil)
+                            PlanetPublishedServiceStore.shared.reloadPublishedFolders()
                         }
                         // process unpublished folders
                         Task.detached(priority: .background) {

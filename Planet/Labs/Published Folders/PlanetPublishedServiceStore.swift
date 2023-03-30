@@ -57,20 +57,26 @@ class PlanetPublishedServiceStore: ObservableObject {
     private var repoMonitor: PlanetPublishedServiceMonitor?
 
     init() {
-        Task { @MainActor in
+        reloadPublishedFolders()
+        NotificationCenter.default.addObserver(forName: .dashboardProcessUnpublishedFolders, object: nil, queue: nil) { [weak self] _ in
+            self?.processPendingUnpublishedFolders()
+        }
+    }
+    
+    func reloadPublishedFolders() {
+        Task(priority: .utility) {
             do {
-                self.publishedFolders = try await loadPublishedFolders()
-                if let value = UserDefaults.standard.object(forKey: String.selectedPublishedFolderID) as? String {
-                    await MainActor.run {
+                let folders = try await loadPublishedFolders()
+                Task { @MainActor in
+                    self.publishedFolders = folders
+                    if let value = UserDefaults.standard.object(forKey: String.selectedPublishedFolderID) as? String {
                         self.selectedFolderID = UUID(uuidString: value)
                     }
+                    NotificationCenter.default.post(name: .dashboardWebViewGoHome, object: nil)
                 }
             } catch {
                 debugPrint("failed to load published folders: \(error)")
             }
-        }
-        NotificationCenter.default.addObserver(forName: .dashboardProcessUnpublishedFolders, object: nil, queue: nil) { [weak self] _ in
-            self?.processPendingUnpublishedFolders()
         }
     }
     
