@@ -14,6 +14,7 @@ extension Notification.Name {
     static let dashboardUpdateWindowTitles = Notification.Name("PublishedFoldersDashboardUpdateWindowTitlesNotification")
     static let dashboardLoadPreviewURL = Notification.Name("PublishedFoldersDashboardLoadPreviewURLNotification")
     static let dashboardProcessDirectoryURL = Notification.Name("PublishedFoldersDabhaordProcessDirectoryURLNotification")
+    static let dashboardProcessUnpublishedFolders = Notification.Name("PublishedFoldersDashboardProcessUnpublishedFoldersNotification")
     static let dashboardResetWebViewHistory = Notification.Name("PublishedFoldersDashboardResetWebViewHistoryNotification")
     static let dashboardReloadWebView = Notification.Name("PublishedFoldersDashboardReloadWebViewNotification")
     static let dashboardWebViewGoHome = Notification.Name("PublishedFoldersDashboardWebViewGoHomeNotification")

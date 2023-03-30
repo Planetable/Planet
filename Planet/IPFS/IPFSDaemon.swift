@@ -194,6 +194,10 @@ actor IPFSDaemon {
                         Task.detached(priority: .utility) { @MainActor in
                             NotificationCenter.default.post(name: .dashboardWebViewGoHome, object: nil)
                         }
+                        // process unpublished folders
+                        Task.detached(priority: .background) {
+                            NotificationCenter.default.post(name: .dashboardProcessUnpublishedFolders, object: nil)
+                        }
                         // refresh key manager
                         Task.detached(priority: .utility) { @MainActor in
                             NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)

@@ -73,6 +73,19 @@ struct PFDashboardView: View {
         VStack {
             Text(folder.url.path)
             Button {
+                Task {
+                    do {
+                        try await self.serviceStore.publishFolder(folder, skipCIDCheck: true)
+                    } catch {
+                        debugPrint("failed to publish folder: \(folder), error: \(error)")
+                        let alert = NSAlert()
+                        alert.messageText = "Failed to Publish Folder"
+                        alert.informativeText = error.localizedDescription
+                        alert.alertStyle = .informational
+                        alert.addButton(withTitle: "OK")
+                        alert.runModal()
+                    }
+                }
             } label: {
                 Text("Publish Folder")
             }

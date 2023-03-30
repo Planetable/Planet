@@ -19,7 +19,7 @@ class PlanetPublishedServiceStore: ObservableObject {
     static let ttlString: String = "7200h"
     static let ttl: Int = 3600*7200 - 60
 
-    let timer = Timer.publish(every: 5, tolerance: 0.1, on: .current, in: RunLoop.Mode.default).autoconnect()
+    let timer = Timer.publish(every: 10, tolerance: 0.2, on: .current, in: RunLoop.Mode.default).autoconnect()
 
     @Published var timestamp: Int = Int(Date().timeIntervalSince1970)
     @Published var autoPublish: Bool = UserDefaults.standard.bool(forKey: String.folderAutoPublishOptionKey) {
@@ -62,21 +62,28 @@ class PlanetPublishedServiceStore: ObservableObject {
             if let value = UserDefaults.standard.object(forKey: String.selectedPublishedFolderID) as? String {
                 selectedFolderID = UUID(uuidString: value)
             }
-            // MARK: TODO: wait until daemon online.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                Task(priority: .background) {
-                    let removedIDs: [String] = UserDefaults.standard.stringArray(forKey: Self.removedListKey) ?? []
-                    for id in removedIDs {
-                        do {
-                            try await self.unpublishFolder(keyName: id)
-                        } catch {
-                            debugPrint("failed to unpublish folder with key id: \(id), error: \(error)")
-                        }
-                    }
-                }
+            NotificationCenter.default.addObserver(forName: .dashboardProcessUnpublishedFolders, object: nil, queue: nil) { [weak self] _ in
+                self?.processPendingUnpublishedFolders()
             }
         } catch {
             debugPrint("failed to load published folders: \(error)")
+        }
+    }
+    
+    func processPendingUnpublishedFolders() {
+        debugPrint("processing unpublished folders...")
+        Task(priority: .background) {
+            let removedIDs: [String] = UserDefaults.standard.stringArray(forKey: Self.removedListKey) ?? []
+            for id in removedIDs {
+                do {
+                    try await self.unpublishFolder(keyName: id)
+                } catch {
+                    debugPrint("failed to unpublish folder with key id: \(id), error: \(error)")
+                }
+            }
+            if removedIDs.count == 0 {
+                debugPrint("no folders to unpublish, will check again on next daemon re-launch.")
+            }
         }
     }
     
@@ -108,12 +115,16 @@ class PlanetPublishedServiceStore: ObservableObject {
     }
     
     func updateWindowTitles() {
-        guard let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }) else { return }
-        var titles: [String: String] = [:]
-        titles["title"] = folder.url.lastPathComponent
-        titles["subtitle"] = "Never Published"
-        if let date = folder.published {
-            titles["subtitle"] = "Last Published: " + date.relativeDateDescription()
+        var titles: [String: String] = [
+            "title": "Published Folders Dashboard",
+            "subtitle": ""
+        ]
+        if let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }) {
+            titles["title"] = folder.url.lastPathComponent
+            titles["subtitle"] = "Never Published"
+            if let date = folder.published {
+                titles["subtitle"] = "Last Published: " + date.relativeDateDescription()
+            }
         }
         NotificationCenter.default.post(name: .dashboardUpdateWindowTitles, object: titles)
     }
@@ -265,6 +276,9 @@ class PlanetPublishedServiceStore: ObservableObject {
                 return f
             }
         }
+        let pendingKey = Self.pendingPrefixKey + folder.id.uuidString
+        let now = Int(Date().timeIntervalSince1970)
+        UserDefaults.standard.set(now, forKey: pendingKey)
         updatePublishedFolders(updatedFolders)
         NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
