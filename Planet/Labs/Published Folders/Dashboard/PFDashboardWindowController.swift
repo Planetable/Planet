@@ -35,6 +35,8 @@ class PFDashboardWindowController: NSWindowController {
             }
             if let theSubtitle = titles["subtitle"], theSubtitle != "" {
                 self?.window?.subtitle = theSubtitle
+            } else {
+                self?.window?.subtitle = ""
             }
         }
     }

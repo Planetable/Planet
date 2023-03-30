@@ -81,6 +81,7 @@ struct PFDashboardSidebarItemView: View {
                     }
                     Task { @MainActor in
                         self.serviceStore.updatePublishedFolders(updatedFolders)
+                        self.serviceStore.updateWindowTitles()
                     }
                 } label: {
                     Text("Remove Folder")
