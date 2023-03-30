@@ -57,16 +57,26 @@ class PlanetPublishedServiceStore: ObservableObject {
     private var repoMonitor: PlanetPublishedServiceMonitor?
 
     init() {
-        do {
-            publishedFolders = try loadPublishedFolders()
-            if let value = UserDefaults.standard.object(forKey: String.selectedPublishedFolderID) as? String {
-                selectedFolderID = UUID(uuidString: value)
+        reloadPublishedFolders()
+        NotificationCenter.default.addObserver(forName: .dashboardProcessUnpublishedFolders, object: nil, queue: nil) { [weak self] _ in
+            self?.processPendingUnpublishedFolders()
+        }
+    }
+    
+    func reloadPublishedFolders() {
+        Task(priority: .utility) {
+            do {
+                let folders = try await loadPublishedFolders()
+                Task { @MainActor in
+                    self.publishedFolders = folders
+                    if let value = UserDefaults.standard.object(forKey: String.selectedPublishedFolderID) as? String {
+                        self.selectedFolderID = UUID(uuidString: value)
+                    }
+                    NotificationCenter.default.post(name: .dashboardWebViewGoHome, object: nil)
+                }
+            } catch {
+                debugPrint("failed to load published folders: \(error)")
             }
-            NotificationCenter.default.addObserver(forName: .dashboardProcessUnpublishedFolders, object: nil, queue: nil) { [weak self] _ in
-                self?.processPendingUnpublishedFolders()
-            }
-        } catch {
-            debugPrint("failed to load published folders: \(error)")
         }
     }
     
@@ -408,14 +418,21 @@ extension PlanetPublishedServiceStore {
         return url
     }
 
-    func loadPublishedFolders() throws -> [PlanetPublishedFolder] {
+    func loadPublishedFolders() async throws -> [PlanetPublishedFolder] {
         let decoder = JSONDecoder()
         if !FileManager.default.fileExists(atPath: folderHistoryURL.path) {
             return []
         }
         let data = try Data(contentsOf: folderHistoryURL)
         let folders: [PlanetPublishedFolder] = try decoder.decode([PlanetPublishedFolder].self, from: data)
-        return folders
+        var updatedFolders: [PlanetPublishedFolder] = []
+        for folder in folders {
+            let keyName = folder.id.uuidString
+            if let keyExists = try? await IPFSDaemon.shared.checkKeyExists(name: keyName), keyExists {
+                updatedFolders.append(folder)
+            }
+        }
+        return updatedFolders
     }
 
     func savePublishedFolders() throws {
