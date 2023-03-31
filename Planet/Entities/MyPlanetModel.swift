@@ -792,7 +792,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if path.pathExtension == "png",
            size.width >= 120 && size.width <= 288 && size.height >= 120 && size.height <= 288
         {
+            if FileManager.default.fileExists(atPath: avatarPath.path) {
+                try FileManager.default.removeItem(at: avatarPath)
+            }
             try FileManager.default.copyItem(at: path, to: avatarPath)
+            if FileManager.default.fileExists(atPath: publicAvatarPath.path) {
+                try FileManager.default.removeItem(at: publicAvatarPath)
+            }
             try FileManager.default.copyItem(at: path, to: publicAvatarPath)
             avatar = image
             try updateFavicon(witImage: image)
