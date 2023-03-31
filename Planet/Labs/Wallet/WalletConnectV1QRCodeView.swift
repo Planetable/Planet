@@ -25,7 +25,14 @@ struct WalletConnectV1QRCodeView: View {
 
             Divider()
 
-            if let qrCode: NSImage = generateQRCode(from: payload) {
+            if let qrCode: NSImage = {
+               let qrCode = generateQRCode(from: payload)
+                if qrCode.isValid {
+                    return qrCode
+                } else {
+                    return nil
+                }
+            }() {
                 Image(nsImage: qrCode)
                     .interpolation(.none)
                     .resizable()

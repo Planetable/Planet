@@ -783,23 +783,38 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func updateAvatar(path: URL) throws {
-        // write 144x144 avatar.png
-        guard let image = NSImage(contentsOf: path),
-            let resizedImage = image.resizeSquare(maxLength: 144),
-            let data = resizedImage.PNGData
+        guard let image = NSImage(contentsOf: path)
         else {
             throw PlanetError.AvatarError
         }
-        try data.write(to: avatarPath)
-        try data.write(to: publicAvatarPath)
+        let size = image.size
+        // if path is already a PNG and size is within 120x120 and 288x288 then just use it
+        if path.pathExtension == "png",
+           size.width >= 120 && size.width <= 288 && size.height >= 120 && size.height <= 288
+        {
+            try FileManager.default.copyItem(at: path, to: avatarPath)
+            try FileManager.default.copyItem(at: path, to: publicAvatarPath)
+            avatar = image
+            try updateFavicon(witImage: image)
+            return
+        }
+        // write 144x144 avatar.png
+        if let resizedImage = image.resizeSquare(maxLength: 144), let data = resizedImage.PNGData {
+            try data.write(to: avatarPath)
+            try data.write(to: publicAvatarPath)
+            avatar = resizedImage
+        }
         // write 32x32 favicon.ico
+        try updateFavicon(witImage: image)
+    }
+
+    func updateFavicon(witImage image: NSImage) throws {
         if let resizedIcon = image.resizeSquare(maxLength: 32),
-            let iconData = resizedIcon.PNGData
+           let iconData = resizedIcon.PNGData
         {
             try iconData.write(to: faviconPath)
             try iconData.write(to: publicFaviconPath)
         }
-        avatar = resizedImage
     }
 
     func uploadAvatar(image: NSImage) throws {
