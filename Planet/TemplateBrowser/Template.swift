@@ -18,7 +18,8 @@ class Template: Codable, Identifiable {
     var path: URL! = nil
     let author: String
     let version: String
-    let buildNumber: Int? = 0
+    var idealItemsPerPage: Int? = 10
+    var buildNumber: Int? = 1
 
     var id: String { name }
 
@@ -55,7 +56,28 @@ class Template: Codable, Identifiable {
         case description
         case author
         case version
+        case idealItemsPerPage
         case buildNumber
+    }
+
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decode(String.self, forKey: .description)
+        author = try container.decode(String.self, forKey: .author)
+        version = try container.decode(String.self, forKey: .version)
+        idealItemsPerPage = try container.decodeIfPresent(Int.self, forKey: .idealItemsPerPage)
+        buildNumber = try container.decodeIfPresent(Int.self, forKey: .buildNumber)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(description, forKey: .description)
+        try container.encode(author, forKey: .author)
+        try container.encode(version, forKey: .version)
+        try container.encodeIfPresent(idealItemsPerPage, forKey: .idealItemsPerPage)
+        try container.encodeIfPresent(buildNumber, forKey: .buildNumber)
     }
 
     static func from(path: URL) -> Template? {

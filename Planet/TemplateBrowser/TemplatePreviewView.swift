@@ -10,7 +10,7 @@ import SwiftUI
 struct TemplatePreviewView: View {
     @StateObject private var store: TemplateStore
     @State private var url: URL = Bundle.main.url(forResource: "TemplatePlaceholder", withExtension: "html")!
-    
+
     init() {
         _store = StateObject(wrappedValue: TemplateStore.shared)
     }
@@ -48,7 +48,7 @@ struct TemplatePreviewView: View {
     }
 
     private func preview(_ template: Template, withPreviewIndex index: Int = 0) {
-        debugPrint("New Template: \(template.name)")
+        debugPrint("Selected Template: \(template.name) - Build Number: \(template.buildNumber ?? 1)")
         if let newURL = template.renderPreview(withPreviewIndex: index) {
             debugPrint("New Template Preview URL: \(newURL)")
             // trigger refresh even when URL is the same

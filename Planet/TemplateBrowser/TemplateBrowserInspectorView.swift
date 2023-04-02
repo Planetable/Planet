@@ -20,13 +20,20 @@ struct TemplateBrowserInspectorView: View {
                 Section {
                     VStack {
                         HStack {
-                            Text(template.name)
-                                .font(.headline)
-                            Spacer(minLength: 1)
-                        }
-                        HStack {
                             Text(template.description)
                             Spacer(minLength: 1)
+                        }
+                        Divider()
+                        HStack {
+                            Text("Ideal Items Per Page")
+                            Spacer(minLength: 1)
+                            Text("\(template.idealItemsPerPage ?? 10)")
+                        }
+                        Divider()
+                        HStack {
+                            Text("Build Number")
+                            Spacer(minLength: 1)
+                            Text("\(template.buildNumber ?? 1)")
                         }
                     }
                     .padding(.top, 12)
