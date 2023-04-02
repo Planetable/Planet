@@ -1063,11 +1063,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             "has_podcast": publicPlanet.hasAudioContent(),
             "has_podcast_cover_art": hasPodcastCoverArt
         ]
-        if publicPlanet.articles.count > 10 {
-            let pages = Int(ceil(Double(publicPlanet.articles.count) / 10.0))
+        let itemsPerPage = template.idealItemsPerPage ?? 10
+        if publicPlanet.articles.count > itemsPerPage {
+            let pages = Int(ceil(Double(publicPlanet.articles.count) / Double(itemsPerPage)))
             debugPrint("Rendering \(pages) pages")
             for i in 1...pages {
-                let pageArticles = Array(publicPlanet.articles[(i - 1) * 10..<min(i * 10, publicPlanet.articles.count)])
+                let pageArticles = Array(publicPlanet.articles[(i - 1) * itemsPerPage..<min(i * itemsPerPage, publicPlanet.articles.count)])
                 let pageContext: [String: Any] = [
                     "planet": publicPlanet,
                     "my_planet": self,
@@ -1082,16 +1083,21 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 let pageHTML = try template.renderIndex(context: pageContext)
                 let pagePath = publicIndexPagePath(page: i)
                 try pageHTML.data(using: .utf8)?.write(to: pagePath)
+
+                if (i == 1) {
+                    let indexHTML = try template.renderIndex(context: pageContext)
+                    try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
+                }
             }
         } else {
             context["articles"] = publicPlanet.articles
             let pageHTML = try template.renderIndex(context: context)
             let pagePath = publicIndexPagePath(page: 1)
             try pageHTML.data(using: .utf8)?.write(to: pagePath)
+
+            let indexHTML = try template.renderIndex(context: context)
+            try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
         }
-        context["articles"] = publicPlanet.articles
-        let indexHTML = try template.renderIndex(context: context)
-        try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
 
         renderRSS(podcastOnly: false)
 
