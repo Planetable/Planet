@@ -154,6 +154,20 @@ class Template: Codable, Identifiable {
         return try environment.renderTemplate(name: stencilTemplateName, context: context)
     }
 
+    func getNextPage(page: Int, pages: Int) -> String? {
+        if page < pages {
+            return "page\(page + 1).html"
+        }
+        return nil
+    }
+
+    func getPreviousPage(page: Int, pages: Int) -> String? {
+        if page > 1 {
+            return "page\(page - 1).html"
+        }
+        return nil
+    }
+
     func renderIndex(context: [String: Any]) throws -> String {
         guard let planet = context["planet"] as? PublicPlanetModel else {
             throw PlanetError.RenderMarkdownError
@@ -167,10 +181,14 @@ class Template: Codable, Identifiable {
             "page_title": planet.name,
             "page_description": planet.about,
             "page_description_html": pageAboutHTML,
-            "articles": planet.articles,
+            "articles": context["articles"] ?? [],
             "build_timestamp": Int(Date().timeIntervalSince1970),
             "style_css_sha256": styleCSSHash ?? "",
             "current_item_type": "index",
+            "current_page": context["page"] ?? 1,
+            "total_pages": context["pages"] ?? 1,
+            "next_page": getNextPage(page: context["page"] as? Int ?? 1, pages: context["pages"] as? Int ?? 1) ?? nil,
+            "previous_page": getPreviousPage(page: context["page"] as? Int ?? 1, pages: context["pages"] as? Int ?? 1) ?? nil,
         ]
         for (key, value) in context {
             contextForRendering[key] = value

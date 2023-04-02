@@ -123,6 +123,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     var publicIndexPath: URL {
         return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("index.html", isDirectory: false)
     }
+    func publicIndexPagePath(page: Int) -> URL {
+        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("page\(page).html", isDirectory: false)
+    }
     var publicRSSPath: URL {
         return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("rss.xml", isDirectory: false)
     }
@@ -1052,7 +1055,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         )
         let hasAvatar = FileManager.default.fileExists(atPath: publicAvatarPath.path)
         let hasPodcastCoverArt = FileManager.default.fileExists(atPath: publicPodcastCoverArtPath.path)
-        let context: [String: Any] = [
+        var context: [String: Any] = [
             "planet": publicPlanet,
             "my_planet": self,
             "has_avatar": hasAvatar,
@@ -1060,6 +1063,33 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             "has_podcast": publicPlanet.hasAudioContent(),
             "has_podcast_cover_art": hasPodcastCoverArt
         ]
+        if publicPlanet.articles.count > 10 {
+            let pages = Int(ceil(Double(publicPlanet.articles.count) / 10.0))
+            debugPrint("Rendering \(pages) pages")
+            for i in 1...pages {
+                let pageArticles = Array(publicPlanet.articles[(i - 1) * 10..<min(i * 10, publicPlanet.articles.count)])
+                let pageContext: [String: Any] = [
+                    "planet": publicPlanet,
+                    "my_planet": self,
+                    "has_avatar": hasAvatar,
+                    "og_image_url": ogImageURLString,
+                    "has_podcast": publicPlanet.hasAudioContent(),
+                    "has_podcast_cover_art": hasPodcastCoverArt,
+                    "page": i,
+                    "pages": pages,
+                    "articles": pageArticles
+                ]
+                let pageHTML = try template.renderIndex(context: pageContext)
+                let pagePath = publicIndexPagePath(page: i)
+                try pageHTML.data(using: .utf8)?.write(to: pagePath)
+            }
+        } else {
+            context["articles"] = publicPlanet.articles
+            let pageHTML = try template.renderIndex(context: context)
+            let pagePath = publicIndexPagePath(page: 1)
+            try pageHTML.data(using: .utf8)?.write(to: pagePath)
+        }
+        context["articles"] = publicPlanet.articles
         let indexHTML = try template.renderIndex(context: context)
         try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
 
