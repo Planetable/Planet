@@ -40,7 +40,7 @@ struct PlanetApp: App {
                             Text("Template Browser")
                         }
                         .keyboardShortcut("l", modifiers: [.command, .shift])
-                        
+
                         Button {
                             PlanetAppDelegate.shared.openKeyManagerWindow()
                         } label: {
@@ -74,10 +74,10 @@ struct PlanetApp: App {
                             Text("Update Following Planets")
                         }
                         .keyboardShortcut("r", modifiers: [.command, .shift])
-                        
+
                         Divider()
                     }
-                    
+
                     Group {
                         Button {
                             Task(priority: .userInitiated) {
@@ -284,7 +284,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                 debugPrint("WalletConnectV2: Failed to prepare the connection: \(error)")
             }
         }
-        
+
         // Planet API
         do {
             try PlanetAPI.shared.launch()
@@ -339,7 +339,7 @@ extension PlanetApp {
                                         openURL(url)
                                     }
                                 } label: {
-                                    Text("Open in Localhost")
+                                    Text("Open in Local Gateway")
                                 }
                             }
                             Button {
@@ -532,14 +532,14 @@ extension PlanetAppDelegate {
         }
         templateWindowController?.showWindow(nil)
     }
-    
+
     func openPublishedFoldersDashboardWindow() {
         if publishedFoldersDashboardWindowController == nil {
             publishedFoldersDashboardWindowController = PFDashboardWindowController()
         }
         publishedFoldersDashboardWindowController?.showWindow(nil)
     }
-    
+
     func openKeyManagerWindow() {
         if keyManagerWindowController == nil {
             keyManagerWindowController = PlanetKeyManagerWindowController()

@@ -129,6 +129,14 @@ struct MyPlanetSidebarItem: View {
                     Text("Open in Public Gateway")
                 }
 
+                Button {
+                    if let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(planet.ipns)") {
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Text("Open in Local Gateway")
+                }
+
                 Divider()
             }
 

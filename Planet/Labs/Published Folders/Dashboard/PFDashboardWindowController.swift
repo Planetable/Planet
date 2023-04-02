@@ -10,7 +10,7 @@ import UserNotifications
 
 
 class PFDashboardWindowController: NSWindowController {
-    
+
     override init(window: NSWindow?) {
         let windowSize = NSSize(width: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN + PlanetUI.WINDOW_CONTENT_WIDTH_MIN + PlanetUI.WINDOW_INSPECTOR_WIDTH_MIN, height: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN)
         let screenSize = NSScreen.main?.frame.size ?? .zero
@@ -40,19 +40,19 @@ class PFDashboardWindowController: NSWindowController {
             }
         }
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError()
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self, name: .dashboardInspectorIsCollapsedStatusChanged, object: nil)
     }
-    
+
     override func windowDidLoad() {
         super.windowDidLoad()
     }
-    
+
     private func setupToolbar() {
         guard let w = self.window else { return }
         let toolbar = NSToolbar(identifier: .dashboardToolbarIdentifier)
@@ -63,23 +63,23 @@ class PFDashboardWindowController: NSWindowController {
         w.toolbar = toolbar
         w.toolbar?.validateVisibleItems()
     }
-    
+
     @objc func openInPublicGateway(_ sender: Any) {
         guard let object = sender as? NSMenuItem, let url = object.representedObject as? URL else { return }
         NSWorkspace.shared.open(url)
     }
-    
+
     @objc func openInLocalhost(_ sender: Any) {
         guard let object = sender as? NSMenuItem, let url = object.representedObject as? URL else { return }
         NSWorkspace.shared.open(url)
     }
-    
+
     @objc func revealInFinder(_ sender: Any) {
         guard let object = sender as? NSMenuItem, let folder = object.representedObject as? PlanetPublishedFolder else { return }
         let serviceStore = PlanetPublishedServiceStore.shared
         serviceStore.revealFolderInFinder(folder)
     }
-    
+
     @objc func publishFolder(_ sender: Any) {
         guard let object = sender as? NSMenuItem, let folder = object.representedObject as? PlanetPublishedFolder else { return }
         let serviceStore = PlanetPublishedServiceStore.shared
@@ -129,7 +129,7 @@ class PFDashboardWindowController: NSWindowController {
         let serviceStore = PlanetPublishedServiceStore.shared
         serviceStore.exportFolderKey(folder)
     }
-    
+
     @objc func removeFolder(_ sender: Any) {
         guard let object = sender as? NSMenuItem, let folder = object.representedObject as? PlanetPublishedFolder else { return }
         let serviceStore = PlanetPublishedServiceStore.shared
@@ -150,7 +150,7 @@ class PFDashboardWindowController: NSWindowController {
             serviceStore.updatePublishedFolders(updatedFolders)
         }
     }
-    
+
     @objc func toolbarItemAction(_ sender: Any) {
         guard let item = sender as? NSToolbarItem else { return }
         switch item.itemIdentifier {
@@ -323,29 +323,29 @@ extension PFDashboardWindowController: NSToolbarDelegate {
                     if let localhostURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
                         let localhostActionItem = NSMenuItem()
                         localhostActionItem.representedObject = localhostURL
-                        localhostActionItem.title = "Open in Localhost"
+                        localhostActionItem.title = "Open in Local Gateway"
                         localhostActionItem.target = self
                         localhostActionItem.action = #selector(self.openInLocalhost(_:))
                         menu.addItem(localhostActionItem)
                     }
                 }
-                
+
                 let revealFinderItem = NSMenuItem()
                 revealFinderItem.representedObject = folder
                 revealFinderItem.title = "Reveal in Finder"
                 revealFinderItem.target = self
                 revealFinderItem.action = #selector(self.revealInFinder(_:))
                 menu.addItem(revealFinderItem)
-                
+
                 let publishFolderItem = NSMenuItem()
                 publishFolderItem.representedObject = folder
                 publishFolderItem.title = "Publish Folder"
                 publishFolderItem.target = self
                 publishFolderItem.action = #selector(self.publishFolder(_:))
                 menu.addItem(publishFolderItem)
-                
+
                 menu.addItem(NSMenuItem.separator())
-                
+
                 if folder.published != nil && folder.publishedLink != nil {
                     let backupFolderKeyItem = NSMenuItem()
                     backupFolderKeyItem.representedObject = folder
@@ -362,7 +362,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
                 removeFolderItem.target = self
                 removeFolderItem.action = #selector(self.removeFolder(_:))
                 menu.addItem(removeFolderItem)
-                
+
                 item.menu = menu
             }
             return item
@@ -391,7 +391,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             return nil
         }
     }
-    
+
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return [
             .space,
@@ -407,7 +407,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardInspectorItem
         ]
     }
-    
+
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return [
             .dashboardSidebarItem,
@@ -426,7 +426,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardInspectorItem
         ]
     }
-    
+
     func toolbarImmovableItemIdentifiers(_ toolbar: NSToolbar) -> Set<NSToolbarItem.Identifier> {
         return [
             .flexibleSpace,
@@ -437,15 +437,15 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             .dashboardInspectorSeparactorItem
         ]
     }
-    
+
     func toolbarWillAddItem(_ notification: Notification) {
     }
-    
+
     func toolbarDidRemoveItem(_ notification: Notification) {
         debugPrint("toolbarDidRemoveItem: \(notification)")
         setupToolbar()
     }
-    
+
     func toolbarSelectableItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         // Return the identifiers you'd like to show as "selected" when clicked.
         // Similar to how they look in typical Preferences windows.
