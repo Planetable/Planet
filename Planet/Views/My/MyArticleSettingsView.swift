@@ -19,10 +19,12 @@ struct MyArticleSettingsView: View {
     @State private var selectedTab: String = "basic"
 
     @State private var title: String
+    @State private var articleType: ArticleType
 
     init(article: MyArticleModel) {
         self.article = article
         _title = State(wrappedValue: article.title)
+        _articleType = State(wrappedValue: article.articleType ?? .blog)
     }
 
     var body: some View {
@@ -46,17 +48,42 @@ struct MyArticleSettingsView: View {
                             TextField("", text: $title)
                                 .textFieldStyle(.roundedBorder)
                         }
+
+                        HStack {
+                            HStack {
+                                Text("Type")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH - 5)
+                            // select articleType with radio buttons
+                            Picker(
+                                selection: $articleType,
+                                label: Text("")
+                            ) {
+                                Text("Blog").tag(ArticleType.blog)
+                                Text("Page").tag(ArticleType.page)
+                            }.pickerStyle(RadioGroupPickerStyle())
+                            Spacer()
+                        }
+
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 5)
+
+                            Text("Articles of the Page type are not listed on the blog index page, nor are they included in the RSS feed.")
+                                .lineLimit(2)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                     .padding(16)
                     .tabItem {
                         Text("Basic")
                     }
                     .tag("basic")
-
-
-
-
-
 
                 }
 
@@ -75,6 +102,7 @@ struct MyArticleSettingsView: View {
                         if !title.isEmpty {
                             article.title = title
                         }
+                        article.articleType = articleType
                         Task {
                             try article.save()
                             try article.savePublic()

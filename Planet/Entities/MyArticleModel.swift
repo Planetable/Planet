@@ -3,6 +3,8 @@ import Foundation
 import SwiftUI
 
 class MyArticleModel: ArticleModel, Codable {
+    @Published var articleType: ArticleType? = .blog
+
     @Published var link: String
     @Published var summary: String? = nil
 
@@ -66,13 +68,14 @@ class MyArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, summary, created, starred, starType, videoFilename,
+        case id, articleType, link, title, content, summary, created, starred, starType, videoFilename,
             audioFilename, attachments
     }
 
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decode(UUID.self, forKey: .id)
+        articleType = try container.decodeIfPresent(ArticleType.self, forKey: .articleType)
         link = try container.decode(String.self, forKey: .link)
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
@@ -100,6 +103,7 @@ class MyArticleModel: ArticleModel, Codable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(articleType, forKey: .articleType)
         try container.encode(link, forKey: .link)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)

@@ -1,6 +1,11 @@
 import Foundation
 import SwiftUI
 
+enum ArticleType: Int, Codable, CaseIterable {
+    case blog = 0 // include in the RSS feed, default type
+    case page = 1 // does not include in the RSS feed
+}
+
 enum ArticleStarType: Int, Codable, CaseIterable {
     case star = 0 // a yellow star.full
     case done = 1 // a blue checkmark.circle.fill
