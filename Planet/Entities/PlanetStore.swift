@@ -67,6 +67,15 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 refreshSelectedArticles()
                 selectedArticle = nil
                 UserDefaults.standard.set(selectedView?.stringValue, forKey: "lastSelectedView")
+                
+                Task { @MainActor in
+                    switch selectedView {
+                    case .myPlanet(let planet):
+                        KeyboardShortcutHelper.shared.activeMyPlanet = planet
+                    default:
+                        KeyboardShortcutHelper.shared.activeMyPlanet = nil
+                    }
+                }
             }
         }
     }

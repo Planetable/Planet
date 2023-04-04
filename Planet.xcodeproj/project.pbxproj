@@ -41,6 +41,7 @@
 		2A79FB2C2898184100F06DDF /* PlanetDownloadModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A79FB2B2898184100F06DDF /* PlanetDownloadModel.swift */; };
 		2A79FB2E289819AD00F06DDF /* PlanetDownloadsItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A79FB2D289819AD00F06DDF /* PlanetDownloadsItemView.swift */; };
 		2A7D1BF427CA1B0A00D3C091 /* MyPlanetEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7D1BF327CA1B0A00D3C091 /* MyPlanetEditView.swift */; };
+		2A90A80329DBB6FC00D45E5E /* KeyboardShortcutHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A90A80229DBB6FC00D45E5E /* KeyboardShortcutHelper.swift */; };
 		2A9B09A1294DF3BC0002719C /* PFDashboardSidebarItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A0294DF3BC0002719C /* PFDashboardSidebarItemView.swift */; };
 		2A9B09A3294F066B0002719C /* PFDashboardWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A2294F066B0002719C /* PFDashboardWebView.swift */; };
 		2A9B09A5294F35640002719C /* PFDashboardContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A4294F35640002719C /* PFDashboardContentView.swift */; };
@@ -232,6 +233,7 @@
 		2A79FB2B2898184100F06DDF /* PlanetDownloadModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadModel.swift; sourceTree = "<group>"; };
 		2A79FB2D289819AD00F06DDF /* PlanetDownloadsItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadsItemView.swift; sourceTree = "<group>"; };
 		2A7D1BF327CA1B0A00D3C091 /* MyPlanetEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetEditView.swift; sourceTree = "<group>"; };
+		2A90A80229DBB6FC00D45E5E /* KeyboardShortcutHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcutHelper.swift; sourceTree = "<group>"; };
 		2A9B09A0294DF3BC0002719C /* PFDashboardSidebarItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PFDashboardSidebarItemView.swift; sourceTree = "<group>"; };
 		2A9B09A2294F066B0002719C /* PFDashboardWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PFDashboardWebView.swift; sourceTree = "<group>"; };
 		2A9B09A4294F35640002719C /* PFDashboardContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PFDashboardContentView.swift; sourceTree = "<group>"; };
@@ -560,6 +562,7 @@
 				6A4825C928F22DAC004CE2C0 /* PodcastUtils.swift */,
 				2AA797302948A1B50031E873 /* WKScriptHelper.swift */,
 				2AFB896329B7ACF3003D893E /* KeychainHelper.swift */,
+				2A90A80229DBB6FC00D45E5E /* KeyboardShortcutHelper.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -1068,6 +1071,7 @@
 				721149A15F84CEDB799EC15B /* AudioPlayer.swift in Sources */,
 				7211436A6E9CCC30D85E8E18 /* WriterAudioView.swift in Sources */,
 				6AC33B932934159A001ABBCF /* EthereumTransaction.swift in Sources */,
+				2A90A80329DBB6FC00D45E5E /* KeyboardShortcutHelper.swift in Sources */,
 				2AFB897629BA3ED8003D893E /* PlanetKeyManagerModel.swift in Sources */,
 				6A7189662947FA2D00279D77 /* WalletConnectV2QRCodeView.swift in Sources */,
 				2AA797312948A1B50031E873 /* WKScriptHelper.swift in Sources */,
