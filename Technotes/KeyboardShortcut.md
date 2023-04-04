@@ -9,7 +9,7 @@ Menu bar commands are available via keyboard shortcuts. The following are curren
 - File
   - Close &rarr; ```⌘ CMD``` ```W```
 - View
-  - Toggle Sidebar &rarr; ```⌘ CMD``` ```⇧ SHIFT``` ```S```
+  - Toggle Sidebar &rarr; ```^ CTRL``` ```⌘ CMD``` ```S```
 - Writer
   - Send &rarr; ```⌘ CMD``` ```⇧ SHIFT``` ```D```
   - Insert Emoji
