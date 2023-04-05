@@ -13,16 +13,11 @@ import UserNotifications
 struct PlanetApp: App {
     @NSApplicationDelegateAdaptor(PlanetAppDelegate.self) var appDelegate
     @StateObject var planetStore: PlanetStore
-    @StateObject var templateStore: TemplateStore
-    @StateObject var updater: PlanetUpdater
-    @StateObject var serviceStore: PlanetPublishedServiceStore
-    @Environment(\.openURL) private var openURL
+    @ObservedObject var keyboardHelper: KeyboardShortcutHelper
 
     init() {
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)
-        _templateStore = StateObject(wrappedValue: TemplateStore.shared)
-        _updater = StateObject(wrappedValue: PlanetUpdater.shared)
-        _serviceStore = StateObject(wrappedValue: PlanetPublishedServiceStore.shared)
+        _keyboardHelper = ObservedObject(wrappedValue: KeyboardShortcutHelper.shared)
     }
 
     var body: some Scene {
@@ -32,123 +27,11 @@ struct PlanetApp: App {
             .commands {
                 CommandGroup(replacing: .newItem) {
                 }
-                CommandMenu("Tools") {
-                    Group {
-                        Button {
-                            PlanetAppDelegate.shared.openTemplateWindow()
-                        } label: {
-                            Text("Template Browser")
-                        }
-                        .keyboardShortcut("l", modifiers: [.command, .shift])
-
-                        Button {
-                            PlanetAppDelegate.shared.openKeyManagerWindow()
-                        } label: {
-                            Text("Key Manager")
-                        }
-                        .keyboardShortcut("k", modifiers: [.command, .shift])
-
-                        Button {
-                            PlanetAppDelegate.shared.openDownloadsWindow()
-                        } label: {
-                            Text("Downloads")
-                        }
-                        .keyboardShortcut("d", modifiers: [.command, .shift])
-
-                        publishedFoldersMenu()
-
-                        Divider()
-                    }
-
-                    Group {
-                        Button {
-                            planetStore.publishMyPlanets()
-                        } label: {
-                            Text("Publish My Planets")
-                        }
-                        .keyboardShortcut("p", modifiers: [.command, .shift])
-
-                        Button {
-                            planetStore.updateFollowingPlanets()
-                        } label: {
-                            Text("Update Following Planets")
-                        }
-                        .keyboardShortcut("r", modifiers: [.command, .shift])
-
-                        Divider()
-                    }
-
-                    Group {
-                        Button {
-                            Task(priority: .userInitiated) {
-                                await MainActor.run {
-                                    do {
-                                        try PlanetStore.shared.load()
-                                        try TemplateStore.shared.load()
-                                        PlanetStore.shared.selectedView = nil
-                                        PlanetStore.shared.selectedArticle = nil
-                                        PlanetStore.shared.selectedArticleList = nil
-                                        PlanetStore.shared.refreshSelectedArticles()
-                                    } catch {
-                                        debugPrint("failed to reload: \(error)")
-                                    }
-                                }
-                            }
-                        } label: {
-                            Text("Reload Planets")
-                        }
-                        .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
-
-                        Divider()
-                    }
-
-                    Group {
-                        Button {
-                            planetStore.isImportingPlanet = true
-                        } label: {
-                            Text("Import Planet")
-                        }
-                        .keyboardShortcut("i", modifiers: [.command, .shift])
-                    }
-                }
-                CommandGroup(after: .appInfo) {
-                    Button {
-                        updater.checkForUpdates()
-                    } label: {
-                        Text("Check for Updates")
-                    }
-                    .disabled(!updater.canCheckForUpdates)
-
-                    if planetStore.hasWalletAddress() {
-                        Button {
-                            planetStore.isShowingWalletDisconnectConfirmation = true
-                        } label: {
-                            Text("Disconnect Wallet")
-                        }
-                    } else {
-                        Button {
-                            WalletManager.shared.connectV1()
-                        } label: {
-                            Text("Connect Wallet")
-                        }
-                    }
-
-                    if planetStore.walletConnectV2Ready {
-                        Button {
-                            WalletManager.shared.connectV2()
-                        } label: {
-                            Text("Connect Wallet V2")
-                        }
-                    }
-                }
+                keyboardHelper.writerCommands()
+                keyboardHelper.toolsCommands()
+                keyboardHelper.infoCommands()
+                keyboardHelper.helpCommands()
                 SidebarCommands()
-                CommandGroup(replacing: .help) {
-                    Button {
-                        planetStore.isShowingOnboarding = true
-                    } label: {
-                        Text("What's New in Planet")
-                    }
-                }
             }
 
         Settings {
@@ -307,148 +190,6 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
-    }
-}
-
-// MARK: - Published Folders Menu UI
-
-extension PlanetApp {
-    @ViewBuilder
-    private func publishedFoldersMenu() -> some View {
-        Menu("Published Folders") {
-            ForEach(serviceStore.publishedFolders, id: \.id) { folder in
-                Menu(folder.url.path.removingPercentEncoding ?? folder.url.path) {
-                    if serviceStore.publishingFolders.contains(folder.id) {
-                        Text("Publishing ...")
-                    } else {
-                        if !FileManager.default.fileExists(atPath: folder.url.path) {
-                            Text("Folder is missing ...")
-                        } else {
-                            if let published = folder.published, let publishedLink = folder.publishedLink {
-                                Text("Last Published: " + published.relativeDateDescription())
-                                Divider()
-                                Button {
-                                    if let url = URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(publishedLink)") {
-                                        openURL(url)
-                                    }
-                                } label: {
-                                    Text("Open in Public Gateway")
-                                }
-                                Button {
-                                    if let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
-                                        openURL(url)
-                                    }
-                                } label: {
-                                    Text("Open in Local Gateway")
-                                }
-                            }
-                            Button {
-                                do {
-                                    let url = try serviceStore.restoreFolderAccess(forFolder: folder)
-                                    guard url.startAccessingSecurityScopedResource() else {
-                                        throw PlanetError.PublishedServiceFolderPermissionError
-                                    }
-                                    NSWorkspace.shared.open(url)
-                                    url.stopAccessingSecurityScopedResource()
-                                } catch {
-                                    debugPrint("failed to request access to folder: \(folder), error: \(error)")
-                                    let alert = NSAlert()
-                                    alert.messageText = "Failed to Access to Folder"
-                                    alert.informativeText = error.localizedDescription
-                                    alert.alertStyle = .informational
-                                    alert.addButton(withTitle: "OK")
-                                    alert.runModal()
-                                }
-                            } label: {
-                                Text("Reveal in Finder")
-                            }
-                            Button {
-                                Task { @MainActor in
-                                    do {
-                                        try await self.serviceStore.publishFolder(folder, skipCIDCheck: true)
-                                        let content = UNMutableNotificationContent()
-                                        content.title = "Folder Published"
-                                        content.subtitle = folder.url.absoluteString
-                                        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                                        let request = UNNotificationRequest(
-                                            identifier: folder.id.uuidString,
-                                            content: content,
-                                            trigger: trigger
-                                        )
-                                        try? await UNUserNotificationCenter.current().add(request)
-                                    } catch PlanetError.PublishedServiceFolderUnchangedError {
-                                        let alert = NSAlert()
-                                        alert.messageText = "Failed to Publish Folder"
-                                        alert.informativeText = "Folder content hasn't changed since last publish."
-                                        alert.alertStyle = .informational
-                                        alert.addButton(withTitle: "OK")
-                                        alert.runModal()
-                                    } catch {
-                                        debugPrint("Failed to publish folder: \(folder), error: \(error)")
-                                        let alert = NSAlert()
-                                        alert.messageText = "Failed to Publish Folder"
-                                        alert.informativeText = error.localizedDescription
-                                        alert.alertStyle = .informational
-                                        alert.addButton(withTitle: "OK")
-                                        alert.runModal()
-                                    }
-                                }
-                            } label: {
-                                Text("Publish")
-                            }
-                        }
-                        Divider()
-                        if let _ = folder.published, let _ = folder.publishedLink {
-                            Button {
-                                serviceStore.exportFolderKey(folder)
-                            } label: {
-                                Text("Backup Folder Key")
-                            }
-                            Divider()
-                        }
-                        Button {
-                            serviceStore.addToRemovingPublishedFolderQueue(folder)
-                            let updatedFolders = serviceStore.publishedFolders.filter { f in
-                                return f.id != folder.id
-                            }
-                            Task { @MainActor in
-                                serviceStore.updatePublishedFolders(updatedFolders)
-                            }
-                        } label: {
-                            Text("Remove")
-                        }
-                    }
-                }
-            }
-            if serviceStore.publishedFolders.count > 0 {
-                Divider()
-            }
-            Button {
-                serviceStore.addFolder()
-            } label: {
-                Text("Add Folder")
-            }
-            Divider()
-            Button {
-                PlanetAppDelegate.shared.openPublishedFoldersDashboardWindow()
-            } label: {
-                Text("Dashboard")
-            }
-            .keyboardShortcut("f", modifiers: [.command, .shift])
-            Menu("Options") {
-                Toggle("Automatically Publish", isOn: $serviceStore.autoPublish)
-                    .onChange(of: serviceStore.autoPublish) { newValue in
-                        Task { @MainActor in
-                            self.serviceStore.autoPublish = newValue
-                        }
-                    }
-                    .help("Turn on to publish changes automatically.")
-            }
-        }
-        .onReceive(serviceStore.timer) { _ in
-            serviceStore.timestamp = Int(Date().timeIntervalSince1970)
-            serviceStore.updatePendingPublishings()
-        }
     }
 }
 

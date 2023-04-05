@@ -203,4 +203,16 @@ extension WriterWindow: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
         WriterStore.shared.writers.removeValue(forKey: draft)
     }
+    
+    func windowDidBecomeKey(_ notification: Notification) {
+        Task { @MainActor in
+            KeyboardShortcutHelper.shared.activeWriterWindow = self
+        }
+    }
+    
+    func windowDidResignKey(_ notification: Notification) {
+        Task { @MainActor in
+            KeyboardShortcutHelper.shared.activeWriterWindow = nil
+        }
+    }
 }
