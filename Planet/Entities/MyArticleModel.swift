@@ -75,7 +75,11 @@ class MyArticleModel: ArticleModel, Codable {
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decode(UUID.self, forKey: .id)
-        articleType = try container.decodeIfPresent(ArticleType.self, forKey: .articleType)
+        if let articleType = try container.decodeIfPresent(ArticleType.self, forKey: .articleType) {
+            self.articleType = articleType
+        } else {
+            self.articleType = .blog
+        }
         link = try container.decode(String.self, forKey: .link)
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
