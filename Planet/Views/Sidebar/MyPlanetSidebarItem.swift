@@ -85,6 +85,7 @@ struct MyPlanetSidebarItem: View {
                             try planet.copyTemplateAssets()
                             try planet.articles.forEach { try $0.savePublic() }
                             try planet.savePublic()
+                            NotificationCenter.default.post(name: .loadArticle, object: nil)
                         }
                     } label: {
                         Text("Rebuild")

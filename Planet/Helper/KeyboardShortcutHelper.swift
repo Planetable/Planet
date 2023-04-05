@@ -12,12 +12,12 @@ import SwiftUI
 
 class KeyboardShortcutHelper: ObservableObject {
     static let shared = KeyboardShortcutHelper()
-    
+
     @Environment(\.openURL) private var openURL
-    
+
     @ObservedObject private var updater: PlanetUpdater
     @ObservedObject private var serviceStore: PlanetPublishedServiceStore
-    
+
     @Published var activeWriterWindow: WriterWindow?
     @Published var activeMyPlanet: MyPlanetModel?
 
@@ -25,7 +25,7 @@ class KeyboardShortcutHelper: ObservableObject {
         _updater = ObservedObject(wrappedValue: PlanetUpdater.shared)
         _serviceStore = ObservedObject(wrappedValue: PlanetPublishedServiceStore.shared)
     }
-    
+
     @CommandsBuilder
     func helpCommands() -> some Commands {
         CommandGroup(replacing: .help) {
@@ -36,7 +36,7 @@ class KeyboardShortcutHelper: ObservableObject {
             }
         }
     }
-    
+
     @CommandsBuilder
     func infoCommands() -> some Commands {
         CommandGroup(after: .appInfo) {
@@ -46,7 +46,7 @@ class KeyboardShortcutHelper: ObservableObject {
                 Text("Check for Updates")
             }
             .disabled(!updater.canCheckForUpdates)
-            
+
             if PlanetStore.shared.hasWalletAddress() {
                 Button {
                     PlanetStore.shared.isShowingWalletDisconnectConfirmation = true
@@ -60,7 +60,7 @@ class KeyboardShortcutHelper: ObservableObject {
                     Text("Connect Wallet")
                 }
             }
-            
+
             if PlanetStore.shared.walletConnectV2Ready {
                 Button {
                     WalletManager.shared.connectV2()
@@ -70,7 +70,7 @@ class KeyboardShortcutHelper: ObservableObject {
             }
         }
     }
-    
+
     @CommandsBuilder
     func writerCommands() -> some Commands {
         CommandMenu("Writer") {
@@ -82,10 +82,10 @@ class KeyboardShortcutHelper: ObservableObject {
                 }
                 .keyboardShortcut("d", modifiers: [.command, .shift])
                 .disabled(activeWriterWindow == nil)
-                
+
                 Divider()
             }
-            
+
             Group {
                 Button {
                     self.activeWriterWindow?.insertEmoji(nil)
@@ -93,7 +93,7 @@ class KeyboardShortcutHelper: ObservableObject {
                     Text("Insert Emoji")
                 }
                 .disabled(activeWriterWindow == nil)
-                
+
                 Button {
                     self.activeWriterWindow?.attachPhoto(nil)
                 } label: {
@@ -115,10 +115,10 @@ class KeyboardShortcutHelper: ObservableObject {
                 }
                 .disabled(activeWriterWindow == nil)
             }
-            
+
             Group {
                 Divider()
-                
+
                 Button {
                     self.activeWriterWindow?.draft.attachments.removeAll()
                 } label: {
@@ -128,7 +128,7 @@ class KeyboardShortcutHelper: ObservableObject {
             }
         }
     }
-    
+
     @CommandsBuilder
     func toolsCommands() -> some Commands {
         CommandMenu("Tools") {
@@ -139,25 +139,25 @@ class KeyboardShortcutHelper: ObservableObject {
                     Text("Template Browser")
                 }
                 .keyboardShortcut("l", modifiers: [.command, .shift])
-                
+
                 Button {
                     PlanetAppDelegate.shared.openKeyManagerWindow()
                 } label: {
                     Text("Key Manager")
                 }
                 .keyboardShortcut("k", modifiers: [.command, .shift])
-                
+
                 Button {
                     PlanetAppDelegate.shared.openDownloadsWindow()
                 } label: {
                     Text("Downloads")
                 }
-                
+
                 publishedFoldersMenus()
-                
+
                 Divider()
             }
-            
+
             Group {
                 Button {
                     PlanetStore.shared.publishMyPlanets()
@@ -165,17 +165,17 @@ class KeyboardShortcutHelper: ObservableObject {
                     Text("Publish My Planets")
                 }
                 .keyboardShortcut("p", modifiers: [.command, .shift])
-                
+
                 Button {
                     PlanetStore.shared.updateFollowingPlanets()
                 } label: {
                     Text("Update Following Planets")
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
-                
+
                 Divider()
             }
-            
+
             Group {
                 Button {
                     Task(priority: .userInitiated) {
@@ -196,13 +196,14 @@ class KeyboardShortcutHelper: ObservableObject {
                     Text("Reload Planets")
                 }
                 .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
-                
+
                 Button {
                     Task {
                         do {
                             try self.activeMyPlanet?.copyTemplateAssets()
                             try self.activeMyPlanet?.articles.forEach { try $0.savePublic() }
                             try self.activeMyPlanet?.savePublic()
+                            NotificationCenter.default.post(name: .loadArticle, object: nil)
                         } catch {}
                     }
                 } label: {
@@ -210,10 +211,10 @@ class KeyboardShortcutHelper: ObservableObject {
                 }
                 .disabled(activeMyPlanet == nil)
                 .keyboardShortcut("r", modifiers: [.command])
-                
+
                 Divider()
             }
-            
+
             Group {
                 Button {
                     PlanetStore.shared.isImportingPlanet = true
@@ -224,9 +225,9 @@ class KeyboardShortcutHelper: ObservableObject {
             }
         }
     }
-    
+
     // MARK: -
-    
+
     @ViewBuilder
     private func publishedFoldersMenus() -> some View {
         Menu("Published Folders") {
