@@ -1031,7 +1031,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         guard let template = template else {
             throw PlanetError.MissingTemplateError
         }
-        let publicArticles = articles.map { $0.publicArticle }
+        let publicArticles = articles.filter { $0.articleType == .blog }.map { $0.publicArticle }
         let publicPlanet = PublicPlanetModel(
             id: id,
             name: name,
