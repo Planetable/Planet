@@ -13,7 +13,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Draft")
 
-    let id: UUID
+    var id: UUID
     @Published var date: Date
     @Published var title: String
     @Published var content: String
@@ -94,7 +94,11 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
-        date = try container.decode(Date.self, forKey: .date)
+        if let date = try container.decodeIfPresent(Date.self, forKey: .date) {
+            self.date = date
+        } else {
+            self.date = Date()
+        }
         title = try container.decode(String.self, forKey: .title)
         content = try container.decode(String.self, forKey: .content)
         attachments = try container.decode([Attachment].self, forKey: .attachments)
@@ -122,9 +126,13 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
 
     static func load(from directoryPath: URL, planet: MyPlanetModel) throws -> DraftModel {
+        let draftId = directoryPath.lastPathComponent
         let draftPath = directoryPath.appendingPathComponent("Draft.json", isDirectory: false)
         let data = try Data(contentsOf: draftPath)
         let draft = try JSONDecoder.shared.decode(DraftModel.self, from: data)
+        if draft.id != UUID(uuidString: draftId) {
+            draft.id = UUID(uuidString: draftId)!
+        }
         draft.target = .myPlanet(Unowned(planet))
         let contentSHA256String = draft.contentSHA256()
         debugPrint("Computed contentSHA256 for \(draft.title) during load/planet: \(contentSHA256String)")
@@ -374,7 +382,10 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             let article = wrapper.value
             article.draft = nil
         }
-        if FileManager.default.fileExists(atPath: basePath.path) {
+        debugPrint("Deleting draft \(id) at \(basePath.path)")
+        // Remove the folder if it exists
+        var isDirectory: ObjCBool = false
+        if FileManager.default.fileExists(atPath: basePath.path, isDirectory: &isDirectory) {
             try FileManager.default.removeItem(at: basePath)
         }
     }
