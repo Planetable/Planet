@@ -97,7 +97,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("Drafts", isDirectory: true)
     }
     var articleDraftsPath: URL {
-        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("Drafts", isDirectory: true)
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("Articles", isDirectory: true).appendingPathComponent("Drafts", isDirectory: true)
     }
 
     static func publicPlanetsPath() -> URL {
@@ -442,6 +442,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             at: planet.draftsPath,
             includingPropertiesForKeys: nil
         ).filter { $0.hasDirectoryPath }
+        debugPrint("Loading Planet \(planet.name) drafts from \(draftDirectories.count) directories")
         planet.drafts = draftDirectories.compactMap {
             try? DraftModel.load(from: $0, planet: planet)
         }
