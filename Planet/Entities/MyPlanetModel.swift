@@ -1055,12 +1055,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             podcastLanguage: podcastLanguage,
             podcastExplicit: podcastExplicit
         )
-        let hasAvatar = FileManager.default.fileExists(atPath: publicAvatarPath.path)
         let hasPodcastCoverArt = FileManager.default.fileExists(atPath: publicPodcastCoverArtPath.path)
         var context: [String: Any] = [
             "planet": publicPlanet,
             "my_planet": self,
-            "has_avatar": hasAvatar,
+            "has_avatar": self.hasAvatar(),
             "og_image_url": ogImageURLString,
             "has_podcast": publicPlanet.hasAudioContent(),
             "has_podcast_cover_art": hasPodcastCoverArt
@@ -1331,6 +1330,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 }
 
 extension MyPlanetModel {
+    func hasAvatar() -> Bool {
+        FileManager.default.fileExists(atPath: publicAvatarPath.path)
+    }
+
     func navigationSubtitle() -> String {
         if articles.count > 0 {
             if articles.count > 1 {

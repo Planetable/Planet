@@ -157,6 +157,7 @@ class Template: Codable, Identifiable {
         // render stencil template
         var context: [String: Any] = [
             "planet": publicPlanet,
+            "has_avatar": planet.hasAvatar(),
             "planet_ipns": article.planet.ipns,
             "assets_prefix": "../",
             "article": article.publicArticle,

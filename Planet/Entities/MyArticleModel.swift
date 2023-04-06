@@ -54,18 +54,22 @@ class MyArticleModel: ArticleModel, Codable {
         )
     }
     var browserURL: URL? {
+        var urlPath = "/\(id.uuidString)/"
+        if let slug = slug, slug.count > 0 {
+            urlPath = "/\(slug)/"
+        }
         if let domain = planet.domain {
             if domain.hasSuffix(".eth") {
-                return URL(string: "https://\(domain).limo/\(id.uuidString)/")
+                return URL(string: "https://\(domain).limo\(urlPath)")
             }
             if domain.hasSuffix(".bit") {
-                return URL(string: "https://\(domain).cc/\(id.uuidString)/")
+                return URL(string: "https://\(domain).cc\(urlPath)")
             }
             if domain.hasCommonTLDSuffix() {
-                return URL(string: "https://\(domain)/\(id.uuidString)/")
+                return URL(string: "https://\(domain)\(urlPath)")
             }
         }
-        return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.ipns)\(link)")
+        return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.ipns)\(urlPath)")
     }
     var socialImageURL: URL? {
         if let heroImage = getHeroImage(), let baseURL = browserURL {

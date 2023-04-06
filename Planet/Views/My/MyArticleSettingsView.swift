@@ -210,6 +210,24 @@ extension MyArticleSettingsView {
                 alert.alertStyle = .informational
                 alert.addButton(withTitle: "OK")
                 alert.runModal()
+            } else {
+                // check for conflict in planet.articles except for the current article
+                if let planet = article.planet {
+                    for article in planet.articles {
+                        if article.slug == slug && article.id != self.article.id {
+                            debugPrint("Provided slug is not unique: \(slug)")
+                            errors = errors + 1
+
+                            let alert = NSAlert()
+                            alert.messageText = "Article Slug Issue"
+                            alert.informativeText = "The slug is already used by \(article.title) (ID: \(article.id)). Please choose a different slug."
+                            alert.alertStyle = .informational
+                            alert.addButton(withTitle: "OK")
+                            alert.runModal()
+                            break
+                        }
+                    }
+                }
             }
         }
         return errors
