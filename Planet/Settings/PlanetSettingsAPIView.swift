@@ -122,10 +122,12 @@ struct PlanetSettingsAPIView: View {
     }
     
     private func reloadAPIServer() {
-        do {
-            try PlanetAPI.shared.relaunch()
-        } catch {
-            debugPrint("failed to relaunch api server: \(error)")
+        Task {
+            do {
+                try await PlanetAPIHelper.shared.relaunch()
+            } catch {
+                debugPrint("failed to relaunch api server: \(error)")
+            }
         }
     }
 }

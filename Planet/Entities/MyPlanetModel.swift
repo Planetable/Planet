@@ -1176,7 +1176,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             await self.prewarm()
         }
         if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-            try? PlanetAPI.shared.relaunch()
+            Task {
+                try? await PlanetAPIHelper.shared.relaunch()
+            }
         }
     }
 
