@@ -1318,6 +1318,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
+    func rebuild() throws {
+        try self.copyTemplateAssets()
+        try self.articles.forEach { try $0.savePublic() }
+        try self.savePublic()
+        NotificationCenter.default.post(name: .loadArticle, object: nil)
+    }
+
     func updateTrafficAnalytics() async {
         if let domain = plausibleDomain, let apiKey = plausibleAPIKey, domain.count > 0,
             apiKey.count > 0

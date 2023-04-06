@@ -81,15 +81,19 @@ struct MyPlanetSidebarItem: View {
                     }
 
                     Button {
-                        Task {
-                            try planet.copyTemplateAssets()
-                            try planet.articles.forEach { try $0.savePublic() }
-                            try planet.savePublic()
-                            NotificationCenter.default.post(name: .loadArticle, object: nil)
+                        do {
+                            try planet.rebuild()
+                        } catch {
+                            Task { @MainActor in
+                                self.planetStore.isShowingAlert = true
+                                self.planetStore.alertTitle = "Failed to Rebuild Planet"
+                                self.planetStore.alertMessage = error.localizedDescription
+                            }
                         }
                     } label: {
                         Text("Rebuild")
                     }
+                    .keyboardShortcut("r", modifiers: [.command])
                 } label: {
                     Text("Develop")
                 }
