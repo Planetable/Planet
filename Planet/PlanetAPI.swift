@@ -106,6 +106,7 @@ class PlanetAPI: NSObject {
     }
     
     func relaunch() throws {
+        debugPrint("About to relaunch planet api server...")
         shutdown()
         updateServerSettings()
         try launch()
@@ -363,8 +364,8 @@ extension PlanetAPI {
                     try draft.addAttachmentFromData(data: attachmentData, fileName: attachmentFileName, forContentType: attachmentContentType)
                 }
                 try draft.saveToArticle()
-                let planets = PlanetStore.shared.myPlanets
-                updateMyPlanets(planets)
+//                let planets = PlanetStore.shared.myPlanets
+//                updateMyPlanets(planets)
             } catch {
                 debugPrint("failed to create article for planet: \(planet), error: \(error)")
             }
