@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct MyArticleSettingsView: View {
+    let MESSAGE_SLUG_REQUIREMENT = "The slug is the part of the URL that identifies the article. It should be unique and contain only lowercased letters, numbers, and hyphens."
+
     let CONTROL_CAPTION_WIDTH: CGFloat = 80
 
     @Environment(\.dismiss) var dismiss
@@ -20,11 +22,13 @@ struct MyArticleSettingsView: View {
 
     @State private var title: String
     @State private var articleType: ArticleType
+    @State private var slug: String
 
     init(article: MyArticleModel) {
         self.article = article
         _title = State(wrappedValue: article.title)
         _articleType = State(wrappedValue: article.articleType ?? .blog)
+        _slug = State(wrappedValue: article.slug ?? "")
     }
 
     var body: some View {
@@ -47,6 +51,30 @@ struct MyArticleSettingsView: View {
 
                             TextField("", text: $title)
                                 .textFieldStyle(.roundedBorder)
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("Slug")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+
+                            TextField("", text: $slug)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 5)
+
+                            Text(MESSAGE_SLUG_REQUIREMENT)
+                                .lineLimit(2)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
 
                         HStack {
@@ -99,12 +127,39 @@ struct MyArticleSettingsView: View {
                     .keyboardShortcut(.escape, modifiers: [])
 
                     Button {
+                        if verifyUserInput() > 0 {
+                            return
+                        }
                         if !title.isEmpty {
                             article.title = title
+                        }
+                        var previousSlug = article.slug
+                        var nextSlug = slug
+                        var slugChanged = false
+                        if !slug.isEmpty {
+                            if slug.count == 0 {
+                                if article.slug != slug {
+                                    article.slug = nil
+                                    slugChanged = true
+                                }
+                            } else {
+                                if article.slug != slug {
+                                    article.slug = slug
+                                    slugChanged = true
+                                }
+                            }
+                        } else {
+                            if article.slug != slug {
+                                article.slug = nil
+                                slugChanged = true
+                            }
                         }
                         article.articleType = articleType
                         Task {
                             try article.save()
+                            if let previousSlug = previousSlug, slugChanged {
+                                article.removeSlug(previousSlug)
+                            }
                             try article.savePublic()
                             NotificationCenter.default.post(name: .loadArticle, object: nil)
                             if let planet = article.planet {
@@ -132,6 +187,32 @@ struct MyArticleSettingsView: View {
         .task {
             title = article.title
         }
+    }
+}
+
+extension MyArticleSettingsView {
+    func verifyUserInput() -> Int {
+        var errors = 0
+        // if slug is not empty, it should only contain letters, numbers, and hyphens
+        // check slug with a regular expression
+        if !slug.isEmpty {
+            let regex = try! NSRegularExpression(pattern: "^[a-z0-9-]+$")
+            let range = NSRange(location: 0, length: slug.utf16.count)
+            let matches = regex.matches(in: slug, options: [], range: range)
+            if matches.count == 0 {
+                // slug is not valid
+                debugPrint("Provided slug is not valid: \(slug)")
+                errors = errors + 1
+
+                let alert = NSAlert()
+                alert.messageText = "Article Slug Issue"
+                alert.informativeText = MESSAGE_SLUG_REQUIREMENT
+                alert.alertStyle = .informational
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+            }
+        }
+        return errors
     }
 }
 

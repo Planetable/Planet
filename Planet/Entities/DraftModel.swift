@@ -304,8 +304,11 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         case .article(let wrapper):
             article = wrapper.value
             planet = article.planet
-            // workaround: force reset link
-            article.link = "/\(article.id)/"
+            if let articleSlug = article.slug, articleSlug.count > 0 {
+                article.link = "/\(articleSlug)/"
+            } else {
+                article.link = "/\(article.id)/"
+            }
             article.created = date
             article.title = title
             article.content = content

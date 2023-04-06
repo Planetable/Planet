@@ -6,6 +6,8 @@ class MyArticleModel: ArticleModel, Codable {
     @Published var articleType: ArticleType? = .blog
 
     @Published var link: String
+    @Published var slug: String? = nil
+
     @Published var summary: String? = nil
 
     // populated when initializing
@@ -32,7 +34,12 @@ class MyArticleModel: ArticleModel, Codable {
     var publicArticle: PublicArticleModel {
         PublicArticleModel(
             id: id,
-            link: link,
+            link: {
+                if let slug = slug, slug.count > 0 {
+                    return "/\(slug)/"
+                }
+                return link
+            }(),
             title: title,
             content: content,
             created: created,
@@ -68,7 +75,7 @@ class MyArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, articleType, link, title, content, summary, created, starred, starType, videoFilename,
+        case id, articleType, link, slug, title, content, summary, created, starred, starType, videoFilename,
             audioFilename, attachments
     }
 
@@ -81,6 +88,7 @@ class MyArticleModel: ArticleModel, Codable {
             self.articleType = .blog
         }
         link = try container.decode(String.self, forKey: .link)
+        slug = try container.decodeIfPresent(String.self, forKey: .slug)
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
         summary = try container.decodeIfPresent(String.self, forKey: .summary)
@@ -109,6 +117,7 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encode(id, forKey: .id)
         try container.encodeIfPresent(articleType, forKey: .articleType)
         try container.encode(link, forKey: .link)
+        try container.encodeIfPresent(slug, forKey: .slug)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
         try container.encode(summary, forKey: .summary)
@@ -123,6 +132,7 @@ class MyArticleModel: ArticleModel, Codable {
     init(
         id: UUID,
         link: String,
+        slug: String? = nil,
         title: String,
         content: String,
         summary: String?,
@@ -134,6 +144,7 @@ class MyArticleModel: ArticleModel, Codable {
         attachments: [String]?
     ) {
         self.link = link
+        self.slug = slug
         self.summary = summary
         super.init(
             id: id,
@@ -292,10 +303,30 @@ class MyArticleModel: ArticleModel, Codable {
             self.saveHeroGrid()
         }
         try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
+        if let articleSlug = self.slug, articleSlug.count > 0 {
+            let publicSlugBasePath = planet.publicBasePath.appendingPathComponent(
+                articleSlug,
+                isDirectory: true
+            )
+            if FileManager.default.fileExists(atPath: publicSlugBasePath.path) {
+                try? FileManager.default.removeItem(at: publicSlugBasePath)
+            }
+            try? FileManager.default.copyItem(at: publicBasePath, to: publicSlugBasePath)
+        }
     }
 
     func save() throws {
         try JSONEncoder.shared.encode(self).write(to: path)
+    }
+
+    func removeSlug(_ slugToRemove: String) {
+        let slugPath = planet.publicBasePath.appendingPathComponent(
+            slugToRemove,
+            isDirectory: true
+        )
+        if FileManager.default.fileExists(atPath: slugPath.path) {
+            try? FileManager.default.removeItem(at: slugPath)
+        }
     }
 
     func delete() {
@@ -382,6 +413,7 @@ extension MyArticleModel {
         MyArticleModel(
             id: UUID(),
             link: "/example/",
+            slug: "/example/",
             title: "Example Article",
             content: "This is an example article.",
             summary: "This is an example article.",
@@ -398,6 +430,7 @@ extension MyArticleModel {
 struct BackupArticleModel: Codable {
     let id: UUID
     let link: String
+    let slug: String?
     let title: String
     let content: String
     let summary: String?

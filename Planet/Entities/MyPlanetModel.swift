@@ -727,6 +727,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 let article = MyArticleModel(
                     id: backupArticle.id,
                     link: backupArticle.link,
+                    slug: backupArticle.slug,
                     title: backupArticle.title,
                     content: backupArticle.content,
                     summary: backupArticle.summary,
@@ -1247,6 +1248,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 BackupArticleModel(
                     id: $0.id,
                     link: $0.link,
+                    slug: $0.slug,
                     title: $0.title,
                     content: $0.content,
                     summary: $0.summary,
