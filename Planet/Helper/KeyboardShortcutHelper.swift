@@ -198,13 +198,14 @@ class KeyboardShortcutHelper: ObservableObject {
                 .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
 
                 Button {
-                    Task {
-                        do {
-                            try self.activeMyPlanet?.copyTemplateAssets()
-                            try self.activeMyPlanet?.articles.forEach { try $0.savePublic() }
-                            try self.activeMyPlanet?.savePublic()
-                            NotificationCenter.default.post(name: .loadArticle, object: nil)
-                        } catch {}
+                    do {
+                        try self.activeMyPlanet?.rebuild()
+                    } catch {
+                        Task { @MainActor in
+                            PlanetStore.shared.isShowingAlert = true
+                            PlanetStore.shared.alertTitle = "Failed to Rebuild Planet"
+                            PlanetStore.shared.alertMessage = error.localizedDescription
+                        }
                     }
                 } label: {
                     Text("Rebuild Planet")
