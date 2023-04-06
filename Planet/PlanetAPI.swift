@@ -37,6 +37,9 @@ actor PlanetAPIHelper {
         } catch {
             defaults.set(false, forKey: .settingsAPIUsesPasscode)
         }
+        Task {
+            await self.updateSettings()
+        }
     }
 
     func relaunch() throws {
