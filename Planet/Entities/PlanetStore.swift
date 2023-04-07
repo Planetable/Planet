@@ -34,15 +34,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
     @Published var myPlanets: [MyPlanetModel] = [] {
         didSet {
-            Task { @MainActor in
-                ArticleWebViewModel.shared.updateMyPlanets(myPlanets)
-            }
             let planets = myPlanets
-            Task(priority: .utility) {
-                PlanetAPI.shared.updateMyPlanets(planets)
-            }
-            Task(priority: .utility) {
+            Task.detached {
                 await MainActor.run {
+                    ArticleWebViewModel.shared.updateMyPlanets(planets)
+                    PlanetAPI.shared.updateMyPlanets(planets)
                     NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
                 }
             }

@@ -1118,9 +1118,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Task { @MainActor in
                 self.isPublishing = false
             }
-            if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-                try? PlanetAPI.shared.relaunch()
-            }
         }
         // Make sure planet key is available in keystore or in keychain, abort publishing if not.
         if try await !IPFSDaemon.shared.checkKeyExists(name: id.uuidString) {
@@ -1177,6 +1174,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try save()
         Task(priority: .background) {
             await self.prewarm()
+        }
+        if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
+            Task {
+                try? await PlanetAPIHelper.shared.relaunch()
+            }
         }
     }
 

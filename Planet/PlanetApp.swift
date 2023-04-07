@@ -167,13 +167,6 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                 debugPrint("WalletConnectV2: Failed to prepare the connection: \(error)")
             }
         }
-
-        // Planet API
-        do {
-            try PlanetAPI.shared.launch()
-        } catch {
-            debugPrint("Failed to launch planet api: \(error)")
-        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -185,7 +178,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         Task.detached(priority: .utility) {
-            PlanetAPI.shared.shutdown()
+            await PlanetAPIHelper.shared.shutdown()
             IPFSDaemon.shared.shutdownDaemon()
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }

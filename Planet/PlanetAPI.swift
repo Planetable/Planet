@@ -10,15 +10,13 @@ import Swifter
 import Cocoa
 
 
-class PlanetAPI: NSObject {
-    static let shared = PlanetAPI()
+actor PlanetAPIHelper {
+    static let shared = PlanetAPIHelper()
     
-    private(set) var myPlanets: [MyPlanetModel] = []
-    private(set) var myArticles: [MyArticleModel] = []
-    
+    private var isRelaunchingServer: Bool = false
     private var server: HttpServer
     
-    override init() {
+    init() {
         server = HttpServer()
         let defaults = UserDefaults.standard
         if defaults.value(forKey: .settingsAPIPort) == nil {
@@ -39,60 +37,73 @@ class PlanetAPI: NSObject {
         } catch {
             defaults.set(false, forKey: .settingsAPIUsesPasscode)
         }
-        super.init()
-        self.updateServerSettings()
+        Task {
+            await self.updateSettings()
+        }
+    }
+
+    func relaunch() throws {
+        guard isRelaunchingServer == false else { return }
+        debugPrint("Relaunching planet api server ...")
+        isRelaunchingServer = true
+        shutdown()
+        updateSettings()
+        try launch()
+        isRelaunchingServer = false
     }
     
-    // MARK: -
-    
-    func launch() throws {
+    func shutdown() {
+        server.stop()
+    }
+
+    private func launch() throws {
         guard UserDefaults.standard.bool(forKey: .settingsAPIEnabled) else { return }
-        server["/v0/planets/my"] = { [weak self] r in
+        server["/v0/planets/my"] = { r in
             switch r.method {
             case "GET":
-                return self?.getPlanets(forRequest: r) ?? .error()
+                return PlanetAPI.shared.getPlanets(forRequest: r)
             case "POST":
-                return self?.createPlanet(forRequest: r) ?? .error()
+                return PlanetAPI.shared.createPlanet(forRequest: r)
             default:
                 return .error()
             }
         }
-        server["/v0/planets/my/:a"] = { [weak self] r in
+        server["/v0/planets/my/:a"] = { r in
             switch r.method {
             case "GET":
-                return self?.getPlanetInfo(forRequest: r) ?? .error()
+                return PlanetAPI.shared.getPlanetInfo(forRequest: r)
             case "POST":
-                return self?.modifyPlanetInfo(forRequest: r) ?? .error()
+                return PlanetAPI.shared.modifyPlanetInfo(forRequest: r)
             default:
                 return .error()
             }
         }
-        server["/v0/planets/my/:a/publish"] = { [weak self] r in
+        server["/v0/planets/my/:a/publish"] = { r in
             switch r.method {
             case "POST":
-                return self?.publishPlanet(forRequest: r) ?? .error()
+                return PlanetAPI.shared.publishPlanet(forRequest: r)
             default:
                 return .error()
             }
         }
-        server["/v0/planets/my/:a/articles"] = { [weak self] r in
+        server["/v0/planets/my/:a/articles"] = { r in
             switch r.method {
             case "GET":
-                return self?.getPlanetArticles(forRequest: r) ?? .error()
+                return PlanetAPI.shared.getPlanetArticles(forRequest: r)
             case "POST":
-                return self?.createPlanetArticle(forRequest: r) ?? .error()
+                return PlanetAPI.shared.createPlanetArticle(forRequest: r)
             default:
                 return .error()
             }
         }
-        server["/v0/planets/my/:a/articles/:b"] = { [weak self] r in
+        server["/v0/planets/my/:a/articles/:b"] = { r in
             switch r.method {
             case "GET":
-                return self?.getPlanetArticle(forRequest: r) ?? .error()
+                return PlanetAPI.shared.getPlanetArticle(forRequest: r)
             case "POST":
-                return self?.modifyPlanetArticle(forRequest: r) ?? .error()
+                return PlanetAPI.shared.modifyPlanetArticle(forRequest: r)
             case "DELETE":
-                return self?.deletePlanetArticle(forRequest: r) ?? .error()
+                return PlanetAPI.shared.deletePlanetArticle(forRequest: r)
             default:
                 return .error()
             }
@@ -105,15 +116,46 @@ class PlanetAPI: NSObject {
         }
     }
     
-    func relaunch() throws {
-        shutdown()
-        updateServerSettings()
-        try launch()
+    private func updateSettings() {
+        if !UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
+            shutdown()
+            return
+        }
+        let planets = PlanetAPI.shared.myPlanets
+        let repoPath = URLUtils.repoPath().appendingPathComponent("Public", conformingTo: .folder)
+        for planet in planets {
+            let planetPublicURL = repoPath.appendingPathComponent(planet.id.uuidString)
+            let planetRootPath = "/v0/planets/my/\(planet.id.uuidString)/public"
+            server[planetRootPath] = { r in
+                if r.method == "GET" {
+                    return PlanetAPI.shared.exposePlanetPublicContent(inDirectory: planetPublicURL.path, forRequest: r)
+                } else {
+                    return .error()
+                }
+            }
+            if let subpaths = FileManager.default.subpaths(atPath: planetPublicURL.path) {
+                for subpath in subpaths {
+                    let urlPath = planetRootPath + "/" + subpath
+                    let targetPath = planetPublicURL.appendingPathComponent(subpath).path
+                    server[urlPath] = { r in
+                        if r.method == "GET" {
+                            return PlanetAPI.shared.exposePlanetPublicContent(inDirectory: targetPath, forRequest: r)
+                        } else {
+                            return .error()
+                        }
+                    }
+                }
+            }
+        }
     }
+}
 
-    func shutdown() {
-        server.stop()
-    }
+
+class PlanetAPI: NSObject {
+    static let shared = PlanetAPI()
+    
+    private(set) var myPlanets: [MyPlanetModel] = []
+    private(set) var myArticles: [MyArticleModel] = []
     
     func updateMyPlanets(_ planets: [MyPlanetModel]) {
         myPlanets = planets
@@ -124,7 +166,13 @@ class PlanetAPI: NSObject {
             }
         }
         myArticles = articles
-        try? relaunch()
+        Task {
+            do {
+                try await PlanetAPIHelper.shared.relaunch()
+            } catch {
+                debugPrint("failed to relaunch api server: \(error)")
+            }
+        }
     }
 }
 
@@ -133,7 +181,7 @@ class PlanetAPI: NSObject {
 
 extension PlanetAPI {
     // MARK: GET /v0/planets/my
-    private func getPlanets(forRequest r: HttpRequest) -> HttpResponse {
+    func getPlanets(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         let encoder = JSONEncoder()
         do {
@@ -146,7 +194,7 @@ extension PlanetAPI {
     }
     
     // MARK: POST /v0/planets/my
-    private func createPlanet(forRequest r: HttpRequest) -> HttpResponse {
+    func createPlanet(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         let info: [String: Any] = processPlanetInfoRequest(r)
         let name: String = info["name"] as? String ?? ""
@@ -187,7 +235,7 @@ extension PlanetAPI {
     }
 
     // MARK: GET /v0/planets/my/:uuid
-    private func getPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
+    func getPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         guard
             let uuid = planetUUIDFromRequest(r),
@@ -206,7 +254,7 @@ extension PlanetAPI {
     }
     
     // MARK: POST /v0/planets/my/:uuid
-    private func modifyPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
+    func modifyPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         guard
             let uuid = planetUUIDFromRequest(r),
@@ -247,7 +295,7 @@ extension PlanetAPI {
     }
     
     // MARK: POST /v0/planets/my/:uuid/publish
-    private func publishPlanet(forRequest r: HttpRequest) -> HttpResponse {
+    func publishPlanet(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         guard
             let uuid = planetUUIDFromRequest(r),
@@ -266,7 +314,7 @@ extension PlanetAPI {
     }
     
     // MARK: GET /v0/planets/my/:uuid/public
-    private func exposePlanetPublicContent(inDirectory filePath: String, forRequest r: HttpRequest) -> HttpResponse {
+    func exposePlanetPublicContent(inDirectory filePath: String, forRequest r: HttpRequest) -> HttpResponse {
         do {
             guard try filePath.exists() else {
                 return .notFound()
@@ -306,7 +354,7 @@ extension PlanetAPI {
     }
     
     // MARK: GET /v0/planets/my/:uuid/articles
-    private func getPlanetArticles(forRequest r: HttpRequest) -> HttpResponse {
+    func getPlanetArticles(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         guard
             let uuid = planetUUIDFromRequest(r),
@@ -325,7 +373,7 @@ extension PlanetAPI {
     }
     
     // MARK: POST /v0/planets/my/:uuid/articles
-    private func createPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
+    func createPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         guard
             let uuid = planetUUIDFromRequest(r),
@@ -363,8 +411,6 @@ extension PlanetAPI {
                     try draft.addAttachmentFromData(data: attachmentData, fileName: attachmentFileName, forContentType: attachmentContentType)
                 }
                 try draft.saveToArticle()
-                let planets = PlanetStore.shared.myPlanets
-                updateMyPlanets(planets)
             } catch {
                 debugPrint("failed to create article for planet: \(planet), error: \(error)")
             }
@@ -373,7 +419,7 @@ extension PlanetAPI {
     }
     
     // MARK: GET /v0/planets/my/:uuid/articles/:uuid
-    private func getPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
+    func getPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         let results = planetUUIDAndArticleUUIDFromRequest(r)
         if let planetUUID = results.0, let articleUUID = results.1 {
@@ -392,7 +438,7 @@ extension PlanetAPI {
     }
     
     // MARK: POST /v0/planets/my/:uuid/articles/:uuid
-    private func modifyPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
+    func modifyPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         let results = planetUUIDAndArticleUUIDFromRequest(r)
         guard
@@ -441,7 +487,7 @@ extension PlanetAPI {
     }
     
     // MARK: DELETE /v0/planets/my/:uuid/articles/:uuid
-    private func deletePlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
+    func deletePlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
         let results = planetUUIDAndArticleUUIDFromRequest(r)
         if let planetUUID = results.0, let articleUUID = results.1 {
@@ -473,7 +519,7 @@ extension PlanetAPI {
 }
 
 
-// MARK: - API Functions -
+// MARK: - API Private Functions -
 
 extension PlanetAPI {
     private func planetUUIDFromRequest(_ r: HttpRequest) -> UUID? {
@@ -569,39 +615,6 @@ extension PlanetAPI {
         }
         return info
     }
-
-    private func updateServerSettings() {
-        if !UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-            shutdown()
-            return
-        }
-        let planets = myPlanets
-        let repoPath = URLUtils.repoPath().appendingPathComponent("Public", conformingTo: .folder)
-        for planet in planets {
-            let planetPublicURL = repoPath.appendingPathComponent(planet.id.uuidString)
-            let planetRootPath = "/v0/planets/my/\(planet.id.uuidString)/public"
-            server[planetRootPath] = { [weak self] r in
-                if r.method == "GET" {
-                    return self?.exposePlanetPublicContent(inDirectory: planetPublicURL.path, forRequest: r) ?? .error()
-                } else {
-                    return .error()
-                }
-            }
-            if let subpaths = FileManager.default.subpaths(atPath: planetPublicURL.path) {
-                for subpath in subpaths {
-                    let urlPath = planetRootPath + "/" + subpath
-                    let targetPath = planetPublicURL.appendingPathComponent(subpath).path
-                    server[urlPath] = { [weak self] r in
-                        if r.method == "GET" {
-                            return self?.exposePlanetPublicContent(inDirectory: targetPath, forRequest: r) ?? .error()
-                        } else {
-                            return .error()
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 
@@ -629,13 +642,5 @@ extension HttpResponse {
         } catch {
             return HttpResponse.ok(.text(message))
         }
-    }
-}
-
-
-extension String {
-    func base64Decoded() -> String? {
-        guard let data = Data(base64Encoded: self) else { return nil }
-        return String(data: data, encoding: .utf8)
     }
 }
