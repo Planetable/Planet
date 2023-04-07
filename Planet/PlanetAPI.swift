@@ -519,7 +519,7 @@ extension PlanetAPI {
 }
 
 
-// MARK: - API Functions -
+// MARK: - API Private Functions -
 
 extension PlanetAPI {
     private func planetUUIDFromRequest(_ r: HttpRequest) -> UUID? {
@@ -615,43 +615,6 @@ extension PlanetAPI {
         }
         return info
     }
-
-    private func updateServerSettings() {
-        if !UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-            Task {
-                await PlanetAPIHelper.shared.shutdown()
-            }
-            return
-        }
-        /*
-        let planets = myPlanets
-        let repoPath = URLUtils.repoPath().appendingPathComponent("Public", conformingTo: .folder)
-        for planet in planets {
-            let planetPublicURL = repoPath.appendingPathComponent(planet.id.uuidString)
-            let planetRootPath = "/v0/planets/my/\(planet.id.uuidString)/public"
-            server[planetRootPath] = { [weak self] r in
-                if r.method == "GET" {
-                    return self?.exposePlanetPublicContent(inDirectory: planetPublicURL.path, forRequest: r) ?? .error()
-                } else {
-                    return .error()
-                }
-            }
-            if let subpaths = FileManager.default.subpaths(atPath: planetPublicURL.path) {
-                for subpath in subpaths {
-                    let urlPath = planetRootPath + "/" + subpath
-                    let targetPath = planetPublicURL.appendingPathComponent(subpath).path
-                    server[urlPath] = { [weak self] r in
-                        if r.method == "GET" {
-                            return self?.exposePlanetPublicContent(inDirectory: targetPath, forRequest: r) ?? .error()
-                        } else {
-                            return .error()
-                        }
-                    }
-                }
-            }
-        }
-         */
-    }
 }
 
 
@@ -679,13 +642,5 @@ extension HttpResponse {
         } catch {
             return HttpResponse.ok(.text(message))
         }
-    }
-}
-
-
-extension String {
-    func base64Decoded() -> String? {
-        guard let data = Data(base64Encoded: self) else { return nil }
-        return String(data: data, encoding: .utf8)
     }
 }
