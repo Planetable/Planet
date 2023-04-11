@@ -7,7 +7,7 @@ enum AttachmentType: String, Codable {
     case video
     case audio
     case file
-    
+
     static var supportedImageContentTypes: [String] = ["image/jpeg", "image/png", "image/tiff", "image/gif"]
     static var supportedAudioContentTypes: [String] = ["audio/aac", "audio/mpeg", "audio/ogg", "audio/wav", "audio/webm"]
     static var supportedVideoContentTypes: [String] = ["video/mp4", "video/mpeg", "video/ogg", "video/webm", "video/x-msvideo", "application/octet-stream"]
@@ -27,7 +27,7 @@ enum AttachmentType: String, Codable {
         }
         return .file
     }
-    
+
     static func fromContentType(_ contentType: String) -> Self {
         if self.supportedImageContentTypes.contains(contentType) {
             return .image
@@ -54,16 +54,14 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
         switch type {
         case .image:
             if let im = NSImage(contentsOf: self.path) {
-                let size = im.size
-                return """
-\n<img width="\(Int(size.width))" alt="\((name as NSString).deletingPathExtension)" src="\(name)">\n
-"""
+                let imageRep = im.representations.first as? NSBitmapImageRep
+                let width = imageRep?.pixelsWide ?? 0
+                let height = imageRep?.pixelsHigh ?? 0
+                return "<img width=\"\(Int(width))\" alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
             }
-            return """
-\n<img alt="\((name as NSString).deletingPathExtension)" src="\(name)">\n
-"""
+            return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
         case .file:
-            return "\n<a href=\"\(name)\">\(name)</a>\n"
+            return "<a href=\"\(name)\">\(name)</a>"
         default:
             return nil
         }

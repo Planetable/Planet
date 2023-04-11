@@ -73,12 +73,12 @@ struct AttachmentThumbnailView: View {
     }
 
     func deleteAttachment() {
-        try? attachment.draft.deleteAttachment(name: attachment.name)
         if let markdown = attachment.markdown {
             NotificationCenter.default.post(
                 name: .writerNotification(.removeText, for: attachment.draft),
                 object: markdown
             )
         }
+        try? attachment.draft.deleteAttachment(name: attachment.name)
     }
 }
