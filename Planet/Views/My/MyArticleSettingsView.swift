@@ -183,7 +183,7 @@ struct MyArticleSettingsView: View {
             }.padding(PlanetUI.SHEET_PADDING)
         }
         .padding(0)
-        .frame(width: 520, height: 360, alignment: .top)
+        .frame(width: 520, height: nil, alignment: .top)
         .task {
             title = article.title
         }
