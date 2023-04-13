@@ -65,7 +65,6 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
     func contentSHA256() -> String {
         let currentContent = contentRaw()
-        debugPrint("currentContent: \(currentContent)")
         return currentContent.sha256()
     }
     var initialContentSHA256: String = ""
