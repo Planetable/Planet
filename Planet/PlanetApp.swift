@@ -77,6 +77,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     var downloadsWindowController: PlanetDownloadsWindowController?
     var publishedFoldersDashboardWindowController: PFDashboardWindowController?
     var keyManagerWindowController: PlanetKeyManagerWindowController?
+    var quickShareWindowController: PlanetQuickShareWindowController?
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         return true
@@ -99,6 +100,8 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                 PlanetStore.shared.myPlanets.insert(planet, at: 0)
                 PlanetStore.shared.selectedView = .myPlanet(planet)
             }
+        } else {
+            createQuickShareWindow(forFiles: urls)
         }
     }
 
@@ -129,6 +132,8 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(dismissQuickShareWindowIfNeeded), name: NSWorkspace.willSleepNotification, object: nil)
+
         setupNotification()
 
         let saver = Saver.shared
@@ -169,9 +174,6 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    func applicationWillTerminate(_ notification: Notification) {
-    }
-
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
     }
@@ -198,8 +200,8 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
                 }
             } else {
                 center.delegate = self
-                let readArticleCategory = UNNotificationCategory(identifier: "PlanetReadArticleNotification", actions: [], intentIdentifiers: [], options: [])
-                let showPlanetCategory = UNNotificationCategory(identifier: "PlanetShowPlanetNotification", actions: [], intentIdentifiers: [], options: [])
+                let readArticleCategory = UNNotificationCategory(identifier: .readArticleAlert, actions: [], intentIdentifiers: [], options: [])
+                let showPlanetCategory = UNNotificationCategory(identifier: .showPlanetAlert, actions: [], intentIdentifiers: [], options: [])
                 center.setNotificationCategories([readArticleCategory, showPlanetCategory])
             }
         }
@@ -210,7 +212,7 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
             return
         }
         switch response.notification.request.content.categoryIdentifier {
-            case "PlanetReadArticleNotification":
+            case .readArticleAlert:
                 Task { @MainActor in
                     let articleId = response.notification.request.identifier
                     for following in PlanetStore.shared.followingPlanets {
@@ -225,7 +227,7 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
                         }
                     }
                 }
-            case "PlanetShowPlanetNotification":
+            case .showPlanetAlert:
                 Task { @MainActor in
                     let planetId = response.notification.request.identifier
                     if let following = PlanetStore.shared.followingPlanets.first(where: { $0.id.uuidString == planetId }) {
@@ -279,5 +281,33 @@ extension PlanetAppDelegate {
             keyManagerWindowController = PlanetKeyManagerWindowController()
         }
         keyManagerWindowController?.showWindow(nil)
+    }
+    
+    func createQuickShareWindow(forFiles files: [URL]) {
+        guard files.count > 0 else { return }
+        if quickShareWindowController == nil {
+            quickShareWindowController = PlanetQuickShareWindowController()
+        } else {
+            quickShareWindowController?.window?.close()
+        }
+        guard let w = quickShareWindowController?.window else { return }
+        Task { @MainActor in
+            do {
+                try PlanetQuickShareViewModel.shared.prepareFiles(files)
+                NSApp.runModal(for: w)
+            } catch {
+                let alert = NSAlert()
+                alert.messageText = "Failed to Create Post"
+                alert.informativeText = error.localizedDescription
+                alert.alertStyle = .warning
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+            }
+        }
+    }
+    
+    @objc func dismissQuickShareWindowIfNeeded() {
+        guard let w = quickShareWindowController?.window else { return }
+        w.close()
     }
 }

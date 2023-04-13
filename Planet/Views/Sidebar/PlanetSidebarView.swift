@@ -10,7 +10,7 @@ import SwiftUI
 struct PlanetSidebarView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @StateObject var ipfsState = IPFSState.shared
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if planetStore.walletAddress.count > 0 {
@@ -28,8 +28,8 @@ struct PlanetSidebarView: View {
                             .font(.body)
                             .foregroundColor(.primary)
                     }
-                        .tag(PlanetDetailViewType.today)
-
+                    .tag(PlanetDetailViewType.today)
+                    
                     HStack(spacing: 4) {
                         Image(systemName: "circle.inset.filled")
                             .resizable()
@@ -40,8 +40,8 @@ struct PlanetSidebarView: View {
                             .font(.body)
                             .foregroundColor(.primary)
                     }
-                        .tag(PlanetDetailViewType.unread)
-
+                    .tag(PlanetDetailViewType.unread)
+                    
                     HStack(spacing: 4) {
                         Image(systemName: "star.fill")
                             .resizable()
@@ -52,16 +52,16 @@ struct PlanetSidebarView: View {
                             .font(.body)
                             .foregroundColor(.primary)
                     }
-                        .tag(PlanetDetailViewType.starred)
+                    .tag(PlanetDetailViewType.starred)
                 }
-
+                
                 Section(header: Text("My Planets")) {
                     ForEach(planetStore.myPlanets) { planet in
                         MyPlanetSidebarItem(planet: planet)
                             .tag(PlanetDetailViewType.myPlanet(planet))
                     }
                 }
-
+                
                 Section(header: Text("Following Planets")) {
                     ForEach(planetStore.followingPlanets) { planet in
                         FollowingPlanetSidebarItem(planet: planet)
@@ -69,27 +69,27 @@ struct PlanetSidebarView: View {
                     }
                 }
             }
-                .listStyle(.sidebar)
-
+            .listStyle(.sidebar)
+            
             HStack(spacing: 6) {
                 Circle()
                     .frame(width: 11, height: 11, alignment: .center)
                     .foregroundColor(ipfsState.online ? Color.green : Color.red)
                 Text(ipfsState.online ? "Online (\(ipfsState.peers))" : "Offline")
                     .font(.body)
-
+                
                 Spacer()
-
+                
                 Menu {
                     Button {
                         planetStore.isCreatingPlanet = true
                     } label: {
                         Label("Create Planet", systemImage: "plus")
                     }
-                        .disabled(planetStore.isCreatingPlanet)
-
+                    .disabled(planetStore.isCreatingPlanet)
+                    
                     Divider()
-
+                    
                     Button {
                         planetStore.isFollowingPlanet = true
                     } label: {
@@ -101,33 +101,33 @@ struct PlanetSidebarView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 24, height: 24, alignment: .center)
                 }
-                    .padding(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 0))
-                    .frame(width: 24, height: 24, alignment: .center)
-                    .menuStyle(BorderlessButtonMenuStyle())
-                    .menuIndicator(.hidden)
+                .padding(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 0))
+                .frame(width: 24, height: 24, alignment: .center)
+                .menuStyle(BorderlessButtonMenuStyle())
+                .menuIndicator(.hidden)
             }
-                .frame(height: 44)
-                .padding(.leading, 16)
-                .padding(.trailing, 10)
-                .background(Color.secondary.opacity(0.05))
+            .frame(height: 44)
+            .padding(.leading, 16)
+            .padding(.trailing, 10)
+            .background(Color.secondary.opacity(0.05))
         }
-            .sheet(isPresented: $planetStore.isFollowingPlanet) {
-                FollowPlanetView()
-            }
-            .sheet(isPresented: $planetStore.isCreatingPlanet) {
-                CreatePlanetView()
-            }
-            .frame(minWidth: 200)
-            .toolbar {
-                ToolbarItem {
-                    Button(action: toggleSidebar) {
-                        Image(systemName: "sidebar.left")
-                            .help("Toggle Sidebar")
-                    }
+        .sheet(isPresented: $planetStore.isFollowingPlanet) {
+            FollowPlanetView()
+        }
+        .sheet(isPresented: $planetStore.isCreatingPlanet) {
+            CreatePlanetView()
+        }
+        .frame(minWidth: 200)
+        .toolbar {
+            ToolbarItem {
+                Button(action: toggleSidebar) {
+                    Image(systemName: "sidebar.left")
+                        .help("Toggle Sidebar")
                 }
             }
+        }
     }
-
+    
     private func toggleSidebar() {
         NSApp.keyWindow?.firstResponder?
             .tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
