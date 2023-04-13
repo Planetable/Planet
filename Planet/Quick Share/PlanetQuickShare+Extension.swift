@@ -8,6 +8,12 @@
 import Foundation
 
 
+extension CGFloat {
+    static let sheetWidth: CGFloat = 480
+    static let sheetHeight: CGFloat = 380
+}
+
+
 extension String {
     static let lastSelectedQuickSharePlanetID = "PlanetQuickShare.lastSelectedPlanetID"
 }

@@ -33,7 +33,7 @@ class PlanetQuickShareViewController: NSViewController {
 
     override func loadView() {
         self.view = NSView()
-        view.frame.size = CGSize(width: 480, height: 320)
+        view.frame.size = CGSize(width: .sheetWidth, height: .sheetHeight)
         view.wantsLayer = true
         view.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
     }

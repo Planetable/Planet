@@ -11,7 +11,7 @@ import Cocoa
 
 class PlanetQuickShareWindowController: NSWindowController {
     override init(window: NSWindow?) {
-        let windowSize = NSSize(width: 480, height: 320)
+        let windowSize = NSSize(width: .sheetWidth, height: .sheetHeight)
         let screenSize = NSScreen.main?.frame.size ?? .zero
         let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
         let w = PlanetQuickShareWindow(contentRect: rect, styleMask: [], backing: .buffered, defer: true)

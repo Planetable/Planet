@@ -33,7 +33,7 @@ struct PlanetQuickShareView: View {
                 .padding(.bottom, 16 - 28)
                 .padding(.horizontal, 16)
         }
-        .frame(width: 480, height: 320)
+        .frame(width: .sheetWidth, height: .sheetHeight)
         .edgesIgnoringSafeArea(.vertical)
     }
     
@@ -88,11 +88,18 @@ struct PlanetQuickShareView: View {
                     .textFieldStyle(.roundedBorder)
                 Spacer(minLength: 1)
             }
-            HStack {
-                TextField("Optional Description", text: $viewModel.content)
-                    .textFieldStyle(.roundedBorder)
-                Spacer(minLength: 1)
-            }
+            .padding(.top, 2)
+            TextEditor(text: $viewModel.content)
+                .font(.system(size: 13, weight: .regular, design: .default))
+                .lineSpacing(8)
+                .disableAutocorrection(true)
+                .cornerRadius(6)
+                .frame(height: 82)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
+                )
+                .padding(.horizontal, 1)
         }
     }
     
