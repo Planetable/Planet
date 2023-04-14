@@ -1170,6 +1170,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         githubUsername = publicPlanet.githubUsername
                         telegramUsername = publicPlanet.telegramUsername
                         mastodonUsername = publicPlanet.mastodonUsername
+
+                        juiceboxEnabled = publicPlanet.juiceboxEnabled
+                        juiceboxProjectID = publicPlanet.juiceboxProjectID
+                        juiceboxProjectIDGoerli = publicPlanet.juiceboxProjectIDGoerli
                     }
 
                     try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
