@@ -72,6 +72,12 @@ extension String {
     }
 }
 
+// User Notification
+extension String {
+    static let readArticleAlert = "PlanetReadArticleNotification"
+    static let showPlanetAlert = "PlanetShowPlanetNotification"
+}
+
 extension Notification.Name {
     static let killHelper = Notification.Name("PlanetKillPlanetHelperNotification")
     static let terminateDaemon = Notification.Name("PlanetTerminatePlanetDaemonNotification")
