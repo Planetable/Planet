@@ -1060,14 +1060,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             podcastExplicit: podcastExplicit
         )
         let hasPodcastCoverArt = FileManager.default.fileExists(atPath: publicPodcastCoverArtPath.path)
-        var context: [String: Any] = [
-            "planet": publicPlanet,
-            "my_planet": self,
-            "has_avatar": self.hasAvatar(),
-            "og_image_url": ogImageURLString,
-            "has_podcast": publicPlanet.hasAudioContent(),
-            "has_podcast_cover_art": hasPodcastCoverArt
-        ]
         let itemsPerPage = template.idealItemsPerPage ?? 10
         if publicPlanet.articles.count > itemsPerPage {
             let pages = Int(ceil(Double(publicPlanet.articles.count) / Double(itemsPerPage)))
@@ -1095,12 +1087,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
             }
         } else {
-            context["articles"] = publicPlanet.articles
-            let pageHTML = try template.renderIndex(context: context)
+            let pageContext: [String: Any] = [
+                "planet": publicPlanet,
+                "my_planet": self,
+                "has_avatar": self.hasAvatar(),
+                "og_image_url": ogImageURLString,
+                "has_podcast": publicPlanet.hasAudioContent(),
+                "has_podcast_cover_art": hasPodcastCoverArt,
+                "articles": publicPlanet.articles
+            ]
+            let pageHTML = try template.renderIndex(context: pageContext)
             let pagePath = publicIndexPagePath(page: 1)
             try pageHTML.data(using: .utf8)?.write(to: pagePath)
 
-            let indexHTML = try template.renderIndex(context: context)
+            let indexHTML = try template.renderIndex(context: pageContext)
             try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
         }
 

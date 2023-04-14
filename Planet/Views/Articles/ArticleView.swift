@@ -186,7 +186,7 @@ struct ArticleView: View {
                 }
             }
             debugPrint(
-                "Current prepared transaction memo is \(planetStore.walletTransactionMemo ?? "nil")"
+                "Current prepared transaction memo is \(planetStore.walletTransactionMemo)"
             )
             NotificationCenter.default.post(name: .loadArticle, object: nil)
         }
@@ -261,8 +261,8 @@ struct ArticleView: View {
     }
 
     private func canTip(planet: FollowingPlanetModel) -> String? {
-        debugPrint("Tipping: Following Planet \(planet.walletAddress)")
         guard let walletAddress = planet.walletAddress else { return nil }
+        debugPrint("Tipping: Following Planet \(walletAddress)")
         let myWalletAddress = planetStore.walletAddress
         debugPrint("Tipping: My Wallet \(myWalletAddress) / Author Wallet \(walletAddress)")
         if myWalletAddress.count == 42, myWalletAddress.lowercased() != walletAddress.lowercased() {
