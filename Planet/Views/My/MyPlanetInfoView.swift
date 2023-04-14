@@ -42,8 +42,6 @@ struct MyPlanetInfoView: View {
                         .font(.body)
                 }
 
-                Spacer()
-
                 HStack {
                     Button {
                         isSharing = true

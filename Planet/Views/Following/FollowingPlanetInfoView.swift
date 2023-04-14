@@ -9,7 +9,7 @@ struct FollowingPlanetInfoView: View {
 
     var body: some View {
         ZStack {
-            VStack(alignment: .center) {
+            VStack(alignment: .center, spacing: 10) {
                 FollowingPlanetAvatarView(planet: planet)
                     .padding(.top, 20)
                     .padding(.bottom, 5)
@@ -26,18 +26,21 @@ struct FollowingPlanetInfoView: View {
                     markdown: planet.about
                 ) {
                     Text(attributedString)
+                        .lineLimit(4)
                         .font(.body)
-                        .padding(.top, 10)
-                        .padding(.bottom, 10)
+                        .padding(.leading, 10)
+                        .padding(.trailing, 10)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 else {
                     Text(planet.about)
+                        .lineLimit(4)
                         .font(.body)
-                        .padding(.top, 10)
-                        .padding(.bottom, 10)
+                        .font(.body)
+                        .padding(.leading, 10)
+                        .padding(.trailing, 10)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-
-                Spacer()
 
                 planet.socialViews()
 
@@ -49,8 +52,7 @@ struct FollowingPlanetInfoView: View {
                     } label: {
                         Text("Share")
                     }
-                }
-                .padding(10)
+                }.padding(.bottom, 10)
             }
             .background(
                 SharingServicePicker(isPresented: $isSharing, sharingItems: [planet.shareLink])
@@ -79,8 +81,7 @@ struct FollowingPlanetInfoView: View {
             }.padding(10)
         }
         .padding(0)
-        .frame(width: 320, height: 420, alignment: .center)
-        // TODO: We can probably use a dynamic height here based on how many social views it has
+        .frame(width: 320, height: nil, alignment: .center)
     }
 
     private func lastUpdatedText() -> String {
