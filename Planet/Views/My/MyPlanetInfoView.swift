@@ -11,7 +11,7 @@ struct MyPlanetInfoView: View {
 
     var body: some View {
         ZStack {
-            VStack(alignment: .center) {
+            VStack(alignment: .center, spacing: 10) {
                 ArtworkView(image: planet.avatar, planetNameInitials: planet.nameInitials, planetID: planet.id, cornerRadius: 40, size: CGSize(width: 80, height: 80), uploadAction: { url in
                     do {
                         try planet.updateAvatar(path: url)
@@ -100,7 +100,7 @@ struct MyPlanetInfoView: View {
             }
         }
         .padding()
-        .frame(width: 320, height: 260, alignment: .center)
+        .frame(width: 320, height: nil, alignment: .center)
     }
 
     func lastPublishedText() -> String {
