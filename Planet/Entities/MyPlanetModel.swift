@@ -736,7 +736,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     starType: backupArticle.starType,
                     videoFilename: backupArticle.videoFilename,
                     audioFilename: backupArticle.audioFilename,
-                    attachments: backupArticle.attachments
+                    attachments: backupArticle.attachments,
+                    isIncludedInNavigation: backupArticle.isIncludedInNavigation,
+                    navigationWeight: backupArticle.navigationWeight
                 )
                 article.planet = planet
                 do {
@@ -1032,6 +1034,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         guard let template = template else {
             throw PlanetError.MissingTemplateError
         }
+        let siteNavigation = self.siteNavigation()
+        debugPrint("Planet Site Navigation: \(siteNavigation)")
         let publicArticles = articles.filter { $0.articleType == .blog }.map { $0.publicArticle }
         let publicPlanet = PublicPlanetModel(
             id: id,
@@ -1258,7 +1262,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     created: $0.created,
                     videoFilename: $0.videoFilename,
                     audioFilename: $0.audioFilename,
-                    attachments: $0.attachments
+                    attachments: $0.attachments,
+                    isIncludedInNavigation: $0.isIncludedInNavigation,
+                    navigationWeight: $0.navigationWeight
                 )
             }
         )
@@ -1338,6 +1344,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 }
 
+struct NavigationItem: Codable {
+    let title: String
+    let slug: String
+    let weight: Int
+}
+
 extension MyPlanetModel {
     func hasAvatar() -> Bool {
         FileManager.default.fileExists(atPath: publicAvatarPath.path)
@@ -1353,6 +1365,24 @@ extension MyPlanetModel {
         } else {
             return "No articles"
         }
+    }
+
+    func siteNavigation() -> [NavigationItem] {
+        var navigation: [NavigationItem] = articles.compactMap { article in
+            let articleSlug: String
+            if let slug = article.slug {
+                articleSlug = slug
+            } else {
+                articleSlug = article.id.uuidString
+            }
+            let articleNavigationWeight = article.navigationWeight ?? 1
+            if let included = article.isIncludedInNavigation, included {
+                return NavigationItem(title: article.title, slug: articleSlug, weight: articleNavigationWeight)
+            }
+            return nil
+        }
+        navigation.sort(by: {$0.weight < $1.weight})
+        return navigation
     }
 }
 

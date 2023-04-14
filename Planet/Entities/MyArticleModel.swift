@@ -10,6 +10,9 @@ class MyArticleModel: ArticleModel, Codable {
 
     @Published var summary: String? = nil
 
+    @Published var isIncludedInNavigation: Bool? = false
+    @Published var navigationWeight: Int? = 1
+
     // populated when initializing
     unowned var planet: MyPlanetModel! = nil
     var draft: DraftModel? = nil
@@ -80,7 +83,9 @@ class MyArticleModel: ArticleModel, Codable {
 
     enum CodingKeys: String, CodingKey {
         case id, articleType, link, slug, title, content, summary, created, starred, starType, videoFilename,
-            audioFilename, attachments
+            audioFilename, attachments,
+            isIncludedInNavigation,
+            navigationWeight
     }
 
     required init(from decoder: Decoder) throws {
@@ -96,6 +101,8 @@ class MyArticleModel: ArticleModel, Codable {
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
         summary = try container.decodeIfPresent(String.self, forKey: .summary)
+        isIncludedInNavigation = try container.decodeIfPresent(Bool.self, forKey: .isIncludedInNavigation) ?? false
+        navigationWeight = try container.decodeIfPresent(Int.self, forKey: .navigationWeight)
         let created = try container.decode(Date.self, forKey: .created)
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
         let starType: ArticleStarType =
@@ -125,6 +132,8 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
         try container.encode(summary, forKey: .summary)
+        try container.encodeIfPresent(isIncludedInNavigation, forKey: .isIncludedInNavigation)
+        try container.encodeIfPresent(navigationWeight, forKey: .navigationWeight)
         try container.encode(created, forKey: .created)
         try container.encodeIfPresent(starred, forKey: .starred)
         try container.encodeIfPresent(starType, forKey: .starType)
@@ -145,11 +154,15 @@ class MyArticleModel: ArticleModel, Codable {
         starType: ArticleStarType,
         videoFilename: String?,
         audioFilename: String?,
-        attachments: [String]?
+        attachments: [String]?,
+        isIncludedInNavigation: Bool? = false,
+        navigationWeight: Int? = 1
     ) {
         self.link = link
         self.slug = slug
         self.summary = summary
+        self.isIncludedInNavigation = isIncludedInNavigation
+        self.navigationWeight = navigationWeight
         super.init(
             id: id,
             title: title,
@@ -444,4 +457,6 @@ struct BackupArticleModel: Codable {
     let videoFilename: String?
     let audioFilename: String?
     let attachments: [String]?
+    let isIncludedInNavigation: Bool?
+    let navigationWeight: Int?
 }

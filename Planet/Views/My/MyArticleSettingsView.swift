@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct MyArticleSettingsView: View {
-    let MESSAGE_SLUG_REQUIREMENT = "The slug is the part of the URL that identifies the article. It should be unique and contain only lowercased letters, numbers, and hyphens."
+    let MESSAGE_SLUG_REQUIREMENT =
+        "The slug is the part of the URL that identifies the article. It should be unique and contain only lowercased letters, numbers, and hyphens."
 
     let CONTROL_CAPTION_WIDTH: CGFloat = 80
 
@@ -24,11 +25,16 @@ struct MyArticleSettingsView: View {
     @State private var articleType: ArticleType
     @State private var slug: String
 
+    @State private var isIncludedInNavigation: Bool
+    @State private var navigationWeight: String
+
     init(article: MyArticleModel) {
         self.article = article
         _title = State(wrappedValue: article.title)
         _articleType = State(wrappedValue: article.articleType ?? .blog)
         _slug = State(wrappedValue: article.slug ?? "")
+        _isIncludedInNavigation = State(wrappedValue: article.isIncludedInNavigation ?? false)
+        _navigationWeight = State(wrappedValue: article.navigationWeight?.stringValue() ?? "1")
     }
 
     var body: some View {
@@ -47,7 +53,7 @@ struct MyArticleSettingsView: View {
                                 Text("Title")
                                 Spacer()
                             }
-                            .frame(width: CONTROL_CAPTION_WIDTH)
+                            .frame(width: CONTROL_CAPTION_WIDTH + 40)
 
                             TextField("", text: $title)
                                 .textFieldStyle(.roundedBorder)
@@ -58,7 +64,7 @@ struct MyArticleSettingsView: View {
                                 Text("Slug")
                                 Spacer()
                             }
-                            .frame(width: CONTROL_CAPTION_WIDTH)
+                            .frame(width: CONTROL_CAPTION_WIDTH + 40)
 
                             TextField("", text: $slug)
                                 .textFieldStyle(.roundedBorder)
@@ -68,10 +74,10 @@ struct MyArticleSettingsView: View {
                             HStack {
                                 Spacer()
                             }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 5)
+                            .frame(width: CONTROL_CAPTION_WIDTH + 50)
 
                             Text(MESSAGE_SLUG_REQUIREMENT)
-                                .lineLimit(2)
+                                .lineLimit(3)
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -82,7 +88,7 @@ struct MyArticleSettingsView: View {
                                 Text("Type")
                                 Spacer()
                             }
-                            .frame(width: CONTROL_CAPTION_WIDTH - 5)
+                            .frame(width: CONTROL_CAPTION_WIDTH - 5 + 40)
                             // select articleType with radio buttons
                             Picker(
                                 selection: $articleType,
@@ -98,13 +104,53 @@ struct MyArticleSettingsView: View {
                             HStack {
                                 Spacer()
                             }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 5)
+                            .frame(width: CONTROL_CAPTION_WIDTH + 5 + 40)
 
-                            Text("Articles of the Page type are not listed on the blog index page, nor are they included in the RSS feed.")
-                                .lineLimit(2)
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
+                            Text(
+                                "Articles of the Page type are not listed on the blog index page, nor are they included in the RSS feed."
+                            )
+                            .lineLimit(2)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        Divider()
+
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }.frame(width: CONTROL_CAPTION_WIDTH + 40 + 10)
+                            Toggle("Include in Site Navigation", isOn: $isIncludedInNavigation)
+                                .toggleStyle(.checkbox)
+                                .frame(alignment: .leading)
+                            Spacer()
+                        }
+
+                        HStack {
+                            HStack {
+                                Text("Navigation Weight")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 40)
+
+                            TextField("Please enter an integer", text: $navigationWeight)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 5 + 40)
+
+                            Text(
+                                "Please input an integer for sorting, entries with smaller numbers will be ranked first."
+                            )
+                            .lineLimit(2)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     .padding(16)
@@ -142,19 +188,23 @@ struct MyArticleSettingsView: View {
                                     article.slug = nil
                                     slugChanged = true
                                 }
-                            } else {
+                            }
+                            else {
                                 if article.slug != slug {
                                     article.slug = slug
                                     slugChanged = true
                                 }
                             }
-                        } else {
+                        }
+                        else {
                             if article.slug != slug {
                                 article.slug = nil
                                 slugChanged = true
                             }
                         }
                         article.articleType = articleType
+                        article.isIncludedInNavigation = isIncludedInNavigation
+                        article.navigationWeight = Int(navigationWeight)
                         Task {
                             try article.save()
                             if let previousSlug = previousSlug, slugChanged {
@@ -210,7 +260,8 @@ extension MyArticleSettingsView {
                 alert.alertStyle = .informational
                 alert.addButton(withTitle: "OK")
                 alert.runModal()
-            } else {
+            }
+            else {
                 // check for conflict in planet.articles except for the current article
                 if let planet = article.planet {
                     for article in planet.articles {
@@ -220,7 +271,8 @@ extension MyArticleSettingsView {
 
                             let alert = NSAlert()
                             alert.messageText = "Article Slug Issue"
-                            alert.informativeText = "The slug is already used by \(article.title) (ID: \(article.id)). Please choose a different slug."
+                            alert.informativeText =
+                                "The slug is already used by \(article.title) (ID: \(article.id)). Please choose a different slug."
                             alert.alertStyle = .informational
                             alert.addButton(withTitle: "OK")
                             alert.runModal()

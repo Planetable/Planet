@@ -61,6 +61,17 @@ struct MyArticleItemView: View {
                                     .stroke(Color("BorderColor"), lineWidth: 1)
                             )
                     }
+                    if let included = article.isIncludedInNavigation, included {
+                        Text("Navigation \(article.navigationWeight ?? 1)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.leading, 4)
+                            .padding(.trailing, 4)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(Color("BorderColor"), lineWidth: 1)
+                            )
+                    }
                     Spacer()
                 }
             }
