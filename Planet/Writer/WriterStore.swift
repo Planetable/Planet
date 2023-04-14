@@ -17,6 +17,8 @@ import os
             draft = planet.drafts[0]
         }
 
+        draft.initialContentSHA256 = draft.contentSHA256()
+
         if let window = writers[draft] {
             window.makeKeyAndOrderFront(nil)
         } else {
@@ -33,6 +35,8 @@ import os
             draft = try DraftModel.create(from: article)
             article.draft = draft
         }
+
+        draft.initialContentSHA256 = draft.contentSHA256()
 
         if let window = writers[draft] {
             window.makeKeyAndOrderFront(nil)

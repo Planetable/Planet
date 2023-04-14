@@ -119,9 +119,6 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         self.content = content
         self.attachments = attachments
         self.target = target
-        let contentSHA256String = self.contentSHA256()
-        debugPrint("Computed contentSHA256 for \(self.title) during init: \(contentSHA256String)")
-        self.initialContentSHA256 = contentSHA256String
     }
 
     static func load(from directoryPath: URL, planet: MyPlanetModel) throws -> DraftModel {
@@ -133,9 +130,6 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             draft.id = UUID(uuidString: draftId)!
         }
         draft.target = .myPlanet(Unowned(planet))
-        let contentSHA256String = draft.contentSHA256()
-        debugPrint("Computed contentSHA256 for \(draft.title) during load/planet: \(contentSHA256String)")
-        draft.initialContentSHA256 = contentSHA256String
         draft.attachments.forEach { attachment in
             attachment.draft = draft
             attachment.loadThumbnail()
@@ -148,9 +142,6 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let data = try Data(contentsOf: draftPath)
         let draft = try JSONDecoder.shared.decode(DraftModel.self, from: data)
         draft.target = .article(Unowned(article))
-        let contentSHA256String = draft.contentSHA256()
-        debugPrint("Computed contentSHA256 for \(draft.title) during load/article: \(contentSHA256String)")
-        draft.initialContentSHA256 = contentSHA256String
         draft.attachments.forEach { attachment in
             attachment.draft = draft
             attachment.loadThumbnail()
@@ -198,8 +189,6 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                 attachment.loadThumbnail()
                 return attachment
             }
-
-        draft.initialContentSHA256 = draft.contentSHA256()
 
         try draft.save()
         return draft

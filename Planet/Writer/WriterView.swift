@@ -132,7 +132,7 @@ struct WriterView: View {
                         object: nil
                     )
                 } label: {
-                    Text("Discard Changes")
+                    Text("Delete Draft")
                 }
             }
             .onDrop(of: [.fileURL], delegate: dragAndDrop)
