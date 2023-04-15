@@ -139,8 +139,10 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
 }
 
 struct PublicArticleModel: Codable {
+    var articleType: ArticleType = .blog
     let id: UUID
     let link: String
+    var slug: String = ""
     let title: String
     let content: String
     let created: Date

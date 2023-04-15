@@ -153,16 +153,21 @@ class Template: Codable, Identifiable {
             podcastLanguage: planet.podcastLanguage ?? "en",
             podcastExplicit: planet.podcastExplicit ?? false
         )
+        let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
+
 
         // render stencil template
         var context: [String: Any] = [
+            "page_description_html": pageAboutHTML,
             "planet": publicPlanet,
+            "site_navigation": planet.siteNavigation(),
             "has_avatar": planet.hasAvatar(),
             "planet_ipns": article.planet.ipns,
             "assets_prefix": "../",
             "article": article.publicArticle,
+            "article_type": article.articleType?.rawValue ?? 0,
             "article_title": article.title,
-            "article_summary": article.summary,
+            "article_summary": article.summary ?? "",
             "page_title": article.title,
             "content_html": content_html,
             "build_timestamp": Int(Date().timeIntervalSince1970),

@@ -1069,6 +1069,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 let pageContext: [String: Any] = [
                     "planet": publicPlanet,
                     "my_planet": self,
+                    "site_navigation": siteNavigation,
                     "has_avatar": hasAvatar,
                     "og_image_url": ogImageURLString,
                     "has_podcast": publicPlanet.hasAudioContent(),
@@ -1090,6 +1091,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             let pageContext: [String: Any] = [
                 "planet": publicPlanet,
                 "my_planet": self,
+                "site_navigation": siteNavigation,
                 "has_avatar": self.hasAvatar(),
                 "og_image_url": ogImageURLString,
                 "has_podcast": publicPlanet.hasAudioContent(),

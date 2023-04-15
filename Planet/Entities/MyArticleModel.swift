@@ -36,6 +36,7 @@ class MyArticleModel: ArticleModel, Codable {
 
     var publicArticle: PublicArticleModel {
         PublicArticleModel(
+            articleType: articleType ?? .blog,
             id: id,
             link: {
                 if let slug = slug, slug.count > 0 {
@@ -43,6 +44,7 @@ class MyArticleModel: ArticleModel, Codable {
                 }
                 return link
             }(),
+            slug: slug ?? "",
             title: title,
             content: content,
             created: created,
