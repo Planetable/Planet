@@ -58,16 +58,28 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         return url
     }
     var basePath: URL {
-        return Self.followingPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+        return Self.followingPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        )
     }
     var infoPath: URL {
-        return Self.followingPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("planet.json", isDirectory: false)
+        return Self.followingPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("planet.json", isDirectory: false)
     }
     var articlesPath: URL {
-        return Self.followingPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("Articles", isDirectory: true)
+        return Self.followingPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("Articles", isDirectory: true)
     }
     var avatarPath: URL {
-        return Self.followingPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("avatar.png", isDirectory: false)
+        return Self.followingPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("avatar.png", isDirectory: false)
     }
 
     var nameInitials: String {
@@ -192,7 +204,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
         juiceboxEnabled = try container.decodeIfPresent(Bool.self, forKey: .juiceboxEnabled)
         juiceboxProjectID = try container.decodeIfPresent(Int.self, forKey: .juiceboxProjectID)
-        juiceboxProjectIDGoerli = try container.decodeIfPresent(Int.self, forKey: .juiceboxProjectIDGoerli)
+        juiceboxProjectIDGoerli = try container.decodeIfPresent(
+            Int.self,
+            forKey: .juiceboxProjectIDGoerli
+        )
     }
 
     func encode(to encoder: Encoder) throws {
@@ -348,6 +363,42 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         return result
     }
 
+    static func getPublicPlanet(from cid: String) async throws -> PublicPlanetModel? {
+        guard let planetURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/planet.json")
+        else {
+            debugPrint("Get Public Planet from CID: Invalid URL")
+            return nil
+        }
+        guard let (planetData, planetResponse) = try? await URLSession.shared.data(from: planetURL)
+        else {
+            debugPrint("Get Public Planet from CID: Invalid URLResponse")
+            return nil
+        }
+        guard let httpResponse = planetResponse as? HTTPURLResponse else {
+            debugPrint("Get Public Planet from CID: Invalid HTTPResponse")
+            return nil
+        }
+        if httpResponse.statusCode != 200 {
+            debugPrint(
+                "Get Public Planet from CID: Invalid HTTPResponse Code \(httpResponse.statusCode)"
+            )
+            return nil
+        }
+        do {
+            let publicPlanet = try JSONDecoder.shared.decode(
+                PublicPlanetModel.self,
+                from: planetData
+            )
+            return publicPlanet
+        }
+        catch {
+            debugPrint("Get Public Planet from CID: Invalid Planet JSON")
+            let planetString = String(data: planetData, encoding: .utf8)
+            debugPrint("Get Public Planet from CID: Error: \(error)")
+            return nil
+        }
+    }
+
     static func followENS(ens: String) async throws -> FollowingPlanetModel {
         var enskit = ENSKit(jsonrpcClient: EthereumAPI.OneRPC, ipfsClient: GoIPFSGateway())
         var resolver = try await enskit.resolver(name: ens)
@@ -376,15 +427,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             try await IPFSDaemon.shared.pin(cid: cid)
         }
         // update a native planet if a public planet is found
-        if let planetURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/planet.json"),
-            let (planetData, planetResponse) = try? await URLSession.shared.data(from: planetURL),
-            let httpResponse = planetResponse as? HTTPURLResponse,
-            httpResponse.ok,
-            let publicPlanet = try? JSONDecoder.shared.decode(
-                PublicPlanetModel.self,
-                from: planetData
-            )
-        {
+        if let publicPlanet = try await getPublicPlanet(from: cid) {
             Self.logger.info("Follow \(ens): found native planet \(publicPlanet.name)")
 
             let planet = FollowingPlanetModel(
@@ -458,6 +501,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             try planet.articles.forEach { try $0.save() }
             return planet
         }
+        debugPrint("Follow \(ens): did not find native planet.json")
         // did not get published planet file, try to get feed
         guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/") else {
             throw PlanetError.InvalidPlanetURLError
@@ -1658,9 +1702,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 .aspectRatio(contentMode: .fit)
                 .frame(width: size, height: size, alignment: .center)
                 .cornerRadius(size / 2)
-                .overlay(RoundedRectangle(cornerRadius: size / 2)
-                                               .stroke(Color("BorderColor"), lineWidth: 0.5))
-                                               .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                .overlay(
+                    RoundedRectangle(cornerRadius: size / 2)
+                        .stroke(Color("BorderColor"), lineWidth: 0.5)
+                )
+                .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
                 .padding(2)
         }
         else {
@@ -1677,9 +1723,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     )
                 )
                 .cornerRadius(size / 2)
-                .overlay(RoundedRectangle(cornerRadius: size / 2)
-                                               .stroke(Color("BorderColor"), lineWidth: 0.5))
-                                               .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                .overlay(
+                    RoundedRectangle(cornerRadius: size / 2)
+                        .stroke(Color("BorderColor"), lineWidth: 0.5)
+                )
+                .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
                 .padding(2)
         }
     }
@@ -1691,7 +1739,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         let components = username.components(separatedBy: "@")
         guard components.count == 3 else {
             // The first component is empty
-            return nil // Invalid input
+            return nil  // Invalid input
         }
         let domain = components[2]
         let user = components[1]
@@ -1802,7 +1850,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     @ViewBuilder
     func juiceboxLabel() -> some View {
-        if let juiceboxEnabled = self.juiceboxEnabled, juiceboxEnabled, (self.juiceboxProjectID != nil || self.juiceboxProjectIDGoerli != nil) {
+        if let juiceboxEnabled = self.juiceboxEnabled, juiceboxEnabled,
+            self.juiceboxProjectID != nil || self.juiceboxProjectIDGoerli != nil
+        {
             Divider()
 
             HStack(spacing: 10) {
