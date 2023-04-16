@@ -105,12 +105,15 @@ jobs:
       - name: Prepare for Release
         run: |
           ditto -c -k --keepParent to-be-signed/Planet.app Planet.zip
+          ditto archive/Planet.xcarchive/dSYMs/Planet.app.dSYM Planet.app.dSYM.zip
 
       - name: Release App
         uses: softprops/action-gh-release@v1
         with:
           prerelease: true
-          files: Planet.zip
+          files: |
+            Planet.zip
+            Planet.app.dSYM.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
