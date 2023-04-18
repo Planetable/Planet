@@ -10,6 +10,8 @@ import SwiftUI
 struct MyArticleSettingsView: View {
     let MESSAGE_SLUG_REQUIREMENT =
         "The slug is the part of the URL that identifies the article. It should be unique and contain only lowercased letters, numbers, and hyphens."
+    let MESSAGE_EXTERNAL_LINK =
+        "If you want this article to redirect to an external link, enter the URL here."
 
     let CONTROL_CAPTION_WIDTH: CGFloat = 80
 
@@ -24,6 +26,7 @@ struct MyArticleSettingsView: View {
     @State private var title: String
     @State private var articleType: ArticleType
     @State private var slug: String
+    @State private var externalLink: String
 
     @State private var isIncludedInNavigation: Bool
     @State private var navigationWeight: String
@@ -33,6 +36,7 @@ struct MyArticleSettingsView: View {
         _title = State(wrappedValue: article.title)
         _articleType = State(wrappedValue: article.articleType ?? .blog)
         _slug = State(wrappedValue: article.slug ?? "")
+        _externalLink = State(wrappedValue: article.externalLink ?? "")
         _isIncludedInNavigation = State(wrappedValue: article.isIncludedInNavigation ?? false)
         _navigationWeight = State(wrappedValue: article.navigationWeight?.stringValue() ?? "1")
     }
@@ -59,14 +63,16 @@ struct MyArticleSettingsView: View {
                                 .textFieldStyle(.roundedBorder)
                         }
 
+                        slugView()
+
                         HStack {
                             HStack {
-                                Text("Slug")
+                                Text("External Link")
                                 Spacer()
                             }
                             .frame(width: CONTROL_CAPTION_WIDTH + 40)
 
-                            TextField("", text: $slug)
+                            TextField("", text: $externalLink)
                                 .textFieldStyle(.roundedBorder)
                         }
 
@@ -76,7 +82,7 @@ struct MyArticleSettingsView: View {
                             }
                             .frame(width: CONTROL_CAPTION_WIDTH + 50)
 
-                            Text(MESSAGE_SLUG_REQUIREMENT)
+                            Text(MESSAGE_EXTERNAL_LINK)
                                 .lineLimit(3)
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -202,6 +208,12 @@ struct MyArticleSettingsView: View {
                                 slugChanged = true
                             }
                         }
+                        if !externalLink.isEmpty {
+                            article.externalLink = externalLink
+                        }
+                        else {
+                            article.externalLink = nil
+                        }
                         article.articleType = articleType
                         article.isIncludedInNavigation = isIncludedInNavigation
                         article.navigationWeight = Int(navigationWeight)
@@ -236,6 +248,33 @@ struct MyArticleSettingsView: View {
         .frame(width: 520, height: nil, alignment: .top)
         .task {
             title = article.title
+        }
+    }
+
+    @ViewBuilder
+    private func slugView() -> some View {
+        HStack {
+            HStack {
+                Text("Slug")
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 40)
+
+            TextField("", text: $slug)
+                .textFieldStyle(.roundedBorder)
+        }
+
+        HStack {
+            HStack {
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 50)
+
+            Text(MESSAGE_SLUG_REQUIREMENT)
+                .lineLimit(3)
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

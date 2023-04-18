@@ -1256,6 +1256,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     id: $0.id,
                     link: $0.link,
                     slug: $0.slug,
+                    externalLink: $0.externalLink,
                     title: $0.title,
                     content: $0.content,
                     summary: $0.summary,
@@ -1349,6 +1350,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 struct NavigationItem: Codable {
     let title: String
     let slug: String
+    let externalLink: String?
     let weight: Int
 }
 
@@ -1377,9 +1379,15 @@ extension MyPlanetModel {
             } else {
                 articleSlug = article.id.uuidString
             }
+            let articleExternalLink: String?
+            if let externalLink = article.externalLink {
+                articleExternalLink = externalLink
+            } else {
+                articleExternalLink = nil
+            }
             let articleNavigationWeight = article.navigationWeight ?? 1
             if let included = article.isIncludedInNavigation, included {
-                return NavigationItem(title: article.title, slug: articleSlug, weight: articleNavigationWeight)
+                return NavigationItem(title: article.title, slug: articleSlug, externalLink: articleExternalLink, weight: articleNavigationWeight)
             }
             return nil
         }

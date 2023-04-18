@@ -7,6 +7,7 @@ class MyArticleModel: ArticleModel, Codable {
 
     @Published var link: String
     @Published var slug: String? = nil
+    @Published var externalLink: String? = nil
 
     @Published var summary: String? = nil
 
@@ -45,6 +46,7 @@ class MyArticleModel: ArticleModel, Codable {
                 return link
             }(),
             slug: slug ?? "",
+            externalLink: externalLink ?? "",
             title: title,
             content: content,
             created: created,
@@ -84,10 +86,14 @@ class MyArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, articleType, link, slug, title, content, summary, created, starred, starType, videoFilename,
-            audioFilename, attachments,
-            isIncludedInNavigation,
-            navigationWeight
+        case id, articleType,
+             link, slug, externalLink,
+             title, content, summary,
+             created, starred, starType,
+             videoFilename, audioFilename,
+             attachments,
+             isIncludedInNavigation,
+             navigationWeight
     }
 
     required init(from decoder: Decoder) throws {
@@ -100,6 +106,7 @@ class MyArticleModel: ArticleModel, Codable {
         }
         link = try container.decode(String.self, forKey: .link)
         slug = try container.decodeIfPresent(String.self, forKey: .slug)
+        externalLink = try container.decodeIfPresent(String.self, forKey: .externalLink)
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
         summary = try container.decodeIfPresent(String.self, forKey: .summary)
@@ -131,6 +138,7 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(articleType, forKey: .articleType)
         try container.encode(link, forKey: .link)
         try container.encodeIfPresent(slug, forKey: .slug)
+        try container.encodeIfPresent(externalLink, forKey: .externalLink)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
         try container.encode(summary, forKey: .summary)
@@ -148,6 +156,7 @@ class MyArticleModel: ArticleModel, Codable {
         id: UUID,
         link: String,
         slug: String? = nil,
+        externalLink: String? = nil,
         title: String,
         content: String,
         summary: String?,
@@ -162,6 +171,7 @@ class MyArticleModel: ArticleModel, Codable {
     ) {
         self.link = link
         self.slug = slug
+        self.externalLink = externalLink
         self.summary = summary
         self.isIncludedInNavigation = isIncludedInNavigation
         self.navigationWeight = navigationWeight
@@ -433,6 +443,7 @@ extension MyArticleModel {
             id: UUID(),
             link: "/example/",
             slug: "/example/",
+            externalLink: nil,
             title: "Example Article",
             content: "This is an example article.",
             summary: "This is an example article.",
@@ -450,6 +461,7 @@ struct BackupArticleModel: Codable {
     let id: UUID
     let link: String
     let slug: String?
+    let externalLink: String?
     let title: String
     let content: String
     let summary: String?
