@@ -50,7 +50,7 @@ class PlanetQuickShareViewModel: ObservableObject {
             case .myPlanet(let planet):
                 selectedPlanetID = planet.id
             default:
-                throw PlanetError.PlanetNotExistsError
+                break
             }
         }
         title = files.first?.lastPathComponent.sanitized() ?? Date().dateDescription()

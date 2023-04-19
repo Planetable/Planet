@@ -285,11 +285,12 @@ extension PlanetAppDelegate {
     
     func createQuickShareWindow(forFiles files: [URL]) {
         guard files.count > 0 else { return }
-        if quickShareWindowController == nil {
-            quickShareWindowController = PlanetQuickShareWindowController()
-        } else {
+        if quickShareWindowController != nil {
             quickShareWindowController?.window?.close()
+            quickShareWindowController?.window = nil
+            quickShareWindowController?.contentViewController = nil
         }
+        quickShareWindowController = PlanetQuickShareWindowController()
         guard let w = quickShareWindowController?.window else { return }
         Task { @MainActor in
             do {

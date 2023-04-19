@@ -97,7 +97,7 @@ struct PlanetQuickShareView: View {
                 .frame(height: 82)
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
+                        .stroke(Color(nsColor: NSColor.windowBackgroundColor).opacity(0.25), lineWidth: 1.0)
                 )
                 .padding(.horizontal, 1)
         }
