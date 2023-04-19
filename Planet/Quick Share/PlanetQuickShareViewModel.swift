@@ -11,7 +11,7 @@ import SwiftUI
 
 class PlanetQuickShareViewModel: ObservableObject {
     static let shared = PlanetQuickShareViewModel()
-    
+
     @Published var myPlanets: [MyPlanetModel] = []
     @Published var selectedPlanetID: UUID = UUID() {
         didSet {
@@ -20,15 +20,16 @@ class PlanetQuickShareViewModel: ObservableObject {
     }
     @Published var title: String = ""
     @Published var content: String = ""
+    @Published var externalLink: String = ""
     @Published var fileURLs: [URL] = []
     @Published private var draft: DraftModel?
-    
+
     init() {
         if UserDefaults.standard.value(forKey: .lastSelectedQuickSharePlanetID) != nil, let uuidString: String = UserDefaults.standard.string(forKey: .lastSelectedQuickSharePlanetID), let uuid = UUID(uuidString: uuidString) {
             selectedPlanetID = uuid
         }
     }
-    
+
     func getTargetPlanet() -> MyPlanetModel? {
         return myPlanets.filter({ $0.id == selectedPlanetID }).first
     }
@@ -55,9 +56,10 @@ class PlanetQuickShareViewModel: ObservableObject {
         }
         title = files.first?.lastPathComponent.sanitized() ?? Date().dateDescription()
         content = ""
+        externalLink = ""
         fileURLs = files
     }
-    
+
     @MainActor
     func send() throws {
         guard let targetPlanet = getTargetPlanet() else { throw PlanetError.PersistenceError }
@@ -76,6 +78,9 @@ class PlanetQuickShareViewModel: ObservableObject {
         }
         finalContent += content
         draft?.content = finalContent
+        if !externalLink.isEmpty {
+            draft?.externalLink = externalLink
+        }
         try draft?.saveToArticle()
     }
 }

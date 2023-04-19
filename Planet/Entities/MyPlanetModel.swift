@@ -1083,6 +1083,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 try pageHTML.data(using: .utf8)?.write(to: pagePath)
 
                 if (i == 1) {
+                    debugPrint("Build index.html: hasAvatar=\(self.hasAvatar())")
                     let indexHTML = try template.renderIndex(context: pageContext)
                     try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
                 }

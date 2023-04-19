@@ -18,6 +18,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     @Published var title: String
     @Published var content: String
     @Published var attachments: [Attachment]
+    @Published var externalLink: String = ""
 
     enum DraftTarget {
         // draft for composing a new article
@@ -87,7 +88,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, date, title, content, attachments
+        case id, date, title, content, externalLink, attachments
     }
 
     required init(from decoder: Decoder) throws {
@@ -101,6 +102,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         title = try container.decode(String.self, forKey: .title)
         content = try container.decode(String.self, forKey: .content)
         attachments = try container.decode([Attachment].self, forKey: .attachments)
+        externalLink = try container.decodeIfPresent(String.self, forKey: .externalLink) ?? ""
     }
 
     func encode(to encoder: Encoder) throws {
@@ -110,14 +112,16 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
         try container.encode(attachments, forKey: .attachments)
+        try container.encode(externalLink, forKey: .externalLink)
     }
 
-    init(id: UUID, date: Date = Date(), title: String, content: String, attachments: [Attachment], target: DraftTarget) {
+    init(id: UUID, date: Date = Date(), title: String, content: String, attachments: [Attachment], externalLink: String = "", target: DraftTarget) {
         self.id = id
         self.date = date
         self.title = title
         self.content = content
         self.attachments = attachments
+        self.externalLink = externalLink
         self.target = target
     }
 
@@ -164,6 +168,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             title: article.title,
             content: article.content,
             attachments: [],
+            externalLink: article.externalLink ?? "",
             target: .article(Unowned(article))
         )
         try FileManager.default.createDirectory(at: draft.basePath, withIntermediateDirectories: true)
@@ -285,6 +290,11 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         case .myPlanet(let wrapper):
             planet = wrapper.value
             article = try MyArticleModel.compose(link: nil, date: date, title: title, content: content, summary: nil, planet: planet)
+            if externalLink.isEmpty {
+                article.externalLink = nil
+            } else {
+                article.externalLink = externalLink
+            }
             var articles = planet.articles
             articles?.append(article)
             articles?.sort(by: { $0.created > $1.created })
@@ -300,6 +310,11 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             article.created = date
             article.title = title
             article.content = content
+            if externalLink.isEmpty {
+                article.externalLink = nil
+            } else {
+                article.externalLink = externalLink
+            }
             // reorder articles after editing.
             var articles = planet.articles
             articles?.sort(by: { $0.created > $1.created })

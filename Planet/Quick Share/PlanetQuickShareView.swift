@@ -14,7 +14,7 @@ struct PlanetQuickShareView: View {
     init() {
         _viewModel = StateObject(wrappedValue: PlanetQuickShareViewModel.shared)
     }
-    
+
     var body: some View {
         VStack {
             headerSection()
@@ -23,12 +23,12 @@ struct PlanetQuickShareView: View {
 
             attachmentSection()
                 .frame(height: 180)
-            
+
             articleContentSection()
                 .padding(.horizontal, 14)
-            
+
             Spacer(minLength: 1)
-            
+
             footerSection()
                 .padding(.bottom, 16 - 28)
                 .padding(.horizontal, 16)
@@ -36,7 +36,7 @@ struct PlanetQuickShareView: View {
         .frame(width: .sheetWidth, height: .sheetHeight)
         .edgesIgnoringSafeArea(.vertical)
     }
-    
+
     @ViewBuilder
     private func headerSection() -> some View {
         HStack {
@@ -55,7 +55,7 @@ struct PlanetQuickShareView: View {
             .frame(width: 200)
         }
     }
-    
+
     @ViewBuilder
     private func attachmentSection() -> some View {
         if viewModel.fileURLs.count == 0 {
@@ -79,7 +79,7 @@ struct PlanetQuickShareView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private func articleContentSection() -> some View {
         VStack {
@@ -100,9 +100,14 @@ struct PlanetQuickShareView: View {
                         .stroke(Color(nsColor: NSColor.windowBackgroundColor).opacity(0.25), lineWidth: 1.0)
                 )
                 .padding(.horizontal, 1)
+            HStack {
+                TextField("Optional Link", text: $viewModel.externalLink)
+                    .textFieldStyle(.roundedBorder)
+                Spacer(minLength: 1)
+            }.padding(.bottom, 8)
         }
     }
-    
+
     @ViewBuilder
     private func footerSection() -> some View {
         HStack {
