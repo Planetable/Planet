@@ -33,7 +33,7 @@ struct PlanetDownloadsView: View {
             }
             .padding(.horizontal, 12)
             .frame(height: 32)
-            .background(Color.secondary.opacity(0.05))
+            .background(Color(nsColor: NSColor.windowBackgroundColor))
         }
         .padding(0)
         .frame(minWidth: 320, idealWidth: 320, maxWidth: 640, minHeight: 480, idealHeight: 480, maxHeight: .infinity)
