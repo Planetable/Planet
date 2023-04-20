@@ -33,7 +33,7 @@
       "location" : "https://github.com/Planetable/ENSKit",
       "state" : {
         "branch" : "main",
-        "revision" : "8cfc1fe70ae23755881dbe99c870cca0fa216f32"
+        "revision" : "5c5af5275f46222e482dd994e1096357de2d29d1"
       }
     },
     {
@@ -69,7 +69,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "5f51041e56612c55cfc3644112dab9e62f487948"
+        "revision" : "0bbf4ad8d83966fe09d09e3913fed37b663a08da"
       }
     },
     {
@@ -186,7 +186,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "7ad28da4de44c5213013d55c79a6d431b4ff8d86"
+        "revision" : "f15cdd2cb0e607d533b4b7a99a0d3180cfacc4ad"
       }
     },
     {
