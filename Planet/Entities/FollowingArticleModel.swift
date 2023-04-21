@@ -183,7 +183,7 @@ class FollowingArticleModel: ArticleModel, Codable {
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
         let audioFilename = try container.decodeIfPresent(String.self, forKey: .audioFilename)
         let attachments = try container.decodeIfPresent([String].self, forKey: .attachments)
-        super.init(id: id, title: title, content: content, created: created, starred: starred, videoFilename: videoFilename, audioFilename: audioFilename, attachments: attachments)
+        super.init(id: id, title: title, content: content, created: created, starred: starred, starType: starType, videoFilename: videoFilename, audioFilename: audioFilename, attachments: attachments)
     }
 
     func encode(to encoder: Encoder) throws {

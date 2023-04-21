@@ -80,7 +80,13 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
             try? myArticle.save()
         }
         if let followingArticle = self as? FollowingArticleModel {
-            try? followingArticle.save()
+            debugPrint("About to save FollowingArticle: \(self.title) UUID=\(self.id) StarType=\(self.starType)")
+            do {
+                try followingArticle.save()
+                debugPrint("Successfully saved FollowingArticle: \(self.title) UUID=\(self.id)")
+            } catch {
+                debugPrint("An error occurred when saving FollowingArticle: \(self.title) error: \(error)")
+            }
         }
     }
 
