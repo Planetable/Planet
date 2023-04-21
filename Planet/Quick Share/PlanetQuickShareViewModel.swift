@@ -55,6 +55,11 @@ class PlanetQuickShareViewModel: ObservableObject {
             }
         }
         title = files.first?.lastPathComponent.sanitized() ?? Date().dateDescription()
+        for file in files {
+            if file.pathExtension == "tiff" && title == file.lastPathComponent {
+                title = file.deletingPathExtension().appendingPathExtension("png").lastPathComponent
+            }
+        }
         content = ""
         externalLink = ""
         fileURLs = files
