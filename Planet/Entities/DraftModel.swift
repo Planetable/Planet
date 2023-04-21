@@ -3,6 +3,8 @@ import Stencil
 import PathKit
 import os
 import SwiftSoup
+import Cocoa
+
 
 class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     static let previewTemplatePath = Bundle.main.url(forResource: "WriterBasic", withExtension: "html")!
@@ -216,11 +218,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         } else {
             attachments.removeAll { $0.name == name }
         }
-        let attachment = Attachment(name: name, type: type)
-        attachment.draft = self
-        attachments.append(attachment)
-        attachment.loadThumbnail()
-        return attachment
+        return try processAttachment(forFileName: name, atFilePath: targetPath, withAttachmentType: type)
     }
 
     @discardableResult func addAttachmentFromData(data: Data, fileName: String, forContentType contentType: String) throws -> Attachment {
@@ -235,11 +233,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         } else {
             attachments.removeAll { $0.name == fileName }
         }
-        let attachment = Attachment(name: fileName, type: type)
-        attachment.draft = self
-        attachments.append(attachment)
-        attachment.loadThumbnail()
-        return attachment
+        return try processAttachment(forFileName: fileName, atFilePath: targetPath, withAttachmentType: type)
     }
 
     func deleteAttachment(name: String) {
@@ -394,5 +388,26 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         if FileManager.default.fileExists(atPath: basePath.path, isDirectory: &isDirectory) {
             try FileManager.default.removeItem(at: basePath)
         }
+    }
+    
+    // MARK: -
+
+    private func processAttachment(forFileName name: String, atFilePath targetPath: URL, withAttachmentType type: AttachmentType) throws -> Attachment {
+        let attachment: Attachment
+        if targetPath.pathExtension == "tiff" {
+            let convertedPath = targetPath.deletingPathExtension().appendingPathExtension("png")
+            guard let pngImageData = NSImage(contentsOf: targetPath)?.PNGData else {
+                throw PlanetError.InternalError
+            }
+            try pngImageData.write(to: convertedPath)
+            try FileManager.default.removeItem(at: targetPath)
+            attachment = Attachment(name: convertedPath.lastPathComponent, type: type)
+        } else {
+            attachment = Attachment(name: name, type: type)
+        }
+        attachment.draft = self
+        attachments.append(attachment)
+        attachment.loadThumbnail()
+        return attachment
     }
 }
