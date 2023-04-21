@@ -214,6 +214,11 @@ struct MyArticleSettingsView: View {
                         else {
                             article.externalLink = nil
                         }
+                        if let articleSlug = article.slug, articleSlug.count > 0 {
+                            article.link = "/\(articleSlug)/"
+                        } else {
+                            article.link = "/\(article.id.uuidString)/"
+                        }
                         article.articleType = articleType
                         article.isIncludedInNavigation = isIncludedInNavigation
                         article.navigationWeight = Int(navigationWeight)
