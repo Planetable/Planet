@@ -183,26 +183,6 @@ struct ArticleWebView: NSViewRepresentable {
                     } else {
                         decisionHandler(.allow, preferences)
                     }
-                } else if targetLink.isFileURL && PlanetDownloadItem.downloadableFileExtensions().contains(targetLink.pathExtension) {
-                    // copy local resources (Example: file:///*.xml) into downloads folder
-                    do {
-                        let filename = targetLink.lastPathComponent
-                        if let userDownloadsDir = FileManager.default.urls(
-                            for: .downloadsDirectory,
-                            in: .userDomainMask
-                        ).first {
-                            let downloadedURL = userDownloadsDir.appendingPathComponent(filename)
-                            if !FileManager.default.fileExists(atPath: downloadedURL.path) {
-                                try FileManager.default.copyItem(at: targetLink, to: downloadedURL)
-                            }
-                            NSWorkspace.shared.activateFileViewerSelecting([downloadedURL])
-                            decisionHandler(.cancel, preferences)
-                        } else {
-                            decisionHandler(.allow, preferences)
-                        }
-                    } catch {
-                        decisionHandler(.allow, preferences)
-                    }
                 } else {
                     decisionHandler(.allow, preferences)
                 }
