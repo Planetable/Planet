@@ -467,6 +467,16 @@ struct ArticleView: View {
                     Image("custom.ens")
                 }.help("Get ENS Info")
             }
+            if let juiceboxEnabled = planet.juiceboxEnabled, juiceboxEnabled, planet.juiceboxProjectID != nil || planet.juiceboxProjectIDGoerli != nil {
+                Button {
+                    let url = planet.juiceboxURL()
+                    if let url = url {
+                        openInChromium(url)
+                    }
+                } label: {
+                    Image("custom.juicebox")
+                }.help("Visit Juicebox Project")
+            }
         default:
             Text("")
         }
