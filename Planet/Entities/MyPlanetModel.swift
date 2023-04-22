@@ -79,25 +79,35 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
     }
     var infoPath: URL {
-        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("planet.json", isDirectory: false)
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+            .appendingPathComponent("planet.json", isDirectory: false)
     }
     var articlesPath: URL {
-        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("Articles", isDirectory: true)
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+            .appendingPathComponent("Articles", isDirectory: true)
     }
     var avatarPath: URL {
-        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("avatar.png", isDirectory: false)
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+            .appendingPathComponent("avatar.png", isDirectory: false)
     }
     var faviconPath: URL {
-        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("favicon.ico", isDirectory: false)
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+            .appendingPathComponent("favicon.ico", isDirectory: false)
     }
     var podcastCoverArtPath: URL {
-        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("podcastCoverArt.png", isDirectory: false)
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+            .appendingPathComponent("podcastCoverArt.png", isDirectory: false)
     }
     var draftsPath: URL {
-        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("Drafts", isDirectory: true)
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+            .appendingPathComponent("Drafts", isDirectory: true)
     }
     var articleDraftsPath: URL {
-        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("Articles", isDirectory: true).appendingPathComponent("Drafts", isDirectory: true)
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+            .appendingPathComponent("Articles", isDirectory: true).appendingPathComponent(
+                "Drafts",
+                isDirectory: true
+            )
     }
 
     static func publicPlanetsPath() -> URL {
@@ -106,34 +116,64 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return url
     }
     var publicBasePath: URL {
-        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        )
     }
     var publicInfoPath: URL {
-        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("planet.json", isDirectory: false)
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("planet.json", isDirectory: false)
     }
     var publicAvatarPath: URL {
-        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("avatar.png", isDirectory: false)
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("avatar.png", isDirectory: false)
     }
     var publicFaviconPath: URL {
-        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("favicon.ico", isDirectory: false)
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("favicon.ico", isDirectory: false)
     }
     var publicPodcastCoverArtPath: URL {
-        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("podcastCoverArt.png", isDirectory: false)
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("podcastCoverArt.png", isDirectory: false)
     }
     var publicIndexPath: URL {
-        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("index.html", isDirectory: false)
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("index.html", isDirectory: false)
     }
     func publicIndexPagePath(page: Int) -> URL {
-        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("page\(page).html", isDirectory: false)
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("page\(page).html", isDirectory: false)
     }
     var publicRSSPath: URL {
-        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("rss.xml", isDirectory: false)
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("rss.xml", isDirectory: false)
     }
     var publicPodcastPath: URL {
-        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("podcast.xml", isDirectory: false)
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("podcast.xml", isDirectory: false)
     }
     var publicAssetsPath: URL {
-        return Self.publicPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true).appendingPathComponent("assets", isDirectory: true)
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("assets", isDirectory: true)
     }
 
     var template: Template? {
@@ -141,11 +181,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     var templateStringRSS: String? {
-        if let rssURL = Bundle.main.url(forResource:"RSS", withExtension: "xml") {
+        if let rssURL = Bundle.main.url(forResource: "RSS", withExtension: "xml") {
             do {
                 let rssString = try String(contentsOf: rssURL)
                 return rssString
-            } catch {
+            }
+            catch {
                 debugPrint("Error reading RSS template: \(error)")
             }
         }
@@ -169,10 +210,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             }
             if domain.count > 0 {
                 return domain
-            } else {
+            }
+            else {
                 return nil
             }
-        } else {
+        }
+        else {
             return nil
         }
     }
@@ -180,7 +223,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     var ogImageURLString: String {
         if let domain = domainWithGateway {
             return "https://\(domain)/avatar.png"
-        } else {
+        }
+        else {
             return "https://ipfs.io/ipns/\(ipns)/avatar.png"
         }
     }
@@ -298,16 +342,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     enum CodingKeys: String, CodingKey {
         case id, name, about, domain, authorName, ipns,
-             created, updated,
-             templateName, lastPublished, lastPublishedCID,
-             archived, archivedAt,
-             plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer,
-             twitterUsername, githubUsername, telegramUsername, mastodonUsername,
-             dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey,
-             filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, filebasePinCID,
-             customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart, customCodeBodyEndEnabled, customCodeBodyEnd,
-             podcastCategories, podcastLanguage, podcastExplicit,
-             juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli
+            created, updated,
+            templateName, lastPublished, lastPublishedCID,
+            archived, archivedAt,
+            plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer,
+            twitterUsername, githubUsername, telegramUsername, mastodonUsername,
+            dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey,
+            filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, filebasePinCID,
+            customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart,
+            customCodeBodyEndEnabled, customCodeBodyEnd,
+            podcastCategories, podcastLanguage, podcastExplicit,
+            juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -343,18 +388,36 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         filebaseAPIToken = try container.decodeIfPresent(String.self, forKey: .filebaseAPIToken)
         filebaseRequestID = try container.decodeIfPresent(String.self, forKey: .filebaseRequestID)
         filebasePinCID = try container.decodeIfPresent(String.self, forKey: .filebasePinCID)
-        customCodeHeadEnabled = try container.decodeIfPresent(Bool.self, forKey: .customCodeHeadEnabled)
+        customCodeHeadEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .customCodeHeadEnabled
+        )
         customCodeHead = try container.decodeIfPresent(String.self, forKey: .customCodeHead)
-        customCodeBodyStartEnabled = try container.decodeIfPresent(Bool.self, forKey: .customCodeBodyStartEnabled)
-        customCodeBodyStart = try container.decodeIfPresent(String.self, forKey: .customCodeBodyStart)
-        customCodeBodyEndEnabled = try container.decodeIfPresent(Bool.self, forKey: .customCodeBodyEndEnabled)
+        customCodeBodyStartEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .customCodeBodyStartEnabled
+        )
+        customCodeBodyStart = try container.decodeIfPresent(
+            String.self,
+            forKey: .customCodeBodyStart
+        )
+        customCodeBodyEndEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .customCodeBodyEndEnabled
+        )
         customCodeBodyEnd = try container.decodeIfPresent(String.self, forKey: .customCodeBodyEnd)
-        podcastCategories = try container.decodeIfPresent(Dictionary.self, forKey: .podcastCategories)
+        podcastCategories = try container.decodeIfPresent(
+            Dictionary.self,
+            forKey: .podcastCategories
+        )
         podcastLanguage = try container.decodeIfPresent(String.self, forKey: .podcastLanguage)
         podcastExplicit = try container.decodeIfPresent(Bool.self, forKey: .podcastExplicit)
         juiceboxEnabled = try container.decodeIfPresent(Bool.self, forKey: .juiceboxEnabled)
         juiceboxProjectID = try container.decodeIfPresent(Int.self, forKey: .juiceboxProjectID)
-        juiceboxProjectIDGoerli = try container.decodeIfPresent(Int.self, forKey: .juiceboxProjectIDGoerli)
+        juiceboxProjectIDGoerli = try container.decodeIfPresent(
+            Int.self,
+            forKey: .juiceboxProjectIDGoerli
+        )
     }
 
     func encode(to encoder: Encoder) throws {
@@ -390,7 +453,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(filebasePinCID, forKey: .filebasePinCID)
         try container.encodeIfPresent(customCodeHeadEnabled, forKey: .customCodeHeadEnabled)
         try container.encodeIfPresent(customCodeHead, forKey: .customCodeHead)
-        try container.encodeIfPresent(customCodeBodyStartEnabled, forKey: .customCodeBodyStartEnabled)
+        try container.encodeIfPresent(
+            customCodeBodyStartEnabled,
+            forKey: .customCodeBodyStartEnabled
+        )
         try container.encodeIfPresent(customCodeBodyStart, forKey: .customCodeBodyStart)
         try container.encodeIfPresent(customCodeBodyEndEnabled, forKey: .customCodeBodyEndEnabled)
         try container.encodeIfPresent(customCodeBodyEnd, forKey: .customCodeBodyEnd)
@@ -442,7 +508,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             at: planet.draftsPath,
             includingPropertiesForKeys: nil
         ).filter { $0.hasDirectoryPath }
-        debugPrint("Loading Planet \(planet.name) drafts from \(draftDirectories.count) directories")
+        debugPrint(
+            "Loading Planet \(planet.name) drafts from \(draftDirectories.count) directories"
+        )
         planet.drafts = draftDirectories.compactMap {
             try? DraftModel.load(from: $0, planet: planet)
         }
@@ -513,7 +581,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let backupIndexPath = path.appendingPathComponent("index.html", isDirectory: false)
         let backupPrivateKeyPath = path.appendingPathComponent("planet.key", isDirectory: false)
         let backupAvatarPath = path.appendingPathComponent("avatar.png", isDirectory: false)
-        let backupPodcastCoverArtPath = path.appendingPathComponent("podcastCoverArt.png", isDirectory: false)
+        let backupPodcastCoverArtPath = path.appendingPathComponent(
+            "podcastCoverArt.png",
+            isDirectory: false
+        )
 
         guard FileManager.default.fileExists(atPath: backupInfoPath.path),
             FileManager.default.fileExists(atPath: backupPrivateKeyPath.path)
@@ -542,7 +613,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 target: backupPrivateKeyPath
             ).run()
             // also export key to keychain
-            try? KeychainHelper.shared.exportKeyToKeychain(forPlanetKeyName: backupPlanet.id.uuidString)
+            try? KeychainHelper.shared.exportKeyToKeychain(
+                forPlanetKeyName: backupPlanet.id.uuidString
+            )
         }
         catch {
             throw PlanetError.IPFSError
@@ -577,7 +650,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         // Restore archived
         if backupPlanet.archived != nil {
             planet.archived = backupPlanet.archived
-        } else {
+        }
+        else {
             planet.archived = false
         }
         if backupPlanet.archivedAt != nil {
@@ -703,7 +777,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 try FileManager.default.copyItem(at: backupAvatarPath, to: planet.publicAvatarPath)
             }
             if FileManager.default.fileExists(atPath: backupPodcastCoverArtPath.path) {
-                try FileManager.default.copyItem(at: backupPodcastCoverArtPath, to: planet.publicPodcastCoverArtPath)
+                try FileManager.default.copyItem(
+                    at: backupPodcastCoverArtPath,
+                    to: planet.publicPodcastCoverArtPath
+                )
             }
         }
         catch {
@@ -779,7 +856,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         planet.avatar = NSImage(contentsOf: planet.avatarPath)
         if FileManager.default.fileExists(atPath: backupPodcastCoverArtPath.path) {
-            try FileManager.default.copyItem(at: backupPodcastCoverArtPath, to: planet.podcastCoverArtPath)
+            try FileManager.default.copyItem(
+                at: backupPodcastCoverArtPath,
+                to: planet.podcastCoverArtPath
+            )
         }
         planet.podcastCoverArt = NSImage(contentsOf: planet.podcastCoverArtPath)
 
@@ -797,7 +877,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let size = image.size
         // if path is already a PNG and size is within 120x120 and 288x288 then just use it
         if path.pathExtension == "png",
-           size.width >= 120 && size.width <= 288 && size.height >= 120 && size.height <= 288
+            size.width >= 120 && size.width <= 288 && size.height >= 120 && size.height <= 288
         {
             if FileManager.default.fileExists(atPath: avatarPath.path) {
                 try FileManager.default.removeItem(at: avatarPath)
@@ -823,7 +903,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     func updateFavicon(witImage image: NSImage) throws {
         if let resizedIcon = image.resizeSquare(maxLength: 32),
-           let iconData = resizedIcon.PNGData
+            let iconData = resizedIcon.PNGData
         {
             try iconData.write(to: faviconPath)
             try iconData.write(to: publicFaviconPath)
@@ -863,25 +943,32 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 .aspectRatio(contentMode: .fit)
                 .frame(width: size, height: size, alignment: .center)
                 .cornerRadius(size / 2)
-                .overlay(RoundedRectangle(cornerRadius: size / 2)
-                                               .stroke(Color("BorderColor"), lineWidth: 0.5))
-                                               .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                .overlay(
+                    RoundedRectangle(cornerRadius: size / 2)
+                        .stroke(Color("BorderColor"), lineWidth: 0.5)
+                )
+                .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
                 .padding(2)
-        } else {
+        }
+        else {
             Text(self.nameInitials)
                 .font(Font.custom("Arial Rounded MT Bold", size: size / 2))
                 .foregroundColor(Color.white)
                 .contentShape(Rectangle())
                 .frame(width: size, height: size, alignment: .center)
-                .background(LinearGradient(
-                    gradient: ViewUtils.getPresetGradient(from: self.id),
-                    startPoint: .top,
-                    endPoint: .bottom
-                ))
+                .background(
+                    LinearGradient(
+                        gradient: ViewUtils.getPresetGradient(from: self.id),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
                 .cornerRadius(size / 2)
-                .overlay(RoundedRectangle(cornerRadius: size / 2)
-                                               .stroke(Color("BorderColor"), lineWidth: 0.5))
-                                               .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                .overlay(
+                    RoundedRectangle(cornerRadius: size / 2)
+                        .stroke(Color("BorderColor"), lineWidth: 0.5)
+                )
+                .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
                 .padding(2)
         }
     }
@@ -964,10 +1051,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     if podcastOnly {
                         if item.audioFilename != nil {
                             return true
-                        } else {
+                        }
+                        else {
                             return false
                         }
-                    } else {
+                    }
+                    else {
                         return true
                     }
                 }
@@ -999,7 +1088,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 if let domainWithGateway = domainWithGateway {
                     domain_prefix = "https://" + domainWithGateway
                     root_prefix = "https://" + domainWithGateway
-                } else {
+                }
+                else {
                     domain_prefix = IPFSDaemon.preferredGateway()
                     root_prefix = IPFSDaemon.preferredGateway() + "/ipns/" + ipns
                 }
@@ -1015,16 +1105,23 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "root_prefix": root_prefix,
                     "ipfs_gateway": IPFSDaemon.preferredGateway(),
                     "podcast": podcastOnly,
-                    "has_podcast_cover_art": FileManager.default.fileExists(atPath: publicPodcastCoverArtPath.path)
+                    "has_podcast_cover_art": FileManager.default.fileExists(
+                        atPath: publicPodcastCoverArtPath.path
+                    ),
                 ]
-                let rssXML = try environment.renderTemplate(string: templateStringRSS, context: context)
+                let rssXML = try environment.renderTemplate(
+                    string: templateStringRSS,
+                    context: context
+                )
                 debugPrint("rssXML: \(rssXML)")
                 if podcastOnly {
                     try rssXML.data(using: .utf8)?.write(to: publicPodcastPath)
-                } else {
+                }
+                else {
                     try rssXML.data(using: .utf8)?.write(to: publicRSSPath)
                 }
-            } catch {
+            }
+            catch {
                 debugPrint("Error rendering RSS: \(error)")
             }
         }
@@ -1059,13 +1156,19 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             podcastLanguage: podcastLanguage,
             podcastExplicit: podcastExplicit
         )
-        let hasPodcastCoverArt = FileManager.default.fileExists(atPath: publicPodcastCoverArtPath.path)
+        let hasPodcastCoverArt = FileManager.default.fileExists(
+            atPath: publicPodcastCoverArtPath.path
+        )
         let itemsPerPage = template.idealItemsPerPage ?? 10
         if publicPlanet.articles.count > itemsPerPage {
             let pages = Int(ceil(Double(publicPlanet.articles.count) / Double(itemsPerPage)))
             debugPrint("Rendering \(pages) pages")
             for i in 1...pages {
-                let pageArticles = Array(publicPlanet.articles[(i - 1) * itemsPerPage..<min(i * itemsPerPage, publicPlanet.articles.count)])
+                let pageArticles = Array(
+                    publicPlanet.articles[
+                        (i - 1) * itemsPerPage..<min(i * itemsPerPage, publicPlanet.articles.count)
+                    ]
+                )
                 let pageContext: [String: Any] = [
                     "planet": publicPlanet,
                     "my_planet": self,
@@ -1076,19 +1179,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "has_podcast_cover_art": hasPodcastCoverArt,
                     "page": i,
                     "pages": pages,
-                    "articles": pageArticles
+                    "articles": pageArticles,
                 ]
                 let pageHTML = try template.renderIndex(context: pageContext)
                 let pagePath = publicIndexPagePath(page: i)
                 try pageHTML.data(using: .utf8)?.write(to: pagePath)
 
-                if (i == 1) {
+                if i == 1 {
                     debugPrint("Build index.html: hasAvatar=\(self.hasAvatar())")
                     let indexHTML = try template.renderIndex(context: pageContext)
                     try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
                 }
             }
-        } else {
+        }
+        else {
             let pageContext: [String: Any] = [
                 "planet": publicPlanet,
                 "my_planet": self,
@@ -1097,7 +1201,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 "og_image_url": ogImageURLString,
                 "has_podcast": publicPlanet.hasAudioContent(),
                 "has_podcast_cover_art": hasPodcastCoverArt,
-                "articles": publicPlanet.articles
+                "articles": publicPlanet.articles,
             ]
             let pageHTML = try template.renderIndex(context: pageContext)
             let pagePath = publicIndexPagePath(page: 1)
@@ -1132,19 +1236,24 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
         // Send the latest CID to dWebServices.xyz if enabled
-        if let dWebServicesEnabled = dWebServicesEnabled, dWebServicesEnabled, let dWebServicesDomain = dWebServicesDomain, let dWebServicesAPIKey = dWebServicesAPIKey {
+        if let dWebServicesEnabled = dWebServicesEnabled, dWebServicesEnabled,
+            let dWebServicesDomain = dWebServicesDomain, let dWebServicesAPIKey = dWebServicesAPIKey
+        {
             debugPrint("dWebServices: about to update for \(dWebServicesDomain)")
             let dWebRecord = dWebServices(domain: dWebServicesDomain, apiKey: dWebServicesAPIKey)
             await dWebRecord.publish(cid: cid)
         }
         // Send the latest CID to Filebase if enabled
-        if let filebaseEnabled = filebaseEnabled, filebaseEnabled, let filebasePinName = filebasePinName, let filebaseAPIToken = filebaseAPIToken {
+        if let filebaseEnabled = filebaseEnabled, filebaseEnabled,
+            let filebasePinName = filebasePinName, let filebaseAPIToken = filebaseAPIToken
+        {
             var toPin: Bool = false
             if let existingCID = filebasePinCID {
                 if existingCID.count == 0 || existingCID != cid {
                     toPin = true
                 }
-            } else {
+            }
+            else {
                 toPin = true
             }
             if toPin {
@@ -1157,7 +1266,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     }
                     try save()
                 }
-            } else {
+            }
+            else {
                 debugPrint("Filebase: no need to pin for \(filebasePinName)")
             }
         }
@@ -1196,7 +1306,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             debugPrint("About to prewarm \(name): \(planetJSONURL)")
             let (planetJSONData, _) = try await URLSession.shared.data(from: planetJSONURL)
             debugPrint("Prewarmed \(name): \(planetJSONData.count) bytes")
-        } catch {
+        }
+        catch {
             debugPrint("Failed to prewarm \(name): \(error)")
         }
     }
@@ -1324,7 +1435,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             do {
                 try await IPFSDaemon.shared.removeKey(name: id.uuidString)
                 try KeychainHelper.shared.delete(forKey: id.uuidString)
-            } catch {
+            }
+            catch {
                 debugPrint("failed to remove key from planet: \(id.uuidString), error: \(error)")
             }
         }
@@ -1349,6 +1461,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 }
 
 struct NavigationItem: Codable {
+    let id: String
     let title: String
     let slug: String
     let externalLink: String?
@@ -1364,10 +1477,12 @@ extension MyPlanetModel {
         if articles.count > 0 {
             if articles.count > 1 {
                 return "\(articles.count) articles"
-            } else {
+            }
+            else {
                 return "1 article"
             }
-        } else {
+        }
+        else {
             return "No articles"
         }
     }
@@ -1377,22 +1492,30 @@ extension MyPlanetModel {
             let articleSlug: String
             if let slug = article.slug {
                 articleSlug = slug
-            } else {
+            }
+            else {
                 articleSlug = article.id.uuidString
             }
             let articleExternalLink: String?
             if let externalLink = article.externalLink {
                 articleExternalLink = externalLink
-            } else {
+            }
+            else {
                 articleExternalLink = nil
             }
             let articleNavigationWeight = article.navigationWeight ?? 1
             if let included = article.isIncludedInNavigation, included {
-                return NavigationItem(title: article.title, slug: articleSlug, externalLink: articleExternalLink, weight: articleNavigationWeight)
+                return NavigationItem(
+                    id: article.id.uuidString,
+                    title: article.title,
+                    slug: articleSlug,
+                    externalLink: articleExternalLink,
+                    weight: articleNavigationWeight
+                )
             }
             return nil
         }
-        navigation.sort(by: {$0.weight < $1.weight})
+        navigation.sort(by: { $0.weight < $1.weight })
         return navigation
     }
 }
