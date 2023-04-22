@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 class ArticleWebViewModel: NSObject {
     static let shared: ArticleWebViewModel = ArticleWebViewModel()
 
@@ -33,7 +32,9 @@ class ArticleWebViewModel: NSObject {
         followingPlanets = planets
     }
 
-    private func checkPlanetLink(_ url: URL) -> (mine: MyPlanetModel?, following: FollowingPlanetModel?) {
+    private func checkPlanetLink(_ url: URL) -> (
+        mine: MyPlanetModel?, following: FollowingPlanetModel?
+    ) {
         var link = url.absoluteString.trim()
         if link.starts(with: "planet://") {
             link = String(link.dropFirst("planet://".count))
@@ -50,12 +51,18 @@ class ArticleWebViewModel: NSObject {
         return (myPlanet, followingPlanet)
     }
 
-    private func checkArticleLink(_ url: URL) -> (mine: MyPlanetModel?, following: FollowingPlanetModel?, myArticle: MyArticleModel?, followingArticle: FollowingArticleModel?) {
+    private func checkArticleLink(_ url: URL) -> (
+        mine: MyPlanetModel?, following: FollowingPlanetModel?, myArticle: MyArticleModel?,
+        followingArticle: FollowingArticleModel?
+    ) {
         debugPrint("checkArticleLink: \(url.absoluteString)")
         let idString = url.deletingLastPathComponent().lastPathComponent
         let uuidString = url.lastPathComponent
-        let tagString = url.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent
-        debugPrint("checkArticleLink: idString=\(idString) uuidString=\(uuidString) tagString=\(tagString)")
+        let tagString = url.deletingLastPathComponent().deletingLastPathComponent()
+            .lastPathComponent
+        debugPrint(
+            "checkArticleLink: idString=\(idString) uuidString=\(uuidString) tagString=\(tagString)"
+        )
 
         var myPlanet: MyPlanetModel?
         var followingPlanet: FollowingPlanetModel?
@@ -69,20 +76,26 @@ class ArticleWebViewModel: NSObject {
             }
             if myPlanet != nil {
                 for planet in myPlanets {
-                    if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+                    if let targetArticle = planet.articles.first(where: {
+                        $0.link == "/\(uuidString)/"
+                    }) {
                         myArticle = targetArticle
                         break
                     }
                 }
             }
             if myPlanet == nil {
-                if let existingFollowingPlanet = followingPlanets.first(where: { $0.link == idString }
+                if let existingFollowingPlanet = followingPlanets.first(where: {
+                    $0.link == idString
+                }
                 ) {
                     followingPlanet = existingFollowingPlanet
                 }
                 if followingPlanet != nil {
                     for planet in followingPlanets {
-                        if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+                        if let targetArticle = planet.articles.first(where: {
+                            $0.link == "/\(uuidString)/"
+                        }) {
                             followingArticle = targetArticle
                             break
                         }
@@ -104,9 +117,13 @@ class ArticleWebViewModel: NSObject {
         else if uuidString != "", tagString == "Public" {
             // Example:
             // file:///Users/user/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Public/D73B55BD-A86E-46AB-9345-6CCFCB3811EC/insider-build/
+            // file:///Users/livid/Library/Containers/xyz.planetable.Planet/Data/Documents/Planet/Public/7AAD5722-B4B1-48E6-B001-078286971D2D/juicebox/
             // Internal link in my planet with slug
             for planet in myPlanets {
-                if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+                if let targetArticle = planet.articles.first(where: {
+                    $0.link == "/\(uuidString)/" || $0.slug == uuidString
+                        || $0.id.uuidString == uuidString
+                }), planet.id.uuidString == idString {
                     myArticle = targetArticle
                     myPlanet = planet
                     break
@@ -116,7 +133,8 @@ class ArticleWebViewModel: NSObject {
         else if uuidString != "", tagString == "ipfs", let _ = url.host {
             // TODO: Include an example URL here
             for planet in myPlanets {
-                if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+                if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }
+                ) {
                     myArticle = targetArticle
                     myPlanet = planet
                     break
@@ -124,7 +142,9 @@ class ArticleWebViewModel: NSObject {
             }
             if myPlanet == nil {
                 for planet in followingPlanets {
-                    if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+                    if let targetArticle = planet.articles.first(where: {
+                        $0.link == "/\(uuidString)/"
+                    }) {
                         followingArticle = targetArticle
                         followingPlanet = planet
                         break
@@ -135,7 +155,8 @@ class ArticleWebViewModel: NSObject {
         else if let _ = url.host, uuidString != "" {
             // TODO: Include an example URL here
             for planet in myPlanets {
-                if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+                if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }
+                ) {
                     myArticle = targetArticle
                     myPlanet = planet
                     break
@@ -143,7 +164,9 @@ class ArticleWebViewModel: NSObject {
             }
             if myPlanet == nil {
                 for planet in followingPlanets {
-                    if let targetArticle = planet.articles.first(where: { $0.link == "/\(uuidString)/" }) {
+                    if let targetArticle = planet.articles.first(where: {
+                        $0.link == "/\(uuidString)/"
+                    }) {
                         followingArticle = targetArticle
                         followingPlanet = planet
                         break
@@ -154,7 +177,9 @@ class ArticleWebViewModel: NSObject {
         else if uuidString == "", let host = url.host, let relativeUUID = UUID(uuidString: host) {
             // TODO: Include an example URL here
             for planet in myPlanets {
-                if let targetArticle = planet.articles.first(where: { $0.link == "/\(relativeUUID.uuidString)/" }) {
+                if let targetArticle = planet.articles.first(where: {
+                    $0.link == "/\(relativeUUID.uuidString)/"
+                }) {
                     myArticle = targetArticle
                     myPlanet = planet
                     break
@@ -162,7 +187,9 @@ class ArticleWebViewModel: NSObject {
             }
             if myPlanet == nil {
                 for planet in followingPlanets {
-                    if let targetArticle = planet.articles.first(where: { $0.link == "/\(relativeUUID.uuidString)/" }) {
+                    if let targetArticle = planet.articles.first(where: {
+                        $0.link == "/\(relativeUUID.uuidString)/"
+                    }) {
                         followingArticle = targetArticle
                         followingPlanet = planet
                         break
@@ -170,7 +197,9 @@ class ArticleWebViewModel: NSObject {
                 }
             }
         }
-        debugPrint("checkArticleLink: myPlanet=\(myPlanet?.ipns ?? "nil") followingPlanet=\(followingPlanet?.link ?? "nil") myArticle=\(myArticle?.title ?? "nil") followingArticle=\(followingArticle?.title ?? "nil")")
+        debugPrint(
+            "checkArticleLink: myPlanet=\(myPlanet?.ipns ?? "nil") followingPlanet=\(followingPlanet?.link ?? "nil") myArticle=\(myArticle?.title ?? "nil") followingArticle=\(followingArticle?.title ?? "nil")"
+        )
         return (myPlanet, followingPlanet, myArticle, followingArticle)
     }
 
@@ -204,7 +233,9 @@ class ArticleWebViewModel: NSObject {
 
     func processInternalFileLink(_ fileLink: URL) {
         guard let possibleArticleUUID = UUID(uuidString: fileLink.lastPathComponent) else { return }
-        guard let targetLink = URL(string: "planet://" + possibleArticleUUID.uuidString) else { return }
+        guard let targetLink = URL(string: "planet://" + possibleArticleUUID.uuidString) else {
+            return
+        }
         var existings = ArticleWebViewModel.shared.checkArticleLink(targetLink)
         defer {
             existings.mine = nil
@@ -221,7 +252,9 @@ class ArticleWebViewModel: NSObject {
                 }
             }
         }
-        else if let following = existings.following, let followingArticle = existings.followingArticle {
+        else if let following = existings.following,
+            let followingArticle = existings.followingArticle
+        {
             Task.detached { @MainActor in
                 PlanetStore.shared.selectedView = .followingPlanet(following)
                 Task { @MainActor in
@@ -242,7 +275,8 @@ class ArticleWebViewModel: NSObject {
         if link.isPlanetWindowGroupLink {
             debugPrint("planet window group link: \(link), abort.")
             return
-        } else if link.isPlanetLink {
+        }
+        else if link.isPlanetLink {
             isInternalLink = true
 
             var existings = ArticleWebViewModel.shared.checkPlanetLink(link)
@@ -255,11 +289,13 @@ class ArticleWebViewModel: NSObject {
                 Task.detached { @MainActor in
                     PlanetStore.shared.selectedView = .myPlanet(myPlanet)
                 }
-            } else if let followingPlanet: FollowingPlanetModel = existings.following {
+            }
+            else if let followingPlanet: FollowingPlanetModel = existings.following {
                 Task.detached { @MainActor in
                     PlanetStore.shared.selectedView = .followingPlanet(followingPlanet)
                 }
-            } else {
+            }
+            else {
                 var existings = checkArticleLink(link)
                 defer {
                     existings.mine = nil
@@ -269,8 +305,11 @@ class ArticleWebViewModel: NSObject {
                 }
                 if let mine = existings.mine, let myArticle = existings.myArticle {
                     Task.detached { @MainActor in
-                        if let aList = PlanetStore.shared.selectedArticleList, aList.contains(myArticle) {
-                        } else {
+                        if let aList = PlanetStore.shared.selectedArticleList,
+                            aList.contains(myArticle)
+                        {
+                        }
+                        else {
                             PlanetStore.shared.selectedView = .myPlanet(mine)
                         }
                         Task { @MainActor in
@@ -278,16 +317,23 @@ class ArticleWebViewModel: NSObject {
                             PlanetStore.shared.refreshSelectedArticles()
                         }
                     }
-                } else if let mine = existings.mine, existings.myArticle == nil {
+                }
+                else if let mine = existings.mine, existings.myArticle == nil {
                     Task { @MainActor in
                         PlanetStore.shared.selectedArticle = nil
                         PlanetStore.shared.selectedView = .myPlanet(mine)
                         PlanetStore.shared.refreshSelectedArticles()
                     }
-                } else if let following = existings.following, let followingArticle = existings.followingArticle {
+                }
+                else if let following = existings.following,
+                    let followingArticle = existings.followingArticle
+                {
                     Task.detached { @MainActor in
-                        if let aList = PlanetStore.shared.selectedArticleList, aList.contains(followingArticle) {
-                        } else {
+                        if let aList = PlanetStore.shared.selectedArticleList,
+                            aList.contains(followingArticle)
+                        {
+                        }
+                        else {
                             PlanetStore.shared.selectedView = .followingPlanet(following)
                         }
                         Task { @MainActor in
@@ -295,14 +341,16 @@ class ArticleWebViewModel: NSObject {
                             PlanetStore.shared.refreshSelectedArticles()
                         }
                     }
-                } else {
+                }
+                else {
                     Task.detached { @MainActor in
                         PlanetStore.shared.followingPlanetLink = link.absoluteString
                         PlanetStore.shared.isFollowingPlanet = true
                     }
                 }
             }
-        } else {
+        }
+        else {
             var existings = checkArticleLink(link)
             defer {
                 existings.mine = nil
@@ -322,13 +370,17 @@ class ArticleWebViewModel: NSObject {
                         PlanetStore.shared.refreshSelectedArticles()
                     }
                 }
-            } else if let mine = existings.mine, existings.myArticle == nil {
+            }
+            else if let mine = existings.mine, existings.myArticle == nil {
                 Task { @MainActor in
                     PlanetStore.shared.selectedArticle = nil
                     PlanetStore.shared.selectedView = .myPlanet(mine)
                     PlanetStore.shared.refreshSelectedArticles()
                 }
-            } else if let following = existings.following, let followingArticle = existings.followingArticle {
+            }
+            else if let following = existings.following,
+                let followingArticle = existings.followingArticle
+            {
                 isInternalLink = true
                 Task.detached { @MainActor in
                     if !self.checkFollowingArticleInCurrentList(followingArticle) {
