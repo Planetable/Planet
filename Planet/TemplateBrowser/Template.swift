@@ -164,6 +164,7 @@ class Template: Codable, Identifiable {
             "has_avatar": planet.hasAvatar(),
             "planet_ipns": article.planet.ipns,
             "assets_prefix": "../",
+            "article_id": article.id.uuidString,
             "article": article.publicArticle,
             "article_type": article.articleType?.rawValue ?? 0,
             "article_title": article.title,
