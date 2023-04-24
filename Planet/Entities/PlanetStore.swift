@@ -63,7 +63,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 refreshSelectedArticles()
                 selectedArticle = nil
                 UserDefaults.standard.set(selectedView?.stringValue, forKey: "lastSelectedView")
-                
+
                 Task { @MainActor in
                     switch selectedView {
                     case .myPlanet(let planet):
@@ -162,7 +162,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 selectedView = .starred
             }
         }
-        
+
         /*
         // Update library path monitoring
         if URLUtils.repoPath() == URLUtils.defaultRepoPath {
@@ -171,7 +171,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
             PlanetPublishedServiceStore.shared.startRepoPathMonitoring(targetURL: URLUtils.repoPath())
         }
          */
-        
+
         // Publish my planets every 30 minutes
         RunLoop.main.add(Timer(timeInterval: 1800, repeats: true) { [self] timer in
             publishMyPlanets()
@@ -311,7 +311,13 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
     func getUnreadArticles() -> [ArticleModel] {
         var articles = followingPlanets.flatMap { followingPlanet in
-            followingPlanet.articles.filter { $0.read == nil }
+            followingPlanet.articles.filter {
+                if ($0.read == nil) {
+                    return true
+                } else {
+                    return false
+                }
+            }
         }
         articles.sort { $0.created > $1.created }
         return articles
