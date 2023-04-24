@@ -3,6 +3,7 @@ import SwiftUI
 enum ListViewFilter: String, CaseIterable {
     case all = "All"
     case pages = "Pages"
+    case nav = "Navigation Items"
     case unread = "Unread"
     case starred = "Starred"
 
@@ -20,6 +21,7 @@ enum ListViewFilter: String, CaseIterable {
     static let buttonLabels: [String: String] = [
         "All": "Show All",
         "Pages": "Show Pages",
+        "Navigation Items": "Show Navigation Items",
         "Unread": "Show Unread",
         "Starred": "Show All Starred",
     ]
@@ -27,6 +29,7 @@ enum ListViewFilter: String, CaseIterable {
     static let emptyLabels: [String: String] = [
         "All": "No Articles",
         "Pages": "No Pages",
+        "Navigation Items": "No Navigation Items",
         "Unread": "No Unread Articles",
         "Starred": "No Starred Articles",
         "Star": "No Starred Articles",
@@ -42,6 +45,7 @@ enum ListViewFilter: String, CaseIterable {
     static let imageNames: [String: String] = [
         "All": "line.3.horizontal.circle",
         "Pages": "doc.text",
+        "Navigation Items": "link.circle",
         "Unread": "line.3.horizontal.circle.fill",
         "Starred": "star.fill",
         "Star": "star.fill",
@@ -68,6 +72,15 @@ struct ArticleListView: View {
             return articles.filter {
                 if let myArticle = $0 as? MyArticleModel {
                     return myArticle.articleType == .page
+                }
+                return false
+            }
+        case .nav:
+            return articles.filter {
+                if let myArticle = $0 as? MyArticleModel,
+                    let isIncludedInNavigation = myArticle.isIncludedInNavigation
+                {
+                    return isIncludedInNavigation
                 }
                 return false
             }
@@ -166,9 +179,10 @@ struct ArticleListView: View {
             } label: {
                 FilterIndicatorView(filter: filter)
             }
-            .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 0))
+            .padding(EdgeInsets(top: 0, leading: 10, bottom: 1, trailing: 0))
             .frame(width: 40, height: 20, alignment: .leading)
             .menuIndicator(.hidden)
+            .help(filter.rawValue)
         }
         .onAppear {
             articles = filterArticles(planetStore.selectedArticleList ?? [])
