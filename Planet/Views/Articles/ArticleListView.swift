@@ -2,19 +2,56 @@ import SwiftUI
 
 enum ListViewFilter: String, CaseIterable {
     case all = "All"
+    case pages = "Pages"
     case unread = "Unread"
     case starred = "Starred"
 
+    case star = "Star"
+
+    case plan = "Plan"
+    case todo = "To Do"
+    case done = "Done"
+
+    case sparkles = "Sparkles"
+    case heart = "Heart"
+    case question = "Question"
+    case paperplane = "Paperplane"
+
     static let buttonLabels: [String: String] = [
         "All": "Show All",
-        "Unread": "Show Only Unread",
-        "Starred": "Show Only Starred",
+        "Pages": "Show Pages",
+        "Unread": "Show Unread",
+        "Starred": "Show All Starred",
     ]
 
     static let emptyLabels: [String: String] = [
         "All": "No Articles",
+        "Pages": "No Pages",
         "Unread": "No Unread Articles",
         "Starred": "No Starred Articles",
+        "Star": "No Starred Articles",
+        "Plan": "No Items with Plan Type",
+        "To Do": "No Items with To Do Type",
+        "Done": "No Items with Done Type",
+        "Sparkles": "No Items with Sparkles Type",
+        "Heart": "No Items with Heart Type",
+        "Question": "No Items with Question Type",
+        "Paperplane": "No Items with Paperplane Type",
+    ]
+
+    static let imageNames: [String: String] = [
+        "All": "line.3.horizontal.circle",
+        "Pages": "doc.text",
+        "Unread": "line.3.horizontal.circle.fill",
+        "Starred": "star.fill",
+        "Star": "star.fill",
+        "Plan": "circle.dotted",
+        "To Do": "circle",
+        "Done": "checkmark.circle.fill",
+        "Sparkles": "sparkles",
+        "Heart": "heart.fill",
+        "Question": "questionmark.circle.fill",
+        "Paperplane": "paperplane.circle.fill",
     ]
 }
 
@@ -27,6 +64,13 @@ struct ArticleListView: View {
         switch filter {
         case .all:
             return articles
+        case .pages:
+            return articles.filter {
+                if let myArticle = $0 as? MyArticleModel {
+                    return myArticle.articleType == .page
+                }
+                return false
+            }
         case .unread:
             return articles.filter {
                 if let followingArticle = $0 as? FollowingArticleModel {
@@ -36,7 +80,31 @@ struct ArticleListView: View {
             }
         case .starred:
             return articles.filter { $0.starred != nil }
+        case .star:
+            return articles.filter { $0.starred != nil && $0.starType == .star }
+        case .plan:
+            return articles.filter { $0.starred != nil && $0.starType == .plan }
+        case .todo:
+            return articles.filter { $0.starred != nil && $0.starType == .todo }
+        case .done:
+            return articles.filter { $0.starred != nil && $0.starType == .done }
+        case .sparkles:
+            return articles.filter { $0.starred != nil && $0.starType == .sparkles }
+        case .heart:
+            return articles.filter { $0.starred != nil && $0.starType == .heart }
+        case .question:
+            return articles.filter { $0.starred != nil && $0.starType == .question }
+        case .paperplane:
+            return articles.filter { $0.starred != nil && $0.starType == .paperplane }
         }
+    }
+
+    @ViewBuilder
+    private func FilterIndicatorView(filter: ListViewFilter) -> some View {
+        Image(systemName: ListViewFilter.imageNames[filter.rawValue] ?? "line.3.horizontal.circle")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 20, height: 20, alignment: .center)
     }
 
     var body: some View {
@@ -82,17 +150,23 @@ struct ArticleListView: View {
                             if filter == aFilter {
                                 Image(systemName: "checkmark")
                             }
+                            else {
+                                Image(
+                                    systemName: ListViewFilter.imageNames[aFilter.rawValue]
+                                        ?? "line.3.horizontal.circle"
+                                )
+                            }
                             Text(ListViewFilter.buttonLabels[aFilter.rawValue] ?? aFilter.rawValue)
                         }
                     }
+                    if aFilter == .starred || aFilter == .star || aFilter == .done {
+                        Divider()
+                    }
                 }
             } label: {
-                Image(systemName: "line.3.horizontal.circle")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 20, height: 20, alignment: .center)
+                FilterIndicatorView(filter: filter)
             }
-            .padding(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 0))
+            .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 0))
             .frame(width: 40, height: 20, alignment: .leading)
             .menuIndicator(.hidden)
         }
