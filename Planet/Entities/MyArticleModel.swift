@@ -351,11 +351,17 @@ class MyArticleModel: ArticleModel, Codable {
         }
         if let attachments = attachments, attachments.count > 0 {
             if cids == nil {
-                cids = getCIDs()
+                let attachmentCIDs = getCIDs()
+                Task { @MainActor in
+                    cids = attachmentCIDs
+                }
                 try? self.save()
             }
             if let currentCIDs = cids, currentCIDs.count != attachments.count {
-                cids = getCIDs()
+                let attachmentCIDs = getCIDs()
+                Task { @MainActor in
+                    cids = attachmentCIDs
+                }
                 try? self.save()
             }
         }

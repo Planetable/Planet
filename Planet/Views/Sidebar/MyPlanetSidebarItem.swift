@@ -286,7 +286,9 @@ struct MyPlanetSidebarItem: View {
 
             Button {
                 do {
-                    try planet.rebuild()
+                    Task(priority: .background) {
+                        try await planet.rebuild()
+                    }
                 }
                 catch {
                     Task { @MainActor in

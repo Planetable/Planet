@@ -199,7 +199,9 @@ class KeyboardShortcutHelper: ObservableObject {
 
                 Button {
                     do {
-                        try self.activeMyPlanet?.rebuild()
+                        Task(priority: .background) {
+                            try await self.activeMyPlanet?.rebuild()
+                        }
                     } catch {
                         Task { @MainActor in
                             PlanetStore.shared.isShowingAlert = true

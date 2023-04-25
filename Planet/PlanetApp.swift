@@ -194,8 +194,9 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
     func setupNotification() {
         let center = UNUserNotificationCenter.current()
         center.getNotificationSettings { settings in
-            guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
-            if settings.alertSetting == .disabled {
+            debugPrint("Current notification settings: \(settings)")
+            guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional || settings.authorizationStatus == .notDetermined else { return }
+            if settings.alertSetting == .disabled || settings.authorizationStatus == .notDetermined {
                 center.requestAuthorization(options: [.alert, .badge]) { _, _ in
                 }
             } else {
@@ -282,7 +283,7 @@ extension PlanetAppDelegate {
         }
         keyManagerWindowController?.showWindow(nil)
     }
-    
+
     func createQuickShareWindow(forFiles files: [URL]) {
         guard files.count > 0 else { return }
         if quickShareWindowController != nil {
@@ -306,7 +307,7 @@ extension PlanetAppDelegate {
             }
         }
     }
-    
+
     @objc func dismissQuickShareWindowIfNeeded() {
         guard let w = quickShareWindowController?.window else { return }
         w.close()

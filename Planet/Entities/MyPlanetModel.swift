@@ -3,6 +3,7 @@ import Stencil
 import SwiftUI
 import SwiftyJSON
 import os
+import UserNotifications
 
 class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codable {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "MyPlanet")
@@ -1443,11 +1444,26 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
-    func rebuild() throws {
+    func rebuild() async throws {
         try self.copyTemplateAssets()
         try self.articles.forEach { try $0.savePublic() }
         try self.savePublic()
         NotificationCenter.default.post(name: .loadArticle, object: nil)
+        await sendNotificationForRebuild()
+    }
+
+    func sendNotificationForRebuild() async {
+        let notification = UNMutableNotificationContent()
+        notification.title = "Planet Rebuilt"
+        notification.subtitle = self.name
+        notification.interruptionLevel = .active
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: id.uuidString,
+            content: notification,
+            trigger: trigger
+        )
+        try? await UNUserNotificationCenter.current().add(request)
     }
 
     func updateTrafficAnalytics() async {
