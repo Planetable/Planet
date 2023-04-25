@@ -4,9 +4,9 @@ import SwiftyJSON
 
 actor IPFSDaemon {
     nonisolated static let publicGateways = [
-        "https://cloudflare-ipfs.com",
-        "https://dweb.link",
         "https://ipfs.io",
+        "https://dweb.link",
+        "https://cloudflare-ipfs.com",
         "https://gateway.pinata.cloud",
         "https://ipfs.fleek.co",
         "https://cf-ipfs.com",
