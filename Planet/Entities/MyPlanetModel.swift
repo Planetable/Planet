@@ -1378,6 +1378,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     videoFilename: $0.videoFilename,
                     audioFilename: $0.audioFilename,
                     attachments: $0.attachments,
+                    cids: $0.cids,
                     isIncludedInNavigation: $0.isIncludedInNavigation,
                     navigationWeight: $0.navigationWeight
                 )

@@ -14,6 +14,8 @@ class MyArticleModel: ArticleModel, Codable {
     @Published var isIncludedInNavigation: Bool? = false
     @Published var navigationWeight: Int? = 1
 
+    @Published var cids: [String: String]? = [:]
+
     // populated when initializing
     unowned var planet: MyPlanetModel! = nil
     var draft: DraftModel? = nil
@@ -57,7 +59,8 @@ class MyArticleModel: ArticleModel, Codable {
             audioDuration: getAudioDuration(name: audioFilename),
             audioByteLength: getAttachmentByteLength(name: audioFilename),
             attachments: attachments,
-            heroImage: socialImageURL?.absoluteString
+            heroImage: socialImageURL?.absoluteString,
+            cids: cids
         )
     }
     var browserURL: URL? {
@@ -87,13 +90,13 @@ class MyArticleModel: ArticleModel, Codable {
 
     enum CodingKeys: String, CodingKey {
         case id, articleType,
-             link, slug, externalLink,
-             title, content, summary,
-             created, starred, starType,
-             videoFilename, audioFilename,
-             attachments,
-             isIncludedInNavigation,
-             navigationWeight
+            link, slug, externalLink,
+            title, content, summary,
+            created, starred, starType,
+            videoFilename, audioFilename,
+            attachments, cids,
+            isIncludedInNavigation,
+            navigationWeight
     }
 
     required init(from decoder: Decoder) throws {
@@ -101,7 +104,8 @@ class MyArticleModel: ArticleModel, Codable {
         let id = try container.decode(UUID.self, forKey: .id)
         if let articleType = try container.decodeIfPresent(ArticleType.self, forKey: .articleType) {
             self.articleType = articleType
-        } else {
+        }
+        else {
             self.articleType = .blog
         }
         link = try container.decode(String.self, forKey: .link)
@@ -110,7 +114,8 @@ class MyArticleModel: ArticleModel, Codable {
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
         summary = try container.decodeIfPresent(String.self, forKey: .summary)
-        isIncludedInNavigation = try container.decodeIfPresent(Bool.self, forKey: .isIncludedInNavigation) ?? false
+        isIncludedInNavigation =
+            try container.decodeIfPresent(Bool.self, forKey: .isIncludedInNavigation) ?? false
         navigationWeight = try container.decodeIfPresent(Int.self, forKey: .navigationWeight)
         let created = try container.decode(Date.self, forKey: .created)
         let starred = try container.decodeIfPresent(Date.self, forKey: .starred)
@@ -119,6 +124,7 @@ class MyArticleModel: ArticleModel, Codable {
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
         let audioFilename = try container.decodeIfPresent(String.self, forKey: .audioFilename)
         let attachments = try container.decodeIfPresent([String].self, forKey: .attachments)
+        cids = try container.decodeIfPresent([String: String].self, forKey: .cids)
         super.init(
             id: id,
             title: title,
@@ -150,6 +156,7 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(videoFilename, forKey: .videoFilename)
         try container.encodeIfPresent(audioFilename, forKey: .audioFilename)
         try container.encodeIfPresent(attachments, forKey: .attachments)
+        try container.encodeIfPresent(cids, forKey: .cids)
     }
 
     init(
@@ -260,6 +267,25 @@ class MyArticleModel: ArticleModel, Codable {
         }
     }
 
+    func getCIDs() -> [String: String] {
+        if let attachments = attachments, attachments.count > 0 {
+            var cids: [String: String] = [:]
+            for attachment in attachments {
+                if let attachmentURL = getAttachmentURL(name: attachment) {
+                    if let attachmentCID = try? IPFSDaemon.shared.getFileCID(url: attachmentURL) {
+                        debugPrint("CID for \(attachment): \(attachmentCID)")
+                        cids[attachment] = attachmentCID
+                    }
+                    else {
+                        debugPrint("Unable to determine CID for \(attachment)")
+                    }
+                }
+            }
+            return cids
+        }
+        return [:]
+    }
+
     func getAudioDuration(name: String?) -> Int? {
         guard let name = name, let url = getAttachmentURL(name: name) else {
             return nil
@@ -322,6 +348,16 @@ class MyArticleModel: ArticleModel, Codable {
     func savePublic() throws {
         guard let template = planet.template else {
             throw PlanetError.MissingTemplateError
+        }
+        if let attachments = attachments, attachments.count > 0 {
+            if cids == nil {
+                cids = getCIDs()
+                try? self.save()
+            }
+            if let currentCIDs = cids, currentCIDs.count != attachments.count {
+                cids = getCIDs()
+                try? self.save()
+            }
         }
         let articleHTML = try template.render(article: self)
         try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
@@ -471,6 +507,7 @@ struct BackupArticleModel: Codable {
     let videoFilename: String?
     let audioFilename: String?
     let attachments: [String]?
+    let cids: [String: String]?
     let isIncludedInNavigation: Bool?
     let navigationWeight: Int?
 }
