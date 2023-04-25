@@ -415,7 +415,7 @@ actor IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
-    func getFileCID(url: URL) throws -> String {
+    nonisolated func getFileCID(url: URL) throws -> String {
         Self.logger.info("Checking file \(url.path) CID")
         do {
             let (ret, out, err) = try IPFSCommand.getFileCID(file: url).run()
