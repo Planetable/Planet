@@ -102,9 +102,12 @@ jobs:
         run: |
           xcrun stapler staple -v to-be-signed/Planet.app
 
-      - name: Prepare for Release
+      - name: Generate Planet.zip
         run: |
           ditto -c -k --keepParent to-be-signed/Planet.app Planet.zip
+
+      - name: Generate Planet.zip.dSYM.zip
+        run: |
           ditto archive/Planet.xcarchive/dSYMs/Planet.app.dSYM Planet.app.dSYM.zip
 
       - name: Release App
