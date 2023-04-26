@@ -108,7 +108,7 @@ jobs:
 
       - name: Generate Planet.zip.dSYM.zip
         run: |
-          ditto archive/Planet.xcarchive/dSYMs/Planet.app.dSYM Planet.app.dSYM.zip
+          ditto -c -k --keepParent archive/Planet.xcarchive/dSYMs/Planet.app.dSYM Planet.app.dSYM.zip
 
       - name: Release App
         uses: softprops/action-gh-release@v1
