@@ -37,6 +37,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var dWebServicesDomain: String?
     @Published var dWebServicesAPIKey: String?
 
+    @Published var pinnableEnabled: Bool? = false
+    @Published var pinnableAPIEndpoint: String?
+    @Published var pinnablePinCID: String?
+
     @Published var filebaseEnabled: Bool? = false
     @Published var filebasePinName: String?
     @Published var filebaseAPIToken: String?
@@ -263,11 +267,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(dWebServicesEnabled)
         hasher.combine(dWebServicesDomain)
         hasher.combine(dWebServicesAPIKey)
+
+        hasher.combine(pinnableEnabled)
+        hasher.combine(pinnableAPIEndpoint)
+        hasher.combine(pinnablePinCID)
+
         hasher.combine(filebaseEnabled)
         hasher.combine(filebasePinName)
         hasher.combine(filebaseAPIToken)
         hasher.combine(filebaseRequestID)
         hasher.combine(filebasePinCID)
+
         hasher.combine(customCodeHeadEnabled)
         hasher.combine(customCodeHead)
         hasher.combine(customCodeBodyStartEnabled)
@@ -318,6 +328,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.dWebServicesEnabled == rhs.dWebServicesEnabled
             && lhs.dWebServicesDomain == rhs.dWebServicesDomain
             && lhs.dWebServicesAPIKey == rhs.dWebServicesAPIKey
+            && lhs.pinnableEnabled == rhs.pinnableEnabled
+            && lhs.pinnableAPIEndpoint == rhs.pinnableAPIEndpoint
+            && lhs.pinnablePinCID == rhs.pinnablePinCID
             && lhs.filebaseEnabled == rhs.filebaseEnabled
             && lhs.filebasePinName == rhs.filebasePinName
             && lhs.filebaseAPIToken == rhs.filebaseAPIToken
@@ -349,6 +362,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer,
             twitterUsername, githubUsername, telegramUsername, mastodonUsername,
             dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey,
+            pinnableEnabled, pinnableAPIEndpoint, pinnablePinCID,
             filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, filebasePinCID,
             customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart,
             customCodeBodyEndEnabled, customCodeBodyEnd,
@@ -384,6 +398,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         dWebServicesEnabled = try container.decodeIfPresent(Bool.self, forKey: .dWebServicesEnabled)
         dWebServicesDomain = try container.decodeIfPresent(String.self, forKey: .dWebServicesDomain)
         dWebServicesAPIKey = try container.decodeIfPresent(String.self, forKey: .dWebServicesAPIKey)
+        pinnableEnabled = try container.decodeIfPresent(Bool.self, forKey: .pinnableEnabled)
+        pinnableAPIEndpoint = try container.decodeIfPresent(String.self, forKey: .pinnableAPIEndpoint)
+        pinnablePinCID = try container.decodeIfPresent(String.self, forKey: .pinnablePinCID)
         filebaseEnabled = try container.decodeIfPresent(Bool.self, forKey: .filebaseEnabled)
         filebasePinName = try container.decodeIfPresent(String.self, forKey: .filebasePinName)
         filebaseAPIToken = try container.decodeIfPresent(String.self, forKey: .filebaseAPIToken)
@@ -447,6 +464,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(dWebServicesEnabled, forKey: .dWebServicesEnabled)
         try container.encodeIfPresent(dWebServicesDomain, forKey: .dWebServicesDomain)
         try container.encodeIfPresent(dWebServicesAPIKey, forKey: .dWebServicesAPIKey)
+        try container.encodeIfPresent(pinnableEnabled, forKey: .pinnableEnabled)
+        try container.encodeIfPresent(pinnableAPIEndpoint, forKey: .pinnableAPIEndpoint)
+        try container.encodeIfPresent(pinnablePinCID, forKey: .pinnablePinCID)
         try container.encodeIfPresent(filebaseEnabled, forKey: .filebaseEnabled)
         try container.encodeIfPresent(filebasePinName, forKey: .filebasePinName)
         try container.encodeIfPresent(filebaseAPIToken, forKey: .filebaseAPIToken)
@@ -696,6 +716,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         if backupPlanet.dWebServicesAPIKey != nil {
             planet.dWebServicesAPIKey = backupPlanet.dWebServicesAPIKey
+        }
+
+        // Restore Pinnable
+        if backupPlanet.pinnableEnabled != nil {
+            planet.pinnableEnabled = backupPlanet.pinnableEnabled
+        }
+        if backupPlanet.pinnableAPIEndpoint != nil {
+            planet.pinnableAPIEndpoint = backupPlanet.pinnableAPIEndpoint
+        }
+        if backupPlanet.pinnablePinCID != nil {
+            planet.pinnablePinCID = backupPlanet.pinnablePinCID
         }
 
         // Restore Filebase
@@ -1293,6 +1324,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Task(priority: .background) {
             await self.prewarm()
         }
+        Task(priority: .background) {
+            await self.callPinnable()
+        }
         if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
             Task {
                 try? await PlanetAPIHelper.shared.relaunch()
@@ -1310,6 +1344,32 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         catch {
             debugPrint("Failed to prewarm \(name): \(error)")
+        }
+    }
+
+    func callPinnable() async {
+        if let enabled = self.pinnableEnabled, !enabled {
+            return
+        }
+        guard let pinnableAPIEndpoint = self.pinnableAPIEndpoint else {
+            return
+        }
+        guard let pinnableAPIURL = URL(string: pinnableAPIEndpoint) else {
+            return
+        }
+        // Call pinnable API
+        guard let (data, resp) = try? await URLSession.shared.data(from: pinnableAPIURL)
+        else {
+            debugPrint("Call Pinnable.xyz API: Invalid URLResponse")
+            return
+        }
+        guard let httpResp = resp as? HTTPURLResponse else {
+            debugPrint("Call Pinnable.xyz API: Invalid HTTPResponse")
+            return
+        }
+        guard httpResp.statusCode == 202 else {
+            debugPrint("Call Pinnable.xyz API: Unexpected HTTP Status Code \(httpResp.statusCode)")
+            return
         }
     }
 
@@ -1347,6 +1407,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             dWebServicesEnabled: dWebServicesEnabled,
             dWebServicesDomain: dWebServicesDomain,
             dWebServicesAPIKey: dWebServicesAPIKey,
+            pinnableEnabled: pinnableEnabled,
+            pinnableAPIEndpoint: pinnableAPIEndpoint,
+            pinnablePinCID: pinnablePinCID,
             filebaseEnabled: filebaseEnabled,
             filebasePinName: filebasePinName,
             filebaseAPIToken: filebaseAPIToken,
@@ -1607,6 +1670,9 @@ struct BackupMyPlanetModel: Codable {
     let dWebServicesEnabled: Bool?
     let dWebServicesDomain: String?
     let dWebServicesAPIKey: String?
+    let pinnableEnabled: Bool?
+    let pinnableAPIEndpoint: String?
+    let pinnablePinCID: String?
     let filebaseEnabled: Bool?
     let filebasePinName: String?
     let filebaseAPIToken: String?

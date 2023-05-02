@@ -36,6 +36,10 @@ struct MyPlanetEditView: View {
     @State private var juiceboxProjectID: String
     @State private var juiceboxProjectIDGoerli: String
 
+    @State private var pinnableEnabled: Bool = false
+    @State private var pinnableAPIEndpoint: String
+    @State private var pinnablePinCID: String? = nil
+
     @State private var filebaseEnabled: Bool = false
     @State private var filebasePinName: String
     @State private var filebaseAPIToken: String
@@ -64,10 +68,196 @@ struct MyPlanetEditView: View {
         _dWebServicesAPIKey = State(wrappedValue: planet.dWebServicesAPIKey ?? "")
         _juiceboxEnabled = State(wrappedValue: planet.juiceboxEnabled ?? false)
         _juiceboxProjectID = State(wrappedValue: planet.juiceboxProjectID?.stringValue() ?? "")
-        _juiceboxProjectIDGoerli = State(wrappedValue: planet.juiceboxProjectIDGoerli?.stringValue() ?? "")
+        _juiceboxProjectIDGoerli = State(
+            wrappedValue: planet.juiceboxProjectIDGoerli?.stringValue() ?? ""
+        )
+        _pinnableEnabled = State(wrappedValue: planet.pinnableEnabled ?? false)
+        _pinnableAPIEndpoint = State(wrappedValue: planet.pinnableAPIEndpoint ?? "")
+        _pinnablePinCID = State(wrappedValue: planet.pinnablePinCID ?? nil)
         _filebaseEnabled = State(wrappedValue: planet.filebaseEnabled ?? false)
         _filebasePinName = State(wrappedValue: planet.filebasePinName ?? "")
         _filebaseAPIToken = State(wrappedValue: planet.filebaseAPIToken ?? "")
+    }
+
+    @ViewBuilder
+    private func pinnableView() -> some View {
+        HStack {
+            HStack {
+                Spacer()
+            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
+            Toggle("Enable Pinnable for Pinning", isOn: $pinnableEnabled)
+                .toggleStyle(.checkbox)
+                .frame(alignment: .leading)
+            Spacer()
+        }
+
+        HStack {
+            HStack {
+                Text("API Endpoint")
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+            TextField("", text: $pinnableAPIEndpoint)
+                .textFieldStyle(.roundedBorder)
+        }
+
+        if let enabled = planet.pinnableEnabled, enabled {
+            HStack {
+                HStack {
+                    Text("Pin Status")
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                Spacer()
+            }.onAppear {
+                Task {
+
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func filebaseView() -> some View {
+        HStack {
+            HStack {
+                Spacer()
+            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
+            Toggle("Enable Filebase for Pinning", isOn: $filebaseEnabled)
+                .toggleStyle(.checkbox)
+                .frame(alignment: .leading)
+            Spacer()
+        }
+
+        HStack {
+            HStack {
+                Text("Pin Name")
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+            TextField("", text: $filebasePinName)
+                .textFieldStyle(.roundedBorder)
+        }
+
+        HStack {
+            HStack {
+                Text("API Token")
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+            SecureField("", text: $filebaseAPIToken)
+                .textFieldStyle(.roundedBorder)
+        }
+
+        if let requestID = planet.filebaseRequestID {
+            HStack {
+                HStack {
+                    Text("Request ID")
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                Text(requestID).font(.footnote)
+
+                Spacer()
+            }
+        }
+
+        if let hasFilebase = planet.filebaseEnabled, hasFilebase {
+            HStack {
+                HStack {
+                    Text("Pin Status")
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                if let pinStatus = filebasePinStatus {
+                    Button {
+                        if let cid = filebasePinCID,
+                            let url = URL(
+                                string: "https://ipfs.filebase.io/ipfs/\(cid)"
+                            )
+                        {
+                            debugPrint("Filebase: Open preview URL \(url)")
+                            NSWorkspace.shared.open(url)
+                        }
+                        else {
+                            debugPrint("Filebase: Preview URL is not available")
+                        }
+                    } label: {
+                        switch pinStatus {
+                        case "pinned":
+                            Label(
+                                pinStatus.capitalized,
+                                systemImage: "checkmark.circle.fill"
+                            )
+                        case "pinning":
+                            Label(
+                                pinStatus.capitalized,
+                                systemImage: "ellipsis.circle.fill"
+                            )
+                        case "queued":
+                            Label(
+                                pinStatus.capitalized,
+                                systemImage: "hourglass.bottomhalf.filled"
+                            )
+                        default:
+                            Label(
+                                pinStatus.capitalized,
+                                systemImage: "questionmark.circle"
+                            )
+                        }
+                    }
+
+                    if let message = filebasePinStatusMessage {
+                        Button {
+                            NSWorkspace.shared.open(
+                                URL(string: "https://console.filebase.com/keys")!
+                            )
+                        } label: {
+                            Label(message, systemImage: "exclamationmark.triangle.fill")
+                        }.buttonStyle(.link)
+                    }
+
+                    Spacer()
+                }
+                else {
+                    ProgressView()
+                        .progressViewStyle(.linear)
+                }
+            }.onAppear {
+                Task {
+                    if let filebaseEnabled = planet.filebaseEnabled,
+                        filebaseEnabled,
+                        let filebasePinName = planet.filebasePinName,
+                        let filebaseAPIToken = planet.filebaseAPIToken,
+                        let filebaseRequestID = planet.filebaseRequestID
+                    {
+                        let filebase = Filebase(
+                            pinName: filebasePinName,
+                            apiToken: filebaseAPIToken
+                        )
+                        let (pin, message) = await filebase.checkPinStatus(
+                            requestID: filebaseRequestID
+                        )
+                        if let pin = pin {
+                            filebasePinStatus = pin.status
+                            filebasePinCID = pin.cid
+                        }
+                        else {
+                            filebasePinStatus = "Unknown"
+                            if let message = message {
+                                filebasePinStatusMessage = message
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     var body: some View {
@@ -109,11 +299,13 @@ struct MyPlanetEditView: View {
                             }
                             .frame(width: CONTROL_CAPTION_WIDTH + 10)
 
-                            Text("This domain will be used in places that need a domain prefix, like for RSS or Podcast feeds.")
-                                .lineLimit(2)
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
+                            Text(
+                                "This domain will be used in places that need a domain prefix, like for RSS or Podcast feeds."
+                            )
+                            .lineLimit(2)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
 
                         }
 
@@ -273,141 +465,13 @@ struct MyPlanetEditView: View {
                     .tag("social")
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
-                        HStack {
-                            HStack {
-                                Spacer()
-                            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
-                            Toggle("Enable Filebase for Pinning", isOn: $filebaseEnabled)
-                                .toggleStyle(.checkbox)
-                                .frame(alignment: .leading)
-                            Spacer()
-                        }
+                        pinnableView()
 
-                        HStack {
-                            HStack {
-                                Text("Pin Name")
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+                        Divider()
+                        .padding(.top, 6)
+                        .padding(.bottom, 6)
 
-                            TextField("", text: $filebasePinName)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
-                        HStack {
-                            HStack {
-                                Text("API Token")
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
-
-                            SecureField("", text: $filebaseAPIToken)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
-                        if let requestID = planet.filebaseRequestID {
-                            HStack {
-                                HStack {
-                                    Text("Request ID")
-                                    Spacer()
-                                }
-                                .frame(width: CONTROL_CAPTION_WIDTH + 20)
-
-                                Text(requestID).font(.footnote)
-
-                                Spacer()
-                            }
-                        }
-
-                        if let hasFilebase = planet.filebaseEnabled, hasFilebase {
-                            HStack {
-                                HStack {
-                                    Text("Pin Status")
-                                    Spacer()
-                                }
-                                .frame(width: CONTROL_CAPTION_WIDTH + 20)
-
-                                if let pinStatus = filebasePinStatus {
-                                    Button {
-                                        if let cid = filebasePinCID,
-                                            let url = URL(
-                                                string: "https://ipfs.filebase.io/ipfs/\(cid)"
-                                            )
-                                        {
-                                            debugPrint("Filebase: Open preview URL \(url)")
-                                            NSWorkspace.shared.open(url)
-                                        }
-                                        else {
-                                            debugPrint("Filebase: Preview URL is not available")
-                                        }
-                                    } label: {
-                                        switch pinStatus {
-                                        case "pinned":
-                                            Label(
-                                                pinStatus.capitalized,
-                                                systemImage: "checkmark.circle.fill"
-                                            )
-                                        case "pinning":
-                                            Label(
-                                                pinStatus.capitalized,
-                                                systemImage: "ellipsis.circle.fill"
-                                            )
-                                        case "queued":
-                                            Label(
-                                                pinStatus.capitalized,
-                                                systemImage: "hourglass.bottomhalf.filled"
-                                            )
-                                        default:
-                                            Label(
-                                                pinStatus.capitalized,
-                                                systemImage: "questionmark.circle"
-                                            )
-                                        }
-                                    }
-                                    if let message = filebasePinStatusMessage {
-                                        Button {
-                                            NSWorkspace.shared.open(URL(string: "https://console.filebase.com/keys")!)
-                                        } label: {
-                                            Label(message, systemImage: "exclamationmark.triangle.fill")
-                                        }.buttonStyle(.link)
-                                    }
-                                }
-                                else {
-                                    ProgressView()
-                                        .progressViewStyle(.linear)
-                                        .frame(height: 8)
-                                }
-
-                                Spacer()
-                            }.onAppear {
-                                Task {
-                                    if let filebaseEnabled = planet.filebaseEnabled,
-                                        filebaseEnabled,
-                                        let filebasePinName = planet.filebasePinName,
-                                        let filebaseAPIToken = planet.filebaseAPIToken,
-                                        let filebaseRequestID = planet.filebaseRequestID
-                                    {
-                                        let filebase = Filebase(
-                                            pinName: filebasePinName,
-                                            apiToken: filebaseAPIToken
-                                        )
-                                        let (pin, message) = await filebase.checkPinStatus(
-                                            requestID: filebaseRequestID
-                                        )
-                                        if let pin = pin {
-                                            filebasePinStatus = pin.status
-                                            filebasePinCID = pin.cid
-                                        }
-                                        else {
-                                            filebasePinStatus = "Unknown"
-                                            if let message = message {
-                                                filebasePinStatusMessage = message
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        filebaseView()
                     }
                     .padding(16)
                     .tabItem {
@@ -424,7 +488,11 @@ struct MyPlanetEditView: View {
                                 .toggleStyle(.checkbox)
                                 .frame(alignment: .leading)
                             Spacer()
-                            HelpLinkButton(helpLink: URL(string: "https://www.planetable.xyz/guides/juicebox/")!)
+                            HelpLinkButton(
+                                helpLink: URL(
+                                    string: "https://www.planetable.xyz/guides/juicebox/"
+                                )!
+                            )
                         }
 
                         HStack {
@@ -450,6 +518,8 @@ struct MyPlanetEditView: View {
                         }
 
                         Divider()
+                            .padding(.top, 6)
+                            .padding(.bottom, 6)
 
                         HStack {
                             HStack {
@@ -459,7 +529,11 @@ struct MyPlanetEditView: View {
                                 .toggleStyle(.checkbox)
                                 .frame(alignment: .leading)
                             Spacer()
-                            HelpLinkButton(helpLink: URL(string: "https://www.planetable.xyz/guides/dweb-services-xyz/")!)
+                            HelpLinkButton(
+                                helpLink: URL(
+                                    string: "https://www.planetable.xyz/guides/dweb-services-xyz/"
+                                )!
+                            )
                         }
 
                         HStack {
@@ -503,6 +577,9 @@ struct MyPlanetEditView: View {
                     .keyboardShortcut(.escape, modifiers: [])
 
                     Button {
+                        if verifyUserInput() > 0 {
+                            return
+                        }
                         if !name.trim().isEmpty {
                             planet.name = name.trim()
                         }
@@ -511,7 +588,8 @@ struct MyPlanetEditView: View {
                         if planet.authorName != authorName {
                             if authorName == "" {
                                 planet.authorName = nil
-                            } else {
+                            }
+                            else {
                                 planet.authorName = authorName.trim()
                             }
                         }
@@ -530,6 +608,8 @@ struct MyPlanetEditView: View {
                         planet.juiceboxEnabled = juiceboxEnabled
                         planet.juiceboxProjectID = Int(juiceboxProjectID)
                         planet.juiceboxProjectIDGoerli = Int(juiceboxProjectIDGoerli)
+                        planet.pinnableEnabled = pinnableEnabled
+                        planet.pinnableAPIEndpoint = pinnableAPIEndpoint
                         planet.filebaseEnabled = filebaseEnabled
                         planet.filebasePinName = filebasePinName
                         planet.filebaseAPIToken = filebaseAPIToken
@@ -553,5 +633,13 @@ struct MyPlanetEditView: View {
         }
         .padding(0)
         .frame(width: 520, height: nil, alignment: .top)
+    }
+}
+
+extension MyPlanetEditView {
+    func verifyUserInput() -> Int {
+        var errors: Int = 0
+        // TODO: Better sanity check goes here
+        return errors
     }
 }

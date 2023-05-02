@@ -302,6 +302,16 @@ struct MyPlanetSidebarItem: View {
             }
             .keyboardShortcut("r", modifiers: [.command])
 
+            if let enabled = planet.pinnableEnabled, enabled {
+                Button {
+                    Task(priority: .background) {
+                        await planet.callPinnable()
+                    }
+                } label: {
+                    Text("Check with Pinnable")
+                }
+            }
+
             Divider()
         }
     }

@@ -351,6 +351,7 @@ class MyArticleModel: ArticleModel, Codable {
         }
         if let attachments = attachments, attachments.count > 0 {
             if cids == nil {
+                debugPrint("Article \(self.title) has attachments but no CIDs.")
                 let attachmentCIDs = getCIDs()
                 Task { @MainActor in
                     cids = attachmentCIDs
@@ -358,6 +359,7 @@ class MyArticleModel: ArticleModel, Codable {
                 try? self.save()
             }
             if let currentCIDs = cids, currentCIDs.count != attachments.count {
+                debugPrint("Article \(self.title) has attachments but CIDs count mismatch.")
                 let attachmentCIDs = getCIDs()
                 Task { @MainActor in
                     cids = attachmentCIDs
