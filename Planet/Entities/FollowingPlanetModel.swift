@@ -1104,9 +1104,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     await MainActor.run {
                         cid = newCID
                         lastRetrieved = Date()
+                        try? save()
                     }
 
-                    try save()
                     return
                 }
             }
@@ -1147,7 +1147,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }
             }
 
-            try save()
+            await MainActor.run {
+                try? save()
+            }
             return
         case .ens:
             guard let resolver = try await ENSUtils.shared.resolver(name: link) else {
@@ -1164,7 +1166,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     self.walletAddressResolvedAt = Date()
                 }
                 if saveNow {
-                    try save()
+                    await MainActor.run {
+                        try? save()
+                    }
                 }
             }
             else {
@@ -1308,7 +1312,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }
             }
 
-            try save()
+            await MainActor.run {
+                try? save()
+            }
             return
         case .dotbit:
             guard let dweb = await DotBitKit.shared.resolve(link) else {
@@ -1433,7 +1439,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }
             }
 
-            try save()
+            await MainActor.run {
+                try? save()
+            }
             return
         case .dns:
             guard let feedURL = URL(string: link) else {
@@ -1521,7 +1529,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }
             }
 
-            try save()
+            await MainActor.run {
+                try? save()
+            }
             return
         }
     }

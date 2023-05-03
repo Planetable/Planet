@@ -39,6 +39,7 @@ struct MyPlanetEditView: View {
     @State private var pinnableEnabled: Bool = false
     @State private var pinnableAPIEndpoint: String
     @State private var pinnablePinCID: String? = nil
+    @State private var pinnablePinStatus: PinnablePinStatus? = nil
 
     @State private var filebaseEnabled: Bool = false
     @State private var filebasePinName: String
@@ -110,10 +111,35 @@ struct MyPlanetEditView: View {
                 }
                 .frame(width: CONTROL_CAPTION_WIDTH + 20)
 
-                Spacer()
+                if let status = pinnablePinStatus {
+                    Button {
+
+                    } label: {
+                        if let cid = pinnablePinCID {
+                            if cid == planet.lastPublishedCID {
+                                Label("Pinned", systemImage: "checkmark.circle.fill")
+                            } else {
+                                Label("Pinning", systemImage: "ellipsis")
+                            }
+                        } else {
+                            Label("Error", systemImage: "exclamationmark.triangle.fill")
+                        }
+                    }
+
+                    Spacer()
+                } else {
+                    ProgressView()
+                        .progressViewStyle(.linear)
+                }
             }.onAppear {
                 Task {
-
+                    if let status = await planet.checkPinnablePinStatus()
+                    {
+                        pinnablePinStatus = status
+                        if let cid = status.last_known_cid {
+                            pinnablePinCID = cid
+                        }
+                    }
                 }
             }
         }

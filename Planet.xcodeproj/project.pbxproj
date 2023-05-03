@@ -117,6 +117,7 @@
 		6A7189692947FD0500279D77 /* Web3 in Frameworks */ = {isa = PBXBuildFile; productRef = 6A7189682947FD0500279D77 /* Web3 */; };
 		6A71896B2947FD0500279D77 /* Web3ContractABI in Frameworks */ = {isa = PBXBuildFile; productRef = 6A71896A2947FD0500279D77 /* Web3ContractABI */; };
 		6A71896D2947FD0500279D77 /* Web3PromiseKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6A71896C2947FD0500279D77 /* Web3PromiseKit */; };
+		6A8776D42A01B78800C6003B /* Pinnable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8776D32A01B78800C6003B /* Pinnable.swift */; };
 		6A8C3A6728C9361800339A86 /* DotBitKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8C3A6628C9361800339A86 /* DotBitKit.swift */; };
 		6A900193296C9F3800BC088E /* MyArticleSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */; };
 		6A9C211029792464005A815E /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A9C210F29792464005A815E /* AVKit.framework */; };
@@ -313,6 +314,7 @@
 		6A6A146528215587009644B6 /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
 		6A6A1467282159DC009644B6 /* TemplateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateStore.swift; sourceTree = "<group>"; };
 		6A7189652947FA2D00279D77 /* WalletConnectV2QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV2QRCodeView.swift; sourceTree = "<group>"; };
+		6A8776D32A01B78800C6003B /* Pinnable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pinnable.swift; sourceTree = "<group>"; };
 		6A8C3A6628C9361800339A86 /* DotBitKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotBitKit.swift; sourceTree = "<group>"; };
 		6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyArticleSettingsView.swift; sourceTree = "<group>"; };
 		6A9C210F29792464005A815E /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
@@ -730,6 +732,7 @@
 				6A2F5F1028DB74C500034D55 /* Filebase.swift */,
 				6A2F5F1228DB75F700034D55 /* Plausible.swift */,
 				6A2F5F1428DB767A00034D55 /* dWebServices.swift */,
+				6A8776D32A01B78800C6003B /* Pinnable.swift */,
 			);
 			path = Integrations;
 			sourceTree = "<group>";
@@ -1012,6 +1015,7 @@
 				2A2F70EC2967057100755931 /* WriterTitleView.swift in Sources */,
 				2AA7974829496F730031E873 /* PlanetPublishedFolders+Extension.swift in Sources */,
 				6AABC6AC291A698B009FD13F /* WalletConnectV1QRCodeView.swift in Sources */,
+				6A8776D42A01B78800C6003B /* Pinnable.swift in Sources */,
 				6A2B9BE627ED24A00005467C /* FollowingArticleItemView.swift in Sources */,
 				2A7D1BF427CA1B0A00D3C091 /* MyPlanetEditView.swift in Sources */,
 				6ADF40B92914D88C007A24E8 /* MyPlanetIPNSView.swift in Sources */,

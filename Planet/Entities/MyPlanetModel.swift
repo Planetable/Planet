@@ -1295,8 +1295,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     Task { @MainActor in
                         self.filebaseRequestID = requestID
                         self.filebasePinCID = cid
+                        try self.save()
                     }
-                    try save()
                 }
             }
             else {
@@ -1319,8 +1319,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Task { @MainActor in
             self.lastPublished = Date()
             self.lastPublishedCID = cid
+            try self.save()
         }
-        try save()
         Task(priority: .background) {
             await self.prewarm()
         }
@@ -1354,23 +1354,22 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         guard let pinnableAPIEndpoint = self.pinnableAPIEndpoint else {
             return
         }
-        guard let pinnableAPIURL = URL(string: pinnableAPIEndpoint) else {
-            return
+        let pinnable = Pinnable(api: pinnableAPIEndpoint)
+        await pinnable.pin()
+    }
+
+    func checkPinnablePinStatus() async -> PinnablePinStatus? {
+        if let enabled = self.pinnableEnabled, !enabled {
+            return nil
         }
-        // Call pinnable API
-        guard let (data, resp) = try? await URLSession.shared.data(from: pinnableAPIURL)
-        else {
-            debugPrint("Call Pinnable.xyz API: Invalid URLResponse")
-            return
+        guard let pinnableAPIEndpoint = self.pinnableAPIEndpoint else {
+            return nil
         }
-        guard let httpResp = resp as? HTTPURLResponse else {
-            debugPrint("Call Pinnable.xyz API: Invalid HTTPResponse")
-            return
+        let pinnable = Pinnable(api: pinnableAPIEndpoint)
+        guard let status = await pinnable.status() else {
+            return nil
         }
-        guard httpResp.statusCode == 202 else {
-            debugPrint("Call Pinnable.xyz API: Unexpected HTTP Status Code \(httpResp.statusCode)")
-            return
-        }
+        return status
     }
 
     func exportBackup(to directory: URL, isForAirDropSharing: Bool = false) throws {
