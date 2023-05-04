@@ -69,7 +69,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "365b84b3718ad98ed38bead48c22de3283d3983c"
+        "revision" : "80259ad28dce0bff4af265ccfada77d44ca4b361"
       }
     },
     {
@@ -149,8 +149,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/scinfu/SwiftSoup.git",
       "state" : {
-        "revision" : "f707b8680cddb96dc1855632340a572ef37bbb98",
-        "version" : "2.5.3"
+        "revision" : "0e96a20ffd37a515c5c963952d4335c89bed50a6",
+        "version" : "2.6.0"
       }
     },
     {
@@ -186,7 +186,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "667c76e3ceee1805de99b55724de9b971cc8ff17"
+        "revision" : "cd55d281ae7cb3c5d14524d0147b9d557cdd1af5"
       }
     },
     {
