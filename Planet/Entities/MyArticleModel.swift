@@ -276,7 +276,7 @@ class MyArticleModel: ArticleModel, Codable {
             var cids: [String: String] = [:]
             for attachment in attachments {
                 if let attachmentURL = getAttachmentURL(name: attachment) {
-                    if let attachmentCID = try? IPFSDaemon.shared.getFileCID(url: attachmentURL) {
+                    if let attachmentCID = try? IPFSDaemon.shared.getFileCIDv0(url: attachmentURL) {
                         debugPrint("CID for \(attachment): \(attachmentCID)")
                         cids[attachment] = attachmentCID
                     }
@@ -292,12 +292,12 @@ class MyArticleModel: ArticleModel, Codable {
 
     func getNFTJSONCID() -> String? {
         if let nftJSONURL = getAttachmentURL(name: "nft.json") {
-            if let nftJSONCID = try? IPFSDaemon.shared.getFileCID(url: nftJSONURL) {
-                debugPrint("CID for NFT metadata nft.json: \(nftJSONCID)")
+            if let nftJSONCID = try? IPFSDaemon.shared.getFileCIDv0(url: nftJSONURL) {
+                debugPrint("CIDv0 for NFT metadata nft.json: \(nftJSONCID)")
                 return nftJSONCID
             }
             else {
-                debugPrint("Unable to determine CID for NFT metadata nft.json")
+                debugPrint("Unable to determine CIDv0 for NFT metadata nft.json")
             }
         }
         return nil
@@ -367,19 +367,10 @@ class MyArticleModel: ArticleModel, Codable {
             throw PlanetError.MissingTemplateError
         }
         if let attachments = attachments, attachments.count > 0 {
-            if self.cids == nil {
-                debugPrint("Article \(self.title) has attachments but no CIDs.")
-                let attachmentCIDs = getCIDs()
-                self.cids = attachmentCIDs
-                try? self.save()
-            }
-            if let currentCIDs = self.cids, currentCIDs.count != attachments.count {
-                debugPrint("Article \(self.title) has attachments but CIDs count mismatch.")
-                let attachmentCIDs = getCIDs()
-                debugPrint("Article \(self.title) has these CIDs: \(attachmentCIDs)")
-                self.cids = attachmentCIDs
-                try? self.save()
-            }
+            // TODO: Optimize this part later because currently we have both v0/v1 CIDs so it would be simpler to just generate them again to ensure it's v0
+            let attachmentCIDs = getCIDs()
+            self.cids = attachmentCIDs
+            try? self.save()
         }
         if let cids = self.cids, cids.count > 0, let firstKeyValuePair = cids.first,
             let generateNFTMetadata = template.generateNFTMetadata, generateNFTMetadata

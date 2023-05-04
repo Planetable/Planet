@@ -184,6 +184,10 @@ struct IPFSCommand {
         IPFSCommand(arguments: ["add", file.path, "--quieter", "--cid-version=1", "--only-hash"])
     }
 
+    static func getFileCIDv0(file: URL) -> IPFSCommand {
+        IPFSCommand(arguments: ["add", file.path, "--quieter", "--cid-version=0", "--pin"])
+    }
+
     static func exportKey(name: String, target: URL, format: String = "") -> IPFSCommand {
         var arguments: [String] = ["key", "export", name, "-o", target.path]
         if format != "" {

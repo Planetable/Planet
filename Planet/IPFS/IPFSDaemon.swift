@@ -447,6 +447,38 @@ actor IPFSDaemon {
         throw IPFSDaemonError.IPFSCLIError
     }
 
+    nonisolated func getFileCIDv0(url: URL) throws -> String {
+        Self.logger.info("Checking file \(url.path) CIDv0")
+        do {
+            let (ret, out, err) = try IPFSCommand.getFileCIDv0(file: url).run()
+            if ret == 0 {
+                if let cid = String(data: out, encoding: .utf8)?.trim() {
+                    Self.logger.info("File \(url.path) CIDv0 \(cid)")
+                    return cid
+                }
+                Self.logger.error("Failed to check file CIDv0: \(String(describing: out))")
+            } else {
+                Self.logger.error(
+                    """
+                    Failed to add check file CIDv0: process returned \(ret)
+                    [stdout]
+                    \(out.logFormat())
+                    [stderr]
+                    \(err.logFormat())
+                    """
+                )
+            }
+        } catch {
+            Self.logger.error(
+                """
+                Failed to check file CIDv0: error when running IPFS process, \
+                cause: \(String(describing: error))
+                """
+            )
+        }
+        throw IPFSDaemonError.IPFSCLIError
+    }
+
     func resolveIPNSorDNSLink(name: String) async throws -> String {
         Self.logger.info("Resolving IPNS or DNSLink \(name)")
         do {
