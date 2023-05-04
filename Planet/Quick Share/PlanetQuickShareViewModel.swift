@@ -77,7 +77,7 @@ class PlanetQuickShareViewModel: ObservableObject {
         if let attachments = draft?.attachments {
             for attachment in attachments {
                 if let markdown = attachment.markdown {
-                    finalContent += markdown + "</br>"
+                    finalContent += markdown + "\n\n\n"
                 }
             }
         }

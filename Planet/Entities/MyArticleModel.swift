@@ -36,6 +36,10 @@ class MyArticleModel: ArticleModel, Codable {
         "article.json",
         isDirectory: false
     )
+    lazy var publicNFTMetadataPath = publicBasePath.appendingPathComponent(
+        "nft.json",
+        isDirectory: false
+    )
 
     var publicArticle: PublicArticleModel {
         PublicArticleModel(
@@ -286,6 +290,19 @@ class MyArticleModel: ArticleModel, Codable {
         return [:]
     }
 
+    func getNFTJSONCID() -> String? {
+        if let nftJSONURL = getAttachmentURL(name: "nft.json") {
+            if let nftJSONCID = try? IPFSDaemon.shared.getFileCID(url: nftJSONURL) {
+                debugPrint("CID for NFT metadata nft.json: \(nftJSONCID)")
+                return nftJSONCID
+            }
+            else {
+                debugPrint("Unable to determine CID for NFT metadata nft.json")
+            }
+        }
+        return nil
+    }
+
     func getAudioDuration(name: String?) -> Int? {
         guard let name = name, let url = getAttachmentURL(name: name) else {
             return nil
@@ -350,22 +367,42 @@ class MyArticleModel: ArticleModel, Codable {
             throw PlanetError.MissingTemplateError
         }
         if let attachments = attachments, attachments.count > 0 {
-            if cids == nil {
+            if self.cids == nil {
                 debugPrint("Article \(self.title) has attachments but no CIDs.")
                 let attachmentCIDs = getCIDs()
-                Task { @MainActor in
-                    cids = attachmentCIDs
-                }
+                self.cids = attachmentCIDs
                 try? self.save()
             }
-            if let currentCIDs = cids, currentCIDs.count != attachments.count {
+            if let currentCIDs = self.cids, currentCIDs.count != attachments.count {
                 debugPrint("Article \(self.title) has attachments but CIDs count mismatch.")
                 let attachmentCIDs = getCIDs()
-                Task { @MainActor in
-                    cids = attachmentCIDs
-                }
+                debugPrint("Article \(self.title) has these CIDs: \(attachmentCIDs)")
+                self.cids = attachmentCIDs
                 try? self.save()
             }
+        }
+        if let cids = self.cids, cids.count > 0, let firstKeyValuePair = cids.first,
+            let generateNFTMetadata = template.generateNFTMetadata, generateNFTMetadata
+        {
+            debugPrint("Writing NFT metadata for \(self.title) \(cids)")
+            let (firstKey, firstValue) = firstKeyValuePair
+            let nft = NFTMetadata(
+                name: self.title,
+                description: self.summary ?? firstKey,
+                image: "https://ipfs.io/ipfs/\(firstValue)",
+                external_url: (self.externalLink ?? self.browserURL?.absoluteString) ?? ""
+            )
+            let nftData = try JSONEncoder.shared.encode(nft)
+            try nftData.write(to: publicNFTMetadataPath)
+            let nftMetadataCID = self.getNFTJSONCID()
+            debugPrint("NFT metadata CID: \(nftMetadataCID ?? "nil")")
+            let nftMetadataCIDPath = publicBasePath.appendingPathComponent("nft.json.cid.txt")
+            try? nftMetadataCID?.write(to: nftMetadataCIDPath, atomically: true, encoding: .utf8)
+        }
+        else {
+            debugPrint(
+                "Not writing NFT metadata for \(self.title) and CIDs: \(self.cids) \(template.generateNFTMetadata)"
+            )
         }
         let articleHTML = try template.render(article: self)
         try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
@@ -518,4 +555,11 @@ struct BackupArticleModel: Codable {
     let cids: [String: String]?
     let isIncludedInNavigation: Bool?
     let navigationWeight: Int?
+}
+
+struct NFTMetadata: Codable {
+    let name: String
+    let description: String
+    let image: String
+    let external_url: String
 }

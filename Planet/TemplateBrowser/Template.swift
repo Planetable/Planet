@@ -20,6 +20,7 @@ class Template: Codable, Identifiable {
     let version: String
     var idealItemsPerPage: Int? = 10
     var buildNumber: Int? = 1
+    var generateNFTMetadata: Bool? = false
 
     var id: String { name }
 
@@ -58,6 +59,7 @@ class Template: Codable, Identifiable {
         case version
         case idealItemsPerPage
         case buildNumber
+        case generateNFTMetadata
     }
 
     required init(from decoder: Decoder) throws {
@@ -68,6 +70,7 @@ class Template: Codable, Identifiable {
         version = try container.decode(String.self, forKey: .version)
         idealItemsPerPage = try container.decodeIfPresent(Int.self, forKey: .idealItemsPerPage)
         buildNumber = try container.decodeIfPresent(Int.self, forKey: .buildNumber)
+        generateNFTMetadata = try container.decodeIfPresent(Bool.self, forKey: .generateNFTMetadata)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -78,6 +81,7 @@ class Template: Codable, Identifiable {
         try container.encode(version, forKey: .version)
         try container.encodeIfPresent(idealItemsPerPage, forKey: .idealItemsPerPage)
         try container.encodeIfPresent(buildNumber, forKey: .buildNumber)
+        try container.encodeIfPresent(generateNFTMetadata, forKey: .generateNFTMetadata)
     }
 
     static func from(path: URL) -> Template? {

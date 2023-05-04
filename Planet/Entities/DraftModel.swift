@@ -183,7 +183,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         )
         draft.attachments = try publicArticleFiles
             // exclude index.html, article.json
-            .filter { !["index.html", "article.json", "_videoThumbnail.png", "_grid.jpg", "_grid.png"].contains($0.lastPathComponent) }
+            .filter { !["index.html", "article.json", "nft.json", "nft.json.cid.txt", "_videoThumbnail.png", "_grid.jpg", "_grid.png"].contains($0.lastPathComponent) }
             .map { filePath in
                 let attachment = Attachment(name: filePath.lastPathComponent, type: AttachmentType.from(filePath))
                 attachment.draft = draft
@@ -334,6 +334,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             try FileManager.default.copyItem(at: attachment.path, to: targetPath)
         }
         article.attachments = currentAttachments
+        article.cids = article.getCIDs()
         article.videoFilename = videoFilename
         article.audioFilename = audioFilename
         if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content), let soup = try? SwiftSoup.parseBodyFragment(contentHTML), let summary = try? soup.text() {
@@ -389,7 +390,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             try FileManager.default.removeItem(at: basePath)
         }
     }
-    
+
     // MARK: -
 
     private func processAttachment(forFileName name: String, atFilePath targetPath: URL, withAttachmentType type: AttachmentType) throws -> Attachment {
