@@ -14,7 +14,7 @@ class MyArticleModel: ArticleModel, Codable {
     @Published var isIncludedInNavigation: Bool? = false
     @Published var navigationWeight: Int? = 1
 
-    @Published var cids: [String: String]? = [:]
+    var cids: [String: String]? = [:]
 
     // populated when initializing
     unowned var planet: MyPlanetModel! = nil
@@ -367,7 +367,6 @@ class MyArticleModel: ArticleModel, Codable {
             throw PlanetError.MissingTemplateError
         }
         if let attachments = attachments, attachments.count > 0 {
-            // TODO: Optimize this part later because currently we have both v0/v1 CIDs so it would be simpler to just generate them again to ensure it's v0
             let attachmentCIDs = getCIDs()
             self.cids = attachmentCIDs
             try? self.save()
