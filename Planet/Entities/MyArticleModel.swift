@@ -559,7 +559,7 @@ extension MyArticleModel {
                 NotificationCenter.default.post(name: .loadArticle, object: nil)
                 debugPrint("TODO item toggled and saved for \(self.title)")
             } catch {
-                debugPrint("TODO item toggled but failed to save for \(self.title)")
+                debugPrint("TODO item toggled but failed to save for \(self.title): \(error)")
             }
         } else {
             debugPrint("TODO item not found for \(self.title)")
