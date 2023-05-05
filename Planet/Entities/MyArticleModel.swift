@@ -526,6 +526,45 @@ extension MyArticleModel {
             attachments: nil
         )
     }
+
+    func toggleToDoItem(item: String) {
+        let components = item.split(separator: "-")
+        guard let lastComponent = components.last else { return }
+        guard let idx = Int(lastComponent) else { return }
+
+        var lines = self.content.components(separatedBy: .newlines)
+        var i = 0
+        var found = false
+        for (index, line) in lines.enumerated() {
+            if line.starts(with: "- [ ] ") {
+                i = i + 1
+                if i == idx {
+                    lines[index] = line.replacingOccurrences(of: "- [ ]", with: "- [x]")
+                    found = true
+                }
+            }
+            else if line.starts(with: "- [x] ") {
+                i = i + 1
+                if i == idx {
+                    lines[index] = line.replacingOccurrences(of: "- [x]", with: "- [ ]")
+                    found = true
+                }
+            }
+        }
+        if found {
+            self.content = lines.joined(separator: "\n")
+            do {
+                try self.save()
+                try self.savePublic()
+                NotificationCenter.default.post(name: .loadArticle, object: nil)
+                debugPrint("TODO item toggled and saved for \(self.title)")
+            } catch {
+                debugPrint("TODO item toggled but failed to save for \(self.title)")
+            }
+        } else {
+            debugPrint("TODO item not found for \(self.title)")
+        }
+    }
 }
 
 struct BackupArticleModel: Codable {
