@@ -1,5 +1,30 @@
 import SwiftUI
 
+
+struct ArticleExternalLinkView: View {
+    @ObservedObject var article: ArticleModel
+
+    var body: some View {
+        if let myArticle = article as? MyArticleModel, let link = myArticle.externalLink {
+            VStack(alignment: .leading, spacing: 0) {
+                Divider()
+                HStack(spacing: 8) {
+                    Image(systemName: "link")
+                    Button {
+                        if let url = URL(string: link) {
+                            NSWorkspace.shared.open(url)
+                        }
+                    } label: {
+                        Text(link)
+                        Spacer()
+                    }.buttonStyle(.link)
+                    Spacer()
+                }.padding(8)
+            }
+        }
+    }
+}
+
 struct ArticleToolbarStarView: View {
     @ObservedObject var article: ArticleModel
 
@@ -132,6 +157,9 @@ struct ArticleView: View {
         VStack(spacing: 0) {
             ArticleWebView(url: $url)
             ArticleAudioPlayer()
+            if let article = planetStore.selectedArticle {
+                ArticleExternalLinkView(article: article)
+            }
         }
         .frame(minWidth: 400)
         .background(

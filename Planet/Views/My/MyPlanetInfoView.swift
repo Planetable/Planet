@@ -42,6 +42,8 @@ struct MyPlanetInfoView: View {
                         .font(.body)
                 }
 
+                Divider()
+
                 HStack {
                     Button {
                         isSharing = true
@@ -69,6 +71,9 @@ struct MyPlanetInfoView: View {
                         Text("Edit")
                     }
                 }
+                .padding(.leading, 10)
+                .padding(.trailing, 10)
+                .padding(.bottom, 10)
             }
             .background(
                 SharingServicePicker(isPresented: $isSharing, sharingItems: [planetIPNS])
@@ -95,9 +100,9 @@ struct MyPlanetInfoView: View {
                     .keyboardShortcut(.escape, modifiers: [])
                 }
                 Spacer()
-            }
+            }.padding(10)
         }
-        .padding()
+        .padding(0)
         .frame(width: 320, height: nil, alignment: .center)
     }
 
