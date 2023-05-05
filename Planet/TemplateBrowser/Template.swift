@@ -311,6 +311,11 @@ class Template: Codable, Identifiable {
                 > A dream you dream alone is only a dream. A dream you dream together is reality.
 
                 ---
+
+                | Header 1 | Header 2 |
+                | --- | --- |
+                | Row 1 Col 1 | Row 1 Col 2 |
+                | Row 2 Col 1 | Row 2 Col 2 |
                 """,
             created: Date(),
             hasVideo: false,
