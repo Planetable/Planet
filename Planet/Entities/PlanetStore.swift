@@ -198,6 +198,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         let myPlanetPartition = myAllPlanets.partition(by: { $0.archived == false || $0.archived == nil })
         myArchivedPlanets = Array(myAllPlanets[..<myPlanetPartition])
         myPlanets = Array(myAllPlanets[myPlanetPartition...])
+        loadMyPlanetsOrder()
 
         let followingPlanetDirectories = try FileManager.default.contentsOfDirectory(
             at: FollowingPlanetModel.followingPlanetsPath(),
@@ -223,6 +224,34 @@ enum PlanetDetailViewType: Hashable, Equatable {
                     }
                 }
             }
+        }
+    }
+
+    private let myPlanetsOrderKey = "myPlanetsOrder"
+
+    func moveMyPlanets(fromOffsets source: IndexSet, toOffset destination: Int) {
+        myPlanets.move(fromOffsets: source, toOffset: destination)
+        Task {
+            await saveMyPlanetsOrder()
+        }
+    }
+
+    func saveMyPlanetsOrder() async {
+        let ids = myPlanets.map { $0.id.uuidString }
+        UserDefaults.standard.set(ids, forKey: myPlanetsOrderKey)
+    }
+
+    func loadMyPlanetsOrder() {
+        guard let storedIds = UserDefaults.standard.array(forKey: myPlanetsOrderKey) as? [String] else {
+            return
+        }
+
+        let uuids = storedIds.compactMap { UUID(uuidString: $0) }
+        myPlanets.sort {
+            guard let index1 = uuids.firstIndex(of: $0.id), let index2 = uuids.firstIndex(of: $1.id) else {
+                return false
+            }
+            return index1 < index2
         }
     }
 

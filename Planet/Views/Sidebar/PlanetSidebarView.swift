@@ -10,7 +10,7 @@ import SwiftUI
 struct PlanetSidebarView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @StateObject var ipfsState = IPFSState.shared
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if planetStore.walletAddress.count > 0 {
@@ -29,7 +29,7 @@ struct PlanetSidebarView: View {
                             .foregroundColor(.primary)
                     }
                     .tag(PlanetDetailViewType.today)
-                    
+
                     HStack(spacing: 4) {
                         Image(systemName: "circle.inset.filled")
                             .resizable()
@@ -41,7 +41,7 @@ struct PlanetSidebarView: View {
                             .foregroundColor(.primary)
                     }
                     .tag(PlanetDetailViewType.unread)
-                    
+
                     HStack(spacing: 4) {
                         Image(systemName: "star.fill")
                             .resizable()
@@ -54,14 +54,19 @@ struct PlanetSidebarView: View {
                     }
                     .tag(PlanetDetailViewType.starred)
                 }
-                
+
                 Section(header: Text("My Planets")) {
                     ForEach(planetStore.myPlanets) { planet in
                         MyPlanetSidebarItem(planet: planet)
                             .tag(PlanetDetailViewType.myPlanet(planet))
                     }
+                    .onMove { (indexes, dest) in
+                        withAnimation {
+                            planetStore.moveMyPlanets(fromOffsets: indexes, toOffset: dest)
+                        }
+                    }
                 }
-                
+
                 Section(header: Text("Following Planets")) {
                     ForEach(planetStore.followingPlanets) { planet in
                         FollowingPlanetSidebarItem(planet: planet)
@@ -70,16 +75,16 @@ struct PlanetSidebarView: View {
                 }
             }
             .listStyle(.sidebar)
-            
+
             HStack(spacing: 6) {
                 Circle()
                     .frame(width: 11, height: 11, alignment: .center)
                     .foregroundColor(ipfsState.online ? Color.green : Color.red)
                 Text(ipfsState.online ? "Online (\(ipfsState.peers))" : "Offline")
                     .font(.body)
-                
+
                 Spacer()
-                
+
                 Menu {
                     Button {
                         planetStore.isCreatingPlanet = true
@@ -87,9 +92,9 @@ struct PlanetSidebarView: View {
                         Label("Create Planet", systemImage: "plus")
                     }
                     .disabled(planetStore.isCreatingPlanet)
-                    
+
                     Divider()
-                    
+
                     Button {
                         planetStore.isFollowingPlanet = true
                     } label: {
@@ -127,7 +132,7 @@ struct PlanetSidebarView: View {
             }
         }
     }
-    
+
     private func toggleSidebar() {
         NSApp.keyWindow?.firstResponder?
             .tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)

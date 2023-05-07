@@ -16,6 +16,9 @@ struct ArticleExternalLinkView: View {
                         }
                     } label: {
                         Text(link)
+                            .font(.system(.body, design: .monospaced))
+                            .lineLimit(1)
+                            .truncationMode(.middle)
                         Spacer()
                     }.buttonStyle(.link)
                     Spacer()
