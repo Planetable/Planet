@@ -101,6 +101,10 @@ struct PlanetMainView: View {
         .sheet(isPresented: $planetStore.isShowingWalletAccount) {
             WalletAccountView(walletAddress: planetStore.walletAddress)
         }
+        .sheet(isPresented: $planetStore.isQuickSharing) {
+            PlanetQuickShareView()
+                .frame(width: .sheetWidth, height: .sheetHeight + 28)
+        }
         .confirmationDialog(
             Text("Are you sure you want to disconnect?"),
             isPresented: $planetStore.isShowingWalletDisconnectConfirmation

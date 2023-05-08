@@ -286,17 +286,21 @@ extension PlanetAppDelegate {
 
     func createQuickShareWindow(forFiles files: [URL]) {
         guard files.count > 0 else { return }
-        if quickShareWindowController != nil {
-            quickShareWindowController?.window?.close()
-            quickShareWindowController?.window = nil
-            quickShareWindowController?.contentViewController = nil
-        }
-        quickShareWindowController = PlanetQuickShareWindowController()
-        guard let w = quickShareWindowController?.window else { return }
         Task { @MainActor in
             do {
                 try PlanetQuickShareViewModel.shared.prepareFiles(files)
-                NSApp.runModal(for: w)
+                if #available(macOS 13.0, *) {
+                    if quickShareWindowController != nil {
+                        quickShareWindowController?.window?.close()
+                        quickShareWindowController?.window = nil
+                        quickShareWindowController?.contentViewController = nil
+                    }
+                    quickShareWindowController = PlanetQuickShareWindowController()
+                    guard let w = quickShareWindowController?.window else { return }
+                    NSApp.runModal(for: w)
+                } else {
+                    PlanetStore.shared.isQuickSharing = true
+                }
             } catch {
                 let alert = NSAlert()
                 alert.messageText = "Failed to Create Post"
@@ -311,5 +315,8 @@ extension PlanetAppDelegate {
     @objc func dismissQuickShareWindowIfNeeded() {
         guard let w = quickShareWindowController?.window else { return }
         w.close()
+        Task { @MainActor in
+            PlanetStore.shared.isQuickSharing = false
+        }
     }
 }

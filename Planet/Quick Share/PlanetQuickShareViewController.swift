@@ -22,7 +22,11 @@ class PlanetQuickShareViewController: NSViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let contentView = NSHostingView(rootView: PlanetQuickShareView())
+        let contentView = NSHostingView(rootView:
+                                            PlanetQuickShareView()
+                                                .frame(width: .sheetWidth, height: .sheetHeight)
+                                                .edgesIgnoringSafeArea(.vertical)
+        )
         contentView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(contentView)
         contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
