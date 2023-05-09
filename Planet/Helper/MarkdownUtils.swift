@@ -1,8 +1,8 @@
 import Foundation
+import HTMLEntities
 import Stencil
 import SwiftSoup
 import libcmark_gfm
-import HTMLEntities
 
 struct StencilExtension {
     static let escapeJSTable: [Character: String] = {
@@ -31,7 +31,8 @@ struct StencilExtension {
         let ext = Extension()
         ext.registerFilter("md2html") { value in
             if let value = value,
-               let md = value as? String {
+                let md = value as? String
+            {
                 if let html = CMarkRenderer.renderMarkdownHTML(markdown: md) {
                     return html
                 }
@@ -40,17 +41,20 @@ struct StencilExtension {
         }
         ext.registerFilter("absoluteImageURL") { (value: Any?, arguments: [Any?]) in
             if let input = value as? String,
-               let doc = try? SwiftSoup.parseBodyFragment(input) {
+                let doc = try? SwiftSoup.parseBodyFragment(input)
+            {
                 let images = try? doc.select("img")
                 if let images = images {
                     for image in images {
                         if let src = try? image.attr("src") {
                             if src.hasPrefix("https://") || src.hasPrefix("http://") {
                                 continue
-                            } else {
+                            }
+                            else {
                                 // Convert relative img src to absolute full URL
                                 if let site = arguments.first as? String,
-                                   let articleID: UUID = arguments[1] as? UUID {
+                                    let articleID: UUID = arguments[1] as? UUID
+                                {
                                     let prefix = "\(site)/\(articleID.uuidString)/"
                                     debugPrint("prefix: \(prefix)")
                                     let absoluteURL = prefix + src
@@ -68,7 +72,8 @@ struct StencilExtension {
         }
         ext.registerFilter("formatDate") { value in
             if let value = value,
-               let date = value as? Date {
+                let date = value as? Date
+            {
                 let format = DateFormatter()
                 format.dateStyle = .medium
                 format.timeStyle = .medium
@@ -78,7 +83,8 @@ struct StencilExtension {
         }
         ext.registerFilter("formatDateC") { value in
             if let value = value,
-               let date = value as? Date {
+                let date = value as? Date
+            {
                 let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
                 let formattedDate = formatter.string(from: date)
@@ -88,7 +94,8 @@ struct StencilExtension {
         }
         ext.registerFilter("ymd") { value in
             if let value = value,
-               let date = value as? Date {
+                let date = value as? Date
+            {
                 let format = DateFormatter()
                 format.dateStyle = .medium
                 format.timeStyle = .none
@@ -98,17 +105,19 @@ struct StencilExtension {
         }
         ext.registerFilter("hhmmss") { value in
             if let value = value,
-               let seconds = value as? Int {
+                let seconds = value as? Int
+            {
                 let hours = seconds / 3600
                 let minutes = (seconds % 3600) / 60
                 let seconds = seconds % 60
                 return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-               }
+            }
             return "00:00:00"
         }
         ext.registerFilter("rfc822") { value in
             if let value = value,
-               let date = value as? Date {
+                let date = value as? Date
+            {
                 let RFC822DateFormatter = DateFormatter()
                 RFC822DateFormatter.locale = Locale(identifier: "en_US_POSIX")
                 RFC822DateFormatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
@@ -118,12 +127,14 @@ struct StencilExtension {
         }
         ext.registerFilter("escapejs") { value in
             if let value = value,
-               let str = value as? String {
+                let str = value as? String
+            {
                 var escapedString = ""
                 for char in str {
                     if let escapedChar = escapeJSTable[char] {
                         escapedString.append(escapedChar)
-                    } else {
+                    }
+                    else {
                         escapedString.append(char)
                     }
                 }
@@ -133,7 +144,8 @@ struct StencilExtension {
         }
         ext.registerFilter("escape") { value in
             if let value = value,
-               let str = value as? String {
+                let str = value as? String
+            {
                 return str.htmlEscape()
             }
             return value
@@ -142,47 +154,38 @@ struct StencilExtension {
     }()
 }
 
-
 struct CMarkRenderer {
-    static var _parser: UnsafeMutablePointer<cmark_parser>? = nil
-    static var parser: UnsafeMutablePointer<cmark_parser>? {
-        if let singleton = _parser {
-            return singleton
-        }
+    // Reference: https://github.com/tw93/MiaoYan/blob/master/Mac/Business/Markdown.swift
+    static func renderMarkdownHTML(markdown: String) -> String? {
 
         cmark_gfm_core_extensions_ensure_registered()
 
-        guard let newSingleton = cmark_parser_new(CMARK_OPT_FOOTNOTES) else {
-            return nil
-        }
+        guard let parser = cmark_parser_new(CMARK_OPT_FOOTNOTES) else { return nil }
+        defer { cmark_parser_free(parser) }
 
         if let ext = cmark_find_syntax_extension("table") {
-            cmark_parser_attach_syntax_extension(newSingleton, ext)
+            cmark_parser_attach_syntax_extension(parser, ext)
         }
+
         if let ext = cmark_find_syntax_extension("autolink") {
-            cmark_parser_attach_syntax_extension(newSingleton, ext)
+            cmark_parser_attach_syntax_extension(parser, ext)
         }
+
         if let ext = cmark_find_syntax_extension("strikethrough") {
-            cmark_parser_attach_syntax_extension(newSingleton, ext)
+            cmark_parser_attach_syntax_extension(parser, ext)
         }
+
         if let ext = cmark_find_syntax_extension("tasklist") {
-            cmark_parser_attach_syntax_extension(newSingleton, ext)
+            cmark_parser_attach_syntax_extension(parser, ext)
         }
 
-        _parser = newSingleton
-        return newSingleton
-    }
-
-    // Reference: https://github.com/tw93/MiaoYan/blob/master/Mac/Business/Markdown.swift
-    static func renderMarkdownHTML(markdown: String) -> String? {
-        guard let parser = Self.parser else {
-            return nil
-        }
         cmark_parser_feed(parser, markdown, markdown.utf8.count)
         guard let node = cmark_parser_finish(parser) else { return nil }
 
         // use GitHub flavored rules: render line break in <p> as <br>
         // Reference: https://github.com/theacodes/cmarkgfm/blob/master/README.rst#advanced-usage
-        return String(cString: cmark_render_html(node, CMARK_OPT_UNSAFE | CMARK_OPT_HARDBREAKS, nil))
+        return String(
+            cString: cmark_render_html(node, CMARK_OPT_UNSAFE | CMARK_OPT_HARDBREAKS, nil)
+        )
     }
 }
