@@ -30,11 +30,9 @@ struct PlanetQuickShareView: View {
             Spacer(minLength: 1)
 
             footerSection()
-                .padding(.bottom, 16 - 28)
+                .padding(.bottom, PlanetStore.shared.isQuickSharing ? 16 : -12)
                 .padding(.horizontal, 16)
         }
-        .frame(width: .sheetWidth, height: .sheetHeight)
-        .edgesIgnoringSafeArea(.vertical)
     }
 
     @ViewBuilder
@@ -112,7 +110,7 @@ struct PlanetQuickShareView: View {
     private func footerSection() -> some View {
         HStack {
             Button {
-                NotificationCenter.default.post(name: .cancelQuickShare, object: nil)
+                dismissAction()
             } label: {
                 Text("Close")
             }
@@ -130,13 +128,20 @@ struct PlanetQuickShareView: View {
                     alert.runModal()
                     return
                 }
-                NotificationCenter.default.post(name: .cancelQuickShare, object: nil)
+                dismissAction()
             } label: {
                 Text("Send")
             }
             .keyboardShortcut(.return, modifiers: [])
             .keyboardShortcut(.end, modifiers: [])
             .disabled(viewModel.getTargetPlanet() == nil || viewModel.title == "")
+        }
+    }
+    
+    private func dismissAction() {
+        NotificationCenter.default.post(name: .cancelQuickShare, object: nil)
+        Task { @MainActor in
+            PlanetStore.shared.isQuickSharing = false
         }
     }
 }
