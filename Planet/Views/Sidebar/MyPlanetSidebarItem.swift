@@ -165,7 +165,7 @@ struct MyPlanetSidebarItem: View {
             }
         }
         .confirmationDialog(
-            Text("Are you sure you want to delete this planet? This action cannot be undone."),
+            Text("Are you sure you want to delete \(planet.name)? This action cannot be undone."),
             isPresented: $isShowingDeleteConfirmation
         ) {
             Button(role: .destructive) {
