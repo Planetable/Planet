@@ -1494,7 +1494,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     func delete() throws {
         try FileManager.default.removeItem(at: basePath)
-        // try FileManager.default.removeItem(at: publicBasePath)
+        try FileManager.default.removeItem(at: publicBasePath)
         Task(priority: .utility) {
             do {
                 try await IPFSDaemon.shared.removeKey(name: id.uuidString)
