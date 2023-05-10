@@ -103,6 +103,9 @@ struct CreatePlanetView: View {
                                 templateName: templateName
                             )
                             planetStore.myPlanets.insert(planet, at: 0)
+                            Task(priority: .background) {
+                                await PlanetStore.shared.saveMyPlanetsOrder()
+                            }
                             planetStore.selectedView = .myPlanet(planet)
                             try planet.save()
                             try planet.savePublic()
