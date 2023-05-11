@@ -155,9 +155,24 @@ struct StencilExtension {
 }
 
 struct CMarkRenderer {
+    static func replaceYouTubeLinks(_ text: String) -> String {
+        let pattern = #"https?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?"#
+        
+        do {
+            let regex = try NSRegularExpression(pattern: pattern, options: [])
+            let newText = regex.stringByReplacingMatches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count), withTemplate: "<iframe width=\"100%\" style=\"aspect-ratio: 16/9\" src=\"https://www.youtube.com/embed/$1\" title=\"YouTube Video\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>")
+            return newText
+        } catch {
+            debugPrint("Invalid regex pattern")
+            return text
+        }
+    }
+    
     // Reference: https://github.com/tw93/MiaoYan/blob/master/Mac/Business/Markdown.swift
     static func renderMarkdownHTML(markdown: String) -> String? {
-
+        // Process 1: Replace all YouTube links with embed code
+        let inputText: String = CMarkRenderer.replaceYouTubeLinks(markdown)
+        
         cmark_gfm_core_extensions_ensure_registered()
 
         guard let parser = cmark_parser_new(CMARK_OPT_FOOTNOTES) else { return nil }
@@ -179,7 +194,7 @@ struct CMarkRenderer {
             cmark_parser_attach_syntax_extension(parser, ext)
         }
 
-        cmark_parser_feed(parser, markdown, markdown.utf8.count)
+        cmark_parser_feed(parser, inputText, inputText.utf8.count)
         guard let node = cmark_parser_finish(parser) else { return nil }
 
         // use GitHub flavored rules: render line break in <p> as <br>
