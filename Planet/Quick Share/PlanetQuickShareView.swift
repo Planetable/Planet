@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 struct PlanetQuickShareView: View {
     @StateObject private var viewModel: PlanetQuickShareViewModel
 
@@ -47,9 +46,12 @@ struct PlanetQuickShareView: View {
                         .tag(planet.id)
                 }
             }
-            .onChange(of: viewModel.selectedPlanetID, perform: { newValue in
-                viewModel.selectedPlanetID = newValue
-            })
+            .onChange(
+                of: viewModel.selectedPlanetID,
+                perform: { newValue in
+                    viewModel.selectedPlanetID = newValue
+                }
+            )
             .frame(width: 200)
         }
     }
@@ -59,10 +61,11 @@ struct PlanetQuickShareView: View {
         if viewModel.fileURLs.count == 0 {
             Text("No Attachments.")
                 .foregroundColor(.secondary)
-        } else {
+        }
+        else {
             GeometryReader { g in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack (alignment: .center) {
+                    LazyHStack(alignment: .center) {
                         ForEach(viewModel.fileURLs, id: \.self) { url in
                             if let img = NSImage(contentsOf: url) {
                                 Image(nsImage: img)
@@ -88,16 +91,12 @@ struct PlanetQuickShareView: View {
             }
             .padding(.top, 2)
             TextEditor(text: $viewModel.content)
-                .font(.system(size: 13, weight: .regular, design: .default))
-                .lineSpacing(8)
+                .font(.system(size: 12, weight: .regular, design: .monospaced))
                 .disableAutocorrection(true)
-                .cornerRadius(6)
                 .frame(height: 82)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color(nsColor: NSColor.windowBackgroundColor).opacity(0.25), lineWidth: 1.0)
-                )
-                .padding(.horizontal, 1)
+                .cornerRadius(6)
+                .padding(1)
+                .shadow(color: .secondary.opacity(0.75), radius: 0.5, x: 0, y: 0.5)
             HStack {
                 TextField("Optional Link", text: $viewModel.externalLink)
                     .textFieldStyle(.roundedBorder)
@@ -119,7 +118,8 @@ struct PlanetQuickShareView: View {
             Button {
                 do {
                     try viewModel.send()
-                } catch {
+                }
+                catch {
                     let alert = NSAlert()
                     alert.messageText = "Failed to Create Post"
                     alert.informativeText = error.localizedDescription
@@ -137,7 +137,7 @@ struct PlanetQuickShareView: View {
             .disabled(viewModel.getTargetPlanet() == nil || viewModel.title == "")
         }
     }
-    
+
     private func dismissAction() {
         NotificationCenter.default.post(name: .cancelQuickShare, object: nil)
         Task { @MainActor in
@@ -145,7 +145,6 @@ struct PlanetQuickShareView: View {
         }
     }
 }
-
 
 struct PlanetQuickShareView_Previews: PreviewProvider {
     static var previews: some View {
