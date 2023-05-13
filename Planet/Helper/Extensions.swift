@@ -98,6 +98,8 @@ extension Notification.Name {
     static let downloadArticleAttachment = Notification.Name("PlanetDownloadArticleAttachmentNotification")
 
     static let followingArticleReadChanged = Notification.Name("PlanetFollowingArticleReadChangedNotification")
+
+    static let myArticleBuilt = Notification.Name("PlanetMyArticleBuiltNotification")
 }
 
 // Writer

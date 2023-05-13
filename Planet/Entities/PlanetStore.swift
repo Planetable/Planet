@@ -101,6 +101,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isShowingPlanetInfo = false
     @Published var isImportingPlanet = false
     @Published var isMigrating = false
+    @Published var isRebuilding = false
+    @Published var rebuildTasks: Int = 0
     @Published var isQuickSharing = false   // use in macOS 12 only.
 
     @Published var isShowingWalletConnectV1QRCode: Bool = false

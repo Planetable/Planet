@@ -1,3 +1,4 @@
+import Dispatch
 import Foundation
 import Stencil
 import SwiftUI
@@ -1507,8 +1508,30 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func rebuild() async throws {
+        Task { @MainActor in
+            PlanetStore.shared.isRebuilding = true
+            PlanetStore.shared.rebuildTasks = self.articles.count
+        }
+        defer {
+            Task { @MainActor in
+                PlanetStore.shared.isRebuilding = false
+            }
+        }
         try self.copyTemplateAssets()
-        try self.articles.forEach { try $0.savePublic() }
+        // try self.articles.forEach { try $0.savePublic() }
+        do {
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                for article in self.articles {
+                    group.addTask {
+                        try await article.savePublic()
+                    }
+                }
+                try await group.waitForAll()
+            }
+        } catch {
+            // handle error
+            debugPrint("Error: \(error)")
+        }
         try self.savePublic()
         NotificationCenter.default.post(name: .loadArticle, object: nil)
         await sendNotificationForRebuild()

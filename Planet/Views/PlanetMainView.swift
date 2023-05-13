@@ -84,6 +84,9 @@ struct PlanetMainView: View {
         .sheet(isPresented: $planetStore.isMigrating) {
             MigrationProgressView()
         }
+        .sheet(isPresented: $planetStore.isRebuilding) {
+            RebuildProgressView()
+        }
         .sheet(isPresented: $planetStore.isShowingWalletConnectV1QRCode) {
             WalletConnectV1QRCodeView(payload: planetStore.walletConnectV1ConnectionURL)
         }

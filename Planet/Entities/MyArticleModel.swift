@@ -366,6 +366,11 @@ class MyArticleModel: ArticleModel, Codable {
         guard let template = planet.template else {
             throw PlanetError.MissingTemplateError
         }
+        defer {
+            Task { @MainActor in
+                NotificationCenter.default.post(name: .myArticleBuilt, object: self)
+            }
+        }
         if let attachments = attachments, attachments.count > 0 {
             let attachmentCIDs = getCIDs()
             self.cids = attachmentCIDs
