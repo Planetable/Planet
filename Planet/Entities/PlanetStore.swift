@@ -403,8 +403,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
         toPlanet.articles.append(movedArticle)
         toPlanet.articles = toPlanet.articles.sorted(by: { $0.created > $1.created })
 
-        debugPrint("copy templates assets for target planet")
-        try toPlanet.copyTemplateAssets()
+        // debugPrint("copy templates assets for target planet")
+        // try toPlanet.copyTemplateAssets()
 
         debugPrint("update target planet update date")
         toPlanet.updated = Date()
@@ -427,11 +427,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
         debugPrint("refresh planet store")
         let finalPlanet = try MyPlanetModel.load(from: toPlanet.basePath)
 
-        debugPrint("copy templates assets for final planet")
-        try finalPlanet.copyTemplateAssets()
+        // debugPrint("copy templates assets for final planet")
+        // try finalPlanet.copyTemplateAssets()
 
-        debugPrint("final planet articles save public.")
-        try finalPlanet.articles.forEach({ try $0.savePublic() })
+        // debugPrint("final planet articles save public.")
+        // try finalPlanet.articles.forEach({ try $0.savePublic() })
 
         myPlanets = myPlanets.map() { p in
             if p.id == fromPlanet.id {

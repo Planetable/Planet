@@ -1555,12 +1555,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
                 */
             }
-        } catch {
-            // handle error
-            debugPrint("Error: \(error)")
         }
         try self.savePublic()
         NotificationCenter.default.post(name: .loadArticle, object: nil)
+        Task { @MainActor in
+            NotificationCenter.default.post(name: .publishMyPlanet, object: self)
+        }
         await sendNotificationForRebuild()
     }
 
@@ -1569,7 +1569,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         notification.title = "Planet Rebuilt"
         notification.subtitle = self.name
         notification.interruptionLevel = .active
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
         let request = UNNotificationRequest(
             identifier: id.uuidString,
             content: notification,

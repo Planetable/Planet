@@ -131,6 +131,18 @@ struct PlanetSidebarView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .publishMyPlanet)) {
+            aNotification in
+            if let userObject = aNotification.object, let planet = userObject as? MyPlanetModel {
+                Task(priority: .background) {
+                    do {
+                        try await planet.publish()
+                    } catch {
+                        debugPrint("Failed to publish: \(planet.name) id=\(planet.id)")
+                    }
+                }
+            }
+        }
     }
 
     private func toggleSidebar() {
