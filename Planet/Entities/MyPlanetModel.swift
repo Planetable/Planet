@@ -1519,14 +1519,19 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         try self.copyTemplateAssets()
         // try self.articles.forEach { try $0.savePublic() }
+
         do {
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                for article in self.articles {
-                    group.addTask {
-                        try await article.savePublic()
+            // split the articles into groups
+            let articleGroups = self.articles.chunked(into: 4)
+            for articleGroup in articleGroups {
+                try await withThrowingTaskGroup(of: Void.self) { group in
+                    for article in articleGroup {
+                        group.addTask(priority: .high) {
+                            try article.savePublic()
+                        }
                     }
+                    try await group.waitForAll()
                 }
-                try await group.waitForAll()
             }
         } catch {
             // handle error

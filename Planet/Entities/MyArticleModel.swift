@@ -368,6 +368,7 @@ class MyArticleModel: ArticleModel, Codable {
         }
         defer {
             Task { @MainActor in
+                debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
                 NotificationCenter.default.post(name: .myArticleBuilt, object: self)
             }
         }
@@ -558,8 +559,10 @@ extension MyArticleModel {
             self.content = lines.joined(separator: "\n")
             do {
                 try self.save()
-                try self.savePublic()
-                NotificationCenter.default.post(name: .loadArticle, object: nil)
+                Task {
+                    try self.savePublic()
+                    NotificationCenter.default.post(name: .loadArticle, object: nil)
+                }
                 debugPrint("TODO item toggled and saved for \(self.title)")
             } catch {
                 debugPrint("TODO item toggled but failed to save for \(self.title): \(error)")
