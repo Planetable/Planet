@@ -1508,6 +1508,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func rebuild() async throws {
+        let started = Date()
         Task { @MainActor in
             PlanetStore.shared.isRebuilding = true
             PlanetStore.shared.rebuildTasks = self.articles.count
@@ -1516,14 +1517,34 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Task { @MainActor in
                 PlanetStore.shared.isRebuilding = false
             }
+            let ended = Date()
+            let timeInterval = ended.timeIntervalSince(started)
+            debugPrint("Rebuild planet: \(name) took \(timeInterval) seconds")
         }
         try self.copyTemplateAssets()
+        // according to benchmarks, using parallel processing would take half the time to rebuild
+        // heaviest task is generating thumbnails
         // try self.articles.forEach { try $0.savePublic() }
-
         do {
             // split the articles into groups
-            let articleGroups = self.articles.chunked(into: 4)
+            let cpuCount = ProcessInfo.processInfo.activeProcessorCount
+            let articleGroups = self.articles.chunked(into: cpuCount)
             for articleGroup in articleGroups {
+                // after some benchmarking, it seems that using DispatchGroup is faster than using TaskGroup
+                let group = DispatchGroup()
+                DispatchQueue.concurrentPerform(iterations: articleGroup.count) { index in
+                    group.enter()
+                    do {
+                        try articleGroup[index].savePublic()
+                        group.leave()
+                    } catch {
+                        // Handle any errors here.
+                        group.leave()
+                    }
+                }
+                group.wait()
+
+                /*
                 try await withThrowingTaskGroup(of: Void.self) { group in
                     for article in articleGroup {
                         group.addTask(priority: .high) {
@@ -1532,6 +1553,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     }
                     try await group.waitForAll()
                 }
+                */
             }
         } catch {
             // handle error
