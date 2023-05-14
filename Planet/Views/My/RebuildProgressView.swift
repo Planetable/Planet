@@ -20,12 +20,13 @@ struct RebuildProgressView: View {
                 Text("\(completed)/\(total) items done")
                     .onReceive(NotificationCenter.default.publisher(for: .myArticleBuilt)) {
                         aNotification in
-                        self.completed = self.completed + 1
-                        if total == 0 {
-                            self.progress = 0
-                        }
-                        else {
-                            self.progress = Double(completed) / Double(total) * 100
+                        Task { @MainActor in
+                            self.completed = self.completed + 1
+                            if total == 0 {
+                                self.progress = 0
+                            } else {
+                                self.progress = Double(completed) / Double(total) * 100
+                            }
                         }
                     }
                     .onAppear {
