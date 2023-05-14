@@ -134,7 +134,7 @@ struct PlanetQuickShareView: View {
             }
             .keyboardShortcut(.return, modifiers: [])
             .keyboardShortcut(.end, modifiers: [])
-            .disabled(viewModel.getTargetPlanet() == nil || viewModel.title == "")
+            .disabled(viewModel.getTargetPlanet() == nil)
         }
     }
 
