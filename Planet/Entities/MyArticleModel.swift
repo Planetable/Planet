@@ -475,14 +475,12 @@ class MyArticleModel: ArticleModel, Codable {
         let heroGridPNGPath = publicBasePath.appendingPathComponent(heroGridPNGFilename)
         let heroGridJPEGFilename = "_grid.jpg"
         let heroGridJPEGPath = publicBasePath.appendingPathComponent(heroGridJPEGFilename)
-        Task {
-            if let grid = heroImage.resizeSquare(maxLength: 512) {
-                if let gridPNGData = grid.PNGData {
-                    try? gridPNGData.write(to: heroGridPNGPath)
-                }
-                if let gridJPEGData = grid.JPEGData {
-                    try? gridJPEGData.write(to: heroGridJPEGPath)
-                }
+        if let grid = heroImage.resizeSquare(maxLength: 512) {
+            if let gridPNGData = grid.PNGData {
+                try? gridPNGData.write(to: heroGridPNGPath)
+            }
+            if let gridJPEGData = grid.JPEGData {
+                try? gridJPEGData.write(to: heroGridJPEGPath)
             }
         }
     }
