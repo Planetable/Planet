@@ -7,7 +7,7 @@ struct WriterAudioView: View {
         HStack {
             AudioPlayer(url: audioAttachment.path, title: audioAttachment.name)
             Button {
-                try? audioAttachment.draft.deleteAttachment(name: audioAttachment.name)
+                audioAttachment.draft.deleteAttachment(name: audioAttachment.name)
             } label: {
                 Image(systemName: "xmark.circle.fill")
             }

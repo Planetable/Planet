@@ -285,16 +285,16 @@ struct MyPlanetSidebarItem: View {
             }
 
             Button {
-                do {
-                    Task(priority: .background) {
+                Task(priority: .background) {
+                    do {
                         try await planet.rebuild()
                     }
-                }
-                catch {
-                    Task { @MainActor in
-                        self.planetStore.isShowingAlert = true
-                        self.planetStore.alertTitle = "Failed to Rebuild Planet"
-                        self.planetStore.alertMessage = error.localizedDescription
+                    catch {
+                        Task { @MainActor in
+                            self.planetStore.isShowingAlert = true
+                            self.planetStore.alertTitle = "Failed to Rebuild Planet"
+                            self.planetStore.alertMessage = error.localizedDescription
+                        }
                     }
                 }
             } label: {

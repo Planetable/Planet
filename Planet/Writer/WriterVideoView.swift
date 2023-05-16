@@ -11,7 +11,7 @@ struct WriterVideoView: View {
         }
         .contextMenu {
             Button {
-                try? videoAttachment.draft.deleteAttachment(name: videoAttachment.name)
+                videoAttachment.draft.deleteAttachment(name: videoAttachment.name)
             } label: {
                 Text("Delete Video")
             }

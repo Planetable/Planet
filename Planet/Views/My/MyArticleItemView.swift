@@ -140,7 +140,7 @@ struct MyArticleItemView: View {
             Button(role: .destructive) {
                 do {
                     if let planet = article.planet {
-                        try article.delete()
+                        article.delete()
                         planet.updated = Date()
                         try planet.save()
                         try planet.savePublic()

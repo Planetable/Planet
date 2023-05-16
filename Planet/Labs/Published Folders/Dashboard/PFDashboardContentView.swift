@@ -111,7 +111,7 @@ struct PFDashboardContentView: NSViewRepresentable {
                         let (_, response) = try await URLSession.shared.data(for: request)
                         if let httpResponse = response as? HTTPURLResponse {
                             if httpResponse.statusCode != 200 {
-                                let info = ["folder": currentFolder, "url": currentURL]
+                                let info: [String: Any] = ["folder": currentFolder, "url": currentURL]
                                 NotificationCenter.default.post(name: .dashboardProcessDirectoryURL, object: info)
                             }
                         }
