@@ -272,7 +272,7 @@ class MyArticleModel: ArticleModel, Codable {
     }
 
     func getCIDs() -> [String: String] {
-        if let attachments = attachments, attachments.count > 0 {
+        if let attachments = self.attachments, attachments.count > 0 {
             var cids: [String: String] = [:]
             for attachment in attachments {
                 if let attachmentURL = getAttachmentURL(name: attachment) {
@@ -372,12 +372,30 @@ class MyArticleModel: ArticleModel, Codable {
                 NotificationCenter.default.post(name: .myArticleBuilt, object: self)
             }
         }
-        if let attachments = attachments, attachments.count > 0 {
-            let attachmentCIDs = getCIDs()
+        var attachmentCIDs: [String: String] = self.cids ?? [:]
+        let needsToUpdateCIDs = {
+            if let cids = self.cids, cids.count > 0 {
+                for attachment in self.attachments ?? [] {
+                    if cids[attachment] == nil {
+                        return true
+                    }
+                    if let cid = cids[attachment], cid.hasPrefix("Qm") == false {
+                        return true
+                    }
+                }
+                return false
+            }
+            return true
+        }()
+        if needsToUpdateCIDs {
+            debugPrint("CID Update for \(self.title): NEEDED")
+            attachmentCIDs = getCIDs()
             self.cids = attachmentCIDs
             try? self.save()
+        } else {
+            debugPrint("CID Update for \(self.title): NOT NEEDED")
         }
-        if let cids = self.cids, cids.count > 0, let firstKeyValuePair = cids.first,
+        if attachmentCIDs.count > 0, let firstKeyValuePair = attachmentCIDs.first,
             let generateNFTMetadata = template.generateNFTMetadata, generateNFTMetadata
         {
             debugPrint("Writing NFT metadata for \(self.title) \(cids)")
