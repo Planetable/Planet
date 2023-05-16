@@ -53,6 +53,15 @@ class TemplateStore: ObservableObject {
                         overwriteLocal = true
                     }
                 }
+                if let existingBuildNumber = existingTemplate.buildNumber, let builtInBuildNumber = builtInTemplate.buildNumber, existingBuildNumber < builtInBuildNumber {
+                    if existingTemplate.hasGitRepo {
+                        logger.info(
+                            "Skip updating built-in template \(existingTemplate.name) because it has a git repo"
+                        )
+                    } else {
+                        overwriteLocal = true
+                    }
+                }
             } else {
                 overwriteLocal = true
             }
