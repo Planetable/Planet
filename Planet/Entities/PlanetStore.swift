@@ -425,10 +425,13 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
         let movedArticle = article
         movedArticle.planet = toPlanet
+
         movedArticle.path = URL(string: article.path.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
-        movedArticle.publicBasePath = URL(string: article.path.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
-        movedArticle.publicIndexPath = URL(string: article.path.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
-        movedArticle.publicInfoPath = URL(string: article.path.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
+        movedArticle.publicBasePath = URL(string: article.publicBasePath.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
+        movedArticle.publicIndexPath = URL(string: article.publicIndexPath.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
+        movedArticle.publicInfoPath = URL(string: article.publicInfoPath.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
+        movedArticle.publicNFTMetadataPath = URL(string: article.publicNFTMetadataPath.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
+
         toPlanet.articles.append(movedArticle)
         toPlanet.articles = toPlanet.articles.sorted(by: { $0.created > $1.created })
 
@@ -454,39 +457,46 @@ enum PlanetDetailViewType: Hashable, Equatable {
         try fromPlanet.savePublic()
 
         debugPrint("refresh planet store")
-        let finalPlanet = try MyPlanetModel.load(from: toPlanet.basePath)
+        let refreshedFromPlanet = try MyPlanetModel.load(from: fromPlanet.basePath)
+        let refreshedToPlanet = try MyPlanetModel.load(from: toPlanet.basePath)
 
         // debugPrint("copy templates assets for final planet")
-        // try finalPlanet.copyTemplateAssets()
+        // try refreshedToPlanet.copyTemplateAssets()
 
         // debugPrint("final planet articles save public.")
-        // try finalPlanet.articles.forEach({ try $0.savePublic() })
+        // try refreshedToPlanet.articles.forEach({ try $0.savePublic() })
 
-        // Replace planets in myPlanets with changed planets (changes are done above)
-        // Two planets are changed: fromPlanet and finalPlanet
         myPlanets = myPlanets.map() { p in
-            if p.id == fromPlanet.id {
-                return fromPlanet
-            } else if p.id == finalPlanet.id {
-                return finalPlanet
+            if p.id == refreshedFromPlanet.id {
+                return refreshedFromPlanet
+            } else if p.id == refreshedToPlanet.id {
+                return refreshedToPlanet
             }
             return p
         }
 
         debugPrint("refresh UI")
-
-        // TODO: Make this part cleaner
         selectedArticle = nil
         selectedView = nil
-        selectedArticleList = nil
-        refreshSelectedArticles()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.selectedView = .myPlanet(refreshedToPlanet)
+            let movedArticleID = movedArticle.id
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+                if let myArticle = self?.selectedArticleList?.first{ $0.id == movedArticleID } as? MyArticleModel {
+                    if let refreshed = try? MyArticleModel.load(from: myArticle.path, planet: refreshedToPlanet) {
+                        self?.selectedArticle = refreshed
+                    }
+                }
+            }
+        }
 
         debugPrint("publish changes ...")
         Task {
-            try await finalPlanet.publish()
+            try await refreshedToPlanet.publish()
         }
         Task {
-            try await fromPlanet.publish()
+            try await refreshedFromPlanet.publish()
         }
     }
 }
