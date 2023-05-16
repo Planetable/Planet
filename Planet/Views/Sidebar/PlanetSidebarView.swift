@@ -72,6 +72,11 @@ struct PlanetSidebarView: View {
                         FollowingPlanetSidebarItem(planet: planet)
                             .tag(PlanetDetailViewType.followingPlanet(planet))
                     }
+                    .onMove { (indexes, dest) in
+                        withAnimation {
+                            planetStore.moveFollowingPlanets(fromOffsets: indexes, toOffset: dest)
+                        }
+                    }
                 }
             }
             .listStyle(.sidebar)

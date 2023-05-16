@@ -212,6 +212,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         let followingPlanetPartition = followingAllPlanets.partition(by: { $0.archived == false || $0.archived == nil })
         followingArchivedPlanets = Array(followingAllPlanets[..<followingPlanetPartition])
         followingPlanets = Array(followingAllPlanets[followingPlanetPartition...])
+        loadFollowingPlanetsOrder()
         logger.info("Loaded \(self.followingPlanets.count) following planets")
     }
 
@@ -251,6 +252,34 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
         let uuids = storedIds.compactMap { UUID(uuidString: $0) }
         myPlanets.sort {
+            guard let index1 = uuids.firstIndex(of: $0.id), let index2 = uuids.firstIndex(of: $1.id) else {
+                return false
+            }
+            return index1 < index2
+        }
+    }
+
+    private let followingPlanetsOrderKey = "followingPlanetsOrder"
+
+    func moveFollowingPlanets(fromOffsets source: IndexSet, toOffset destination: Int) {
+        followingPlanets.move(fromOffsets: source, toOffset: destination)
+        Task {
+            await saveFollowingPlanetsOrder()
+        }
+    }
+
+    func saveFollowingPlanetsOrder() async {
+        let ids = followingPlanets.map { $0.id.uuidString }
+        UserDefaults.standard.set(ids, forKey: followingPlanetsOrderKey)
+    }
+
+    func loadFollowingPlanetsOrder() {
+        guard let storedIds = UserDefaults.standard.array(forKey: followingPlanetsOrderKey) as? [String] else {
+            return
+        }
+
+        let uuids = storedIds.compactMap { UUID(uuidString: $0) }
+        followingPlanets.sort {
             guard let index1 = uuids.firstIndex(of: $0.id), let index2 = uuids.firstIndex(of: $1.id) else {
                 return false
             }
