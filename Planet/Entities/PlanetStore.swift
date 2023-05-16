@@ -433,6 +433,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
         // debugPrint("final planet articles save public.")
         // try finalPlanet.articles.forEach({ try $0.savePublic() })
 
+        // Replace planets in myPlanets with changed planets (changes are done above)
+        // Two planets are changed: fromPlanet and finalPlanet
         myPlanets = myPlanets.map() { p in
             if p.id == fromPlanet.id {
                 return fromPlanet
