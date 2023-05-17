@@ -475,7 +475,13 @@ class MyArticleModel: ArticleModel, Codable {
     }
 
     func saveVideoThumbnail() {
+        guard let videoFilename = self.videoFilename else { return }
         let videoThumbnailFilename = "_videoThumbnail.png"
+        let opKey = "\(self.id)-video-thumbnail-\(videoFilename)"
+        if let op = self.planet.ops[opKey] {
+            debugPrint("Video thumbnail operation for \(opKey) is already done at \(op)")
+            return
+        }
         let videoThumbnailPath = publicBasePath.appendingPathComponent(videoThumbnailFilename)
         Task {
             if let thumbnail = await self.getVideoThumbnail(),
@@ -483,11 +489,19 @@ class MyArticleModel: ArticleModel, Codable {
             {
                 try? data.write(to: videoThumbnailPath)
             }
+            Task { @MainActor in
+                self.planet.ops[opKey] = Date()
+            }
         }
     }
 
     func saveHeroGrid() {
         guard let heroImageFilename = self.getHeroImage() else { return }
+        let opKey = "\(self.id)-hero-grid-\(heroImageFilename)"
+        if let op = self.planet.ops[opKey] {
+            debugPrint("Hero grid operation for \(opKey) is already done at \(op)")
+            return
+        }
         let heroImagePath = publicBasePath.appendingPathComponent(
             heroImageFilename,
             isDirectory: false
@@ -504,6 +518,9 @@ class MyArticleModel: ArticleModel, Codable {
             if let gridJPEGData = grid.JPEGData {
                 try? gridJPEGData.write(to: heroGridJPEGPath)
             }
+        }
+        Task { @MainActor in
+            self.planet.ops[opKey] = Date()
         }
     }
 

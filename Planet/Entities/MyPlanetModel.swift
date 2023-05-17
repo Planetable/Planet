@@ -76,6 +76,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var drafts: [DraftModel]! = nil
     @Published var articles: [MyArticleModel]! = nil
 
+    var ops: [String: Date] = [:]
+
     static func myPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
@@ -99,6 +101,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     var faviconPath: URL {
         return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
             .appendingPathComponent("favicon.ico", isDirectory: false)
+    }
+    var opsPath: URL {
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+            .appendingPathComponent("ops.json", isDirectory: false)
     }
     var podcastCoverArtPath: URL {
         return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
@@ -587,6 +593,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         planet.articles = articles.sorted {
             $0.created > $1.created
         }
+        try? planet.loadOps()
         return planet
     }
 
@@ -1046,7 +1053,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     @ViewBuilder
-    func smallAvatarAndNameView() -> some View {
+    func smallAvatarAndNameView(label: String? = nil) -> some View {
         if let image = self.avatar {
             Image(nsImage: image)
                 .resizable()
@@ -1080,8 +1087,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 2)
         }
 
-        Text("\(self.name)")
+        if let label = label {
+            Text("\(label)")
             .font(.body)
+        } else {
+            Text("\(self.name)")
+            .font(.body)
+        }
+
     }
 
     func updatePodcastCoverArt(path: URL) throws {
@@ -1556,19 +1569,25 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
+    func saveOps() throws {
+        try JSONEncoder.shared.encode(self.ops).write(to: opsPath)
+    }
+
+    func loadOps() throws {
+        do {
+            let opsData = try Data(contentsOf: opsPath)
+            self.ops = try JSONDecoder.shared.decode([String : Date].self, from: opsData)
+        }
+        catch {
+            debugPrint("failed to load ops from file: \(error)")
+        }
+    }
+
     func rebuild() async throws {
         let started = Date()
         Task { @MainActor in
             PlanetStore.shared.isRebuilding = true
             PlanetStore.shared.rebuildTasks = self.articles.count
-        }
-        defer {
-            Task { @MainActor in
-                PlanetStore.shared.isRebuilding = false
-            }
-            let ended = Date()
-            let timeInterval = ended.timeIntervalSince(started)
-            debugPrint("Rebuild planet: \(name) took \(timeInterval) seconds")
         }
         try self.copyTemplateAssets()
         // according to benchmarks, using parallel processing would take half the time to rebuild
@@ -1577,9 +1596,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         do {
             // split the articles into groups
             let cpuCount = ProcessInfo.processInfo.activeProcessorCount
-            let articleGroups = self.articles.chunked(into: cpuCount)
+            let articleGroups = self.articles.chunked(into: cpuCount > 8 ? 8 : cpuCount)
             for articleGroup in articleGroups {
                 // after some benchmarking, it seems that using DispatchGroup is faster than using TaskGroup
+
+                /*
                 let group = DispatchGroup()
                 DispatchQueue.concurrentPerform(iterations: articleGroup.count) { index in
                     group.enter()
@@ -1593,8 +1614,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     }
                 }
                 group.wait()
+                */
 
-                /*
                 try await withThrowingTaskGroup(of: Void.self) { group in
                     for article in articleGroup {
                         group.addTask(priority: .high) {
@@ -1603,7 +1624,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     }
                     try await group.waitForAll()
                 }
-                */
+            }
+        }
+        Task { @MainActor in
+            PlanetStore.shared.isRebuilding = false
+        }
+        let ended = Date()
+        let timeInterval = ended.timeIntervalSince(started)
+        debugPrint("Rebuild planet: \(name) took \(timeInterval) seconds")
+        Task {
+            do {
+                try self.saveOps()
+            }
+            catch {
+                debugPrint("failed to save ops to file: \(error)")
             }
         }
         try self.savePublic()

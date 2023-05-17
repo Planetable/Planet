@@ -15,7 +15,11 @@ struct RebuildProgressView: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack {
-                Text("Rebuilding")
+                if case .myPlanet(let planet) = PlanetStore.shared.selectedView {
+                    planet.smallAvatarAndNameView(label: "Rebuilding \(planet.name)")
+                } else {
+                    Text("Rebuilding")
+                }
                 Spacer()
                 Text("\(completed)/\(total) items done")
                     .onReceive(NotificationCenter.default.publisher(for: .myArticleBuilt)) {
@@ -35,7 +39,7 @@ struct RebuildProgressView: View {
             }
             ProgressView(value: progress, total: 100)
         }
-        .frame(width: PlanetUI.SHEET_WIDTH_PROGRESS_VIEW)
+        .frame(width: PlanetUI.SHEET_WIDTH_REBUILD_VIEW)
         .padding(PlanetUI.SHEET_PADDING)
     }
 }
