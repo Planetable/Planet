@@ -16,7 +16,9 @@ struct TemplateBrowserInspectorView: View {
 
     var body: some View {
         ScrollView {
-            if let templateID = store.selectedTemplateID, let template = store.templates.first(where: { $0.id == templateID }) {
+            if let templateID = store.selectedTemplateID,
+                let template = store.templates.first(where: { $0.id == templateID })
+            {
                 Section {
                     VStack {
                         HStack {
@@ -41,13 +43,50 @@ struct TemplateBrowserInspectorView: View {
                 .padding(.horizontal, 12)
 
                 Spacer()
-            } else {
+
+                if let settings = template.settings, let keys = Array(settings.keys) as? [String] {
+                    Section {
+                        VStack {
+                            HStack {
+                                Text("Template-Level Settings")
+                                    .bold()
+                                Spacer(minLength: 1)
+                            }
+
+                            ForEach(keys, id: \.self) { key in
+                                Divider()
+                                HStack {
+                                    Image(systemName: "questionmark.circle.fill")
+                                        .help(settings[key]?.description ?? "Description")
+                                    Text(settings[key]?.name ?? "Key")
+                                    Spacer(minLength: 1)
+                                    Text("\(settings[key]?.defaultValue ?? "Value")")
+                                }
+                            }
+
+                        }
+                        .padding(.top, 12)
+                        .onAppear {
+                            print(settings)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                }
+            }
+            else {
                 Spacer()
                 Text("No Template Selected")
                 Spacer()
             }
         }
-        .frame(minWidth: PlanetUI.WINDOW_INSPECTOR_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_INSPECTOR_WIDTH_MIN, maxWidth: PlanetUI.WINDOW_INSPECTOR_WIDTH_MAX, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity)
+        .frame(
+            minWidth: PlanetUI.WINDOW_INSPECTOR_WIDTH_MIN,
+            idealWidth: PlanetUI.WINDOW_INSPECTOR_WIDTH_MIN,
+            maxWidth: PlanetUI.WINDOW_INSPECTOR_WIDTH_MAX,
+            minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN,
+            idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN,
+            maxHeight: .infinity
+        )
         .edgesIgnoringSafeArea(.bottom)
     }
 }

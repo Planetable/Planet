@@ -10,6 +10,15 @@ import Stencil
 import PathKit
 import os
 
+struct TemplateSetting: Codable, Hashable, Identifiable {
+    let name: String
+    let type: String
+    let defaultValue: String
+    let description: String
+
+    var id: String { name }
+}
+
 class Template: Codable, Identifiable {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Template")
 
@@ -21,6 +30,7 @@ class Template: Codable, Identifiable {
     var idealItemsPerPage: Int? = 10
     var buildNumber: Int? = 1
     var generateNFTMetadata: Bool? = false
+    var settings: [String: TemplateSetting]? = [:]
 
     var id: String { name }
 
@@ -60,6 +70,7 @@ class Template: Codable, Identifiable {
         case idealItemsPerPage
         case buildNumber
         case generateNFTMetadata
+        case settings
     }
 
     required init(from decoder: Decoder) throws {
@@ -71,6 +82,7 @@ class Template: Codable, Identifiable {
         idealItemsPerPage = try container.decodeIfPresent(Int.self, forKey: .idealItemsPerPage)
         buildNumber = try container.decodeIfPresent(Int.self, forKey: .buildNumber)
         generateNFTMetadata = try container.decodeIfPresent(Bool.self, forKey: .generateNFTMetadata)
+        settings = try container.decodeIfPresent(Dictionary.self, forKey: .settings)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -82,6 +94,7 @@ class Template: Codable, Identifiable {
         try container.encodeIfPresent(idealItemsPerPage, forKey: .idealItemsPerPage)
         try container.encodeIfPresent(buildNumber, forKey: .buildNumber)
         try container.encodeIfPresent(generateNFTMetadata, forKey: .generateNFTMetadata)
+        try container.encodeIfPresent(settings, forKey: .settings)
     }
 
     static func from(path: URL) -> Template? {
