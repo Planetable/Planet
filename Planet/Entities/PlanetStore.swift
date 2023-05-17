@@ -466,6 +466,9 @@ enum PlanetDetailViewType: Hashable, Equatable {
         // debugPrint("final planet articles save public.")
         // try refreshedToPlanet.articles.forEach({ try $0.savePublic() })
 
+        let refreshedArticle = try MyArticleModel.load(from: movedArticle.path, planet: refreshedToPlanet)
+        try refreshedArticle.savePublic()
+
         myPlanets = myPlanets.map() { p in
             if p.id == refreshedFromPlanet.id {
                 return refreshedFromPlanet
