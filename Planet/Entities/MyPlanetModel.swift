@@ -3,8 +3,8 @@ import Foundation
 import Stencil
 import SwiftUI
 import SwiftyJSON
-import os
 import UserNotifications
+import os
 
 class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codable {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "MyPlanet")
@@ -184,6 +184,42 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     var template: Template? {
         TemplateStore.shared[templateName]
+    }
+    var templateSettingsPath: URL {
+        return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+            .appendingPathComponent("templateSettings.json", isDirectory: false)
+    }
+    var publicTemplateSettingsPath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("templateSettings.json", isDirectory: false)
+    }
+    func templateSettings() -> [String: String] {
+        if let data = try? Data(contentsOf: templateSettingsPath) {
+            if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
+                if let dict = json as? [String: String] {
+                    return dict
+                }
+            }
+        }
+        return [:]
+    }
+    func updateTemplateSettings(settings: [String: String]) {
+        do {
+            // Read current settings
+            var currentSettings: [String: String] = templateSettings()
+            // Update settings
+            for (key, value) in settings {
+                currentSettings[key] = value
+            }
+            // Write settings
+            let data = try JSONSerialization.data(withJSONObject: currentSettings, options: [])
+            try data.write(to: templateSettingsPath)
+        }
+        catch {
+            debugPrint("Error writing template settings: \(error)")
+        }
     }
 
     var templateStringRSS: String? {
@@ -400,7 +436,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         dWebServicesDomain = try container.decodeIfPresent(String.self, forKey: .dWebServicesDomain)
         dWebServicesAPIKey = try container.decodeIfPresent(String.self, forKey: .dWebServicesAPIKey)
         pinnableEnabled = try container.decodeIfPresent(Bool.self, forKey: .pinnableEnabled)
-        pinnableAPIEndpoint = try container.decodeIfPresent(String.self, forKey: .pinnableAPIEndpoint)
+        pinnableAPIEndpoint = try container.decodeIfPresent(
+            String.self,
+            forKey: .pinnableAPIEndpoint
+        )
         pinnablePinCID = try container.decodeIfPresent(String.self, forKey: .pinnablePinCID)
         filebaseEnabled = try container.decodeIfPresent(Bool.self, forKey: .filebaseEnabled)
         filebasePinName = try container.decodeIfPresent(String.self, forKey: .filebasePinName)
@@ -1064,6 +1103,16 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         podcastCoverArt = nil
     }
 
+    func copyTemplateSettings() throws {
+        guard let template = template else {
+            throw PlanetError.MissingTemplateError
+        }
+        if FileManager.default.fileExists(atPath: publicTemplateSettingsPath.path) {
+            try FileManager.default.removeItem(at: publicTemplateSettingsPath)
+        }
+        try FileManager.default.copyItem(at: templateSettingsPath, to: publicTemplateSettingsPath)
+    }
+
     func copyTemplateAssets() throws {
         guard let template = template else {
             throw PlanetError.MissingTemplateError
@@ -1537,7 +1586,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     do {
                         try articleGroup[index].savePublic()
                         group.leave()
-                    } catch {
+                    }
+                    catch {
                         // Handle any errors here.
                         group.leave()
                     }

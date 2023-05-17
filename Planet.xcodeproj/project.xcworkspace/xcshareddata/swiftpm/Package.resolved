@@ -69,7 +69,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "ec6312e2616a0eca0f9264535a16a30f55c84a45"
+        "revision" : "74237e646f6b7920518414084a8a5795dc37a4db"
       }
     },
     {
@@ -79,6 +79,15 @@
       "state" : {
         "revision" : "8a98e31a47854d3180882c8068cc4d9381bf382d",
         "version" : "6.22.1"
+      }
+    },
+    {
+      "identity" : "qrcode",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/WalletConnect/QRCode",
+      "state" : {
+        "branch" : "main",
+        "revision" : "c84b5b05a949acb3133f39a4896b2f833fb29bd6"
       }
     },
     {
@@ -136,6 +145,15 @@
       }
     },
     {
+      "identity" : "swift-qrcode-generator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dagronf/swift-qrcode-generator",
+      "state" : {
+        "revision" : "5ca09b6a2ad190f94aa3d6ddef45b187f8c0343b",
+        "version" : "1.0.3"
+      }
+    },
+    {
       "identity" : "swifter",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/httpswift/swifter",
@@ -186,7 +204,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "cd55d281ae7cb3c5d14524d0147b9d557cdd1af5"
+        "revision" : "3e23e95b8c3d2843db4f64f75ce38c8c65de4d5a"
       }
     },
     {

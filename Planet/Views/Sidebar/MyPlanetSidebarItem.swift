@@ -40,6 +40,17 @@ struct MyPlanetSidebarItem: View {
                     Text("Edit Planet")
                 }
 
+                if let template = planet.template, template.hasSettings {
+                    Button {
+                        Task {
+                            PlanetStore.shared.selectedView = .myPlanet(planet)
+                            PlanetStore.shared.isConfiguringPlanetTemplate = true
+                        }
+                    } label: {
+                        Text("Template Settings")
+                    }
+                }
+
                 Button {
                     Task {
                         PlanetStore.shared.selectedView = .myPlanet(planet)

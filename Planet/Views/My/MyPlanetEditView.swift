@@ -332,7 +332,6 @@ struct MyPlanetEditView: View {
                             .font(.footnote)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
-
                         }
 
                         HStack {

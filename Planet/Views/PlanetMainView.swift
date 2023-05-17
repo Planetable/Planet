@@ -81,6 +81,11 @@ struct PlanetMainView: View {
                 MyPlanetPodcastSettingsView(planet: planet)
             }
         }
+        .sheet(isPresented: $planetStore.isConfiguringPlanetTemplate) {
+            if case .myPlanet(let planet) = planetStore.selectedView {
+                MyPlanetTemplateSettingsView(planet: planet)
+            }
+        }
         .sheet(isPresented: $planetStore.isMigrating) {
             MigrationProgressView()
         }

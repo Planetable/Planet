@@ -34,6 +34,8 @@ class Template: Codable, Identifiable {
 
     var id: String { name }
 
+    var hasSettings: Bool { settings?.count ?? 0 > 0 }
+
     lazy var blogPath = path
         .appendingPathComponent("templates", isDirectory: true)
         .appendingPathComponent("blog.html", isDirectory: false)
