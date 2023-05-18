@@ -86,6 +86,8 @@ class PlanetQuickShareViewModel: ObservableObject {
         if !externalLink.isEmpty {
             draft?.externalLink = externalLink
         }
-        try draft?.saveToArticle()
+        Task {
+            try await draft?.saveToArticle()
+        }
     }
 }
