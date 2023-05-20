@@ -35,8 +35,8 @@ extension AppContainerViewController {
         view.wantsLayer = true
         view.layer?.backgroundColor = .clear
         splitView.dividerStyle = .thin
-        sidebarViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: AppUI.WINDOW_SIDEBAR_WIDTH_MIN).isActive = true
-        contentViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: AppUI.WINDOW_CONTENT_WIDTH_MIN).isActive = true
+        sidebarViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN).isActive = true
+        contentViewController.view.widthAnchor.constraint(greaterThanOrEqualToConstant: PlanetUI.WINDOW_CONTENT_WIDTH_MIN).isActive = true
     }
     
     private func setupLayout() {

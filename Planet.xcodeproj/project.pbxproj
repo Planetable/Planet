@@ -46,7 +46,6 @@
 		2A6E16E02A18763000704A08 /* AppContainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16DF2A18763000704A08 /* AppContainerViewController.swift */; };
 		2A6E16E22A1876CB00704A08 /* AppSidebarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16E12A1876CB00704A08 /* AppSidebarViewController.swift */; };
 		2A6E16E42A1876D900704A08 /* AppContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16E32A1876D900704A08 /* AppContentViewController.swift */; };
-		2A6E16E62A1877AF00704A08 /* AppUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16E52A1877AF00704A08 /* AppUI.swift */; };
 		2A6F8282289A5DAF0099D87E /* PlanetDownloadsWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6F8281289A5DAF0099D87E /* PlanetDownloadsWebView.swift */; };
 		2A7022ED2897DF1700022F13 /* PlanetDownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7022EC2897DF1700022F13 /* PlanetDownloadsView.swift */; };
 		2A7022F02897DF3100022F13 /* PlanetDownloadsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7022EF2897DF3100022F13 /* PlanetDownloadsWindowController.swift */; };
@@ -58,6 +57,8 @@
 		2A79FB2E289819AD00F06DDF /* PlanetDownloadsItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A79FB2D289819AD00F06DDF /* PlanetDownloadsItemView.swift */; };
 		2A7D1BF427CA1B0A00D3C091 /* MyPlanetEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7D1BF327CA1B0A00D3C091 /* MyPlanetEditView.swift */; };
 		2A90A80329DBB6FC00D45E5E /* KeyboardShortcutHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A90A80229DBB6FC00D45E5E /* KeyboardShortcutHelper.swift */; };
+		2A95E63F2A18B1B6001288B8 /* PlanetUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF1666292570AF00AE318B /* PlanetUI.swift */; };
+		2A95E6402A18B21F001288B8 /* PlanetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211404DFC1B4D23F84EA279 /* PlanetError.swift */; };
 		2A9B09A1294DF3BC0002719C /* PFDashboardSidebarItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A0294DF3BC0002719C /* PFDashboardSidebarItemView.swift */; };
 		2A9B09A3294F066B0002719C /* PFDashboardWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A2294F066B0002719C /* PFDashboardWebView.swift */; };
 		2A9B09A5294F35640002719C /* PFDashboardContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A4294F35640002719C /* PFDashboardContentView.swift */; };
@@ -261,7 +262,6 @@
 		2A6E16DF2A18763000704A08 /* AppContainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainerViewController.swift; sourceTree = "<group>"; };
 		2A6E16E12A1876CB00704A08 /* AppSidebarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSidebarViewController.swift; sourceTree = "<group>"; };
 		2A6E16E32A1876D900704A08 /* AppContentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentViewController.swift; sourceTree = "<group>"; };
-		2A6E16E52A1877AF00704A08 /* AppUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUI.swift; sourceTree = "<group>"; };
 		2A6F8281289A5DAF0099D87E /* PlanetDownloadsWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadsWebView.swift; sourceTree = "<group>"; };
 		2A7022EC2897DF1700022F13 /* PlanetDownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadsView.swift; sourceTree = "<group>"; };
 		2A7022EF2897DF3100022F13 /* PlanetDownloadsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadsWindowController.swift; sourceTree = "<group>"; };
@@ -556,7 +556,6 @@
 		2ABD1CC22A1616DA0082D7EA /* PlanetLite */ = {
 			isa = PBXGroup;
 			children = (
-				2A6E16E52A1877AF00704A08 /* AppUI.swift */,
 				2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */,
 				2ABD1CD42A1617660082D7EA /* AppMenu.swift */,
 				2A6E16DB2A1870C900704A08 /* AppExtension.swift */,
@@ -1065,6 +1064,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2A95E63F2A18B1B6001288B8 /* PlanetUI.swift in Sources */,
 				2A6E16DC2A1870C900704A08 /* AppExtension.swift in Sources */,
 				2A6E16D42A1854C200704A08 /* AppViewModel.swift in Sources */,
 				2A6E16D82A18679A00704A08 /* AppContentView.swift in Sources */,
@@ -1072,10 +1072,10 @@
 				2A6E16E42A1876D900704A08 /* AppContentViewController.swift in Sources */,
 				2A6E16DE2A1875CA00704A08 /* AppWindowController.swift in Sources */,
 				2ABD1CD12A1617300082D7EA /* main.swift in Sources */,
+				2A95E6402A18B21F001288B8 /* PlanetError.swift in Sources */,
 				2A6E16DA2A186B0100704A08 /* AppWindow.swift in Sources */,
 				2ABD1CC42A1616DA0082D7EA /* AppDelegate.swift in Sources */,
 				2ABD1CD52A1617660082D7EA /* AppMenu.swift in Sources */,
-				2A6E16E62A1877AF00704A08 /* AppUI.swift in Sources */,
 				2A6E16D62A18678E00704A08 /* AppSidebarView.swift in Sources */,
 				2A6E16E02A18763000704A08 /* AppContainerViewController.swift in Sources */,
 			);

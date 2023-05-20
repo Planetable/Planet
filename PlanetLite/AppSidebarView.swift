@@ -2,8 +2,6 @@
 //  AppSidebarView.swift
 //  PlanetLite
 //
-//  Created by Kai on 5/20/23.
-//
 
 import SwiftUI
 
@@ -25,7 +23,7 @@ struct AppSidebarView: View {
                 .tag("Content C")
         }
         .listStyle(.sidebar)
-        .frame(minWidth: AppUI.WINDOW_SIDEBAR_WIDTH_MIN, idealWidth: AppUI.WINDOW_SIDEBAR_WIDTH_MIN, maxWidth: AppUI.WINDOW_SIDEBAR_WIDTH_MAX, minHeight: AppUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: AppUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity)
+        .frame(minWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, maxWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MAX, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity)
     }
 }
 

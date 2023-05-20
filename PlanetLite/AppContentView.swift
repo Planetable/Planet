@@ -2,8 +2,6 @@
 //  AppContentView.swift
 //  PlanetLite
 //
-//  Created by Kai on 5/20/23.
-//
 
 import SwiftUI
 
@@ -21,7 +19,7 @@ struct AppContentView: View {
         }
         .navigationTitle(appViewModel.selectedViewName ?? "")
         .navigationSubtitle("")
-        .frame(minWidth: AppUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: AppUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: AppUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: AppUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
+        .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
     }
 }
 
