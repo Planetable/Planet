@@ -21,15 +21,21 @@ class TBWindow: NSWindow {
 
 extension TBWindow: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
+        // MARK: TODO: Comment out for Planet Lite
+        /*
         if let window = notification.object as? TBWindow {
             window.delegate = nil
             PlanetAppDelegate.shared.templateWindowController = nil
         }
+         */
     }
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
+        // MARK: TODO: Comment out for Planet Lite
+        /*
         sender.contentView = nil
         sender.contentViewController = nil
+         */
         return true
     }
 }

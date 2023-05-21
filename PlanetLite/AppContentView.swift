@@ -7,9 +7,11 @@ import SwiftUI
 
 
 struct AppContentView: View {
+    @StateObject private var planetStore: PlanetStore
     @StateObject private var appViewModel: AppViewModel
     
     init() {
+        _planetStore = StateObject(wrappedValue: PlanetStore.shared)
         _appViewModel = StateObject(wrappedValue: AppViewModel.shared)
     }
 

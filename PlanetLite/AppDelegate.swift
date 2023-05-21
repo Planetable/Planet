@@ -11,6 +11,7 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
     static let shared = PlanetLiteAppDelegate()
     
     var appWindowController: AppWindowController?
+    var quickShareWindowController: PlanetQuickShareWindowController?
 
     lazy var applicationName: String = {
         if let bundleName = Bundle.main.object(forInfoDictionaryKey:"CFBundleName"), let bundleNameAsString = bundleName as? String {
@@ -26,6 +27,8 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(dismissQuickShareWindowIfNeeded), name: NSWorkspace.willSleepNotification, object: nil)
+
         if appWindowController == nil {
             appWindowController = AppWindowController()
         }
@@ -53,9 +56,48 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         Task.detached(priority: .utility) {
-//            IPFSDaemon.shared.shutdownDaemon()
+            IPFSDaemon.shared.shutdownDaemon()
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
+    }
+}
+
+
+extension PlanetLiteAppDelegate {
+    func createQuickShareWindow(forFiles files: [URL]) {
+        guard files.count > 0 else { return }
+        Task { @MainActor in
+            do {
+                try PlanetQuickShareViewModel.shared.prepareFiles(files)
+                if #available(macOS 13.0, *) {
+                    if quickShareWindowController != nil {
+                        quickShareWindowController?.window?.close()
+                        quickShareWindowController?.window = nil
+                        quickShareWindowController?.contentViewController = nil
+                    }
+                    quickShareWindowController = PlanetQuickShareWindowController()
+                    guard let w = quickShareWindowController?.window else { return }
+                    NSApp.runModal(for: w)
+                } else {
+                    PlanetStore.shared.isQuickSharing = true
+                }
+            } catch {
+                let alert = NSAlert()
+                alert.messageText = "Failed to Create Post"
+                alert.informativeText = error.localizedDescription
+                alert.alertStyle = .warning
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+            }
+        }
+    }
+
+    @objc func dismissQuickShareWindowIfNeeded() {
+        guard let w = quickShareWindowController?.window else { return }
+        w.close()
+        Task { @MainActor in
+            PlanetStore.shared.isQuickSharing = false
+        }
     }
 }

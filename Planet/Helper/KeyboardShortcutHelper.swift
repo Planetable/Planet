@@ -133,6 +133,8 @@ class KeyboardShortcutHelper: ObservableObject {
     func toolsCommands() -> some Commands {
         CommandMenu("Tools") {
             Group {
+                // MARK: TODO: Comment out for Planet Lite
+                /*
                 Button {
                     PlanetAppDelegate.shared.openTemplateWindow()
                 } label: {
@@ -152,6 +154,7 @@ class KeyboardShortcutHelper: ObservableObject {
                 } label: {
                     Text("Downloads")
                 }
+                 */
 
                 publishedFoldersMenus()
 
@@ -347,12 +350,16 @@ class KeyboardShortcutHelper: ObservableObject {
                 Text("Add Folder")
             }
             Divider()
+            
+            // MARK: TODO: Comment out for Planet Lite
+            /*
             Button {
                 PlanetAppDelegate.shared.openPublishedFoldersDashboardWindow()
             } label: {
                 Text("Dashboard")
             }
             .keyboardShortcut("f", modifiers: [.command, .shift])
+             */
             Menu("Options") {
                 Toggle("Automatically Publish", isOn: $serviceStore.autoPublish)
                     .onChange(of: serviceStore.autoPublish) { newValue in
