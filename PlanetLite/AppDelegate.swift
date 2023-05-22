@@ -17,7 +17,7 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
         if let bundleName = Bundle.main.object(forInfoDictionaryKey:"CFBundleName"), let bundleNameAsString = bundleName as? String {
             return bundleNameAsString
         }
-        return NSLocalizedString("Planet Lite", comment:"")
+        return NSLocalizedString(.appName, comment:"")
     }()
 
     func applicationWillFinishLaunching(_ notification: Notification) {

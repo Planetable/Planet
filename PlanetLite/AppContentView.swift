@@ -8,20 +8,39 @@ import SwiftUI
 
 struct AppContentView: View {
     @StateObject private var planetStore: PlanetStore
-    @StateObject private var appViewModel: AppViewModel
     
     init() {
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)
-        _appViewModel = StateObject(wrappedValue: AppViewModel.shared)
     }
 
     var body: some View {
         VStack {
-            Text("Content View: \(appViewModel.selectedViewName ?? "")")
+            if planetStore.myPlanets.count == 0 {
+                Text("No planet yet ...")
+                    .foregroundColor(.secondary)
+                Button {
+                    planetStore.isCreatingPlanet = true
+                } label: {
+                    Text("Create New Planet")
+                }
+                .disabled(planetStore.isCreatingPlanet)
+            } else {
+                switch planetStore.selectedView {
+                case .myPlanet(let planet):
+                    planetContentGridView(planet)
+                default:
+                    Text("No content ...")
+                }
+            }
         }
-        .navigationTitle(appViewModel.selectedViewName ?? "")
-        .navigationSubtitle("")
+        .padding(0)
+        .edgesIgnoringSafeArea(.top)
         .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
+    }
+    
+    @ViewBuilder
+    private func planetContentGridView(_ planet: MyPlanetModel) -> some View {
+        Text("Content for planet: \(planet.name)")
     }
 }
 

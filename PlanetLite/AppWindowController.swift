@@ -18,14 +18,14 @@ class AppWindowController: NSWindowController {
         w.toolbarStyle = .unified
         super.init(window: w)
         self.setupToolbar()
-        self.window?.setFrameAutosaveName("Planet Lite Window")
+        self.window?.setFrameAutosaveName(.appName + " Window")
 //        NotificationCenter.default.addObserver(forName: .dashboardInspectorIsCollapsedStatusChanged, object: nil, queue: .main) { [weak self] _ in
 //            self?.setupToolbar()
 //        }
 //        NotificationCenter.default.addObserver(forName: .dashboardRefreshToolbar, object: nil, queue: .main) { [weak self] _ in
 //            self?.setupToolbar()
 //        }
-        NotificationCenter.default.addObserver(forName: .updateWindowTitles, object: nil, queue: .main) { [weak self] n in
+        NotificationCenter.default.addObserver(forName: .updatePlanetLiteWindowTitles, object: nil, queue: .main) { [weak self] n in
             guard let titles = n.object as? [String: String] else { return }
             if let theTitle = titles["title"], theTitle != "" {
                 self?.window?.title = theTitle
@@ -70,6 +70,8 @@ class AppWindowController: NSWindowController {
             }
         case .addItem:
             newArticle()
+        case .showInfoItem:
+            showPlanetInfo()
         default:
             break
         }
@@ -79,7 +81,11 @@ class AppWindowController: NSWindowController {
 
 extension AppWindowController {
     func newArticle() {
-        
+    }
+    
+    func showPlanetInfo() {
+        guard PlanetStore.shared.isShowingPlanetInfo == false else { return }
+        PlanetStore.shared.isShowingPlanetInfo = true
     }
 }
 
@@ -88,9 +94,17 @@ extension AppWindowController: NSToolbarItemValidation {
     func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
         switch item.itemIdentifier {
         case .addItem:
-            return true
+            if case .myPlanet(_) = PlanetStore.shared.selectedView {
+                return true
+            }
+            return false
         case .sidebarItem:
             return true
+        case .showInfoItem:
+            if case .myPlanet(_) = PlanetStore.shared.selectedView {
+                return true
+            }
+            return false
         default:
             return false
         }
@@ -122,11 +136,21 @@ extension AppWindowController: NSToolbarDelegate {
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
-            item.label = "Add"
-            item.paletteLabel = "Add Folder"
-            item.toolTip = "Add Folder"
+            item.label = "New"
+            item.paletteLabel = "New Article"
+            item.toolTip = "New Article"
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "plus", accessibilityDescription: "Add Folder")
+            item.image = NSImage(systemSymbolName: "plus", accessibilityDescription: "New Article")
+            return item
+        case .showInfoItem:
+            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+            item.target = self
+            item.action = #selector(self.toolbarItemAction(_:))
+            item.label = "Info"
+            item.paletteLabel = "Show Info"
+            item.toolTip = "Show Info"
+            item.isBordered = true
+            item.image = NSImage(systemSymbolName: "info.circle", accessibilityDescription: "Show Info")
             return item
         default:
             return nil
@@ -139,6 +163,7 @@ extension AppWindowController: NSToolbarDelegate {
             .sidebarItem,
             .sidebarSeparatorItem,
             .flexibleSpace,
+            .showInfoItem,
             .addItem
         ]
     }
@@ -149,6 +174,7 @@ extension AppWindowController: NSToolbarDelegate {
             .sidebarItem,
             .sidebarSeparatorItem,
             .flexibleSpace,
+            .showInfoItem,
             .addItem
         ]
     }
@@ -157,6 +183,7 @@ extension AppWindowController: NSToolbarDelegate {
         return [
             .sidebarItem,
             .sidebarSeparatorItem,
+            .showInfoItem,
             .addItem
         ]
     }
