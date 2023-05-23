@@ -277,7 +277,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         logger.info("Rendered preview for draft \(self.id) and saved to \(self.previewPath)")
     }
 
-    func saveToArticle() async throws {
+    func saveToArticle() throws {
         let planet: MyPlanetModel
         let article: MyArticleModel
         switch target! {

@@ -44,10 +44,8 @@ class WriterWindow: NSWindow {
             return
         }
         do {
-            Task {
-                try await draft.saveToArticle()
-                WriterStore.shared.writers.removeValue(forKey: draft)
-            }
+            try draft.saveToArticle()
+            WriterStore.shared.writers.removeValue(forKey: draft)
             close()
         } catch {
             PlanetStore.shared.alert(title: "Failed to send article: \(error)")

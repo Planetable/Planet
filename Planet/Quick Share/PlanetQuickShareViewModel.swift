@@ -85,12 +85,10 @@ class PlanetQuickShareViewModel: ObservableObject {
         if !externalLink.isEmpty {
             draft?.externalLink = externalLink
         }
-        Task {
-            try draft?.saveToArticle()
-        }
+        try draft?.saveToArticle()
         cleanup()
     }
-    
+
     func cleanup() {
         try? draft?.delete()
         draft = nil

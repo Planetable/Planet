@@ -409,9 +409,7 @@ extension PlanetAPI {
                     }
                     try draft.addAttachmentFromData(data: attachmentData, fileName: attachmentFileName, forContentType: attachmentContentType)
                 }
-                Task {
-                    try await draft.saveToArticle()
-                }
+                try draft.saveToArticle()
             } catch {
                 debugPrint("failed to create article for planet: \(planet), error: \(error)")
             }
@@ -479,9 +477,7 @@ extension PlanetAPI {
                     }
                     try draft.addAttachmentFromData(data: attachmentData, fileName: attachmentFileName, forContentType: attachmentContentType)
                 }
-                Task {
-                    try await draft.saveToArticle()
-                }
+                try draft.saveToArticle()
             } catch {
                 debugPrint("failed to modify article for planet: \(planet), error: \(error)")
             }
