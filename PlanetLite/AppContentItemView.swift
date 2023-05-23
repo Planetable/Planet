@@ -2,8 +2,6 @@
 //  AppContentItemView.swift
 //  PlanetLite
 //
-//  Created by Kai on 5/22/23.
-//
 
 import SwiftUI
 
@@ -40,15 +38,6 @@ struct AppContentItemView: View {
             }
         }
         .contextMenu {
-            Button {
-                
-            } label: {
-                Text("Edit Article")
-            }
-            .disabled(true)
-            
-            Divider()
-            
             Button {
                 isShowingDeleteConfirmation = true
             } label: {

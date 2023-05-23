@@ -6,11 +6,6 @@
 import Cocoa
 
 
-extension Notification.Name {
-    static let updatePlanetLiteWindowTitles = Notification.Name("PlanetLiteUpdateWindowTitlesNotification")
-}
-
-
 extension String {
     static let appName = "Planet Lite"
     static let containerViewIdentifier = "AppContainerViewController"

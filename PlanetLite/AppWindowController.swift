@@ -19,12 +19,6 @@ class AppWindowController: NSWindowController {
         super.init(window: w)
         self.setupToolbar()
         self.window?.setFrameAutosaveName(.appName + " Window")
-//        NotificationCenter.default.addObserver(forName: .dashboardInspectorIsCollapsedStatusChanged, object: nil, queue: .main) { [weak self] _ in
-//            self?.setupToolbar()
-//        }
-//        NotificationCenter.default.addObserver(forName: .dashboardRefreshToolbar, object: nil, queue: .main) { [weak self] _ in
-//            self?.setupToolbar()
-//        }
         NotificationCenter.default.addObserver(forName: .updatePlanetLiteWindowTitles, object: nil, queue: .main) { [weak self] n in
             guard let titles = n.object as? [String: String] else { return }
             if let theTitle = titles["title"], theTitle != "" {
@@ -43,7 +37,6 @@ class AppWindowController: NSWindowController {
     }
 
     deinit {
-//        NotificationCenter.default.removeObserver(self, name: .dashboardInspectorIsCollapsedStatusChanged, object: nil)
     }
 
     override func windowDidLoad() {

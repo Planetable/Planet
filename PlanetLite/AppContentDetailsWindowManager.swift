@@ -18,14 +18,12 @@ class AppContentDetailsWindowManager: NSObject {
         } else {
             addWindowController(forArticle: article)
         }
-        debugPrint("activate window controller for article: \(article.title) : \(article.content)")
     }
     
     @MainActor
     func deactivateWindowController(forArticle article: MyArticleModel) {
         guard windowControllers.first(where: { $0.articleID() == article.id }) != nil else { return }
         destroyWindowController(forArticle: article)
-        debugPrint("deactivate window controller for article: \(article.title) : \(article.content)")
     }
     
     // MARK: -

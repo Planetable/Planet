@@ -35,6 +35,7 @@ struct AppContentView: View {
                     planetContentGridView(planet)
                 default:
                     Text("No content ...")
+                        .foregroundColor(.secondary)
                 }
             }
         }

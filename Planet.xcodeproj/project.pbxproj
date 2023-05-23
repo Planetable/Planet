@@ -37,7 +37,6 @@
 		2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BB227C4DF110008A694 /* FollowPlanetView.swift */; };
 		2A6247AE292CC5F400714BFA /* IndicatorLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */; };
 		2A69F04727E1B53A00141DC0 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A69F04627E1B53A00141DC0 /* FeedKit */; };
-		2A6E16D42A1854C200704A08 /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D32A1854C200704A08 /* AppViewModel.swift */; };
 		2A6E16D62A18678E00704A08 /* AppSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D52A18678E00704A08 /* AppSidebarView.swift */; };
 		2A6E16D82A18679A00704A08 /* AppContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D72A18679A00704A08 /* AppContentView.swift */; };
 		2A6E16DA2A186B0100704A08 /* AppWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D92A186B0100704A08 /* AppWindow.swift */; };
@@ -413,7 +412,6 @@
 		2A441BAF27C4DD980008A694 /* CreatePlanetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreatePlanetView.swift; sourceTree = "<group>"; };
 		2A441BB227C4DF110008A694 /* FollowPlanetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowPlanetView.swift; sourceTree = "<group>"; };
 		2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorLabelView.swift; sourceTree = "<group>"; };
-		2A6E16D32A1854C200704A08 /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
 		2A6E16D52A18678E00704A08 /* AppSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSidebarView.swift; sourceTree = "<group>"; };
 		2A6E16D72A18679A00704A08 /* AppContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentView.swift; sourceTree = "<group>"; };
 		2A6E16D92A186B0100704A08 /* AppWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppWindow.swift; sourceTree = "<group>"; };
@@ -750,7 +748,6 @@
 				2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */,
 				2ABD1CD42A1617660082D7EA /* AppMenu.swift */,
 				2A6E16DB2A1870C900704A08 /* AppExtension.swift */,
-				2A6E16D32A1854C200704A08 /* AppViewModel.swift */,
 				2A6E16D92A186B0100704A08 /* AppWindow.swift */,
 				2A6E16DD2A1875CA00704A08 /* AppWindowController.swift */,
 				2A6E16DF2A18763000704A08 /* AppContainerViewController.swift */,
@@ -1335,7 +1332,6 @@
 				2A95E64E2A19A398001288B8 /* PFDashboardContainerViewController.swift in Sources */,
 				2A95E65A2A19A3A2001288B8 /* WalletConnectV2QRCodeView.swift in Sources */,
 				2A95E6952A19A437001288B8 /* IPFSDaemon.swift in Sources */,
-				2A6E16D42A1854C200704A08 /* AppViewModel.swift in Sources */,
 				2A95E6E92A19A64F001288B8 /* LoadingIndicatorView.swift in Sources */,
 				2A95E6622A19A3AA001288B8 /* TemplateBrowserPreviewWebView.swift in Sources */,
 				2A95E6E12A19A521001288B8 /* dWebServices.swift in Sources */,
