@@ -350,9 +350,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         try planet.copyTemplateAssets()
         planet.updated = Date()
         try planet.save()
-        try planet.savePublic()
 
         Task {
+            try planet.savePublic()
             try await planet.publish()
         }
 
