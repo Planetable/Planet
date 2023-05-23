@@ -11,8 +11,11 @@ struct AppContentView: View {
     
     static let itemWidth: CGFloat = 128
     
+    let dropDelegate: AppContentDropDelegate
+    
     init() {
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)
+        dropDelegate = AppContentDropDelegate()
     }
 
     var body: some View {
@@ -35,6 +38,7 @@ struct AppContentView: View {
                 }
             }
         }
+        .onDrop(of: [.image], delegate: dropDelegate)
         .padding(0)
         .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
     }
