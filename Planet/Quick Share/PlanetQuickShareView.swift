@@ -59,10 +59,16 @@ struct PlanetQuickShareView: View {
     @ViewBuilder
     private func attachmentSection() -> some View {
         if viewModel.fileURLs.count == 0 {
-            Text("No Attachments.")
-                .foregroundColor(.secondary)
-        }
-        else {
+            VStack {
+                Text("No Attachments.")
+                    .foregroundColor(.secondary)
+                Button {
+                    addAttachmentsAction()
+                } label: {
+                    Text("Add Attachments...")
+                }
+            }
+        } else {
             GeometryReader { g in
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(alignment: .center) {
@@ -138,12 +144,29 @@ struct PlanetQuickShareView: View {
         }
     }
 
+    private func addAttachmentsAction() {
+        let panel = NSOpenPanel()
+        panel.message = "Choose attachments to publish"
+        panel.prompt = "Choose"
+        panel.allowsMultipleSelection = true
+        panel.allowedContentTypes = [.image]
+        panel.canChooseDirectories = false
+        panel.showsHiddenFiles = false
+        let response = panel.runModal()
+        guard response == .OK, panel.urls.count > 0 else { return }
+        Task { @MainActor in
+            PlanetQuickShareViewModel.shared.fileURLs = panel.urls
+        }
+    }
+
     private func dismissAction() {
         NotificationCenter.default.post(name: .cancelQuickShare, object: nil)
         Task { @MainActor in
             PlanetStore.shared.isQuickSharing = false
+            PlanetQuickShareViewModel.shared.cleanup()
         }
     }
+
 }
 
 struct PlanetQuickShareView_Previews: PreviewProvider {

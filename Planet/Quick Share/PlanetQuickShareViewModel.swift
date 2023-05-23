@@ -36,16 +36,12 @@ class PlanetQuickShareViewModel: ObservableObject {
 
     @MainActor
     func prepareFiles(_ files: [URL]) throws {
-        try? draft?.delete()
-        draft = nil
-        fileURLs = []
+        cleanup()
         myPlanets = PlanetStore.shared.myPlanets
         if myPlanets.count == 0 {
             throw PlanetError.PlanetNotExistsError
         } else if myPlanets.count == 1 {
             selectedPlanetID = myPlanets.first!.id
-        } else if UserDefaults.standard.value(forKey: .lastSelectedQuickSharePlanetID) != nil, let uuidString: String = UserDefaults.standard.string(forKey: .lastSelectedQuickSharePlanetID), let uuid = UUID(uuidString: uuidString) {
-            selectedPlanetID = uuid
         } else if let selectedType = PlanetStore.shared.selectedView {
             switch selectedType {
             case .myPlanet(let planet):
@@ -53,6 +49,8 @@ class PlanetQuickShareViewModel: ObservableObject {
             default:
                 break
             }
+        } else if UserDefaults.standard.value(forKey: .lastSelectedQuickSharePlanetID) != nil, let uuidString: String = UserDefaults.standard.string(forKey: .lastSelectedQuickSharePlanetID), let uuid = UUID(uuidString: uuidString) {
+            selectedPlanetID = uuid
         }
         title = files.first?.lastPathComponent.sanitized() ?? Date().dateDescription()
         for file in files {
@@ -68,6 +66,7 @@ class PlanetQuickShareViewModel: ObservableObject {
     @MainActor
     func send() throws {
         guard let targetPlanet = getTargetPlanet() else { throw PlanetError.PersistenceError }
+        guard title != "" else { throw PlanetError.InternalError }
         draft = try DraftModel.create(for: targetPlanet)
         for file in fileURLs {
             try draft?.addAttachment(path: file, type: .image)
@@ -87,7 +86,17 @@ class PlanetQuickShareViewModel: ObservableObject {
             draft?.externalLink = externalLink
         }
         Task {
-            try await draft?.saveToArticle()
+            try draft?.saveToArticle()
         }
+        cleanup()
+    }
+    
+    func cleanup() {
+        try? draft?.delete()
+        draft = nil
+        title = ""
+        content = ""
+        externalLink = ""
+        fileURLs = []
     }
 }

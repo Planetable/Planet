@@ -81,7 +81,6 @@ class PlanetPublishedServiceStore: ObservableObject {
     }
     
     func processPendingUnpublishedFolders() {
-        debugPrint("processing unpublished folders...")
         Task(priority: .background) {
             let removedIDs: [String] = UserDefaults.standard.stringArray(forKey: Self.removedListKey) ?? []
             for id in removedIDs {
@@ -90,9 +89,6 @@ class PlanetPublishedServiceStore: ObservableObject {
                 } catch {
                     debugPrint("failed to unpublish folder with key id: \(id), error: \(error)")
                 }
-            }
-            if removedIDs.count == 0 {
-                debugPrint("no folders to unpublish, will check again on next daemon re-launch.")
             }
         }
     }

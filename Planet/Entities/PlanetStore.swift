@@ -68,6 +68,9 @@ enum PlanetDetailViewType: Hashable, Equatable {
                     switch selectedView {
                     case .myPlanet(let planet):
                         KeyboardShortcutHelper.shared.activeMyPlanet = planet
+                        // Update Planet Lite Window Titles
+                        let info = ["title": planet.name, "subtitle": planet.about]
+                        NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
                     default:
                         KeyboardShortcutHelper.shared.activeMyPlanet = nil
                     }

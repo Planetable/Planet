@@ -44,7 +44,6 @@ actor PlanetAPIHelper {
 
     func relaunch() throws {
         guard isRelaunchingServer == false else { return }
-        debugPrint("Relaunching planet api server ...")
         isRelaunchingServer = true
         shutdown()
         updateSettings()
