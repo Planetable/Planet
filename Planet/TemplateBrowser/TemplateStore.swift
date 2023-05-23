@@ -47,22 +47,36 @@ class TemplateStore: ObservableObject {
                 if builtInTemplate.version != existingTemplate.version {
                     if existingTemplate.hasGitRepo {
                         logger.info(
-                            "Skip updating built-in template \(existingTemplate.name) because it has a git repo"
+                            "Skip updating existing template \(existingTemplate.name) because it has a git repo"
                         )
+                        overwriteLocal = false
                     } else {
+                        logger.info(
+                            "Updating existing template \(existingTemplate.name) from version \(existingTemplate.version) to \(builtInTemplate.version)"
+                        )
                         overwriteLocal = true
                     }
+                } else {
+                    overwriteLocal = false
+                    logger.info("No need to update existing template \(existingTemplate.name) (version: \(existingTemplate.version))")
                 }
                 if let existingBuildNumber = existingTemplate.buildNumber, let builtInBuildNumber = builtInTemplate.buildNumber, existingBuildNumber < builtInBuildNumber {
                     if existingTemplate.hasGitRepo {
                         logger.info(
-                            "Skip updating built-in template \(existingTemplate.name) because it has a git repo"
+                            "Skip updating existing template \(existingTemplate.name) because it has a git repo"
                         )
+                        overwriteLocal = false
                     } else {
+                        logger.info(
+                            "Updating existing template \(existingTemplate.name) from buildNumber \(existingTemplate.buildNumber ?? 0) to \(builtInTemplate.buildNumber ?? 0)"
+                        )
                         overwriteLocal = true
                     }
+                } else {
+                    logger.info("No need to update existing template \(existingTemplate.name) (buildNumber: \(existingTemplate.buildNumber ?? 0))")
                 }
             } else {
+                // No local template, overwrite
                 overwriteLocal = true
             }
             if overwriteLocal {
