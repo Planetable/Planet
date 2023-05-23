@@ -14,6 +14,8 @@ struct AppContentItemView: View {
     var article: MyArticleModel
     var width: CGFloat
     
+    @State private var isShowingDeleteConfirmation = false
+
     var body: some View {
         VStack {
             if let img = article.getHeroImage(), let heroImage = NSImage(contentsOf: article.publicBasePath.appendingPathComponent(img)) {
@@ -35,6 +37,45 @@ struct AppContentItemView: View {
         .onTapGesture {
             Task { @MainActor in
                 AppContentDetailsWindowManager.shared.activateWindowController(forArticle: self.article)
+            }
+        }
+        .contextMenu {
+            Button {
+                
+            } label: {
+                Text("Edit Article")
+            }
+            .disabled(true)
+            
+            Divider()
+            
+            Button {
+                isShowingDeleteConfirmation = true
+            } label: {
+                Text("Delete Article")
+            }
+        }
+        .confirmationDialog(
+            Text("Are you sure you want to delete this article?"),
+            isPresented: $isShowingDeleteConfirmation
+        ) {
+            Button(role: .destructive) {
+                do {
+                    if let planet = article.planet {
+                        article.delete()
+                        planet.updated = Date()
+                        try planet.save()
+                        try planet.savePublic()
+                        Task { @MainActor in
+                            AppContentDetailsWindowManager.shared.deactivateWindowController(forArticle: article)
+                            planetStore.selectedView = .myPlanet(planet)
+                        }
+                    }
+                } catch {
+                    PlanetStore.shared.alert(title: "Failed to delete article: \(error)")
+                }
+            } label: {
+                Text("Delete")
             }
         }
     }
