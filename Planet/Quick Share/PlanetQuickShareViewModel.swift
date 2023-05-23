@@ -42,8 +42,6 @@ class PlanetQuickShareViewModel: ObservableObject {
             throw PlanetError.PlanetNotExistsError
         } else if myPlanets.count == 1 {
             selectedPlanetID = myPlanets.first!.id
-        } else if UserDefaults.standard.value(forKey: .lastSelectedQuickSharePlanetID) != nil, let uuidString: String = UserDefaults.standard.string(forKey: .lastSelectedQuickSharePlanetID), let uuid = UUID(uuidString: uuidString) {
-            selectedPlanetID = uuid
         } else if let selectedType = PlanetStore.shared.selectedView {
             switch selectedType {
             case .myPlanet(let planet):
@@ -51,6 +49,8 @@ class PlanetQuickShareViewModel: ObservableObject {
             default:
                 break
             }
+        } else if UserDefaults.standard.value(forKey: .lastSelectedQuickSharePlanetID) != nil, let uuidString: String = UserDefaults.standard.string(forKey: .lastSelectedQuickSharePlanetID), let uuid = UUID(uuidString: uuidString) {
+            selectedPlanetID = uuid
         }
         title = files.first?.lastPathComponent.sanitized() ?? Date().dateDescription()
         for file in files {
