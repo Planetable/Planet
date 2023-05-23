@@ -142,8 +142,10 @@ struct MyArticleItemView: View {
                     if let planet = article.planet {
                         try article.delete()
                         planet.updated = Date()
-                        try planet.save()
-                        try planet.savePublic()
+                        Task {
+                            try planet.save()
+                            try planet.savePublic()
+                        }
                         if PlanetStore.shared.selectedArticle == article {
                             PlanetStore.shared.selectedArticle = nil
                         }
