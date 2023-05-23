@@ -2,8 +2,6 @@
 //  AppContentDetailsView.swift
 //  PlanetLite
 //
-//  Created by Kai on 5/23/23.
-//
 
 import SwiftUI
 

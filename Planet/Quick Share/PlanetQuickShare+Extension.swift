@@ -21,4 +21,5 @@ extension String {
 
 extension Notification.Name {
     static let cancelQuickShare = Notification.Name("PlanetQuickShareCancelNotification")
+    static let updatePlanetLiteWindowTitles = Notification.Name("PlanetLiteUpdateWindowTitlesNotification")
 }
