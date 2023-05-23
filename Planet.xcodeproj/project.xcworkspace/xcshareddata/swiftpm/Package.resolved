@@ -69,7 +69,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "74237e646f6b7920518414084a8a5795dc37a4db"
+        "revision" : "6e353339f6854916c0f8e4cf2e2d82e5e31fe9ba"
       }
     },
     {
@@ -86,8 +86,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/WalletConnect/QRCode",
       "state" : {
-        "branch" : "main",
-        "revision" : "c84b5b05a949acb3133f39a4896b2f833fb29bd6"
+        "branch" : "wc-main",
+        "revision" : "8d5fa520c556fe91579389777a24d4d164fe87db"
       }
     },
     {
@@ -163,6 +163,15 @@
       }
     },
     {
+      "identity" : "swiftimagereadwrite",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dagronf/SwiftImageReadWrite",
+      "state" : {
+        "revision" : "5596407d1cf61b953b8e658fa8636a471df3c509",
+        "version" : "1.1.6"
+      }
+    },
+    {
       "identity" : "swiftsoup",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/scinfu/SwiftSoup.git",
@@ -204,7 +213,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "3e23e95b8c3d2843db4f64f75ce38c8c65de4d5a"
+        "revision" : "e394480ebee3a9f9d8678bf9c301e5e00b15a250"
       }
     },
     {
