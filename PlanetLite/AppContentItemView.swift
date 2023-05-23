@@ -32,7 +32,9 @@ struct AppContentItemView: View {
         .padding(.horizontal, 16)
         .padding(.top, 16)
         .onTapGesture {
-            debugPrint("showing article details: \(article.summary)")
+            Task { @MainActor in
+                AppContentDetailsWindowManager.shared.activateWindowController(forArticle: self.article)
+            }
         }
     }
 }
