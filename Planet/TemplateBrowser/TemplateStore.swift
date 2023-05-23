@@ -1,6 +1,6 @@
 import Foundation
-import os
 import PlanetSiteTemplates
+import os
 
 class TemplateStore: ObservableObject {
     static let shared = TemplateStore()
@@ -20,17 +20,26 @@ class TemplateStore: ObservableObject {
     init() {
         do {
             try load()
-            if let id = UserDefaults.standard.object(forKey: String.selectedTemplateID) as? Template.ID {
+            if let id = UserDefaults.standard.object(forKey: String.selectedTemplateID)
+                as? Template.ID
+            {
                 selectedTemplateID = id
             }
-        } catch {
+        }
+        catch {
             logger.error("Failed to load templates, cause: \(error.localizedDescription)")
         }
     }
 
     func load() throws {
-        let templatesPath = URLUtils.repoPath().appendingPathComponent("Templates", isDirectory: true)
-        try? FileManager.default.createDirectory(at: templatesPath, withIntermediateDirectories: true)
+        let templatesPath = URLUtils.repoPath().appendingPathComponent(
+            "Templates",
+            isDirectory: true
+        )
+        try? FileManager.default.createDirectory(
+            at: templatesPath,
+            withIntermediateDirectories: true
+        )
         let directories = try FileManager.default.contentsOfDirectory(
             at: templatesPath,
             includingPropertiesForKeys: nil
@@ -50,32 +59,44 @@ class TemplateStore: ObservableObject {
                             "Skip updating existing template \(existingTemplate.name) because it has a git repo"
                         )
                         overwriteLocal = false
-                    } else {
+                    }
+                    else {
                         logger.info(
                             "Updating existing template \(existingTemplate.name) from version \(existingTemplate.version) to \(builtInTemplate.version)"
                         )
                         overwriteLocal = true
                     }
-                } else {
-                    overwriteLocal = false
-                    logger.info("No need to update existing template \(existingTemplate.name) (version: \(existingTemplate.version))")
                 }
-                if let existingBuildNumber = existingTemplate.buildNumber, let builtInBuildNumber = builtInTemplate.buildNumber, existingBuildNumber < builtInBuildNumber {
+                else {
+                    overwriteLocal = false
+                    logger.info(
+                        "No need to update existing template \(existingTemplate.name) (version: \(existingTemplate.version))"
+                    )
+                }
+                if let existingBuildNumber = existingTemplate.buildNumber,
+                    let builtInBuildNumber = builtInTemplate.buildNumber,
+                    existingBuildNumber < builtInBuildNumber
+                {
                     if existingTemplate.hasGitRepo {
                         logger.info(
                             "Skip updating existing template \(existingTemplate.name) because it has a git repo"
                         )
                         overwriteLocal = false
-                    } else {
+                    }
+                    else {
                         logger.info(
                             "Updating existing template \(existingTemplate.name) from buildNumber \(existingTemplate.buildNumber ?? 0) to \(builtInTemplate.buildNumber ?? 0)"
                         )
                         overwriteLocal = true
                     }
-                } else {
-                    logger.info("No need to update existing template \(existingTemplate.name) (buildNumber: \(existingTemplate.buildNumber ?? 0))")
                 }
-            } else {
+                else {
+                    logger.info(
+                        "No need to update existing template \(existingTemplate.name) (buildNumber: \(existingTemplate.buildNumber ?? 0))"
+                    )
+                }
+            }
+            else {
                 // No local template, overwrite
                 overwriteLocal = true
             }
@@ -83,7 +104,10 @@ class TemplateStore: ObservableObject {
                 logger.info("Overwriting local built-in template \(builtInTemplate.name)")
                 let source = builtInTemplate.base!
                 let directoryName = source.lastPathComponent
-                let destination = templatesPath.appendingPathComponent(directoryName, isDirectory: true)
+                let destination = templatesPath.appendingPathComponent(
+                    directoryName,
+                    isDirectory: true
+                )
                 try? FileManager.default.removeItem(at: destination)
                 try FileManager.default.copyItem(at: source, to: destination)
                 let newTemplate = Template.from(path: destination)!
