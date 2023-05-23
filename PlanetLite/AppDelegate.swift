@@ -27,12 +27,11 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(dismissQuickShareWindowIfNeeded), name: NSWorkspace.willSleepNotification, object: nil)
-
         if appWindowController == nil {
             appWindowController = AppWindowController()
         }
         appWindowController?.showWindow(nil)
+        PlanetUpdater.shared.checkForUpdatesInBackground()
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
@@ -61,6 +60,10 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
         }
         return .terminateLater
     }
+    
+    func application(_ application: NSApplication, open urls: [URL]) {
+        createQuickShareWindow(forFiles: urls)
+    }
 }
 
 
@@ -70,18 +73,7 @@ extension PlanetLiteAppDelegate {
         Task { @MainActor in
             do {
                 try PlanetQuickShareViewModel.shared.prepareFiles(files)
-                if #available(macOS 13.0, *) {
-                    if quickShareWindowController != nil {
-                        quickShareWindowController?.window?.close()
-                        quickShareWindowController?.window = nil
-                        quickShareWindowController?.contentViewController = nil
-                    }
-                    quickShareWindowController = PlanetQuickShareWindowController()
-                    guard let w = quickShareWindowController?.window else { return }
-                    NSApp.runModal(for: w)
-                } else {
-                    PlanetStore.shared.isQuickSharing = true
-                }
+                PlanetStore.shared.isQuickSharing = true
             } catch {
                 let alert = NSAlert()
                 alert.messageText = "Failed to Create Post"
@@ -92,12 +84,8 @@ extension PlanetLiteAppDelegate {
             }
         }
     }
-
-    @objc func dismissQuickShareWindowIfNeeded() {
-        guard let w = quickShareWindowController?.window else { return }
-        w.close()
-        Task { @MainActor in
-            PlanetStore.shared.isQuickSharing = false
-        }
+    
+    @objc func checkForUpdate(_ sender: Any) {
+        PlanetUpdater.shared.checkForUpdates()
     }
 }

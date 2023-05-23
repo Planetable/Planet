@@ -201,6 +201,7 @@
 		2A95E6FB2A1AFC23001288B8 /* AppSidebarItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A95E6FA2A1AFC23001288B8 /* AppSidebarItemView.swift */; };
 		2A95E6FC2A1B0011001288B8 /* MyPlanetInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D264DD084A74B49BF8 /* MyPlanetInfoView.swift */; };
 		2A95E6FD2A1B003D001288B8 /* MyPlanetEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7D1BF327CA1B0A00D3C091 /* MyPlanetEditView.swift */; };
+		2A95E7002A1BAEF9001288B8 /* AppContentItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A95E6FF2A1BAEF9001288B8 /* AppContentItemView.swift */; };
 		2A9B09A1294DF3BC0002719C /* PFDashboardSidebarItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A0294DF3BC0002719C /* PFDashboardSidebarItemView.swift */; };
 		2A9B09A3294F066B0002719C /* PFDashboardWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A2294F066B0002719C /* PFDashboardWebView.swift */; };
 		2A9B09A5294F35640002719C /* PFDashboardContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A4294F35640002719C /* PFDashboardContentView.swift */; };
@@ -428,6 +429,7 @@
 		2A90A80229DBB6FC00D45E5E /* KeyboardShortcutHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcutHelper.swift; sourceTree = "<group>"; };
 		2A95E6F42A19AAEE001288B8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2A95E6FA2A1AFC23001288B8 /* AppSidebarItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSidebarItemView.swift; sourceTree = "<group>"; };
+		2A95E6FF2A1BAEF9001288B8 /* AppContentItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentItemView.swift; sourceTree = "<group>"; };
 		2A9B09A0294DF3BC0002719C /* PFDashboardSidebarItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PFDashboardSidebarItemView.swift; sourceTree = "<group>"; };
 		2A9B09A2294F066B0002719C /* PFDashboardWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PFDashboardWebView.swift; sourceTree = "<group>"; };
 		2A9B09A4294F35640002719C /* PFDashboardContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PFDashboardContentView.swift; sourceTree = "<group>"; };
@@ -745,6 +747,7 @@
 				2A6E16D52A18678E00704A08 /* AppSidebarView.swift */,
 				2A95E6FA2A1AFC23001288B8 /* AppSidebarItemView.swift */,
 				2A6E16D72A18679A00704A08 /* AppContentView.swift */,
+				2A95E6FF2A1BAEF9001288B8 /* AppContentItemView.swift */,
 				2ABD1CC72A1616DB0082D7EA /* Assets.xcassets */,
 				2ABD1CCC2A1616DB0082D7EA /* PlanetLite.entitlements */,
 				2ABD1CD02A1617300082D7EA /* main.swift */,
@@ -1345,6 +1348,7 @@
 				2A95E65E2A19A3AA001288B8 /* TemplateBrowserSidebar.swift in Sources */,
 				2A95E6F12A19A781001288B8 /* CoreDataPersistence.swift in Sources */,
 				2A95E6E02A19A521001288B8 /* Filebase.swift in Sources */,
+				2A95E7002A1BAEF9001288B8 /* AppContentItemView.swift in Sources */,
 				2A6E16E42A1876D900704A08 /* AppContentViewController.swift in Sources */,
 				2A95E6942A19A3D0001288B8 /* PlanetKeyManagerWindow.swift in Sources */,
 				2A95E6E42A19A64F001288B8 /* CLTextFieldView.swift in Sources */,

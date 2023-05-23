@@ -9,6 +9,8 @@ import SwiftUI
 struct AppContentView: View {
     @StateObject private var planetStore: PlanetStore
     
+    static let itemWidth: CGFloat = 128
+    
     init() {
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)
     }
@@ -34,13 +36,19 @@ struct AppContentView: View {
             }
         }
         .padding(0)
-        .edgesIgnoringSafeArea(.top)
         .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
     }
     
     @ViewBuilder
     private func planetContentGridView(_ planet: MyPlanetModel) -> some View {
-        Text("Content for planet: \(planet.name)")
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: Self.itemWidth, maximum: Self.itemWidth))], spacing: 16) {
+                ForEach(planet.articles, id: \.id) { article in
+                    AppContentItemView(article: article, width: Self.itemWidth)
+                        .environmentObject(planetStore)
+                }
+            }
+        }
     }
 }
 

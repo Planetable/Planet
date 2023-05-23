@@ -64,6 +64,10 @@ extension PlanetLiteAppDelegate {
         var menuItem = menu.addItem(withTitle:title, action:#selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent:"")
         menuItem.target = NSApp
         
+        title = NSLocalizedString("Check for Updates", comment: "")
+        menuItem = menu.addItem(withTitle: title, action: #selector(self.checkForUpdate(_:)), keyEquivalent: "")
+        menuItem.target = self
+        
         menu.addItem(NSMenuItem.separator())
         
         title = NSLocalizedString("Services", comment:"Services menu item")

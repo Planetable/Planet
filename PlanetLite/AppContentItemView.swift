@@ -7,14 +7,32 @@
 
 import SwiftUI
 
-struct AppContentItemView: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
 
-struct AppContentItemView_Previews: PreviewProvider {
-    static var previews: some View {
-        AppContentItemView()
+struct AppContentItemView: View {
+    @EnvironmentObject private var planetStore: PlanetStore
+    
+    var article: MyArticleModel
+    var width: CGFloat
+    
+    var body: some View {
+        VStack {
+            if let img = article.getHeroImage(), let heroImage = NSImage(contentsOf: article.publicBasePath.appendingPathComponent(img)) {
+                Image(nsImage: heroImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: width)
+            } else {
+                Text(article.summary ?? "No summary")
+            }
+        }
+        .contentShape(Rectangle())
+        .frame(width: width, height: width)
+        .background(Color.secondary.opacity(0.15))
+        .cornerRadius(12)
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .onTapGesture {
+            debugPrint("showing article details: \(article.summary)")
+        }
     }
 }

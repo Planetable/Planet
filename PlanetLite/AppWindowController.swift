@@ -81,6 +81,16 @@ class AppWindowController: NSWindowController {
 
 extension AppWindowController {
     func newArticle() {
+        switch PlanetStore.shared.selectedView {
+        case .myPlanet(let planet):
+            Task { @MainActor in
+                PlanetQuickShareViewModel.shared.myPlanets = PlanetStore.shared.myPlanets
+                PlanetQuickShareViewModel.shared.selectedPlanetID = planet.id
+                PlanetStore.shared.isQuickSharing = true
+            }
+        default:
+            break
+        }
     }
     
     func showPlanetInfo() {
