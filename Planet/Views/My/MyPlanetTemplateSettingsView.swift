@@ -60,10 +60,11 @@ struct MyPlanetTemplateSettingsView: View {
                                         Text(
                                             description
                                         )
-                                        .multilineTextAlignment(.leading)
                                         .font(.footnote)
                                         .foregroundColor(.secondary)
                                         .fixedSize(horizontal: false, vertical: true)
+
+                                        Spacer()
                                     }
                                 }
                             }

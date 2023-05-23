@@ -483,15 +483,13 @@ class MyArticleModel: ArticleModel, Codable {
             return
         }
         let videoThumbnailPath = publicBasePath.appendingPathComponent(videoThumbnailFilename)
-        Task {
-            if let thumbnail = await self.getVideoThumbnail(),
-                let data = thumbnail.PNGData
-            {
-                try? data.write(to: videoThumbnailPath)
-            }
-            Task { @MainActor in
-                self.planet.ops[opKey] = Date()
-            }
+        if let thumbnail = self.getVideoThumbnail(),
+            let data = thumbnail.PNGData
+        {
+            try? data.write(to: videoThumbnailPath)
+        }
+        Task { @MainActor in
+            self.planet.ops[opKey] = Date()
         }
     }
 
@@ -524,7 +522,7 @@ class MyArticleModel: ArticleModel, Codable {
         }
     }
 
-    func getVideoThumbnail() async -> NSImage? {
+    func getVideoThumbnail() -> NSImage? {
         if self.hasVideoContent() {
             guard let videoFilename = self.videoFilename else {
                 return nil
