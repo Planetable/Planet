@@ -66,7 +66,6 @@ class PlanetQuickShareViewModel: ObservableObject {
     @MainActor
     func send() throws {
         guard let targetPlanet = getTargetPlanet() else { throw PlanetError.PersistenceError }
-        guard title != "" else { throw PlanetError.InternalError }
         draft = try DraftModel.create(for: targetPlanet)
         for file in fileURLs {
             try draft?.addAttachment(path: file, type: .image)
