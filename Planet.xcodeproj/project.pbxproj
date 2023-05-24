@@ -207,6 +207,16 @@
 		2A95E70A2A1C4D74001288B8 /* AppContentDetailsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A95E7092A1C4D74001288B8 /* AppContentDetailsWindowController.swift */; };
 		2A95E70C2A1C4FA2001288B8 /* AppContentDetailsWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A95E70B2A1C4FA2001288B8 /* AppContentDetailsWindowManager.swift */; };
 		2A95E70E2A1C5F3F001288B8 /* AppContentDropDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A95E70D2A1C5F3F001288B8 /* AppContentDropDelegate.swift */; };
+		2A996AD12A1DA64800BEF898 /* PlanetAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A996AD02A1DA64800BEF898 /* PlanetAppDelegate.swift */; };
+		2A996AD22A1DA64800BEF898 /* PlanetAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A996AD02A1DA64800BEF898 /* PlanetAppDelegate.swift */; };
+		2A996AD32A1DA69600BEF898 /* PlanetDownloadsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7022EF2897DF3100022F13 /* PlanetDownloadsWindowController.swift */; };
+		2A996AD42A1DA6C100BEF898 /* PlanetDownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7022EC2897DF1700022F13 /* PlanetDownloadsView.swift */; };
+		2A996AD52A1DA6C400BEF898 /* PlanetDownloadsItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A79FB2D289819AD00F06DDF /* PlanetDownloadsItemView.swift */; };
+		2A996AD62A1DA6C700BEF898 /* PlanetDownloadsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7022F52897E00600022F13 /* PlanetDownloadsViewModel.swift */; };
+		2A996AD72A1DA6CA00BEF898 /* PlanetDownloadsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7022F12897DF4600022F13 /* PlanetDownloadsWindow.swift */; };
+		2A996AD82A1DA6CD00BEF898 /* PlanetDownloadsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7022F32897DF5700022F13 /* PlanetDownloadsViewController.swift */; };
+		2A996AD92A1DA6CF00BEF898 /* PlanetDownloadModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A79FB2B2898184100F06DDF /* PlanetDownloadModel.swift */; };
+		2A996ADA2A1DA6D100BEF898 /* PlanetDownloadsWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6F8281289A5DAF0099D87E /* PlanetDownloadsWebView.swift */; };
 		2A9B09A1294DF3BC0002719C /* PFDashboardSidebarItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A0294DF3BC0002719C /* PFDashboardSidebarItemView.swift */; };
 		2A9B09A3294F066B0002719C /* PFDashboardWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A2294F066B0002719C /* PFDashboardWebView.swift */; };
 		2A9B09A5294F35640002719C /* PFDashboardContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B09A4294F35640002719C /* PFDashboardContentView.swift */; };
@@ -440,6 +450,7 @@
 		2A95E7092A1C4D74001288B8 /* AppContentDetailsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentDetailsWindowController.swift; sourceTree = "<group>"; };
 		2A95E70B2A1C4FA2001288B8 /* AppContentDetailsWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentDetailsWindowManager.swift; sourceTree = "<group>"; };
 		2A95E70D2A1C5F3F001288B8 /* AppContentDropDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentDropDelegate.swift; sourceTree = "<group>"; };
+		2A996AD02A1DA64800BEF898 /* PlanetAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAppDelegate.swift; sourceTree = "<group>"; };
 		2A9B09A0294DF3BC0002719C /* PFDashboardSidebarItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PFDashboardSidebarItemView.swift; sourceTree = "<group>"; };
 		2A9B09A2294F066B0002719C /* PFDashboardWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PFDashboardWebView.swift; sourceTree = "<group>"; };
 		2A9B09A4294F35640002719C /* PFDashboardContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PFDashboardContentView.swift; sourceTree = "<group>"; };
@@ -794,6 +805,7 @@
 			children = (
 				2AC4996927BB987B00F1C2D1 /* Info.plist */,
 				2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */,
+				2A996AD02A1DA64800BEF898 /* PlanetAppDelegate.swift */,
 				7211404DFC1B4D23F84EA279 /* PlanetError.swift */,
 				6ACF1666292570AF00AE318B /* PlanetUI.swift */,
 				2AB6A93A29703757007186A7 /* PlanetAPI.swift */,
@@ -1300,6 +1312,7 @@
 				2A95E67A2A19A3C4001288B8 /* JSONUtils.swift in Sources */,
 				2A95E6792A19A3C4001288B8 /* FeedUtils.swift in Sources */,
 				2A95E6DE2A19A521001288B8 /* Pinnable.swift in Sources */,
+				2A996AD52A1DA6C400BEF898 /* PlanetDownloadsItemView.swift in Sources */,
 				2A95E68B2A19A3CA001288B8 /* WriterAudioView.swift in Sources */,
 				2A95E6832A19A3CA001288B8 /* WriterWindow.swift in Sources */,
 				2A95E66B2A19A3AF001288B8 /* TBContainerViewController.swift in Sources */,
@@ -1310,6 +1323,7 @@
 				2A95E6E72A19A64F001288B8 /* SharingServicePicker.swift in Sources */,
 				2A95E68C2A19A3CA001288B8 /* WriterTextView.swift in Sources */,
 				2A95E64D2A19A398001288B8 /* PFDashboardContentView.swift in Sources */,
+				2A996ADA2A1DA6D100BEF898 /* PlanetDownloadsWebView.swift in Sources */,
 				2A95E7062A1C4CC7001288B8 /* AppContentDetailsViewController.swift in Sources */,
 				2A95E6582A19A3A2001288B8 /* WalletConnectV1.swift in Sources */,
 				2A95E6572A19A3A2001288B8 /* WalletAccountView.swift in Sources */,
@@ -1347,9 +1361,11 @@
 				2A95E6632A19A3AA001288B8 /* TemplateWebView.swift in Sources */,
 				2A6E16D82A18679A00704A08 /* AppContentView.swift in Sources */,
 				2A95E64C2A19A398001288B8 /* PFDashboardView.swift in Sources */,
+				2A996AD72A1DA6CA00BEF898 /* PlanetDownloadsWindow.swift in Sources */,
 				2A95E67B2A19A3C4001288B8 /* Updater.swift in Sources */,
 				2A95E6902A19A3D0001288B8 /* PlanetKeyManagerView.swift in Sources */,
 				2A95E6892A19A3CA001288B8 /* WriterVideoView.swift in Sources */,
+				2A996AD92A1DA6CF00BEF898 /* PlanetDownloadModel.swift in Sources */,
 				2A95E6E52A19A64F001288B8 /* HelpLinkButton.swift in Sources */,
 				2A95E67C2A19A3C4001288B8 /* PodcastUtils.swift in Sources */,
 				2A95E65C2A19A3A2001288B8 /* TipSelectView.swift in Sources */,
@@ -1364,14 +1380,17 @@
 				2A95E65E2A19A3AA001288B8 /* TemplateBrowserSidebar.swift in Sources */,
 				2A95E6F12A19A781001288B8 /* CoreDataPersistence.swift in Sources */,
 				2A95E6E02A19A521001288B8 /* Filebase.swift in Sources */,
+				2A996AD32A1DA69600BEF898 /* PlanetDownloadsWindowController.swift in Sources */,
 				2A95E7002A1BAEF9001288B8 /* AppContentItemView.swift in Sources */,
 				2A6E16E42A1876D900704A08 /* AppContentViewController.swift in Sources */,
 				2A95E6942A19A3D0001288B8 /* PlanetKeyManagerWindow.swift in Sources */,
+				2A996AD42A1DA6C100BEF898 /* PlanetDownloadsView.swift in Sources */,
 				2A95E6E42A19A64F001288B8 /* CLTextFieldView.swift in Sources */,
 				2A95E6882A19A3CA001288B8 /* AttachmentThumbnailView.swift in Sources */,
 				2A95E6FC2A1B0011001288B8 /* MyPlanetInfoView.swift in Sources */,
 				2A95E6FB2A1AFC23001288B8 /* AppSidebarItemView.swift in Sources */,
 				2A95E6842A19A3CA001288B8 /* WriterDragAndDrop.swift in Sources */,
+				2A996AD22A1DA64800BEF898 /* PlanetAppDelegate.swift in Sources */,
 				2A95E7082A1C4D00001288B8 /* AppContentDetailsView.swift in Sources */,
 				2A6E16DE2A1875CA00704A08 /* AppWindowController.swift in Sources */,
 				2ABD1CD12A1617300082D7EA /* main.swift in Sources */,
@@ -1387,6 +1406,7 @@
 				2A95E68E2A19A3D0001288B8 /* PlanetKeyManagerViewModel.swift in Sources */,
 				2A95E6DF2A19A521001288B8 /* Plausible.swift in Sources */,
 				2A95E6FD2A1B003D001288B8 /* MyPlanetEditView.swift in Sources */,
+				2A996AD62A1DA6C700BEF898 /* PlanetDownloadsViewModel.swift in Sources */,
 				2A95E6772A19A3C4001288B8 /* URLUtils.swift in Sources */,
 				2A6E16DA2A186B0100704A08 /* AppWindow.swift in Sources */,
 				2ABD1CC42A1616DA0082D7EA /* AppDelegate.swift in Sources */,
@@ -1414,6 +1434,7 @@
 				2A6E16D62A18678E00704A08 /* AppSidebarView.swift in Sources */,
 				2A95E65B2A19A3A2001288B8 /* WalletManager.swift in Sources */,
 				2A95E6DD2A19A4E6001288B8 /* ArticleWebViewModel.swift in Sources */,
+				2A996AD82A1DA6CD00BEF898 /* PlanetDownloadsViewController.swift in Sources */,
 				2A95E70E2A1C5F3F001288B8 /* AppContentDropDelegate.swift in Sources */,
 				2A95E64B2A19A398001288B8 /* PFDashboardWindowController.swift in Sources */,
 				2A95E6E62A19A64F001288B8 /* AudioPlayer.swift in Sources */,
@@ -1535,6 +1556,7 @@
 				72114971F1770E3DAB910F99 /* WriterStore.swift in Sources */,
 				2AB6A94029707980007186A7 /* PlanetSettingsAPIView.swift in Sources */,
 				2A4164D429E64755009BFC24 /* PlanetQuickShareView.swift in Sources */,
+				2A996AD12A1DA64800BEF898 /* PlanetAppDelegate.swift in Sources */,
 				6A2F5F1528DB767A00034D55 /* dWebServices.swift in Sources */,
 				72114A65C35BF78B1A4B7D81 /* DraftModel.swift in Sources */,
 				2AE44EA928CD214800944786 /* PlanetSettingsView.swift in Sources */,
