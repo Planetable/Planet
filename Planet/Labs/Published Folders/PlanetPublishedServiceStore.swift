@@ -83,6 +83,7 @@ class PlanetPublishedServiceStore: ObservableObject {
     func processPendingUnpublishedFolders() {
         Task(priority: .background) {
             let removedIDs: [String] = UserDefaults.standard.stringArray(forKey: Self.removedListKey) ?? []
+            guard removedIDs.count > 0 else { return }
             for id in removedIDs {
                 do {
                     try await self.unpublishFolder(keyName: id)
@@ -343,7 +344,15 @@ class PlanetPublishedServiceStore: ObservableObject {
 
         let updatedRemovedIDs = removedIDs
         let keyExists = try await IPFSDaemon.shared.checkKeyExists(name: keyName)
-        guard keyExists else { throw PlanetError.InternalError }
+        guard keyExists else {
+            // 3.1 update removal list since the key is missing
+            UserDefaults.standard.set(updatedRemovedIDs.filter({ id in
+                return id != keyName
+            }), forKey: Self.removedListKey)
+            removePublishedVersions(byFolderKeyName: keyName)
+            debugPrint("Unable to unpublish folder with key id \(keyName), the key is missing.")
+            throw PlanetError.MissingPlanetKeyError
+        }
         let cid = try await IPFSDaemon.shared.addDirectory(url: emptyFolderURL)
         let result = try await IPFSDaemon.shared.api(
             path: "name/publish",
