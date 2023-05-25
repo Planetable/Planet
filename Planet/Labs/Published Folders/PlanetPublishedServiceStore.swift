@@ -344,7 +344,15 @@ class PlanetPublishedServiceStore: ObservableObject {
 
         let updatedRemovedIDs = removedIDs
         let keyExists = try await IPFSDaemon.shared.checkKeyExists(name: keyName)
-        guard keyExists else { throw PlanetError.InternalError }
+        guard keyExists else {
+            // 3.1 update removal list since the key is missing
+            UserDefaults.standard.set(updatedRemovedIDs.filter({ id in
+                return id != keyName
+            }), forKey: Self.removedListKey)
+            removePublishedVersions(byFolderKeyName: keyName)
+            debugPrint("Unable to unpublish folder with key id \(keyName), the key is missing.")
+            throw PlanetError.MissingPlanetKeyError
+        }
         let cid = try await IPFSDaemon.shared.addDirectory(url: emptyFolderURL)
         let result = try await IPFSDaemon.shared.api(
             path: "name/publish",
