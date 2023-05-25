@@ -105,9 +105,6 @@ struct AppContentItemView: View {
     
     private func generateThumbnail(forImage image: NSImage, imageName: String, imagePath: URL) async -> NSImage? {
         let targetSize = NSSize(width: width * 2, height: width * 2)
-        if NSEqualSizes(image.size, targetSize) || image.size.width < targetSize.width || image.size.height < targetSize.height {
-            return image
-        }
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageIfAbsent: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
