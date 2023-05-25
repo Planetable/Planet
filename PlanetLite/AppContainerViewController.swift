@@ -54,8 +54,8 @@ extension AppContainerViewController {
         self.splitView.identifier = NSUserInterfaceItemIdentifier(String.containerViewIdentifier)
 
         observer = sidebarItem.observe(\.isCollapsed, options: [.new], changeHandler: { item, _ in
-            debugPrint("App sidebar is collapsed: \(item.isCollapsed)")
             /*
+            debugPrint("App sidebar is collapsed: \(item.isCollapsed)")
             UserDefaults.standard.set(item.isCollapsed, forKey: String.sidebarIsCollapsed)
             let animationValue: CGFloat = item.isCollapsed ? 0.05 : 0.15
             DispatchQueue.main.asyncAfter(deadline: .now() + animationValue) {

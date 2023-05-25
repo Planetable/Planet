@@ -29,7 +29,7 @@ struct AppContentItemView: View {
         .frame(width: width, height: width)
         .background(Color.secondary.opacity(0.15))
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-        .cornerRadius(12)
+        .cornerRadius(4)
         .padding(.horizontal, 16)
         .padding(.top, 16)
         .onTapGesture {
