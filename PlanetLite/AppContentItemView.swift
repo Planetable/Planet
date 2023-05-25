@@ -110,13 +110,16 @@ struct AppContentItemView: View {
     private func generateThumbnail(forImage image: NSImage, imageName: String, imagePath: URL) async -> NSImage? {
         let ratio: CGFloat = image.size.width / image.size.height
         let targetSize = NSSize(width: width * 2, height: width * 2 / ratio)
-        let options: [CFString: Any] = [
+        let sourceOptions: [CFString: Any] = [
+            kCGImageSourceShouldCache: false
+        ]
+        let imageOptions: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageIfAbsent: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
             kCGImageSourceShouldCacheImmediately: true,
             kCGImageSourceThumbnailMaxPixelSize: width * 2
         ]
-        guard let imageSource = CGImageSourceCreateWithURL(imagePath as NSURL, nil), let targetCGImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, options as CFDictionary) else {
+        guard let imageSource = CGImageSourceCreateWithURL(imagePath as NSURL, sourceOptions as CFDictionary), let targetCGImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, imageOptions as CFDictionary) else {
             return nil
         }
         let targetImage = NSImage(cgImage: targetCGImage, size: targetSize)
