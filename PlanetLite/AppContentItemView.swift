@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import ImageIO
 
 
 struct AppContentItemView: View {
@@ -13,16 +14,84 @@ struct AppContentItemView: View {
     var width: CGFloat
     
     @State private var isShowingDeleteConfirmation = false
+    @State private var thumbnail: NSImage?
 
     var body: some View {
+        itemPreviewImageView(forArticle: self.article)
+            .onTapGesture {
+                Task { @MainActor in
+                    AppContentDetailsWindowManager.shared.activateWindowController(forArticle: self.article)
+                }
+            }
+            .contextMenu {
+                Button {
+                    isShowingDeleteConfirmation = true
+                } label: {
+                    Text("Delete Article")
+                }
+            }
+            .confirmationDialog(
+                Text("Are you sure you want to delete this article?"),
+                isPresented: $isShowingDeleteConfirmation
+            ) {
+                Button(role: .destructive) {
+                    do {
+                        if let planet = article.planet {
+                            article.delete()
+                            planet.updated = Date()
+                            try planet.save()
+                            try planet.savePublic()
+                            Task { @MainActor in
+                                AppContentDetailsWindowManager.shared.deactivateWindowController(forArticle: article)
+                                planetStore.selectedView = .myPlanet(planet)
+                            }
+                        }
+                    } catch {
+                        PlanetStore.shared.alert(title: "Failed to delete article: \(error)")
+                    }
+                } label: {
+                    Text("Delete")
+                }
+            }
+    }
+    
+    @ViewBuilder
+    private func itemPreviewImageView(forArticle article: MyArticleModel) -> some View {
         VStack {
-            if let img = article.getHeroImage(), let heroImage = NSImage(contentsOf: article.publicBasePath.appendingPathComponent(img)) {
-                Image(nsImage: heroImage)
+            if let thumbnail = thumbnail {
+                Image(nsImage: thumbnail)
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: width)
+                    .aspectRatio(contentMode: .fit)
             } else {
-                Text(article.summary ?? "No summary")
+                if let heroImageName = article.getHeroImage() {
+                    let cachedPath = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(heroImageName)!
+                    if let cachedHeroImage = NSImage(contentsOf: cachedPath) {
+                        Image(nsImage: cachedHeroImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    } else {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .frame(width: 16, height: 16, alignment: .center)
+                            .task(id: article.id, priority: .background) {
+                                let heroImagePath = article.publicBasePath.appendingPathComponent(heroImageName)
+                                guard let heroImage = NSImage(contentsOf: heroImagePath) else {
+                                    await MainActor.run {
+                                        self.thumbnail = nil
+                                    }
+                                    return
+                                }
+                                Task {
+                                    let image = await self.generateThumbnail(forImage: heroImage, imageName: heroImageName, imagePath: heroImagePath)
+                                    await MainActor.run {
+                                        self.thumbnail = image == nil ? nil : image!
+                                    }
+                                }
+                            }
+                    }
+                } else {
+                    Text(article.summary ?? "No summary")
+                }
             }
         }
         .contentShape(Rectangle())
@@ -32,40 +101,35 @@ struct AppContentItemView: View {
         .cornerRadius(4)
         .padding(.horizontal, 16)
         .padding(.top, 16)
-        .onTapGesture {
-            Task { @MainActor in
-                AppContentDetailsWindowManager.shared.activateWindowController(forArticle: self.article)
-            }
+    }
+    
+    private func generateThumbnail(forImage image: NSImage, imageName: String, imagePath: URL) async -> NSImage? {
+        let targetSize = NSSize(width: width * 2, height: width * 2)
+        if NSEqualSizes(image.size, targetSize) || image.size.width < targetSize.width || image.size.height < targetSize.height {
+            return image
         }
-        .contextMenu {
-            Button {
-                isShowingDeleteConfirmation = true
-            } label: {
-                Text("Delete Article")
-            }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageIfAbsent: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: max(targetSize.width, targetSize.height)
+        ]
+        guard let imageSource = CGImageSourceCreateWithURL(imagePath as NSURL, nil) else {
+            return nil
         }
-        .confirmationDialog(
-            Text("Are you sure you want to delete this article?"),
-            isPresented: $isShowingDeleteConfirmation
-        ) {
-            Button(role: .destructive) {
+        if let targetCGImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, options as CFDictionary) {
+            let targetImage = NSImage(cgImage: targetCGImage, size: targetSize)
+            let cachedPath = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(imageName)!
+            Task (priority: .background) {
                 do {
-                    if let planet = article.planet {
-                        article.delete()
-                        planet.updated = Date()
-                        try planet.save()
-                        try planet.savePublic()
-                        Task { @MainActor in
-                            AppContentDetailsWindowManager.shared.deactivateWindowController(forArticle: article)
-                            planetStore.selectedView = .myPlanet(planet)
-                        }
-                    }
+                    try targetImage.PNGData?.write(to: cachedPath)
+                    debugPrint("saved cached hero image thumbnail at \(cachedPath)")
                 } catch {
-                    PlanetStore.shared.alert(title: "Failed to delete article: \(error)")
+                    debugPrint("failed to save cached thumbnail for article: \(error)")
                 }
-            } label: {
-                Text("Delete")
             }
+            return targetImage
         }
+        return nil
     }
 }
