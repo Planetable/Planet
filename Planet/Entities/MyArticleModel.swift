@@ -322,7 +322,7 @@ class MyArticleModel: ArticleModel, Codable {
             if imageNameLowercased.hasSuffix(".avif") || imageNameLowercased.hasSuffix(".jpeg")
                 || imageNameLowercased.hasSuffix(".jpg") || imageNameLowercased.hasSuffix(".png")
                 || imageNameLowercased.hasSuffix(".webp") || imageNameLowercased.hasSuffix(".gif")
-                || imageNameLowercased.hasSuffix(".tiff")
+                || imageNameLowercased.hasSuffix(".tiff") || imageNameLowercased.hasSuffix(".heic")
             {
                 return $0
             }

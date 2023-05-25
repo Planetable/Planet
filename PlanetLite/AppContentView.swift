@@ -47,12 +47,13 @@ struct AppContentView: View {
     @ViewBuilder
     private func planetContentGridView(_ planet: MyPlanetModel) -> some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: Self.itemWidth, maximum: Self.itemWidth), spacing: 16)], spacing: 16) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: Self.itemWidth, maximum: Self.itemWidth + 16), spacing: 16)], spacing: 16) {
                 ForEach(planet.articles, id: \.id) { article in
                     AppContentItemView(article: article, width: Self.itemWidth)
                         .environmentObject(planetStore)
                 }
             }
+            .padding(.horizontal, 16)
         }
     }
 }
