@@ -83,6 +83,7 @@ class PlanetPublishedServiceStore: ObservableObject {
     func processPendingUnpublishedFolders() {
         Task(priority: .background) {
             let removedIDs: [String] = UserDefaults.standard.stringArray(forKey: Self.removedListKey) ?? []
+            guard removedIDs.count > 0 else { return }
             for id in removedIDs {
                 do {
                     try await self.unpublishFolder(keyName: id)
