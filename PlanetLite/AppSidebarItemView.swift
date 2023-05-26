@@ -107,9 +107,6 @@ struct AppSidebarItemView: View {
                     planetStore.selectedView = nil
                 }
                 PlanetStore.shared.myPlanets.removeAll { $0.id == planet.id }
-                // Reset Planet Lite Window Titles
-                let info = ["title": .appName, "subtitle": ""]
-                NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
             } label: {
                 Text("Delete")
             }

@@ -73,6 +73,9 @@ enum PlanetDetailViewType: Hashable, Equatable {
                         NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
                     default:
                         KeyboardShortcutHelper.shared.activeMyPlanet = nil
+                        // Reset Planet Lite Window Titles
+                        let info = ["title": .appName, "subtitle": ""]
+                        NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
                     }
                 }
             }
