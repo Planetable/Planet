@@ -1644,6 +1644,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         NotificationCenter.default.post(name: .loadArticle, object: nil)
         Task { @MainActor in
             NotificationCenter.default.post(name: .publishMyPlanet, object: self)
+            // Update Planet Lite Window Titles
+            let info = ["title": self.name, "subtitle": self.about]
+            NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
         }
         await sendNotificationForRebuild()
     }
