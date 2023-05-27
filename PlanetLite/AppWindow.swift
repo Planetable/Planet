@@ -11,7 +11,7 @@ class AppWindow: NSWindow {
         super.init(contentRect: contentRect, styleMask: style, backing: backingStoreType, defer: flag)
         self.collectionBehavior = .fullScreenNone
         self.titlebarAppearsTransparent = false
-        self.title = .appName
+        self.title = .liteAppName
         self.subtitle = ""
         self.toolbarStyle = .unified
         self.contentViewController = AppContainerViewController()

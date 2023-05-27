@@ -80,7 +80,7 @@ extension String {
 
 // Planet Lite App Name
 extension String {
-    static let appName = "Planet Lite"
+    static let liteAppName = "Planet Lite"
 }
 
 extension Notification.Name {
