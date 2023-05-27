@@ -18,7 +18,7 @@ class AppWindowController: NSWindowController {
         w.toolbarStyle = .unified
         super.init(window: w)
         self.setupToolbar()
-        self.window?.setFrameAutosaveName(.appName + " Window")
+        self.window?.setFrameAutosaveName(.liteAppName + " Window")
         NotificationCenter.default.addObserver(forName: .updatePlanetLiteWindowTitles, object: nil, queue: .main) { [weak self] n in
             guard let titles = n.object as? [String: String] else { return }
             if let theTitle = titles["title"], theTitle != "" {

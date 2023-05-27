@@ -78,6 +78,11 @@ extension String {
     static let showPlanetAlert = "PlanetShowPlanetNotification"
 }
 
+// Planet Lite App Name
+extension String {
+    static let liteAppName = "Planet Lite"
+}
+
 extension Notification.Name {
     static let killHelper = Notification.Name("PlanetKillPlanetHelperNotification")
     static let terminateDaemon = Notification.Name("PlanetTerminatePlanetDaemonNotification")

@@ -18,7 +18,7 @@ class AppContentDetailsWindowController: NSWindowController {
         w.minSize = windowSize
         w.maxSize = NSSize(width: screenSize.width, height: .infinity)
         super.init(window: w)
-        self.window?.setFrameAutosaveName(.appName + "-" + article.id.uuidString)
+        self.window?.setFrameAutosaveName(.liteAppName + "-" + article.id.uuidString)
     }
     
     required init?(coder: NSCoder) {

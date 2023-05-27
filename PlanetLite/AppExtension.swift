@@ -7,7 +7,6 @@ import Cocoa
 
 
 extension String {
-    static let appName = "Planet Lite"
     static let containerViewIdentifier = "AppContainerViewController"
 }
 
