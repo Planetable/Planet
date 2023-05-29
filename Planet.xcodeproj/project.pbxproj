@@ -467,7 +467,7 @@
 		2AA7973D29496F730031E873 /* PFDashboardInspectorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PFDashboardInspectorViewController.swift; sourceTree = "<group>"; };
 		2AB6A93A29703757007186A7 /* PlanetAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPI.swift; sourceTree = "<group>"; };
 		2AB6A93F29707980007186A7 /* PlanetSettingsAPIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsAPIView.swift; sourceTree = "<group>"; };
-		2ABD1CC12A1616DA0082D7EA /* PlanetLite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlanetLite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2ABD1CC12A1616DA0082D7EA /* Croptop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Croptop.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2ABD1CC72A1616DB0082D7EA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2ABD1CCC2A1616DB0082D7EA /* PlanetLite.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PlanetLite.entitlements; sourceTree = "<group>"; };
@@ -795,7 +795,7 @@
 			isa = PBXGroup;
 			children = (
 				2AC4994527BB6E7500F1C2D1 /* Planet.app */,
-				2ABD1CC12A1616DA0082D7EA /* PlanetLite.app */,
+				2ABD1CC12A1616DA0082D7EA /* Croptop.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1166,7 +1166,7 @@
 				2A95E6D82A19A48C001288B8 /* Swifter */,
 			);
 			productName = "$(PLANET_LITE_PRODUCT_NAME)";
-			productReference = 2ABD1CC12A1616DA0082D7EA /* PlanetLite.app */;
+			productReference = 2ABD1CC12A1616DA0082D7EA /* Croptop.app */;
 			productType = "com.apple.product-type.application";
 		};
 		2AC4994427BB6E7500F1C2D1 /* Planet */ = {
