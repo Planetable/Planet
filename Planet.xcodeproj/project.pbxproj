@@ -1129,9 +1129,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2ABD1CC02A1616DA0082D7EA /* PlanetLite */ = {
+		2ABD1CC02A1616DA0082D7EA /* Croptop */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2ABD1CCD2A1616DB0082D7EA /* Build configuration list for PBXNativeTarget "PlanetLite" */;
+			buildConfigurationList = 2ABD1CCD2A1616DB0082D7EA /* Build configuration list for PBXNativeTarget "Croptop" */;
 			buildPhases = (
 				2ABD1CBD2A1616DA0082D7EA /* Sources */,
 				2ABD1CBE2A1616DA0082D7EA /* Frameworks */,
@@ -1142,7 +1142,7 @@
 			);
 			dependencies = (
 			);
-			name = PlanetLite;
+			name = Croptop;
 			packageProductDependencies = (
 				2A95E6A32A19A48C001288B8 /* Stencil */,
 				2A95E6A52A19A48C001288B8 /* FeedKit */,
@@ -1165,7 +1165,7 @@
 				2A95E6D62A19A48C001288B8 /* Web3PromiseKit */,
 				2A95E6D82A19A48C001288B8 /* Swifter */,
 			);
-			productName = "$(PLANET_LITE_PRODUCT_NAME)";
+			productName = Croptop;
 			productReference = 2ABD1CC12A1616DA0082D7EA /* Croptop.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -1257,7 +1257,7 @@
 			projectRoot = "";
 			targets = (
 				2AC4994427BB6E7500F1C2D1 /* Planet */,
-				2ABD1CC02A1616DA0082D7EA /* PlanetLite */,
+				2ABD1CC02A1616DA0082D7EA /* Croptop */,
 			);
 		};
 /* End PBXProject section */
@@ -1633,7 +1633,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(ORGANIZATION_IDENTIFIER_PREFIX).Lite";
-				PRODUCT_NAME = "$(PLANET_LITE_PRODUCT_NAME)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1663,7 +1663,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(ORGANIZATION_IDENTIFIER_PREFIX).Lite";
-				PRODUCT_NAME = "$(PLANET_LITE_PRODUCT_NAME)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

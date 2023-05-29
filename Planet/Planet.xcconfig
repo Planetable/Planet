@@ -15,7 +15,6 @@ SPARKLE_UPDATE_FEED_URL = https://opensource.planetable.xyz/planet/appcast.xml
 PLANET_APP_ICON_NAME = AppIcon-Debug
 
 PLANET_LITE_ICON_NAME = AppIcon-Debug
-PLANET_LITE_PRODUCT_NAME = Croptop
 
 #include "marketing_version.xcconfig"
 #include "versioning.xcconfig"

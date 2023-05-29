@@ -23,8 +23,6 @@
 	<string>$(ORGANIZATION_IDENTIFIER_PREFIX)</string>
 	<key>PLANET_LITE_ICON_NAME</key>
 	<string>$(PLANET_LITE_ICON_NAME)</string>
-	<key>PLANET_LITE_PRODUCT_NAME</key>
-	<string>$(PLANET_LITE_PRODUCT_NAME)</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>
