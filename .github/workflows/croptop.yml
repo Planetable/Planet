@@ -5,7 +5,7 @@ on:
     tags: [ croptop* ]
 
 jobs:
-  insider:
+  croptop:
     runs-on: self-hosted
 
     strategy:
