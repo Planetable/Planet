@@ -1,0 +1,158 @@
+name: croptop
+
+on:
+  push:
+    tags: [ croptop* ]
+
+jobs:
+  insider:
+    runs-on: self-hosted
+
+    strategy:
+      matrix:
+        run-config:
+          - { scheme: 'PlanetLite', destination: 'platform=macOS'}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+      
+      - name: Checkout LFS objects
+        run: git lfs pull
+      
+      - name: Set croptop SUFeedURL
+        run: /usr/libexec/PlistBuddy -c "Set :SUFeedURL https://opensource.planetable.xyz/croptop/appcast.xml" Planet/Info.plist
+
+      - name: Set croptop icon
+        run: /usr/bin/sed -i '' 's/AppIcon/AppIcon-Insider/g' Planet/Release.xcconfig
+
+      - name: Fix Package Dependencies
+        run: xcodebuild -resolvePackageDependencies -onlyUsePackageVersionsFromResolvedFile
+
+      - name: Show Build Version
+        run: xcodebuild -version
+
+      - name: Show Build Settings
+        run: xcodebuild -showBuildSettings
+
+      - name: Show Build SDK
+        run: xcodebuild -showsdks
+
+      - name: Show Available Destinations
+        env:
+          scheme: ${{ matrix.run-config['scheme'] }}
+        run: xcodebuild -scheme ${scheme} -showdestinations
+
+      - name: Set ENV
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Install the Apple certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import certificate from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 -d -o $CERTIFICATE_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: Build
+        env:
+          scheme: ${{ matrix.run-config['scheme'] }}
+        run: |
+          xcodebuild archive -scheme ${scheme} -archivePath archive/Croptop.xcarchive -showBuildTimingSummary -allowProvisioningUpdates
+
+      - name: Prepare for Codesign
+        run: |
+          mkdir to-be-signed
+          ditto archive/Croptop.xcarchive/Products/Applications/PlanetLite.app to-be-signed/PlanetLite.app
+
+      - name: Codesign with Developer ID
+        run: |
+          # xcrun codesign --options runtime --deep --force --verbose --timestamp --entitlements "Planet/Planet.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/PlanetLite.app/Contents/Frameworks/Sparkle.framework
+
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/PlanetLite.app/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Installer.xpc
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/PlanetLite.app/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/PlanetLite.app/Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/PlanetLite.app/Contents/Frameworks/Sparkle.framework
+
+      - name: Prepare for Notarization
+        run: |
+          ditto -c -k --keepParent to-be-signed/PlanetLite.app PlanetLite.zip
+
+      - name: Submit for Notarization
+        run: |
+          xcrun notarytool submit PlanetLite.zip --apple-id ${{ secrets.NOTARIZE_USERNAME }} --password ${{ secrets.NOTARIZE_PASSWORD }} --team-id ${{ secrets.TEAM_ID }} --wait --timeout 10m --verbose
+
+      - name: Staple
+        run: |
+          xcrun stapler staple -v to-be-signed/PlanetLite.app
+
+      - name: Generate PlanetLite.zip
+        run: |
+          ditto -c -k --keepParent to-be-signed/PlanetLite.app Planet.zip
+
+      - name: Generate PlanetLite.zip.dSYM.zip
+        run: |
+          ditto -c -k --keepParent archive/Croptop.xcarchive/dSYMs/PlanetLite.app.dSYM PlanetLite.app.dSYM.zip
+
+      - name: Release App
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: true
+          files: |
+            PlanetLite.zip
+            PlanetLite.app.dSYM.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload to DigitalOcean Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY }}
+          secret_key: ${{ secrets.DO_SECRET_KEY }}
+          space_name: ${{ secrets.DO_SPACE_NAME }}
+          space_region: ${{ secrets.DO_SPACE_REGION }}
+          source: PlanetLite.zip
+          out_dir: croptop/${{ env.RELEASE_VERSION }}
+
+      - name: Prepare for Sparkle Appcast
+        env:
+          WORKPLACE: ${{ github.workspace }}
+        run: |
+          mkdir -p Release
+          cp PlanetLite.zip Release/
+          ${{ secrets.SPARKLE_GENERATE_INSIDER }} $WORKPLACE/Release ${{ env.RELEASE_VERSION }}
+
+      - name: Upload Sparkle Appcast
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY }}
+          secret_key: ${{ secrets.DO_SECRET_KEY }}
+          space_name: ${{ secrets.DO_SPACE_NAME }}
+          space_region: ${{ secrets.DO_SPACE_REGION }}
+          source: Release/appcast.xml
+          out_dir: croptop
+
+      - name: Purge CDN Cache (appcast.xml file only)
+        run: |
+          curl -X DELETE -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.DO_PLATFORM_TOKEN }}" -d '{"files": ["croptop/appcast.xml"]}' "https://api.digitalocean.com/v2/cdn/endpoints/${{ secrets.DO_CDN_ENDPOINT_ID }}/cache"
+      
+      - name: Cleanup Keychain
+        if: ${{ always() }}
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
