@@ -19,5 +19,19 @@
 			</array>
 		</dict>
 	</array>
+	<key>ORGANIZATION_IDENTIFIER_PREFIX</key>
+	<string>$(ORGANIZATION_IDENTIFIER_PREFIX)</string>
+	<key>PLANET_LITE_ICON_NAME</key>
+	<string>$(PLANET_LITE_ICON_NAME)</string>
+	<key>PLANET_LITE_PRODUCT_NAME</key>
+	<string>$(PLANET_LITE_PRODUCT_NAME)</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>$(SPARKLE_UPDATE_FEED_URL)</string>
+	<key>SUPublicEDKey</key>
+	<string>ciHPM+QD+p7Rceljd0MT42MfrcVhZchEVJTUW98R3Wk=</string>
 </dict>
 </plist>
