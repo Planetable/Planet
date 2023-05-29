@@ -22,6 +22,7 @@ CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO
 OTHER_CODE_SIGN_FLAGS = --timestamp
 SPARKLE_UPDATE_FEED_URL = https://opensource.planetable.xyz/planet/appcast.xml
 PLANET_APP_ICON_NAME = AppIcon
+PLANET_LITE_ICON_NAME = AppIcon
 
 #include "marketing_version.xcconfig"
 #include "versioning.xcconfig"
