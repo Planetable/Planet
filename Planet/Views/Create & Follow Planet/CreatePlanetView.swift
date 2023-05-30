@@ -9,6 +9,8 @@ struct CreatePlanetView: View {
     @State private var templateName = "Plain"
     @State private var creating = false
 
+    static let isCroptop: Bool = Bundle.main.executableURL?.lastPathComponent == "Croptop"
+
     var body: some View {
         VStack (spacing: 0) {
             Text("New Planet")
@@ -52,19 +54,21 @@ struct CreatePlanetView: View {
                         )
                 }
 
-                Picker(selection: $templateName) {
-                    ForEach(TemplateStore.shared.templates) { template in
-                        Text(template.name)
-                            .tag(template.name)
+                if !Self.isCroptop {
+                    Picker(selection: $templateName) {
+                        ForEach(TemplateStore.shared.templates) { template in
+                            Text(template.name)
+                                .tag(template.name)
+                        }
+                    } label: {
+                        HStack {
+                            Text("Template")
+                            Spacer()
+                        }
+                        .frame(width: 70)
                     }
-                } label: {
-                    HStack {
-                        Text("Template")
-                        Spacer()
-                    }
-                    .frame(width: 70)
+                    .pickerStyle(.menu)
                 }
-                .pickerStyle(.menu)
 
                 Spacer()
             }
