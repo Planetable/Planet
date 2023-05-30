@@ -12,9 +12,16 @@ struct AppContentItemView: View {
     
     var article: MyArticleModel
     var width: CGFloat
+    var imageProcessor: AppContentItemHeroImageProcessor
     
     @State private var isShowingDeleteConfirmation = false
     @State private var thumbnail: NSImage?
+    
+    init(article: MyArticleModel, width: CGFloat) {
+        self.article = article
+        self.width = width
+        self.imageProcessor = AppContentItemHeroImageProcessor(width: width)
+    }
 
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
@@ -82,7 +89,7 @@ struct AppContentItemView: View {
                                     return
                                 }
                                 Task.detached(priority: .utility) {
-                                    let image = await self.generateThumbnail(forImage: heroImage, imageName: heroImageName, imagePath: heroImagePath)
+                                    let image = await self.imageProcessor.generateThumbnail(forImage: heroImage, imageName: heroImageName, imagePath: heroImagePath)
                                     await MainActor.run {
                                         self.thumbnail = image == nil ? nil : image!
                                     }
@@ -106,7 +113,17 @@ struct AppContentItemView: View {
         .padding(.top, 16)
     }
     
-    private func generateThumbnail(forImage image: NSImage, imageName: String, imagePath: URL) async -> NSImage? {
+}
+
+
+actor AppContentItemHeroImageProcessor {
+    var width: CGFloat
+    
+    init(width: CGFloat) {
+        self.width = width
+    }
+
+    func generateThumbnail(forImage image: NSImage, imageName: String, imagePath: URL) async -> NSImage? {
         let ratio: CGFloat = image.size.width / image.size.height
         let targetSize = NSSize(width: width * 2, height: width * 2 / ratio)
         let sourceOptions: [CFString: Any] = [
