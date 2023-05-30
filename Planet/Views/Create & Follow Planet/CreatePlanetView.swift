@@ -9,7 +9,7 @@ struct CreatePlanetView: View {
     @State private var templateName = "Plain"
     @State private var creating = false
     
-    static let isCroptop: Bool = ProcessInfo.processInfo.environment["TARGET_NAME"] == "Croptop"
+    static let isCroptop: Bool = Bundle.main.executableURL!.lastPathComponent == "Croptop"
 
     var body: some View {
         VStack (spacing: 0) {

@@ -49,7 +49,7 @@ struct MyPlanetEditView: View {
     @State private var filebasePinStatusMessage: String? = nil
     @State private var filebasePinCID: String? = nil
     
-    static let isCroptop: Bool = ProcessInfo.processInfo.environment["TARGET_NAME"] == "Croptop"
+    static let isCroptop: Bool = Bundle.main.executableURL!.lastPathComponent == "Croptop"
 
     init(planet: MyPlanetModel) {
         self.planet = planet
