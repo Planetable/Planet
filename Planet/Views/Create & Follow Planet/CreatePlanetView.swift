@@ -8,6 +8,8 @@ struct CreatePlanetView: View {
     @State private var about = ""
     @State private var templateName = "Plain"
     @State private var creating = false
+    
+    static let isCroptop: Bool = ProcessInfo.processInfo.environment["TARGET_NAME"] == "Croptop"
 
     var body: some View {
         VStack (spacing: 0) {
@@ -52,19 +54,21 @@ struct CreatePlanetView: View {
                         )
                 }
 
-                Picker(selection: $templateName) {
-                    ForEach(TemplateStore.shared.templates) { template in
-                        Text(template.name)
-                            .tag(template.name)
+                if !Self.isCroptop {
+                    Picker(selection: $templateName) {
+                        ForEach(TemplateStore.shared.templates) { template in
+                            Text(template.name)
+                                .tag(template.name)
+                        }
+                    } label: {
+                        HStack {
+                            Text("Template")
+                            Spacer()
+                        }
+                        .frame(width: 70)
                     }
-                } label: {
-                    HStack {
-                        Text("Template")
-                        Spacer()
-                    }
-                    .frame(width: 70)
+                    .pickerStyle(.menu)
                 }
-                .pickerStyle(.menu)
 
                 Spacer()
             }
@@ -97,11 +101,20 @@ struct CreatePlanetView: View {
                     creating = true
                     Task {
                         do {
-                            let planet = try await MyPlanetModel.create(
-                                name: name,
-                                about: about,
-                                templateName: templateName
-                            )
+                            let planet: MyPlanetModel
+                            if Self.isCroptop {
+                                planet = try await MyPlanetModel.create(
+                                    name: name,
+                                    about: about,
+                                    templateName: "Croptop"
+                                )
+                            } else {
+                                planet = try await MyPlanetModel.create(
+                                    name: name,
+                                    about: about,
+                                    templateName: templateName
+                                )
+                            }
                             planetStore.myPlanets.insert(planet, at: 0)
                             Task(priority: .background) {
                                 await PlanetStore.shared.saveMyPlanetsOrder()
