@@ -65,3 +65,8 @@ extension AppContainerViewController {
         })
     }
 }
+
+
+extension String {
+    static let containerViewIdentifier = "AppContainerViewController"
+}

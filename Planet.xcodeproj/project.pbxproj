@@ -40,7 +40,6 @@
 		2A6E16D62A18678E00704A08 /* AppSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D52A18678E00704A08 /* AppSidebarView.swift */; };
 		2A6E16D82A18679A00704A08 /* AppContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D72A18679A00704A08 /* AppContentView.swift */; };
 		2A6E16DA2A186B0100704A08 /* AppWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D92A186B0100704A08 /* AppWindow.swift */; };
-		2A6E16DC2A1870C900704A08 /* AppExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16DB2A1870C900704A08 /* AppExtension.swift */; };
 		2A6E16DE2A1875CA00704A08 /* AppWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16DD2A1875CA00704A08 /* AppWindowController.swift */; };
 		2A6E16E02A18763000704A08 /* AppContainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16DF2A18763000704A08 /* AppContainerViewController.swift */; };
 		2A6E16E22A1876CB00704A08 /* AppSidebarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16E12A1876CB00704A08 /* AppSidebarViewController.swift */; };
@@ -425,7 +424,6 @@
 		2A6E16D52A18678E00704A08 /* AppSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSidebarView.swift; sourceTree = "<group>"; };
 		2A6E16D72A18679A00704A08 /* AppContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentView.swift; sourceTree = "<group>"; };
 		2A6E16D92A186B0100704A08 /* AppWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppWindow.swift; sourceTree = "<group>"; };
-		2A6E16DB2A1870C900704A08 /* AppExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppExtension.swift; sourceTree = "<group>"; };
 		2A6E16DD2A1875CA00704A08 /* AppWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppWindowController.swift; sourceTree = "<group>"; };
 		2A6E16DF2A18763000704A08 /* AppContainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainerViewController.swift; sourceTree = "<group>"; };
 		2A6E16E12A1876CB00704A08 /* AppSidebarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSidebarViewController.swift; sourceTree = "<group>"; };
@@ -758,7 +756,6 @@
 				2A95E6F42A19AAEE001288B8 /* Info.plist */,
 				2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */,
 				2ABD1CD42A1617660082D7EA /* AppMenu.swift */,
-				2A6E16DB2A1870C900704A08 /* AppExtension.swift */,
 				2A6E16D92A186B0100704A08 /* AppWindow.swift */,
 				2A6E16DD2A1875CA00704A08 /* AppWindowController.swift */,
 				2A6E16DF2A18763000704A08 /* AppContainerViewController.swift */,
@@ -1342,7 +1339,6 @@
 				2A95E6532A19A39C001288B8 /* PlanetPublishedServiceStore.swift in Sources */,
 				2A95E6972A19A437001288B8 /* IPFSState.swift in Sources */,
 				2A95E6432A19A324001288B8 /* PlanetQuickShareWindow.swift in Sources */,
-				2A6E16DC2A1870C900704A08 /* AppExtension.swift in Sources */,
 				2A95E64E2A19A398001288B8 /* PFDashboardContainerViewController.swift in Sources */,
 				2A95E65A2A19A3A2001288B8 /* WalletConnectV2QRCodeView.swift in Sources */,
 				2A95E6952A19A437001288B8 /* IPFSDaemon.swift in Sources */,
@@ -1850,7 +1846,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2ABD1CCD2A1616DB0082D7EA /* Build configuration list for PBXNativeTarget "PlanetLite" */ = {
+		2ABD1CCD2A1616DB0082D7EA /* Build configuration list for PBXNativeTarget "Croptop" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2ABD1CCE2A1616DB0082D7EA /* Debug */,
