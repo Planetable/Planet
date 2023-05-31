@@ -17,6 +17,7 @@ class AppContentDropDelegate: DropDelegate {
     }
     
     func validateDrop(info: DropInfo) -> Bool {
+        guard !PlanetStore.shared.isQuickSharing else { return false }
         guard let _ = info.itemProviders(for: [.image]).first else { return false }
         return true
     }
@@ -25,31 +26,25 @@ class AppContentDropDelegate: DropDelegate {
         if PlanetStore.shared.isQuickSharing {
             return false
         }
-        let providers = info.itemProviders(for: [.fileURL])
-        let supportedExtensions = ["png", "jpeg", "gif", "tiff", "jpg", "heic", "webp"]
-        Task {
+        let providers = info.itemProviders(for: [.image])
+        Task { @MainActor in
             var urls: [URL] = []
             for provider in providers {
-                if let item = try? await provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier),
-                   let data = item as? Data,
-                   let path = URL(dataRepresentation: data, relativeTo: nil),
-                   supportedExtensions.contains(path.pathExtension.lowercased()) {
-                    urls.append(path)
+                if let url = try? await provider.loadItem(forTypeIdentifier: UTType.image.identifier) as? URL {
+                    urls.append(url)
                 }
             }
             if urls.count > 0 {
-                await MainActor.run {
-                    do {
-                        try PlanetQuickShareViewModel.shared.prepareFiles(urls)
-                        PlanetStore.shared.isQuickSharing = true
-                    } catch {
-                        let alert = NSAlert()
-                        alert.messageText = "Failed to Create Post"
-                        alert.informativeText = error.localizedDescription
-                        alert.alertStyle = .warning
-                        alert.addButton(withTitle: "OK")
-                        alert.runModal()
-                    }
+                do {
+                    try PlanetQuickShareViewModel.shared.prepareFiles(urls)
+                    PlanetStore.shared.isQuickSharing = true
+                } catch {
+                    let alert = NSAlert()
+                    alert.messageText = "Failed to Create Post"
+                    alert.informativeText = error.localizedDescription
+                    alert.alertStyle = .warning
+                    alert.addButton(withTitle: "OK")
+                    alert.runModal()
                 }
             }
         }
