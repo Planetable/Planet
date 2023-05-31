@@ -24,12 +24,16 @@ class AppContentDropDelegate: DropDelegate {
     
     func performDrop(info: DropInfo) -> Bool {
         guard !PlanetStore.shared.isQuickSharing else { return false }
-        let providers = info.itemProviders(for: [.image])
+        let providers = info.itemProviders(for: [.fileURL])
+        let supportedExtensions = ["png", "heic", "jpeg", "gif", "tiff", "jpg", "webp"]
         Task { @MainActor in
             var urls: [URL] = []
             for provider in providers {
-                if let url = try? await provider.loadItem(forTypeIdentifier: UTType.image.identifier) as? URL {
-                    urls.append(url)
+                if let item = try? await provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier),
+                   let data = item as? Data,
+                   let path = URL(dataRepresentation: data, relativeTo: nil),
+                   supportedExtensions.contains(path.pathExtension) {
+                    urls.append(path)
                 }
             }
             if urls.count > 0 {

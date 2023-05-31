@@ -21,8 +21,8 @@ class WriterDragAndDrop: ObservableObject, DropDelegate {
 
     func performDrop(info: DropInfo) -> Bool {
         let providers = info.itemProviders(for: [.fileURL])
-        let supportedExtensions = ["png", "jpeg", "gif", "tiff", "jpg", "webp"]
-        Task {
+        let supportedExtensions = ["png", "heic", "jpeg", "gif", "tiff", "jpg", "webp"]
+        Task { @MainActor in
             for provider in providers {
                 if let item = try? await provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier),
                    let data = item as? Data,
