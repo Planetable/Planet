@@ -23,9 +23,7 @@ class AppContentDropDelegate: DropDelegate {
     }
     
     func performDrop(info: DropInfo) -> Bool {
-        if PlanetStore.shared.isQuickSharing {
-            return false
-        }
+        guard !PlanetStore.shared.isQuickSharing else { return false }
         let providers = info.itemProviders(for: [.image])
         Task { @MainActor in
             var urls: [URL] = []
