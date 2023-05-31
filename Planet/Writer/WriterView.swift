@@ -70,7 +70,7 @@ struct WriterView: View {
                 .onDrop(of: [.fileURL], delegate: dragAndDrop)
             }
         }
-        .frame(minWidth: 640, minHeight:  440 + videoPlayerHeight + audioPlayerHeight)
+        .frame(minWidth: 640, minHeight: 440 + videoPlayerHeight + audioPlayerHeight)
             .alert(
                 "This article has no title. Please enter the title before clicking send.",
                 isPresented: $viewModel.isShowingEmptyTitleAlert
