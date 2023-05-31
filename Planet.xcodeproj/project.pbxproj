@@ -36,6 +36,7 @@
 		2A441BB027C4DD980008A694 /* CreatePlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAF27C4DD980008A694 /* CreatePlanetView.swift */; };
 		2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BB227C4DF110008A694 /* FollowPlanetView.swift */; };
 		2A6247AE292CC5F400714BFA /* IndicatorLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */; };
+		2A68C6232A26F07A0079AD5F /* RebuildProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A18F2052A0F0FA700FC4050 /* RebuildProgressView.swift */; };
 		2A69F04727E1B53A00141DC0 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A69F04627E1B53A00141DC0 /* FeedKit */; };
 		2A6E16D62A18678E00704A08 /* AppSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D52A18678E00704A08 /* AppSidebarView.swift */; };
 		2A6E16D82A18679A00704A08 /* AppContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D72A18679A00704A08 /* AppContentView.swift */; };
@@ -1351,6 +1352,7 @@
 				2A95E64F2A19A398001288B8 /* PFDashboardInspectorView.swift in Sources */,
 				2A95E6482A19A398001288B8 /* PFDashboardViewController.swift in Sources */,
 				2A95E67D2A19A3C4001288B8 /* WKScriptHelper.swift in Sources */,
+				2A68C6232A26F07A0079AD5F /* RebuildProgressView.swift in Sources */,
 				2A95E68F2A19A3D0001288B8 /* PlanetKeyManagerModel.swift in Sources */,
 				2A95E70C2A1C4FA2001288B8 /* AppContentDetailsWindowManager.swift in Sources */,
 				2A95E6812A19A3C4001288B8 /* ViewUtils.swift in Sources */,

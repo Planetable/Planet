@@ -82,6 +82,9 @@ struct AppSidebarView: View {
                     .environmentObject(planetStore)
             }
         }
+        .sheet(isPresented: $planetStore.isRebuilding) {
+            RebuildProgressView()
+        }
         .sheet(isPresented: $planetStore.isQuickSharing) {
             PlanetQuickShareView()
                 .frame(width: .sheetWidth, height: .sheetHeight + 28)
