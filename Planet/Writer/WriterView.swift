@@ -7,6 +7,9 @@ struct WriterView: View {
     @ObservedObject var viewModel: WriterViewModel
     @FocusState var focusTitle: Bool
     let dragAndDrop: WriterDragAndDrop
+    
+    @State private var videoPlayerHeight: CGFloat = 0
+    @State private var audioPlayerHeight: CGFloat = 0
 
     init(draft: DraftModel, viewModel: WriterViewModel) {
         self.draft = draft
@@ -18,9 +21,21 @@ struct WriterView: View {
         VStack(spacing: 0) {
             if let videoAttachment = draft.attachments.first(where: {$0.type == .video}) {
                 WriterVideoView(videoAttachment: videoAttachment)
+                    .onAppear {
+                        self.videoPlayerHeight = 270
+                    }
+                    .onDisappear {
+                        self.videoPlayerHeight = 0
+                    }
             }
             if let audioAttachment = draft.attachments.first(where: {$0.type == .audio}) {
                 WriterAudioView(audioAttachment: audioAttachment)
+                    .onAppear {
+                        self.audioPlayerHeight = 34
+                    }
+                    .onDisappear {
+                        self.audioPlayerHeight = 0
+                    }
             }
 
             WriterTitleView(date: $draft.date, title: $draft.title, focusTitle: _focusTitle)
@@ -52,9 +67,10 @@ struct WriterView: View {
                 .frame(height: 80)
                 .frame(maxWidth: .infinity)
                 .background(Color.secondary.opacity(0.03))
+                .onDrop(of: [.fileURL], delegate: dragAndDrop)
             }
         }
-        .frame(minWidth: 640, minHeight: 440)
+        .frame(minWidth: 640, minHeight:  440 + videoPlayerHeight + audioPlayerHeight)
             .alert(
                 "This article has no title. Please enter the title before clicking send.",
                 isPresented: $viewModel.isShowingEmptyTitleAlert
@@ -135,6 +151,5 @@ struct WriterView: View {
                     Text("Delete Draft")
                 }
             }
-            .onDrop(of: [.fileURL], delegate: dragAndDrop)
     }
 }

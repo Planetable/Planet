@@ -231,18 +231,22 @@ class WriterEditorTextView: NSTextView {
     }
 
     override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
-        if let pasteBoardItems = sender.draggingPasteboard.pasteboardItems {
-            urls = pasteBoardItems
-                .compactMap { $0.propertyList(forType: .fileURL) as? String }
-                .map { URL(fileURLWithPath: $0).standardized }
+        if let pasteboardObjects = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL], pasteboardObjects.count > 0 {
+            urls = pasteboardObjects
         } else {
-            urls = []
+            if let pasteBoardItems = sender.draggingPasteboard.pasteboardItems {
+                urls = pasteBoardItems
+                    .compactMap { $0.propertyList(forType: .fileURL) as? String }
+                    .map { URL(fileURLWithPath: $0).standardized }
+            } else {
+                urls = []
+            }
         }
         return .copy
     }
 
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
-        true
+        return true
     }
 
     override func keyDown(with event: NSEvent) {
