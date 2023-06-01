@@ -69,7 +69,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "82c048cd7c01dc6e9a79bbeb9235f81befc338ab"
+        "revision" : "5a8ba3be27638ec7bff3d6d44557a19ed61711da"
       }
     },
     {
@@ -86,8 +86,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/WalletConnect/QRCode",
       "state" : {
-        "branch" : "wc-main",
-        "revision" : "8d5fa520c556fe91579389777a24d4d164fe87db"
+        "revision" : "263f280d2c8144adfb0b6676109846cfc8dd552b",
+        "version" : "14.3.1"
       }
     },
     {
@@ -213,7 +213,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "e394480ebee3a9f9d8678bf9c301e5e00b15a250"
+        "revision" : "49b2975088808bec0217110eb977be17711d4a0f"
       }
     },
     {
