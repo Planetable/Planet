@@ -49,8 +49,6 @@ struct MyPlanetEditView: View {
     @State private var filebasePinStatusMessage: String? = nil
     @State private var filebasePinCID: String? = nil
 
-    static let isCroptop: Bool = Bundle.main.executableURL?.lastPathComponent == "Croptop"
-
     init(planet: MyPlanetModel) {
         self.planet = planet
         _name = State(wrappedValue: planet.name)
@@ -366,21 +364,19 @@ struct MyPlanetEditView: View {
                                 .textFieldStyle(.roundedBorder)
                         }
 
-                        if !Self.isCroptop {
-                            Picker(selection: $templateName) {
-                                ForEach(TemplateStore.shared.templates) { template in
-                                    Text(template.name)
-                                        .tag(template.name)
-                                }
-                            } label: {
-                                HStack {
-                                    Text("Template")
-                                    Spacer()
-                                }
-                                .frame(width: CONTROL_CAPTION_WIDTH)
+                        Picker(selection: $templateName) {
+                            ForEach(TemplateStore.shared.templates) { template in
+                                Text(template.name)
+                                    .tag(template.name)
                             }
-                            .pickerStyle(.menu)
+                        } label: {
+                            HStack {
+                                Text("Template")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
                         }
+                        .pickerStyle(.menu)
                     }
                     .padding(16)
                     .tabItem {
