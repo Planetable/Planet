@@ -391,6 +391,10 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         }
     }
 
+    var isEmpty: Bool {
+        return title.isEmpty && content.isEmpty && attachments.isEmpty
+    }
+
     // MARK: -
 
     private func processAttachment(forFileName name: String, atFilePath targetPath: URL, withAttachmentType type: AttachmentType) throws -> Attachment {

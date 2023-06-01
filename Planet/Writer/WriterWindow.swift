@@ -174,10 +174,6 @@ extension WriterWindow: NSToolbarDelegate {
         button.action = Selector((selector))
         toolbarItem.view = button
 
-        // toolbarItem.isBordered = true
-        // toolbarItem.image = image
-        // toolbarItem.action = Selector((selector))
-
         toolbarItem.toolTip = title
         toolbarItem.label = title
         return toolbarItem
@@ -195,20 +191,29 @@ extension WriterWindow: NSWindowDelegate {
             viewModel.isShowingDiscardConfirmation = true
             return false
         }
-        debugPrint("Draft Window Should Close: \(viewModel)")
+        switch draft.target! {
+        case .myPlanet(let wrapper):
+            let planet = wrapper.value
+            if draft.isEmpty {
+                debugPrint("Draft for planet \(planet.name) is empty, delete the draft now")
+                try? draft.delete()
+            }
+        case .article(let wrapper):
+            let article = wrapper.value
+        }
         return true
     }
 
     func windowWillClose(_ notification: Notification) {
         WriterStore.shared.writers.removeValue(forKey: draft)
     }
-    
+
     func windowDidBecomeKey(_ notification: Notification) {
         Task { @MainActor in
             KeyboardShortcutHelper.shared.activeWriterWindow = self
         }
     }
-    
+
     func windowDidResignKey(_ notification: Notification) {
         Task { @MainActor in
             KeyboardShortcutHelper.shared.activeWriterWindow = nil
