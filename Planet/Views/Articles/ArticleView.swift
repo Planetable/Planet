@@ -170,7 +170,14 @@ struct ArticleView: View {
         )
         .onChange(of: planetStore.selectedArticle) { newArticle in
             if let myArticle = newArticle as? MyArticleModel {
-                url = myArticle.publicIndexPath
+                if myArticle.planet.templateName == "Croptop" {
+                    // croptop is a special case
+                    // it needs to be loaded from the local gateway for the JS to work
+                    url = myArticle.localGatewayURL ?? myArticle.publicIndexPath
+                } else {
+                    // in future we can use the local gateway for all planets
+                    url = myArticle.publicIndexPath
+                }
                 sharingItem = myArticle.browserURL?.absoluteURL
                 currentItemLink = myArticle.link
             }

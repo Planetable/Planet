@@ -67,6 +67,9 @@ class MyArticleModel: ArticleModel, Codable {
             cids: cids
         )
     }
+    var localGatewayURL: URL? {
+        return URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(planet.ipns)/\(id.uuidString)/")
+    }
     var browserURL: URL? {
         var urlPath = "/\(id.uuidString)/"
         if let slug = slug, slug.count > 0 {
