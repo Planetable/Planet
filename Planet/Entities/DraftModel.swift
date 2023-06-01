@@ -360,11 +360,22 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             PlanetStore.shared.selectedView = .myPlanet(planet)
             PlanetStore.shared.refreshSelectedArticles()
             // wrap it to delay the state change
-            Task { @MainActor in
-                if PlanetStore.shared.selectedArticle == article {
-                    NotificationCenter.default.post(name: .loadArticle, object: nil)
-                } else {
-                    PlanetStore.shared.selectedArticle = article
+            if planet.templateName == "Croptop" {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    // Croptop needs a delay here because it loads from the local gateway
+                    if PlanetStore.shared.selectedArticle == article {
+                        NotificationCenter.default.post(name: .loadArticle, object: nil)
+                    } else {
+                        PlanetStore.shared.selectedArticle = article
+                    }
+                }
+            } else {
+                Task { @MainActor in
+                    if PlanetStore.shared.selectedArticle == article {
+                        NotificationCenter.default.post(name: .loadArticle, object: nil)
+                    } else {
+                        PlanetStore.shared.selectedArticle = article
+                    }
                 }
             }
         }
