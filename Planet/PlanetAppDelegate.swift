@@ -236,7 +236,9 @@ extension PlanetAppDelegate {
                     }
                     quickShareWindowController = PlanetQuickShareWindowController()
                     guard let w = quickShareWindowController?.window else { return }
-                    NSApp.runModal(for: w)
+                    DispatchQueue.main.async {
+                        NSApp.runModal(for: w)
+                    }
                 } else {
                     PlanetStore.shared.isQuickSharing = true
                 }
