@@ -52,7 +52,7 @@ struct PlanetApp: App {
         WindowGroup("Planet") {
             PlanetMainView()
                 .environmentObject(planetStore)
-                .frame(minWidth: 720, minHeight: 600)
+                .frame(minWidth: 840, minHeight: 600)
                 .handlesExternalEvents(preferring: mainEvent, allowing: mainEvent)
         }
         .handlesExternalEvents(matching: mainEvent)
@@ -64,7 +64,7 @@ struct PlanetApp: App {
         Window("Planet", id: "planetMainWindow") {
             PlanetMainView()
                 .environmentObject(planetStore)
-                .frame(minWidth: 720, minHeight: 600)
+                .frame(minWidth: 840, minHeight: 600)
         }
     }
 }
