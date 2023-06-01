@@ -80,6 +80,11 @@ struct WriterTitleView: View {
                     Divider()
                     
                     HStack (spacing: 10) {
+                        Button {
+                            date = Date()
+                        } label: {
+                            Text("Now")
+                        }
                         Spacer()
                         Button {
                             updatingDate = false
