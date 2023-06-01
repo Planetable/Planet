@@ -151,7 +151,7 @@ struct ArticleListView: View {
         .navigationSubtitle(
             Text(planetStore.navigationSubtitle)
         )
-        .frame(minWidth: 200, maxWidth: .infinity, maxHeight: .infinity)
+        .frame(minWidth: 240, maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.textBackgroundColor))
         .toolbar {
             Menu {
