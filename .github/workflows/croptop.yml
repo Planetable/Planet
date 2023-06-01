@@ -136,7 +136,7 @@ jobs:
         run: |
           mkdir -p Release
           cp Croptop.zip Release/
-          ${{ secrets.SPARKLE_GENERATE_INSIDER }} $WORKPLACE/Release ${{ env.RELEASE_VERSION }}
+          ${{ secrets.SPARKLE_GENERATE_CROPTOP }} $WORKPLACE/Release ${{ env.RELEASE_VERSION }}
 
       - name: Upload Sparkle Appcast
         uses: BetaHuhn/do-spaces-action@v2
