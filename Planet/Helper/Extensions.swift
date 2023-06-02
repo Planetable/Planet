@@ -80,7 +80,8 @@ extension String {
 
 // Planet Lite App Name
 extension String {
-    static let liteAppName = "Planet Lite"
+    // TODO: Control this with a xcconfig
+    static let liteAppName = "Croptop"
 }
 
 extension Notification.Name {
