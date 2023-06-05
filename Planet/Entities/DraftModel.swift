@@ -361,12 +361,27 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             PlanetStore.shared.refreshSelectedArticles()
             // wrap it to delay the state change
             if planet.templateName == "Croptop" {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                    // Croptop needs a delay here because it loads from the local gateway
-                    if PlanetStore.shared.selectedArticle == article {
-                        NotificationCenter.default.post(name: .loadArticle, object: nil)
-                    } else {
-                        PlanetStore.shared.selectedArticle = article
+                let apiEnabled = UserDefaults.standard.bool(forKey: String.settingsAPIEnabled)
+                if apiEnabled {
+                    // Use API preview URL
+                    // TODO: Why would we still need a delay here?
+                    // TODO: Investigate how :uuid/public is implemented
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        if PlanetStore.shared.selectedArticle == article {
+                            NotificationCenter.default.post(name: .loadArticle, object: nil)
+                        } else {
+                            PlanetStore.shared.selectedArticle = article
+                        }
+                    }
+                } else {
+                    // Use local gateway
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                        // Croptop needs a delay here when it loads from the local gateway
+                        if PlanetStore.shared.selectedArticle == article {
+                            NotificationCenter.default.post(name: .loadArticle, object: nil)
+                        } else {
+                            PlanetStore.shared.selectedArticle = article
+                        }
                     }
                 }
             } else {

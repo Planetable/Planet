@@ -12,10 +12,10 @@ import Cocoa
 
 actor PlanetAPIHelper {
     static let shared = PlanetAPIHelper()
-    
+
     private var isRelaunchingServer: Bool = false
     private var server: HttpServer
-    
+
     init() {
         server = HttpServer()
         let defaults = UserDefaults.standard
@@ -50,7 +50,7 @@ actor PlanetAPIHelper {
         try launch()
         isRelaunchingServer = false
     }
-    
+
     func shutdown() {
         server.stop()
     }
@@ -114,7 +114,7 @@ actor PlanetAPIHelper {
             throw PlanetError.PublicAPIError
         }
     }
-    
+
     private func updateSettings() {
         if !UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
             shutdown()
@@ -152,10 +152,10 @@ actor PlanetAPIHelper {
 
 class PlanetAPI: NSObject {
     static let shared = PlanetAPI()
-    
+
     private(set) var myPlanets: [MyPlanetModel] = []
     private(set) var myArticles: [MyArticleModel] = []
-    
+
     func updateMyPlanets(_ planets: [MyPlanetModel]) {
         myPlanets = planets
         var articles: [MyArticleModel] = []
@@ -191,7 +191,7 @@ extension PlanetAPI {
             return .error(error.localizedDescription)
         }
     }
-    
+
     // MARK: POST /v0/planets/my
     func createPlanet(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
@@ -251,7 +251,7 @@ extension PlanetAPI {
             return .error(error.localizedDescription)
         }
     }
-    
+
     // MARK: POST /v0/planets/my/:uuid
     func modifyPlanetInfo(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
@@ -292,7 +292,7 @@ extension PlanetAPI {
         }
         return .success()
     }
-    
+
     // MARK: POST /v0/planets/my/:uuid/publish
     func publishPlanet(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
@@ -311,7 +311,7 @@ extension PlanetAPI {
         }
         return .success()
     }
-    
+
     // MARK: GET /v0/planets/my/:uuid/public
     func exposePlanetPublicContent(inDirectory filePath: String, forRequest r: HttpRequest) -> HttpResponse {
         do {
@@ -351,7 +351,7 @@ extension PlanetAPI {
             return .error(error.localizedDescription)
         }
     }
-    
+
     // MARK: GET /v0/planets/my/:uuid/articles
     func getPlanetArticles(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
@@ -370,7 +370,7 @@ extension PlanetAPI {
             return .error(error.localizedDescription)
         }
     }
-    
+
     // MARK: POST /v0/planets/my/:uuid/articles
     func createPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
@@ -416,7 +416,7 @@ extension PlanetAPI {
         }
         return .success()
     }
-    
+
     // MARK: GET /v0/planets/my/:uuid/articles/:uuid
     func getPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
@@ -435,7 +435,7 @@ extension PlanetAPI {
         }
         return .notFound()
     }
-    
+
     // MARK: POST /v0/planets/my/:uuid/articles/:uuid
     func modifyPlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
@@ -484,7 +484,7 @@ extension PlanetAPI {
         }
         return .success()
     }
-    
+
     // MARK: DELETE /v0/planets/my/:uuid/articles/:uuid
     func deletePlanetArticle(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
@@ -530,7 +530,7 @@ extension PlanetAPI {
         }
         return uuid
     }
-    
+
     private func planetUUIDAndArticleUUIDFromRequest(_ r: HttpRequest) -> (UUID?, UUID?) {
         guard
             let planetUUIDString = r.params[":a"],
@@ -542,7 +542,7 @@ extension PlanetAPI {
         }
         return (planetUUID, articleUUID)
     }
-    
+
     private func validateRequest(_ r: HttpRequest) -> Bool {
         let apiUsesPasscode = UserDefaults.standard.bool(forKey: .settingsAPIUsesPasscode)
         let username = UserDefaults.standard.string(forKey: .settingsAPIUsername) ?? "Planet"
@@ -561,7 +561,7 @@ extension PlanetAPI {
         }
         return true
     }
-    
+
     private func processPlanetInfoRequest(_ r: HttpRequest) -> [String: Any] {
         var info: [String: Any] = [:]
         let multipartDatas = r.parseMultiPartFormData()
@@ -582,7 +582,7 @@ extension PlanetAPI {
         }
         return info
     }
-    
+
     private func processPlanetArticleRequest(_ r: HttpRequest) -> [String: Any] {
         var info: [String: Any] = [:]
         let multipartDatas = r.parseMultiPartFormData()

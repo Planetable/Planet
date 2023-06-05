@@ -173,7 +173,7 @@ struct ArticleView: View {
                 if myArticle.planet.templateName == "Croptop" {
                     // croptop is a special case
                     // it needs to be loaded from the local gateway for the JS to work
-                    url = myArticle.localGatewayURL ?? myArticle.publicIndexPath
+                    url = myArticle.localPreviewURL ?? myArticle.publicIndexPath
                 } else {
                     // in future we can use the local gateway for all planets
                     url = myArticle.publicIndexPath

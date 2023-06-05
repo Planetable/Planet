@@ -1317,6 +1317,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func publish() async throws {
+        if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
+            Task {
+                try? await PlanetAPIHelper.shared.relaunch()
+            }
+        }
         await MainActor.run {
             self.isPublishing = true
         }
@@ -1389,11 +1394,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         Task(priority: .background) {
             await self.callPinnable()
-        }
-        if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-            Task {
-                try? await PlanetAPIHelper.shared.relaunch()
-            }
         }
     }
 

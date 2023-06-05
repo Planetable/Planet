@@ -70,6 +70,18 @@ class MyArticleModel: ArticleModel, Codable {
     var localGatewayURL: URL? {
         return URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(planet.ipns)/\(id.uuidString)/")
     }
+    var localPreviewURL: URL? {
+        // If API is enabled, use the API URL
+        // Otherwise, use the local gateway URL
+        let apiEnabled = UserDefaults.standard.bool(forKey: String.settingsAPIEnabled)
+        if apiEnabled {
+            let apiPort = UserDefaults
+        .standard.string(forKey: String.settingsAPIPort) ?? "9191"
+            return URL(string: "http://127.0.0.1:\(apiPort)/v0/planets/my/\(planet.id.uuidString)/public/\(id.uuidString)/index.html")
+        } else {
+            return localGatewayURL
+        }
+    }
     var browserURL: URL? {
         var urlPath = "/\(id.uuidString)/"
         if let slug = slug, slug.count > 0 {
