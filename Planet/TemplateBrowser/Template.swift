@@ -174,7 +174,6 @@ class Template: Codable, Identifiable {
         )
         let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
 
-
         // render stencil template
         var context: [String: Any] = [
             "page_description_html": pageAboutHTML,

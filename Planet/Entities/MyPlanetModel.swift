@@ -1596,7 +1596,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         do {
             // split the articles into groups
             let cpuCount = ProcessInfo.processInfo.activeProcessorCount
-            let articleGroups = self.articles.chunked(into: cpuCount > 8 ? 8 : cpuCount)
+            let articleGroups = self.articles.chunked(into: cpuCount > 20 ? 16 : cpuCount)
             for articleGroup in articleGroups {
                 // after some benchmarking, it seems that using DispatchGroup is faster than using TaskGroup
 

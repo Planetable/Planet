@@ -378,6 +378,7 @@ class MyArticleModel: ArticleModel, Codable {
     }
 
     func savePublic() throws {
+        let started: Date = Date()
         guard let template = planet.template else {
             throw PlanetError.MissingTemplateError
         }
@@ -410,6 +411,10 @@ class MyArticleModel: ArticleModel, Codable {
         } else {
             debugPrint("CID Update for \(self.title): NOT NEEDED")
         }
+
+        let doneCIDUpdate: Date = Date()
+        debugPrint("CID Update for \(self.title) took: \(doneCIDUpdate.timeIntervalSince(started))")
+
         if attachmentCIDs.count > 0, let firstKeyValuePair = attachmentCIDs.first,
             let generateNFTMetadata = template.generateNFTMetadata, generateNFTMetadata
         {
@@ -433,14 +438,31 @@ class MyArticleModel: ArticleModel, Codable {
                 "Not writing NFT metadata for \(self.title) and CIDs: \(self.cids) \(template.generateNFTMetadata)"
             )
         }
+
+        let doneNFTMetadata: Date = Date()
+        debugPrint("NFT metadata for \(self.title) took: \(doneNFTMetadata.timeIntervalSince(doneCIDUpdate))")
+
+        // TODO: This part seems very slow, it takes seconds to render the article HTML
         let articleHTML = try template.render(article: self)
         try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
+
+        let doneArticleHTML: Date = Date()
+        debugPrint("Article HTML for \(self.title) took: \(doneArticleHTML.timeIntervalSince(doneNFTMetadata))")
+
         if self.hasVideoContent() {
             self.saveVideoThumbnail()
         }
+
+        let doneVideoThumbnail: Date = Date()
+        debugPrint("Video thumbnail for \(self.title) took: \(doneVideoThumbnail.timeIntervalSince(doneArticleHTML))")
+
         if self.hasHeroImage() || self.hasVideoContent() {
             self.saveHeroGrid()
         }
+
+        let doneHeroGrid: Date = Date()
+        debugPrint("Hero grid for \(self.title) took: \(doneHeroGrid.timeIntervalSince(doneVideoThumbnail))")
+
         try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
         if let articleSlug = self.slug, articleSlug.count > 0 {
             let publicSlugBasePath = planet.publicBasePath.appendingPathComponent(
@@ -452,6 +474,9 @@ class MyArticleModel: ArticleModel, Codable {
             }
             try? FileManager.default.copyItem(at: publicBasePath, to: publicSlugBasePath)
         }
+
+        let doneSlug: Date = Date()
+        debugPrint("Slug for \(self.title) took: \(doneSlug.timeIntervalSince(doneHeroGrid))")
     }
 
     func save() throws {
