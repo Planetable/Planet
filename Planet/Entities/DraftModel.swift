@@ -375,7 +375,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                     }
                 } else {
                     // Use local gateway
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                         // Croptop needs a delay here when it loads from the local gateway
                         if PlanetStore.shared.selectedArticle == article {
                             NotificationCenter.default.post(name: .loadArticle, object: nil)
