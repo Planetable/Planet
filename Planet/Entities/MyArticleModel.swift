@@ -32,6 +32,10 @@ class MyArticleModel: ArticleModel, Codable {
         "index.html",
         isDirectory: false
     )
+    lazy var publicCoverImagePath = publicBasePath.appendingPathComponent(
+        "_cover.png",
+        isDirectory: false
+    )
     lazy var publicInfoPath = publicBasePath.appendingPathComponent(
         "article.json",
         isDirectory: false
@@ -75,10 +79,15 @@ class MyArticleModel: ArticleModel, Codable {
         // Otherwise, use the local gateway URL
         let apiEnabled = UserDefaults.standard.bool(forKey: String.settingsAPIEnabled)
         if apiEnabled {
-            let apiPort = UserDefaults
-        .standard.string(forKey: String.settingsAPIPort) ?? "9191"
-            return URL(string: "http://127.0.0.1:\(apiPort)/v0/planets/my/\(planet.id.uuidString)/public/\(id.uuidString)/index.html")
-        } else {
+            let apiPort =
+                UserDefaults
+                .standard.string(forKey: String.settingsAPIPort) ?? "9191"
+            return URL(
+                string:
+                    "http://127.0.0.1:\(apiPort)/v0/planets/my/\(planet.id.uuidString)/public/\(id.uuidString)/index.html"
+            )
+        }
+        else {
             return localGatewayURL
         }
     }
@@ -377,6 +386,57 @@ class MyArticleModel: ArticleModel, Codable {
         return nil
     }
 
+    func saveCoverImage(with string: String, filename: String, imageSize: NSSize) {
+        let image = NSImage(size: imageSize)
+
+        image.lockFocus()
+
+        let textView = NSTextView(frame: NSRect(x: 32, y: 32, width: 448, height: 448))
+        textView.isEditable = false
+        textView.isSelectable = false
+
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = .center
+
+        let font: NSFont
+        if planet.templateName == "Croptop" {
+            font = NSFont(name: "Capsules-300", size: 32) ?? NSFont.systemFont(ofSize: 32)
+        }
+        else {
+            font = NSFont.systemFont(ofSize: 32)
+        }
+
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: font,
+            .paragraphStyle: paragraphStyle,
+        ]
+
+        let attributedString = NSAttributedString(string: string, attributes: attrs)
+
+        textView.textStorage?.setAttributedString(attributedString)
+
+        let textViewImage = textView.bitmapImageRepForCachingDisplay(in: textView.bounds)
+        textView.cacheDisplay(in: textView.bounds, to: textViewImage!)
+        textViewImage?.draw(in: NSRect(x: 32, y: 32, width: 448, height: 448))
+
+        image.unlockFocus()
+
+        // Save the image
+        if let tiffData = image.tiffRepresentation,
+            let bitmapImage = NSBitmapImageRep(data: tiffData)
+        {
+            let pngData = bitmapImage.representation(using: .png, properties: [:])
+            do {
+                let url = URL(fileURLWithPath: filename)
+                try pngData?.write(to: url)
+                print("Image saved successfully at \(url.path)")
+            }
+            catch {
+                print("Failed to save image: \(error)")
+            }
+        }
+    }
+
     func savePublic() throws {
         let started: Date = Date()
         guard let template = planet.template else {
@@ -388,6 +448,12 @@ class MyArticleModel: ArticleModel, Codable {
                 NotificationCenter.default.post(name: .myArticleBuilt, object: self)
             }
         }
+        // Save cover image
+        saveCoverImage(
+            with: self.title,
+            filename: publicCoverImagePath.path,
+            imageSize: NSSize(width: 512, height: 512)
+        )
         var attachmentCIDs: [String: String] = self.cids ?? [:]
         let needsToUpdateCIDs = {
             if let cids = self.cids, cids.count > 0 {
@@ -408,7 +474,8 @@ class MyArticleModel: ArticleModel, Codable {
             attachmentCIDs = getCIDs()
             self.cids = attachmentCIDs
             try? self.save()
-        } else {
+        }
+        else {
             debugPrint("CID Update for \(self.title): NOT NEEDED")
         }
 
@@ -440,28 +507,36 @@ class MyArticleModel: ArticleModel, Codable {
         }
 
         let doneNFTMetadata: Date = Date()
-        debugPrint("NFT metadata for \(self.title) took: \(doneNFTMetadata.timeIntervalSince(doneCIDUpdate))")
+        debugPrint(
+            "NFT metadata for \(self.title) took: \(doneNFTMetadata.timeIntervalSince(doneCIDUpdate))"
+        )
 
         // TODO: This part seems very slow, it takes seconds to render the article HTML
         let articleHTML = try template.render(article: self)
         try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
 
         let doneArticleHTML: Date = Date()
-        debugPrint("Article HTML for \(self.title) took: \(doneArticleHTML.timeIntervalSince(doneNFTMetadata))")
+        debugPrint(
+            "Article HTML for \(self.title) took: \(doneArticleHTML.timeIntervalSince(doneNFTMetadata))"
+        )
 
         if self.hasVideoContent() {
             self.saveVideoThumbnail()
         }
 
         let doneVideoThumbnail: Date = Date()
-        debugPrint("Video thumbnail for \(self.title) took: \(doneVideoThumbnail.timeIntervalSince(doneArticleHTML))")
+        debugPrint(
+            "Video thumbnail for \(self.title) took: \(doneVideoThumbnail.timeIntervalSince(doneArticleHTML))"
+        )
 
         if self.hasHeroImage() || self.hasVideoContent() {
             self.saveHeroGrid()
         }
 
         let doneHeroGrid: Date = Date()
-        debugPrint("Hero grid for \(self.title) took: \(doneHeroGrid.timeIntervalSince(doneVideoThumbnail))")
+        debugPrint(
+            "Hero grid for \(self.title) took: \(doneHeroGrid.timeIntervalSince(doneVideoThumbnail))"
+        )
 
         try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
         if let articleSlug = self.slug, articleSlug.count > 0 {
@@ -640,10 +715,12 @@ extension MyArticleModel {
                     NotificationCenter.default.post(name: .loadArticle, object: nil)
                 }
                 debugPrint("TODO item toggled and saved for \(self.title)")
-            } catch {
+            }
+            catch {
                 debugPrint("TODO item toggled but failed to save for \(self.title): \(error)")
             }
-        } else {
+        }
+        else {
             debugPrint("TODO item not found for \(self.title)")
         }
     }

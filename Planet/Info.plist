@@ -72,6 +72,8 @@
 	<string>$(SPARKLE_UPDATE_FEED_URL)</string>
 	<key>SUPublicEDKey</key>
 	<string>ciHPM+QD+p7Rceljd0MT42MfrcVhZchEVJTUW98R3Wk=</string>
+	<key>ATSApplicationFontsPath</key>
+	<string>.</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

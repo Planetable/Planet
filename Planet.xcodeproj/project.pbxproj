@@ -277,6 +277,20 @@
 		6A2F5F1128DB74C500034D55 /* Filebase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1028DB74C500034D55 /* Filebase.swift */; };
 		6A2F5F1328DB75F700034D55 /* Plausible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1228DB75F700034D55 /* Plausible.swift */; };
 		6A2F5F1528DB767A00034D55 /* dWebServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1428DB767A00034D55 /* dWebServices.swift */; };
+		6A34BE322A34B2A00031E5E4 /* Capsules-200.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE2B2A34B2A00031E5E4 /* Capsules-200.otf */; };
+		6A34BE332A34B2A00031E5E4 /* Capsules-200.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE2B2A34B2A00031E5E4 /* Capsules-200.otf */; };
+		6A34BE342A34B2A00031E5E4 /* Capsules-400.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE2C2A34B2A00031E5E4 /* Capsules-400.otf */; };
+		6A34BE352A34B2A00031E5E4 /* Capsules-400.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE2C2A34B2A00031E5E4 /* Capsules-400.otf */; };
+		6A34BE362A34B2A00031E5E4 /* Capsules-600.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE2D2A34B2A00031E5E4 /* Capsules-600.otf */; };
+		6A34BE372A34B2A00031E5E4 /* Capsules-600.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE2D2A34B2A00031E5E4 /* Capsules-600.otf */; };
+		6A34BE382A34B2A00031E5E4 /* Capsules-100.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE2E2A34B2A00031E5E4 /* Capsules-100.otf */; };
+		6A34BE392A34B2A00031E5E4 /* Capsules-100.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE2E2A34B2A00031E5E4 /* Capsules-100.otf */; };
+		6A34BE3A2A34B2A00031E5E4 /* Capsules-300.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE2F2A34B2A00031E5E4 /* Capsules-300.otf */; };
+		6A34BE3B2A34B2A00031E5E4 /* Capsules-300.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE2F2A34B2A00031E5E4 /* Capsules-300.otf */; };
+		6A34BE3C2A34B2A00031E5E4 /* Capsules-700.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE302A34B2A00031E5E4 /* Capsules-700.otf */; };
+		6A34BE3D2A34B2A00031E5E4 /* Capsules-700.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE302A34B2A00031E5E4 /* Capsules-700.otf */; };
+		6A34BE3E2A34B2A00031E5E4 /* Capsules-500.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE312A34B2A00031E5E4 /* Capsules-500.otf */; };
+		6A34BE3F2A34B2A00031E5E4 /* Capsules-500.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A34BE312A34B2A00031E5E4 /* Capsules-500.otf */; };
 		6A373A3C28E8178500750256 /* MyPlanetCustomCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A373A3B28E8178500750256 /* MyPlanetCustomCodeView.swift */; };
 		6A373A4428E8263800750256 /* CodeMirror-SwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 6A373A4328E8263800750256 /* CodeMirror-SwiftUI */; };
 		6A373A4528E8279B00750256 /* CodeMirror-SwiftUI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 6A373A4328E8263800750256 /* CodeMirror-SwiftUI */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -515,6 +529,13 @@
 		6A2F5F1028DB74C500034D55 /* Filebase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filebase.swift; sourceTree = "<group>"; };
 		6A2F5F1228DB75F700034D55 /* Plausible.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plausible.swift; sourceTree = "<group>"; };
 		6A2F5F1428DB767A00034D55 /* dWebServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = dWebServices.swift; sourceTree = "<group>"; };
+		6A34BE2B2A34B2A00031E5E4 /* Capsules-200.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Capsules-200.otf"; sourceTree = "<group>"; };
+		6A34BE2C2A34B2A00031E5E4 /* Capsules-400.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Capsules-400.otf"; sourceTree = "<group>"; };
+		6A34BE2D2A34B2A00031E5E4 /* Capsules-600.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Capsules-600.otf"; sourceTree = "<group>"; };
+		6A34BE2E2A34B2A00031E5E4 /* Capsules-100.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Capsules-100.otf"; sourceTree = "<group>"; };
+		6A34BE2F2A34B2A00031E5E4 /* Capsules-300.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Capsules-300.otf"; sourceTree = "<group>"; };
+		6A34BE302A34B2A00031E5E4 /* Capsules-700.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Capsules-700.otf"; sourceTree = "<group>"; };
+		6A34BE312A34B2A00031E5E4 /* Capsules-500.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Capsules-500.otf"; sourceTree = "<group>"; };
 		6A373A3B28E8178500750256 /* MyPlanetCustomCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetCustomCodeView.swift; sourceTree = "<group>"; };
 		6A4825C928F22DAC004CE2C0 /* PodcastUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastUtils.swift; sourceTree = "<group>"; };
 		6A5935EB2A14E98C00151CBD /* MyPlanetTemplateSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetTemplateSettingsView.swift; sourceTree = "<group>"; };
@@ -817,6 +838,7 @@
 				2AFB896A29BA145A003D893E /* Key Manager */,
 				2A09A35D27C257E40003A0B5 /* Views */,
 				2A7022EE2897DF1B00022F13 /* Downloads */,
+				6A34BE292A34B26B0031E5E4 /* Fonts */,
 				2AE44EAA28CD215C00944786 /* Settings */,
 				2AC4994C27BB6E7600F1C2D1 /* Assets.xcassets */,
 				2AC4995127BB6E7600F1C2D1 /* Planet.entitlements */,
@@ -1007,6 +1029,28 @@
 				6A8776D32A01B78800C6003B /* Pinnable.swift */,
 			);
 			path = Integrations;
+			sourceTree = "<group>";
+		};
+		6A34BE292A34B26B0031E5E4 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				6A34BE2A2A34B2A00031E5E4 /* CapsulesOTF */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		6A34BE2A2A34B2A00031E5E4 /* CapsulesOTF */ = {
+			isa = PBXGroup;
+			children = (
+				6A34BE2B2A34B2A00031E5E4 /* Capsules-200.otf */,
+				6A34BE2C2A34B2A00031E5E4 /* Capsules-400.otf */,
+				6A34BE2D2A34B2A00031E5E4 /* Capsules-600.otf */,
+				6A34BE2E2A34B2A00031E5E4 /* Capsules-100.otf */,
+				6A34BE2F2A34B2A00031E5E4 /* Capsules-300.otf */,
+				6A34BE302A34B2A00031E5E4 /* Capsules-700.otf */,
+				6A34BE312A34B2A00031E5E4 /* Capsules-500.otf */,
+			);
+			path = CapsulesOTF;
 			sourceTree = "<group>";
 		};
 		6A5E63A62807269400FB1E84 /* TemplateBrowser */ = {
@@ -1269,9 +1313,17 @@
 				2A95E6702A19A3B8001288B8 /* NoSelection.html in Resources */,
 				2A95E6712A19A3B8001288B8 /* TemplatePlaceholder.html in Resources */,
 				2A95E66D2A19A3B8001288B8 /* WriterBasic.html in Resources */,
+				6A34BE372A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
+				6A34BE352A34B2A00031E5E4 /* Capsules-400.otf in Resources */,
+				6A34BE3F2A34B2A00031E5E4 /* Capsules-500.otf in Resources */,
+				6A34BE282A34B1810031E5E4 /* Assets.xcassets in Resources */,
 				2A95E6F02A19A777001288B8 /* Credits.html in Resources */,
+				6A34BE332A34B2A00031E5E4 /* Capsules-200.otf in Resources */,
 				2A95E6992A19A43D001288B8 /* ipfs-arm64-0.15.bin in Resources */,
+				6A34BE3B2A34B2A00031E5E4 /* Capsules-300.otf in Resources */,
+				6A34BE3D2A34B2A00031E5E4 /* Capsules-700.otf in Resources */,
 				2A95E6982A19A43D001288B8 /* ipfs-amd64-0.15.bin in Resources */,
+				6A34BE392A34B2A00031E5E4 /* Capsules-100.otf in Resources */,
 				2A95E66F2A19A3B8001288B8 /* RSS.xml in Resources */,
 				2ABD1CC82A1616DB0082D7EA /* Assets.xcassets in Resources */,
 			);
@@ -1285,10 +1337,17 @@
 				2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */,
 				6A28FDA82838598A00036BA6 /* NoSelection.html in Resources */,
 				2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */,
+				6A34BE362A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
+				6A34BE342A34B2A00031E5E4 /* Capsules-400.otf in Resources */,
+				6A34BE3E2A34B2A00031E5E4 /* Capsules-500.otf in Resources */,
 				6A1DF9CF28E8E4B6000499E3 /* RSS.xml in Resources */,
 				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
+				6A34BE322A34B2A00031E5E4 /* Capsules-200.otf in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
+				6A34BE3A2A34B2A00031E5E4 /* Capsules-300.otf in Resources */,
+				6A34BE3C2A34B2A00031E5E4 /* Capsules-700.otf in Resources */,
 				6A64D2DE284640A80013EABB /* Credits.html in Resources */,
+				6A34BE382A34B2A00031E5E4 /* Capsules-100.otf in Resources */,
 				72114AE8931655425CC6E5C1 /* ipfs-amd64-0.15.bin in Resources */,
 				72114B95CA15BC9EC180FC36 /* ipfs-arm64-0.15.bin in Resources */,
 			);
