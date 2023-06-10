@@ -410,22 +410,30 @@ class MyArticleModel: ArticleModel, Codable {
 
         image.lockFocus()
 
+        // Fill with black
+        NSColor.black.set()
+        NSBezierPath(rect: NSRect(origin: .zero, size: imageSize)).fill()
+
         let textView = NSTextView(frame: NSRect(x: 32, y: 32, width: 448, height: 448))
         textView.isEditable = false
         textView.isSelectable = false
+        // Use white on black for the textView
+        textView.backgroundColor = NSColor.black
+        textView.drawsBackground = true
 
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.alignment = .center
+        paragraphStyle.alignment = .left
 
         let font: NSFont
         if planet.templateName == "Croptop" {
-            font = NSFont(name: "Capsules-300", size: 32) ?? NSFont.systemFont(ofSize: 32)
+            font = NSFont(name: "Capsules-500", size: 32) ?? NSFont.systemFont(ofSize: 32)
         }
         else {
             font = NSFont.systemFont(ofSize: 32)
         }
 
         let attrs: [NSAttributedString.Key: Any] = [
+            .foregroundColor: NSColor.white,
             .font: font,
             .paragraphStyle: paragraphStyle,
         ]
