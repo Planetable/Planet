@@ -282,6 +282,25 @@ class MyArticleModel: ArticleModel, Codable {
         return nil
     }
 
+    func getAttachmentMimeType(name: String) -> String {
+        let path = publicBasePath.appendingPathComponent(name)
+        if FileManager.default.fileExists(atPath: path.path) {
+            let mimeType: String? = {
+                let uti = UTTypeCreatePreferredIdentifierForTag(
+                    kUTTagClassFilenameExtension,
+                    path.pathExtension as CFString,
+                    nil)
+
+                let mimetype = UTTypeCopyPreferredTagWithClass(uti!.takeRetainedValue(), kUTTagClassMIMEType)
+                return mimetype?.takeRetainedValue() as String?
+            }()
+            if let mimeType = mimeType {
+                return mimeType
+            }
+        }
+        return "application/octet-stream"
+    }
+
     func getAttachmentByteLength(name: String?) -> Int? {
         guard let name = name, let url = getAttachmentURL(name: name) else {
             return nil
@@ -495,7 +514,9 @@ class MyArticleModel: ArticleModel, Codable {
                 name: self.title,
                 description: self.summary ?? firstKey,
                 image: "https://ipfs.io/ipfs/\(firstValue)",
-                external_url: (self.externalLink ?? self.browserURL?.absoluteString) ?? ""
+                external_url: (self.externalLink ?? self.browserURL?.absoluteString) ?? "",
+                mimeType: self.getAttachmentMimeType(name: firstKey),
+                animation_url: self.hasVideoContent() ? "https://ipfs.io/ipfs/\(firstValue)" : nil
             )
             let nftData = try JSONEncoder.shared.encode(nft)
             try nftData.write(to: publicNFTMetadataPath)
@@ -754,4 +775,6 @@ struct NFTMetadata: Codable {
     let description: String
     let image: String
     let external_url: String
+    let mimeType: String
+    let animation_url: String?
 }
