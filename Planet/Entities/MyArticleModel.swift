@@ -454,6 +454,10 @@ class MyArticleModel: ArticleModel, Codable {
             filename: publicCoverImagePath.path,
             imageSize: NSSize(width: 512, height: 512)
         )
+        if let attachments = self.attachments, attachments.count == 0 {
+            let newAttachments: [String] = ["_cover.png"]
+            self.attachments = newAttachments
+        }
         var attachmentCIDs: [String: String] = self.cids ?? [:]
         let needsToUpdateCIDs = {
             if let cids = self.cids, cids.count > 0 {
