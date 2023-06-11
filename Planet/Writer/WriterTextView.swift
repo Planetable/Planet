@@ -319,7 +319,21 @@ class WriterEditorTextView: NSTextView {
         guard prefix != "" else { return }
         var targetRange = selectedRange
         targetRange.length = 0
-        let extendedContent = NSString(format: "%@%@ ", indent, prefix)
+        var extendedContent = NSString(format: "%@%@ ", indent, prefix)
+        // Improvements for todo item in unordered list:
+        // "- [ ] "
+        // "- [x] "
+        // "- [X] "
+        if isUnordered {
+            if line.hasPrefix("- [ ] ") || line.hasPrefix("- [x] ") || line.hasPrefix("- [X] ") {
+                if line.length == "- [ ] ".count {
+                    extendedContent = NSString(format: "")
+                    self.replaceCharacters(in: range, with: "")
+                } else {
+                    extendedContent = NSString(format: "%@%@ [ ] ", indent, prefix)
+                }
+            }
+        }
         self.insertText(extendedContent, replacementRange: targetRange)
     }
 }
