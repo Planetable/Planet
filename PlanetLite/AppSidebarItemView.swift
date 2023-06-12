@@ -89,10 +89,43 @@ struct AppSidebarItemView: View {
                 Divider()
             }
             
-            Button {
-                isShowingDeleteConfirmation = true
-            } label: {
-                Text("Delete Planet")
+            Group {
+                Button {
+                    let panel = NSOpenPanel()
+                    panel.message = "Choose Export Location"
+                    panel.prompt = "Choose"
+                    panel.allowsMultipleSelection = false
+                    panel.allowedContentTypes = [.folder]
+                    panel.canChooseDirectories = true
+                    panel.canChooseFiles = false
+                    panel.canCreateDirectories = true
+                    let response = panel.runModal()
+                    guard response == .OK, let url = panel.url else { return }
+                    do {
+                        try planet.exportBackup(to: url)
+                    } catch PlanetError.FileExistsError {
+                        PlanetStore.shared.alert(
+                            title: "Failed to Export Planet",
+                            message: """
+                                There is already an exported Planet in the destination. \
+                                We do not recommend override your backup. \
+                                Please choose another destination, or rename your previous backup.
+                                """
+                        )
+                    } catch {
+                        PlanetStore.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
+                    }
+                } label: {
+                    Text("Export Planet")
+                }
+                
+                Divider()
+
+                Button {
+                    isShowingDeleteConfirmation = true
+                } label: {
+                    Text("Delete Planet")
+                }
             }
         }
         .confirmationDialog(
