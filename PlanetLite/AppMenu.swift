@@ -20,32 +20,7 @@ import UniformTypeIdentifiers
 
 extension PlanetLiteAppDelegate: FileMenuActions {
     func importPlanet(_ sender: AnyObject) {
-        let panel = NSOpenPanel()
-        panel.message = "Choose Planet Data"
-        panel.prompt = "Import"
-        panel.allowsMultipleSelection = false
-        let planetDataIdentifier = {
-            if let name = Bundle.main.object(forInfoDictionaryKey: "ORGANIZATION_IDENTIFIER_PREFIX") as? String {
-                return name + ".planet.data"
-            } else {
-                return "xyz.planetable.planet.data"
-            }
-        }()
-        panel.allowedContentTypes = [UTType(planetDataIdentifier)!]
-        panel.canChooseDirectories = false
-        panel.canChooseFiles = true
-        panel.canCreateDirectories = false
-        let response = panel.runModal()
-        guard response == .OK, let url = panel.url, url.pathExtension == "planet" else { return }
-        Task { @MainActor in
-            do {
-                let planet = try MyPlanetModel.importBackup(from: url)
-                PlanetStore.shared.myPlanets.insert(planet, at: 0)
-                PlanetStore.shared.selectedView = .myPlanet(planet)
-            } catch {
-                PlanetStore.shared.alert(title: "Failed to import planet")
-            }
-        }
+        KeyboardShortcutHelper.shared.importPlanetAction()
     }
 
     func populateMainMenu() {

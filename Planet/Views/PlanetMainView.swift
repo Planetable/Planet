@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import UniformTypeIdentifiers
 
 
 struct PlanetMainView: View {
@@ -14,14 +13,6 @@ struct PlanetMainView: View {
 
     @State private var isInfoAlert: Bool = false
     @State private var isFollowingAlert: Bool = false
-
-    let planetDataIdentifier = {
-        if let name = Bundle.main.object(forInfoDictionaryKey: "ORGANIZATION_IDENTIFIER_PREFIX") as? String {
-            return name + ".planet.data"
-        } else {
-            return "xyz.planetable.planet.data"
-        }
-    }()
 
     var body: some View {
         NavigationView {
@@ -41,20 +32,6 @@ struct PlanetMainView: View {
                     planetStore.alertMessage = ""
                 }
             )
-        }
-        .fileImporter(
-            isPresented: $planetStore.isImportingPlanet,
-            allowedContentTypes: [UTType(planetDataIdentifier)!]
-        ) { result in
-            if let url = try? result.get() {
-                do {
-                    let planet = try MyPlanetModel.importBackup(from: url)
-                    planetStore.myPlanets.insert(planet, at: 0)
-                    planetStore.selectedView = .myPlanet(planet)
-                } catch {
-                    planetStore.alert(title: "Failed to import planet")
-                }
-            }
         }
         .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
             if case .myPlanet(let planet) = planetStore.selectedView {
