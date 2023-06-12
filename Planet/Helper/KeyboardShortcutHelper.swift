@@ -199,15 +199,15 @@ class KeyboardShortcutHelper: ObservableObject {
                 .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
 
                 Button {
-                    do {
-                        Task(priority: .background) {
+                    Task(priority: .background) {
+                        do {
                             try await self.activeMyPlanet?.rebuild()
-                        }
-                    } catch {
-                        Task { @MainActor in
-                            PlanetStore.shared.isShowingAlert = true
-                            PlanetStore.shared.alertTitle = "Failed to Rebuild Planet"
-                            PlanetStore.shared.alertMessage = error.localizedDescription
+                        } catch {
+                            Task { @MainActor in
+                                PlanetStore.shared.isShowingAlert = true
+                                PlanetStore.shared.alertTitle = "Failed to Rebuild Planet"
+                                PlanetStore.shared.alertMessage = error.localizedDescription
+                            }
                         }
                     }
                 } label: {
