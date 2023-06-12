@@ -4,6 +4,7 @@
 //
 
 import Cocoa
+import UniformTypeIdentifiers
 
 
 @objc protocol EditMenuActions {
@@ -23,7 +24,14 @@ extension PlanetLiteAppDelegate: FileMenuActions {
         panel.message = "Choose Planet Data"
         panel.prompt = "Import"
         panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = [.data, .package]
+        let planetDataIdentifier = {
+            if let name = Bundle.main.object(forInfoDictionaryKey: "ORGANIZATION_IDENTIFIER_PREFIX") as? String {
+                return name + ".planet.data"
+            } else {
+                return "xyz.planetable.planet.data"
+            }
+        }()
+        panel.allowedContentTypes = [UTType(planetDataIdentifier)!]
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.canCreateDirectories = false
