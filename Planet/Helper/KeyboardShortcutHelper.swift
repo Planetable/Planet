@@ -247,7 +247,7 @@ class KeyboardShortcutHelper: ObservableObject {
         panel.canChooseFiles = true
         panel.canCreateDirectories = false
         let response = panel.runModal()
-        guard response == .OK, let url = panel.url, url.pathExtension == "planet" else { return }
+        guard response == .OK, let url = panel.url else { return }
         Task { @MainActor in
             do {
                 let planet = try MyPlanetModel.importBackup(from: url)
