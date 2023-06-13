@@ -183,7 +183,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         )
         draft.attachments = try publicArticleFiles
             // exclude index.html, article.json
-            .filter { !["index.html", "article.json", "nft.json", "nft.json.cid.txt", "_videoThumbnail.png", "_grid.jpg", "_grid.png", "_cover.png"].contains($0.lastPathComponent) }
+            .filter { !["index.html", "simple.html", "article.json", "nft.json", "nft.json.cid.txt", "_videoThumbnail.png", "_grid.jpg", "_grid.png", "_cover.png"].contains($0.lastPathComponent) }
             .map { filePath in
                 let attachment = Attachment(name: filePath.lastPathComponent, type: AttachmentType.from(filePath))
                 attachment.draft = draft
@@ -361,21 +361,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             PlanetStore.shared.refreshSelectedArticles()
             // wrap it to delay the state change
             if planet.templateName == "Croptop" {
-                let apiEnabled = UserDefaults.standard.bool(forKey: String.settingsAPIEnabled)
-                if apiEnabled {
-                    // Use API preview URL
-                    // TODO: Why would we still need a delay here?
-                    // TODO: Investigate how :uuid/public is implemented
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        if PlanetStore.shared.selectedArticle == article {
-                            NotificationCenter.default.post(name: .loadArticle, object: nil)
-                        } else {
-                            PlanetStore.shared.selectedArticle = article
-                        }
-                    }
-                } else {
-                    // Use local gateway
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                Task { @MainActor in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         // Croptop needs a delay here when it loads from the local gateway
                         if PlanetStore.shared.selectedArticle == article {
                             NotificationCenter.default.post(name: .loadArticle, object: nil)

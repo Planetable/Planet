@@ -103,6 +103,17 @@ struct StencilExtension {
             }
             return value
         }
+        ext.registerFilter("mdyydot") { value in
+            if let value = value,
+                let date = value as? Date
+            {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "M.d.yy"
+                let formattedDate = formatter.string(from: date)
+                return formattedDate
+            }
+            return value
+        }
         ext.registerFilter("hhmmss") { value in
             if let value = value,
                 let seconds = value as? Int
@@ -157,7 +168,7 @@ struct StencilExtension {
 struct CMarkRenderer {
     static func replaceYouTubeLinks(_ text: String) -> String {
         let pattern = #"https?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?"#
-        
+
         do {
             let regex = try NSRegularExpression(pattern: pattern, options: [])
             let newText = regex.stringByReplacingMatches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count), withTemplate: "<iframe width=\"100%\" style=\"aspect-ratio: 16/9\" src=\"https://www.youtube.com/embed/$1\" title=\"YouTube Video\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>")
@@ -167,12 +178,12 @@ struct CMarkRenderer {
             return text
         }
     }
-    
+
     // Reference: https://github.com/tw93/MiaoYan/blob/master/Mac/Business/Markdown.swift
     static func renderMarkdownHTML(markdown: String) -> String? {
         // Process 1: Replace all YouTube links with embed code
         let inputText: String = CMarkRenderer.replaceYouTubeLinks(markdown)
-        
+
         cmark_gfm_core_extensions_ensure_registered()
 
         guard let parser = cmark_parser_new(CMARK_OPT_FOOTNOTES) else { return nil }

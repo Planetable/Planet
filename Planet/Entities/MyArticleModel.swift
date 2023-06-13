@@ -32,6 +32,10 @@ class MyArticleModel: ArticleModel, Codable {
         "index.html",
         isDirectory: false
     )
+    lazy var publicSimplePath = publicBasePath.appendingPathComponent(
+        "simple.html",
+        isDirectory: false
+    )
     lazy var publicCoverImagePath = publicBasePath.appendingPathComponent(
         "_cover.png",
         isDirectory: false
@@ -547,6 +551,11 @@ class MyArticleModel: ArticleModel, Codable {
         // TODO: This part seems very slow, it takes seconds to render the article HTML
         let articleHTML = try template.render(article: self)
         try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
+
+        if template.hasSimpleHTML {
+            let simpleHTML = try template.render(article: self, forSimpleHTML: true)
+            try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath)
+        }
 
         let doneArticleHTML: Date = Date()
         debugPrint(

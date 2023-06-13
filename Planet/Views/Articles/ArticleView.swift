@@ -1,6 +1,5 @@
 import SwiftUI
 
-
 struct ArticleExternalLinkView: View {
     @ObservedObject var article: ArticleModel
 
@@ -171,10 +170,25 @@ struct ArticleView: View {
         .onChange(of: planetStore.selectedArticle) { newArticle in
             if let myArticle = newArticle as? MyArticleModel {
                 if myArticle.planet.templateName == "Croptop" {
-                    // croptop is a special case
-                    // it needs to be loaded from the local gateway for the JS to work
-                    url = myArticle.localPreviewURL ?? myArticle.publicIndexPath
-                } else {
+                    if FileManager.default.fileExists(atPath: myArticle.publicSimplePath.path) {
+                        let now = Date()
+                        let simpleHTMLAge =
+                            now.timeIntervalSince1970
+                            - ((try? FileManager.default.attributesOfItem(
+                                atPath: myArticle.publicSimplePath.path
+                            )[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0)
+                        if simpleHTMLAge < 7 {
+                            url = myArticle.publicSimplePath
+                        }
+                        else {
+                            url = myArticle.localPreviewURL ?? myArticle.publicIndexPath
+                        }
+                    }
+                    else {
+                        url = myArticle.localPreviewURL ?? myArticle.publicIndexPath
+                    }
+                }
+                else {
                     // in future we can use the local gateway for all planets
                     url = myArticle.publicIndexPath
                 }
@@ -505,7 +519,9 @@ struct ArticleView: View {
                     Image("custom.ens")
                 }.help("Get ENS Info")
             }
-            if let juiceboxEnabled = planet.juiceboxEnabled, juiceboxEnabled, planet.juiceboxProjectID != nil || planet.juiceboxProjectIDGoerli != nil {
+            if let juiceboxEnabled = planet.juiceboxEnabled, juiceboxEnabled,
+                planet.juiceboxProjectID != nil || planet.juiceboxProjectIDGoerli != nil
+            {
                 Button {
                     let url = planet.juiceboxURL()
                     if let url = url {

@@ -40,6 +40,13 @@ class Template: Codable, Identifiable {
         .appendingPathComponent("templates", isDirectory: true)
         .appendingPathComponent("blog.html", isDirectory: false)
 
+    // simple.html holds the basic minimal HTML structure for a quick preview.
+    // It is not required for a template to have this file
+    // TODO: A more detailed documentation about the template structure
+    lazy var blogSimplePath = path
+        .appendingPathComponent("templates", isDirectory: true)
+        .appendingPathComponent("simple.html", isDirectory: false)
+
     lazy var indexPath = path
         .appendingPathComponent("templates", isDirectory: true)
         .appendingPathComponent("index.html", isDirectory: false)
@@ -62,6 +69,10 @@ class Template: Codable, Identifiable {
     var hasGitRepo: Bool {
         let gitPath = path.appendingPathComponent(".git", isDirectory: true)
         return FileManager.default.fileExists(atPath: gitPath.path)
+    }
+
+    var hasSimpleHTML: Bool {
+        return FileManager.default.fileExists(atPath: blogSimplePath.path)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -149,13 +160,15 @@ class Template: Codable, Identifiable {
         return output
     }
 
-    func render(article: MyArticleModel) throws -> String {
+    func render(article: MyArticleModel, forSimpleHTML: Bool = false) throws -> String {
         // render markdown
         guard let content_html = CMarkRenderer.renderMarkdownHTML(markdown: article.content) else {
             throw PlanetError.RenderMarkdownError
         }
 
-        let planet = article.planet!
+        guard let planet = article.planet else {
+            throw PlanetError.RenderMarkdownError
+        }
         let publicPlanet = PublicPlanetModel(
             id: planet.id, name: planet.name, about: planet.about, ipns: planet.ipns, created: planet.created, updated: planet.updated, articles: [],
             plausibleEnabled: planet.plausibleEnabled ?? false,
@@ -195,10 +208,17 @@ class Template: Codable, Identifiable {
             "social_image_url": article.socialImageURL?.absoluteString ?? article.planet.ogImageURLString,
         ]
         context.merge(renderCustomCode(planet: planet, context: context)) { (_, new) in new }
-        let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
-        let environment = Environment(loader: loader, extensions: [StencilExtension.common])
-        let stencilTemplateName = blogPath.lastPathComponent
-        return try environment.renderTemplate(name: stencilTemplateName, context: context)
+        if (forSimpleHTML) {
+            let loader = FileSystemLoader(paths: [Path(blogSimplePath.deletingLastPathComponent().path)])
+            let environment = Environment(loader: loader, extensions: [StencilExtension.common])
+            let stencilTemplateName = blogSimplePath.lastPathComponent
+            return try environment.renderTemplate(name: stencilTemplateName, context: context)
+        } else {
+            let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
+            let environment = Environment(loader: loader, extensions: [StencilExtension.common])
+            let stencilTemplateName = blogPath.lastPathComponent
+            return try environment.renderTemplate(name: stencilTemplateName, context: context)
+        }
     }
 
     func getNextPage(page: Int, pages: Int) -> String? {
