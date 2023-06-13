@@ -485,6 +485,12 @@ class MyArticleModel: ArticleModel, Codable {
             filename: publicCoverImagePath.path,
             imageSize: NSSize(width: 512, height: 512)
         )
+        let coverImageCID: String? = {
+            if let coverImageURL = getAttachmentURL(name: "_cover.png"), let coverImageCID = try? IPFSDaemon.shared.getFileCIDv0(url: coverImageURL) {
+                return coverImageCID
+            }
+            return nil
+        }()
         if let attachments = self.attachments, attachments.count == 0 {
             let newAttachments: [String] = ["_cover.png"]
             self.attachments = newAttachments
@@ -531,17 +537,27 @@ class MyArticleModel: ArticleModel, Codable {
         {
             debugPrint("Writing NFT metadata for \(self.title) \(cids)")
             let (firstKey, firstValue) = firstKeyValuePair
-            // For image, audio, and text-only NFTs, we use the first image as the NFT image
+            // For image and text-only NFTs, we use the first image as the NFT image
             var imageCID: String
             imageCID = firstValue
-            // For video NFTs, we use the CID of _videoThumbnail.png
+            // For video NFTs, we use the CID of _videoThumbnail.png for image
             if self.hasVideoContent(), let videoThumbnailURL = getAttachmentURL(name: "_videoThumbnail.png"), let videoThumbnailCID = try? IPFSDaemon.shared.getFileCIDv0(url: videoThumbnailURL) {
                 imageCID = videoThumbnailCID
             }
             var animationCID: String? = nil
+            // For audio NFTs, we use the CID of _cover.png for image
+            if let audioFilename = audioFilename, let coverImageCID = coverImageCID {
+                debugPrint("Audio NFT for \(self.title): \(audioFilename) coverImageCID: \(coverImageCID)")
+                imageCID = coverImageCID
+            }
+            if let audioFilename = audioFilename, let audioCID = attachmentCIDs[audioFilename] {
+                debugPrint("Audio NFT for \(self.title): \(audioFilename) animationCID: \(audioCID)")
+                animationCID = audioCID
+            }
             if let videoFilename = videoFilename, let videoCID = attachmentCIDs[videoFilename] {
                 animationCID = videoCID
             }
+            debugPrint("NFT image CIDv0 for \(self.title): \(imageCID)")
             let nft = NFTMetadata(
                 name: self.title,
                 description: self.summary ?? firstKey,
