@@ -646,7 +646,7 @@ private class PlanetPublishedServiceMonitor {
             throw PlanetError.PublishedServiceFolderPermissionError
         }
         monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
-        directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: DispatchSource.FileSystemEvent.write, queue: self.monitorQueue) as? DispatchSource
+        directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: [.write, .delete], queue: self.monitorQueue) as? DispatchSource
         directoryMonitorSource?.setEventHandler{
             PlanetPublishedServiceStore.shared.requestToPublishFolder(withURL: self.url)
         }
@@ -681,6 +681,12 @@ private class PlanetPublishedServiceMonitor {
                 }
             }
              */
+            /*
+                Monitor following files changes then reload planets and templates in memory, otherwise abort.
+                - My/[UUID String]/planet.json
+                - Templates/[Name String]/template.json
+             */
+            debugPrint("INFO: planet repo library location has changes.")
         }
         directoryMonitorSource?.setCancelHandler{
             close(self.monitoredDirectoryFileDescriptor)
