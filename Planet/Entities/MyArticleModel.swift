@@ -517,18 +517,38 @@ class MyArticleModel: ArticleModel, Codable {
         let doneCIDUpdate: Date = Date()
         debugPrint("CID Update for \(self.title) took: \(doneCIDUpdate.timeIntervalSince(started))")
 
+        if self.hasVideoContent() {
+            self.saveVideoThumbnail()
+        }
+
+        let doneVideoThumbnail: Date = Date()
+        debugPrint(
+            "Video thumbnail for \(self.title) took: \(doneVideoThumbnail.timeIntervalSince(doneCIDUpdate))"
+        )
+
         if attachmentCIDs.count > 0, let firstKeyValuePair = attachmentCIDs.first,
             let generateNFTMetadata = template.generateNFTMetadata, generateNFTMetadata
         {
             debugPrint("Writing NFT metadata for \(self.title) \(cids)")
             let (firstKey, firstValue) = firstKeyValuePair
+            // For image, audio, and text-only NFTs, we use the first image as the NFT image
+            var imageCID: String
+            imageCID = firstValue
+            // For video NFTs, we use the CID of _videoThumbnail.png
+            if self.hasVideoContent(), let videoThumbnailURL = getAttachmentURL(name: "_videoThumbnail.png"), let videoThumbnailCID = try? IPFSDaemon.shared.getFileCIDv0(url: videoThumbnailURL) {
+                imageCID = videoThumbnailCID
+            }
+            var animationCID: String? = nil
+            if let videoFilename = videoFilename, let videoCID = attachmentCIDs[videoFilename] {
+                animationCID = videoCID
+            }
             let nft = NFTMetadata(
                 name: self.title,
                 description: self.summary ?? firstKey,
-                image: "https://ipfs.io/ipfs/\(firstValue)",
+                image: "https://ipfs.io/ipfs/\(imageCID)",
                 external_url: (self.externalLink ?? self.browserURL?.absoluteString) ?? "",
                 mimeType: self.getAttachmentMimeType(name: firstKey),
-                animation_url: self.hasVideoContent() ? "https://ipfs.io/ipfs/\(firstValue)" : nil
+                animation_url: animationCID != nil ? "https://ipfs.io/ipfs/\(animationCID!)" : nil
             )
             let nftData = try JSONEncoder.shared.encode(nft)
             try nftData.write(to: publicNFTMetadataPath)
@@ -539,13 +559,13 @@ class MyArticleModel: ArticleModel, Codable {
         }
         else {
             debugPrint(
-                "Not writing NFT metadata for \(self.title) and CIDs: \(self.cids) \(template.generateNFTMetadata)"
+                "Not writing NFT metadata for \(self.title) and CIDs: \(self.cids) \(template.generateNFTMetadata) \(self.attachments)"
             )
         }
 
         let doneNFTMetadata: Date = Date()
         debugPrint(
-            "NFT metadata for \(self.title) took: \(doneNFTMetadata.timeIntervalSince(doneCIDUpdate))"
+            "NFT metadata for \(self.title) took: \(doneNFTMetadata.timeIntervalSince(doneVideoThumbnail))"
         )
 
         // TODO: This part seems very slow, it takes seconds to render the article HTML
@@ -562,22 +582,13 @@ class MyArticleModel: ArticleModel, Codable {
             "Article HTML for \(self.title) took: \(doneArticleHTML.timeIntervalSince(doneNFTMetadata))"
         )
 
-        if self.hasVideoContent() {
-            self.saveVideoThumbnail()
-        }
-
-        let doneVideoThumbnail: Date = Date()
-        debugPrint(
-            "Video thumbnail for \(self.title) took: \(doneVideoThumbnail.timeIntervalSince(doneArticleHTML))"
-        )
-
         if self.hasHeroImage() || self.hasVideoContent() {
             self.saveHeroGrid()
         }
 
         let doneHeroGrid: Date = Date()
         debugPrint(
-            "Hero grid for \(self.title) took: \(doneHeroGrid.timeIntervalSince(doneVideoThumbnail))"
+            "Hero grid for \(self.title) took: \(doneHeroGrid.timeIntervalSince(doneArticleHTML))"
         )
 
         try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
