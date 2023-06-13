@@ -1316,7 +1316,6 @@
 				6A34BE372A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
 				6A34BE352A34B2A00031E5E4 /* Capsules-400.otf in Resources */,
 				6A34BE3F2A34B2A00031E5E4 /* Capsules-500.otf in Resources */,
-				6A34BE282A34B1810031E5E4 /* Assets.xcassets in Resources */,
 				2A95E6F02A19A777001288B8 /* Credits.html in Resources */,
 				6A34BE332A34B2A00031E5E4 /* Capsules-200.otf in Resources */,
 				2A95E6992A19A43D001288B8 /* ipfs-arm64-0.15.bin in Resources */,

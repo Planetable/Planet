@@ -4,15 +4,24 @@
 //
 
 import Cocoa
+import UniformTypeIdentifiers
 
 
 @objc protocol EditMenuActions {
-    func redo(_ sender:AnyObject)
-    func undo(_ sender:AnyObject)
+    func redo(_ sender: AnyObject)
+    func undo(_ sender: AnyObject)
 }
 
 
-extension PlanetLiteAppDelegate {
+@objc protocol FileMenuActions {
+    func importPlanet(_ sender: AnyObject)
+}
+
+
+extension PlanetLiteAppDelegate: FileMenuActions {
+    func importPlanet(_ sender: AnyObject) {
+        KeyboardShortcutHelper.shared.importPlanetAction()
+    }
 
     func populateMainMenu() {
         let mainMenu = NSMenu(title:"MainMenu")
@@ -101,6 +110,12 @@ extension PlanetLiteAppDelegate {
     func populateFileMenu(_ menu:NSMenu) {
         let title = NSLocalizedString("Close Window", comment:"Close Window menu item")
         menu.addItem(withTitle:title, action:#selector(NSWindow.performClose(_:)), keyEquivalent:"w")
+        
+        menu.addItem(NSMenuItem.separator())
+
+        let importItem = NSMenuItem(title: NSLocalizedString("Import Planet", comment: "Import Planet menu item"), action: #selector(FileMenuActions.importPlanet(_:)), keyEquivalent: "i")
+        importItem.keyEquivalentModifierMask = [.command, .shift]
+        menu.addItem(importItem)
     }
     
     func populateEditMenu(_ menu:NSMenu) {

@@ -62,7 +62,15 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func application(_ application: NSApplication, open urls: [URL]) {
-        createQuickShareWindow(forFiles: urls)
+        if let url = urls.first, url.lastPathComponent.hasSuffix(".planet") {
+            Task { @MainActor in
+                let planet = try MyPlanetModel.importBackup(from: url)
+                PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                PlanetStore.shared.selectedView = .myPlanet(planet)
+            }
+        } else {
+            createQuickShareWindow(forFiles: urls)
+        }
     }
 }
 

@@ -8,6 +8,7 @@
 import Foundation
 import UserNotifications
 import SwiftUI
+import UniformTypeIdentifiers
 
 
 class KeyboardShortcutHelper: ObservableObject {
@@ -198,15 +199,15 @@ class KeyboardShortcutHelper: ObservableObject {
                 .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
 
                 Button {
-                    do {
-                        Task(priority: .background) {
+                    Task(priority: .background) {
+                        do {
                             try await self.activeMyPlanet?.rebuild()
-                        }
-                    } catch {
-                        Task { @MainActor in
-                            PlanetStore.shared.isShowingAlert = true
-                            PlanetStore.shared.alertTitle = "Failed to Rebuild Planet"
-                            PlanetStore.shared.alertMessage = error.localizedDescription
+                        } catch {
+                            Task { @MainActor in
+                                PlanetStore.shared.isShowingAlert = true
+                                PlanetStore.shared.alertTitle = "Failed to Rebuild Planet"
+                                PlanetStore.shared.alertMessage = error.localizedDescription
+                            }
                         }
                     }
                 } label: {
@@ -220,11 +221,40 @@ class KeyboardShortcutHelper: ObservableObject {
 
             Group {
                 Button {
-                    PlanetStore.shared.isImportingPlanet = true
+                    self.importPlanetAction()
                 } label: {
                     Text("Import Planet")
                 }
                 .keyboardShortcut("i", modifiers: [.command, .shift])
+            }
+        }
+    }
+    
+    func importPlanetAction() {
+        let panel = NSOpenPanel()
+        panel.message = "Choose Planet Data"
+        panel.prompt = "Import"
+        panel.allowsMultipleSelection = false
+        let planetDataIdentifier = {
+            if let name = Bundle.main.object(forInfoDictionaryKey: "ORGANIZATION_IDENTIFIER_PREFIX") as? String {
+                return name + ".planet.data"
+            } else {
+                return "xyz.planetable.planet.data"
+            }
+        }()
+        panel.allowedContentTypes = [UTType(planetDataIdentifier)!]
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.canCreateDirectories = false
+        let response = panel.runModal()
+        guard response == .OK, let url = panel.url else { return }
+        Task { @MainActor in
+            do {
+                let planet = try MyPlanetModel.importBackup(from: url)
+                PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                PlanetStore.shared.selectedView = .myPlanet(planet)
+            } catch {
+                PlanetStore.shared.alert(title: "Failed to import planet")
             }
         }
     }

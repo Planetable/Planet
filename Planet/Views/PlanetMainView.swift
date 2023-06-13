@@ -25,28 +25,13 @@ struct PlanetMainView: View {
         }
         .alert(isPresented: $planetStore.isShowingAlert) {
             Alert(
-                title: Text(PlanetStore.shared.alertTitle),
-                message: Text(PlanetStore.shared.alertMessage),
+                title: Text(planetStore.alertTitle),
+                message: Text(planetStore.alertMessage),
                 dismissButton: Alert.Button.cancel(Text("OK")) {
-                    PlanetStore.shared.alertTitle = ""
-                    PlanetStore.shared.alertMessage = ""
+                    planetStore.alertTitle = ""
+                    planetStore.alertMessage = ""
                 }
             )
-        }
-        .fileImporter(
-            isPresented: $planetStore.isImportingPlanet,
-            allowedContentTypes: [.data, .package]
-        ) { result in
-            if let url = try? result.get(),
-               url.pathExtension == "planet" {
-                do {
-                    let planet = try MyPlanetModel.importBackup(from: url)
-                    PlanetStore.shared.myPlanets.insert(planet, at: 0)
-                    planetStore.selectedView = .myPlanet(planet)
-                } catch {
-                    PlanetStore.shared.alert(title: "Failed to import planet")
-                }
-            }
         }
         .sheet(isPresented: $planetStore.isShowingPlanetInfo) {
             if case .myPlanet(let planet) = planetStore.selectedView {

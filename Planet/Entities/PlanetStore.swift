@@ -106,7 +106,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isFollowingPlanet = false
     @Published var followingPlanetLink: String = ""
     @Published var isShowingPlanetInfo = false
-    @Published var isImportingPlanet = false
     @Published var isMigrating = false
     @Published var isRebuilding = false
     @Published var rebuildTasks: Int = 0
