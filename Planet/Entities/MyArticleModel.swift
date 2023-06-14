@@ -494,8 +494,15 @@ class MyArticleModel: ArticleModel, Codable {
         }
         // Save cover image
         var coverImageText: String = self.title
+        debugPrint("Current attachments in \(self.title): \(self.attachments)")
         // Use content as cover image text if there is no attachment
+        if self.attachments == nil {
+            coverImageText = self.title + "\n\n" + self.content
+        }
         if let attachments = self.attachments, attachments.count == 0 {
+            coverImageText = self.title + "\n\n" + self.content
+        }
+        if let attachments = self.attachments, attachments.count == 1, attachments[0] == "_cover.png" {
             coverImageText = self.title + "\n\n" + self.content
         }
         // For audio, add an icon and duration
