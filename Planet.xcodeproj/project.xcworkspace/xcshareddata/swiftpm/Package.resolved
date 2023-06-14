@@ -55,6 +55,15 @@
       }
     },
     {
+      "identity" : "mediaview",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/airwolfspace/mediaview",
+      "state" : {
+        "revision" : "1d98c6b199405e4b5c1d3d6ab7b4dc2a64b058c7",
+        "version" : "1.0.0"
+      }
+    },
+    {
       "identity" : "pathkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kylef/PathKit.git",

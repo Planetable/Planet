@@ -5,6 +5,9 @@
 
 import SwiftUI
 import ImageIO
+#if DEBUG
+import ASMediaView
+#endif
 
 
 struct AppContentItemView: View {
@@ -26,9 +29,13 @@ struct AppContentItemView: View {
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
             .onTapGesture {
+                #if DEBUG
+                ASMediaManager.shared.activatePhotoView(withPhotos: [], title: article.title, andID: article.id)
+                #else
                 Task { @MainActor in
                     AppContentDetailsWindowManager.shared.activateWindowController(forArticle: self.article)
                 }
+                #endif
             }
             .contextMenu {
                 Button {
