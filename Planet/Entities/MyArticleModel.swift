@@ -359,6 +359,19 @@ class MyArticleModel: ArticleModel, Codable {
         return Int(CMTimeGetSeconds(duration))
     }
 
+    func formatDuration(duration: Int) -> String {
+        if duration > 3600 {
+            let hours = duration / 3600
+            let minutes = (duration % 3600) / 60
+            let seconds = duration % 60
+            return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            let minutes = (duration % 3600) / 60
+            let seconds = duration % 60
+            return String(format: "%02d:%02d", minutes, seconds)
+        }
+    }
+
     func getHeroImage() -> String? {
         if self.hasVideoContent() {
             return "_videoThumbnail.png"
@@ -480,8 +493,23 @@ class MyArticleModel: ArticleModel, Codable {
             }
         }
         // Save cover image
+        var coverImageText: String = self.title
+        // Use content as cover image text if there is no attachment
+        if let attachments = self.attachments, attachments.count == 0 {
+            coverImageText = self.title + "\n\n" + self.content
+        }
+        // For audio, add an icon and duration
+        if let audioFilename = audioFilename {
+            coverImageText = self.title
+            if let audioDuration = getAudioDuration(name: audioFilename) {
+                coverImageText += "\n\n█▄▅ 00:00 / " + formatDuration(duration: audioDuration)
+            }
+            if content.count > 0 {
+                coverImageText += "\n\n" + content
+            }
+        }
         saveCoverImage(
-            with: self.title,
+            with: coverImageText,
             filename: publicCoverImagePath.path,
             imageSize: NSSize(width: 512, height: 512)
         )
