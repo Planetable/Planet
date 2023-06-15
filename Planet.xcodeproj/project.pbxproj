@@ -1968,8 +1968,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airwolfspace/mediaview";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
+				branch = main;
+				kind = branch;
 			};
 		};
 		6A373A4228E8263800750256 /* XCRemoteSwiftPackageReference "CodeMirror-SwiftUI" */ = {
