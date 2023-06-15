@@ -59,8 +59,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/airwolfspace/mediaview",
       "state" : {
-        "revision" : "1d98c6b199405e4b5c1d3d6ab7b4dc2a64b058c7",
-        "version" : "1.0.0"
+        "branch" : "main",
+        "revision" : "4217772b4df6ac655e717515e9c1c1e87163b342"
       }
     },
     {
@@ -222,7 +222,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "2a6adfca3348eaf35f356fbc5cc117692af91336"
+        "revision" : "b701691be43290cbc3ad34416b4f87a87b4b626f"
       }
     },
     {

@@ -30,7 +30,7 @@ struct AppContentItemView: View {
         itemPreviewImageView(forArticle: self.article)
             .onTapGesture {
                 #if DEBUG
-                ASMediaManager.shared.activatePhotoView(withPhotos: [], title: article.title, andID: article.id)
+                ASMediaManager.shared.activatePhotoView(withPhotos: getPhotos(fromArticle: article), title: article.title, andID: article.id)
                 #else
                 Task { @MainActor in
                     AppContentDetailsWindowManager.shared.activateWindowController(forArticle: self.article)
@@ -67,6 +67,18 @@ struct AppContentItemView: View {
                     Text("Delete")
                 }
             }
+    }
+    
+    private func getPhotos(fromArticle article: MyArticleModel) -> [URL] {
+        var photoURLs: [URL] = []
+        if let attachmentNames: [String] = article.attachments {
+            for name in attachmentNames {
+                if let url = article.getAttachmentURL(name: name), FileManager.default.fileExists(atPath: url.path) {
+                    photoURLs.append(url)
+                }
+            }
+        }
+        return photoURLs
     }
     
     @ViewBuilder
