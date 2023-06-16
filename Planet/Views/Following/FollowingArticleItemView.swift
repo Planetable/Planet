@@ -63,6 +63,7 @@ struct FollowingArticleItemView: View {
                 }
             }
         }
+        .padding(5)
         .contentShape(Rectangle())
         .contextMenu {
             VStack {

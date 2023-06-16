@@ -131,10 +131,20 @@ struct ArticleListView: View {
                 else {
                     List(articles, id: \.self, selection: $planetStore.selectedArticle) { article in
                         if let myArticle = article as? MyArticleModel {
-                            MyArticleItemView(article: myArticle)
+                            if #available(macOS 13.0, *) {
+                                MyArticleItemView(article: myArticle)
+                                    .listRowSeparator(.visible)
+                            } else {
+                                MyArticleItemView(article: myArticle)
+                            }
                         }
                         else if let followingArticle = article as? FollowingArticleModel {
-                            FollowingArticleItemView(article: followingArticle)
+                            if #available(macOS 13.0, *) {
+                                FollowingArticleItemView(article: followingArticle)
+                                    .listRowSeparator(.visible)
+                            } else {
+                                FollowingArticleItemView(article: followingArticle)
+                            }
                         }
                     }
                 }
