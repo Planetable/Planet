@@ -515,6 +515,7 @@ class MyArticleModel: ArticleModel, Codable {
                 coverImageText += "\n\n" + content
             }
         }
+        //TODO: Clean up the logic here
         saveCoverImage(
             with: coverImageText,
             filename: publicCoverImagePath.path,
@@ -527,8 +528,11 @@ class MyArticleModel: ArticleModel, Codable {
             return nil
         }()
         if let attachments = self.attachments, attachments.count == 0 {
-            let newAttachments: [String] = ["_cover.png"]
-            self.attachments = newAttachments
+            if self.planet.templateName == "Croptop" {
+                // _cover.png CID is only needed by Croptop now
+                let newAttachments: [String] = ["_cover.png"]
+                self.attachments = newAttachments
+            }
         }
         var attachmentCIDs: [String: String] = self.cids ?? [:]
         let needsToUpdateCIDs = {
