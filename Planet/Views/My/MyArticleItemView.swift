@@ -13,10 +13,18 @@ struct MyArticleItemView: View {
                 Spacer()
             }
             VStack(alignment: .leading, spacing: 4) {
-                VStack(alignment: .leading) {
-                    Text(article.title)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 0) {
+                        Text(article.title)
                         .font(.headline)
                         .foregroundColor(.primary)
+
+                        Spacer()
+
+                        Text(article.humanizeCreated())
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                    }
                     if let summary = article.summary, summary.count > 0 {
                         Text(summary.prefix(280))
                             .foregroundColor(.secondary)
@@ -35,44 +43,41 @@ struct MyArticleItemView: View {
                         Spacer()
                     }
                 }
-                .frame(height: 48)
+                .frame(height: 56)
                 HStack(spacing: 6) {
-                    Text(article.created.mmddyyyy())
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if article.hasAudio {
-                        Text(Image(systemName: "headphones"))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    if article.hasVideo {
-                        Text(Image(systemName: "video"))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                    article.mediaLabels(includeSpacers: false)
                     if article.articleType == .page {
                         Text("Page")
+                            .lineLimit(1)
                             .font(.caption)
                             .foregroundColor(.secondary)
-                            .padding(.leading, 4)
-                            .padding(.trailing, 4)
+                            .padding(.init(top: 3, leading: 4, bottom: 3, trailing: 4))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 4)
-                                    .stroke(Color("BorderColor"), lineWidth: 1)
+                                    .stroke(Color(.separatorColor), lineWidth: 1)
                             )
                     }
                     if let included = article.isIncludedInNavigation, included {
                         Text("Navigation \(article.navigationWeight ?? 1)")
+                            .lineLimit(1)
                             .font(.caption)
                             .foregroundColor(.secondary)
-                            .padding(.leading, 4)
-                            .padding(.trailing, 4)
+                            .padding(.init(top: 3, leading: 4, bottom: 3, trailing: 4))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 4)
-                                    .stroke(Color("BorderColor"), lineWidth: 1)
+                                    .stroke(Color(.separatorColor), lineWidth: 1)
                             )
                     }
-                    Spacer()
+                    // This is a hack to make the layout consistent
+                    if article.hasNoSpecialContent() {
+                        Text(" ")
+                        .font(.caption)
+                        .foregroundColor(.clear)
+                        Spacer()
+                        Text(" ")
+                        .font(.caption)
+                        .foregroundColor(.clear)
+                    }
                 }
             }
         }

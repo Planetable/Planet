@@ -15,16 +15,24 @@ struct FollowingArticleItemView: View {
                     Circle()
                         .fill(Color.blue)
                         .frame(width: 8, height: 8)
-                        .padding(.all, 4)
+                        .padding(.init(top: 6, leading: 4, bottom: 4, trailing: 4))
                         .visibility(article.read == nil ? .visible : .invisible)
                 }
                 Spacer()
             }
             VStack(alignment: .leading, spacing: 4) {
-                VStack(alignment: .leading) {
-                    Text(article.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 0) {
+                        Text(article.title)
+                            .font(.headline)
+                            .foregroundColor(.primary)
+
+                        Spacer()
+
+                        Text(article.humanizeCreated())
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                    }
 
                     if let summary = article.summary, summary.count > 0 {
                         Text(summary)
@@ -44,22 +52,9 @@ struct FollowingArticleItemView: View {
                         Spacer()
                     }
                 }
-                .frame(height: 48)
+                .frame(height: 56)
                 HStack(spacing: 6) {
-                    Text(article.created.mmddyyyy())
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if article.hasAudio {
-                        Text(Image(systemName: "headphones"))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    if article.hasVideo {
-                        Text(Image(systemName: "video"))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    Spacer()
+                    article.mediaLabels()
                 }
             }
         }
@@ -112,7 +107,9 @@ struct FollowingArticleItemView: View {
             }
         }
         .confirmationDialog(
-            Text("Are you sure you want to delete this article? This action will remove it from your feed. However, if the article is still available on the source, it will reappear in your feed the next time you refresh it."),
+            Text(
+                "Are you sure you want to delete this article? This action will remove it from your feed. However, if the article is still available on the source, it will reappear in your feed the next time you refresh it."
+            ),
             isPresented: $isShowingDeleteConfirmation
         ) {
             Button(role: .destructive) {

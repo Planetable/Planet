@@ -765,6 +765,13 @@ class MyArticleModel: ArticleModel, Codable {
         }
         return nil
     }
+
+    func hasNoSpecialContent() -> Bool {
+        let attachmentsCount = self.attachments?.count ?? 0
+        let isPage = self.articleType == .page ? true : false
+        let isIncludedInNavigation = self.isIncludedInNavigation ?? false
+        return attachmentsCount == 0 && !isPage && !isIncludedInNavigation
+    }
 }
 
 extension MyArticleModel {
