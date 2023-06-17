@@ -33,7 +33,6 @@ struct FollowingArticleItemView: View {
                             .font(.body)
                             .foregroundColor(.secondary)
                     }
-
                     if let summary = article.summary, summary.count > 0 {
                         Text(summary)
                             .foregroundColor(.secondary)

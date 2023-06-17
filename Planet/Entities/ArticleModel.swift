@@ -81,6 +81,7 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
                         .foregroundColor(.secondary)
                     Text(audioFilename)
                         .lineLimit(1)
+                        .truncationMode(.middle)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -90,6 +91,7 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
                         .foregroundColor(.secondary)
                     Text(videoFilename)
                         .lineLimit(1)
+                        .truncationMode(.middle)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -105,15 +107,14 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
                 let firstAttachment = attachments.first
             {
                 HStack(spacing: 4) {
-                    if firstAttachment.lowercased().hasSuffix(".jpg")
-                        || firstAttachment.lowercased().hasSuffix(".png")
-                        || firstAttachment.lowercased().hasSuffix(".gif")
-                        || firstAttachment.lowercased().hasSuffix(".tiff")
-                        || firstAttachment.lowercased().hasSuffix(".avif")
-                        || firstAttachment.lowercased().hasSuffix(".avif")
-                        || firstAttachment.lowercased().hasSuffix(".heif")
+                    if [".jpg", ".png", ".gif", ".tiff", ".avif", ".heif"].contains(where: firstAttachment.lowercased().hasSuffix)
                     {
                         Text(Image(systemName: "photo"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    else if [".zip", ".rar", ".7z", ".sit", ".gz", ".bz2"].contains(where: firstAttachment.lowercased().hasSuffix) {
+                        Text(Image(systemName: "doc.zipper"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
