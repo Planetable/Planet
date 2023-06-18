@@ -5,9 +5,7 @@
 
 import SwiftUI
 import ImageIO
-#if DEBUG
 import ASMediaView
-#endif
 
 
 struct AppContentItemView: View {
@@ -29,13 +27,13 @@ struct AppContentItemView: View {
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
             .onTapGesture {
-                #if DEBUG
-                ASMediaManager.shared.activatePhotoView(withPhotos: getPhotos(fromArticle: article), title: article.title, andID: article.id)
-                #else
-                Task { @MainActor in
-                    AppContentDetailsWindowManager.shared.activateWindowController(forArticle: self.article)
+                if self.article.planet.templateName == "Croptop" {
+                    ASMediaManager.shared.activatePhotoView(withPhotos: getPhotos(fromArticle: article), title: article.title, andID: article.id)
+                } else {
+                    Task { @MainActor in
+                        AppContentDetailsWindowManager.shared.activateWindowController(forArticle: self.article)
+                    }
                 }
-                #endif
             }
             .contextMenu {
                 Button {
