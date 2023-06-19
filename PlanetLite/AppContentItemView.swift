@@ -5,6 +5,7 @@
 
 import SwiftUI
 import ImageIO
+import ASMediaView
 
 
 struct AppContentItemView: View {
@@ -26,8 +27,12 @@ struct AppContentItemView: View {
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
             .onTapGesture {
-                Task { @MainActor in
-                    AppContentDetailsWindowManager.shared.activateWindowController(forArticle: self.article)
+                if self.article.planet.templateName == "Croptop" {
+                    ASMediaManager.shared.activatePhotoView(withPhotos: getPhotos(fromArticle: article), title: article.title, andID: article.id)
+                } else {
+                    Task { @MainActor in
+                        AppContentDetailsWindowManager.shared.activateWindowController(forArticle: self.article)
+                    }
                 }
             }
             .contextMenu {
@@ -60,6 +65,18 @@ struct AppContentItemView: View {
                     Text("Delete")
                 }
             }
+    }
+    
+    private func getPhotos(fromArticle article: MyArticleModel) -> [URL] {
+        var photoURLs: [URL] = []
+        if let attachmentNames: [String] = article.attachments {
+            for name in attachmentNames {
+                if let url = article.getAttachmentURL(name: name), FileManager.default.fileExists(atPath: url.path) {
+                    photoURLs.append(url)
+                }
+            }
+        }
+        return photoURLs
     }
     
     @ViewBuilder

@@ -266,6 +266,7 @@
 		2AFB897229BA181F003D893E /* PlanetKeyManagerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB897129BA181F003D893E /* PlanetKeyManagerViewController.swift */; };
 		2AFB897429BA35D6003D893E /* PlanetKeyManager+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB897329BA35D6003D893E /* PlanetKeyManager+Extension.swift */; };
 		2AFB897629BA3ED8003D893E /* PlanetKeyManagerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB897529BA3ED8003D893E /* PlanetKeyManagerModel.swift */; };
+		2AFDF8AA2A3A1E8500386B9A /* ASMediaView in Frameworks */ = {isa = PBXBuildFile; productRef = 2AFDF8A92A3A1E8500386B9A /* ASMediaView */; };
 		2AFFD51B28AD760400EDB020 /* HelpLinkButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */; };
 		6A0624D22876BF130014DDDD /* MigrationProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0624D12876BF130014DDDD /* MigrationProgressView.swift */; };
 		6A18F2062A0F0FA700FC4050 /* RebuildProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A18F2052A0F0FA700FC4050 /* RebuildProgressView.swift */; };
@@ -621,6 +622,7 @@
 			files = (
 				2A95E6D92A19A48C001288B8 /* Swifter in Frameworks */,
 				2A95E6A82A19A48C001288B8 /* ENSKit in Frameworks */,
+				2AFDF8AA2A3A1E8500386B9A /* ASMediaView in Frameworks */,
 				2A95E6C32A19A48C001288B8 /* WalletConnectPairing in Frameworks */,
 				2A95E6B92A19A48C001288B8 /* WalletConnect in Frameworks */,
 				2A95E6BB2A19A48C001288B8 /* WalletConnectAuth in Frameworks */,
@@ -1206,6 +1208,7 @@
 				2A95E6D42A19A48C001288B8 /* Web3ContractABI */,
 				2A95E6D62A19A48C001288B8 /* Web3PromiseKit */,
 				2A95E6D82A19A48C001288B8 /* Swifter */,
+				2AFDF8A92A3A1E8500386B9A /* ASMediaView */,
 			);
 			productName = Croptop;
 			productReference = 2ABD1CC12A1616DA0082D7EA /* Croptop.app */;
@@ -1293,6 +1296,7 @@
 				6AABC6A8291A62A9009FD13F /* XCRemoteSwiftPackageReference "WalletConnectSwift" */,
 				6A7189672947FD0500279D77 /* XCRemoteSwiftPackageReference "Web3" */,
 				2AB6A93C29703825007186A7 /* XCRemoteSwiftPackageReference "swifter" */,
+				2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -1960,6 +1964,14 @@
 				kind = branch;
 			};
 		};
+		2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airwolfspace/mediaview";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		6A373A4228E8263800750256 /* XCRemoteSwiftPackageReference "CodeMirror-SwiftUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Pictarine/CodeMirror-SwiftUI";
@@ -2165,6 +2177,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
 			productName = Stencil;
+		};
+		2AFDF8A92A3A1E8500386B9A /* ASMediaView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */;
+			productName = ASMediaView;
 		};
 		6A373A4328E8263800750256 /* CodeMirror-SwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;
