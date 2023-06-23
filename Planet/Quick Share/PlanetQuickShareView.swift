@@ -37,7 +37,7 @@ struct PlanetQuickShareView: View {
     @ViewBuilder
     private func headerSection() -> some View {
         HStack {
-            Text("Quick Share")
+            Text("New Post")
                 .font(.title)
             Spacer()
             Picker("To", selection: $viewModel.selectedPlanetID) {
@@ -103,11 +103,13 @@ struct PlanetQuickShareView: View {
                 .cornerRadius(6)
                 .padding(1)
                 .shadow(color: .secondary.opacity(0.75), radius: 0.5, x: 0, y: 0.5)
+            /*
             HStack {
                 TextField("Optional Link", text: $viewModel.externalLink)
                     .textFieldStyle(.roundedBorder)
                 Spacer(minLength: 1)
             }.padding(.bottom, 8)
+            */
         }
     }
 
@@ -136,7 +138,7 @@ struct PlanetQuickShareView: View {
                 }
                 dismissAction()
             } label: {
-                Text("Send")
+                Text("Post")
             }
             .keyboardShortcut(.return, modifiers: [])
             .keyboardShortcut(.end, modifiers: [])

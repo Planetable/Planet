@@ -10,14 +10,14 @@ import ASMediaView
 
 struct AppContentItemView: View {
     @EnvironmentObject private var planetStore: PlanetStore
-    
+
     var article: MyArticleModel
     var width: CGFloat
     var imageProcessor: AppContentItemHeroImageProcessor
-    
+
     @State private var isShowingDeleteConfirmation = false
     @State private var thumbnail: NSImage?
-    
+
     init(article: MyArticleModel, width: CGFloat) {
         self.article = article
         self.width = width
@@ -39,7 +39,7 @@ struct AppContentItemView: View {
                 Button {
                     isShowingDeleteConfirmation = true
                 } label: {
-                    Text("Delete Article")
+                    Text("Delete Post")
                 }
             }
             .confirmationDialog(
@@ -66,7 +66,7 @@ struct AppContentItemView: View {
                 }
             }
     }
-    
+
     private func getPhotos(fromArticle article: MyArticleModel) -> [URL] {
         var photoURLs: [URL] = []
         if let attachmentNames: [String] = article.attachments {
@@ -78,7 +78,7 @@ struct AppContentItemView: View {
         }
         return photoURLs
     }
-    
+
     @ViewBuilder
     private func itemPreviewImageView(forArticle article: MyArticleModel) -> some View {
         VStack {
@@ -129,13 +129,13 @@ struct AppContentItemView: View {
         .padding(.horizontal, 16)
         .padding(.top, 16)
     }
-    
+
 }
 
 
 actor AppContentItemHeroImageProcessor {
     var width: CGFloat
-    
+
     init(width: CGFloat) {
         self.width = width
     }
