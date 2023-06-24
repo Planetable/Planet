@@ -1,6 +1,11 @@
 import Foundation
 import os
 
+enum PlanetAppShell: Int, Codable {
+    case planet = 0
+    case lite = 1
+}
+
 enum PlanetDetailViewType: Hashable, Equatable {
     case today
     case unread
@@ -134,6 +139,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isShowingAlert = false
     @Published var alertTitle: String = ""
     @Published var alertMessage: String = ""
+
+    @Published var app: PlanetAppShell = (Bundle.main.executableURL?.lastPathComponent == "Croptop") ? .lite : .planet
 
     init() {
         // Init UserDefaults

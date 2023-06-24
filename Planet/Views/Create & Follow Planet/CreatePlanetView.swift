@@ -52,19 +52,21 @@ struct CreatePlanetView: View {
                         )
                 }
 
-                Picker(selection: $templateName) {
-                    ForEach(TemplateStore.shared.templates) { template in
-                        Text(template.name)
-                            .tag(template.name)
+                if planetStore.app == .planet {
+                    Picker(selection: $templateName) {
+                        ForEach(TemplateStore.shared.templates) { template in
+                            Text(template.name)
+                                .tag(template.name)
+                        }
+                    } label: {
+                        HStack {
+                            Text("Template")
+                            Spacer()
+                        }
+                        .frame(width: 70)
                     }
-                } label: {
-                    HStack {
-                        Text("Template")
-                        Spacer()
-                    }
-                    .frame(width: 70)
+                    .pickerStyle(.menu)
                 }
-                .pickerStyle(.menu)
 
                 Spacer()
             }
@@ -77,7 +79,7 @@ struct CreatePlanetView: View {
                     creating = false
                     dismiss()
                 } label: {
-                    Text("Close")
+                    Text("Cancel")
                 }
                 .keyboardShortcut(.escape, modifiers: [])
 
@@ -122,6 +124,6 @@ struct CreatePlanetView: View {
             }
             .padding(16)
         }
-        .frame(width: 480, height: 300, alignment: .center)
+        .frame(width: 480, alignment: .center)
     }
 }
