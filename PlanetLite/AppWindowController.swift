@@ -31,7 +31,7 @@ class AppWindowController: NSWindowController {
             }
         }
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError()
     }
@@ -65,6 +65,8 @@ class AppWindowController: NSWindowController {
             newArticle()
         case .showInfoItem:
             showPlanetInfo()
+        case .shareItem:
+            sharePlanet()
         default:
             break
         }
@@ -85,10 +87,14 @@ extension AppWindowController {
             break
         }
     }
-    
+
     func showPlanetInfo() {
         guard PlanetStore.shared.isShowingPlanetInfo == false else { return }
         PlanetStore.shared.isShowingPlanetInfo = true
+    }
+
+    func sharePlanet() {
+        // TODO: share planet with properly positioned NSSharingServicePicker
     }
 }
 
@@ -104,6 +110,11 @@ extension AppWindowController: NSToolbarItemValidation {
         case .sidebarItem:
             return true
         case .showInfoItem:
+            if case .myPlanet(_) = PlanetStore.shared.selectedView {
+                return true
+            }
+            return false
+        case .shareItem:
             if case .myPlanet(_) = PlanetStore.shared.selectedView {
                 return true
             }
@@ -155,11 +166,21 @@ extension AppWindowController: NSToolbarDelegate {
             item.isBordered = true
             item.image = NSImage(systemSymbolName: "info.circle", accessibilityDescription: "Show Info")
             return item
+        case .shareItem:
+            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+            item.target = self
+            item.action = #selector(self.toolbarItemAction(_:))
+            item.label = "Share"
+            item.paletteLabel = "Share"
+            item.toolTip = "Share"
+            item.isBordered = true
+            item.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
+            return item
         default:
             return nil
         }
     }
-    
+
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return [
             .flexibleSpace,
@@ -167,34 +188,37 @@ extension AppWindowController: NSToolbarDelegate {
             .sidebarSeparatorItem,
             .flexibleSpace,
             .showInfoItem,
-            .addItem
+            .addItem,
+            .shareItem
         ]
     }
-    
+
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return [
             .flexibleSpace,
             .sidebarItem,
             .sidebarSeparatorItem,
             .flexibleSpace,
+            // .shareItem,
             .showInfoItem,
             .addItem
         ]
     }
-    
+
     func toolbarImmovableItemIdentifiers(_ toolbar: NSToolbar) -> Set<NSToolbarItem.Identifier> {
         return [
             .sidebarItem,
             .sidebarSeparatorItem,
             .showInfoItem,
-            .addItem
+            .addItem,
+            .shareItem
         ]
     }
-    
+
     func toolbarDidRemoveItem(_ notification: Notification) {
         setupToolbar()
     }
-    
+
     func toolbarSelectableItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         return []
     }
@@ -212,4 +236,5 @@ extension NSToolbarItem.Identifier {
     static let sidebarItem = NSToolbarItem.Identifier("PlanetLiteToolbarSidebarItem")
     static let addItem = NSToolbarItem.Identifier("PlanetLiteToolbarAddItem")
     static let showInfoItem = NSToolbarItem.Identifier("PlanetLiteToolbarShowInfoItem")
+    static let shareItem = NSToolbarItem.Identifier("PlanetLiteToolbarShareItem")
 }

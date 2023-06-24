@@ -60,13 +60,13 @@ struct PlanetQuickShareView: View {
     private func attachmentSection() -> some View {
         if viewModel.fileURLs.count == 0 {
             VStack {
-                Text("No Attachments.")
-                    .foregroundColor(.secondary)
                 Button {
                     addAttachmentsAction()
                 } label: {
                     Text("Add Attachments...")
                 }
+                Text("Or drag and drop images here.")
+                    .foregroundColor(.secondary)
             }
         } else {
             GeometryReader { g in
@@ -119,7 +119,7 @@ struct PlanetQuickShareView: View {
             Button {
                 dismissAction()
             } label: {
-                Text("Close")
+                Text("Cancel")
             }
             .keyboardShortcut(.escape, modifiers: [])
             Spacer()

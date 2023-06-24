@@ -81,6 +81,63 @@ struct MyPlanetEditView: View {
     }
 
     @ViewBuilder
+    private func analyticsTab() -> some View {
+        VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
+            HStack {
+                HStack {
+                    Spacer()
+                }.frame(width: CONTROL_CAPTION_WIDTH + 10)
+                Toggle(
+                    "Enable Plausible for Traffic Analytics",
+                    isOn: $plausibleEnabled
+                )
+                .toggleStyle(.checkbox)
+                .frame(alignment: .leading)
+                Spacer()
+            }
+
+            HStack {
+                HStack {
+                    Text("Domain")
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH)
+
+                TextField("", text: $plausibleDomain)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            HStack {
+                HStack {
+                    Text("API Key")
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH)
+
+                SecureField("", text: $plausibleAPIKey)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            HStack {
+                HStack {
+                    Text("API Server")
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH)
+
+                TextField("", text: $plausibleAPIServer)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+        }
+        .padding(16)
+        .tabItem {
+            Text("Analytics")
+        }
+        .tag("analytics")
+    }
+
+    @ViewBuilder
     private func pinnableView() -> some View {
         HStack {
             HStack {
@@ -118,23 +175,25 @@ struct MyPlanetEditView: View {
                         if let cid = pinnablePinCID {
                             if cid == planet.lastPublishedCID {
                                 Label("Pinned", systemImage: "checkmark.circle.fill")
-                            } else {
+                            }
+                            else {
                                 Label("Pinning", systemImage: "ellipsis")
                             }
-                        } else {
+                        }
+                        else {
                             Label("Error", systemImage: "exclamationmark.triangle.fill")
                         }
                     }
 
                     Spacer()
-                } else {
+                }
+                else {
                     ProgressView()
                         .progressViewStyle(.linear)
                 }
             }.onAppear {
                 Task {
-                    if let status = await planet.checkPinnablePinStatus()
-                    {
+                    if let status = await planet.checkPinnablePinStatus() {
                         pinnablePinStatus = status
                         if let cid = status.last_known_cid {
                             pinnablePinCID = cid
@@ -353,30 +412,36 @@ struct MyPlanetEditView: View {
                                 )
                         }
 
-                        HStack {
+                        if planetStore.app == .planet {
                             HStack {
-                                Text("Author Name")
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH)
+                                HStack {
+                                    Text("Author Name")
+                                    Spacer()
+                                }
+                                .frame(width: CONTROL_CAPTION_WIDTH)
 
-                            TextField("", text: $authorName)
-                                .textFieldStyle(.roundedBorder)
+                                TextField("", text: $authorName)
+                                    .textFieldStyle(.roundedBorder)
+                            }
                         }
 
-                        Picker(selection: $templateName) {
-                            ForEach(TemplateStore.shared.templates) { template in
-                                Text(template.name)
-                                    .tag(template.name)
+                        if planetStore.app == .planet
+                            || ($templateName.wrappedValue != "Croptop" && planetStore.app == .lite)
+                        {
+                            Picker(selection: $templateName) {
+                                ForEach(TemplateStore.shared.templates) { template in
+                                    Text(template.name)
+                                        .tag(template.name)
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Template")
+                                    Spacer()
+                                }
+                                .frame(width: CONTROL_CAPTION_WIDTH)
                             }
-                        } label: {
-                            HStack {
-                                Text("Template")
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH)
+                            .pickerStyle(.menu)
                         }
-                        .pickerStyle(.menu)
                     }
                     .padding(16)
                     .tabItem {
@@ -384,59 +449,9 @@ struct MyPlanetEditView: View {
                     }
                     .tag("basic")
 
-                    VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
-                        HStack {
-                            HStack {
-                                Spacer()
-                            }.frame(width: CONTROL_CAPTION_WIDTH + 10)
-                            Toggle(
-                                "Enable Plausible for Traffic Analytics",
-                                isOn: $plausibleEnabled
-                            )
-                            .toggleStyle(.checkbox)
-                            .frame(alignment: .leading)
-                            Spacer()
-                        }
-
-                        HStack {
-                            HStack {
-                                Text("Domain")
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH)
-
-                            TextField("", text: $plausibleDomain)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
-                        HStack {
-                            HStack {
-                                Text("API Key")
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH)
-
-                            SecureField("", text: $plausibleAPIKey)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
-                        HStack {
-                            HStack {
-                                Text("API Server")
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH)
-
-                            TextField("", text: $plausibleAPIServer)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
+                    if planetStore.app == .planet {
+                        analyticsTab()
                     }
-                    .padding(16)
-                    .tabItem {
-                        Text("Analytics")
-                    }
-                    .tag("analytics")
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
@@ -492,11 +507,13 @@ struct MyPlanetEditView: View {
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         pinnableView()
 
-                        Divider()
-                        .padding(.top, 6)
-                        .padding(.bottom, 6)
+                        if planetStore.app == .planet {
+                            Divider()
+                                .padding(.top, 6)
+                                .padding(.bottom, 6)
 
-                        filebaseView()
+                            filebaseView()
+                        }
                     }
                     .padding(16)
                     .tabItem {
