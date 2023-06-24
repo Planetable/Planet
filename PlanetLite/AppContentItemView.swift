@@ -16,6 +16,8 @@ struct AppContentItemView: View {
     var imageProcessor: AppContentItemHeroImageProcessor
 
     @State private var isShowingDeleteConfirmation = false
+    @State private var isSharingLink: Bool = false
+    @State private var sharedLink: String?
     @State private var thumbnail: NSImage?
 
     init(article: MyArticleModel, width: CGFloat) {
@@ -36,11 +38,7 @@ struct AppContentItemView: View {
                 }
             }
             .contextMenu {
-                Button {
-                    isShowingDeleteConfirmation = true
-                } label: {
-                    Text("Delete Post")
-                }
+                AppContentItemMenuView(isShowingDeleteConfirmation: $isShowingDeleteConfirmation, isSharingLink: $isSharingLink, sharedLink: $sharedLink, article: article)
             }
             .confirmationDialog(
                 Text("Are you sure you want to delete this article?"),
@@ -65,6 +63,9 @@ struct AppContentItemView: View {
                     Text("Delete")
                 }
             }
+            .background(
+                SharingServicePicker(isPresented: $isSharingLink, sharingItems: [sharedLink ?? ""])
+            )
     }
 
     private func getPhotos(fromArticle article: MyArticleModel) -> [URL] {
