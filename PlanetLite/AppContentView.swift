@@ -35,17 +35,23 @@ struct AppContentView: View {
             } else {
                 switch planetStore.selectedView {
                 case .myPlanet(let planet):
-                    planetContentGridView(planet)
+                    if planet.articles.count == 0 {
+                        // TODO: Add an illustration here
+                        Text("Drag and drop a picture here to start.")
+                            .foregroundColor(.secondary)
+                    } else {
+                        planetContentGridView(planet)
+                    }
                 default:
-                    Text("No content ...")
+                    Text("No Content")
                         .foregroundColor(.secondary)
                 }
             }
         }
-        .onDrop(of: [.image], delegate: dropDelegate)
         .padding(0)
         .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
         .background(Color(NSColor.textBackgroundColor))
+        .onDrop(of: [.image], delegate: dropDelegate) // TODO: Video and Audio support
     }
 
     @ViewBuilder
