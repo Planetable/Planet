@@ -36,7 +36,7 @@ struct MyPlanetTemplateSettingsView: View {
                         if let template = planet.template, let settings = template.settings,
                             let keys = Array(settings.keys) as? [String]
                         {
-                            ForEach(keys, id: \.self) { key in
+                            ForEach(keys.sorted(), id: \.self) { key in
                                 HStack {
                                     HStack {
                                         Text("\(settings[key]?.name ?? "Name")")
