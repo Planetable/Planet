@@ -74,7 +74,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
                     case .myPlanet(let planet):
                         KeyboardShortcutHelper.shared.activeMyPlanet = planet
                         // Update Planet Lite Window Titles
-                        let liteSubtitle = planet.about.isEmpty ? planet.ipns : planet.about
+                        let liteSubtitle = planet.about.isEmpty ? planet.ipns.shortIPNS() : planet.about
                         let info = ["title": planet.name, "subtitle": liteSubtitle]
                         NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
                     default:

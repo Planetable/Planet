@@ -56,6 +56,12 @@ extension String {
         return "\(firstPart)...\(lastPart)"
     }
 
+    func shortIPNS() -> String {
+        let firstPart = String(self.prefix(3))
+        let lastPart = String(self.suffix(4))
+        return "\(firstPart)...\(lastPart)"
+    }
+
     func hasCommonTLDSuffix() -> Bool {
         let commonTLDs = [".com", ".co", ".net", ".org", ".io", ".xyz"]
         for tld in commonTLDs {
