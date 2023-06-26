@@ -63,6 +63,7 @@ struct AppContentView: View {
                         .environmentObject(planetStore)
                 }
             }
+            .padding(.bottom, 16)
         }
     }
 }
