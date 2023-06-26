@@ -358,6 +358,40 @@ struct MyPlanetEditView: View {
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         HStack {
                             HStack {
+                                Spacer()
+                            }.frame(width: CONTROL_CAPTION_WIDTH + 10)
+
+                            ArtworkView(
+                                image: planet.avatar,
+                                planetNameInitials: planet.nameInitials,
+                                planetID: planet.id,
+                                cornerRadius: 40,
+                                size: CGSize(width: 80, height: 80),
+                                uploadAction: { url in
+                                    do {
+                                        try planet.updateAvatar(path: url)
+                                    }
+                                    catch {
+                                        debugPrint("failed to upload planet avatar: \(error)")
+                                    }
+                                },
+                                deleteAction: {
+                                    do {
+                                        try planet.removeAvatar()
+                                    }
+                                    catch {
+                                        debugPrint("failed to remove planet avatar: \(error)")
+                                    }
+                                }
+                            )
+                            .padding(.top, 0)
+                            .padding(.bottom, 10)
+
+                            Spacer()
+                        }
+
+                        HStack {
+                            HStack {
                                 Text("Site Name")
                                 Spacer()
                             }
@@ -669,7 +703,6 @@ struct MyPlanetEditView: View {
                     }
                     .disabled(name.isEmpty)
                 }
-
             }.padding(PlanetUI.SHEET_PADDING)
         }
         .padding(0)
