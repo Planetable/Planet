@@ -15,14 +15,12 @@ struct MyPlanetTemplateSettingsView: View {
 
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var planet: MyPlanetModel
-    @State private var name: String
 
     @State private var currentSettings: [String: String] = [:]
     @State private var userSettings: [String: String] = [:]
 
     init(planet: MyPlanetModel) {
         self.planet = planet
-        _name = State(wrappedValue: planet.name)
     }
 
     var body: some View {
