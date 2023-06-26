@@ -30,7 +30,7 @@ struct AppContentView: View {
                     Text("Create First Planet")
                 }
                 .disabled(planetStore.isCreatingPlanet)
-                Text("Learn more about [Planet](https://planetable.xyz) and [Croptop](https://croptop.eth.limo)")
+                Text("Learn more about [Croptop](https://croptop.eth.limo)")
                     .foregroundColor(.secondary)
             } else {
                 switch planetStore.selectedView {
