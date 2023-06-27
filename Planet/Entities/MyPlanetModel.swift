@@ -884,15 +884,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     id: backupArticle.id,
                     link: backupArticle.link,
                     slug: backupArticle.slug,
+                    externalLink: backupArticle.externalLink,
                     title: backupArticle.title,
                     content: backupArticle.content,
                     summary: backupArticle.summary,
-                    created: backupArticle.created,
                     starred: nil,
                     starType: backupArticle.starType,
+                    created: backupArticle.created,
                     videoFilename: backupArticle.videoFilename,
                     audioFilename: backupArticle.audioFilename,
                     attachments: backupArticle.attachments,
+                    cids: backupArticle.cids,
                     isIncludedInNavigation: backupArticle.isIncludedInNavigation,
                     navigationWeight: backupArticle.navigationWeight
                 )
