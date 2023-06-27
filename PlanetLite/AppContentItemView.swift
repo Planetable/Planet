@@ -89,7 +89,8 @@ struct AppContentItemView: View {
                     .aspectRatio(contentMode: .fill)
             } else {
                 if let heroImageName = article.getHeroImage() {
-                    let cachedPath = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(heroImageName)!
+                    let cachedHeroImageName = article.id.uuidString + "-" + heroImageName
+                    let cachedPath = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(cachedHeroImageName)!
                     if let cachedHeroImage = NSImage(contentsOf: cachedPath) {
                         Image(nsImage: cachedHeroImage)
                             .resizable()
