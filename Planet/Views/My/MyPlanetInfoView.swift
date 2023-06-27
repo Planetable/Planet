@@ -76,7 +76,7 @@ struct MyPlanetInfoView: View {
                 .padding(.bottom, 10)
             }
             .background(
-                SharingServicePicker(isPresented: $isSharing, sharingItems: [planetIPNS])
+                SharingServicePicker(isPresented: $isSharing, sharingItems: [URL(string: planetIPNS)!])
             )
 
             VStack {
