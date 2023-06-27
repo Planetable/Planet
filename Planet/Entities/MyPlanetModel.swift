@@ -876,7 +876,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         )
         planet.articles = backupPlanet.articles.compactMap { backupArticle in
             let backupArticlePath = path.appendingPathComponent(
-                backupArticle.link,
+                backupArticle.id.uuidString,
                 isDirectory: true
             )
             if FileManager.default.fileExists(atPath: backupArticlePath.path) {
@@ -905,7 +905,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     return article
                 }
                 catch {
+                    debugPrint("Error copying article \(backupArticlePath) to \(article.publicBasePath): \(error)")
                 }
+            } else {
+                debugPrint("Article \(backupArticlePath) does not exist")
             }
             return nil
         }
