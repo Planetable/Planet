@@ -66,7 +66,7 @@ class AppWindowController: NSWindowController {
         case .showInfoItem:
             showPlanetInfo()
         case .shareItem:
-            sharePlanet()
+            sharePlanet(sender)
         default:
             break
         }
@@ -93,8 +93,13 @@ extension AppWindowController {
         PlanetStore.shared.isShowingPlanetInfo = true
     }
 
-    func sharePlanet() {
-        // TODO: share planet with properly positioned NSSharingServicePicker
+    func sharePlanet(_ sender: Any) {
+        if case .myPlanet(let planet) = PlanetStore.shared.selectedView, let toolbarItem = sender as? NSToolbarItem, let itemView = toolbarItem.value(forKey: "_itemViewer") as? NSView {
+            let sharingItems: [URL] = [URL(string: "planet://\(planet.ipns)")!]
+            let picker = NSSharingServicePicker(items: sharingItems)
+            picker.delegate = self
+            picker.show(relativeTo: itemView.bounds, of: itemView, preferredEdge: .minY)
+        }
     }
 }
 
@@ -122,6 +127,28 @@ extension AppWindowController: NSToolbarItemValidation {
         default:
             return false
         }
+    }
+}
+
+
+extension AppWindowController: NSSharingServicePickerDelegate {
+    func sharingServicePicker(_ sharingServicePicker: NSSharingServicePicker, sharingServicesForItems items: [Any], proposedSharingServices proposedServices: [NSSharingService]) -> [NSSharingService] {
+        guard let image = NSImage(systemSymbolName: "link", accessibilityDescription: "Link") else {
+            return proposedServices
+        }
+        var share = proposedServices
+        let copyService = NSSharingService(title: "Copy Link", image: image, alternateImage: image) {
+            if let item = items.first as? URL {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(item.absoluteString, forType: .string)
+            }
+        }
+        share.insert(copyService, at: 0)
+        return share
+    }
+    
+    func sharingServicePicker(_ sharingServicePicker: NSSharingServicePicker, didChoose service: NSSharingService?) {
+        sharingServicePicker.delegate = nil
     }
 }
 
@@ -199,7 +226,7 @@ extension AppWindowController: NSToolbarDelegate {
             .sidebarItem,
             .sidebarSeparatorItem,
             .flexibleSpace,
-            // .shareItem,
+            .shareItem,
             .showInfoItem,
             .addItem
         ]
