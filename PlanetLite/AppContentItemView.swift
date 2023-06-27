@@ -107,7 +107,7 @@ struct AppContentItemView: View {
                                     return
                                 }
                                 Task.detached(priority: .utility) {
-                                    let image = await self.imageProcessor.generateThumbnail(forImage: heroImage, imageName: heroImageName, imagePath: heroImagePath)
+                                    let image = await self.imageProcessor.generateThumbnail(forImage: heroImage, imageName: heroImageName, imagePath: heroImagePath, articleID: article.id)
                                     await MainActor.run {
                                         self.thumbnail = image == nil ? nil : image!
                                     }
@@ -141,7 +141,7 @@ actor AppContentItemHeroImageProcessor {
         self.width = width
     }
 
-    func generateThumbnail(forImage image: NSImage, imageName: String, imagePath: URL) async -> NSImage? {
+    func generateThumbnail(forImage image: NSImage, imageName: String, imagePath: URL, articleID: UUID) async -> NSImage? {
         let ratio: CGFloat = image.size.width / image.size.height
         let targetSize = NSSize(width: width * 2, height: width * 2 / ratio)
         let sourceOptions: [CFString: Any] = [
@@ -157,7 +157,8 @@ actor AppContentItemHeroImageProcessor {
             return nil
         }
         let targetImage = NSImage(cgImage: targetCGImage, size: targetSize)
-        let cachedPath = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(imageName)!
+        let targetImageName = articleID.uuidString + "-" + imageName
+        let cachedPath = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(targetImageName)!
         Task (priority: .background) {
             do {
                 try targetImage.PNGData?.write(to: cachedPath)
