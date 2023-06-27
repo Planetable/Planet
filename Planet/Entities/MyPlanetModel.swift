@@ -888,22 +888,33 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     title: backupArticle.title,
                     content: backupArticle.content,
                     summary: backupArticle.summary,
+                    created: backupArticle.created,
                     starred: nil,
                     starType: backupArticle.starType,
-                    created: backupArticle.created,
                     videoFilename: backupArticle.videoFilename,
                     audioFilename: backupArticle.audioFilename,
                     attachments: backupArticle.attachments,
-                    cids: backupArticle.cids,
                     isIncludedInNavigation: backupArticle.isIncludedInNavigation,
                     navigationWeight: backupArticle.navigationWeight
                 )
+                article.articleType = backupArticle.articleType ?? .blog
+                article.cids = backupArticle.cids
                 article.planet = planet
                 do {
                     try FileManager.default.copyItem(
                         at: backupArticlePath,
                         to: article.publicBasePath
                     )
+                    if let articleSlug = article.slug, articleSlug.count > 0 {
+                        let publicSlugBasePath = planet.publicBasePath.appendingPathComponent(
+                            articleSlug,
+                            isDirectory: true
+                        )
+                        if FileManager.default.fileExists(atPath: publicSlugBasePath.path) {
+                            try? FileManager.default.removeItem(at: publicSlugBasePath)
+                        }
+                        try? FileManager.default.copyItem(at: article.publicBasePath, to: publicSlugBasePath)
+                    }
                     return article
                 }
                 catch {
@@ -1497,6 +1508,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,
+                    articleType: $0.articleType,
                     link: $0.link,
                     slug: $0.slug,
                     externalLink: $0.externalLink,

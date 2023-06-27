@@ -843,6 +843,7 @@ extension MyArticleModel {
 
 struct BackupArticleModel: Codable {
     let id: UUID
+    let articleType: ArticleType?
     let link: String
     let slug: String?
     let externalLink: String?
