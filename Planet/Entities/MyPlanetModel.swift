@@ -965,6 +965,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Self.logger.info("Saving imported planet \(planet.id)")
         try planet.save()
         try planet.articles.forEach { try $0.save() }
+
+        Task {
+            do {
+                try planet.savePublic()
+            }
+            catch {
+                Self.logger.error("Error creating planet public info \(planet.id): \(error)")
+            }
+        }
         return planet
     }
 
