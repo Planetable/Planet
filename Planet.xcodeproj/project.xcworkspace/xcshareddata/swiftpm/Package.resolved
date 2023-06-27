@@ -60,7 +60,7 @@
       "location" : "https://github.com/airwolfspace/mediaview",
       "state" : {
         "branch" : "main",
-        "revision" : "62855e093246cf29a16e4f0b0edfbc47b619ae3f"
+        "revision" : "7a220e313e194bab484b97b4c913b6695b8fc052"
       }
     },
     {
@@ -78,7 +78,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "6a9f2c64595fbe13c044f03f4a295f5f983ae081"
+        "revision" : "03aae372828c4a97fb8d4dea4bfd1f567dc540d0"
       }
     },
     {
@@ -113,8 +113,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sparkle-project/Sparkle",
       "state" : {
-        "revision" : "7907f058bcef1132c9b4af6c049cac598330a5f9",
-        "version" : "2.4.1"
+        "revision" : "87e4fcbac39912f9cdb9a9acf205cad60e1ca3bc",
+        "version" : "2.4.2"
       }
     },
     {
@@ -222,7 +222,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "b701691be43290cbc3ad34416b4f87a87b4b626f"
+        "revision" : "d3515abf86fc404f776417e18cceb07c1e2fe455"
       }
     },
     {
