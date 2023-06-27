@@ -647,6 +647,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let backupInfoPath = path.appendingPathComponent("planet.json", isDirectory: false)
         let backupAssetsPath = path.appendingPathComponent("assets", isDirectory: true)
         let backupIndexPath = path.appendingPathComponent("index.html", isDirectory: false)
+        let backupTemplateSettingsPath = path.appendingPathComponent("templateSettings.json", isDirectory: false)
         let backupPrivateKeyPath = path.appendingPathComponent("planet.key", isDirectory: false)
         let backupAvatarPath = path.appendingPathComponent("avatar.png", isDirectory: false)
         let backupPodcastCoverArtPath = path.appendingPathComponent(
@@ -851,6 +852,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             }
             if FileManager.default.fileExists(atPath: backupIndexPath.path) {
                 try FileManager.default.copyItem(at: backupIndexPath, to: planet.publicIndexPath)
+            }
+            if FileManager.default.fileExists(atPath: backupTemplateSettingsPath.path) {
+                try FileManager.default.copyItem(at: backupTemplateSettingsPath, to: planet.publicTemplateSettingsPath)
             }
             if FileManager.default.fileExists(atPath: backupAvatarPath.path) {
                 try FileManager.default.copyItem(at: backupAvatarPath, to: planet.publicAvatarPath)
