@@ -29,13 +29,7 @@ struct AppContentItemView: View {
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
             .onTapGesture {
-                if self.article.planet.templateName == "Croptop" {
-                    ASMediaManager.shared.activatePhotoView(withPhotos: getPhotos(fromArticle: article), title: article.title, andID: article.id)
-                } else {
-                    Task { @MainActor in
-                        AppContentDetailsWindowManager.shared.activateWindowController(forArticle: self.article)
-                    }
-                }
+                ASMediaManager.shared.activatePhotoView(withPhotos: getPhotos(fromArticle: article), title: article.title, andID: article.id)
             }
             .contextMenu {
                 AppContentItemMenuView(isShowingDeleteConfirmation: $isShowingDeleteConfirmation, isSharingLink: $isSharingLink, sharedLink: $sharedLink, article: article)
@@ -47,6 +41,7 @@ struct AppContentItemView: View {
                 Button(role: .destructive) {
                     do {
                         if let planet = article.planet {
+                            ASMediaManager.shared.deactivateView(byID: article.id)
                             article.delete()
                             planet.updated = Date()
                             try planet.save()
@@ -55,7 +50,6 @@ struct AppContentItemView: View {
                                 try await planet.publish()
                             }
                             Task { @MainActor in
-                                AppContentDetailsWindowManager.shared.deactivateWindowController(forArticle: article)
                                 planetStore.selectedView = .myPlanet(planet)
                             }
                         }
