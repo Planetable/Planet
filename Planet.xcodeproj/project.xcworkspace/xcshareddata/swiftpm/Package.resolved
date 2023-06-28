@@ -78,7 +78,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "03aae372828c4a97fb8d4dea4bfd1f567dc540d0"
+        "revision" : "bd1f75270dd18db04ab0624ce520ed6596a82063"
       }
     },
     {
@@ -222,7 +222,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "d3515abf86fc404f776417e18cceb07c1e2fe455"
+        "revision" : "9b831af49900f07f887ed8d08acb73d5777b9d03"
       }
     },
     {
