@@ -41,7 +41,7 @@ struct AppContentItemView: View {
                 AppContentItemMenuView(isShowingDeleteConfirmation: $isShowingDeleteConfirmation, isSharingLink: $isSharingLink, sharedLink: $sharedLink, article: article)
             }
             .confirmationDialog(
-                Text("Are you sure you want to delete this article?"),
+                Text("Are you sure you want to delete this post?"),
                 isPresented: $isShowingDeleteConfirmation
             ) {
                 Button(role: .destructive) {
@@ -50,7 +50,10 @@ struct AppContentItemView: View {
                             article.delete()
                             planet.updated = Date()
                             try planet.save()
-                            try planet.savePublic()
+                            Task {
+                                try planet.savePublic()
+                                try await planet.publish()
+                            }
                             Task { @MainActor in
                                 AppContentDetailsWindowManager.shared.deactivateWindowController(forArticle: article)
                                 planetStore.selectedView = .myPlanet(planet)
