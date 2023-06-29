@@ -140,7 +140,8 @@ actor AppContentItemHeroImageProcessor {
     }
 
     func generateThumbnail(forImage image: NSImage, imageName: String, imagePath: URL, articleID: UUID) async -> NSImage? {
-        let targetSize = NSSize(width: size.width * 2, height: size.height * 2)
+        let ratio: CGFloat = image.size.width / image.size.height
+        let targetSize = NSSize(width: size.width * 2, height: size.width * 2 / ratio)
         let sourceOptions: [CFString: Any] = [
             kCGImageSourceShouldCache: false
         ]
