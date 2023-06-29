@@ -12,6 +12,7 @@ import SwiftUI
 class PlanetQuickShareViewModel: ObservableObject {
     static let shared = PlanetQuickShareViewModel()
 
+    @Published private(set) var sending: Bool = false
     @Published var myPlanets: [MyPlanetModel] = []
     @Published var selectedPlanetID: UUID = UUID() {
         didSet {
@@ -66,6 +67,11 @@ class PlanetQuickShareViewModel: ObservableObject {
     @MainActor
     func send() throws {
         guard let targetPlanet = getTargetPlanet() else { throw PlanetError.PersistenceError }
+        guard sending == false else { return }
+        sending = true
+        defer {
+            sending = false
+        }
         draft = try DraftModel.create(for: targetPlanet)
         for file in fileURLs {
             try draft?.addAttachment(path: file, type: .image)
@@ -95,5 +101,6 @@ class PlanetQuickShareViewModel: ObservableObject {
         content = ""
         externalLink = ""
         fileURLs = []
+        sending = false
     }
 }

@@ -9,6 +9,8 @@ import SwiftUI
 
 struct PlanetQuickShareView: View {
     @StateObject private var viewModel: PlanetQuickShareViewModel
+    
+    @State private var isPosting: Bool = false
 
     init() {
         _viewModel = StateObject(wrappedValue: PlanetQuickShareViewModel.shared)
@@ -122,8 +124,20 @@ struct PlanetQuickShareView: View {
                 Text("Cancel")
             }
             .keyboardShortcut(.escape, modifiers: [])
+
             Spacer()
+            
+            HStack {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .scaleEffect(0.5, anchor: .center)
+            }
+            .padding(.trailing, 2)
+            .frame(height: 10)
+            .opacity(viewModel.sending ? 1.0 : 0.0)
+
             Button {
+                isPosting = true
                 do {
                     try viewModel.send()
                 }
@@ -142,7 +156,7 @@ struct PlanetQuickShareView: View {
             }
             .keyboardShortcut(.return, modifiers: [])
             .keyboardShortcut(.end, modifiers: [])
-            .disabled(viewModel.getTargetPlanet() == nil)
+            .disabled(isPosting || viewModel.getTargetPlanet() == nil)
         }
     }
 
@@ -166,6 +180,9 @@ struct PlanetQuickShareView: View {
         Task { @MainActor in
             PlanetStore.shared.isQuickSharing = false
             PlanetQuickShareViewModel.shared.cleanup()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                self.isPosting = false
+            }
         }
     }
 
