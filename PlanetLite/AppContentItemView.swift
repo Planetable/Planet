@@ -125,8 +125,6 @@ struct AppContentItemView: View {
         .frame(width: size.width, height: size.height)
         .background(Color.secondary.opacity(0.15))
         .cornerRadius(4)
-        .padding(.horizontal, 16)
-        .padding(.top, 16)
     }
 
 }
