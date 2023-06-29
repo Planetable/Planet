@@ -12,7 +12,7 @@ struct AppContentItemView: View {
     @EnvironmentObject private var planetStore: PlanetStore
 
     var article: MyArticleModel
-    var width: CGFloat
+    var size: NSSize
     var imageProcessor: AppContentItemHeroImageProcessor
 
     @State private var isShowingDeleteConfirmation = false
@@ -20,10 +20,10 @@ struct AppContentItemView: View {
     @State private var sharedLink: String?
     @State private var thumbnail: NSImage?
 
-    init(article: MyArticleModel, width: CGFloat) {
+    init(article: MyArticleModel, size: NSSize) {
         self.article = article
-        self.width = width
-        self.imageProcessor = AppContentItemHeroImageProcessor(width: width)
+        self.size = size
+        self.imageProcessor = AppContentItemHeroImageProcessor(size: size)
     }
 
     var body: some View {
@@ -122,7 +122,7 @@ struct AppContentItemView: View {
             }
         }
         .contentShape(Rectangle())
-        .frame(width: width, height: width)
+        .frame(width: size.width, height: size.height)
         .background(Color.secondary.opacity(0.15))
         .cornerRadius(4)
         .padding(.horizontal, 16)
@@ -133,15 +133,14 @@ struct AppContentItemView: View {
 
 
 actor AppContentItemHeroImageProcessor {
-    var width: CGFloat
+    var size: NSSize
 
-    init(width: CGFloat) {
-        self.width = width
+    init(size: NSSize) {
+        self.size = size
     }
 
     func generateThumbnail(forImage image: NSImage, imageName: String, imagePath: URL, articleID: UUID) async -> NSImage? {
-        let ratio: CGFloat = image.size.width / image.size.height
-        let targetSize = NSSize(width: width * 2, height: width * 2 / ratio)
+        let targetSize = NSSize(width: size.width * 2, height: size.height * 2)
         let sourceOptions: [CFString: Any] = [
             kCGImageSourceShouldCache: false
         ]
@@ -149,7 +148,7 @@ actor AppContentItemHeroImageProcessor {
             kCGImageSourceCreateThumbnailFromImageIfAbsent: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
             kCGImageSourceShouldCacheImmediately: true,
-            kCGImageSourceThumbnailMaxPixelSize: width * 2
+            kCGImageSourceThumbnailMaxPixelSize: size.width * 2
         ]
         guard let imageSource = CGImageSourceCreateWithURL(imagePath as NSURL, sourceOptions as CFDictionary), let targetCGImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, imageOptions as CFDictionary) else {
             return nil

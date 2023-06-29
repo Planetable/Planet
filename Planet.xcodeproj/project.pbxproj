@@ -234,6 +234,8 @@
 		2ABD1CC82A1616DB0082D7EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2ABD1CC72A1616DB0082D7EA /* Assets.xcassets */; };
 		2ABD1CD12A1617300082D7EA /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABD1CD02A1617300082D7EA /* main.swift */; };
 		2ABD1CD52A1617660082D7EA /* AppMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABD1CD42A1617660082D7EA /* AppMenu.swift */; };
+		2AC063822A4D0796004F0A29 /* AppContentGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC063812A4D0796004F0A29 /* AppContentGridView.swift */; };
+		2AC063A72A4DC49F004F0A29 /* AppContentGridCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC063A62A4DC49F004F0A29 /* AppContentGridCell.swift */; };
 		2AC4994927BB6E7500F1C2D1 /* PlanetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */; };
 		2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2AC4994C27BB6E7600F1C2D1 /* Assets.xcassets */; };
 		2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2AC4994F27BB6E7600F1C2D1 /* Preview Assets.xcassets */; };
@@ -479,6 +481,8 @@
 		2ABD1CCC2A1616DB0082D7EA /* PlanetLite.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PlanetLite.entitlements; sourceTree = "<group>"; };
 		2ABD1CD02A1617300082D7EA /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		2ABD1CD42A1617660082D7EA /* AppMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMenu.swift; sourceTree = "<group>"; };
+		2AC063812A4D0796004F0A29 /* AppContentGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentGridView.swift; sourceTree = "<group>"; };
+		2AC063A62A4DC49F004F0A29 /* AppContentGridCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentGridCell.swift; sourceTree = "<group>"; };
 		2AC4994527BB6E7500F1C2D1 /* Planet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Planet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetApp.swift; sourceTree = "<group>"; };
 		2AC4994C27BB6E7600F1C2D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -780,6 +784,8 @@
 				2A6E16D52A18678E00704A08 /* AppSidebarView.swift */,
 				2A95E6FA2A1AFC23001288B8 /* AppSidebarItemView.swift */,
 				2A6E16D72A18679A00704A08 /* AppContentView.swift */,
+				2AC063812A4D0796004F0A29 /* AppContentGridView.swift */,
+				2AC063A62A4DC49F004F0A29 /* AppContentGridCell.swift */,
 				2A95E70D2A1C5F3F001288B8 /* AppContentDropDelegate.swift */,
 				2A95E6FF2A1BAEF9001288B8 /* AppContentItemView.swift */,
 				2A91AEC62A473D3C003FF003 /* AppContentItemMenuView.swift */,
@@ -1359,6 +1365,7 @@
 				2A95E6662A19A3AF001288B8 /* TBInspectorViewController.swift in Sources */,
 				2A95E67A2A19A3C4001288B8 /* JSONUtils.swift in Sources */,
 				2A95E6792A19A3C4001288B8 /* FeedUtils.swift in Sources */,
+				2AC063822A4D0796004F0A29 /* AppContentGridView.swift in Sources */,
 				2A95E6DE2A19A521001288B8 /* Pinnable.swift in Sources */,
 				2A996AD52A1DA6C400BEF898 /* PlanetDownloadsItemView.swift in Sources */,
 				2A95E68B2A19A3CA001288B8 /* WriterAudioView.swift in Sources */,
@@ -1458,6 +1465,7 @@
 				2ABD1CC42A1616DA0082D7EA /* AppDelegate.swift in Sources */,
 				2A95E69E2A19A446001288B8 /* FollowingPlanetModel.swift in Sources */,
 				2A95E68D2A19A3CA001288B8 /* WriterWebView.swift in Sources */,
+				2AC063A72A4DC49F004F0A29 /* AppContentGridCell.swift in Sources */,
 				2A95E6E22A19A554001288B8 /* PlanetAPI.swift in Sources */,
 				2ABD1CD52A1617660082D7EA /* AppMenu.swift in Sources */,
 				2A95E6962A19A437001288B8 /* IPFSCommand.swift in Sources */,
