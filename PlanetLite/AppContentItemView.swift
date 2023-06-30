@@ -52,6 +52,17 @@ struct AppContentItemView: View {
                             Task { @MainActor in
                                 planetStore.selectedView = .myPlanet(planet)
                             }
+                            Task(priority: .background) {
+                                if let heroImageName = self.article.getHeroImage() {
+                                    let cachedHeroImageName = self.article.id.uuidString + "-" + heroImageName
+                                    let cachedPath = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(cachedHeroImageName)!
+                                    do {
+                                        try FileManager.default.removeItem(at: cachedPath)
+                                    } catch {
+                                        debugPrint("failed to remove cached thumbnail: \(error)")
+                                    }
+                                }
+                            }
                         }
                     } catch {
                         PlanetStore.shared.alert(title: "Failed to delete article: \(error)")
