@@ -13,18 +13,11 @@ struct AppContentItemView: View {
 
     var article: MyArticleModel
     var size: NSSize
-    var imageProcessor: AppContentItemHeroImageProcessor
 
     @State private var isShowingDeleteConfirmation = false
     @State private var isSharingLink: Bool = false
     @State private var sharedLink: String?
     @State private var thumbnail: NSImage?
-
-    init(article: MyArticleModel, size: NSSize) {
-        self.article = article
-        self.size = size
-        self.imageProcessor = AppContentItemHeroImageProcessor(size: size)
-    }
 
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
@@ -115,64 +108,29 @@ struct AppContentItemView: View {
                                     }
                                     return
                                 }
-                                Task.detached(priority: .utility) {
-                                    let image = await self.imageProcessor.generateThumbnail(forImage: heroImage, imageName: heroImageName, imagePath: heroImagePath, articleID: article.id)
+                                if let image = heroImage.resizeSquare(maxLength: Int(size.width * 2)) {
+                                    Task(priority: .background) {
+                                        do {
+                                            try image.PNGData?.write(to: cachedPath)
+                                        } catch {
+                                            debugPrint("failed to save cached thumbnail for article: \(error)")
+                                        }
+                                    }
                                     await MainActor.run {
-                                        self.thumbnail = image == nil ? nil : image!
+                                        self.thumbnail = image
                                     }
                                 }
                             }
                     }
                 } else {
-                    if let summary = article.summary, summary != "" {
-                        Text(article.summary!)
-                    } else {
-                        Text(article.title)
-                    }
+                    Text("")
                 }
             }
         }
         .contentShape(Rectangle())
         .frame(width: size.width, height: size.height)
-        .background(Color.secondary.opacity(0.15))
+        .background(Color.secondary)
         .cornerRadius(4)
     }
 
-}
-
-
-actor AppContentItemHeroImageProcessor {
-    var size: NSSize
-
-    init(size: NSSize) {
-        self.size = size
-    }
-
-    func generateThumbnail(forImage image: NSImage, imageName: String, imagePath: URL, articleID: UUID) async -> NSImage? {
-        let ratio: CGFloat = image.size.width / image.size.height
-        let targetSize = NSSize(width: size.width * 2, height: size.width * 2 / ratio)
-        let sourceOptions: [CFString: Any] = [
-            kCGImageSourceShouldCache: false
-        ]
-        let imageOptions: [CFString: Any] = [
-            kCGImageSourceCreateThumbnailFromImageIfAbsent: true,
-            kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceShouldCacheImmediately: true,
-            kCGImageSourceThumbnailMaxPixelSize: size.width * 2
-        ]
-        guard let imageSource = CGImageSourceCreateWithURL(imagePath as NSURL, sourceOptions as CFDictionary), let targetCGImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, imageOptions as CFDictionary) else {
-            return nil
-        }
-        let targetImage = NSImage(cgImage: targetCGImage, size: targetSize)
-        let targetImageName = articleID.uuidString + "-" + imageName
-        let cachedPath = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(targetImageName)!
-        Task (priority: .background) {
-            do {
-                try targetImage.PNGData?.write(to: cachedPath)
-            } catch {
-                debugPrint("failed to save cached thumbnail for article: \(error)")
-            }
-        }
-        return targetImage
-    }
 }
