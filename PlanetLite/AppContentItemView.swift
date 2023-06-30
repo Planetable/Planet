@@ -122,7 +122,11 @@ struct AppContentItemView: View {
                             }
                     }
                 } else {
-                    Text("")
+                    if let summary = article.summary, summary != "" {
+                        Text(article.summary!)
+                    } else {
+                        Text(article.title)
+                    }
                 }
             }
         }
