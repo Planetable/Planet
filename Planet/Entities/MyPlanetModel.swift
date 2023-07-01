@@ -1255,6 +1255,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         guard let template = template else {
             throw PlanetError.MissingTemplateError
         }
+        self.removeDSStore()
         let siteNavigation = self.siteNavigation()
         debugPrint("Planet Site Navigation: \(siteNavigation)")
         let publicArticles = articles.filter { $0.articleType == .blog }.map { $0.publicArticle }
@@ -1715,6 +1716,19 @@ struct NavigationItem: Codable {
 }
 
 extension MyPlanetModel {
+    func removeDSStore() {
+        let dsStorePath = publicBasePath.appendingPathComponent(".DS_Store", isDirectory: false)
+        if FileManager.default.fileExists(atPath: dsStorePath.path) {
+            do {
+                try FileManager.default.removeItem(at: dsStorePath)
+                Self.logger.info("Removed .DS_Store from planet: \(self.name)")
+            }
+            catch {
+                Self.logger.error("Failed to remove .DS_Store file: \(error)")
+            }
+        }
+    }
+
     func hasAvatar() -> Bool {
         FileManager.default.fileExists(atPath: publicAvatarPath.path)
     }
