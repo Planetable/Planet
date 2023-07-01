@@ -700,12 +700,12 @@ class MyArticleModel: ArticleModel, Codable {
     func saveVideoThumbnail() {
         guard let videoFilename = self.videoFilename else { return }
         let videoThumbnailFilename = "_videoThumbnail.png"
+        let videoThumbnailPath = publicBasePath.appendingPathComponent(videoThumbnailFilename)
         let opKey = "\(self.id)-video-thumbnail-\(videoFilename)"
-        if let op = self.planet.ops[opKey] {
+        if let op = self.planet.ops[opKey], FileManager.default.fileExists(atPath: videoThumbnailPath.path) {
             debugPrint("Video thumbnail operation for \(opKey) is already done at \(op)")
             return
         }
-        let videoThumbnailPath = publicBasePath.appendingPathComponent(videoThumbnailFilename)
         if let thumbnail = self.getVideoThumbnail(),
             let data = thumbnail.PNGData
         {
@@ -718,20 +718,20 @@ class MyArticleModel: ArticleModel, Codable {
 
     func saveHeroGrid() {
         guard let heroImageFilename = self.getHeroImage() else { return }
-        let opKey = "\(self.id)-hero-grid-\(heroImageFilename)"
-        if let op = self.planet.ops[opKey] {
-            debugPrint("Hero grid operation for \(opKey) is already done at \(op)")
-            return
-        }
         let heroImagePath = publicBasePath.appendingPathComponent(
             heroImageFilename,
             isDirectory: false
         )
-        guard let heroImage = NSImage(contentsOf: heroImagePath) else { return }
         let heroGridPNGFilename = "_grid.png"
         let heroGridPNGPath = publicBasePath.appendingPathComponent(heroGridPNGFilename)
         let heroGridJPEGFilename = "_grid.jpg"
         let heroGridJPEGPath = publicBasePath.appendingPathComponent(heroGridJPEGFilename)
+        let opKey = "\(self.id)-hero-grid-\(heroImageFilename)"
+        if let op = self.planet.ops[opKey], FileManager.default.fileExists(atPath: heroImagePath.path), FileManager.default.fileExists(atPath: heroGridPNGPath.path) {
+            debugPrint("Hero grid operation for \(opKey) is already done at \(op)")
+            return
+        }
+        guard let heroImage = NSImage(contentsOf: heroImagePath) else { return }
         if let grid = heroImage.resizeSquare(maxLength: 512) {
             if let gridPNGData = grid.PNGData {
                 try? gridPNGData.write(to: heroGridPNGPath)
