@@ -8,19 +8,15 @@ class AppContentGridCell: NSCollectionViewItem {
     override func loadView() {
         self.view = NSView()
         self.view.wantsLayer = true
-        self.view.layer?.backgroundColor = NSColor.clear.cgColor
+        self.view.layer?.backgroundColor = .clear
     }
     
     func configureCell(_ article: MyArticleModel, size: NSSize) {
         for v in self.view.subviews {
-            if v.isKind(of: NSHostingView<AppContentItemView>.self) {
-                v.removeFromSuperview()
-                break
-            }
+            v.removeFromSuperview()
         }
         let contentView = NSHostingView(rootView:
-            AppContentItemView(article: article, size: size)
-            .environmentObject(PlanetStore.shared)
+            AppContentItemView(article: article, size: size).environmentObject(PlanetStore.shared)
         )
         contentView.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(contentView)

@@ -4,28 +4,21 @@
 //
 
 import SwiftUI
-import ImageIO
 import ASMediaView
 
 
 struct AppContentItemView: View {
     @EnvironmentObject private var planetStore: PlanetStore
-
+    
     var article: MyArticleModel
     var size: NSSize
-    var imageProcessor: AppContentItemHeroImageProcessor
-
+    
     @State private var isShowingDeleteConfirmation = false
     @State private var isSharingLink: Bool = false
     @State private var sharedLink: String?
     @State private var thumbnail: NSImage?
-
-    init(article: MyArticleModel, size: NSSize) {
-        self.article = article
-        self.size = size
-        self.imageProcessor = AppContentItemHeroImageProcessor(size: size)
-    }
-
+    @State private var thumbnailCachedPath: URL?
+    
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
             .onTapGesture {
@@ -49,8 +42,10 @@ struct AppContentItemView: View {
                                 try planet.savePublic()
                                 try await planet.publish()
                             }
-                            Task { @MainActor in
-                                planetStore.selectedView = .myPlanet(planet)
+                            Task(priority: .background) {
+                                if let thumbnailCachedPath = thumbnailCachedPath {
+                                    try? FileManager.default.removeItem(at: thumbnailCachedPath)
+                                }
                             }
                         }
                     } catch {
@@ -64,7 +59,7 @@ struct AppContentItemView: View {
                 SharingServicePicker(isPresented: $isSharingLink, sharingItems: [sharedLink ?? ""])
             )
     }
-
+    
     private func getPhotos(fromArticle article: MyArticleModel) -> [URL] {
         var photoURLs: [URL] = []
         if let attachmentNames: [String] = article.attachments {
@@ -76,10 +71,12 @@ struct AppContentItemView: View {
         }
         return photoURLs
     }
-
+    
     @ViewBuilder
     private func itemPreviewImageView(forArticle article: MyArticleModel) -> some View {
-        VStack {
+        ZStack {
+            Rectangle()
+                .fill(.secondary.opacity(0.15))
             if let thumbnail = thumbnail {
                 Image(nsImage: thumbnail)
                     .resizable()
@@ -104,10 +101,17 @@ struct AppContentItemView: View {
                                     }
                                     return
                                 }
-                                Task.detached(priority: .utility) {
-                                    let image = await self.imageProcessor.generateThumbnail(forImage: heroImage, imageName: heroImageName, imagePath: heroImagePath, articleID: article.id)
+                                if let image = heroImage.resizeSquare(maxLength: Int(size.width * 2)) {
+                                    Task(priority: .background) {
+                                        do {
+                                            try image.PNGData?.write(to: cachedPath)
+                                            self.thumbnailCachedPath = cachedPath
+                                        } catch {
+                                            debugPrint("failed to save cached thumbnail for article: \(error)")
+                                        }
+                                    }
                                     await MainActor.run {
-                                        self.thumbnail = image == nil ? nil : image!
+                                        self.thumbnail = image
                                     }
                                 }
                             }
@@ -123,45 +127,7 @@ struct AppContentItemView: View {
         }
         .contentShape(Rectangle())
         .frame(width: size.width, height: size.height)
-        .background(Color.secondary.opacity(0.15))
-        .cornerRadius(4)
+        .cornerRadius(6)
     }
 
-}
-
-
-actor AppContentItemHeroImageProcessor {
-    var size: NSSize
-
-    init(size: NSSize) {
-        self.size = size
-    }
-
-    func generateThumbnail(forImage image: NSImage, imageName: String, imagePath: URL, articleID: UUID) async -> NSImage? {
-        let ratio: CGFloat = image.size.width / image.size.height
-        let targetSize = NSSize(width: size.width * 2, height: size.width * 2 / ratio)
-        let sourceOptions: [CFString: Any] = [
-            kCGImageSourceShouldCache: false
-        ]
-        let imageOptions: [CFString: Any] = [
-            kCGImageSourceCreateThumbnailFromImageIfAbsent: true,
-            kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceShouldCacheImmediately: true,
-            kCGImageSourceThumbnailMaxPixelSize: size.width * 2
-        ]
-        guard let imageSource = CGImageSourceCreateWithURL(imagePath as NSURL, sourceOptions as CFDictionary), let targetCGImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, imageOptions as CFDictionary) else {
-            return nil
-        }
-        let targetImage = NSImage(cgImage: targetCGImage, size: targetSize)
-        let targetImageName = articleID.uuidString + "-" + imageName
-        let cachedPath = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(targetImageName)!
-        Task (priority: .background) {
-            do {
-                try targetImage.PNGData?.write(to: cachedPath)
-            } catch {
-                debugPrint("failed to save cached thumbnail for article: \(error)")
-            }
-        }
-        return targetImage
-    }
 }
