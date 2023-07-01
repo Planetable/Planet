@@ -492,6 +492,8 @@ class MyArticleModel: ArticleModel, Codable {
                 NotificationCenter.default.post(name: .myArticleBuilt, object: self)
             }
         }
+        // Remove article-level .DS_Store if any
+        self.removeDSStore()
         // Save cover image
         var coverImageText: String = self.title
         debugPrint("Current attachments in \(self.title): \(self.attachments)")
@@ -837,6 +839,48 @@ extension MyArticleModel {
         }
         else {
             debugPrint("TODO item not found for \(self.title)")
+        }
+    }
+
+    func removeDSStore() {
+        let dsStorePath = publicBasePath.appendingPathComponent(".DS_Store")
+        if FileManager.default.fileExists(atPath: dsStorePath.path) {
+            do {
+                try FileManager.default.removeItem(at: dsStorePath)
+                debugPrint("Removed .DS_Store for \(self.title)")
+            }
+            catch {
+                debugPrint("Failed to remove .DS_Store for \(self.title): \(error)")
+            }
+        }
+        if let attachments = self.attachments {
+            var newAttachments: [String] = []
+            for attachment in attachments {
+                if attachment == ".DS_Store" {
+                    let attachmentPath = publicBasePath.appendingPathComponent(attachment)
+                    if FileManager.default.fileExists(atPath: attachmentPath.path) {
+                        do {
+                            try FileManager.default.removeItem(at: attachmentPath)
+                            debugPrint("Removed .DS_Store for \(self.title)")
+                        }
+                        catch {
+                            debugPrint("Failed to remove .DS_Store for \(self.title): \(error)")
+                        }
+                    }
+                } else {
+                    newAttachments.append(attachment)
+                }
+            }
+            if newAttachments.count != attachments.count {
+                self.attachments = newAttachments.sorted()
+                do {
+                    try self.save()
+                    debugPrint("Removed .DS_Store from attachments for \(self.title)")
+                }
+                catch {
+                    debugPrint("Failed to remove .DS_Store from attachments for \(self.title): \(error)")
+                }
+            }
         }
     }
 }
