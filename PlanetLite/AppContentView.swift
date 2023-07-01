@@ -40,7 +40,7 @@ struct AppContentView: View {
                         Text("Drag and drop a picture here to start.")
                             .foregroundColor(.secondary)
                     } else {
-                        AppContentGridView(articles: planet.articles, itemSize: NSSize(width: Self.itemWidth, height: Self.itemWidth))
+                        AppContentGridView(planet: planet, itemSize: NSSize(width: Self.itemWidth, height: Self.itemWidth))
                     }
                 default:
                     Text("No Content")

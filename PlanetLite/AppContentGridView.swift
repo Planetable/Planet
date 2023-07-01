@@ -4,7 +4,7 @@ import Cocoa
 
 
 struct AppContentGridView: NSViewRepresentable {
-    var articles: [MyArticleModel]
+    @ObservedObject var planet: MyPlanetModel
     var itemSize: NSSize
 
     // MARK: - Coordinator for Delegate & Data Source & Flow Layout
@@ -49,7 +49,7 @@ struct AppContentGridView: NSViewRepresentable {
     }
     
     func makeCoordinator() -> Coordinator {
-        return Coordinator(parent: self, articles: articles, itemSize: itemSize)
+        return Coordinator(parent: self, articles: planet.articles, itemSize: itemSize)
     }
     
     // MARK: - NSViewRepresentable
@@ -73,7 +73,7 @@ struct AppContentGridView: NSViewRepresentable {
     
     func updateNSView(_ nsView: NSViewType, context: Context) {
         if let collectionView = nsView.documentView as? NSCollectionView {
-            context.coordinator.articles = articles
+            context.coordinator.articles = planet.articles
             context.coordinator.itemSize = itemSize
             collectionView.reloadData()
         }

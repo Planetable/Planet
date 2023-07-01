@@ -8,7 +8,9 @@ class AppContentGridCell: NSCollectionViewItem {
     override func loadView() {
         self.view = NSView()
         self.view.wantsLayer = true
-        self.view.layer?.backgroundColor = NSColor.clear.cgColor
+        self.view.layer?.masksToBounds = true
+        self.view.layer?.cornerRadius = 6.0
+        self.view.layer?.backgroundColor = .clear
     }
     
     func configureCell(_ article: MyArticleModel, size: NSSize) {
@@ -19,8 +21,7 @@ class AppContentGridCell: NSCollectionViewItem {
             }
         }
         let contentView = NSHostingView(rootView:
-            AppContentItemView(article: article, size: size)
-            .environmentObject(PlanetStore.shared)
+            AppContentItemView(article: article, size: size).environmentObject(PlanetStore.shared)
         )
         contentView.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(contentView)

@@ -41,9 +41,6 @@ struct AppContentItemView: View {
                                 try planet.savePublic()
                                 try await planet.publish()
                             }
-                            Task { @MainActor in
-                                planetStore.selectedView = .myPlanet(planet)
-                            }
                             Task(priority: .background) {
                                 if let heroImageName = self.article.getHeroImage() {
                                     let cachedHeroImageName = self.article.id.uuidString + "-" + heroImageName
@@ -96,30 +93,34 @@ struct AppContentItemView: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     } else {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .frame(width: 16, height: 16, alignment: .center)
-                            .task(id: article.id, priority: .background) {
-                                let heroImagePath = article.publicBasePath.appendingPathComponent(heroImageName)
-                                guard let heroImage = NSImage(contentsOf: heroImagePath) else {
-                                    await MainActor.run {
-                                        self.thumbnail = nil
+                        ZStack {
+                            Rectangle()
+                                .fill(.secondary)
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                                .frame(width: 16, height: 16, alignment: .center)
+                                .task(id: article.id, priority: .background) {
+                                    let heroImagePath = article.publicBasePath.appendingPathComponent(heroImageName)
+                                    guard let heroImage = NSImage(contentsOf: heroImagePath) else {
+                                        await MainActor.run {
+                                            self.thumbnail = nil
+                                        }
+                                        return
                                     }
-                                    return
-                                }
-                                if let image = heroImage.resizeSquare(maxLength: Int(size.width * 2)) {
-                                    Task(priority: .background) {
-                                        do {
-                                            try image.PNGData?.write(to: cachedPath)
-                                        } catch {
-                                            debugPrint("failed to save cached thumbnail for article: \(error)")
+                                    if let image = heroImage.resizeSquare(maxLength: Int(size.width * 2)) {
+                                        Task(priority: .background) {
+                                            do {
+                                                try image.PNGData?.write(to: cachedPath)
+                                            } catch {
+                                                debugPrint("failed to save cached thumbnail for article: \(error)")
+                                            }
+                                        }
+                                        await MainActor.run {
+                                            self.thumbnail = image
                                         }
                                     }
-                                    await MainActor.run {
-                                        self.thumbnail = image
-                                    }
                                 }
-                            }
+                        }
                     }
                 } else {
                     if let summary = article.summary, summary != "" {
@@ -133,7 +134,6 @@ struct AppContentItemView: View {
         .contentShape(Rectangle())
         .frame(width: size.width, height: size.height)
         .background(Color.secondary)
-        .cornerRadius(4)
     }
 
 }
