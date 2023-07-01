@@ -8,8 +8,6 @@ class AppContentGridCell: NSCollectionViewItem {
     override func loadView() {
         self.view = NSView()
         self.view.wantsLayer = true
-        self.view.layer?.masksToBounds = true
-        self.view.layer?.cornerRadius = 6.0
         self.view.layer?.backgroundColor = .clear
     }
     
