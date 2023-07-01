@@ -76,7 +76,7 @@ struct AppContentItemView: View {
     private func itemPreviewImageView(forArticle article: MyArticleModel) -> some View {
         ZStack {
             Rectangle()
-                .fill(.secondary)
+                .fill(.secondary.opacity(0.15))
             if let thumbnail = thumbnail {
                 Image(nsImage: thumbnail)
                     .resizable()
