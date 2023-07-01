@@ -13,10 +13,7 @@ class AppContentGridCell: NSCollectionViewItem {
     
     func configureCell(_ article: MyArticleModel, size: NSSize) {
         for v in self.view.subviews {
-            if v.isKind(of: NSHostingView<AppContentItemView>.self) {
-                v.removeFromSuperview()
-                break
-            }
+            v.removeFromSuperview()
         }
         let contentView = NSHostingView(rootView:
             AppContentItemView(article: article, size: size).environmentObject(PlanetStore.shared)
