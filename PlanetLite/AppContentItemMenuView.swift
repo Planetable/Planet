@@ -12,6 +12,19 @@ struct AppContentItemMenuView: View {
         VStack {
             Group {
                 Button {
+                    do {
+                        try WriterStore.shared.editArticle(for: article)
+                    }
+                    catch {
+                        PlanetStore.shared.alert(title: "Failed to launch writer")
+                    }
+                } label: {
+                    Text("Edit Post")
+                }
+            }
+
+            Group {
+                Button {
                     if let url = article.browserURL {
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(url.absoluteString, forType: .string)
@@ -19,7 +32,7 @@ struct AppContentItemMenuView: View {
                 } label: {
                     Text("Copy Link")
                 }
-                
+
                 Button {
                     if let url = article.browserURL {
                         NSWorkspace.shared.open(url)
@@ -27,7 +40,7 @@ struct AppContentItemMenuView: View {
                 } label: {
                     Text("Open in Browser")
                 }
-                
+
                 Button {
                     if let url = article.localGatewayURL {
                         NSWorkspace.shared.open(url)
@@ -38,7 +51,7 @@ struct AppContentItemMenuView: View {
 
                 Divider()
             }
-            
+
             Group {
                 Button {
                     if let url = article.browserURL {
