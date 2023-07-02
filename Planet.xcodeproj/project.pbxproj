@@ -326,6 +326,8 @@
 		6ACF166529246BD800AE318B /* TipSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF166429246BD800AE318B /* TipSelectView.swift */; };
 		6ACF1667292570AF00AE318B /* PlanetUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF1666292570AF00AE318B /* PlanetUI.swift */; };
 		6ACF16692927267800AE318B /* WalletTransactionProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF16682927267800AE318B /* WalletTransactionProgressView.swift */; };
+		6ADD7D882A51B616003D2E54 /* MyArticleModel+Save.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADD7D872A51B616003D2E54 /* MyArticleModel+Save.swift */; };
+		6ADD7D892A51B616003D2E54 /* MyArticleModel+Save.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADD7D872A51B616003D2E54 /* MyArticleModel+Save.swift */; };
 		6ADF40B92914D88C007A24E8 /* MyPlanetIPNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */; };
 		6ADF40C429151407007A24E8 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 6ADF40C329151407007A24E8 /* Starscream */; };
 		6AE93656290CB10700BAC092 /* PlanetSettingsPlanetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */; };
@@ -561,6 +563,7 @@
 		6ACF166429246BD800AE318B /* TipSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipSelectView.swift; sourceTree = "<group>"; };
 		6ACF1666292570AF00AE318B /* PlanetUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetUI.swift; sourceTree = "<group>"; };
 		6ACF16682927267800AE318B /* WalletTransactionProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletTransactionProgressView.swift; sourceTree = "<group>"; };
+		6ADD7D872A51B616003D2E54 /* MyArticleModel+Save.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MyArticleModel+Save.swift"; sourceTree = "<group>"; };
 		6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetIPNSView.swift; sourceTree = "<group>"; };
 		6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsPlanetsView.swift; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
@@ -824,6 +827,7 @@
 				7211404DFC1B4D23F84EA279 /* PlanetError.swift */,
 				6ACF1666292570AF00AE318B /* PlanetUI.swift */,
 				2AB6A93A29703757007186A7 /* PlanetAPI.swift */,
+				72114FF395DAE2370157978E /* Entities */,
 				2A4164D529E6475E009BFC24 /* Quick Share */,
 				6A1DA07A28B4273C00C6B5A9 /* Labs */,
 				6A5E63A62807269400FB1E84 /* TemplateBrowser */,
@@ -847,7 +851,6 @@
 				6A64D2DD284640A80013EABB /* Credits.html */,
 				72114ABE784F27251FE3A0BD /* IPFS */,
 				721143FEE74F9B12F698E845 /* LegacyCoreData */,
-				72114FF395DAE2370157978E /* Entities */,
 			);
 			path = Planet;
 			sourceTree = "<group>";
@@ -1153,6 +1156,7 @@
 			isa = PBXGroup;
 			children = (
 				72114BAE1D6E54DD9D1059CB /* MyArticleModel.swift */,
+				6ADD7D872A51B616003D2E54 /* MyArticleModel+Save.swift */,
 				721146E8B821AA2558D6DD3A /* PlanetStore.swift */,
 				72114299E3D896326AFFF5D0 /* MyPlanetModel.swift */,
 				72114BCC75EE5AAA9D0CA991 /* FollowingPlanetModel.swift */,
@@ -1402,6 +1406,7 @@
 				2A95E6952A19A437001288B8 /* IPFSDaemon.swift in Sources */,
 				2A95E6E92A19A64F001288B8 /* LoadingIndicatorView.swift in Sources */,
 				2A95E6622A19A3AA001288B8 /* TemplateBrowserPreviewWebView.swift in Sources */,
+				6ADD7D892A51B616003D2E54 /* MyArticleModel+Save.swift in Sources */,
 				2A95E6E12A19A521001288B8 /* dWebServices.swift in Sources */,
 				2A95E6652A19A3AA001288B8 /* Template.swift in Sources */,
 				2A95E6692A19A3AF001288B8 /* TB+Extension.swift in Sources */,
@@ -1590,6 +1595,7 @@
 				721144331A990EB4451F1C1F /* MyPlanetModel.swift in Sources */,
 				72114A3B2AA58EA6B139AEB8 /* FollowingPlanetModel.swift in Sources */,
 				72114C03242147A247A8B317 /* Runner.swift in Sources */,
+				6ADD7D882A51B616003D2E54 /* MyArticleModel+Save.swift in Sources */,
 				2A9B09A3294F066B0002719C /* PFDashboardWebView.swift in Sources */,
 				2A2556B8293E1F13006462D8 /* TBContainerViewController.swift in Sources */,
 				721146E58D1D1E45CF92E17A /* IPFSAPIModel.swift in Sources */,
