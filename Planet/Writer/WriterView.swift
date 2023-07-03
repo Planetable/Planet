@@ -46,7 +46,8 @@ struct WriterView: View {
                 HSplitView {
                     WriterTextView(draft: draft, text: $draft.content)
                         .frame(minWidth: geometry.size.width / 2, minHeight: 300)
-                    WriterPreview(draft: draft)
+                    WriterWebView(draft: draft)
+                        .background(Color(NSColor.textBackgroundColor))
                         .frame(minWidth: geometry.size.width / 2, minHeight: 300)
                 }
                 .frame(minWidth: 640, minHeight: 300)
@@ -86,20 +87,12 @@ struct WriterView: View {
             .onChange(of: draft.content) { _ in
                 try? draft.save()
                 try? draft.renderPreview()
-                NotificationCenter.default.post(
-                    name: .writerNotification(.loadPreview, for: draft),
-                    object: nil
-                )
             }
             .onChange(of: draft.attachments) { _ in
                 if draft.attachments.contains(where: { $0.type == .image || $0.type == .file }) {
                     viewModel.isMediaTrayOpen = true
                 }
                 try? draft.renderPreview()
-                NotificationCenter.default.post(
-                    name: .writerNotification(.loadPreview, for: draft),
-                    object: nil
-                )
             }
             .onAppear {
                 if draft.attachments.contains(where: { $0.type == .image || $0.type == .file }) {

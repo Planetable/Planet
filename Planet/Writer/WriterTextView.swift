@@ -140,7 +140,7 @@ class WriterCustomTextView: NSView {
 
         // Synchronize writer preview with text cursor every second
         // use [weak self] to not to create a retain cycle
-        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] timer in
+        let timer = Timer(timeInterval: 0.25, repeats: true) { [weak self] timer in
             guard let unwrappedSelf = self else {
                 return
             }
@@ -148,8 +148,13 @@ class WriterCustomTextView: NSView {
             guard let scroller = unwrappedSelf.scrollView.verticalScroller,
                   unwrappedSelf.lastOffset != scroller.floatValue
             else { return }
-            let notification = Notification.Name.writerNotification(.scrollText, for: unwrappedSelf.draft)
-            NotificationCenter.default.post(name: notification, object: NSNumber(value: scroller.floatValue))
+            
+            DispatchQueue.main.async {
+                if let currentScrollerOffset = self?.draft.scrollerOffset, currentScrollerOffset != scroller.floatValue {
+                    self?.draft.scrollerOffset = scroller.floatValue
+                }
+            }
+
             unwrappedSelf.lastOffset = scroller.floatValue
         }
         scrollTimer = timer

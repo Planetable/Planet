@@ -21,6 +21,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     @Published var content: String
     @Published var attachments: [Attachment]
     @Published var externalLink: String = ""
+    @Published var scrollerOffset: Float = 0
 
     enum DraftTarget {
         // draft for composing a new article

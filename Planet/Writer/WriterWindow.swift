@@ -11,7 +11,7 @@ class WriterWindow: NSWindow {
             contentRect: NSRect(x: 0, y: 0, width: 400, height: 320),
             styleMask: [.closable, .miniaturizable, .resizable, .titled, .unifiedTitleAndToolbar, .fullSizeContentView],
             backing: .buffered,
-            defer: false
+            defer: true
         )
         try? draft.renderPreview()
         titleVisibility = .visible
@@ -23,7 +23,6 @@ class WriterWindow: NSWindow {
         toolbar.delegate = self
         self.toolbar = toolbar
         delegate = self
-        isReleasedWhenClosed = false
         contentView = NSHostingView(rootView: WriterView(draft: draft, viewModel: viewModel))
         center()
         setFrameAutosaveName("PlanetWriter-\(draft.planetUUIDString)")
@@ -36,6 +35,10 @@ class WriterWindow: NSWindow {
             // Close this window
             self.close()
         }
+    }
+    
+    deinit {
+        debugPrint("WriterWindow deinit.")
     }
 
     @objc func send(_ sender: Any?) {
@@ -198,8 +201,8 @@ extension WriterWindow: NSWindowDelegate {
                 debugPrint("Draft for planet \(planet.name) is empty, delete the draft now")
                 try? draft.delete()
             }
-        case .article(let wrapper):
-            let article = wrapper.value
+        default:
+            break
         }
         return true
     }
