@@ -18,10 +18,14 @@ import UniformTypeIdentifiers
 }
 
 
-extension PlanetLiteAppDelegate: FileMenuActions {
-    func importPlanet(_ sender: AnyObject) {
-        KeyboardShortcutHelper.shared.importPlanetAction()
-    }
+@objc protocol WriterMenuActions {
+    func send(_ sender: AnyObject)
+}
+
+
+extension PlanetLiteAppDelegate: FileMenuActions, WriterMenuActions {
+
+    // MARK: - Menu: Main -
 
     func populateMainMenu() {
         let mainMenu = NSMenu(title:"MainMenu")
@@ -44,15 +48,13 @@ extension PlanetLiteAppDelegate: FileMenuActions {
         submenu = NSMenu(title:NSLocalizedString("Edit", comment:"Edit menu"))
         populateEditMenu(submenu)
         mainMenu.setSubmenu(submenu, for:menuItem)
-
-        /*
-         * No needs for view functions
-        menuItem = mainMenu.addItem(withTitle:"View", action:nil, keyEquivalent:"")
-        submenu = NSMenu(title:NSLocalizedString("View", comment:"View menu"))
-        populateViewMenu(submenu)
-        mainMenu.setSubmenu(submenu, for:menuItem)
-         */
         
+        // Writer commands for editing post
+        menuItem = mainMenu.addItem(withTitle: "Writer", action: nil, keyEquivalent: "")
+        submenu = NSMenu(title: NSLocalizedString("Writer", comment: "Writer menu"))
+        populateWriterMenu(submenu)
+        mainMenu.setSubmenu(submenu, for: menuItem)
+
         menuItem = mainMenu.addItem(withTitle:"Window", action:nil, keyEquivalent:"")
         submenu = NSMenu(title:NSLocalizedString("Window", comment:"Window menu"))
         populateWindowMenu(submenu)
@@ -66,8 +68,10 @@ extension PlanetLiteAppDelegate: FileMenuActions {
         
         NSApp.mainMenu = mainMenu
     }
-    
-    func populateApplicationMenu(_ menu:NSMenu) {
+
+    // MARK: - Menu: Application -
+
+    func populateApplicationMenu(_ menu: NSMenu) {
 
         var title = NSLocalizedString("About", comment:"About menu item") + " " + applicationName
         var menuItem = menu.addItem(withTitle:title, action:#selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent:"")
@@ -107,7 +111,7 @@ extension PlanetLiteAppDelegate: FileMenuActions {
         menuItem.target = NSApp
     }
     
-    func populateFileMenu(_ menu:NSMenu) {
+    func populateFileMenu(_ menu: NSMenu) {
         let title = NSLocalizedString("Close Window", comment:"Close Window menu item")
         menu.addItem(withTitle:title, action:#selector(NSWindow.performClose(_:)), keyEquivalent:"w")
         
@@ -118,7 +122,7 @@ extension PlanetLiteAppDelegate: FileMenuActions {
         menu.addItem(importItem)
     }
     
-    func populateEditMenu(_ menu:NSMenu) {
+    func populateEditMenu(_ menu: NSMenu) {
         var title = NSLocalizedString("Undo", comment:"Undo menu item")
         menu.addItem(withTitle:title, action:#selector(EditMenuActions.undo(_:)), keyEquivalent:"z")
         
@@ -161,7 +165,14 @@ extension PlanetLiteAppDelegate: FileMenuActions {
         menu.setSubmenu(spellingMenu, for:menuItem)
     }
     
-    func populateFindMenu(_ menu:NSMenu) {
+    func populateWriterMenu(_ menu: NSMenu) {
+        let sendTitle = NSLocalizedString("Send", comment: "Send menu item")
+        let sendMenuItem = NSMenuItem(title: sendTitle, action: #selector(WriterMenuActions.send(_:)), keyEquivalent: "d")
+        sendMenuItem.keyEquivalentModifierMask = [.command, .shift]
+        menu.addItem(sendMenuItem)
+    }
+
+    func populateFindMenu(_ menu: NSMenu) {
         var title = NSLocalizedString("Find…", comment:"Find… menu item")
         var menuItem = menu.addItem(withTitle:title, action:#selector(NSResponder.performTextFinderAction(_:)), keyEquivalent:"f")
         menuItem.tag = NSTextFinder.Action.showFindInterface.rawValue
@@ -182,7 +193,7 @@ extension PlanetLiteAppDelegate: FileMenuActions {
         menu.addItem(withTitle:title, action:#selector(NSResponder.centerSelectionInVisibleArea(_:)), keyEquivalent:"j")
     }
     
-    func populateSpellingMenu(_ menu:NSMenu) {
+    func populateSpellingMenu(_ menu: NSMenu) {
         var title = NSLocalizedString("Spelling…", comment:"Spelling… menu item")
         menu.addItem(withTitle:title, action:#selector(NSText.showGuessPanel(_:)), keyEquivalent:":")
         
@@ -192,23 +203,8 @@ extension PlanetLiteAppDelegate: FileMenuActions {
         title = NSLocalizedString("Check Spelling as You Type", comment:"Check Spelling as You Type menu item")
         menu.addItem(withTitle:title, action:#selector(NSTextView.toggleContinuousSpellChecking(_:)), keyEquivalent:"")
     }
-    
-    func populateViewMenu(_ menu:NSMenu) {
-        var title = NSLocalizedString("Show Toolbar", comment:"Show Toolbar menu item")
-        var menuItem = menu.addItem(withTitle:title, action:#selector(NSWindow.toggleToolbarShown(_:)), keyEquivalent:"t")
-        menuItem.keyEquivalentModifierMask = [.command, .option]
-        
-        title = NSLocalizedString("Customize Toolbar…", comment:"Customize Toolbar… menu item")
-        menu.addItem(withTitle:title, action:#selector(NSWindow.runToolbarCustomizationPalette(_:)), keyEquivalent:"")
-        
-        menu.addItem(NSMenuItem.separator())
-        
-        title = NSLocalizedString("Enter Full Screen", comment:"Enter Full Screen menu item")
-        menuItem = menu.addItem(withTitle:title, action:#selector(NSWindow.toggleFullScreen(_:)), keyEquivalent:"f")
-        menuItem.keyEquivalentModifierMask = [.command, .control]
-    }
-    
-    func populateWindowMenu(_ menu:NSMenu) {
+
+    func populateWindowMenu(_ menu: NSMenu) {
         var title = NSLocalizedString("Minimize", comment:"Minimize menu item")
         menu.addItem(withTitle:title, action:#selector(NSWindow.performMiniaturize(_:)), keyEquivalent:"m")
         
@@ -222,9 +218,22 @@ extension PlanetLiteAppDelegate: FileMenuActions {
         menuItem.target = NSApp
     }
     
-    func populateHelpMenu(_ menu:NSMenu) {
+    func populateHelpMenu(_ menu: NSMenu) {
         let title = applicationName + " " + NSLocalizedString("Help", comment:"Help menu item")
         let menuItem = menu.addItem(withTitle:title, action:#selector(NSApplication.showHelp(_:)), keyEquivalent:"?")
         menuItem.target = NSApp
     }
+
+    // MARK: - Menu Actions -
+
+    func importPlanet(_ sender: AnyObject) {
+        KeyboardShortcutHelper.shared.importPlanetAction()
+    }
+    
+    func send(_ sender: AnyObject) {
+        if let activeWriterWindow = KeyboardShortcutHelper.shared.activeWriterWindow {
+            activeWriterWindow.send(nil)
+        }
+    }
+
 }
