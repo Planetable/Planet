@@ -38,7 +38,7 @@ struct AppContentItemMenuView: View {
                         NSWorkspace.shared.open(url)
                     }
                 } label: {
-                    Text("Open in Browser")
+                    Text("Open in Public Gateway")
                 }
 
                 Button {
