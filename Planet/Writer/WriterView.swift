@@ -126,20 +126,18 @@ struct WriterView: View {
                 Button {
                     viewModel.madeDiscardChoice = true
                     try? draft.save()
-                    NotificationCenter.default.post(
-                        name: .writerNotification(.close, for: draft),
-                        object: nil
-                    )
+                    Task { @MainActor in
+                        WriterStore.shared.closeWriterWindow(byDraftID: self.draft.id)
+                    }
                 } label: {
                     Text("Save Draft")
                 }
                 Button(role: .destructive) {
                     viewModel.madeDiscardChoice = true
                     try? draft.delete()
-                    NotificationCenter.default.post(
-                        name: .writerNotification(.close, for: draft),
-                        object: nil
-                    )
+                    Task { @MainActor in
+                        WriterStore.shared.closeWriterWindow(byDraftID: self.draft.id)
+                    }
                 } label: {
                     Text("Delete Draft")
                 }

@@ -1,12 +1,10 @@
 import Foundation
-import os
+
 
 @MainActor class WriterStore: ObservableObject {
     static let shared = WriterStore()
 
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "WriterStore")
-
-    @Published var writers: [DraftModel: WriterWindow] = [:]
+    private var writerWindows: [UUID: WriterWindow] = [:]
 
     func newArticle(for planet: MyPlanetModel) throws {
         let draft: DraftModel
@@ -16,15 +14,8 @@ import os
         } else {
             draft = planet.drafts[0]
         }
-
         draft.initialContentSHA256 = draft.contentSHA256()
-
-        if let window = writers[draft] {
-            window.makeKeyAndOrderFront(nil)
-        } else {
-            let window = WriterWindow(draft: draft)
-            writers[draft] = window
-        }
+        openWriterWindow(forDraft: draft)
     }
 
     func editArticle(for article: MyArticleModel) throws {
@@ -35,14 +26,26 @@ import os
             draft = try DraftModel.create(from: article)
             article.draft = draft
         }
-
         draft.initialContentSHA256 = draft.contentSHA256()
+        openWriterWindow(forDraft: draft)
+    }
 
-        if let window = writers[draft] {
+    func closeWriterWindow(byDraftID id: UUID) {
+        if let window = writerWindows[id] {
+            window.close()
+        }
+        writerWindows.removeValue(forKey: id)
+    }
+
+    // MARK: -
+
+    private func openWriterWindow(forDraft draft: DraftModel) {
+        let id = draft.id
+        if let window = writerWindows[id] {
             window.makeKeyAndOrderFront(nil)
         } else {
             let window = WriterWindow(draft: draft)
-            writers[draft] = window
+            writerWindows[id] = window
         }
     }
 }

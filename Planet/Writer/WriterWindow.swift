@@ -1,4 +1,6 @@
 import SwiftUI
+import Cocoa
+
 
 class WriterWindow: NSWindow {
     let draft: DraftModel
@@ -6,35 +8,28 @@ class WriterWindow: NSWindow {
 
     init(draft: DraftModel) {
         self.draft = draft
-        viewModel = WriterViewModel()
+        self.viewModel = WriterViewModel()
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 400, height: 320),
             styleMask: [.closable, .miniaturizable, .resizable, .titled, .unifiedTitleAndToolbar, .fullSizeContentView],
             backing: .buffered,
             defer: true
         )
-        try? draft.renderPreview()
-        titleVisibility = .visible
-        isMovableByWindowBackground = true
-        titlebarAppearsTransparent = false
-        toolbarStyle = .unified
+        try? self.draft.renderPreview()
+        self.titleVisibility = .visible
+        self.isMovableByWindowBackground = true
+        self.titlebarAppearsTransparent = false
+        self.toolbarStyle = .unified
+        self.isReleasedWhenClosed = false
         let toolbar = NSToolbar(identifier: "WriterToolbar")
         toolbar.displayMode = .iconOnly
         toolbar.delegate = self
         self.toolbar = toolbar
-        delegate = self
-        contentView = NSHostingView(rootView: WriterView(draft: draft, viewModel: viewModel))
-        center()
-        setFrameAutosaveName("PlanetWriter-\(draft.planetUUIDString)")
-        makeKeyAndOrderFront(nil)
-        NotificationCenter.default.addObserver(
-            forName: .writerNotification(.close, for: draft),
-            object: nil,
-            queue: .main
-        ) { _ in
-            // Close this window
-            self.close()
-        }
+        self.delegate = self
+        self.contentView = NSHostingView(rootView: WriterView(draft: draft, viewModel: viewModel))
+        self.center()
+        self.setFrameAutosaveName("PlanetWriter-\(draft.planetUUIDString)")
+        self.makeKeyAndOrderFront(nil)
     }
     
     deinit {
@@ -48,8 +43,9 @@ class WriterWindow: NSWindow {
         }
         do {
             try draft.saveToArticle()
-            WriterStore.shared.writers.removeValue(forKey: draft)
-            close()
+            Task { @MainActor in
+                WriterStore.shared.closeWriterWindow(byDraftID: self.draft.id)
+            }
         } catch {
             PlanetStore.shared.alert(title: "Failed to send article: \(error)")
         }
@@ -194,21 +190,25 @@ extension WriterWindow: NSWindowDelegate {
             viewModel.isShowingDiscardConfirmation = true
             return false
         }
-        switch draft.target! {
-        case .myPlanet(let wrapper):
-            let planet = wrapper.value
-            if draft.isEmpty {
-                debugPrint("Draft for planet \(planet.name) is empty, delete the draft now")
-                try? draft.delete()
+        if let target = draft.target {
+            switch target {
+            case .myPlanet(let wrapper):
+                let planet = wrapper.value
+                if draft.isEmpty {
+                    debugPrint("Draft for planet \(planet.name) is empty, delete the draft now")
+                    try? draft.delete()
+                }
+            default:
+                break
             }
-        default:
-            break
         }
         return true
     }
 
     func windowWillClose(_ notification: Notification) {
-        WriterStore.shared.writers.removeValue(forKey: draft)
+        Task { @MainActor in
+            WriterStore.shared.closeWriterWindow(byDraftID: self.draft.id)
+        }
     }
 
     func windowDidBecomeKey(_ notification: Notification) {
