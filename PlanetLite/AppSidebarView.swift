@@ -9,7 +9,7 @@ import SwiftUI
 struct AppSidebarView: View {
     @StateObject private var ipfsState: IPFSState
     @StateObject private var planetStore: PlanetStore
-    
+
     init() {
         _ipfsState = StateObject(wrappedValue: IPFSState.shared)
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)
@@ -30,7 +30,7 @@ struct AppSidebarView: View {
                 }
             }
             .listStyle(.sidebar)
-            
+
             HStack(spacing: 6) {
                 Circle()
                     .frame(width: 11, height: 11, alignment: .center)
@@ -39,7 +39,7 @@ struct AppSidebarView: View {
                     .font(.body)
 
                 Spacer()
-                
+
                 Button {
                     planetStore.isCreatingPlanet = true
                 } label: {
@@ -88,6 +88,18 @@ struct AppSidebarView: View {
         .sheet(isPresented: $planetStore.isQuickSharing) {
             PlanetQuickShareView()
                 .frame(width: .sheetWidth, height: .sheetHeight + 28)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .publishMyPlanet)) {
+            aNotification in
+            if let userObject = aNotification.object, let planet = userObject as? MyPlanetModel {
+                Task(priority: .background) {
+                    do {
+                        try await planet.publish()
+                    } catch {
+                        debugPrint("Failed to publish: \(planet.name) id=\(planet.id)")
+                    }
+                }
+            }
         }
         .frame(minWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, maxWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MAX, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity)
     }
