@@ -9,7 +9,7 @@ import SwiftUI
 struct AppSidebarItemView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var planet: MyPlanetModel
-    
+
     @State private var isShowingDeleteConfirmation = false
 
     var body: some View {
@@ -31,6 +31,17 @@ struct AppSidebarItemView: View {
                     }
                 } label: {
                     Text("Edit Planet")
+                }
+
+                if let template = planet.template, template.hasSettings {
+                    Button {
+                        Task {
+                            PlanetStore.shared.selectedView = .myPlanet(planet)
+                            PlanetStore.shared.isConfiguringPlanetTemplate = true
+                        }
+                    } label: {
+                        Text("Template Settings")
+                    }
                 }
 
                 Button {
@@ -88,7 +99,7 @@ struct AppSidebarItemView: View {
 
                 Divider()
             }
-            
+
             Group {
                 Button {
                     let panel = NSOpenPanel()
@@ -118,7 +129,7 @@ struct AppSidebarItemView: View {
                 } label: {
                     Text("Export Planet")
                 }
-                
+
                 Divider()
 
                 Button {
@@ -126,6 +137,11 @@ struct AppSidebarItemView: View {
                 } label: {
                     Text("Delete Planet")
                 }
+            }
+        }
+        .sheet(isPresented: $planetStore.isConfiguringPlanetTemplate) {
+            if case .myPlanet(let planet) = planetStore.selectedView {
+                MyPlanetTemplateSettingsView(planet: planet)
             }
         }
         .confirmationDialog(

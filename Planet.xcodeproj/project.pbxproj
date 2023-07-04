@@ -318,6 +318,7 @@
 		6AB6E513291527B800F17328 /* WalletConnectNetworking in Frameworks */ = {isa = PBXBuildFile; productRef = 6AB6E512291527B800F17328 /* WalletConnectNetworking */; };
 		6AB6E515291527B800F17328 /* WalletConnectPairing in Frameworks */ = {isa = PBXBuildFile; productRef = 6AB6E514291527B800F17328 /* WalletConnectPairing */; };
 		6AB6E517291527B800F17328 /* WalletConnectPush in Frameworks */ = {isa = PBXBuildFile; productRef = 6AB6E516291527B800F17328 /* WalletConnectPush */; };
+		6AB75A8E2A5496F20050AD58 /* MyPlanetTemplateSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5935EB2A14E98C00151CBD /* MyPlanetTemplateSettingsView.swift */; };
 		6ABAB91828215FF30014F209 /* TemplatePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */; };
 		6AC01AEE291D258900EB6B5F /* AccountBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AED291D258900EB6B5F /* AccountBadgeView.swift */; };
 		6AC01AF0291ECC7E00EB6B5F /* WalletAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */; };
@@ -1382,6 +1383,7 @@
 				2A95E6E72A19A64F001288B8 /* SharingServicePicker.swift in Sources */,
 				2A95E68C2A19A3CA001288B8 /* WriterTextView.swift in Sources */,
 				2A95E64D2A19A398001288B8 /* PFDashboardContentView.swift in Sources */,
+				6AB75A8E2A5496F20050AD58 /* MyPlanetTemplateSettingsView.swift in Sources */,
 				2A996ADA2A1DA6D100BEF898 /* PlanetDownloadsWebView.swift in Sources */,
 				2A91AEC72A473D3C003FF003 /* AppContentItemMenuView.swift in Sources */,
 				2A95E6582A19A3A2001288B8 /* WalletConnectV1.swift in Sources */,
