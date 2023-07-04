@@ -20,6 +20,10 @@ import UniformTypeIdentifiers
 
 @objc protocol WriterMenuActions {
     func send(_ sender: AnyObject)
+    func insertEmoji(_ sender: AnyObject)
+    func attachPhoto(_ sender: AnyObject)
+    func attachVideo(_ sender: AnyObject)
+    func attachAudio(_ sender: AnyObject)
 }
 
 
@@ -170,6 +174,18 @@ extension PlanetLiteAppDelegate: FileMenuActions, WriterMenuActions {
         let sendMenuItem = NSMenuItem(title: sendTitle, action: #selector(WriterMenuActions.send(_:)), keyEquivalent: "d")
         sendMenuItem.keyEquivalentModifierMask = [.command, .shift]
         menu.addItem(sendMenuItem)
+        
+        let emojiTitle = NSLocalizedString("Insert Emoji", comment: "Insert Emoji menu item")
+        menu.addItem(NSMenuItem(title: emojiTitle, action: #selector(WriterMenuActions.insertEmoji(_:)), keyEquivalent: ""))
+        
+        let photoTitle = NSLocalizedString("Attach Photo", comment: "Attach Photo menu item")
+        menu.addItem(withTitle: photoTitle, action: #selector(WriterMenuActions.attachPhoto(_:)), keyEquivalent: "")
+        
+        let videoTitle = NSLocalizedString("Attach Video", comment: "Attach Video menu item")
+        menu.addItem(withTitle: videoTitle, action: #selector(WriterMenuActions.attachVideo(_:)), keyEquivalent: "")
+        
+        let audioTitle = NSLocalizedString("Attach Audio", comment: "Attach Audio menu item")
+        menu.addItem(withTitle: audioTitle, action: #selector(WriterMenuActions.attachAudio(_:)), keyEquivalent: "")
     }
 
     func populateFindMenu(_ menu: NSMenu) {
@@ -235,5 +251,28 @@ extension PlanetLiteAppDelegate: FileMenuActions, WriterMenuActions {
             activeWriterWindow.send(nil)
         }
     }
-
+    
+    func insertEmoji(_ sender: AnyObject) {
+        if let activeWriterWindow = KeyboardShortcutHelper.shared.activeWriterWindow {
+            activeWriterWindow.insertEmoji(nil)
+        }
+    }
+    
+    func attachPhoto(_ sender: AnyObject) {
+        if let activeWriterWindow = KeyboardShortcutHelper.shared.activeWriterWindow {
+            activeWriterWindow.attachPhoto(nil)
+        }
+    }
+    
+    func attachVideo(_ sender: AnyObject) {
+        if let activeWriterWindow = KeyboardShortcutHelper.shared.activeWriterWindow {
+            activeWriterWindow.attachVideo(nil)
+        }
+    }
+    
+    func attachAudio(_ sender: AnyObject) {
+        if let activeWriterWindow = KeyboardShortcutHelper.shared.activeWriterWindow {
+            activeWriterWindow.attachAudio(nil)
+        }
+    }
 }
