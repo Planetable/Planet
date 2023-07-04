@@ -383,6 +383,9 @@ extension MyArticleModel {
     }
 
     func getHeroImage() -> String? {
+        if self.planet.templateName == "Croptop" {
+            return "_cover.png"
+        }
         if self.hasVideoContent() {
             return "_videoThumbnail.png"
         }
