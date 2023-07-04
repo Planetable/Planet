@@ -471,21 +471,27 @@ extension MyArticleModel {
 
     /// Prepare the text string to be used in _cover.png
     func getCoverImageText() -> String {
-        var text: String = self.title
         debugPrint("Current attachments in \(self.title): \(self.attachments ?? [])")
-        // Use content as cover image text if there is no attachment
-        if self.attachments == nil {
-            text = self.title + "\n\n" + self.content
-        }
-        if let attachments = self.attachments, attachments.count == 0 {
-            text = self.title + "\n\n" + self.content
-        }
-        if let attachments = self.attachments, attachments.count == 1,
-            attachments[0] == "_cover.png"
-        {
-            text = self.title + "\n\n" + self.content
-        }
         // For audio, add an icon and duration
+        if let audioFilename = audioFilename {
+            return getCoverImageTextForAudioPost()
+        }
+        if let videoFilename = videoFilename {
+            return getCoverImageTextForVideoPost()
+        }
+        return getCoverImageTextForTextOnlyPost()
+    }
+
+    func getCoverImageTextForTextOnlyPost() -> String {
+        var text: String = self.title
+        if self.content.count > 0 {
+            text = content
+        }
+        return text
+    }
+
+    func getCoverImageTextForAudioPost() -> String {
+        var text: String = ""
         if let audioFilename = audioFilename {
             text = self.title
             if let audioDuration = getAudioDuration(name: audioFilename) {
@@ -494,9 +500,24 @@ extension MyArticleModel {
             if content.count > 0 {
                 text += "\n\n" + content
             }
+            return text
         }
+        return getCoverImageTextForTextOnlyPost()
+    }
 
-        return text
+    func getCoverImageTextForVideoPost() -> String {
+        var text: String = ""
+        if let videoFilename = videoFilename {
+            text = self.title
+            if let videoDuration = getAudioDuration(name: videoFilename) {
+                text += "\n\n▶ " + formatDuration(duration: videoDuration)
+            }
+            if content.count > 0 {
+                text += "\n\n" + content
+            }
+            return text
+        }
+        return getCoverImageTextForTextOnlyPost()
     }
 
     /// Save cover image to `_cover.png`
