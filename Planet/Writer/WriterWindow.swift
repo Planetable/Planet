@@ -30,6 +30,7 @@ class WriterWindow: NSWindow {
         self.center()
         self.setFrameAutosaveName("PlanetWriter-\(draft.planetUUIDString)")
         self.makeKeyAndOrderFront(nil)
+        // MARK: TODO: Add a offset if there's an opened writer window in the center.
     }
     
     deinit {
