@@ -25,12 +25,7 @@ import UniformTypeIdentifiers
     func attachAudio(_ sender: AnyObject)
 }
 
-
 extension PlanetLiteAppDelegate: FileMenuActions, WriterMenuActions {
-    func importPlanet(_ sender: AnyObject) {
-        KeyboardShortcutHelper.shared.importPlanetAction()
-    }
-
     func learnMore(_ sender: AnyObject) {
         if let url = URL(string: "https://croptop.eth.limo") {
             NSWorkspace.shared.open(url)
