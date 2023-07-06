@@ -544,6 +544,7 @@ extension MyArticleModel {
         if planet.templateName == "Croptop" {
             // Use the pixelated Capsule font for the Croptop template
             font = NSFont(name: "Capsules-500", size: 32) ?? NSFont.systemFont(ofSize: 32)
+            debugPrint("Using Capsules-500 font for Croptop: \(font)")
         }
         else {
             font = NSFont.systemFont(ofSize: 32)

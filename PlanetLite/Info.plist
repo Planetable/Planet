@@ -116,5 +116,7 @@
 			</dict>
 		</dict>
 	</array>
+	<key>ATSApplicationFontsPath</key>
+	<string>.</string>
 </dict>
 </plist>
