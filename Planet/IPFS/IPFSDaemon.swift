@@ -99,7 +99,7 @@ actor IPFSDaemon {
             "HighWater": 240,
             "LowWater": 120,
             "Type": "basic"
-        ])
+        ] as [String : Any])
         guard let result = try? IPFSCommand.setSwarmConnMgr(String(data: swarmConnMgr.rawData(), encoding: .utf8)!).run(),
               result.ret == 0
         else {

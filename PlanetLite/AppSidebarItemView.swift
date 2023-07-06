@@ -139,11 +139,6 @@ struct AppSidebarItemView: View {
                 }
             }
         }
-        .sheet(isPresented: $planetStore.isConfiguringPlanetTemplate) {
-            if case .myPlanet(let planet) = planetStore.selectedView {
-                MyPlanetTemplateSettingsView(planet: planet)
-            }
-        }
         .confirmationDialog(
             Text("Are you sure you want to delete \(planet.name)? This action cannot be undone."),
             isPresented: $isShowingDeleteConfirmation
