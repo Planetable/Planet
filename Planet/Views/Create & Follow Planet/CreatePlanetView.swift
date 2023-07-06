@@ -11,7 +11,7 @@ struct CreatePlanetView: View {
 
     var body: some View {
         VStack (spacing: 0) {
-            Text("New Planet")
+            Text(planetStore.app == .planet ? "New Planet" : "New Site")
                 .frame(height: 34, alignment: .leading)
                 .padding(.bottom, 2)
                 .padding(.horizontal, 16)
