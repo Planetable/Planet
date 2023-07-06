@@ -556,46 +556,48 @@ struct MyPlanetEditView: View {
                     .tag("pinning")
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
-                        HStack {
+                        if planetStore.app == .planet {
                             HStack {
+                                HStack {
+                                    Spacer()
+                                }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
+                                Toggle("Enable Juicebox Integration", isOn: $juiceboxEnabled)
+                                    .toggleStyle(.checkbox)
+                                    .frame(alignment: .leading)
                                 Spacer()
-                            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
-                            Toggle("Enable Juicebox Integration", isOn: $juiceboxEnabled)
-                                .toggleStyle(.checkbox)
-                                .frame(alignment: .leading)
-                            Spacer()
-                            HelpLinkButton(
-                                helpLink: URL(
-                                    string: "https://www.planetable.xyz/guides/juicebox/"
-                                )!
-                            )
-                        }
-
-                        HStack {
-                            HStack {
-                                Text("Project ID")
-                                Spacer()
+                                HelpLinkButton(
+                                    helpLink: URL(
+                                        string: "https://www.planetable.xyz/guides/juicebox/"
+                                    )!
+                                )
                             }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
 
-                            TextField("", text: $juiceboxProjectID)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
-                        HStack {
                             HStack {
-                                Text("Project ID (Goerli)")
-                                Spacer()
+                                HStack {
+                                    Text("Project ID")
+                                    Spacer()
+                                }
+                                .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                                TextField("", text: $juiceboxProjectID)
+                                    .textFieldStyle(.roundedBorder)
                             }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
 
-                            TextField("", text: $juiceboxProjectIDGoerli)
-                                .textFieldStyle(.roundedBorder)
+                            HStack {
+                                HStack {
+                                    Text("Project ID (Goerli)")
+                                    Spacer()
+                                }
+                                .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+                                TextField("", text: $juiceboxProjectIDGoerli)
+                                    .textFieldStyle(.roundedBorder)
+                            }
+
+                            Divider()
+                                .padding(.top, 6)
+                                .padding(.bottom, 6)
                         }
-
-                        Divider()
-                            .padding(.top, 6)
-                            .padding(.bottom, 6)
 
                         HStack {
                             HStack {
