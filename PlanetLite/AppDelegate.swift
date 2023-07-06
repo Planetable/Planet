@@ -92,7 +92,7 @@ extension PlanetLiteAppDelegate {
             }
         }
     }
-    
+
     @objc func checkForUpdate(_ sender: Any) {
         PlanetUpdater.shared.checkForUpdates()
     }

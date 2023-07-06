@@ -37,15 +37,6 @@ struct WriterTextView: NSViewRepresentable {
         nsView.text = text
     }
 
-    static func dismantleNSView(
-        _ nsView: Self.NSViewType,
-        coordinator: Self.Coordinator
-    ) {
-        debugPrint("Dismantle WriterCustomTextView for draft \(nsView.draft.id) ")
-        nsView.scrollTimer?.invalidate()
-        nsView.scrollTimer = nil
-    }
-
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: WriterTextView
         var selectedRanges: [NSValue] = []
@@ -126,8 +117,6 @@ class WriterCustomTextView: NSView {
 
     @ObservedObject var draft: DraftModel
     private var font: NSFont?
-    private var lastOffset: Float = 0
-    var scrollTimer: Timer? = nil
     unowned var delegate: NSTextViewDelegate?
     var text: String
     var selectedRanges: [NSValue] = []
@@ -137,23 +126,17 @@ class WriterCustomTextView: NSView {
         self.font = font
         self.text = text
         super.init(frame: .zero)
-
-        // Synchronize writer preview with text cursor every second
-        // use [weak self] to not to create a retain cycle
-        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] timer in
-            guard let unwrappedSelf = self else {
-                return
+        self.scrollView.contentView.postsBoundsChangedNotifications = true
+        NotificationCenter.default.addObserver(forName: NSView.boundsDidChangeNotification, object: nil, queue: .main) { [weak self] n in
+            guard let scroller = self?.scrollView.verticalScroller else { return }
+            if let currentScrollerOffset = self?.draft.scrollerOffset, currentScrollerOffset != scroller.floatValue {
+                self?.draft.scrollerOffset = scroller.floatValue
             }
-//            debugPrint("Firing scrollText for draft \(unwrappedSelf.draft.id)")
-            guard let scroller = unwrappedSelf.scrollView.verticalScroller,
-                  unwrappedSelf.lastOffset != scroller.floatValue
-            else { return }
-            let notification = Notification.Name.writerNotification(.scrollText, for: unwrappedSelf.draft)
-            NotificationCenter.default.post(name: notification, object: NSNumber(value: scroller.floatValue))
-            unwrappedSelf.lastOffset = scroller.floatValue
         }
-        scrollTimer = timer
-        RunLoop.main.add(timer, forMode: .default)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     required init?(coder aDecoder: NSCoder) {

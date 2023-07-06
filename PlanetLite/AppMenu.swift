@@ -17,7 +17,16 @@ import UniformTypeIdentifiers
     func openDiscordInviteLink(_ sender: AnyObject)
 }
 
-extension PlanetLiteAppDelegate: FileMenuActions {
+@objc protocol WriterMenuActions {
+    func send(_ sender: AnyObject)
+    func insertEmoji(_ sender: AnyObject)
+    func attachPhoto(_ sender: AnyObject)
+    func attachVideo(_ sender: AnyObject)
+    func attachAudio(_ sender: AnyObject)
+}
+
+
+extension PlanetLiteAppDelegate: FileMenuActions, WriterMenuActions {
     func importPlanet(_ sender: AnyObject) {
         KeyboardShortcutHelper.shared.importPlanetAction()
     }
@@ -54,18 +63,16 @@ extension PlanetLiteAppDelegate: FileMenuActions {
         menuItem = mainMenu.addItem(withTitle: "Edit", action: nil, keyEquivalent: "")
         submenu = NSMenu(title: NSLocalizedString("Edit", comment: "Edit menu"))
         populateEditMenu(submenu)
+        mainMenu.setSubmenu(submenu, for:menuItem)
+        
+        // Writer commands for editing post
+        menuItem = mainMenu.addItem(withTitle: "Writer", action: nil, keyEquivalent: "")
+        submenu = NSMenu(title: NSLocalizedString("Writer", comment: "Writer menu"))
+        populateWriterMenu(submenu)
         mainMenu.setSubmenu(submenu, for: menuItem)
 
-        /*
-         * No needs for view functions
-        menuItem = mainMenu.addItem(withTitle:"View", action:nil, keyEquivalent:"")
-        submenu = NSMenu(title:NSLocalizedString("View", comment:"View menu"))
-        populateViewMenu(submenu)
-        mainMenu.setSubmenu(submenu, for:menuItem)
-         */
-
-        menuItem = mainMenu.addItem(withTitle: "Window", action: nil, keyEquivalent: "")
-        submenu = NSMenu(title: NSLocalizedString("Window", comment: "Window menu"))
+        menuItem = mainMenu.addItem(withTitle:"Window", action:nil, keyEquivalent:"")
+        submenu = NSMenu(title:NSLocalizedString("Window", comment:"Window menu"))
         populateWindowMenu(submenu)
         mainMenu.setSubmenu(submenu, for: menuItem)
         NSApp.windowsMenu = submenu
@@ -77,6 +84,8 @@ extension PlanetLiteAppDelegate: FileMenuActions {
 
         NSApp.mainMenu = mainMenu
     }
+
+    // MARK: - Menu: Application -
 
     func populateApplicationMenu(_ menu: NSMenu) {
 
@@ -209,6 +218,25 @@ extension PlanetLiteAppDelegate: FileMenuActions {
         populateSpellingMenu(spellingMenu)
         menu.setSubmenu(spellingMenu, for: menuItem)
     }
+    
+    func populateWriterMenu(_ menu: NSMenu) {
+        let sendTitle = NSLocalizedString("Send", comment: "Send menu item")
+        let sendMenuItem = NSMenuItem(title: sendTitle, action: #selector(WriterMenuActions.send(_:)), keyEquivalent: "d")
+        sendMenuItem.keyEquivalentModifierMask = [.command, .shift]
+        menu.addItem(sendMenuItem)
+        
+        let emojiTitle = NSLocalizedString("Insert Emoji", comment: "Insert Emoji menu item")
+        menu.addItem(NSMenuItem(title: emojiTitle, action: #selector(WriterMenuActions.insertEmoji(_:)), keyEquivalent: ""))
+        
+        let photoTitle = NSLocalizedString("Attach Photo", comment: "Attach Photo menu item")
+        menu.addItem(withTitle: photoTitle, action: #selector(WriterMenuActions.attachPhoto(_:)), keyEquivalent: "")
+        
+        let videoTitle = NSLocalizedString("Attach Video", comment: "Attach Video menu item")
+        menu.addItem(withTitle: videoTitle, action: #selector(WriterMenuActions.attachVideo(_:)), keyEquivalent: "")
+        
+        let audioTitle = NSLocalizedString("Attach Audio", comment: "Attach Audio menu item")
+        menu.addItem(withTitle: audioTitle, action: #selector(WriterMenuActions.attachAudio(_:)), keyEquivalent: "")
+    }
 
     func populateFindMenu(_ menu: NSMenu) {
         var title = NSLocalizedString("Find…", comment: "Find… menu item")
@@ -217,6 +245,7 @@ extension PlanetLiteAppDelegate: FileMenuActions {
             action: #selector(NSResponder.performTextFinderAction(_:)),
             keyEquivalent: "f"
         )
+
         menuItem.tag = NSTextFinder.Action.showFindInterface.rawValue
 
         title = NSLocalizedString("Find Next", comment: "Find Next menu item")
@@ -350,5 +379,41 @@ extension PlanetLiteAppDelegate: FileMenuActions {
             action: #selector(FileMenuActions.openDiscordInviteLink(_:)),
             keyEquivalent: ""
         )
+    }
+
+    // MARK: - Menu Actions -
+
+    func importPlanet(_ sender: AnyObject) {
+        KeyboardShortcutHelper.shared.importPlanetAction()
+    }
+    
+    func send(_ sender: AnyObject) {
+        if let activeWriterWindow = KeyboardShortcutHelper.shared.activeWriterWindow {
+            activeWriterWindow.send(nil)
+        }
+    }
+    
+    func insertEmoji(_ sender: AnyObject) {
+        if let activeWriterWindow = KeyboardShortcutHelper.shared.activeWriterWindow {
+            activeWriterWindow.insertEmoji(nil)
+        }
+    }
+    
+    func attachPhoto(_ sender: AnyObject) {
+        if let activeWriterWindow = KeyboardShortcutHelper.shared.activeWriterWindow {
+            activeWriterWindow.attachPhoto(nil)
+        }
+    }
+    
+    func attachVideo(_ sender: AnyObject) {
+        if let activeWriterWindow = KeyboardShortcutHelper.shared.activeWriterWindow {
+            activeWriterWindow.attachVideo(nil)
+        }
+    }
+    
+    func attachAudio(_ sender: AnyObject) {
+        if let activeWriterWindow = KeyboardShortcutHelper.shared.activeWriterWindow {
+            activeWriterWindow.attachAudio(nil)
+        }
     }
 }
