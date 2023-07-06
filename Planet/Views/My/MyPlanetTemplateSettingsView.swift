@@ -78,7 +78,7 @@ struct MyPlanetTemplateSettingsView: View {
                     Spacer()
 
                     Button {
-                        dismiss()
+                        PlanetStore.shared.isConfiguringPlanetTemplate = false
                     } label: {
                         Text("Cancel")
                             .frame(width: 50)

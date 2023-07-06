@@ -9,7 +9,7 @@ import SwiftUI
 struct AppSidebarItemView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var planet: MyPlanetModel
-    
+
     @State private var isShowingDeleteConfirmation = false
 
     var body: some View {
@@ -30,7 +30,18 @@ struct AppSidebarItemView: View {
                         PlanetStore.shared.isEditingPlanet = true
                     }
                 } label: {
-                    Text("Edit Planet")
+                    Text("Site Settings")
+                }
+
+                if let template = planet.template, template.hasSettings {
+                    Button {
+                        Task {
+                            PlanetStore.shared.selectedView = .myPlanet(planet)
+                            PlanetStore.shared.isConfiguringPlanetTemplate = true
+                        }
+                    } label: {
+                        Text("CPN Settings")
+                    }
                 }
 
                 Button {
@@ -38,7 +49,7 @@ struct AppSidebarItemView: View {
                         try await planet.publish()
                     }
                 } label: {
-                    Text(planet.isPublishing ? "Publishing" : "Publish Planet")
+                    Text(planet.isPublishing ? "Publishing" : "Publish Site")
                 }
                 .disabled(planet.isPublishing)
 
@@ -71,7 +82,7 @@ struct AppSidebarItemView: View {
 
                 Button {
                     if let url = planet.browserURL {
-                        debugPrint("My Planet Browser URL: \(url.absoluteString)")
+                        debugPrint("My Site Browser URL: \(url.absoluteString)")
                         NSWorkspace.shared.open(url)
                     }
                 } label: {
@@ -88,7 +99,7 @@ struct AppSidebarItemView: View {
 
                 Divider()
             }
-            
+
             Group {
                 Button {
                     let panel = NSOpenPanel()
@@ -105,26 +116,26 @@ struct AppSidebarItemView: View {
                         try planet.exportBackup(to: url)
                     } catch PlanetError.FileExistsError {
                         PlanetStore.shared.alert(
-                            title: "Failed to Export Planet",
+                            title: "Failed to Export Site",
                             message: """
-                                There is already an exported Planet in the destination. \
+                                There is already an exported Site in the destination. \
                                 We do not recommend override your backup. \
                                 Please choose another destination, or rename your previous backup.
                                 """
                         )
                     } catch {
-                        PlanetStore.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
+                        PlanetStore.shared.alert(title: "Failed to Export Site", message: "Please try again.")
                     }
                 } label: {
-                    Text("Export Planet")
+                    Text("Export Site")
                 }
-                
+
                 Divider()
 
                 Button {
                     isShowingDeleteConfirmation = true
                 } label: {
-                    Text("Delete Planet")
+                    Text("Delete Site")
                 }
             }
         }

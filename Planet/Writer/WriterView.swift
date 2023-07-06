@@ -7,7 +7,7 @@ struct WriterView: View {
     @ObservedObject var viewModel: WriterViewModel
     @FocusState var focusTitle: Bool
     let dragAndDrop: WriterDragAndDrop
-    
+
     @State private var videoPlayerHeight: CGFloat = 0
     @State private var audioPlayerHeight: CGFloat = 0
 
@@ -71,7 +71,7 @@ struct WriterView: View {
                 .onDrop(of: [.fileURL], delegate: dragAndDrop)
             }
         }
-        .frame(minWidth: 640, minHeight: 440 + videoPlayerHeight + audioPlayerHeight)
+        .frame(minWidth: 640, minHeight: 520 + videoPlayerHeight + audioPlayerHeight)
             .alert(
                 "This article has no title. Please enter the title before clicking send.",
                 isPresented: $viewModel.isShowingEmptyTitleAlert
