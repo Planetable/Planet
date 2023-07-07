@@ -11,7 +11,6 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
     static let shared = PlanetLiteAppDelegate()
     
     var appWindowController: AppWindowController?
-    var quickShareWindowController: PlanetQuickShareWindowController?
 
     lazy var applicationName: String = {
         if let bundleName = Bundle.main.object(forInfoDictionaryKey:"CFBundleName"), let bundleNameAsString = bundleName as? String {
