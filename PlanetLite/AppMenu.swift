@@ -332,7 +332,14 @@ extension PlanetLiteAppDelegate: FileMenuActions, WriterMenuActions {
     }
 
     func populateWindowMenu(_ menu: NSMenu) {
-        var title = NSLocalizedString("Minimize", comment: "Minimize menu item")
+        var title = NSLocalizedString("Close", comment:"Close menu item")
+        menu.addItem(
+            withTitle: title,
+            action: #selector(NSWindow.performClose(_:)),
+            keyEquivalent: "w"
+        )
+
+        title = NSLocalizedString("Minimize", comment: "Minimize menu item")
         menu.addItem(
             withTitle: title,
             action: #selector(NSWindow.performMiniaturize(_:)),
