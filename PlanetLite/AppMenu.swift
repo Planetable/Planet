@@ -66,8 +66,8 @@ extension PlanetLiteAppDelegate: FileMenuActions, WriterMenuActions {
         populateWriterMenu(submenu)
         mainMenu.setSubmenu(submenu, for: menuItem)
 
-        menuItem = mainMenu.addItem(withTitle:"Window", action:nil, keyEquivalent:"")
-        submenu = NSMenu(title:NSLocalizedString("Window", comment:"Window menu"))
+        menuItem = mainMenu.addItem(withTitle: "Window", action:nil, keyEquivalent: "")
+        submenu = NSMenu(title:NSLocalizedString("Window", comment: "Window menu"))
         populateWindowMenu(submenu)
         mainMenu.setSubmenu(submenu, for: menuItem)
         NSApp.windowsMenu = submenu
