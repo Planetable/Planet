@@ -176,7 +176,6 @@ struct PlanetQuickShareView: View {
     }
 
     private func dismissAction() {
-        NotificationCenter.default.post(name: .cancelQuickShare, object: nil)
         Task { @MainActor in
             PlanetStore.shared.isQuickSharing = false
             PlanetQuickShareViewModel.shared.cleanup()
