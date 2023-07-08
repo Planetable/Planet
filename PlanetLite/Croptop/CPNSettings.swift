@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CPNSettings: View {
-    let CONTROL_CAPTION_WIDTH: CGFloat = 130
+    let CONTROL_CAPTION_WIDTH: CGFloat = 170
     let CONTROL_ROW_SPACING: CGFloat = 8
 
     @Environment(\.dismiss) var dismiss
@@ -19,10 +19,24 @@ struct CPNSettings: View {
     @State private var currentSettings: [String: String] = [:]
     @State private var userSettings: [String: String] = [:]
 
+    @State private var settingKeys: [String] = [
+        "juiceboxProjectID",
+        "defaultNFTCategory",
+        "ethereumRPC",
+        "ethAddress",
+        "separator1",
+        "juiceboxProjectIDGoerli",
+        "defaultNFTCategoryGoerli",
+        "ethereumRPCGoerli",
+        "ethAddressGoerli",
+        "separator2",
+        "highlightColor",
+    ]
+
     init(planet: MyPlanetModel) {
         self.planet = planet
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 8) {
@@ -33,36 +47,43 @@ struct CPNSettings: View {
 
                 TabView {
                     VStack(spacing: CONTROL_ROW_SPACING) {
-                        if let template = planet.template, let settings = template.settings,
-                            let keys = Array(settings.keys) as? [String]
-                        {
-                            ForEach(keys.sorted(), id: \.self) { key in
-                                HStack {
-                                    HStack {
-                                        Text("\(settings[key]?.name ?? "Name")")
-                                        Spacer()
-                                    }
-                                    .frame(width: CONTROL_CAPTION_WIDTH)
-
-                                    TextField("", text: binding(key: key))
-                                        .textFieldStyle(.roundedBorder)
+                        if let template = planet.template, let settings = template.settings {
+                            ForEach(settingKeys, id: \.self) { key in
+                                if key.hasPrefix("separator") {
+                                    Divider()
+                                        .padding(.top, 6)
+                                        .padding(.bottom, 6)
                                 }
-
-                                if let description = settings[key]?.description {
+                                else {
                                     HStack {
                                         HStack {
+                                            Text("\(settings[key]?.name ?? "Name")")
                                             Spacer()
                                         }
-                                        .frame(width: CONTROL_CAPTION_WIDTH + 10)
+                                        .frame(width: CONTROL_CAPTION_WIDTH)
 
-                                        Text(
-                                            description
-                                        )
-                                        .font(.footnote)
-                                        .foregroundColor(.secondary)
-                                        .fixedSize(horizontal: false, vertical: true)
+                                        TextField("", text: binding(key: key))
+                                            .textFieldStyle(.roundedBorder)
+                                    }
 
-                                        Spacer()
+                                    if let description = settings[key]?.description,
+                                        description.count > 0
+                                    {
+                                        HStack {
+                                            HStack {
+                                                Spacer()
+                                            }
+                                            .frame(width: CONTROL_CAPTION_WIDTH + 10)
+
+                                            Text(
+                                                description
+                                            )
+                                            .font(.footnote)
+                                            .foregroundColor(.secondary)
+                                            .fixedSize(horizontal: false, vertical: true)
+
+                                            Spacer()
+                                        }
                                     }
                                 }
                             }
