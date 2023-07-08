@@ -52,9 +52,9 @@ struct AppContentView: View {
         .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
         .background(Color(NSColor.textBackgroundColor))
         .onDrop(of: [.image], delegate: dropDelegate) // TODO: Video and Audio support
-        .sheet(isPresented: $planetStore.isConfiguringPlanetTemplate) {
+        .sheet(isPresented: $planetStore.isConfiguringCPN) {
             if case .myPlanet(let planet) = planetStore.selectedView {
-                MyPlanetTemplateSettingsView(planet: planet)
+                CPNSettings(planet: planet)
             }
         }
     }

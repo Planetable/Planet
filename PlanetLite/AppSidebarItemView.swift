@@ -37,7 +37,7 @@ struct AppSidebarItemView: View {
                     Button {
                         Task {
                             PlanetStore.shared.selectedView = .myPlanet(planet)
-                            PlanetStore.shared.isConfiguringPlanetTemplate = true
+                            PlanetStore.shared.isConfiguringCPN = true
                         }
                     } label: {
                         Text("CPN Settings")
