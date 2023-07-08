@@ -21,6 +21,7 @@ struct PlanetQuickShareView: View {
             headerSection()
                 .padding(.top, 16)
                 .padding(.horizontal, 16)
+                .frame(height: 44)
 
             attachmentSection()
                 .frame(height: 180)
@@ -28,11 +29,11 @@ struct PlanetQuickShareView: View {
             articleContentSection()
                 .padding(.horizontal, 14)
 
-            Spacer(minLength: 1)
-
             footerSection()
-                .padding(.bottom, PlanetStore.shared.isQuickSharing ? 16 : -12)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
                 .padding(.horizontal, 16)
+                .frame(height: 42)
         }
     }
 
@@ -98,10 +99,11 @@ struct PlanetQuickShareView: View {
                 Spacer(minLength: 1)
             }
             .padding(.top, 2)
+            .padding(.bottom, 6)
+
             TextEditor(text: $viewModel.content)
                 .font(.system(size: 12, weight: .regular, design: .monospaced))
                 .disableAutocorrection(true)
-                .frame(height: 82)
                 .cornerRadius(6)
                 .padding(1)
                 .shadow(color: .secondary.opacity(0.75), radius: 0.5, x: 0, y: 0.5)
@@ -176,7 +178,6 @@ struct PlanetQuickShareView: View {
     }
 
     private func dismissAction() {
-        NotificationCenter.default.post(name: .cancelQuickShare, object: nil)
         Task { @MainActor in
             PlanetStore.shared.isQuickSharing = false
             PlanetQuickShareViewModel.shared.cleanup()

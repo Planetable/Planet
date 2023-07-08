@@ -26,9 +26,6 @@
 		2A2F70EE29670D1300755931 /* CLTextFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70ED29670D1300755931 /* CLTextFieldView.swift */; };
 		2A4164D429E64755009BFC24 /* PlanetQuickShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164D329E64755009BFC24 /* PlanetQuickShareView.swift */; };
 		2A4164D729E64878009BFC24 /* PlanetQuickShareViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164D629E64878009BFC24 /* PlanetQuickShareViewModel.swift */; };
-		2A4164D929E64887009BFC24 /* PlanetQuickShareWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164D829E64887009BFC24 /* PlanetQuickShareWindow.swift */; };
-		2A4164DB29E64896009BFC24 /* PlanetQuickShareWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164DA29E64896009BFC24 /* PlanetQuickShareWindowController.swift */; };
-		2A4164DD29E648D2009BFC24 /* PlanetQuickShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164DC29E648D2009BFC24 /* PlanetQuickShareViewController.swift */; };
 		2A4164DF29E64C97009BFC24 /* PlanetQuickShare+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164DE29E64C97009BFC24 /* PlanetQuickShare+Extension.swift */; };
 		2A441BAA27C34FCC0008A694 /* FollowingPlanetInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BA927C34FCC0008A694 /* FollowingPlanetInfoView.swift */; };
 		2A441BAC27C40AAC0008A694 /* WriterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A441BAB27C40AAC0008A694 /* WriterWindow.swift */; };
@@ -61,9 +58,6 @@
 		2A95E6402A18B21F001288B8 /* PlanetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211404DFC1B4D23F84EA279 /* PlanetError.swift */; };
 		2A95E6412A19A317001288B8 /* PlanetQuickShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164D329E64755009BFC24 /* PlanetQuickShareView.swift */; };
 		2A95E6422A19A31D001288B8 /* PlanetQuickShareViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164D629E64878009BFC24 /* PlanetQuickShareViewModel.swift */; };
-		2A95E6432A19A324001288B8 /* PlanetQuickShareWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164D829E64887009BFC24 /* PlanetQuickShareWindow.swift */; };
-		2A95E6442A19A32A001288B8 /* PlanetQuickShareWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164DA29E64896009BFC24 /* PlanetQuickShareWindowController.swift */; };
-		2A95E6452A19A331001288B8 /* PlanetQuickShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164DC29E648D2009BFC24 /* PlanetQuickShareViewController.swift */; };
 		2A95E6462A19A336001288B8 /* PlanetQuickShare+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164DE29E64C97009BFC24 /* PlanetQuickShare+Extension.swift */; };
 		2A95E6472A19A398001288B8 /* PFDashboardSidebarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973729496F730031E873 /* PFDashboardSidebarViewController.swift */; };
 		2A95E6482A19A398001288B8 /* PFDashboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973929496F730031E873 /* PFDashboardViewController.swift */; };
@@ -425,9 +419,6 @@
 		2A2F70ED29670D1300755931 /* CLTextFieldView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CLTextFieldView.swift; sourceTree = "<group>"; };
 		2A4164D329E64755009BFC24 /* PlanetQuickShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetQuickShareView.swift; sourceTree = "<group>"; };
 		2A4164D629E64878009BFC24 /* PlanetQuickShareViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetQuickShareViewModel.swift; sourceTree = "<group>"; };
-		2A4164D829E64887009BFC24 /* PlanetQuickShareWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetQuickShareWindow.swift; sourceTree = "<group>"; };
-		2A4164DA29E64896009BFC24 /* PlanetQuickShareWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetQuickShareWindowController.swift; sourceTree = "<group>"; };
-		2A4164DC29E648D2009BFC24 /* PlanetQuickShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetQuickShareViewController.swift; sourceTree = "<group>"; };
 		2A4164DE29E64C97009BFC24 /* PlanetQuickShare+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlanetQuickShare+Extension.swift"; sourceTree = "<group>"; };
 		2A43EBA1283FC7A200501018 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		2A441BA927C34FCC0008A694 /* FollowingPlanetInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowingPlanetInfoView.swift; sourceTree = "<group>"; };
@@ -720,9 +711,6 @@
 			children = (
 				2A4164D329E64755009BFC24 /* PlanetQuickShareView.swift */,
 				2A4164D629E64878009BFC24 /* PlanetQuickShareViewModel.swift */,
-				2A4164D829E64887009BFC24 /* PlanetQuickShareWindow.swift */,
-				2A4164DA29E64896009BFC24 /* PlanetQuickShareWindowController.swift */,
-				2A4164DC29E648D2009BFC24 /* PlanetQuickShareViewController.swift */,
 				2A4164DE29E64C97009BFC24 /* PlanetQuickShare+Extension.swift */,
 			);
 			path = "Quick Share";
@@ -1397,7 +1385,6 @@
 				2A95E6542A19A39C001288B8 /* PlanetPublishedFolders+Extension.swift in Sources */,
 				2A95E6532A19A39C001288B8 /* PlanetPublishedServiceStore.swift in Sources */,
 				2A95E6972A19A437001288B8 /* IPFSState.swift in Sources */,
-				2A95E6432A19A324001288B8 /* PlanetQuickShareWindow.swift in Sources */,
 				2A95E64E2A19A398001288B8 /* PFDashboardContainerViewController.swift in Sources */,
 				2A95E65A2A19A3A2001288B8 /* WalletConnectV2QRCodeView.swift in Sources */,
 				2A95E6952A19A437001288B8 /* IPFSDaemon.swift in Sources */,
@@ -1449,11 +1436,9 @@
 				2A996AD22A1DA64800BEF898 /* PlanetAppDelegate.swift in Sources */,
 				2A6E16DE2A1875CA00704A08 /* AppWindowController.swift in Sources */,
 				2ABD1CD12A1617300082D7EA /* main.swift in Sources */,
-				2A95E6452A19A331001288B8 /* PlanetQuickShareViewController.swift in Sources */,
 				2A95E6A12A19A446001288B8 /* FollowingArticleModel.swift in Sources */,
 				2A95E6402A18B21F001288B8 /* PlanetError.swift in Sources */,
 				2A95E6642A19A3AA001288B8 /* TemplateBrowserView.swift in Sources */,
-				2A95E6442A19A32A001288B8 /* PlanetQuickShareWindowController.swift in Sources */,
 				2A95E6822A19A3CA001288B8 /* WriterViewModel.swift in Sources */,
 				2A95E6422A19A31D001288B8 /* PlanetQuickShareViewModel.swift in Sources */,
 				2A95E6872A19A3CA001288B8 /* WriterTitleView.swift in Sources */,
@@ -1595,7 +1580,6 @@
 				2A9B09A3294F066B0002719C /* PFDashboardWebView.swift in Sources */,
 				2A2556B8293E1F13006462D8 /* TBContainerViewController.swift in Sources */,
 				721146E58D1D1E45CF92E17A /* IPFSAPIModel.swift in Sources */,
-				2A4164D929E64887009BFC24 /* PlanetQuickShareWindow.swift in Sources */,
 				6A373A3C28E8178500750256 /* MyPlanetCustomCodeView.swift in Sources */,
 				72114B6486572E7F6AF5AC62 /* LoadingIndicatorView.swift in Sources */,
 				7211479EB744642D1895087E /* SharingServicePicker.swift in Sources */,
@@ -1615,7 +1599,6 @@
 				72114A65C35BF78B1A4B7D81 /* DraftModel.swift in Sources */,
 				2AE44EA928CD214800944786 /* PlanetSettingsView.swift in Sources */,
 				2A79FB2C2898184100F06DDF /* PlanetDownloadModel.swift in Sources */,
-				2A4164DD29E648D2009BFC24 /* PlanetQuickShareViewController.swift in Sources */,
 				2A4164D729E64878009BFC24 /* PlanetQuickShareViewModel.swift in Sources */,
 				6AC01AF0291ECC7E00EB6B5F /* WalletAccountView.swift in Sources */,
 				721145603D528B27CC6091D1 /* WriterDragAndDrop.swift in Sources */,
@@ -1626,7 +1609,6 @@
 				2A7022F62897E00600022F13 /* PlanetDownloadsViewModel.swift in Sources */,
 				72114683927B9B11EFE02DD4 /* OnboardingView.swift in Sources */,
 				72114717FB02C931CE9E08E9 /* MyPlanetSidebarItem.swift in Sources */,
-				2A4164DB29E64896009BFC24 /* PlanetQuickShareWindowController.swift in Sources */,
 				6AB6E4FB2915227600F17328 /* WalletManager.swift in Sources */,
 				2A7022F22897DF4600022F13 /* PlanetDownloadsWindow.swift in Sources */,
 				72114AFCB4EDB617C07192BB /* FollowingPlanetSidebarItem.swift in Sources */,

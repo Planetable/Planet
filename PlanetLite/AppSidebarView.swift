@@ -87,7 +87,8 @@ struct AppSidebarView: View {
         }
         .sheet(isPresented: $planetStore.isQuickSharing) {
             PlanetQuickShareView()
-                .frame(width: .sheetWidth, height: .sheetHeight + 28)
+                .frame(width: .sheetWidth)
+                .frame(minHeight: .sheetHeight)
         }
         .onReceive(NotificationCenter.default.publisher(for: .publishMyPlanet)) {
             aNotification in

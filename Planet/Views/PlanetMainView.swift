@@ -96,7 +96,8 @@ struct PlanetMainView: View {
         }
         .sheet(isPresented: $planetStore.isQuickSharing) {
             PlanetQuickShareView()
-                .frame(width: .sheetWidth, height: .sheetHeight + 28)
+                .frame(width: .sheetWidth)
+                .frame(minHeight: .sheetHeight)
         }
         .confirmationDialog(
             Text("Are you sure you want to disconnect?"),

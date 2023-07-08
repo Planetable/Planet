@@ -10,7 +10,7 @@ import Foundation
 
 extension CGFloat {
     static let sheetWidth: CGFloat = 480
-    static let sheetHeight: CGFloat = 380
+    static let sheetHeight: CGFloat = 400
 }
 
 
@@ -20,6 +20,5 @@ extension String {
 
 
 extension Notification.Name {
-    static let cancelQuickShare = Notification.Name("PlanetQuickShareCancelNotification")
     static let updatePlanetLiteWindowTitles = Notification.Name("PlanetLiteUpdateWindowTitlesNotification")
 }
