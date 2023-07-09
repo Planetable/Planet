@@ -27,7 +27,7 @@ struct AppContentView: View {
                 Button {
                     planetStore.isCreatingPlanet = true
                 } label: {
-                    Text("Create First Planet")
+                    Text("Create First Site")
                 }
                 .disabled(planetStore.isCreatingPlanet)
                 Text("Learn more about [Croptop](https://croptop.eth.limo)")
