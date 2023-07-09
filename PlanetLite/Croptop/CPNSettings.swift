@@ -20,15 +20,15 @@ struct CPNSettings: View {
     @State private var userSettings: [String: String] = [:]
 
     @State private var settingKeys: [String] = [
-        "juiceboxProjectID",
-        "defaultNFTCategory",
-        "ethereumRPC",
-        "ethAddress",
+        "mainnetCollectionID",
+        "mainnetCollectionCategory",
+        "mainnetRPC",
+        "mainnetCPNBeneficiaryAddress",
         "separator1",
-        "juiceboxProjectIDGoerli",
-        "defaultNFTCategoryGoerli",
-        "ethereumRPCGoerli",
-        "ethAddressGoerli",
+        "goerliCollectionID",
+        "goerliCollectionCategory",
+        "goerliRPC",
+        "goerliCPNBeneficiaryAddress",
         "separator2",
         "highlightColor",
     ]
@@ -57,7 +57,7 @@ struct CPNSettings: View {
                                 else {
                                     HStack {
                                         HStack {
-                                            Text("\(settings[key]?.name ?? "Name")")
+                                            Text("\(settings[key]?.name ?? key)")
                                             Spacer()
                                         }
                                         .frame(width: CONTROL_CAPTION_WIDTH)
