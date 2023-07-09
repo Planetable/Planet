@@ -26,6 +26,17 @@ struct AppSidebarItemView: View {
             Group {
                 Button {
                     Task {
+                        try await planet.publish()
+                    }
+                } label: {
+                    Text(planet.isPublishing ? "Publishing" : "Publish Site")
+                }
+                .disabled(planet.isPublishing)
+
+                Divider()
+
+                Button {
+                    Task {
                         PlanetStore.shared.selectedView = .myPlanet(planet)
                         PlanetStore.shared.isEditingPlanet = true
                     }
@@ -44,33 +55,10 @@ struct AppSidebarItemView: View {
                     }
                 }
 
-                Button {
-                    Task {
-                        try await planet.publish()
-                    }
-                } label: {
-                    Text(planet.isPublishing ? "Publishing" : "Publish Site")
-                }
-                .disabled(planet.isPublishing)
-
                 Divider()
             }
 
             Group {
-                Button {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString("planet://\(planet.ipns)", forType: .string)
-                } label: {
-                    Text("Copy URL")
-                }
-
-                Button {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(planet.ipns, forType: .string)
-                } label: {
-                    Text("Copy IPNS")
-                }
-
                 Button {
                     Task {
                         PlanetStore.shared.selectedView = .myPlanet(planet)

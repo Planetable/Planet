@@ -48,7 +48,7 @@ struct MyPlanetTemplateSettingsView: View {
                                         .textFieldStyle(.roundedBorder)
                                 }
 
-                                if let description = settings[key]?.description {
+                                if let description = settings[key]?.description, description.count > 0 {
                                     HStack {
                                         HStack {
                                             Spacer()
