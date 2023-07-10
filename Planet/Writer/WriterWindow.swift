@@ -32,16 +32,12 @@ class WriterWindow: NSWindow {
         self.makeKeyAndOrderFront(nil)
         // MARK: TODO: Add a offset if there's an opened writer window in the center.
     }
-    
+
     deinit {
         debugPrint("WriterWindow deinit.")
     }
 
     @objc func send(_ sender: Any?) {
-        if draft.title.isEmpty {
-            viewModel.isShowingEmptyTitleAlert = true
-            return
-        }
         do {
             try draft.saveToArticle()
             Task { @MainActor in
