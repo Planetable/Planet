@@ -57,6 +57,11 @@ struct AppContentView: View {
                 CPNSettings(planet: planet)
             }
         }
+        .sheet(isPresented: $planetStore.isShowingPlanetIPNS) {
+            if case .myPlanet(let planet) = planetStore.selectedView {
+                MyPlanetIPNSView(planet: planet)
+            }
+        }
     }
 }
 
