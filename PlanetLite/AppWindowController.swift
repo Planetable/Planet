@@ -111,7 +111,7 @@ extension AppWindowController {
             picker.show(relativeTo: itemView.bounds, of: itemView, preferredEdge: .minY)
         }
     }
-    
+
     func copyURL() {
         if case .myPlanet(let planet) = PlanetStore.shared.selectedView {
             NSPasteboard.general.clearContents()
@@ -175,7 +175,7 @@ extension AppWindowController: NSSharingServicePickerDelegate {
         share.insert(copyService, at: 0)
         return share
     }
-    
+
     func sharingServicePicker(_ sharingServicePicker: NSSharingServicePicker, didChoose service: NSSharingService?) {
         sharingServicePicker.delegate = nil
     }
@@ -298,12 +298,14 @@ extension AppWindowController: NSToolbarDelegate {
 extension AppWindowController {
     func actionItemMenu() -> NSMenu {
         let menu = NSMenu()
-        
+
+        /*
         let copyURLItem = NSMenuItem(title: "Copy URL", action: #selector(self.toolbarItemAction(_:)), keyEquivalent: "")
         copyURLItem.identifier = .copyURLItem
         copyURLItem.target = self
         menu.addItem(copyURLItem)
-        
+        */
+
         let copyIPNSItem = NSMenuItem(title: "Copy IPNS", action: #selector(self.toolbarItemAction(_:)), keyEquivalent: "")
         copyIPNSItem.identifier = .copyIPNSItem
         copyIPNSItem.target = self

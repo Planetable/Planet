@@ -72,12 +72,6 @@ struct WriterView: View {
             }
         }
         .frame(minWidth: 640, minHeight: 520 + videoPlayerHeight + audioPlayerHeight)
-            .alert(
-                "This article has no title. Please enter the title before clicking send.",
-                isPresented: $viewModel.isShowingEmptyTitleAlert
-            ) {
-                Button("OK", role: .cancel) { }
-            }
             .onChange(of: draft.date) { _ in
                 try? draft.save()
             }

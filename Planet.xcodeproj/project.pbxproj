@@ -325,6 +325,7 @@
 		6ADD7D892A51B616003D2E54 /* MyArticleModel+Save.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADD7D872A51B616003D2E54 /* MyArticleModel+Save.swift */; };
 		6ADF40B92914D88C007A24E8 /* MyPlanetIPNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */; };
 		6ADF40C429151407007A24E8 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 6ADF40C329151407007A24E8 /* Starscream */; };
+		6AE096BF2A5CC35700A2BECB /* MyPlanetIPNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */; };
 		6AE93656290CB10700BAC092 /* PlanetSettingsPlanetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */; };
 		7211413A9B3CC77620629D22 /* ViewUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143C73AEAD5F0C049DF86 /* ViewUtils.swift */; };
 		7211421E15A5A630DF93A519 /* MyPlanetInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D264DD084A74B49BF8 /* MyPlanetInfoView.swift */; };
@@ -1420,6 +1421,7 @@
 				2A996AD72A1DA6CA00BEF898 /* PlanetDownloadsWindow.swift in Sources */,
 				2A95E67B2A19A3C4001288B8 /* Updater.swift in Sources */,
 				2A95E6902A19A3D0001288B8 /* PlanetKeyManagerView.swift in Sources */,
+				6AE096BF2A5CC35700A2BECB /* MyPlanetIPNSView.swift in Sources */,
 				2A95E6892A19A3CA001288B8 /* WriterVideoView.swift in Sources */,
 				2A996AD92A1DA6CF00BEF898 /* PlanetDownloadModel.swift in Sources */,
 				2A95E6E52A19A64F001288B8 /* HelpLinkButton.swift in Sources */,

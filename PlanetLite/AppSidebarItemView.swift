@@ -16,7 +16,7 @@ struct AppSidebarItemView: View {
         HStack(spacing: 4) {
             planet.avatarView(size: 24)
             Text(planet.name)
-                .font(.body)
+                .font(.custom("Capsules", size: 14, relativeTo: .body))
                 .foregroundColor(.primary)
             Spacer()
             LoadingIndicatorView()
@@ -69,20 +69,11 @@ struct AppSidebarItemView: View {
                 }
 
                 Button {
-                    if let url = planet.browserURL {
-                        debugPrint("My Site Browser URL: \(url.absoluteString)")
-                        NSWorkspace.shared.open(url)
-                    }
-                } label: {
-                    Text("Open in Public Gateway")
-                }
-
-                Button {
                     if let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(planet.ipns)") {
                         NSWorkspace.shared.open(url)
                     }
                 } label: {
-                    Text("Open in Local Gateway")
+                    Text("Test Site in Local Gateway")
                 }
 
                 Divider()

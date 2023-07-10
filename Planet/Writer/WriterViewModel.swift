@@ -7,7 +7,6 @@ import UniformTypeIdentifiers
     @Published var allowedContentTypes: [UTType] = []
     @Published var allowMultipleSelection = false
     @Published var isMediaTrayOpen = false
-    @Published var isShowingEmptyTitleAlert = false
     @Published var isShowingDiscardConfirmation = false
     @Published var madeDiscardChoice = false
 
