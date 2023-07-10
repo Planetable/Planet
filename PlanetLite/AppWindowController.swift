@@ -55,20 +55,30 @@ class AppWindowController: NSWindowController {
     }
 
     @objc func toolbarItemAction(_ sender: Any) {
-        guard let item = sender as? NSToolbarItem else { return }
-        switch item.itemIdentifier {
-        case .sidebarItem:
-            if let vc = self.window?.contentViewController as? AppContainerViewController {
-                vc.toggleSidebar(sender)
+        if let item = sender as? NSMenuItem, let identifier = item.identifier {
+            switch identifier {
+            case .copyURLItem:
+                copyURL()
+            case .copyIPNSItem:
+                copyIPNS()
+            default:
+                break
             }
-        case .addItem:
-            newArticle()
-        case .showInfoItem:
-            showPlanetInfo()
-        case .shareItem:
-            sharePlanet(sender)
-        default:
-            break
+        } else if let item = sender as? NSToolbarItem {
+            switch item.itemIdentifier {
+            case .sidebarItem:
+                if let vc = self.window?.contentViewController as? AppContainerViewController {
+                    vc.toggleSidebar(sender)
+                }
+            case .addItem:
+                newArticle()
+            case .showInfoItem:
+                showPlanetInfo()
+            case .shareItem:
+                sharePlanet(sender)
+            default:
+                break
+            }
         }
     }
 }
@@ -101,6 +111,20 @@ extension AppWindowController {
             picker.show(relativeTo: itemView.bounds, of: itemView, preferredEdge: .minY)
         }
     }
+    
+    func copyURL() {
+        if case .myPlanet(let planet) = PlanetStore.shared.selectedView {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString("planet://\(planet.ipns)", forType: .string)
+        }
+    }
+
+    func copyIPNS() {
+        if case .myPlanet(let planet) = PlanetStore.shared.selectedView {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(planet.ipns, forType: .string)
+        }
+    }
 }
 
 
@@ -120,6 +144,11 @@ extension AppWindowController: NSToolbarItemValidation {
             }
             return false
         case .shareItem:
+            if case .myPlanet(_) = PlanetStore.shared.selectedView {
+                return true
+            }
+            return false
+        case .actionItem:
             if case .myPlanet(_) = PlanetStore.shared.selectedView {
                 return true
             }
@@ -203,6 +232,16 @@ extension AppWindowController: NSToolbarDelegate {
             item.isBordered = true
             item.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
             return item
+        case .actionItem:
+            let item = NSMenuToolbarItem(itemIdentifier: itemIdentifier)
+            item.menu = self.actionItemMenu()
+            item.showsIndicator = true
+            item.image = NSImage(systemSymbolName: "ellipsis.circle", accessibilityDescription: "Action")
+            item.isBordered = true
+            item.toolTip = "Action"
+            item.label = "Action"
+            item.paletteLabel = "Action"
+            return item
         default:
             return nil
         }
@@ -214,9 +253,10 @@ extension AppWindowController: NSToolbarDelegate {
             .sidebarItem,
             .sidebarSeparatorItem,
             .flexibleSpace,
+            .actionItem,
+            .shareItem,
             .showInfoItem,
-            .addItem,
-            .shareItem
+            .addItem
         ]
     }
 
@@ -226,6 +266,7 @@ extension AppWindowController: NSToolbarDelegate {
             .sidebarItem,
             .sidebarSeparatorItem,
             .flexibleSpace,
+            .actionItem,
             .shareItem,
             .showInfoItem,
             .addItem
@@ -236,9 +277,10 @@ extension AppWindowController: NSToolbarDelegate {
         return [
             .sidebarItem,
             .sidebarSeparatorItem,
+            .actionItem,
+            .shareItem,
             .showInfoItem,
-            .addItem,
-            .shareItem
+            .addItem
         ]
     }
 
@@ -253,6 +295,25 @@ extension AppWindowController: NSToolbarDelegate {
 }
 
 
+extension AppWindowController {
+    func actionItemMenu() -> NSMenu {
+        let menu = NSMenu()
+        
+        let copyURLItem = NSMenuItem(title: "Copy URL", action: #selector(self.toolbarItemAction(_:)), keyEquivalent: "")
+        copyURLItem.identifier = .copyURLItem
+        copyURLItem.target = self
+        menu.addItem(copyURLItem)
+        
+        let copyIPNSItem = NSMenuItem(title: "Copy IPNS", action: #selector(self.toolbarItemAction(_:)), keyEquivalent: "")
+        copyIPNSItem.identifier = .copyIPNSItem
+        copyIPNSItem.target = self
+        menu.addItem(copyIPNSItem)
+
+        return menu
+    }
+}
+
+
 extension NSToolbar.Identifier {
     static let toolbarIdentifier = NSToolbar.Identifier("PlanetLiteWindowToolbar")
 }
@@ -264,4 +325,11 @@ extension NSToolbarItem.Identifier {
     static let addItem = NSToolbarItem.Identifier("PlanetLiteToolbarAddItem")
     static let showInfoItem = NSToolbarItem.Identifier("PlanetLiteToolbarShowInfoItem")
     static let shareItem = NSToolbarItem.Identifier("PlanetLiteToolbarShareItem")
+    static let actionItem = NSToolbarItem.Identifier("PlanetLiteToolbarActionItem")
+}
+
+
+extension NSUserInterfaceItemIdentifier {
+    static let copyURLItem = NSUserInterfaceItemIdentifier("PlanetLiteToolbarMenuCopyURLItem")
+    static let copyIPNSItem = NSUserInterfaceItemIdentifier("PlanetLiteToolbarMenuCopyIPNSItem")
 }
