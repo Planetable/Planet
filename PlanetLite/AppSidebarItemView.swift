@@ -73,7 +73,7 @@ struct AppSidebarItemView: View {
                         NSWorkspace.shared.open(url)
                     }
                 } label: {
-                    Text("Test Site in Local Gateway")
+                    Text("Test Site in Browser")
                 }
 
                 Divider()
