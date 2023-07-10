@@ -57,6 +57,8 @@ class AppWindowController: NSWindowController {
     @objc func toolbarItemAction(_ sender: Any) {
         if let item = sender as? NSMenuItem, let identifier = item.identifier {
             switch identifier {
+            case .copyURLItem:
+                copyURL()
             case .copyIPNSItem:
                 copyIPNS()
             default:
@@ -109,11 +111,18 @@ extension AppWindowController {
             picker.show(relativeTo: itemView.bounds, of: itemView, preferredEdge: .minY)
         }
     }
+    
+    func copyURL() {
+        if case .myPlanet(let planet) = PlanetStore.shared.selectedView {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString("planet://\(planet.ipns)", forType: .string)
+        }
+    }
 
     func copyIPNS() {
         if case .myPlanet(let planet) = PlanetStore.shared.selectedView {
             NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString("planet://\(planet.ipns)", forType: .string)
+            NSPasteboard.general.setString(planet.ipns, forType: .string)
         }
     }
 }
@@ -290,6 +299,11 @@ extension AppWindowController {
     func actionItemMenu() -> NSMenu {
         let menu = NSMenu()
         
+        let copyURLItem = NSMenuItem(title: "Copy URL", action: #selector(self.toolbarItemAction(_:)), keyEquivalent: "")
+        copyURLItem.identifier = .copyURLItem
+        copyURLItem.target = self
+        menu.addItem(copyURLItem)
+        
         let copyIPNSItem = NSMenuItem(title: "Copy IPNS", action: #selector(self.toolbarItemAction(_:)), keyEquivalent: "")
         copyIPNSItem.identifier = .copyIPNSItem
         copyIPNSItem.target = self
@@ -316,5 +330,6 @@ extension NSToolbarItem.Identifier {
 
 
 extension NSUserInterfaceItemIdentifier {
+    static let copyURLItem = NSUserInterfaceItemIdentifier("PlanetLiteToolbarMenuCopyURLItem")
     static let copyIPNSItem = NSUserInterfaceItemIdentifier("PlanetLiteToolbarMenuCopyIPNSItem")
 }
