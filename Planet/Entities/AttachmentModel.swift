@@ -57,7 +57,12 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
                 let imageRep = im.representations.first as? NSBitmapImageRep
                 let width = imageRep?.pixelsWide ?? 0
                 let height = imageRep?.pixelsHigh ?? 0
-                return "<img width=\"\(Int(width))\" alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
+                if Int(width) > 0 {
+                    return "<img width=\"\(Int(width))\" alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
+                } else {
+                    return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
+                }
+                
             }
             return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
         case .file:
