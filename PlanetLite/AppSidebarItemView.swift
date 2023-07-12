@@ -60,6 +60,15 @@ struct AppSidebarItemView: View {
 
             Group {
                 Button {
+                    NSPasteboard.general.clearContents()
+                    if let url = planet.browserURL {
+                        NSPasteboard.general.setString(url.absoluteString, forType: .string)
+                    }
+                } label: {
+                    Text("Copy Shareable Link")
+                }
+
+                Button {
                     Task {
                         PlanetStore.shared.selectedView = .myPlanet(planet)
                         PlanetStore.shared.isShowingPlanetIPNS = true
