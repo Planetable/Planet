@@ -30,15 +30,7 @@ struct AppContentItemMenuView: View {
                         NSPasteboard.general.setString(url.absoluteString, forType: .string)
                     }
                 } label: {
-                    Text("Copy Link")
-                }
-
-                Button {
-                    if let url = article.browserURL {
-                        NSWorkspace.shared.open(url)
-                    }
-                } label: {
-                    Text("Open in Public Gateway")
+                    Text("Copy Shareable Link")
                 }
 
                 Button {
@@ -46,7 +38,7 @@ struct AppContentItemMenuView: View {
                         NSWorkspace.shared.open(url)
                     }
                 } label: {
-                    Text("Open in Local Gateway")
+                    Text("Test Post in Browser")
                 }
 
                 Divider()

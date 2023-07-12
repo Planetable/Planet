@@ -138,6 +138,60 @@ struct MyPlanetEditView: View {
     }
 
     @ViewBuilder
+    private func socialTab() -> some View {
+        VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
+            HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
+                HStack {
+                    Spacer()
+                    Text("Mastodon:")
+                }
+                .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
+
+                TextField("", text: $mastodonUsername)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
+                HStack {
+                    Spacer()
+                    Text("Twitter:")
+                }
+                .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
+
+                TextField("", text: $twitterUsername)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
+                HStack {
+                    Spacer()
+                    Text("GitHub:")
+                }
+                .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
+
+                TextField("", text: $githubUsername)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
+                HStack {
+                    Spacer()
+                    Text("Telegram:")
+                }
+                .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
+
+                TextField("", text: $telegramUsername)
+                    .textFieldStyle(.roundedBorder)
+            }
+        }
+        .padding(16)
+        .tabItem {
+            Text("Social")
+        }
+        .tag("social")
+    }
+
+    @ViewBuilder
     private func pinnableView() -> some View {
         HStack {
             HStack {
@@ -485,58 +539,8 @@ struct MyPlanetEditView: View {
 
                     if planetStore.app == .planet {
                         analyticsTab()
+                        socialTab()
                     }
-
-                    VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
-                        HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
-                            HStack {
-                                Spacer()
-                                Text("Mastodon:")
-                            }
-                            .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
-
-                            TextField("", text: $mastodonUsername)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
-                        HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
-                            HStack {
-                                Spacer()
-                                Text("Twitter:")
-                            }
-                            .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
-
-                            TextField("", text: $twitterUsername)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
-                        HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
-                            HStack {
-                                Spacer()
-                                Text("GitHub:")
-                            }
-                            .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
-
-                            TextField("", text: $githubUsername)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
-                        HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
-                            HStack {
-                                Spacer()
-                                Text("Telegram:")
-                            }
-                            .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
-
-                            TextField("", text: $telegramUsername)
-                                .textFieldStyle(.roundedBorder)
-                        }
-                    }
-                    .padding(16)
-                    .tabItem {
-                        Text("Social")
-                    }
-                    .tag("social")
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         pinnableView()
