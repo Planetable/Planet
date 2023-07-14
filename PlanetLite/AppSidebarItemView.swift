@@ -5,12 +5,136 @@
 
 import SwiftUI
 
-
 struct AppSidebarItemView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var planet: MyPlanetModel
 
     @State private var isShowingDeleteConfirmation = false
+
+    private func hasWorldWideWeb() -> Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.iconfactory.WorldWideWeb")
+            != nil
+    }
+
+    private func openWorldWideWeb(_ path: URL) {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(
+                withBundleIdentifier: "com.iconfactory.WorldWideWeb"
+            )
+        else { return }
+
+        let url = URL(fileURLWithPath: path.path)
+        NSWorkspace.shared.open(
+            [url],
+            withApplicationAt: appUrl,
+            configuration: self.openConfiguration(),
+            completionHandler: nil
+        )
+    }
+
+    private func openConfiguration() -> NSWorkspace.OpenConfiguration {
+        let conf = NSWorkspace.OpenConfiguration()
+        conf.hidesOthers = false
+        conf.hides = false
+        conf.activates = true
+        return conf
+    }
+
+    private func revealTemplateInFinder(_ template: Template) {
+        let url = URL(fileURLWithPath: template.path.path)
+        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path)
+    }
+
+    private func openTemplateInTerminal(_ template: Template) {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(
+                withBundleIdentifier: "com.apple.Terminal"
+            )
+        else { return }
+
+        let url = URL(fileURLWithPath: template.path.path)
+
+        NSWorkspace.shared.open(
+            [url],
+            withApplicationAt: appUrl,
+            configuration: self.openConfiguration(),
+            completionHandler: nil
+        )
+    }
+
+    private func hasVSCode() -> Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.microsoft.VSCode") != nil
+    }
+
+    private func openVSCode(_ template: Template) {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(
+                withBundleIdentifier: "com.microsoft.VSCode"
+            )
+        else { return }
+
+        let url = URL(fileURLWithPath: template.path.path)
+        NSWorkspace.shared.open(
+            [url],
+            withApplicationAt: appUrl,
+            configuration: self.openConfiguration(),
+            completionHandler: nil
+        )
+    }
+
+    @ViewBuilder
+    private func devFeatures() -> some View {
+        Group {
+            Button {
+                do {
+                    Task(priority: .background) {
+                        try await planet.rebuild()
+                    }
+                }
+                catch {
+                    Task { @MainActor in
+                        self.planetStore.isShowingAlert = true
+                        self.planetStore.alertTitle = "Failed to Rebuild Planet"
+                        self.planetStore.alertMessage = error.localizedDescription
+                    }
+                }
+            } label: {
+                Text("Rebuild Site")
+            }
+
+            if hasWorldWideWeb() {
+                Button {
+                    openWorldWideWeb(planet.publicBasePath)
+                } label: {
+                    Text("Open Site in WorldWideWeb Server")
+                }
+            }
+
+            if let template = planet.template {
+                Button(action: {
+                    revealTemplateInFinder(template)
+                }) {
+                    Text("Reveal Template in Finder")
+                }
+
+                Button(action: {
+                    openTemplateInTerminal(template)
+                }) {
+                    Text("Open Template in Terminal")
+                }
+
+                if hasVSCode() {
+                    Button {
+                        openVSCode(template)
+                    } label: {
+                        Text("Open Template in VSCode")
+                    }
+                }
+            }
+
+            Divider()
+        }
+    }
 
     var body: some View {
         HStack(spacing: 4) {
@@ -58,6 +182,10 @@ struct AppSidebarItemView: View {
                 Divider()
             }
 
+            if let devMode = UserDefaults.standard.string(forKey: "CroptopDevMode") {
+                devFeatures()
+            }
+
             Group {
                 Button {
                     NSPasteboard.general.clearContents()
@@ -102,7 +230,8 @@ struct AppSidebarItemView: View {
                     guard response == .OK, let url = panel.url else { return }
                     do {
                         try planet.exportBackup(to: url)
-                    } catch PlanetError.FileExistsError {
+                    }
+                    catch PlanetError.FileExistsError {
                         PlanetStore.shared.alert(
                             title: "Failed to Export Site",
                             message: """
@@ -111,8 +240,12 @@ struct AppSidebarItemView: View {
                                 Please choose another destination, or rename your previous backup.
                                 """
                         )
-                    } catch {
-                        PlanetStore.shared.alert(title: "Failed to Export Site", message: "Please try again.")
+                    }
+                    catch {
+                        PlanetStore.shared.alert(
+                            title: "Failed to Export Site",
+                            message: "Please try again."
+                        )
                     }
                 } label: {
                     Text("Export Site")
