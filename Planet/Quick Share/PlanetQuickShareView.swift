@@ -72,19 +72,16 @@ struct PlanetQuickShareView: View {
                     .foregroundColor(.secondary)
             }
         } else {
-            GeometryReader { g in
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(alignment: .center) {
-                        ForEach(viewModel.fileURLs, id: \.self) { url in
-                            if let img = NSImage(contentsOf: url) {
-                                Image(nsImage: img)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 180, height: 180)
-                            }
+            ScrollView(.horizontal) {
+                LazyHStack(alignment: .center) {
+                    ForEach(viewModel.fileURLs, id: \.self) { url in
+                        if let img = NSImage(contentsOf: url) {
+                            Image(nsImage: img)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 180, height: 180)
                         }
                     }
-                    .frame(width: g.size.width)
                 }
             }
         }
