@@ -34,6 +34,14 @@ struct AppContentItemMenuView: View {
                 }
 
                 Button {
+                    if let url = article.browserURL {
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Text("Open Shareable Link in Browser")
+                }
+
+                Button {
                     if let url = article.localGatewayURL {
                         NSWorkspace.shared.open(url)
                     }

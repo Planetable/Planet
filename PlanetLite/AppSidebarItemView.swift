@@ -11,6 +11,8 @@ struct AppSidebarItemView: View {
 
     @State private var isShowingDeleteConfirmation = false
 
+    // TODO: Some duplicated code here, needs to be refactored
+
     private func hasWorldWideWeb() -> Bool {
         NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.iconfactory.WorldWideWeb")
             != nil
@@ -99,6 +101,7 @@ struct AppSidebarItemView: View {
                     }
                 }
             } label: {
+                Image(systemName: "goforward")
                 Text("Rebuild Site")
             }
 
@@ -106,6 +109,7 @@ struct AppSidebarItemView: View {
                 Button {
                     openWorldWideWeb(planet.publicBasePath)
                 } label: {
+                    Image(systemName: "globe")
                     Text("Open Site in WorldWideWeb Server")
                 }
             }
@@ -114,12 +118,14 @@ struct AppSidebarItemView: View {
                 Button(action: {
                     revealTemplateInFinder(template)
                 }) {
+                    Image(systemName: "folder")
                     Text("Reveal Template in Finder")
                 }
 
                 Button(action: {
                     openTemplateInTerminal(template)
                 }) {
+                    Image(systemName: "terminal.fill")
                     Text("Open Template in Terminal")
                 }
 
@@ -127,6 +133,7 @@ struct AppSidebarItemView: View {
                     Button {
                         openVSCode(template)
                     } label: {
+                        Image(systemName: "curlybraces")
                         Text("Open Template in VSCode")
                     }
                 }
@@ -188,12 +195,20 @@ struct AppSidebarItemView: View {
 
             Group {
                 Button {
-                    NSPasteboard.general.clearContents()
                     if let url = planet.browserURL {
+                        NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(url.absoluteString, forType: .string)
                     }
                 } label: {
                     Text("Copy Shareable Link")
+                }
+
+                Button {
+                    if let url = planet.browserURL {
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Text("Open Shareable Link in Browser")
                 }
 
                 Button {
