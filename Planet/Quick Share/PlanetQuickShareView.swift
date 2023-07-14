@@ -72,7 +72,7 @@ struct PlanetQuickShareView: View {
                     .foregroundColor(.secondary)
             }
         } else {
-            ScrollView(.horizontal, showsIndicators: false) {
+            ScrollView(.horizontal) {
                 LazyHStack(alignment: .center) {
                     ForEach(viewModel.fileURLs, id: \.self) { url in
                         if let img = NSImage(contentsOf: url) {
