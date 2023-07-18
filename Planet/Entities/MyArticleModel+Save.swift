@@ -54,6 +54,8 @@ extension MyArticleModel {
         }
         // Remove article-level .DS_Store if any
         self.removeDSStore()
+        // Save article.md
+        self.saveMarkdown()
         // Save cover image
         //TODO: Clean up the logic here
         // MARK: Cover Image
@@ -152,13 +154,38 @@ extension MyArticleModel {
                 animationCID = videoCID
             }
             debugPrint("NFT image CIDv0 for \(self.title): \(imageCID)")
+            var attributes: [NFTAttribute] = []
+            let titleAttribute = NFTAttribute(
+                trait_type: "title",
+                value: self.title
+            )
+            attributes.append(titleAttribute)
+            let titleSHA256Attribute = NFTAttribute(
+                trait_type: "title_sha256",
+                value: self.title.sha256()
+            )
+            attributes.append(titleSHA256Attribute)
+            let contentSHA256Attribute = self.content.count > 0 ? NFTAttribute(
+                trait_type: "content_sha256",
+                value: self.content.sha256()
+            )
+            : nil
+            if let contentSHA256Attribute = contentSHA256Attribute {
+                attributes.append(contentSHA256Attribute)
+            }
+            let createdAtAttribute = NFTAttribute(
+                trait_type: "created_at",
+                value: String(Int(self.created.timeIntervalSince1970))
+            )
+            attributes.append(createdAtAttribute)
             let nft = NFTMetadata(
                 name: self.title,
                 description: self.summary ?? firstKey,
                 image: "https://ipfs.io/ipfs/\(imageCID)",
                 external_url: (self.externalLink ?? self.browserURL?.absoluteString) ?? "",
                 mimeType: self.getAttachmentMimeType(name: firstKey),
-                animation_url: animationCID != nil ? "https://ipfs.io/ipfs/\(animationCID!)" : nil
+                animation_url: animationCID != nil ? "https://ipfs.io/ipfs/\(animationCID!)" : nil,
+                attributes: attributes
             )
             let nftData = try JSONEncoder.shared.encode(nft)
             try nftData.write(to: publicNFTMetadataPath)
@@ -579,6 +606,26 @@ extension MyArticleModel {
             catch {
                 print("Failed to save image: \(error)")
             }
+        }
+    }
+
+    // MARK: - Save Markdown content to article.md
+    func saveMarkdown() {
+        let markdownPath = publicBasePath.appendingPathComponent("article.md")
+        if FileManager.default.fileExists(atPath: markdownPath.path) {
+            do {
+                try FileManager.default.removeItem(at: markdownPath)
+            }
+            catch {
+                debugPrint("Failed to remove article.md for \(self.title): \(error)")
+            }
+        }
+        do {
+            let markdown = "\(self.title)\n\n\(self.content)"
+            try markdown.write(to: markdownPath, atomically: true, encoding: .utf8)
+        }
+        catch {
+            debugPrint("Failed to write article.md for \(self.title): \(error)")
         }
     }
 

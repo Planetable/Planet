@@ -36,6 +36,10 @@ class MyArticleModel: ArticleModel, Codable {
         "simple.html",
         isDirectory: false
     )
+    lazy var publicMarkdownPath = publicBasePath.appendingPathComponent(
+        "article.md",
+        isDirectory: false
+    )
     lazy var publicCoverImagePath = publicBasePath.appendingPathComponent(
         "_cover.png",
         isDirectory: false
@@ -277,7 +281,7 @@ class MyArticleModel: ArticleModel, Codable {
         )
         return article
     }
-    
+
     // MARK: Attachment
 
     /// Get the on-disk URL of an attachment from its file name.
@@ -392,4 +396,10 @@ struct NFTMetadata: Codable {
     let external_url: String
     let mimeType: String
     let animation_url: String?
+    let attributes: [NFTAttribute]?
+}
+
+struct NFTAttribute: Codable {
+    let trait_type: String
+    let value: String
 }
