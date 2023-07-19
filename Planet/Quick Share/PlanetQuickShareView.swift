@@ -71,6 +71,13 @@ struct PlanetQuickShareView: View {
                 Text("Or drag and drop images here.")
                     .foregroundColor(.secondary)
             }
+        } else if viewModel.fileURLs.count == 1, let url = viewModel.fileURLs.first, let img = NSImage(contentsOf: url) {
+            HStack {
+                Image(nsImage: img)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 180, height: 180)
+            }
         } else {
             ScrollView(.horizontal) {
                 LazyHStack(alignment: .center) {
@@ -104,13 +111,6 @@ struct PlanetQuickShareView: View {
                 .cornerRadius(6)
                 .padding(1)
                 .shadow(color: .secondary.opacity(0.75), radius: 0.5, x: 0, y: 0.5)
-            /*
-            HStack {
-                TextField("Optional Link", text: $viewModel.externalLink)
-                    .textFieldStyle(.roundedBorder)
-                Spacer(minLength: 1)
-            }.padding(.bottom, 8)
-            */
         }
     }
 
