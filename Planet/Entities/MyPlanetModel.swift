@@ -1778,6 +1778,18 @@ extension MyPlanetModel {
         navigation.sort(by: { $0.weight < $1.weight })
         return navigation
     }
+
+    var isPinned: Bool {
+        // TODO: Is this the best way to check if a planet is pinned?
+        if let localCID = lastPublishedCID, localCID.count > 0,
+            let remoteCID = pinnablePinCID, remoteCID.count > 0
+        {
+            if localCID == remoteCID {
+                return true
+            }
+        }
+        return false
+    }
 }
 
 struct PublicPlanetModel: Codable {

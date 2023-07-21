@@ -224,7 +224,13 @@ struct MyPlanetEditView: View {
 
                 if let status = pinnablePinStatus {
                     Button {
-
+                        if let url = planet.browserURL {
+                            debugPrint("Pinnable: Open preview URL \(url)")
+                            NSWorkspace.shared.open(url)
+                        }
+                        else {
+                            debugPrint("Pinnable: Preview URL is not available")
+                        }
                     } label: {
                         if let cid = pinnablePinCID {
                             if cid == planet.lastPublishedCID {
@@ -251,6 +257,10 @@ struct MyPlanetEditView: View {
                         pinnablePinStatus = status
                         if let cid = status.last_known_cid {
                             pinnablePinCID = cid
+                            if cid != planet.pinnablePinCID {
+                                planet.pinnablePinCID = cid
+                                try? await planet.save()
+                            }
                         }
                     }
                 }

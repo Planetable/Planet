@@ -15,8 +15,17 @@ struct MyPlanetSidebarItem: View {
                 .font(.body)
                 .foregroundColor(.primary)
             Spacer()
-            LoadingIndicatorView()
-                .opacity(planet.isPublishing ? 1.0 : 0.0)
+            if planet.isPublishing {
+                LoadingIndicatorView()
+            } else {
+                if planet.isPinned {
+                    Image(systemName: "externaldrive.fill.badge.checkmark")
+                        .foregroundColor(.secondary)
+                        .opacity(0.5)
+                        .help("Pinned with Pinnable")
+                }
+            }
+
         }
         .contextMenu {
             Group {
