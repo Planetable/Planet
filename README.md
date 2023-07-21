@@ -68,6 +68,10 @@ The following configuration variables can be overridden:
 - CODE_SIGN_STYLE
 - ORGANIZATION_IDENTIFIER_PREFIX
 
+## Build Instructions
+
+https://planetable.eth.limo/build-instructions/
+
 ## Privacy Policy
 
 The development team collects no information from the app. The app runs entirely in a sandbox and does not have access to any data outside of the sandbox unless explicitly granted. The app also does not use any third-party analytics or tracking services.
