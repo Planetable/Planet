@@ -21,6 +21,15 @@ struct AppContentItemMenuView: View {
                 } label: {
                     Text("Edit Post")
                 }
+
+                Button {
+                    PlanetStore.shared.selectedArticle = article
+                    PlanetStore.shared.isShowingMyArticleSettings = true
+                } label: {
+                    Text("Settings")
+                }
+
+                Divider()
             }
 
             Group {

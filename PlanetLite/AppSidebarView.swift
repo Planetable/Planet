@@ -90,6 +90,11 @@ struct AppSidebarView: View {
                 .frame(width: .sheetWidth)
                 .frame(minHeight: .sheetHeight)
         }
+        .sheet(isPresented: $planetStore.isShowingMyArticleSettings) {
+            if let article: MyArticleModel = planetStore.selectedArticle as? MyArticleModel {
+                MyArticleSettingsView(article: article)
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .publishMyPlanet)) {
             aNotification in
             if let userObject = aNotification.object, let planet = userObject as? MyPlanetModel {

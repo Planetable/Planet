@@ -259,6 +259,7 @@
 		2AFDF8AA2A3A1E8500386B9A /* ASMediaView in Frameworks */ = {isa = PBXBuildFile; productRef = 2AFDF8A92A3A1E8500386B9A /* ASMediaView */; };
 		2AFFD51B28AD760400EDB020 /* HelpLinkButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */; };
 		6A0624D22876BF130014DDDD /* MigrationProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0624D12876BF130014DDDD /* MigrationProgressView.swift */; };
+		6A0B9EAA2A6A680100D2286B /* MyArticleSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */; };
 		6A18F2062A0F0FA700FC4050 /* RebuildProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A18F2052A0F0FA700FC4050 /* RebuildProgressView.swift */; };
 		6A1DA07D28B4278300C6B5A9 /* DecentralizedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1DA07C28B4278300C6B5A9 /* DecentralizedApp.swift */; };
 		6A1DF9CF28E8E4B6000499E3 /* RSS.xml in Resources */ = {isa = PBXBuildFile; fileRef = 6A1DF9CE28E8E4B6000499E3 /* RSS.xml */; };
@@ -1387,6 +1388,7 @@
 				2A95E6572A19A3A2001288B8 /* WalletAccountView.swift in Sources */,
 				2A95E6782A19A3C4001288B8 /* KeychainHelper.swift in Sources */,
 				2A95E63F2A18B1B6001288B8 /* PlanetUI.swift in Sources */,
+				6A0B9EAA2A6A680100D2286B /* MyArticleSettingsView.swift in Sources */,
 				6A74E49D2A5929BB00FF2F2A /* CPNSettings.swift in Sources */,
 				2A95E6412A19A317001288B8 /* PlanetQuickShareView.swift in Sources */,
 				2A95E6742A19A3C4001288B8 /* Lifetimes.swift in Sources */,
