@@ -9,16 +9,16 @@ import ASMediaView
 
 struct AppContentItemView: View {
     @EnvironmentObject private var planetStore: PlanetStore
-    
+
     var article: MyArticleModel
     var size: NSSize
-    
+
     @State private var isShowingDeleteConfirmation = false
     @State private var isSharingLink: Bool = false
     @State private var sharedLink: String?
     @State private var thumbnail: NSImage?
     @State private var thumbnailCachedPath: URL?
-    
+
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
             .onTapGesture {
@@ -28,7 +28,7 @@ struct AppContentItemView: View {
                 AppContentItemMenuView(isShowingDeleteConfirmation: $isShowingDeleteConfirmation, isSharingLink: $isSharingLink, sharedLink: $sharedLink, article: article)
             }
             .confirmationDialog(
-                Text("Are you sure you want to delete this post?"),
+                Text("Are you sure you want to delete this post?\n\n\(article.title)?\n\nThis action cannot be undone."), 
                 isPresented: $isShowingDeleteConfirmation
             ) {
                 Button(role: .destructive) {
@@ -59,7 +59,7 @@ struct AppContentItemView: View {
                 SharingServicePicker(isPresented: $isSharingLink, sharingItems: [sharedLink ?? ""])
             )
     }
-    
+
     private func getPhotos(fromArticle article: MyArticleModel) -> [URL] {
         var photoURLs: [URL] = []
         if let attachmentNames: [String] = article.attachments {
@@ -71,7 +71,7 @@ struct AppContentItemView: View {
         }
         return photoURLs
     }
-    
+
     @ViewBuilder
     private func itemPreviewImageView(forArticle article: MyArticleModel) -> some View {
         ZStack {
