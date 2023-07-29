@@ -168,6 +168,9 @@ struct AvatarPickerView: View {
         }
         .frame(width: 600, height: 400)
         .onAppear {
+            if selection == nil {
+                selection = .nostalgia
+            }
             if case .myPlanet(let planet) = store.selectedView {
                 selectedAvatar = planet.avatar
             }
