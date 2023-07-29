@@ -10,6 +10,7 @@ import SwiftUI
 
 struct PlanetMainView: View {
     @EnvironmentObject var planetStore: PlanetStore
+    @AppStorage("PlanetAvatarPicker.selectedAvatarCategory") private var selectedAvatarCategory: AvatarCategory?
 
     @State private var isInfoAlert: Bool = false
     @State private var isFollowingAlert: Bool = false
@@ -40,6 +41,9 @@ struct PlanetMainView: View {
             if case .followingPlanet(let planet) = planetStore.selectedView {
                 FollowingPlanetInfoView(planet: planet)
             }
+        }
+        .sheet(isPresented: $planetStore.isShowingPlanetAvatarPicker) {
+            AvatarPickerView(selection: $selectedAvatarCategory)
         }
         .sheet(isPresented: $planetStore.isEditingPlanet) {
             if case .myPlanet(let planet) = planetStore.selectedView {

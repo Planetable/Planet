@@ -72,6 +72,21 @@ extension NSImage {
         }
         return nil
     }
+    
+    var temporaryURL: URL? {
+        // create name for the image
+        let imageName = UUID().uuidString + ".png"
+        let imagePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(imageName)
+        
+        // convert the UIImage to data
+        guard let data = self.PNGData else { return nil }
+        
+        // write the image data to the temporary directory
+        try? data.write(to: URL(fileURLWithPath: imagePath))
+        
+        // return the URL of the image
+        return URL(fileURLWithPath: imagePath)
+    }
 }
 
 extension Color {

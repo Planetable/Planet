@@ -476,6 +476,12 @@ struct ArticleView: View {
             } label: {
                 Image(systemName: "info.circle")
             }
+
+            Button {
+                planetStore.isShowingPlanetAvatarPicker = true
+            } label: {
+                Image(systemName: "face.smiling")
+            }
         case .followingPlanet(let planet):
             Button {
                 planetStore.isShowingPlanetInfo = true
