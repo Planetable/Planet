@@ -15,6 +15,7 @@ struct AppContentItemView: View {
 
     @State private var isShowingDeleteConfirmation = false
     @State private var isSharingLink: Bool = false
+    @State private var isGIF: Bool = false
     @State private var sharedLink: String?
     @State private var thumbnail: NSImage?
     @State private var thumbnailCachedPath: URL?
@@ -89,6 +90,15 @@ struct AppContentItemView: View {
                         Image(nsImage: cachedHeroImage)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
+                            .task(priority: .background) {
+                                let heroImagePath = article.publicBasePath.appendingPathComponent(heroImageName)
+                                guard let heroImage = NSImage(contentsOf: heroImagePath) else { return }
+                                if ASMediaManager.shared.imageIsGIF(image: heroImage) {
+                                    await MainActor.run {
+                                        self.isGIF = true
+                                    }
+                                }
+                            }
                     } else {
                         ProgressView()
                             .progressViewStyle(.circular)
@@ -114,6 +124,11 @@ struct AppContentItemView: View {
                                         self.thumbnail = image
                                     }
                                 }
+                                if ASMediaManager.shared.imageIsGIF(image: heroImage) {
+                                    await MainActor.run {
+                                        self.isGIF = true
+                                    }
+                                }
                             }
                     }
                 } else {
@@ -123,6 +138,9 @@ struct AppContentItemView: View {
                         Text(article.title)
                     }
                 }
+            }
+            if isGIF {
+                GIFIndicatorView()
             }
         }
         .contentShape(Rectangle())

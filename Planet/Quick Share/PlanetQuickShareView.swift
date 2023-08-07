@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import ASMediaView
+
 
 struct PlanetQuickShareView: View {
     @StateObject private var viewModel: PlanetQuickShareViewModel
@@ -73,20 +75,30 @@ struct PlanetQuickShareView: View {
             }
         } else if viewModel.fileURLs.count == 1, let url = viewModel.fileURLs.first, let img = NSImage(contentsOf: url) {
             HStack {
-                Image(nsImage: img)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 180, height: 180)
+                ZStack {
+                    Image(nsImage: img)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                    if PlanetStore.shared.app == .lite && ASMediaManager.shared.imageIsGIF(image: img) {
+                        GIFIndicatorView()
+                    }
+                }
+                .frame(width: 180, height: 180)
             }
         } else {
             ScrollView(.horizontal) {
                 LazyHStack(alignment: .center) {
                     ForEach(viewModel.fileURLs, id: \.self) { url in
                         if let img = NSImage(contentsOf: url) {
-                            Image(nsImage: img)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 180, height: 180)
+                            ZStack {
+                                Image(nsImage: img)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                if PlanetStore.shared.app == .lite && ASMediaManager.shared.imageIsGIF(image: img) {
+                                    GIFIndicatorView()
+                                }
+                            }
+                            .frame(width: 180, height: 180)
                         }
                     }
                 }
