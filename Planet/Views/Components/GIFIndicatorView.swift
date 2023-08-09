@@ -26,6 +26,5 @@ struct GIFIndicatorView: View {
             .padding(.leading, 4)
             .padding(.bottom, 4)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
