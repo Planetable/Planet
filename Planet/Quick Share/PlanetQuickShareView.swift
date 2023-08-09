@@ -81,6 +81,7 @@ struct PlanetQuickShareView: View {
                         .aspectRatio(contentMode: .fit)
                     if PlanetStore.shared.app == .lite && ASMediaManager.shared.imageIsGIF(image: img) {
                         GIFIndicatorView()
+                            .frame(width: 180, height: 180 / (img.size.width / img.size.height))
                     }
                 }
                 .frame(width: 180, height: 180)
@@ -96,6 +97,7 @@ struct PlanetQuickShareView: View {
                                     .aspectRatio(contentMode: .fit)
                                 if PlanetStore.shared.app == .lite && ASMediaManager.shared.imageIsGIF(image: img) {
                                     GIFIndicatorView()
+                                        .frame(width: 180, height: 180 / (img.size.width / img.size.height))
                                 }
                             }
                             .frame(width: 180, height: 180)
