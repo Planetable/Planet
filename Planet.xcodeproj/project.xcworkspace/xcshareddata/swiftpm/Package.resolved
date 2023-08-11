@@ -60,7 +60,7 @@
       "location" : "https://github.com/airwolfspace/mediaview",
       "state" : {
         "branch" : "main",
-        "revision" : "f4c8235dc23dda742dc6579568ef96a02b3661a5"
+        "revision" : "5f3590128f613ab4b591f2ec475fbf2d596f0868"
       }
     },
     {
@@ -222,7 +222,7 @@
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
         "branch" : "main",
-        "revision" : "7d4eca9cf4441bbfef649a055baea0a31fd96d83"
+        "revision" : "5199a4db3119540f98ab0d21d3c744f833ae2747"
       }
     },
     {
