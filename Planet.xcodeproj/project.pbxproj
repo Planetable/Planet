@@ -294,6 +294,7 @@
 		6A373A4428E8263800750256 /* CodeMirror-SwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 6A373A4328E8263800750256 /* CodeMirror-SwiftUI */; };
 		6A373A4528E8279B00750256 /* CodeMirror-SwiftUI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 6A373A4328E8263800750256 /* CodeMirror-SwiftUI */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		6A4825CA28F22DAC004CE2C0 /* PodcastUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A4825C928F22DAC004CE2C0 /* PodcastUtils.swift */; };
+		6A4A256A2A865DFB00B18C36 /* WrappingHStack in Frameworks */ = {isa = PBXBuildFile; productRef = 6A4A25692A865DFB00B18C36 /* WrappingHStack */; };
 		6A5935EC2A14E98C00151CBD /* MyPlanetTemplateSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5935EB2A14E98C00151CBD /* MyPlanetTemplateSettingsView.swift */; };
 		6A5E63AC28072AD400FB1E84 /* TemplateBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */; };
 		6A5F3971280785A700386029 /* TemplateBrowserSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F3970280785A700386029 /* TemplateBrowserSidebar.swift */; };
@@ -628,6 +629,7 @@
 				2A95E6A82A19A48C001288B8 /* ENSKit in Frameworks */,
 				2AFDF8AA2A3A1E8500386B9A /* ASMediaView in Frameworks */,
 				2A95E6C32A19A48C001288B8 /* WalletConnectPairing in Frameworks */,
+				6A4A256A2A865DFB00B18C36 /* WrappingHStack in Frameworks */,
 				2A95E6B92A19A48C001288B8 /* WalletConnect in Frameworks */,
 				2A95E6BB2A19A48C001288B8 /* WalletConnectAuth in Frameworks */,
 				2A95E6D12A19A48C001288B8 /* WalletConnectSwift in Frameworks */,
@@ -1231,6 +1233,7 @@
 				2A95E6D62A19A48C001288B8 /* Web3PromiseKit */,
 				2A95E6D82A19A48C001288B8 /* Swifter */,
 				2AFDF8A92A3A1E8500386B9A /* ASMediaView */,
+				6A4A25692A865DFB00B18C36 /* WrappingHStack */,
 			);
 			productName = Croptop;
 			productReference = 2ABD1CC12A1616DA0082D7EA /* Croptop.app */;
@@ -2232,6 +2235,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6A373A4228E8263800750256 /* XCRemoteSwiftPackageReference "CodeMirror-SwiftUI" */;
 			productName = "CodeMirror-SwiftUI";
+		};
+		6A4A25692A865DFB00B18C36 /* WrappingHStack */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6A2A4D2A2A86422700F4491A /* XCRemoteSwiftPackageReference "WrappingHStack" */;
+			productName = WrappingHStack;
 		};
 		6A7189682947FD0500279D77 /* Web3 */ = {
 			isa = XCSwiftPackageProductDependency;
