@@ -16,6 +16,8 @@ class MyArticleModel: ArticleModel, Codable {
 
     var cids: [String: String]? = [:]
 
+    var tags: [String]? = nil
+
     // populated when initializing
     unowned var planet: MyPlanetModel! = nil
     var draft: DraftModel? = nil
@@ -76,7 +78,8 @@ class MyArticleModel: ArticleModel, Codable {
             audioByteLength: getAttachmentByteLength(name: audioFilename),
             attachments: attachments,
             heroImage: socialImageURL?.absoluteString,
-            cids: cids
+            cids: cids,
+            tags: tags
         )
     }
     var localGatewayURL: URL? {
@@ -130,7 +133,7 @@ class MyArticleModel: ArticleModel, Codable {
             title, content, summary,
             created, starred, starType,
             videoFilename, audioFilename,
-            attachments, cids,
+            attachments, cids, tags,
             isIncludedInNavigation,
             navigationWeight
     }
@@ -161,6 +164,7 @@ class MyArticleModel: ArticleModel, Codable {
         let audioFilename = try container.decodeIfPresent(String.self, forKey: .audioFilename)
         let attachments = try container.decodeIfPresent([String].self, forKey: .attachments)
         cids = try container.decodeIfPresent([String: String].self, forKey: .cids)
+        tags = try container.decodeIfPresent([String].self, forKey: .tags)
         super.init(
             id: id,
             title: title,
@@ -193,6 +197,7 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(audioFilename, forKey: .audioFilename)
         try container.encodeIfPresent(attachments, forKey: .attachments)
         try container.encodeIfPresent(cids, forKey: .cids)
+        try container.encodeIfPresent(tags, forKey: .tags)
     }
 
     init(
@@ -385,6 +390,7 @@ struct BackupArticleModel: Codable {
     let audioFilename: String?
     let attachments: [String]?
     let cids: [String: String]?
+    let tags: [String]?
     let isIncludedInNavigation: Bool?
     let navigationWeight: Int?
 }

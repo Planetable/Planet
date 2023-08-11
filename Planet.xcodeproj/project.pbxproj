@@ -269,6 +269,7 @@
 		6A1FD5032A75A64500391972 /* Avatars.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6A1FD5022A75A64500391972 /* Avatars.xcassets */; };
 		6A1FD5062A75A6A000391972 /* NSTG.json in Resources */ = {isa = PBXBuildFile; fileRef = 6A1FD5052A75A6A000391972 /* NSTG.json */; };
 		6A28FDA82838598A00036BA6 /* NoSelection.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A28FDA72838598A00036BA6 /* NoSelection.html */; };
+		6A2A4D2C2A86422700F4491A /* WrappingHStack in Frameworks */ = {isa = PBXBuildFile; productRef = 6A2A4D2B2A86422700F4491A /* WrappingHStack */; };
 		6A2B9BE627ED24A00005467C /* FollowingArticleItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2B9BE527ED24A00005467C /* FollowingArticleItemView.swift */; };
 		6A2C0BBC2A729DC2009E53DE /* AvatarPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2C0BBB2A729DC2009E53DE /* AvatarPickerView.swift */; };
 		6A2D6B8D285141A60078F531 /* Saver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2D6B8C285141A60078F531 /* Saver.swift */; };
@@ -669,6 +670,7 @@
 				2AC4996C27BB99DC00F1C2D1 /* Stencil in Frameworks */,
 				6A71896B2947FD0500279D77 /* Web3ContractABI in Frameworks */,
 				6ADF40C429151407007A24E8 /* Starscream in Frameworks */,
+				6A2A4D2C2A86422700F4491A /* WrappingHStack in Frameworks */,
 				BB6FC66D28423AF80072C3A1 /* SwiftSoup in Frameworks */,
 				6AABC6AA291A62A9009FD13F /* WalletConnectSwift in Frameworks */,
 				6AB6E517291527B800F17328 /* WalletConnectPush in Frameworks */,
@@ -1270,6 +1272,7 @@
 				6A71896C2947FD0500279D77 /* Web3PromiseKit */,
 				2AB6A93D29703825007186A7 /* Swifter */,
 				2A466FD32A809F65009FB646 /* ASMediaView */,
+				6A2A4D2B2A86422700F4491A /* WrappingHStack */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -1318,6 +1321,7 @@
 				6A7189672947FD0500279D77 /* XCRemoteSwiftPackageReference "Web3" */,
 				2AB6A93C29703825007186A7 /* XCRemoteSwiftPackageReference "swifter" */,
 				2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */,
+				6A2A4D2A2A86422700F4491A /* XCRemoteSwiftPackageReference "WrappingHStack" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -1995,6 +1999,14 @@
 				kind = branch;
 			};
 		};
+		6A2A4D2A2A86422700F4491A /* XCRemoteSwiftPackageReference "WrappingHStack" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/dkk/WrappingHStack";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 		6A373A4228E8263800750256 /* XCRemoteSwiftPackageReference "CodeMirror-SwiftUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Pictarine/CodeMirror-SwiftUI";
@@ -2210,6 +2222,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */;
 			productName = ASMediaView;
+		};
+		6A2A4D2B2A86422700F4491A /* WrappingHStack */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6A2A4D2A2A86422700F4491A /* XCRemoteSwiftPackageReference "WrappingHStack" */;
+			productName = WrappingHStack;
 		};
 		6A373A4328E8263800750256 /* CodeMirror-SwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;

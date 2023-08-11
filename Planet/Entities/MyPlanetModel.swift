@@ -903,6 +903,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 )
                 article.articleType = backupArticle.articleType ?? .blog
                 article.cids = backupArticle.cids
+                article.tags = backupArticle.tags
                 article.planet = planet
                 do {
                     try FileManager.default.copyItem(
@@ -1536,6 +1537,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     audioFilename: $0.audioFilename,
                     attachments: $0.attachments,
                     cids: $0.cids,
+                    tags: $0.tags,
                     isIncludedInNavigation: $0.isIncludedInNavigation,
                     navigationWeight: $0.navigationWeight
                 )

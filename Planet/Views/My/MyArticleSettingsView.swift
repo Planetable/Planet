@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WrappingHStack
 
 struct MyArticleSettingsView: View {
     let MESSAGE_SLUG_REQUIREMENT =
@@ -28,6 +29,10 @@ struct MyArticleSettingsView: View {
     @State private var slug: String
     @State private var externalLink: String
 
+    @State private var tags: [String] = []
+    @State private var normalizedTags: [String] = []
+    @State private var newTag: String = ""
+
     @State private var isIncludedInNavigation: Bool
     @State private var navigationWeight: String
 
@@ -39,6 +44,7 @@ struct MyArticleSettingsView: View {
         _externalLink = State(wrappedValue: article.externalLink ?? "")
         _isIncludedInNavigation = State(wrappedValue: article.isIncludedInNavigation ?? false)
         _navigationWeight = State(wrappedValue: article.navigationWeight?.stringValue() ?? "1")
+        _tags = State(wrappedValue: article.tags ?? [])
     }
 
     var body: some View {
@@ -121,43 +127,9 @@ struct MyArticleSettingsView: View {
                             .fixedSize(horizontal: false, vertical: true)
                         }
 
-                        Divider()
+                        tagsView()
 
-                        HStack {
-                            HStack {
-                                Spacer()
-                            }.frame(width: CONTROL_CAPTION_WIDTH + 40 + 10)
-                            Toggle("Include in Site Navigation", isOn: $isIncludedInNavigation)
-                                .toggleStyle(.checkbox)
-                                .frame(alignment: .leading)
-                            Spacer()
-                        }
-
-                        HStack {
-                            HStack {
-                                Text("Navigation Weight")
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 40)
-
-                            TextField("Please enter an integer", text: $navigationWeight)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
-                        HStack {
-                            HStack {
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 5 + 40)
-
-                            Text(
-                                "Please input an integer for sorting, entries with smaller numbers will be ranked first."
-                            )
-                            .lineLimit(2)
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        }
+                        siteNavigationView()
                     }
                     .padding(16)
                     .tabItem {
@@ -222,6 +194,7 @@ struct MyArticleSettingsView: View {
                         article.articleType = articleType
                         article.isIncludedInNavigation = isIncludedInNavigation
                         article.navigationWeight = Int(navigationWeight)
+                        article.tags = tags.sorted()
                         Task {
                             try article.save()
                             if let previousSlug = previousSlug, slugChanged {
@@ -252,7 +225,7 @@ struct MyArticleSettingsView: View {
         .padding(0)
         .frame(width: 520, height: nil, alignment: .top)
         .task {
-            title = article.title
+            normalizedTags = tags.map { $0.normalizedTag() }
         }
     }
 
@@ -280,6 +253,98 @@ struct MyArticleSettingsView: View {
                 .font(.footnote)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder
+    private func tagsView() -> some View {
+        Divider()
+
+        HStack {
+            HStack {
+                Text("Tags")
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 40)
+
+            // Tag capsules
+            WrappingHStack(tags, id: \.self, alignment: .leading, spacing: .constant(2), lineSpacing: 4) { tag in
+                TagView(tag: tag)
+                    .onTapGesture {
+                        tags.removeAll(where: { $0 == tag })
+                        normalizedTags.removeAll(where: { $0 == tag.normalizedTag() })
+                    }
+            }
+        }
+
+        HStack {
+            HStack {
+                Text("Add a Tag")
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 40)
+
+            TextField("", text: $newTag)
+                .textFieldStyle(.roundedBorder)
+
+            Button {
+                addTag()
+            } label: {
+                Text("Add")
+            }
+        }
+    }
+
+    private func addTag() {
+        var aTag = newTag.trim()
+        var normalizedTag = aTag.normalizedTag()
+        if normalizedTag.count > 0 {
+            if !normalizedTags.contains(normalizedTag) {
+                tags.append(aTag)
+                normalizedTags.append(normalizedTag)
+                newTag = ""
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func siteNavigationView() -> some View {
+        Divider()
+
+        HStack {
+            HStack {
+                Spacer()
+            }.frame(width: CONTROL_CAPTION_WIDTH + 40 + 10)
+            Toggle("Include in Site Navigation", isOn: $isIncludedInNavigation)
+                .toggleStyle(.checkbox)
+                .frame(alignment: .leading)
+            Spacer()
+        }
+
+        HStack {
+            HStack {
+                Text("Navigation Weight")
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 40)
+
+            TextField("Please enter an integer", text: $navigationWeight)
+                .textFieldStyle(.roundedBorder)
+        }
+
+        HStack {
+            HStack {
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 5 + 40)
+
+            Text(
+                "Please input an integer for sorting, entries with smaller numbers will be ranked first."
+            )
+            .lineLimit(2)
+            .font(.footnote)
+            .foregroundColor(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -327,6 +392,26 @@ extension MyArticleSettingsView {
             }
         }
         return errors
+    }
+}
+
+struct TagView: View {
+    let tag: String
+
+    var body: some View {
+        HStack {
+            Text(tag)
+                .font(.footnote)
+                .foregroundColor(.secondary)
+            Image(systemName: "xmark.circle.fill")
+                .foregroundColor(.secondary)
+        }
+        .padding(.top, 4)
+        .padding(.bottom, 4)
+        .padding(.leading, 8)
+        .padding(.trailing, 4)
+        .background(Color("BorderColor"))
+        .cornerRadius(8)
     }
 }
 

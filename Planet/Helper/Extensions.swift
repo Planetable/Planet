@@ -76,6 +76,31 @@ extension String {
         guard let data = Data(base64Encoded: self) else { return nil }
         return String(data: data, encoding: .utf8)
     }
+
+    func normalizedTag() -> String {
+        // Convert to lowercase and decompose accented characters
+        let decomposed = self.lowercased().folding(options: [.diacriticInsensitive, .widthInsensitive], locale: .current)
+
+        // Define a character set for unwanted characters including punctuation, whitespaces, and symbols
+        let unwantedChars = CharacterSet.punctuationCharacters
+            .union(.whitespacesAndNewlines)
+            .union(.symbols)
+            .subtracting(CharacterSet(charactersIn: "-")) // Ensure '-' is not considered unwanted
+
+        // Separate the string by unwanted characters
+        let components = decomposed.components(separatedBy: unwantedChars)
+
+        // Join using dashes
+        var tag = components.joined(separator: "-")
+
+        // Combine multiple dashes into one
+        tag = tag.replacingOccurrences(of: "--+", with: "-", options: .regularExpression)
+
+        // Drop first and last dash if exists
+        let trimmedTag = tag.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+
+        return trimmedTag
+    }
 }
 
 // User Notification
