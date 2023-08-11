@@ -261,5 +261,5 @@ struct PublicArticleModel: Codable {
     let attachments: [String]?
     let heroImage: String?
     var cids: [String: String]? = [:]
-    var tags: [String]? = []
+    var tags: [String: String]? = [:]
 }

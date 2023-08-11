@@ -16,7 +16,7 @@ class MyArticleModel: ArticleModel, Codable {
 
     var cids: [String: String]? = [:]
 
-    var tags: [String]? = nil
+    var tags: [String: String]? = nil
 
     // populated when initializing
     unowned var planet: MyPlanetModel! = nil
@@ -163,8 +163,8 @@ class MyArticleModel: ArticleModel, Codable {
         let videoFilename = try container.decodeIfPresent(String.self, forKey: .videoFilename)
         let audioFilename = try container.decodeIfPresent(String.self, forKey: .audioFilename)
         let attachments = try container.decodeIfPresent([String].self, forKey: .attachments)
-        cids = try container.decodeIfPresent([String: String].self, forKey: .cids)
-        tags = try container.decodeIfPresent([String].self, forKey: .tags)
+        cids = try? container.decodeIfPresent([String: String].self, forKey: .cids) ?? [:]
+        tags = try? container.decodeIfPresent([String: String].self, forKey: .tags) ?? [:]
         super.init(
             id: id,
             title: title,
@@ -390,7 +390,7 @@ struct BackupArticleModel: Codable {
     let audioFilename: String?
     let attachments: [String]?
     let cids: [String: String]?
-    let tags: [String]?
+    let tags: [String: String]?
     let isIncludedInNavigation: Bool?
     let navigationWeight: Int?
 }

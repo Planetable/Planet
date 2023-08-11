@@ -29,8 +29,7 @@ struct MyArticleSettingsView: View {
     @State private var slug: String
     @State private var externalLink: String
 
-    @State private var tags: [String] = []
-    @State private var normalizedTags: [String] = []
+    @State private var tags: [String: String] = [:]
     @State private var newTag: String = ""
 
     @State private var isIncludedInNavigation: Bool
@@ -44,7 +43,7 @@ struct MyArticleSettingsView: View {
         _externalLink = State(wrappedValue: article.externalLink ?? "")
         _isIncludedInNavigation = State(wrappedValue: article.isIncludedInNavigation ?? false)
         _navigationWeight = State(wrappedValue: article.navigationWeight?.stringValue() ?? "1")
-        _tags = State(wrappedValue: article.tags ?? [])
+        _tags = State(wrappedValue: article.tags ?? [:])
     }
 
     var body: some View {
@@ -194,7 +193,7 @@ struct MyArticleSettingsView: View {
                         article.articleType = articleType
                         article.isIncludedInNavigation = isIncludedInNavigation
                         article.navigationWeight = Int(navigationWeight)
-                        article.tags = tags.sorted()
+                        article.tags = tags
                         Task {
                             try article.save()
                             if let previousSlug = previousSlug, slugChanged {
@@ -224,9 +223,6 @@ struct MyArticleSettingsView: View {
         }
         .padding(0)
         .frame(width: 520, height: nil, alignment: .top)
-        .task {
-            normalizedTags = tags.map { $0.normalizedTag() }
-        }
     }
 
     @ViewBuilder
@@ -268,11 +264,10 @@ struct MyArticleSettingsView: View {
             .frame(width: CONTROL_CAPTION_WIDTH + 40)
 
             // Tag capsules
-            WrappingHStack(tags, id: \.self, alignment: .leading, spacing: .constant(2), lineSpacing: 4) { tag in
+            WrappingHStack(tags.values.sorted(), id: \.self, alignment: .leading, spacing: .constant(2), lineSpacing: 4) { tag in
                 TagView(tag: tag)
                     .onTapGesture {
-                        tags.removeAll(where: { $0 == tag })
-                        normalizedTags.removeAll(where: { $0 == tag.normalizedTag() })
+                        tags.removeValue(forKey: tag.normalizedTag())
                     }
             }
         }
@@ -299,11 +294,12 @@ struct MyArticleSettingsView: View {
         var aTag = newTag.trim()
         var normalizedTag = aTag.normalizedTag()
         if normalizedTag.count > 0 {
-            if !normalizedTags.contains(normalizedTag) {
-                tags.append(aTag)
-                normalizedTags.append(normalizedTag)
-                newTag = ""
+            if tags.keys.contains(aTag) {
+                // tag already exists
+                return
             }
+            tags[normalizedTag] = aTag
+            newTag = ""
         }
     }
 
