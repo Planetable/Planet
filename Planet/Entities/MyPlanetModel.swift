@@ -78,6 +78,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     var ops: [String: Date] = [:]
 
+    var tags: [String: String]? = [:]
+
     static func myPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
@@ -337,6 +339,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(podcastCoverArt)
         hasher.combine(drafts)
         hasher.combine(articles)
+
+        hasher.combine(tags)
     }
 
     static func == (lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
@@ -395,6 +399,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.podcastCoverArt == rhs.podcastCoverArt
             && lhs.drafts == rhs.drafts
             && lhs.articles == rhs.articles
+            && lhs.tags == rhs.tags
     }
 
     enum CodingKeys: String, CodingKey {
@@ -410,7 +415,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             customCodeHeadEnabled, customCodeHead, customCodeBodyStartEnabled, customCodeBodyStart,
             customCodeBodyEndEnabled, customCodeBodyEnd,
             podcastCategories, podcastLanguage, podcastExplicit,
-            juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli
+            juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli,
+            tags
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -482,6 +488,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Int.self,
             forKey: .juiceboxProjectIDGoerli
         )
+        tags = try? container.decodeIfPresent([String: String].self, forKey: .tags) ?? [:]
     }
 
     func encode(to encoder: Encoder) throws {
@@ -533,6 +540,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(juiceboxEnabled, forKey: .juiceboxEnabled)
         try container.encodeIfPresent(juiceboxProjectID, forKey: .juiceboxProjectID)
         try container.encodeIfPresent(juiceboxProjectIDGoerli, forKey: .juiceboxProjectIDGoerli)
+        try container.encodeIfPresent(tags, forKey: .tags)
     }
 
     init(
@@ -835,6 +843,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if backupPlanet.juiceboxProjectIDGoerli != nil {
             planet.juiceboxProjectIDGoerli = backupPlanet.juiceboxProjectIDGoerli
         }
+
+        // Restore tags
+        planet.tags = backupPlanet.tags
 
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
@@ -1205,7 +1216,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     mastodonUsername: mastodonUsername,
                     podcastCategories: podcastCategories,
                     podcastLanguage: podcastLanguage,
-                    podcastExplicit: podcastExplicit
+                    podcastExplicit: podcastExplicit,
+                    tags: tags
                 )
                 let environment = Environment(extensions: [StencilExtension.common])
                 let domain_prefix: String
@@ -1280,7 +1292,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             mastodonUsername: mastodonUsername,
             podcastCategories: podcastCategories,
             podcastLanguage: podcastLanguage,
-            podcastExplicit: podcastExplicit
+            podcastExplicit: podcastExplicit,
+            tags: tags
         )
         let hasPodcastCoverArt = FileManager.default.fileExists(
             atPath: publicPodcastCoverArtPath.path
@@ -1541,7 +1554,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     isIncludedInNavigation: $0.isIncludedInNavigation,
                     navigationWeight: $0.navigationWeight
                 )
-            }
+            },
+            tags: tags
         )
         do {
             try FileManager.default.copyItem(at: publicBasePath, to: exportPath)
@@ -1718,6 +1732,18 @@ struct NavigationItem: Codable {
 }
 
 extension MyPlanetModel {
+    func consolidateTags() -> [String: String] {
+        var tags: [String: String] = [:]
+        for article in articles {
+            if let articleTags = article.tags {
+                for (key, value) in articleTags {
+                    tags[key] = value
+                }
+            }
+        }
+        return tags
+    }
+
     func removeDSStore() {
         let dsStorePath = publicBasePath.appendingPathComponent(".DS_Store", isDirectory: false)
         if FileManager.default.fileExists(atPath: dsStorePath.path) {
@@ -1819,6 +1845,8 @@ struct PublicPlanetModel: Codable {
     let podcastCategories: [String: [String]]?
     let podcastLanguage: String?
     let podcastExplicit: Bool?
+
+    let tags: [String: String]?
 
     func hasAudioContent() -> Bool {
         for article in articles {

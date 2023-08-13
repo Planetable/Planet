@@ -202,6 +202,7 @@ struct MyArticleSettingsView: View {
                             try article.savePublic()
                             NotificationCenter.default.post(name: .loadArticle, object: nil)
                             if let planet = article.planet {
+                                planet.tags = planet.consolidateTags()
                                 try planet.copyTemplateAssets()
                                 planet.updated = Date()
                                 try planet.save()

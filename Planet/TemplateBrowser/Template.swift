@@ -183,7 +183,8 @@ class Template: Codable, Identifiable {
             mastodonUsername: planet.mastodonUsername ?? nil,
             podcastCategories: planet.podcastCategories ?? [:],
             podcastLanguage: planet.podcastLanguage ?? "en",
-            podcastExplicit: planet.podcastExplicit ?? false
+            podcastExplicit: planet.podcastExplicit ?? false,
+            tags: planet.tags ?? [:]
         )
         let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
 
@@ -387,7 +388,8 @@ class Template: Codable, Identifiable {
             mastodonUsername: "",
             podcastCategories: [:],
             podcastLanguage: "en-US",
-            podcastExplicit: false
+            podcastExplicit: false,
+            tags: [:]
         )
 
         // render stencil template
