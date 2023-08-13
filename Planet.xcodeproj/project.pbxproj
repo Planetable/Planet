@@ -295,6 +295,8 @@
 		6A373A4528E8279B00750256 /* CodeMirror-SwiftUI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 6A373A4328E8263800750256 /* CodeMirror-SwiftUI */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		6A4825CA28F22DAC004CE2C0 /* PodcastUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A4825C928F22DAC004CE2C0 /* PodcastUtils.swift */; };
 		6A4A256A2A865DFB00B18C36 /* WrappingHStack in Frameworks */ = {isa = PBXBuildFile; productRef = 6A4A25692A865DFB00B18C36 /* WrappingHStack */; };
+		6A52FAE92A8893E9000E85F0 /* PublicArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A52FAE82A8893E9000E85F0 /* PublicArticleModel.swift */; };
+		6A52FAEA2A8893E9000E85F0 /* PublicArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A52FAE82A8893E9000E85F0 /* PublicArticleModel.swift */; };
 		6A5935EC2A14E98C00151CBD /* MyPlanetTemplateSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5935EB2A14E98C00151CBD /* MyPlanetTemplateSettingsView.swift */; };
 		6A5E63AC28072AD400FB1E84 /* TemplateBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */; };
 		6A5F3971280785A700386029 /* TemplateBrowserSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F3970280785A700386029 /* TemplateBrowserSidebar.swift */; };
@@ -542,6 +544,7 @@
 		6A34BE312A34B2A00031E5E4 /* Capsules-500.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Capsules-500.otf"; sourceTree = "<group>"; };
 		6A373A3B28E8178500750256 /* MyPlanetCustomCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetCustomCodeView.swift; sourceTree = "<group>"; };
 		6A4825C928F22DAC004CE2C0 /* PodcastUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastUtils.swift; sourceTree = "<group>"; };
+		6A52FAE82A8893E9000E85F0 /* PublicArticleModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicArticleModel.swift; sourceTree = "<group>"; };
 		6A5935EB2A14E98C00151CBD /* MyPlanetTemplateSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetTemplateSettingsView.swift; sourceTree = "<group>"; };
 		6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserView.swift; sourceTree = "<group>"; };
 		6A5F3970280785A700386029 /* TemplateBrowserSidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserSidebar.swift; sourceTree = "<group>"; };
@@ -1188,6 +1191,7 @@
 				72114BCC75EE5AAA9D0CA991 /* FollowingPlanetModel.swift */,
 				721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */,
 				72114F5686F5902EE578B3CF /* ArticleModel.swift */,
+				6A52FAE82A8893E9000E85F0 /* PublicArticleModel.swift */,
 				72114E45790363ADCC6F7673 /* DraftModel.swift */,
 				721143E2F2DEA3A694022B20 /* AttachmentModel.swift */,
 			);
@@ -1478,6 +1482,7 @@
 				2A6E16E42A1876D900704A08 /* AppContentViewController.swift in Sources */,
 				2A95E6942A19A3D0001288B8 /* PlanetKeyManagerWindow.swift in Sources */,
 				2A996AD42A1DA6C100BEF898 /* PlanetDownloadsView.swift in Sources */,
+				6A52FAEA2A8893E9000E85F0 /* PublicArticleModel.swift in Sources */,
 				2A95E6E42A19A64F001288B8 /* CLTextFieldView.swift in Sources */,
 				2A95E6882A19A3CA001288B8 /* AttachmentThumbnailView.swift in Sources */,
 				2A95E6FC2A1B0011001288B8 /* MyPlanetInfoView.swift in Sources */,
@@ -1654,6 +1659,7 @@
 				2A466FD12A809E2C009FB646 /* GIFIndicatorView.swift in Sources */,
 				2A79FB2C2898184100F06DDF /* PlanetDownloadModel.swift in Sources */,
 				2A4164D729E64878009BFC24 /* PlanetQuickShareViewModel.swift in Sources */,
+				6A52FAE92A8893E9000E85F0 /* PublicArticleModel.swift in Sources */,
 				6AC01AF0291ECC7E00EB6B5F /* WalletAccountView.swift in Sources */,
 				721145603D528B27CC6091D1 /* WriterDragAndDrop.swift in Sources */,
 				2AA7974329496F730031E873 /* PFDashboardSidebarViewController.swift in Sources */,
