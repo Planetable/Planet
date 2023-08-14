@@ -19,11 +19,18 @@ struct AppContentItemView: View {
     @State private var sharedLink: String?
     @State private var thumbnail: NSImage?
     @State private var thumbnailCachedPath: URL?
+    @State private var attachmentURLs: [URL]?
 
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
             .onTapGesture {
-                ASMediaManager.shared.activatePhotoView(withPhotos: getPhotos(fromArticle: article), title: article.title, andID: article.id)
+                if let attachmentURLs {
+                    ASMediaManager.shared.activatePhotoView(withPhotos: attachmentURLs, title: article.title, andID: article.id)
+                } else {
+                    let urls = self.getPhotos(fromArticle: self.article)
+                    ASMediaManager.shared.activatePhotoView(withPhotos: urls, title: article.title, andID: article.id)
+                    self.attachmentURLs = urls
+                }
             }
             .contextMenu {
                 AppContentItemMenuView(isShowingDeleteConfirmation: $isShowingDeleteConfirmation, isSharingLink: $isSharingLink, sharedLink: $sharedLink, article: article)
@@ -59,6 +66,10 @@ struct AppContentItemView: View {
             .background(
                 SharingServicePicker(isPresented: $isSharingLink, sharingItems: [sharedLink ?? ""])
             )
+            .task(id: article.id, priority: .utility) {
+                guard attachmentURLs == nil else { return }
+                attachmentURLs = getPhotos(fromArticle: article)
+            }
     }
 
     private func getPhotos(fromArticle article: MyArticleModel) -> [URL] {
@@ -141,6 +152,9 @@ struct AppContentItemView: View {
             }
             if isGIF {
                 GIFIndicatorView()
+            }
+            if let attachmentURLs, attachmentURLs.count > 1 {
+                GroupIndicatorView()
             }
         }
         .contentShape(Rectangle())
