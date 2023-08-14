@@ -13,11 +13,12 @@ struct GroupIndicatorView: View {
         VStack {
             HStack {
                 Spacer()
-                Image(systemName: "photo.on.rectangle")
+                Image("multi")
+                    .renderingMode(.template)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 13)
-                    .padding(3.5)
+                    .frame(width: 16)
+                    .padding(1)
                     .foregroundColor(.white.opacity(0.85))
                     .background(Color.secondary.opacity(0.75))
                     .cornerRadius(4)
