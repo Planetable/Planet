@@ -187,7 +187,8 @@ struct MyArticleSettingsView: View {
                         }
                         if let articleSlug = article.slug, articleSlug.count > 0 {
                             article.link = "/\(articleSlug)/"
-                        } else {
+                        }
+                        else {
                             article.link = "/\(article.id.uuidString)/"
                         }
                         article.articleType = articleType
@@ -265,7 +266,13 @@ struct MyArticleSettingsView: View {
             .frame(width: CONTROL_CAPTION_WIDTH + 40)
 
             // Tag capsules
-            WrappingHStack(tags.values.sorted(), id: \.self, alignment: .leading, spacing: .constant(2), lineSpacing: 4) { tag in
+            WrappingHStack(
+                tags.values.sorted(),
+                id: \.self,
+                alignment: .leading,
+                spacing: .constant(2),
+                lineSpacing: 4
+            ) { tag in
                 TagView(tag: tag)
                     .onTapGesture {
                         tags.removeValue(forKey: tag.normalizedTag())
@@ -281,6 +288,10 @@ struct MyArticleSettingsView: View {
             .frame(width: CONTROL_CAPTION_WIDTH + 40)
 
             TextField("", text: $newTag)
+                .onSubmit {
+                    addTag()
+                }
+                .disableAutocorrection(true)
                 .textFieldStyle(.roundedBorder)
 
             Button {
