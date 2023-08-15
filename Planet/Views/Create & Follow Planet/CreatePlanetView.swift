@@ -110,7 +110,7 @@ struct CreatePlanetView: View {
                             }
                             planetStore.selectedView = .myPlanet(planet)
                             try planet.save()
-                            try planet.savePublic()
+                            try await planet.savePublic()
                         } catch {
                             PlanetStore.shared.alert(title: "Failed to create planet")
                         }

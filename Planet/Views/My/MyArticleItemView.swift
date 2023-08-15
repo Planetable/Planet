@@ -150,7 +150,7 @@ struct MyArticleItemView: View {
                         planet.updated = Date()
                         Task {
                             try planet.save()
-                            try planet.savePublic()
+                            try await planet.savePublic()
                         }
                         if PlanetStore.shared.selectedArticle == article {
                             PlanetStore.shared.selectedArticle = nil

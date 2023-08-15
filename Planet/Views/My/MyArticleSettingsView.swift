@@ -206,8 +206,8 @@ struct MyArticleSettingsView: View {
                                 try planet.copyTemplateAssets()
                                 planet.updated = Date()
                                 try planet.save()
-                                try planet.savePublic()
-                                Task {
+                                Task(priority: .background) {
+                                    try await planet.savePublic()
                                     try await planet.publish()
                                 }
                             }

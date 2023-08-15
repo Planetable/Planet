@@ -353,7 +353,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         try planet.save()
 
         Task {
-            try planet.savePublic()
+            try await planet.savePublic()
             try await planet.publish()
         }
 

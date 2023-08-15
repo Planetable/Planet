@@ -223,7 +223,7 @@ extension PlanetAPI {
                     try planet.uploadAvatar(image: planetAvatarImage)
                 }
                 try planet.save()
-                try planet.savePublic()
+                try await planet.savePublic()
                 PlanetStore.shared.myPlanets.insert(planet, at: 0)
                 PlanetStore.shared.selectedView = .myPlanet(planet)
             } catch {
@@ -283,7 +283,7 @@ extension PlanetAPI {
                 try planet.save()
                 try planet.copyTemplateAssets()
                 try planet.articles.forEach { try $0.savePublic() }
-                try planet.savePublic()
+                try await planet.savePublic()
                 NotificationCenter.default.post(name: .loadArticle, object: nil)
                 try await planet.publish()
             } catch {
@@ -497,7 +497,9 @@ extension PlanetAPI {
                         planet.updated = Date()
                         do {
                             try planet.save()
-                            try planet.savePublic()
+                            Task {
+                                try await planet.savePublic()
+                            }
                             if PlanetStore.shared.selectedArticle == article {
                                 PlanetStore.shared.selectedArticle = nil
                             }

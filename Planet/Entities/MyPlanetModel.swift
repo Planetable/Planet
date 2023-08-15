@@ -980,7 +980,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         Task {
             do {
-                try planet.savePublic()
+                try await planet.savePublic()
             }
             catch {
                 Self.logger.error("Error creating planet public info \(planet.id): \(error)")
@@ -1264,7 +1264,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
-    func savePublic() throws {
+    func savePublic() async throws {
         guard let template = template else {
             throw PlanetError.MissingTemplateError
         }
@@ -1687,7 +1687,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 debugPrint("failed to save ops to file: \(error)")
             }
         }
-        try self.savePublic()
+        try await self.savePublic()
         NotificationCenter.default.post(name: .loadArticle, object: nil)
         Task { @MainActor in
             NotificationCenter.default.post(name: .publishMyPlanet, object: self)

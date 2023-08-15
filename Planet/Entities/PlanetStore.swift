@@ -461,7 +461,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         try toPlanet.save()
 
         debugPrint("target planet save public")
-        try toPlanet.savePublic()
+        try await toPlanet.savePublic()
 
         debugPrint("update from planet update date")
         fromPlanet.updated = Date()
@@ -470,7 +470,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         try fromPlanet.save()
 
         debugPrint("from planet save public")
-        try fromPlanet.savePublic()
+        try await fromPlanet.savePublic()
 
         debugPrint("refresh planet store")
         let refreshedFromPlanet = try MyPlanetModel.load(from: fromPlanet.basePath)
