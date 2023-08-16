@@ -396,6 +396,8 @@
 		BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */ = {isa = PBXBuildFile; productRef = BBAE651A28987A31007E1818 /* HTMLEntities */; };
 		BBC831AB2836239300CE1F67 /* PlanetSiteTemplates in Frameworks */ = {isa = PBXBuildFile; productRef = BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */; };
 		BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */ = {isa = PBXBuildFile; productRef = BBFE51EB27F3AABC0055A51A /* ENSKit */; };
+		E8B4FE3D2A8D144E00C01E94 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E8B4FE3F2A8D144E00C01E94 /* Localizable.strings */; };
+		E8B4FE422A8D146100C01E94 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = E8B4FE442A8D146100C01E94 /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -636,6 +638,8 @@
 		BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v6.xcdatamodel"; sourceTree = "<group>"; };
 		BBC60A1A2803931C007A42D0 /* Planet v5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v5.xcdatamodel"; sourceTree = "<group>"; };
 		BBC831AC2837075600CE1F67 /* Planet v7.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v7.xcdatamodel"; sourceTree = "<group>"; };
+		E8B4FE3E2A8D144E00C01E94 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		E8B4FE432A8D146100C01E94 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -848,6 +852,8 @@
 			children = (
 				6A1FD5042A75A67C00391972 /* Art */,
 				2AC4996927BB987B00F1C2D1 /* Info.plist */,
+				E8B4FE442A8D146100C01E94 /* InfoPlist.strings */,
+				E8B4FE3F2A8D144E00C01E94 /* Localizable.strings */,
 				2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */,
 				2A996AD02A1DA64800BEF898 /* PlanetAppDelegate.swift */,
 				7211404DFC1B4D23F84EA279 /* PlanetError.swift */,
@@ -1330,6 +1336,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
@@ -1398,7 +1405,9 @@
 				6A1FD5062A75A6A000391972 /* NSTG.json in Resources */,
 				6A34BE3E2A34B2A00031E5E4 /* Capsules-500.otf in Resources */,
 				6A1DF9CF28E8E4B6000499E3 /* RSS.xml in Resources */,
+				E8B4FE422A8D146100C01E94 /* InfoPlist.strings in Resources */,
 				6A1FD5032A75A64500391972 /* Avatars.xcassets in Resources */,
+				E8B4FE3D2A8D144E00C01E94 /* Localizable.strings in Resources */,
 				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
 				6A34BE322A34B2A00031E5E4 /* Capsules-200.otf in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
@@ -1735,6 +1744,25 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXVariantGroup section */
+		E8B4FE3F2A8D144E00C01E94 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				E8B4FE3E2A8D144E00C01E94 /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		E8B4FE442A8D146100C01E94 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				E8B4FE432A8D146100C01E94 /* zh-Hans */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
 		2ABD1CCE2A1616DB0082D7EA /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1920,9 +1948,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Planet/Planet.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Planet/Preview Content\"";
+				DEVELOPMENT_TEAM = EGBKD9877K;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1950,9 +1979,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Planet/Planet.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Planet/Preview Content\"";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = EGBKD9877K;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1967,6 +1998,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "$(ORGANIZATION_IDENTIFIER_PREFIX).Planet";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Developer ID Profile";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
