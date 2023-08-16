@@ -28,6 +28,7 @@ class Template: Codable, Identifiable {
     let author: String
     let version: String
     var idealItemsPerPage: Int? = 10
+    var generateTagPages: Bool? = false
     var buildNumber: Int? = 1
     var generateNFTMetadata: Bool? = false
     var settings: [String: TemplateSetting]? = [:]
@@ -81,6 +82,7 @@ class Template: Codable, Identifiable {
         case author
         case version
         case idealItemsPerPage
+        case generateTagPages
         case buildNumber
         case generateNFTMetadata
         case settings
@@ -93,6 +95,7 @@ class Template: Codable, Identifiable {
         author = try container.decode(String.self, forKey: .author)
         version = try container.decode(String.self, forKey: .version)
         idealItemsPerPage = try container.decodeIfPresent(Int.self, forKey: .idealItemsPerPage)
+        generateTagPages = try container.decodeIfPresent(Bool.self, forKey: .generateTagPages)
         buildNumber = try container.decodeIfPresent(Int.self, forKey: .buildNumber)
         generateNFTMetadata = try container.decodeIfPresent(Bool.self, forKey: .generateNFTMetadata)
         settings = try container.decodeIfPresent(Dictionary.self, forKey: .settings)
@@ -105,6 +108,7 @@ class Template: Codable, Identifiable {
         try container.encode(author, forKey: .author)
         try container.encode(version, forKey: .version)
         try container.encodeIfPresent(idealItemsPerPage, forKey: .idealItemsPerPage)
+        try container.encodeIfPresent(generateTagPages, forKey: .generateTagPages)
         try container.encodeIfPresent(buildNumber, forKey: .buildNumber)
         try container.encodeIfPresent(generateNFTMetadata, forKey: .generateNFTMetadata)
         try container.encodeIfPresent(settings, forKey: .settings)

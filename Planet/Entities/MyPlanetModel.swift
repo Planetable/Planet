@@ -8,6 +8,7 @@ import os
 
 class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codable {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "MyPlanet")
+    static let RESERVED_KEYWORDS_FOR_TAGS = ["index", "tags"]
 
     let id: UUID
     @Published var name: String
@@ -84,6 +85,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
+    }
+    static func isReservedTag(_ tag: String) -> Bool {
+        return RESERVED_KEYWORDS_FOR_TAGS.contains(tag)
     }
     var basePath: URL {
         return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
@@ -170,6 +174,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             self.id.uuidString,
             isDirectory: true
         ).appendingPathComponent("page\(page).html", isDirectory: false)
+    }
+    func publicTagPath(tag: String) -> URL {
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("\(tag).html", isDirectory: false)
     }
     var publicRSSPath: URL {
         return Self.publicPlanetsPath().appendingPathComponent(
@@ -1298,6 +1308,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let hasPodcastCoverArt = FileManager.default.fileExists(
             atPath: publicPodcastCoverArtPath.path
         )
+        // MARK: - Render index.html and pages
         let itemsPerPage = template.idealItemsPerPage ?? 10
         if publicPlanet.articles.count > itemsPerPage {
             let pages = Int(ceil(Double(publicPlanet.articles.count) / Double(itemsPerPage)))
@@ -1350,12 +1361,52 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
         }
 
+        // MARK: - Render tags
+        if let generateTagPages = template.generateTagPages, generateTagPages {
+            debugPrint("Generate tags for planet \(name)")
+            var tagArticles: [String: [PublicArticleModel]] = [:]
+            for article in publicPlanet.articles {
+                if let articleTags = article.tags {
+                    for (key, value) in articleTags {
+                        if MyPlanetModel.isReservedTag(key) {
+                            continue
+                        }
+                        if tagArticles[key] == nil {
+                            tagArticles[key] = []
+                        }
+                        tagArticles[key]?.append(article)
+                    }
+                }
+            }
+            for (key, value) in tagArticles {
+                let tagContext: [String: Any] = [
+                    "planet": publicPlanet,
+                    "my_planet": self,
+                    "site_navigation": siteNavigation,
+                    "has_avatar": self.hasAvatar(),
+                    "og_image_url": ogImageURLString,
+                    "has_podcast": publicPlanet.hasAudioContent(),
+                    "has_podcast_cover_art": hasPodcastCoverArt,
+                    "tag_key": key,
+                    "tag_value": self.tags?[key] ?? key,
+                    "articles": value,
+                ]
+                let tagHTML = try template.renderIndex(context: tagContext)
+                let tagPath = publicTagPath(tag: key)
+                try tagHTML.data(using: .utf8)?.write(to: tagPath)
+            }
+        } else {
+            debugPrint("Skip generating tags for planet \(name)")
+        }
+
+        // MARK: - Render RSS and podcast RSS
         renderRSS(podcastOnly: false)
 
         if publicPlanet.hasAudioContent() {
             renderRSS(podcastOnly: true)
         }
 
+        // MARK: - Save planet.json
         let info = try JSONEncoder.shared.encode(publicPlanet)
         try info.write(to: publicInfoPath)
     }
