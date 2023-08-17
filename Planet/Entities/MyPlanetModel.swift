@@ -8,7 +8,7 @@ import os
 
 class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codable {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "MyPlanet")
-    static let RESERVED_KEYWORDS_FOR_TAGS = ["index", "tags"]
+    static let RESERVED_KEYWORDS_FOR_TAGS = ["index", "tags", "archive", "archives"]
 
     let id: UUID
     @Published var name: String
@@ -174,6 +174,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             self.id.uuidString,
             isDirectory: true
         ).appendingPathComponent("page\(page).html", isDirectory: false)
+    }
+    var publicArchivePath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("archive.html", isDirectory: false)
     }
     var publicTagsPath: URL {
         return Self.publicPlanetsPath().appendingPathComponent(
@@ -1423,6 +1429,40 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             }
         } else {
             debugPrint("Skip generating tags for planet \(name)")
+        }
+
+        // MARK: - Render archive.html
+        if let generateArchive = template.generateArchive, generateArchive {
+            if template.hasArchiveHTML {
+                var archive: [String: [PublicArticleModel]] = [:]
+                var archiveSections: [String] = []
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "MMMM yyyy"
+                for article in allArticles {
+                    let monthYear = dateFormatter.string(from: article.created)
+                    if archive[monthYear] == nil {
+                        archive[monthYear] = []
+                        archiveSections.append(monthYear)
+                    }
+                    archive[monthYear]?.append(article)
+                }
+                let archiveContext: [String: Any] = [
+                    "planet": publicPlanet,
+                    "my_planet": self,
+                    "site_navigation": siteNavigation,
+                    "has_avatar": self.hasAvatar(),
+                    "og_image_url": ogImageURLString,
+                    "has_podcast": publicPlanet.hasAudioContent(),
+                    "has_podcast_cover_art": hasPodcastCoverArt,
+                    "articles": allArticles,
+                    "archive": archive,
+                    "archive_sections": archiveSections,
+                ]
+                let archiveHTML = try template.renderArchive(context: archiveContext)
+                try archiveHTML.data(using: .utf8)?.write(to: publicArchivePath)
+            }
+        } else {
+            debugPrint("Skip generating archive for planet \(name)")
         }
 
         // MARK: - Render RSS and podcast RSS
