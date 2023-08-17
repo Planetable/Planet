@@ -175,6 +175,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             isDirectory: true
         ).appendingPathComponent("page\(page).html", isDirectory: false)
     }
+    var publicTagsPath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("tags.html", isDirectory: false)
+    }
     func publicTagPath(tag: String) -> URL {
         return Self.publicPlanetsPath().appendingPathComponent(
             self.id.uuidString,
@@ -1281,6 +1287,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         self.removeDSStore()
         let siteNavigation = self.siteNavigation()
         debugPrint("Planet Site Navigation: \(siteNavigation)")
+        let allArticles = articles.map { item in
+            return item.publicArticle
+        }
         let publicArticles = articles.filter { $0.articleType == .blog }.map { $0.publicArticle }
         let publicPlanet = PublicPlanetModel(
             id: id,
@@ -1365,7 +1374,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if let generateTagPages = template.generateTagPages, generateTagPages {
             debugPrint("Generate tags for planet \(name)")
             var tagArticles: [String: [PublicArticleModel]] = [:]
-            for article in publicPlanet.articles {
+            for article in allArticles {
                 if let articleTags = article.tags {
                     for (key, value) in articleTags {
                         if MyPlanetModel.isReservedTag(key) {
@@ -1389,11 +1398,28 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "has_podcast_cover_art": hasPodcastCoverArt,
                     "tag_key": key,
                     "tag_value": self.tags?[key] ?? key,
+                    "current_item_type": "tags",
                     "articles": value,
                 ]
                 let tagHTML = try template.renderIndex(context: tagContext)
                 let tagPath = publicTagPath(tag: key)
                 try tagHTML.data(using: .utf8)?.write(to: tagPath)
+            }
+
+            if template.hasTagsHTML {
+                let tagsContext: [String: Any] = [
+                    "planet": publicPlanet,
+                    "my_planet": self,
+                    "site_navigation": siteNavigation,
+                    "has_avatar": self.hasAvatar(),
+                    "og_image_url": ogImageURLString,
+                    "has_podcast": publicPlanet.hasAudioContent(),
+                    "has_podcast_cover_art": hasPodcastCoverArt,
+                    "tags": tags,
+                    "tag_articles": tagArticles,
+                ]
+                let tagsHTML = try template.renderTags(context: tagsContext)
+                try tagsHTML.data(using: .utf8)?.write(to: publicTagsPath)
             }
         } else {
             debugPrint("Skip generating tags for planet \(name)")

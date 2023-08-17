@@ -48,6 +48,11 @@ class Template: Codable, Identifiable {
         .appendingPathComponent("templates", isDirectory: true)
         .appendingPathComponent("simple.html", isDirectory: false)
 
+    // tags.html for tag cloud, not all templates have this file
+    lazy var tagsPath = path
+        .appendingPathComponent("templates", isDirectory: true)
+        .appendingPathComponent("tags.html", isDirectory: false)
+
     lazy var indexPath = path
         .appendingPathComponent("templates", isDirectory: true)
         .appendingPathComponent("index.html", isDirectory: false)
@@ -74,6 +79,10 @@ class Template: Codable, Identifiable {
 
     var hasSimpleHTML: Bool {
         return FileManager.default.fileExists(atPath: blogSimplePath.path)
+    }
+
+    var hasTagsHTML: Bool {
+        return FileManager.default.fileExists(atPath: tagsPath.path)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -256,7 +265,7 @@ class Template: Codable, Identifiable {
             "articles": context["articles"] ?? [],
             "build_timestamp": Int(Date().timeIntervalSince1970),
             "style_css_sha256": styleCSSHash ?? "",
-            "current_item_type": "index",
+            "current_item_type": context["current_item_type"] ?? "index",
             "current_page": context["page"] ?? 1,
             "total_pages": context["pages"] ?? 1,
             "next_page": getNextPage(page: context["page"] as? Int ?? 1, pages: context["pages"] as? Int ?? 1) ?? nil,
@@ -269,6 +278,34 @@ class Template: Codable, Identifiable {
         let loader = FileSystemLoader(paths: [Path(indexPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.common])
         let stencilTemplateName = indexPath.lastPathComponent
+        return try environment.renderTemplate(name: stencilTemplateName, context: contextForRendering)
+    }
+
+    func renderTags(context: [String: Any]) throws -> String {
+        guard let planet = context["planet"] as? PublicPlanetModel else {
+            throw PlanetError.RenderMarkdownError
+        }
+        guard let myPlanet = context["my_planet"] as? MyPlanetModel else {
+            throw PlanetError.RenderMarkdownError
+        }
+        let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
+        var contextForRendering: [String: Any] = [
+            "assets_prefix": "./",
+            "page_title": "\(planet.name) - Tags",
+            "page_description": planet.about,
+            "page_description_html": pageAboutHTML,
+            "articles": context["articles"] ?? [],
+            "build_timestamp": Int(Date().timeIntervalSince1970),
+            "style_css_sha256": styleCSSHash ?? "",
+            "current_item_type": "tags",
+        ]
+        for (key, value) in context {
+            contextForRendering[key] = value
+        }
+        contextForRendering.merge(renderCustomCode(planet: myPlanet, context: contextForRendering)) { (_, new) in new }
+        let loader = FileSystemLoader(paths: [Path(tagsPath.deletingLastPathComponent().path)])
+        let environment = Environment(loader: loader, extensions: [StencilExtension.common])
+        let stencilTemplateName = tagsPath.lastPathComponent
         return try environment.renderTemplate(name: stencilTemplateName, context: contextForRendering)
     }
 
