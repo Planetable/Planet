@@ -10,6 +10,8 @@ import SwiftUI
 
 struct PlanetMainView: View {
     @EnvironmentObject var planetStore: PlanetStore
+    @EnvironmentObject private var iconManager: IconManager
+
     @AppStorage("PlanetAvatarPicker.selectedAvatarCategory") private var selectedAvatarCategory: AvatarCategory?
 
     @State private var isInfoAlert: Bool = false
@@ -102,6 +104,10 @@ struct PlanetMainView: View {
             PlanetQuickShareView()
                 .frame(width: .sheetWidth)
                 .frame(minHeight: .sheetHeight)
+        }
+        .sheet(isPresented: $planetStore.isShowingIconGallery) {
+            IconGalleryView()
+                .environmentObject(iconManager)
         }
         .confirmationDialog(
             Text("Are you sure you want to disconnect?"),

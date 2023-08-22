@@ -12,10 +12,12 @@ import SwiftUI
 struct PlanetApp: App {
     @NSApplicationDelegateAdaptor(PlanetAppDelegate.self) var appDelegate
     @StateObject var planetStore: PlanetStore
+    @StateObject var iconManager: IconManager
     @ObservedObject var keyboardHelper: KeyboardShortcutHelper
 
     init() {
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)
+        _iconManager = StateObject(wrappedValue: IconManager.shared)
         _keyboardHelper = ObservedObject(wrappedValue: KeyboardShortcutHelper.shared)
     }
 
@@ -52,6 +54,7 @@ struct PlanetApp: App {
         WindowGroup("Planet") {
             PlanetMainView()
                 .environmentObject(planetStore)
+                .environmentObject(iconManager)
                 .frame(minWidth: 840, minHeight: 600)
                 .handlesExternalEvents(preferring: mainEvent, allowing: mainEvent)
         }
@@ -64,6 +67,7 @@ struct PlanetApp: App {
         Window("Planet", id: "planetMainWindow") {
             PlanetMainView()
                 .environmentObject(planetStore)
+                .environmentObject(iconManager)
                 .frame(minWidth: 840, minHeight: 600)
         }
     }

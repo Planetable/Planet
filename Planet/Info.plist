@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ATSApplicationFontsPath</key>
+	<string>.</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -60,6 +62,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSDockTilePlugIn</key>
+	<string>PlanetDockPlugIn.docktileplugin</string>
 	<key>ORGANIZATION_IDENTIFIER_PREFIX</key>
 	<string>$(ORGANIZATION_IDENTIFIER_PREFIX)</string>
 	<key>PLANET_APP_ICON_NAME</key>
@@ -72,8 +76,6 @@
 	<string>$(SPARKLE_UPDATE_FEED_URL)</string>
 	<key>SUPublicEDKey</key>
 	<string>ciHPM+QD+p7Rceljd0MT42MfrcVhZchEVJTUW98R3Wk=</string>
-	<key>ATSApplicationFontsPath</key>
-	<string>.</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
