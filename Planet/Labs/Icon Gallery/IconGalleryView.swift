@@ -88,7 +88,11 @@ struct IconGalleryView: View {
         }
         .frame(minWidth: 600, idealWidth: 600, maxWidth: .infinity, minHeight: 400)
         .task {
-            selectedGroupName = iconManager.iconGroupNames().first
+            if let icon = iconManager.activeDockIcon {
+                selectedGroupName = icon.groupName
+            } else {
+                selectedGroupName = iconManager.iconGroupNames().first
+            }
             let lastPackageName = UserDefaults.standard.string(forKey: "PlanetDockIconLastPackageName") ?? ""
             DistributedNotificationCenter.default().post(name: Notification.Name("PlanetDockIconSyncPackageName"), object: lastPackageName)
         }

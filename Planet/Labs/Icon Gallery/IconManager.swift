@@ -355,7 +355,6 @@ class IconManager: ObservableObject {
                 DispatchQueue.main.async {
                     NSApp.applicationIconImage = image
                 }
-                // MARK: TODO: DockPlugIn
             }
         } catch {
             debugPrint("failed to set first frame for package: \(name), error: \(error)")
