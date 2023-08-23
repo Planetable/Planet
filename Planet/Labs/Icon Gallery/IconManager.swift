@@ -224,8 +224,10 @@ class IconManager: ObservableObject {
         let location = try animationLocation(withPackageName: name)
         let json = location.appendingPathComponent("animation.json")
         let key = String(format: "%@-%.d-%.d", name, size.width, size.height)
+        let currentCachedIconImageSet = cachedIconImageSet
+        let currentCachedPreviewIconImageSet = cachedPreviewIconImageSet
         if !FileManager.default.fileExists(atPath: json.path) {
-            if let imageSet = cachedPreviewIconImageSet[key] {
+            if let imageSet = currentCachedPreviewIconImageSet[key] {
                 return imageSet
             } else {
                 let imagePath: URL = location.appendingPathComponent("a.png")
@@ -241,15 +243,15 @@ class IconManager: ObservableObject {
             let decoder = JSONDecoder()
             let data = try Data(contentsOf: json)
             let animation = try decoder.decode(DockAnimationObject.self, from: data)
-            if let imageSet = cachedPreviewIconImageSet[key] {
+            if let imageSet = currentCachedPreviewIconImageSet[key] {
                 return imageSet
             } else {
                 var imageSet: [NSImage] = []
-                let imageSetIsCached: Bool = cachedIconImageSet[name] != nil
+                let imageSetIsCached: Bool = currentCachedIconImageSet[name] != nil
                 for f in animation.frames {
                     let image: NSImage
                     if imageSetIsCached {
-                        guard let i = cachedIconImageSet[name]?[f.index] else { continue }
+                        guard let i = currentCachedIconImageSet[name]?[f.index] else { continue }
                         image = i
                     } else {
                         let imageFile = location.appendingPathComponent(f.name)
@@ -304,8 +306,9 @@ class IconManager: ObservableObject {
             let data = try Data(contentsOf: json)
             let animation = try decoder.decode(DockAnimationObject.self, from: data)
             isPlayingAnimation = true
+            let currentCachedIconImageSet = cachedIconImageSet
             let frames: [DockAnimationFrame] = animation.frames
-            let imageSetIsCached: Bool = cachedIconImageSet[name] != nil
+            let imageSetIsCached: Bool = currentCachedIconImageSet[name] != nil
             let _ = AsyncStream { (continuation: AsyncStream<DockAnimationFrame>.Continuation) in
                 Task(priority: .userInitiated) {
                     var imageSet: [NSImage] = []
@@ -313,7 +316,7 @@ class IconManager: ObservableObject {
                         continuation.yield(f)
                         let image: NSImage
                         if imageSetIsCached {
-                            guard let i = cachedIconImageSet[name]?[f.index] else { continue }
+                            guard let i = currentCachedIconImageSet[name]?[f.index] else { continue }
                             image = i
                             debugPrint("using cached image: \(i), frame: \(f)")
                         } else {
