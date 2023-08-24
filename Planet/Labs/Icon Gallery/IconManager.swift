@@ -53,7 +53,7 @@ private struct DockIconPreviewView: View {
                         .aspectRatio(contentMode: .fit)
                         .foregroundColor(.white)
                         .frame(width: size.width * 0.25)
-                        .opacity(hovering ? 0.85 : 0.0)
+                        .opacity(hovering ? 0.95 : 0.0)
                 }
             } else {
                 ProgressView()
@@ -318,7 +318,6 @@ class IconManager: ObservableObject {
                         if imageSetIsCached {
                             guard let i = currentCachedIconImageSet[name]?[f.index] else { continue }
                             image = i
-                            debugPrint("using cached image: \(i), frame: \(f)")
                         } else {
                             let imageFile = location.appendingPathComponent(f.name)
                             guard let i = NSImage(contentsOf: imageFile) else { continue }

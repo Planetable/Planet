@@ -68,6 +68,26 @@ struct IconGalleryView: View {
                         
                         Spacer()
                         
+                        /* // MARK: TODO: pinnable
+                        let unlocked = selectedDockIcon?.unlocked ?? false
+                        if !unlocked && selectedDockIcon != nil {
+                            HStack {
+                                Text("Icon Locked")
+                                    .foregroundColor(.secondary)
+                                HelpLinkButton(helpLink: URL(string: "https://pinnable.xyz/pricing")!)
+                            }
+                        } else {
+                            Button {
+                                if let selectedDockIcon {
+                                    iconManager.setIcon(icon: selectedDockIcon)
+                                }
+                            } label: {
+                                Text("Set App Icon")
+                            }
+                            .disabled(selectedDockIcon == nil)
+                            .disabled(iconManager.activeDockIcon != nil && iconManager.activeDockIcon == selectedDockIcon)
+                        }
+                         */
                         Button {
                             if let selectedDockIcon {
                                 iconManager.setIcon(icon: selectedDockIcon)
