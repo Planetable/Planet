@@ -483,7 +483,6 @@
 		2A27744A2A9515BF00A5DDC2 /* IconManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IconManager.swift; sourceTree = "<group>"; };
 		2A27744D2A9515EB00A5DDC2 /* IconModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IconModel.swift; sourceTree = "<group>"; };
 		2A27744F2A9515F600A5DDC2 /* IconGalleryView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IconGalleryView.swift; sourceTree = "<group>"; };
-		2A2774512A95161000A5DDC2 /* PlanetDockPlugIn-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PlanetDockPlugIn-Bridging-Header.h"; sourceTree = "<group>"; };
 		2A2774552A95161F00A5DDC2 /* PlanetDockPlugIn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetDockPlugIn.swift; sourceTree = "<group>"; };
 		2A27745A2A95175300A5DDC2 /* tier1.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = tier1.zip; sourceTree = "<group>"; };
 		2A27745D2A95176400A5DDC2 /* vol1-5.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "vol1-5.zip"; sourceTree = "<group>"; };
@@ -831,7 +830,6 @@
 				2A27744D2A9515EB00A5DDC2 /* IconModel.swift */,
 				2A27744F2A9515F600A5DDC2 /* IconGalleryView.swift */,
 				2A2774552A95161F00A5DDC2 /* PlanetDockPlugIn.swift */,
-				2A2774512A95161000A5DDC2 /* PlanetDockPlugIn-Bridging-Header.h */,
 			);
 			path = "Icon Gallery";
 			sourceTree = "<group>";
@@ -1969,7 +1967,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Planet/Labs/Icon Gallery/PlanetDockPlugIn-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = docktileplugin;
@@ -1995,7 +1992,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Planet/Labs/Icon Gallery/PlanetDockPlugIn-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = docktileplugin;
 			};
