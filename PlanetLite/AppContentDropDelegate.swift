@@ -7,7 +7,7 @@ import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 
-
+// TODO: Rename this to QuickShareDropDelegate and use it in ArticleList too
 class AppContentDropDelegate: DropDelegate {
     init() {
     }
