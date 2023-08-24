@@ -47,7 +47,7 @@ struct AppContentItemView: View {
                             planet.updated = Date()
                             try planet.save()
                             Task {
-                                try planet.savePublic()
+                                try await planet.savePublic()
                                 try await planet.publish()
                             }
                             Task(priority: .background) {
