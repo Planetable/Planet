@@ -255,7 +255,7 @@ class IconManager: ObservableObject {
                         image = i
                     } else {
                         let imageFile = location.appendingPathComponent(f.name)
-                        guard let i = NSImage(contentsOf: imageFile) else { continue }
+                        guard let i = NSImage(contentsOfFile: imageFile.path) else { continue }
                         image = i
                     }
                     imageSet.append(thumbnail(fromImage: image, atSize: size))
@@ -320,7 +320,7 @@ class IconManager: ObservableObject {
                             image = i
                         } else {
                             let imageFile = location.appendingPathComponent(f.name)
-                            guard let i = NSImage(contentsOf: imageFile) else { continue }
+                            guard let i = NSImage(contentsOfFile: imageFile.path) else { continue }
                             image = i
                             imageSet.append(image)
                         }
