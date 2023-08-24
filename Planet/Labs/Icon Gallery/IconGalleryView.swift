@@ -114,7 +114,7 @@ struct IconGalleryView: View {
                 selectedGroupName = iconManager.iconGroupNames().first
             }
             let lastPackageName = UserDefaults.standard.string(forKey: "PlanetDockIconLastPackageName") ?? ""
-            DistributedNotificationCenter.default().post(name: Notification.Name("PlanetDockIconSyncPackageName"), object: lastPackageName)
+            DistributedNotificationCenter.default().post(name: Notification.Name("xyz.planetable.Planet.PlanetDockIconSyncPackageName"), object: lastPackageName)
         }
     }
 }

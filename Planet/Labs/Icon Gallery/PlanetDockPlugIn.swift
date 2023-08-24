@@ -6,7 +6,8 @@ class PlanetDockPlugIn: NSObject, NSDockTilePlugIn {
     var targetPackageName: String = UserDefaults.standard.string(forKey: "PlanetDockIconLastPackageName") ?? ""
     
     func setDockTile(_ dockTile: NSDockTile?) {
-        DistributedNotificationCenter.default().addObserver(forName: Notification.Name("PlanetDockIconSyncPackageName"), object: nil, queue: nil) { [weak self] n in
+        let notificationName = Notification.Name("xyz.planetable.Planet.PlanetDockIconSyncPackageName")
+        DistributedNotificationCenter.default().addObserver(forName: notificationName, object: nil, queue: nil) { [weak self] n in
             guard let selectedPackageName = n.object as? String else { return }
             UserDefaults.standard.set(selectedPackageName, forKey: "PlanetDockIconLastPackageName")
             self?.targetPackageName = selectedPackageName

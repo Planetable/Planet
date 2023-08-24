@@ -171,7 +171,7 @@ class IconManager: ObservableObject {
             setFirstFrame(withPackageName: icon.packageName)
         }
         UserDefaults.standard.set(icon.packageName, forKey: "PlanetDockIconLastPackageName")
-        DistributedNotificationCenter.default().post(name: Notification.Name("PlanetDockIconSyncPackageName"), object: icon.packageName)
+        DistributedNotificationCenter.default().post(name: Notification.Name("xyz.planetable.Planet.PlanetDockIconSyncPackageName"), object: icon.packageName)
     }
     
     func resetIcon() {
@@ -181,7 +181,7 @@ class IconManager: ObservableObject {
         cachedIconImageSet.removeAll()
         cachedPreviewIconImageSet.removeAll()
         UserDefaults.standard.removeObject(forKey: "PlanetDockIconLastPackageName")
-        DistributedNotificationCenter.default().post(name: Notification.Name("PlanetDockIconSyncPackageName"), object: "")
+        DistributedNotificationCenter.default().post(name: Notification.Name("xyz.planetable.Planet.PlanetDockIconSyncPackageName"), object: "")
     }
 
     func iconSupportsAnimation(icon: DockIcon) -> Bool {
