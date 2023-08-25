@@ -136,6 +136,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var walletConnectV2ConnectionURL: String = ""
     @Published var isShowingWalletConnectV2QRCode: Bool = false
 
+    @Published var isShowingIconGallery: Bool = false
+
     @Published var isShowingOnboarding = false
 
     @Published var isShowingAlert = false

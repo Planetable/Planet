@@ -69,6 +69,15 @@ class KeyboardShortcutHelper: ObservableObject {
                     Text("Connect Wallet V2")
                 }
             }
+            
+            if PlanetStore.shared.app == .planet {
+                Divider()
+                Button {
+                    PlanetStore.shared.isShowingIconGallery = true
+                } label: {
+                    Text("Icon Gallery")
+                }
+            }
         }
     }
 
