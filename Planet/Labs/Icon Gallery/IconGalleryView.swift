@@ -48,24 +48,14 @@ struct IconGalleryView: View {
                     
                     Divider()
                     
-                    HStack {
-                        if iconManager.activeDockIcon != nil && selectedDockIcon != nil {
+                    HStack(spacing: 12) {
+                        if (iconManager.activeDockIcon != nil && selectedDockIcon != nil) || iconManager.activeDockIcon != nil {
                             Button {
                                 iconManager.resetIcon()
                                 selectedDockIcon = nil
                             } label: {
                                 Text("Reset App Icon")
                             }
-                        } else if iconManager.activeDockIcon != nil {
-                            Button {
-                                iconManager.resetIcon()
-                                selectedDockIcon = nil
-                            } label: {
-                                Text("Reset App Icon")
-                            }
-                        } else {
-                            Text("Select to Preview and Set App Icon")
-                                .foregroundColor(.secondary)
                         }
                         
                         Spacer()
@@ -74,6 +64,8 @@ struct IconGalleryView: View {
                             dismiss()
                         } label: {
                             Text("Cancel")
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 16)
                         }
                         
                         /* // MARK: TODO: pinnable
@@ -106,8 +98,7 @@ struct IconGalleryView: View {
                         .disabled(selectedDockIcon == nil)
                         .disabled(iconManager.activeDockIcon != nil && iconManager.activeDockIcon == selectedDockIcon)
                     }
-                    .frame(height: 44)
-                    .padding(.horizontal, 16)
+                    .padding(16)
                 } else {
                     Text("No Icon Selected")
                 }
