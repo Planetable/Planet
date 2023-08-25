@@ -3,11 +3,13 @@ import SwiftUI
 
 struct IconGalleryView: View {
     @EnvironmentObject private var iconManager: IconManager
+    
+    @Environment(\.dismiss) private var dismiss
 
     @State private var selectedGroupName: String?
     @State private var selectedDockIcon: DockIcon?
 
-    static let itemSize: NSSize = NSSize(width: 120, height: 120)
+    static let itemSize: NSSize = NSSize(width: 135, height: 135)
     static let previewItemSize: NSSize = NSSize(width: 180, height: 180)
 
     var body: some View {
@@ -46,27 +48,25 @@ struct IconGalleryView: View {
                     
                     Divider()
                     
-                    HStack {
-                        if iconManager.activeDockIcon != nil && selectedDockIcon != nil {
+                    HStack(spacing: 12) {
+                        if (iconManager.activeDockIcon != nil && selectedDockIcon != nil) || iconManager.activeDockIcon != nil {
                             Button {
                                 iconManager.resetIcon()
                                 selectedDockIcon = nil
                             } label: {
                                 Text("Reset App Icon")
                             }
-                        } else if iconManager.activeDockIcon != nil {
-                            Button {
-                                iconManager.resetIcon()
-                                selectedDockIcon = nil
-                            } label: {
-                                Text("Reset App Icon")
-                            }
-                        } else {
-                            Text("Select to Preview and Set App Icon")
-                                .foregroundColor(.secondary)
                         }
                         
                         Spacer()
+                        
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("Cancel")
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 16)
+                        }
                         
                         /* // MARK: TODO: pinnable
                         let unlocked = selectedDockIcon?.unlocked ?? false
@@ -98,15 +98,14 @@ struct IconGalleryView: View {
                         .disabled(selectedDockIcon == nil)
                         .disabled(iconManager.activeDockIcon != nil && iconManager.activeDockIcon == selectedDockIcon)
                     }
-                    .frame(height: 44)
-                    .padding(.horizontal, 16)
+                    .padding(16)
                 } else {
                     Text("No Icon Selected")
                 }
             }
-            .frame(minWidth: 420, idealWidth: 420)
+            .frame(minWidth: 460, idealWidth: 460)
         }
-        .frame(minWidth: 600, idealWidth: 600, maxWidth: .infinity, minHeight: 400)
+        .frame(minWidth: 640, idealWidth: 640, maxWidth: .infinity, minHeight: 400)
         .task {
             if let icon = iconManager.activeDockIcon {
                 selectedGroupName = icon.groupName
