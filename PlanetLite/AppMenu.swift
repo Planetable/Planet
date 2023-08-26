@@ -13,6 +13,7 @@ import UniformTypeIdentifiers
 
 @objc protocol FileMenuActions {
     func importPlanet(_ sender: AnyObject)
+    func rebuildPlanet(_ sender: AnyObject)
     func learnMore(_ sender: AnyObject)
     func openDiscordInviteLink(_ sender: AnyObject)
 }
@@ -154,6 +155,12 @@ extension PlanetLiteAppDelegate: FileMenuActions, WriterMenuActions {
         )
         importItem.keyEquivalentModifierMask = [.command, .shift]
         menu.addItem(importItem)
+        let rebuildItem = NSMenuItem(
+            title: NSLocalizedString("Rebuild Site", comment: "Rebuild Site menu item"),
+            action: #selector(FileMenuActions.rebuildPlanet(_:)),
+            keyEquivalent: "r")
+        rebuildItem.keyEquivalentModifierMask = [.command]
+        menu.addItem(rebuildItem)
     }
 
     func populateEditMenu(_ menu: NSMenu) {
@@ -387,6 +394,18 @@ extension PlanetLiteAppDelegate: FileMenuActions, WriterMenuActions {
 
     func importPlanet(_ sender: AnyObject) {
         KeyboardShortcutHelper.shared.importPlanetAction()
+    }
+    
+    func rebuildPlanet(_ sender: AnyObject) {
+        if let planet = KeyboardShortcutHelper.shared.activeMyPlanet {
+            Task {
+                do {
+                    try await planet.rebuild()
+                } catch {
+                    debugPrint("failed to rebuild planet: \(planet), error: \(error)")
+                }
+            }
+        }
     }
     
     func send(_ sender: AnyObject) {
