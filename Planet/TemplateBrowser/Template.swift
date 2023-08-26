@@ -28,6 +28,7 @@ class Template: Codable, Identifiable {
     let author: String
     let version: String
     var idealItemsPerPage: Int? = 10
+    var generateIndexPagination: Bool? = false
     var generateTagPages: Bool? = false
     var generateArchive: Bool? = false
     var buildNumber: Int? = 1
@@ -101,6 +102,7 @@ class Template: Codable, Identifiable {
         case author
         case version
         case idealItemsPerPage
+        case generateIndexPagination
         case generateTagPages
         case generateArchive
         case buildNumber
@@ -115,6 +117,7 @@ class Template: Codable, Identifiable {
         author = try container.decode(String.self, forKey: .author)
         version = try container.decode(String.self, forKey: .version)
         idealItemsPerPage = try container.decodeIfPresent(Int.self, forKey: .idealItemsPerPage)
+        generateIndexPagination = try container.decodeIfPresent(Bool.self, forKey: .generateIndexPagination)
         generateTagPages = try container.decodeIfPresent(Bool.self, forKey: .generateTagPages)
         generateArchive = try container.decodeIfPresent(Bool.self, forKey: .generateArchive)
         buildNumber = try container.decodeIfPresent(Int.self, forKey: .buildNumber)
@@ -129,6 +132,7 @@ class Template: Codable, Identifiable {
         try container.encode(author, forKey: .author)
         try container.encode(version, forKey: .version)
         try container.encodeIfPresent(idealItemsPerPage, forKey: .idealItemsPerPage)
+        try container.encodeIfPresent(generateIndexPagination, forKey: .generateIndexPagination)
         try container.encodeIfPresent(generateTagPages, forKey: .generateTagPages)
         try container.encodeIfPresent(generateArchive, forKey: .generateArchive)
         try container.encodeIfPresent(buildNumber, forKey: .buildNumber)
@@ -284,6 +288,7 @@ class Template: Codable, Identifiable {
             "next_page": getNextPage(page: context["page"] as? Int ?? 1, pages: context["pages"] as? Int ?? 1) ?? nil,
             "previous_page": getPreviousPage(page: context["page"] as? Int ?? 1, pages: context["pages"] as? Int ?? 1) ?? nil,
         ]
+        // items in context would override items in contextForRendering
         for (key, value) in context {
             contextForRendering[key] = value
         }

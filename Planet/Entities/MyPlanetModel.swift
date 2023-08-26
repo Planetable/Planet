@@ -1325,7 +1325,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         )
         // MARK: - Render index.html and pages
         let itemsPerPage = template.idealItemsPerPage ?? 10
-        if publicPlanet.articles.count > itemsPerPage {
+        if template.generateIndexPagination && publicPlanet.articles.count > itemsPerPage {
             let pages = Int(ceil(Double(publicPlanet.articles.count) / Double(itemsPerPage)))
             debugPrint("Rendering \(pages) pages")
             for i in 1...pages {
@@ -1406,6 +1406,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "tag_value": self.tags?[key] ?? key,
                     "current_item_type": "tags",
                     "articles": value,
+                    "page_title" : "\(self.name) - \(self.tags?[key] ?? key)"
                 ]
                 let tagHTML = try template.renderIndex(context: tagContext)
                 let tagPath = publicTagPath(tag: key)
