@@ -78,7 +78,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "822a00f2dcd090e3e71a8eb753dbc4aa8fba685b"
+        "revision" : "52bd797b972c11752dfd2db8dacf29bae000e92b"
       }
     },
     {
@@ -141,7 +141,7 @@
       "location" : "https://github.com/stencilproject/Stencil.git",
       "state" : {
         "branch" : "master",
-        "revision" : "4f222ac85d673f35df29962fc4c36ccfdaf9da5b"
+        "revision" : "1aeeced65dc9f4652b74887e0e14e666efbda78d"
       }
     },
     {

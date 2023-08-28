@@ -155,6 +155,8 @@ struct MyArticleSettingsView: View {
                         }
                         if !title.isEmpty {
                             article.title = title
+                        } else {
+                            article.title = ""
                         }
                         var previousSlug = article.slug
                         var nextSlug = slug
