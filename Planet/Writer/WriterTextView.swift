@@ -65,7 +65,10 @@ struct WriterTextView: NSViewRepresentable {
             guard let textView = notification.object as? WriterEditorTextView else {
                 return
             }
-            parent.text = textView.string
+            let textString = textView.string
+            DispatchQueue.main.async {
+                self.parent.text = textString
+            }
         }
     }
 }
