@@ -6,19 +6,22 @@
 //
 
 import SwiftUI
-
+import WrappingHStack
 
 struct WriterTitleView: View {
+    @State private var updatingTags: Bool = false
     @State private var updatingDate: Bool = false
     @State private var titleIsFocused: Bool = false
     @State private var initDate: Date = Date()
-    
+    @State private var newTag: String = ""
+
+    @Binding var tags: [String: String]
     @Binding var date: Date
     @Binding var title: String
     @FocusState var focusTitle: Bool
-    
+
     var body: some View {
-        HStack (spacing: 0) {
+        HStack(spacing: 0) {
             Group {
                 if #available(macOS 13.0, *) {
                     TextField("Title", text: $title)
@@ -26,22 +29,23 @@ struct WriterTitleView: View {
                         .background(Color(NSColor.textBackgroundColor))
                         .textFieldStyle(PlainTextFieldStyle())
                         .focused($focusTitle, equals: titleIsFocused)
-                } else {
+                }
+                else {
                     CLTextFieldView(text: $title, placeholder: "Title")
                 }
             }
             .frame(height: 34, alignment: .leading)
             .padding(.bottom, 2)
             .padding(.horizontal, 16)
-            
+
             Spacer(minLength: 8)
-            
+
             Text("\(date.simpleDateDescription())")
                 .foregroundColor(.secondary)
                 .background(Color(NSColor.textBackgroundColor))
-            
+
             Spacer(minLength: 8)
-            
+
             Button {
                 updatingDate.toggle()
             } label: {
@@ -50,9 +54,9 @@ struct WriterTitleView: View {
             .buttonStyle(.plain)
             .padding(.trailing, 16)
             .popover(isPresented: $updatingDate) {
-                VStack (spacing: 10) {
+                VStack(spacing: 10) {
                     Spacer()
-                    
+
                     HStack {
                         HStack {
                             Text("Date")
@@ -64,7 +68,7 @@ struct WriterTitleView: View {
                             .datePickerStyle(CompactDatePickerStyle())
                     }
                     .padding(.horizontal, 16)
-                    
+
                     HStack {
                         HStack {
                             Text("Time")
@@ -76,10 +80,10 @@ struct WriterTitleView: View {
                             .datePickerStyle(CompactDatePickerStyle())
                     }
                     .padding(.horizontal, 16)
-                    
+
                     Divider()
-                    
-                    HStack (spacing: 10) {
+
+                    HStack(spacing: 10) {
                         Button {
                             date = Date()
                         } label: {
@@ -99,11 +103,29 @@ struct WriterTitleView: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    
+
                     Spacer()
                 }
                 .padding(.horizontal, 0)
                 .frame(width: 280, height: 124)
+            }
+
+            Button {
+                updatingTags.toggle()
+            } label: {
+                Image(systemName: "tag")
+                if tags.count > 0 {
+                    Text("\(tags.count)")
+                        .font(.system(size: 12, weight: .regular, design: .default))
+                        .foregroundColor(.secondary)
+                        .background(Color(NSColor.textBackgroundColor))
+                        .cornerRadius(4)
+                }
+            }
+            .buttonStyle(.plain)
+            .padding(.trailing, 16)
+            .popover(isPresented: $updatingTags) {
+                tagsView()
             }
         }
         .background(Color(NSColor.textBackgroundColor))
@@ -111,10 +133,75 @@ struct WriterTitleView: View {
             initDate = date
         }
     }
+
+    private func addTag() {
+        let aTag = newTag.trim()
+        let normalizedTag = aTag.normalizedTag()
+        if normalizedTag.count > 0 {
+            if tags.keys.contains(aTag) {
+                // tag already exists
+                return
+            }
+            tags[normalizedTag] = aTag
+            newTag = ""
+        }
+    }
+
+    @ViewBuilder
+    private func tagsView() -> some View {
+        VStack(spacing: 0) {
+            VStack(spacing: 10) {
+                HStack {
+                    Text("Tags")
+                }
+
+                // Tag capsules
+                WrappingHStack(
+                    tags.values.sorted(),
+                    id: \.self,
+                    alignment: .leading,
+                    spacing: .constant(2),
+                    lineSpacing: 4
+                ) { tag in
+                    TagView(tag: tag)
+                        .onTapGesture {
+                            tags.removeValue(forKey: tag.normalizedTag())
+                        }
+                }
+            }
+            .padding(10)
+            .background(Color(NSColor.textBackgroundColor))
+
+            Divider()
+
+            HStack(spacing: 10) {
+                HStack {
+                    Text("Add a Tag")
+                    Spacer()
+                }
+
+                TextField("", text: $newTag)
+                    .onSubmit {
+                        addTag()
+                    }
+                    .disableAutocorrection(true)
+                    .textFieldStyle(.roundedBorder)
+
+                Button {
+                    addTag()
+                } label: {
+                    Text("Add")
+                }
+            }
+            .padding(10)
+        }
+        .frame(width: 280)
+
+    }
 }
 
 struct WriterTitleView_Previews: PreviewProvider {
     static var previews: some View {
-        WriterTitleView(date: .constant(Date()), title: .constant(""))
+        WriterTitleView(tags: .constant([:]), date: .constant(Date()), title: .constant(""))
     }
 }

@@ -1,13 +1,15 @@
-import Foundation
-import Stencil
-import PathKit
-import os
-import SwiftSoup
 import Cocoa
-
+import Foundation
+import PathKit
+import Stencil
+import SwiftSoup
+import os
 
 class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
-    static let previewTemplatePath = Bundle.main.url(forResource: "WriterBasic", withExtension: "html")!
+    static let previewTemplatePath = Bundle.main.url(
+        forResource: "WriterBasic",
+        withExtension: "html"
+    )!
     static let previewRenderEnv = Environment(
         loader: FileSystemLoader(paths: [Path(previewTemplatePath.path)]),
         extensions: [StencilExtension.common]
@@ -22,6 +24,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     @Published var attachments: [Attachment]
     @Published var externalLink: String = ""
     @Published var scrollerOffset: Float = 0
+
+    @Published var tags: [String: String] = [:]
 
     enum DraftTarget {
         // draft for composing a new article
@@ -48,7 +52,10 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         switch target! {
         case .article(let wrapper):
             let article = wrapper.value
-            return article.planet.articleDraftsPath.appendingPathComponent(article.id.uuidString, isDirectory: true)
+            return article.planet.articleDraftsPath.appendingPathComponent(
+                article.id.uuidString,
+                isDirectory: true
+            )
         case .myPlanet(let wrapper):
             let planet = wrapper.value
             return planet.draftsPath.appendingPathComponent(id.uuidString, isDirectory: true)
@@ -58,7 +65,10 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     lazy var attachmentsPath = basePath.appendingPathComponent("Attachments", isDirectory: true)
     // put preview in attachments directory since attachments use relative URL of the same level in HTML
     // example markdown when adding image: [example](example.png)
-    lazy var previewPath = attachmentsPath.appendingPathComponent("preview.html", isDirectory: false)
+    lazy var previewPath = attachmentsPath.appendingPathComponent(
+        "preview.html",
+        isDirectory: false
+    )
 
     func contentRaw() -> String {
         // Sort attachments by name to make sure the order is consistent
@@ -77,7 +87,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         hasher.combine(id)
     }
 
-    static func ==(lhs: DraftModel, rhs: DraftModel) -> Bool {
+    static func == (lhs: DraftModel, rhs: DraftModel) -> Bool {
         if lhs === rhs {
             return true
         }
@@ -91,7 +101,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, date, title, content, externalLink, attachments
+        case id, date, title, content, externalLink, attachments, tags
     }
 
     required init(from decoder: Decoder) throws {
@@ -99,12 +109,14 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         id = try container.decode(UUID.self, forKey: .id)
         if let date = try container.decodeIfPresent(Date.self, forKey: .date) {
             self.date = date
-        } else {
+        }
+        else {
             self.date = Date()
         }
         title = try container.decode(String.self, forKey: .title)
         content = try container.decode(String.self, forKey: .content)
         attachments = try container.decode([Attachment].self, forKey: .attachments)
+        tags = try container.decodeIfPresent([String: String].self, forKey: .tags) ?? [:]
         externalLink = try container.decodeIfPresent(String.self, forKey: .externalLink) ?? ""
     }
 
@@ -115,10 +127,19 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
         try container.encode(attachments, forKey: .attachments)
+        try container.encodeIfPresent(tags, forKey: .tags)
         try container.encode(externalLink, forKey: .externalLink)
     }
 
-    init(id: UUID, date: Date = Date(), title: String, content: String, attachments: [Attachment], externalLink: String = "", target: DraftTarget) {
+    init(
+        id: UUID,
+        date: Date = Date(),
+        title: String,
+        content: String,
+        attachments: [Attachment],
+        externalLink: String = "",
+        target: DraftTarget
+    ) {
         self.id = id
         self.date = date
         self.title = title
@@ -157,9 +178,21 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
 
     static func create(for planet: MyPlanetModel) throws -> DraftModel {
-        let draft = DraftModel(id: UUID(), title: "", content: "", attachments: [], target: .myPlanet(Unowned(planet)))
-        try FileManager.default.createDirectory(at: draft.basePath, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: draft.attachmentsPath, withIntermediateDirectories: true)
+        let draft = DraftModel(
+            id: UUID(),
+            title: "",
+            content: "",
+            attachments: [],
+            target: .myPlanet(Unowned(planet))
+        )
+        try FileManager.default.createDirectory(
+            at: draft.basePath,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: draft.attachmentsPath,
+            withIntermediateDirectories: true
+        )
         try draft.save()
         return draft
     }
@@ -174,22 +207,43 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             externalLink: article.externalLink ?? "",
             target: .article(Unowned(article))
         )
-        try FileManager.default.createDirectory(at: draft.basePath, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: draft.attachmentsPath, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: draft.basePath,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: draft.attachmentsPath,
+            withIntermediateDirectories: true
+        )
 
         // add existing attachments from article
         let publicArticleFiles = try FileManager.default.contentsOfDirectory(
             at: article.publicBasePath,
             includingPropertiesForKeys: nil
         )
-        draft.attachments = try publicArticleFiles
+        draft.attachments =
+            try publicArticleFiles
             // exclude index.html, article.json
-            .filter { !["index.html", "simple.html", "article.json", "nft.json", "nft.json.cid.txt", "_videoThumbnail.png", "_grid.jpg", "_grid.png", "_cover.png", "article.md"].contains($0.lastPathComponent) }
+            .filter {
+                ![
+                    "index.html", "simple.html", "article.json", "nft.json", "nft.json.cid.txt",
+                    "_videoThumbnail.png", "_grid.jpg", "_grid.png", "_cover.png", "article.md",
+                ].contains($0.lastPathComponent)
+            }
             .map { filePath in
-                let attachment = Attachment(name: filePath.lastPathComponent, type: AttachmentType.from(filePath))
+                let attachment = Attachment(
+                    name: filePath.lastPathComponent,
+                    type: AttachmentType.from(filePath)
+                )
                 attachment.draft = draft
-                let filePath = article.publicBasePath.appendingPathComponent(attachment.name, isDirectory: false)
-                let attachmentPath = draft.attachmentsPath.appendingPathComponent(attachment.name, isDirectory: false)
+                let filePath = article.publicBasePath.appendingPathComponent(
+                    attachment.name,
+                    isDirectory: false
+                )
+                let attachmentPath = draft.attachmentsPath.appendingPathComponent(
+                    attachment.name,
+                    isDirectory: false
+                )
                 if FileManager.default.fileExists(atPath: attachmentPath.path) {
                     try FileManager.default.removeItem(at: attachmentPath)
                 }
@@ -197,6 +251,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                 attachment.loadThumbnail()
                 return attachment
             }
+        draft.tags = article.tags ?? [:]
 
         try draft.save()
         return draft
@@ -216,13 +271,22 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         if type == .video {
             // only allow one video attachment
             attachments.removeAll { $0.type == .video || $0.name == name }
-        } else {
+        }
+        else {
             attachments.removeAll { $0.name == name }
         }
-        return try processAttachment(forFileName: name, atFilePath: targetPath, withAttachmentType: type)
+        return try processAttachment(
+            forFileName: name,
+            atFilePath: targetPath,
+            withAttachmentType: type
+        )
     }
 
-    @discardableResult func addAttachmentFromData(data: Data, fileName: String, forContentType contentType: String) throws -> Attachment {
+    @discardableResult func addAttachmentFromData(
+        data: Data,
+        fileName: String,
+        forContentType contentType: String
+    ) throws -> Attachment {
         let targetPath = attachmentsPath.appendingPathComponent(fileName, isDirectory: false)
         if FileManager.default.fileExists(atPath: targetPath.path) {
             try FileManager.default.removeItem(at: targetPath)
@@ -231,10 +295,15 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         let type = AttachmentType.fromContentType(contentType)
         if type == .video {
             attachments.removeAll { $0.type == .video || $0.name == fileName }
-        } else {
+        }
+        else {
             attachments.removeAll { $0.name == fileName }
         }
-        return try processAttachment(forFileName: fileName, atFilePath: targetPath, withAttachmentType: type)
+        return try processAttachment(
+            forFileName: fileName,
+            atFilePath: targetPath,
+            withAttachmentType: type
+        )
     }
 
     func deleteAttachment(name: String) {
@@ -244,7 +313,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                     try FileManager.default.removeItem(at: attachment.path)
                 }
                 attachments.removeAll { $0.name == name }
-            } catch {
+            }
+            catch {
                 debugPrint("\(error)")
             }
         }
@@ -266,7 +336,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     func renderPreview() throws {
         logger.info("Rendering preview for draft \(self.id)")
 
-        guard let html = CMarkRenderer.renderMarkdownHTML(markdown: preprocessContentForMarkdown()) else {
+        guard let html = CMarkRenderer.renderMarkdownHTML(markdown: preprocessContentForMarkdown())
+        else {
             throw PlanetError.RenderMarkdownError
         }
         let output = try Self.previewRenderEnv.renderTemplate(
@@ -284,10 +355,18 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         switch target! {
         case .myPlanet(let wrapper):
             planet = wrapper.value
-            article = try MyArticleModel.compose(link: nil, date: date, title: title, content: content, summary: nil, planet: planet)
+            article = try MyArticleModel.compose(
+                link: nil,
+                date: date,
+                title: title,
+                content: content,
+                summary: nil,
+                planet: planet
+            )
             if externalLink.isEmpty {
                 article.externalLink = nil
-            } else {
+            }
+            else {
                 article.externalLink = externalLink
             }
             var articles = planet.articles
@@ -299,7 +378,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             planet = article.planet
             if let articleSlug = article.slug, articleSlug.count > 0 {
                 article.link = "/\(articleSlug)/"
-            } else {
+            }
+            else {
                 article.link = "/\(article.id)/"
             }
             article.created = date
@@ -307,7 +387,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             article.content = content
             if externalLink.isEmpty {
                 article.externalLink = nil
-            } else {
+            }
+            else {
                 article.externalLink = externalLink
             }
             // reorder articles after editing.
@@ -315,8 +396,11 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             articles?.sort(by: { $0.created > $1.created })
             planet.articles = articles
         }
-        try FileManager.default.contentsOfDirectory(at: article.publicBasePath, includingPropertiesForKeys: nil)
-            .forEach { try FileManager.default.removeItem(at: $0) }
+        try FileManager.default.contentsOfDirectory(
+            at: article.publicBasePath,
+            includingPropertiesForKeys: nil
+        )
+        .forEach { try FileManager.default.removeItem(at: $0) }
         var videoFilename: String? = nil
         var audioFilename: String? = nil
         var currentAttachments: [String] = []
@@ -335,13 +419,17 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             try FileManager.default.copyItem(at: attachment.path, to: targetPath)
         }
         article.attachments = currentAttachments
+        article.tags = tags
         article.cids = article.getCIDs()
         article.videoFilename = videoFilename
         article.audioFilename = audioFilename
-        if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content), let soup = try? SwiftSoup.parseBodyFragment(contentHTML), let summary = try? soup.text() {
+        if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content),
+            let soup = try? SwiftSoup.parseBodyFragment(contentHTML), let summary = try? soup.text()
+        {
             if summary.count > 280 {
                 article.summary = summary.prefix(280) + "..."
-            } else {
+            }
+            else {
                 article.summary = summary
             }
         }
@@ -367,16 +455,19 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                         // Croptop needs a delay here when it loads from the local gateway
                         if PlanetStore.shared.selectedArticle == article {
                             NotificationCenter.default.post(name: .loadArticle, object: nil)
-                        } else {
+                        }
+                        else {
                             PlanetStore.shared.selectedArticle = article
                         }
                     }
                 }
-            } else {
+            }
+            else {
                 Task { @MainActor in
                     if PlanetStore.shared.selectedArticle == article {
                         NotificationCenter.default.post(name: .loadArticle, object: nil)
-                    } else {
+                    }
+                    else {
                         PlanetStore.shared.selectedArticle = article
                     }
                 }
@@ -411,7 +502,11 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
 
     // MARK: -
 
-    private func processAttachment(forFileName name: String, atFilePath targetPath: URL, withAttachmentType type: AttachmentType) throws -> Attachment {
+    private func processAttachment(
+        forFileName name: String,
+        atFilePath targetPath: URL,
+        withAttachmentType type: AttachmentType
+    ) throws -> Attachment {
         let attachment: Attachment
         if targetPath.pathExtension == "tiff" {
             let convertedPath = targetPath.deletingPathExtension().appendingPathExtension("png")
@@ -421,7 +516,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             try pngImageData.write(to: convertedPath)
             try FileManager.default.removeItem(at: targetPath)
             attachment = Attachment(name: convertedPath.lastPathComponent, type: type)
-        } else {
+        }
+        else {
             attachment = Attachment(name: name, type: type)
         }
         attachment.draft = self

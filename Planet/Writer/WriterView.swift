@@ -38,7 +38,7 @@ struct WriterView: View {
                     }
             }
 
-            WriterTitleView(date: $draft.date, title: $draft.title, focusTitle: _focusTitle)
+            WriterTitleView(tags: $draft.tags, date: $draft.date, title: $draft.title, focusTitle: _focusTitle)
 
             Divider()
 
