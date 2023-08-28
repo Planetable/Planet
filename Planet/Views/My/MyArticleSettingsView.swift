@@ -218,7 +218,6 @@ struct MyArticleSettingsView: View {
                         Text("OK")
                             .frame(width: 50)
                     }
-                    .disabled(title.isEmpty)
                 }
 
             }.padding(PlanetUI.SHEET_PADDING)
