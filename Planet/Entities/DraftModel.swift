@@ -73,8 +73,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     func contentRaw() -> String {
         // Sort attachments by name to make sure the order is consistent
         attachments.sort { $0.name < $1.name }
+        let tags: String = tags.map { "\($0.key)" }.joined(separator: ",")
         let attachmentNames: String = attachments.map { $0.name }.joined(separator: ",")
-        let currentContent = "\(date)\(title)\(content)\(attachmentNames)"
+        let currentContent = "\(date)\(title)\(content)\(attachmentNames)\(tags)"
         return currentContent
     }
     func contentSHA256() -> String {
