@@ -9,7 +9,7 @@ import Cocoa
 class AppWindow: NSWindow {
     override init(contentRect: NSRect, styleMask style: NSWindow.StyleMask, backing backingStoreType: NSWindow.BackingStoreType, defer flag: Bool) {
         super.init(contentRect: contentRect, styleMask: style, backing: backingStoreType, defer: flag)
-        self.collectionBehavior = .fullScreenNone
+//        self.collectionBehavior = .fullScreenNone  // using default fullscreen behavior
         self.titlebarAppearsTransparent = false
         self.title = .liteAppName
         self.subtitle = ""
