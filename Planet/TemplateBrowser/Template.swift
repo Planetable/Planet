@@ -199,6 +199,7 @@ class Template: Codable, Identifiable {
         guard let planet = article.planet else {
             throw PlanetError.RenderMarkdownError
         }
+        let hasPodcast = planet.articles.contains(where: { $0.hasAudioContent() })
         let publicPlanet = PublicPlanetModel(
             id: planet.id, name: planet.name, about: planet.about, ipns: planet.ipns, created: planet.created, updated: planet.updated, articles: [],
             plausibleEnabled: planet.plausibleEnabled ?? false,
@@ -224,6 +225,7 @@ class Template: Codable, Identifiable {
             "planet": publicPlanet,
             "site_navigation": planet.siteNavigation(),
             "has_avatar": planet.hasAvatar(),
+            "has_podcast": hasPodcast,
             "planet_ipns": article.planet.ipns,
             "assets_prefix": "../",
             "article_id": article.id.uuidString,
