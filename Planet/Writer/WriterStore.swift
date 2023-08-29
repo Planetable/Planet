@@ -26,6 +26,14 @@ import Foundation
             draft = try DraftModel.create(from: article)
             article.draft = draft
         }
+        // If draft is created earlier than August 29, 2023, fix tags
+        let tagsFeatureDate = Date(timeIntervalSince1970: 1693292400)
+        if draft.createdAt < tagsFeatureDate {
+            if let articleTags = article.tags {
+                draft.tags = articleTags
+                try? draft.save()
+            }
+        }
         draft.initialContentSHA256 = draft.contentSHA256()
         openWriterWindow(forDraft: draft)
     }

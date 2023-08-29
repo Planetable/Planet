@@ -501,6 +501,16 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         return title.isEmpty && content.isEmpty && attachments.isEmpty
     }
 
+    var createdAt: Date {
+        // Return the creation date of the infoPath
+        if let attributes = try? FileManager.default.attributesOfItem(atPath: infoPath.path),
+            let creationDate = attributes[.creationDate] as? Date
+        {
+            return creationDate
+        }
+        return date
+    }
+
     // MARK: -
 
     private func processAttachment(
