@@ -261,7 +261,6 @@
 		2ADD6E602A9F2D0B00AD763B /* vol1-5.png in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E552A9F2D0B00AD763B /* vol1-5.png */; };
 		2ADD6E612A9F2D0B00AD763B /* vol1-8.png in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E562A9F2D0B00AD763B /* vol1-8.png */; };
 		2ADD6E6D2A9F2D2600AD763B /* tier1.zip in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E622A9F2D2600AD763B /* tier1.zip */; };
-		2ADD6E6E2A9F2D2600AD763B /* vol1-5.zip in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E632A9F2D2600AD763B /* vol1-5.zip */; };
 		2ADD6E6F2A9F2D2600AD763B /* vol1-4.zip in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E642A9F2D2600AD763B /* vol1-4.zip */; };
 		2ADD6E702A9F2D2600AD763B /* vol1-8.zip in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E652A9F2D2600AD763B /* vol1-8.zip */; };
 		2ADD6E712A9F2D2600AD763B /* vol1-1.zip in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E662A9F2D2600AD763B /* vol1-1.zip */; };
@@ -271,6 +270,7 @@
 		2ADD6E752A9F2D2600AD763B /* vol1-3.zip in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E6A2A9F2D2600AD763B /* vol1-3.zip */; };
 		2ADD6E762A9F2D2600AD763B /* vol1-7.zip in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E6B2A9F2D2600AD763B /* vol1-7.zip */; };
 		2ADD6E772A9F2D2600AD763B /* tier2.zip in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E6C2A9F2D2600AD763B /* tier2.zip */; };
+		2ADD6E792A9F2EA600AD763B /* vol1-5.zip in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E782A9F2EA600AD763B /* vol1-5.zip */; };
 		2AE07DDA27C9F4EA00377651 /* ArticleWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE07DD927C9F4EA00377651 /* ArticleWebView.swift */; };
 		2AE44EA928CD214800944786 /* PlanetSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE44EA828CD214800944786 /* PlanetSettingsView.swift */; };
 		2AE44EAC28CD218200944786 /* PlanetSettingsGeneralView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE44EAB28CD218200944786 /* PlanetSettingsGeneralView.swift */; };
@@ -569,7 +569,6 @@
 		2ADD6E552A9F2D0B00AD763B /* vol1-5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "vol1-5.png"; sourceTree = "<group>"; };
 		2ADD6E562A9F2D0B00AD763B /* vol1-8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "vol1-8.png"; sourceTree = "<group>"; };
 		2ADD6E622A9F2D2600AD763B /* tier1.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = tier1.zip; sourceTree = "<group>"; };
-		2ADD6E632A9F2D2600AD763B /* vol1-5.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "vol1-5.zip"; sourceTree = "<group>"; };
 		2ADD6E642A9F2D2600AD763B /* vol1-4.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "vol1-4.zip"; sourceTree = "<group>"; };
 		2ADD6E652A9F2D2600AD763B /* vol1-8.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "vol1-8.zip"; sourceTree = "<group>"; };
 		2ADD6E662A9F2D2600AD763B /* vol1-1.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "vol1-1.zip"; sourceTree = "<group>"; };
@@ -579,6 +578,7 @@
 		2ADD6E6A2A9F2D2600AD763B /* vol1-3.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "vol1-3.zip"; sourceTree = "<group>"; };
 		2ADD6E6B2A9F2D2600AD763B /* vol1-7.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "vol1-7.zip"; sourceTree = "<group>"; };
 		2ADD6E6C2A9F2D2600AD763B /* tier2.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = tier2.zip; sourceTree = "<group>"; };
+		2ADD6E782A9F2EA600AD763B /* vol1-5.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "vol1-5.zip"; sourceTree = "<group>"; };
 		2AE07DD927C9F4EA00377651 /* ArticleWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleWebView.swift; sourceTree = "<group>"; };
 		2AE44EA828CD214800944786 /* PlanetSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsView.swift; sourceTree = "<group>"; };
 		2AE44EAB28CD218200944786 /* PlanetSettingsGeneralView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsGeneralView.swift; sourceTree = "<group>"; };
@@ -844,7 +844,7 @@
 				2ADD6E692A9F2D2600AD763B /* vol1-2.zip */,
 				2ADD6E6A2A9F2D2600AD763B /* vol1-3.zip */,
 				2ADD6E642A9F2D2600AD763B /* vol1-4.zip */,
-				2ADD6E632A9F2D2600AD763B /* vol1-5.zip */,
+				2ADD6E782A9F2EA600AD763B /* vol1-5.zip */,
 				2ADD6E682A9F2D2600AD763B /* vol1-6.zip */,
 				2ADD6E6B2A9F2D2600AD763B /* vol1-7.zip */,
 				2ADD6E652A9F2D2600AD763B /* vol1-8.zip */,
@@ -1574,11 +1574,11 @@
 				6A1FD5032A75A64500391972 /* Avatars.xcassets in Resources */,
 				E8B4FE3D2A8D144E00C01E94 /* Localizable.strings in Resources */,
 				2ADD6E762A9F2D2600AD763B /* vol1-7.zip in Resources */,
+				2ADD6E792A9F2EA600AD763B /* vol1-5.zip in Resources */,
 				2ADD6E6D2A9F2D2600AD763B /* tier1.zip in Resources */,
 				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
 				2ADD6E772A9F2D2600AD763B /* tier2.zip in Resources */,
 				6A34BE322A34B2A00031E5E4 /* Capsules-200.otf in Resources */,
-				2ADD6E6E2A9F2D2600AD763B /* vol1-5.zip in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
 				6A34BE3A2A34B2A00031E5E4 /* Capsules-300.otf in Resources */,
 				6A34BE3C2A34B2A00031E5E4 /* Capsules-700.otf in Resources */,
