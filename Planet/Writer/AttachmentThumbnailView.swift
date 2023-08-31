@@ -19,7 +19,8 @@ struct AttachmentThumbnailView: View {
                 ZStack {
                     Rectangle()
                         .foregroundColor(Color("SelectedFillColor"))
-                        .opacity(isShowingControl ? 0.6 : 0.0)
+                        .cornerRadius(4)
+                        .opacity(isShowingControl ? 0.4 : 0.0)
                     HStack {
                         Image(systemName: "plus")
                             .resizable()
@@ -51,7 +52,7 @@ struct AttachmentThumbnailView: View {
             }
             .padding(.leading, 0)
             .padding(.top, 2)
-            .padding(.trailing, -10)
+            .padding(.trailing, 0)
         }
         .frame(width: 60, height: 60, alignment: .center)
         .padding(.leading, 12)

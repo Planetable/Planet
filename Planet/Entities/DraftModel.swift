@@ -22,6 +22,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     @Published var title: String
     @Published var content: String
     @Published var attachments: [Attachment]
+    @Published var heroImage: String? = nil
     @Published var externalLink: String = ""
     @Published var scrollerOffset: Float = 0
 
@@ -75,7 +76,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         attachments.sort { $0.name < $1.name }
         let tags: String = tags.map { "\($0.key)" }.joined(separator: ",")
         let attachmentNames: String = attachments.map { $0.name }.joined(separator: ",")
-        let currentContent = "\(date)\(title)\(content)\(attachmentNames)\(tags)"
+        let heroImageFilename = self.heroImage ?? ""
+        let currentContent = "\(date)\(title)\(content)\(attachmentNames)\(tags)\(heroImageFilename)"
         return currentContent
     }
     func contentSHA256() -> String {
@@ -102,7 +104,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, date, title, content, externalLink, attachments, tags
+        case id, date, title, content, externalLink, attachments, heroImage, tags
     }
 
     required init(from decoder: Decoder) throws {
@@ -117,6 +119,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         title = try container.decode(String.self, forKey: .title)
         content = try container.decode(String.self, forKey: .content)
         attachments = try container.decode([Attachment].self, forKey: .attachments)
+        heroImage = try container.decodeIfPresent(String.self, forKey: .heroImage)
         tags = try container.decodeIfPresent([String: String].self, forKey: .tags) ?? [:]
         externalLink = try container.decodeIfPresent(String.self, forKey: .externalLink) ?? ""
     }
@@ -128,6 +131,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
         try container.encode(attachments, forKey: .attachments)
+        try container.encodeIfPresent(heroImage, forKey: .heroImage)
         try container.encodeIfPresent(tags, forKey: .tags)
         try container.encode(externalLink, forKey: .externalLink)
     }
@@ -138,6 +142,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         title: String,
         content: String,
         attachments: [Attachment],
+        heroImage: String? = nil,
         externalLink: String = "",
         target: DraftTarget
     ) {
@@ -146,6 +151,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         self.title = title
         self.content = content
         self.attachments = attachments
+        self.heroImage = heroImage
         self.externalLink = externalLink
         self.target = target
     }
@@ -205,6 +211,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             title: article.title,
             content: article.content,
             attachments: [],
+            heroImage: article.heroImage,
             externalLink: article.externalLink ?? "",
             target: .article(Unowned(article))
         )
@@ -276,6 +283,12 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         else {
             attachments.removeAll { $0.name == name }
         }
+        if type == .image {
+            if attachments.count == 0 {
+                // set the first image as hero image
+                heroImage = name
+            }
+        }
         return try processAttachment(
             forFileName: name,
             atFilePath: targetPath,
@@ -314,6 +327,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                     try FileManager.default.removeItem(at: attachment.path)
                 }
                 attachments.removeAll { $0.name == name }
+                if let heroImage = heroImage, heroImage == name {
+                    self.heroImage = nil
+                }
             }
             catch {
                 debugPrint("\(error)")
@@ -420,6 +436,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             try FileManager.default.copyItem(at: attachment.path, to: targetPath)
         }
         article.attachments = currentAttachments
+        article.heroImage = heroImage
         article.tags = tags
         article.cids = article.getCIDs()
         article.videoFilename = videoFilename

@@ -1658,6 +1658,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     articleType: $0.articleType,
                     link: $0.link,
                     slug: $0.slug,
+                    heroImage: $0.heroImage,
                     externalLink: $0.externalLink,
                     title: $0.title,
                     content: $0.content,

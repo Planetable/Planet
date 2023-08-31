@@ -140,20 +140,56 @@ struct WriterView: View {
                         id: \.name
                     ) { attachment in
                         AttachmentThumbnailView(attachment: attachment)
-                        .help(attachment.name)
-                        .contextMenu {
-                            Button {
-                                if let markdown = attachment.markdown {
-                                    NotificationCenter.default.post(
-                                        name: .writerNotification(.removeText, for: attachment.draft),
-                                        object: markdown
-                                    )
+                            .overlay(
+                                VStack {
+                                    Spacer()
+                                    Text("Hero Image")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 8))
+                                        .padding(.vertical, 1)
+                                        .padding(.horizontal, 3)
+                                        .background(Color.black.opacity(0.5))
+                                        .cornerRadius(4)
+                                        .opacity(
+                                            attachment.type == .image
+                                                && attachment.name == draft.heroImage ? 1 : 0
+                                        )
                                 }
-                                try? attachment.draft.deleteAttachment(name: attachment.name)
-                            } label: {
-                                Text("Remove")
+                            )
+                            .help(attachment.name)
+                            .contextMenu {
+                                if attachment.type == .image {
+                                    if attachment.name != draft.heroImage {
+                                        Button {
+                                            draft.heroImage = attachment.name
+                                        } label: {
+                                            Text("Set as Hero Image")
+                                        }
+                                    }
+                                    else {
+                                        Button {
+                                            draft.heroImage = nil
+                                        } label: {
+                                            Text("Unset Hero Image")
+                                        }
+                                    }
+                                    Divider()
+                                }
+                                Button {
+                                    if let markdown = attachment.markdown {
+                                        NotificationCenter.default.post(
+                                            name: .writerNotification(
+                                                .removeText,
+                                                for: attachment.draft
+                                            ),
+                                            object: markdown
+                                        )
+                                    }
+                                    try? attachment.draft.deleteAttachment(name: attachment.name)
+                                } label: {
+                                    Text("Remove")
+                                }
                             }
-                        }
                     }
                 }
             }

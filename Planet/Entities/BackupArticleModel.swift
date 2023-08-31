@@ -12,6 +12,7 @@ struct BackupArticleModel: Codable {
     let articleType: ArticleType?
     let link: String
     let slug: String?
+    let heroImage: String?
     let externalLink: String?
     let title: String
     let content: String

@@ -410,6 +410,9 @@ extension MyArticleModel {
     }
 
     func getHeroImage() -> String? {
+        if let heroImage = self.heroImage {
+            return heroImage
+        }
         if self.hasVideoContent() {
             return "_videoThumbnail.png"
         }
