@@ -1,6 +1,5 @@
 import SwiftUI
 
-
 struct AppContentItemMenuView: View {
     @Binding var isShowingDeleteConfirmation: Bool
     @Binding var isSharingLink: Bool
@@ -33,6 +32,8 @@ struct AppContentItemMenuView: View {
             }
 
             Group {
+                viewOnIPFS()
+
                 Button {
                     if let url = article.browserURL {
                         NSPasteboard.general.clearContents()
@@ -77,6 +78,34 @@ struct AppContentItemMenuView: View {
                     isShowingDeleteConfirmation = true
                 } label: {
                     Text("Delete Post")
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func viewOnIPFS() -> some View {
+        if let attachments = article.attachments, attachments.count > 0 {
+            if attachments.count == 1 {
+                Button {
+                    if let cids = article.cids, let cid = cids[attachments[0]] {
+                        let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)")!
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Text("View \(attachments[0]) on IPFS")
+                }
+            }
+            else {
+                ForEach(attachments, id: \.self) { attachment in
+                    Button {
+                        if let cids = article.cids, let cid = cids[attachment] {
+                            let url = URL(string: "https://ipfs.io/ipfs/\(cid)")!
+                            NSWorkspace.shared.open(url)
+                        }
+                    } label: {
+                        Text("View \(attachment) on IPFS")
+                    }
                 }
             }
         }
