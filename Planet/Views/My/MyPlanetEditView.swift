@@ -730,6 +730,25 @@ extension MyPlanetEditView {
     func verifyUserInput() -> Int {
         var errors: Int = 0
         // TODO: Better sanity check goes here
+        if domain.trim().count > 0 {
+            // Use regular expression to check if the domain is valid
+            let regex = try! NSRegularExpression(
+                pattern: "^[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}$",
+                options: .caseInsensitive
+            )
+            let range = NSRange(location: 0, length: domain.trim().count)
+            if regex.firstMatch(in: domain.trim(), options: [], range: range) == nil {
+                errors += 1
+
+                let alert = NSAlert()
+                alert.messageText = "Invalid Domain Name"
+                alert.informativeText =
+                    "Please enter a valid domain name. Do not include the protocol (http:// or https://) or any trailing slashes."
+                alert.alertStyle = .informational
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+            }
+        }
         return errors
     }
 }
