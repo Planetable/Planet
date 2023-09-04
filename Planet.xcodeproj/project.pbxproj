@@ -49,6 +49,8 @@
 		2A6247AE292CC5F400714BFA /* IndicatorLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */; };
 		2A68C6232A26F07A0079AD5F /* RebuildProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A18F2052A0F0FA700FC4050 /* RebuildProgressView.swift */; };
 		2A69F04727E1B53A00141DC0 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A69F04627E1B53A00141DC0 /* FeedKit */; };
+		2A6BCFA92AA5D65A007A4485 /* AppTitlebarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6BCFA82AA5D65A007A4485 /* AppTitlebarViewController.swift */; };
+		2A6BCFAB2AA5D6BD007A4485 /* AppTitlebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6BCFAA2AA5D6BD007A4485 /* AppTitlebarView.swift */; };
 		2A6E16D62A18678E00704A08 /* AppSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D52A18678E00704A08 /* AppSidebarView.swift */; };
 		2A6E16D82A18679A00704A08 /* AppContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D72A18679A00704A08 /* AppContentView.swift */; };
 		2A6E16DA2A186B0100704A08 /* AppWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D92A186B0100704A08 /* AppWindow.swift */; };
@@ -500,6 +502,8 @@
 		2A4AE8792A89EF3600A27B5B /* GroupIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupIndicatorView.swift; sourceTree = "<group>"; };
 		2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SharedAssets.xcassets; sourceTree = "<group>"; };
 		2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorLabelView.swift; sourceTree = "<group>"; };
+		2A6BCFA82AA5D65A007A4485 /* AppTitlebarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTitlebarViewController.swift; sourceTree = "<group>"; };
+		2A6BCFAA2AA5D6BD007A4485 /* AppTitlebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTitlebarView.swift; sourceTree = "<group>"; };
 		2A6E16D52A18678E00704A08 /* AppSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSidebarView.swift; sourceTree = "<group>"; };
 		2A6E16D72A18679A00704A08 /* AppContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentView.swift; sourceTree = "<group>"; };
 		2A6E16D92A186B0100704A08 /* AppWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppWindow.swift; sourceTree = "<group>"; };
@@ -928,6 +932,8 @@
 				2A6E16DF2A18763000704A08 /* AppContainerViewController.swift */,
 				2A6E16E12A1876CB00704A08 /* AppSidebarViewController.swift */,
 				2A6E16E32A1876D900704A08 /* AppContentViewController.swift */,
+				2A6BCFA82AA5D65A007A4485 /* AppTitlebarViewController.swift */,
+				2A6BCFAA2AA5D6BD007A4485 /* AppTitlebarView.swift */,
 				2A6E16D52A18678E00704A08 /* AppSidebarView.swift */,
 				2A95E6FA2A1AFC23001288B8 /* AppSidebarItemView.swift */,
 				2A6E16D72A18679A00704A08 /* AppContentView.swift */,
@@ -1647,6 +1653,7 @@
 				6A52FAF02A88969A000E85F0 /* BackupMyPlanetModel.swift in Sources */,
 				2A95E6462A19A336001288B8 /* PlanetQuickShare+Extension.swift in Sources */,
 				2A95E6542A19A39C001288B8 /* PlanetPublishedFolders+Extension.swift in Sources */,
+				2A6BCFA92AA5D65A007A4485 /* AppTitlebarViewController.swift in Sources */,
 				2A95E6532A19A39C001288B8 /* PlanetPublishedServiceStore.swift in Sources */,
 				2A95E6972A19A437001288B8 /* IPFSState.swift in Sources */,
 				2A95E64E2A19A398001288B8 /* PFDashboardContainerViewController.swift in Sources */,
@@ -1725,6 +1732,7 @@
 				2A95E6E22A19A554001288B8 /* PlanetAPI.swift in Sources */,
 				2ABD1CD52A1617660082D7EA /* AppMenu.swift in Sources */,
 				2A95E6962A19A437001288B8 /* IPFSCommand.swift in Sources */,
+				2A6BCFAB2AA5D6BD007A4485 /* AppTitlebarView.swift in Sources */,
 				2A95E6F92A1AF9D4001288B8 /* CreatePlanetView.swift in Sources */,
 				2A95E69A2A19A441001288B8 /* IPFSAPIModel.swift in Sources */,
 				2A95E69D2A19A446001288B8 /* MyArticleModel.swift in Sources */,

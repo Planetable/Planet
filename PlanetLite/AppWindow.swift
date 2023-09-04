@@ -16,6 +16,7 @@ class AppWindow: NSWindow {
         self.toolbarStyle = .unified
         self.contentViewController = AppContainerViewController()
         self.delegate = self
+        self.titleVisibility = .hidden
     }
 }
 
