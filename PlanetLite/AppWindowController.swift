@@ -4,7 +4,6 @@
 //
 
 import Cocoa
-import SwiftUI
 
 
 class AppWindowController: NSWindowController {

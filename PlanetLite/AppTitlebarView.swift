@@ -39,6 +39,7 @@ struct AppTitlebarView: View {
                                 NSPasteboard.general.setString(planet.ipns, forType: .string)
                             }
                         }
+                        .help("Click to copy IPNS")
                     Spacer()
                 }
             }
