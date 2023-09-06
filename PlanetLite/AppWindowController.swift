@@ -138,6 +138,8 @@ extension AppWindowController: NSToolbarItemValidation {
             return false
         case .sidebarItem:
             return true
+        case .titlebarItem:
+            return true
         case .showInfoItem:
             if case .myPlanet(_) = PlanetStore.shared.selectedView {
                 return true
@@ -185,6 +187,15 @@ extension AppWindowController: NSSharingServicePickerDelegate {
 extension AppWindowController: NSToolbarDelegate {
     func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
         switch itemIdentifier {
+        case .titlebarItem:
+            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+            let windowWidth = self.window?.frame.size.width ?? 200
+            let width = windowWidth == 200 ? windowWidth : windowWidth / 3.0
+            let size = CGSize(width: width, height: 52)
+            let vc = AppTitlebarViewController(withSize: size)
+            vc.view.frame = CGRect(origin: .zero, size: size)
+            item.view = vc.view
+            return item
         case .sidebarItem:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
@@ -252,6 +263,7 @@ extension AppWindowController: NSToolbarDelegate {
             .flexibleSpace,
             .sidebarItem,
             .sidebarSeparatorItem,
+            .titlebarItem,
             .flexibleSpace,
             .actionItem,
             .shareItem,
@@ -265,6 +277,7 @@ extension AppWindowController: NSToolbarDelegate {
             .flexibleSpace,
             .sidebarItem,
             .sidebarSeparatorItem,
+            .titlebarItem,
             .flexibleSpace,
             .actionItem,
             .shareItem,
@@ -277,6 +290,7 @@ extension AppWindowController: NSToolbarDelegate {
         return [
             .sidebarItem,
             .sidebarSeparatorItem,
+            .titlebarItem,
             .actionItem,
             .shareItem,
             .showInfoItem,
@@ -324,6 +338,7 @@ extension NSToolbar.Identifier {
 extension NSToolbarItem.Identifier {
     static let sidebarSeparatorItem = NSToolbarItem.Identifier("PlanetLiteToolbarSidebarSeparatorItem")
     static let sidebarItem = NSToolbarItem.Identifier("PlanetLiteToolbarSidebarItem")
+    static let titlebarItem = NSToolbarItem.Identifier("PlanetLiteToolbarTitlebarItem")
     static let addItem = NSToolbarItem.Identifier("PlanetLiteToolbarAddItem")
     static let showInfoItem = NSToolbarItem.Identifier("PlanetLiteToolbarShowInfoItem")
     static let shareItem = NSToolbarItem.Identifier("PlanetLiteToolbarShareItem")
