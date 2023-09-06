@@ -45,9 +45,10 @@ class DotBitKit: NSObject {
                 return nil
             }
             if let json = try? JSON(data: data) {
-                if let errno = json["errno"].int, errno == 0 {
+                debugPrint(".bit account: \(account) json: \(json)")
+                if let err_no = json["err_no"].int, err_no == 0 {
                     for record in json["data"]["records"].arrayValue {
-                        debugPrint("\(record)")
+                        debugPrint(".bit account: \(account) record: \(record)")
                         let key = record["key"].stringValue
                         let value = record["value"].stringValue
                         if key.hasPrefix("dweb") {
