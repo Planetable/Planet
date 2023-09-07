@@ -144,17 +144,17 @@ class IconManager: ObservableObject {
     init() {
         resetCache()
         dockIcons = [
-            DockIcon(id: 0, groupID: 1, name: "NFT Tier 1", groupName: "NFT", packageName: "tier1", unlocked: false),
-            DockIcon(id: 10, groupID: 1, name: "NFT Tier 2", groupName: "NFT", packageName: "tier2", unlocked: false),
-            DockIcon(id: 20, groupID: 1, name: "NFT Tier 3", groupName: "NFT", packageName: "tier3", unlocked: false),
+            DockIcon(id: 1, groupID: 1, name: "NFT Tier 1", groupName: "NFT", packageName: "tier1", unlocked: false),
+            DockIcon(id: 2, groupID: 1, name: "NFT Tier 2", groupName: "NFT", packageName: "tier2", unlocked: false),
+            DockIcon(id: 3, groupID: 1, name: "NFT Tier 3", groupName: "NFT", packageName: "tier3", unlocked: false),
             DockIcon(id: 30, groupID: 2, name: "Icon Vol.1 1", groupName: "Icon Vol.1", packageName: "vol1-1", unlocked: true),
-            DockIcon(id: 40, groupID: 2, name: "Icon Vol.1 2", groupName: "Icon Vol.1", packageName: "vol1-2", unlocked: true),
-            DockIcon(id: 50, groupID: 2, name: "Icon Vol.1 3", groupName: "Icon Vol.1", packageName: "vol1-3", unlocked: true),
-            DockIcon(id: 60, groupID: 2, name: "Icon Vol.1 4", groupName: "Icon Vol.1", packageName: "vol1-4", unlocked: true),
-            DockIcon(id: 70, groupID: 2, name: "Icon Vol.1 5", groupName: "Icon Vol.1", packageName: "vol1-5", unlocked: true),
-            DockIcon(id: 80, groupID: 2, name: "Icon Vol.1 6", groupName: "Icon Vol.1", packageName: "vol1-6", unlocked: true),
-            DockIcon(id: 90, groupID: 2, name: "Icon Vol.1 7", groupName: "Icon Vol.1", packageName: "vol1-7", unlocked: true),
-            DockIcon(id: 100, groupID: 2, name: "Icon Vol.1 8", groupName: "Icon Vol.1", packageName: "vol1-8", unlocked: true)
+            DockIcon(id: 31, groupID: 2, name: "Icon Vol.1 2", groupName: "Icon Vol.1", packageName: "vol1-2", unlocked: true),
+            DockIcon(id: 32, groupID: 2, name: "Icon Vol.1 3", groupName: "Icon Vol.1", packageName: "vol1-3", unlocked: true),
+            DockIcon(id: 33, groupID: 2, name: "Icon Vol.1 4", groupName: "Icon Vol.1", packageName: "vol1-4", unlocked: true),
+            DockIcon(id: 34, groupID: 2, name: "Icon Vol.1 5", groupName: "Icon Vol.1", packageName: "vol1-5", unlocked: true),
+            DockIcon(id: 35, groupID: 2, name: "Icon Vol.1 6", groupName: "Icon Vol.1", packageName: "vol1-6", unlocked: true),
+            DockIcon(id: 36, groupID: 2, name: "Icon Vol.1 7", groupName: "Icon Vol.1", packageName: "vol1-7", unlocked: true),
+            DockIcon(id: 37, groupID: 2, name: "Icon Vol.1 8", groupName: "Icon Vol.1", packageName: "vol1-8", unlocked: true)
         ]
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             if let iconKey = UserDefaults.standard.string(forKey: "PlanetDockIconLastPackageName"), let icon = self.dockIcons.first(where: { $0.packageName == iconKey }) {
@@ -196,15 +196,13 @@ class IconManager: ObservableObject {
     func iconIsActive(icon: DockIcon) -> Bool {
         return activeDockIcon == icon
     }
-    
-    func iconGroupNames() -> [String] {
-        let allGroupNames: [String] = dockIcons.map() { icon in
-            return icon.groupName
+
+    func unlockIcon(byIDString idString: String) throws {
+        if let icon = dockIcons.first(where: { String($0.id) == idString }), icon.unlocked == false {
+            try icon.unlockIcon()
         }
-        let groupNames: [String] = Array(Set(allGroupNames)).sorted().reversed()
-        return groupNames
     }
-    
+
     func resetCache() {
         try? FileManager.default.removeItem(at: baseCacheURL())
         try? FileManager.default.createDirectory(at: baseCacheURL(), withIntermediateDirectories: true)

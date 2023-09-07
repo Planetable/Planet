@@ -16,7 +16,7 @@ struct IconGalleryView: View {
         NavigationView {
             VStack(spacing: 0) {
                 List(selection: $selectedGroupName) {
-                    ForEach(iconManager.iconGroupNames(), id: \.self) { name in
+                    ForEach(availableGroupsAndIcons().groups, id: \.self) { name in
                         Text(name)
                     }
                 }
@@ -24,19 +24,19 @@ struct IconGalleryView: View {
                 
                 Spacer(minLength: 20)
                 
-                if let selectedDockIcon {
+                if let selectedDockIcon, selectedDockIcon.verifyIconStatus() {
                     iconManager.iconPreview(icon: selectedDockIcon, size: Self.previewItemSize)
-                } else if let currentDockIcon = iconManager.activeDockIcon {
+                } else if let currentDockIcon = iconManager.activeDockIcon, currentDockIcon.verifyIconStatus() {
                     iconManager.iconPreview(icon: currentDockIcon, size: Self.previewItemSize)
                 }
             }
             .frame(width: 180)
             
             VStack(spacing: 0) {
-                if let selectedGroupName {
+                if selectedGroupName != nil {
                     ScrollView {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: Self.itemSize.width, maximum: Self.itemSize.height), spacing: 0, alignment: .center)], alignment: .center) {
-                            ForEach(iconManager.dockIcons.filter({ $0.groupName == selectedGroupName }), id: \.self) { icon in
+                            ForEach(availableGroupsAndIcons().icons, id: \.self) { icon in
                                 iconManager.iconPreview(icon: icon, size: Self.itemSize, previewable: false)
                                     .onTapGesture {
                                         selectedDockIcon = icon
@@ -68,26 +68,6 @@ struct IconGalleryView: View {
                                 .padding(.horizontal, 16)
                         }
                         
-                        /* // MARK: TODO: pinnable
-                        let unlocked = selectedDockIcon?.unlocked ?? false
-                        if !unlocked && selectedDockIcon != nil {
-                            HStack {
-                                Text("Icon Locked")
-                                    .foregroundColor(.secondary)
-                                HelpLinkButton(helpLink: URL(string: "https://pinnable.xyz/pricing")!)
-                            }
-                        } else {
-                            Button {
-                                if let selectedDockIcon {
-                                    iconManager.setIcon(icon: selectedDockIcon)
-                                }
-                            } label: {
-                                Text("Set App Icon")
-                            }
-                            .disabled(selectedDockIcon == nil)
-                            .disabled(iconManager.activeDockIcon != nil && iconManager.activeDockIcon == selectedDockIcon)
-                        }
-                         */
                         Button {
                             if let selectedDockIcon {
                                 iconManager.setIcon(icon: selectedDockIcon)
@@ -110,11 +90,21 @@ struct IconGalleryView: View {
             if let icon = iconManager.activeDockIcon {
                 selectedGroupName = icon.groupName
             } else {
-                selectedGroupName = iconManager.iconGroupNames().first
+                selectedGroupName = availableGroupsAndIcons().groups.first
             }
             let lastPackageName = UserDefaults.standard.string(forKey: "PlanetDockIconLastPackageName") ?? ""
             DistributedNotificationCenter.default().post(name: Notification.Name("xyz.planetable.Planet.PlanetDockIconSyncPackageName"), object: lastPackageName)
         }
+    }
+    
+    private func availableGroupsAndIcons() -> (groups: [String], icons: [DockIcon]) {
+        let availableIcons: [DockIcon] = iconManager.dockIcons.filter({ $0.verifyIconStatus() })
+        let availableGroups: [String] = availableIcons.map() { icon in
+            return icon.groupName
+        }
+        let groups: [String] = Array(Set(availableGroups)).sorted().reversed()
+        let icons: [DockIcon] = availableIcons.filter({ $0.groupName == selectedGroupName })
+        return (groups, icons)
     }
 }
 
