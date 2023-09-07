@@ -186,6 +186,15 @@ struct AppSidebarItemView: View {
                     }
                 }
 
+                Button {
+                    Task {
+                        PlanetStore.shared.selectedView = .myPlanet(planet)
+                        PlanetStore.shared.isConfiguringAggregation = true
+                    }
+                } label: {
+                    Text("Aggregation")
+                }
+
                 Divider()
             }
 

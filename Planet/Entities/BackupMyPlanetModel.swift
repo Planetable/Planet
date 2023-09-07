@@ -54,4 +54,5 @@ struct BackupMyPlanetModel: Codable {
     let juiceboxProjectIDGoerli: Int?
     let articles: [BackupArticleModel]
     let tags: [String: String]?
+    let aggregation: [String]?
 }

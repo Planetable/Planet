@@ -81,6 +81,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     var tags: [String: String]? = [:]
 
+    var aggregation: [String]? = nil
+
     static func myPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
@@ -363,6 +365,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(articles)
 
         hasher.combine(tags)
+        hasher.combine(aggregation)
     }
 
     static func == (lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
@@ -422,6 +425,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.drafts == rhs.drafts
             && lhs.articles == rhs.articles
             && lhs.tags == rhs.tags
+            && lhs.aggregation == rhs.aggregation
     }
 
     enum CodingKeys: String, CodingKey {
@@ -438,7 +442,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             customCodeBodyEndEnabled, customCodeBodyEnd,
             podcastCategories, podcastLanguage, podcastExplicit,
             juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli,
-            tags
+            tags,
+            aggregation
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -511,6 +516,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             forKey: .juiceboxProjectIDGoerli
         )
         tags = try? container.decodeIfPresent([String: String].self, forKey: .tags) ?? [:]
+        aggregation = try? container.decodeIfPresent([String].self, forKey: .aggregation) ?? []
     }
 
     func encode(to encoder: Encoder) throws {
@@ -563,6 +569,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(juiceboxProjectID, forKey: .juiceboxProjectID)
         try container.encodeIfPresent(juiceboxProjectIDGoerli, forKey: .juiceboxProjectIDGoerli)
         try container.encodeIfPresent(tags, forKey: .tags)
+        try container.encodeIfPresent(aggregation, forKey: .aggregation)
     }
 
     init(
@@ -868,6 +875,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         // Restore tags
         planet.tags = backupPlanet.tags
+
+        // Restore aggregation
+        planet.aggregation = backupPlanet.aggregation
 
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
@@ -1675,7 +1685,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     navigationWeight: $0.navigationWeight
                 )
             },
-            tags: tags
+            tags: tags,
+            aggregation: aggregation
         )
         do {
             try FileManager.default.copyItem(at: publicBasePath, to: exportPath)

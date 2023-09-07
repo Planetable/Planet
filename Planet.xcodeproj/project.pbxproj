@@ -351,6 +351,8 @@
 		6A71896D2947FD0500279D77 /* Web3PromiseKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6A71896C2947FD0500279D77 /* Web3PromiseKit */; };
 		6A74E49C2A5929BB00FF2F2A /* CPNSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A74E49B2A5929BB00FF2F2A /* CPNSettings.swift */; };
 		6A74E49D2A5929BB00FF2F2A /* CPNSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A74E49B2A5929BB00FF2F2A /* CPNSettings.swift */; };
+		6A86AC1B2AAA71770028BD1C /* AggregationSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A86AC1A2AAA71770028BD1C /* AggregationSettings.swift */; };
+		6A86AC1C2AAA71770028BD1C /* AggregationSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A86AC1A2AAA71770028BD1C /* AggregationSettings.swift */; };
 		6A8776D42A01B78800C6003B /* Pinnable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8776D32A01B78800C6003B /* Pinnable.swift */; };
 		6A8C3A6728C9361800339A86 /* DotBitKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8C3A6628C9361800339A86 /* DotBitKit.swift */; };
 		6A900193296C9F3800BC088E /* MyArticleSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */; };
@@ -641,6 +643,7 @@
 		6A6A1467282159DC009644B6 /* TemplateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateStore.swift; sourceTree = "<group>"; };
 		6A7189652947FA2D00279D77 /* WalletConnectV2QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV2QRCodeView.swift; sourceTree = "<group>"; };
 		6A74E49B2A5929BB00FF2F2A /* CPNSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPNSettings.swift; sourceTree = "<group>"; };
+		6A86AC1A2AAA71770028BD1C /* AggregationSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AggregationSettings.swift; sourceTree = "<group>"; };
 		6A8776D32A01B78800C6003B /* Pinnable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pinnable.swift; sourceTree = "<group>"; };
 		6A8C3A6628C9361800339A86 /* DotBitKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotBitKit.swift; sourceTree = "<group>"; };
 		6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyArticleSettingsView.swift; sourceTree = "<group>"; };
@@ -1237,6 +1240,7 @@
 			isa = PBXGroup;
 			children = (
 				6A74E49B2A5929BB00FF2F2A /* CPNSettings.swift */,
+				6A86AC1A2AAA71770028BD1C /* AggregationSettings.swift */,
 			);
 			path = Croptop;
 			sourceTree = "<group>";
@@ -1741,6 +1745,7 @@
 				2A95E6E82A19A64F001288B8 /* ArtworkView.swift in Sources */,
 				2A95E6522A19A398001288B8 /* PFDashboardSidebarItemView.swift in Sources */,
 				2A95E6732A19A3C4001288B8 /* KeyboardShortcutHelper.swift in Sources */,
+				6A86AC1C2AAA71770028BD1C /* AggregationSettings.swift in Sources */,
 				2A95E6552A19A39C001288B8 /* PlanetPublishedFolderModel.swift in Sources */,
 				2A95E6492A19A398001288B8 /* PFDashboardWindow.swift in Sources */,
 				2A95E6EA2A19A64F001288B8 /* IndicatorLabelView.swift in Sources */,
@@ -1925,6 +1930,7 @@
 				2AFB897029BA17CB003D893E /* PlanetKeyManagerWindowController.swift in Sources */,
 				2AE44EB028CD223C00944786 /* PlanetSettingsViewModel.swift in Sources */,
 				2A052AC1290971E80028E88F /* ArtworkView.swift in Sources */,
+				6A86AC1B2AAA71770028BD1C /* AggregationSettings.swift in Sources */,
 				2A2556AF293E1E7D006462D8 /* TBWindowController.swift in Sources */,
 				7211475AEDACC392B139F1FC /* PlausiblePopover.swift in Sources */,
 				72114702E6BB350F51ED7499 /* ArticleAudioPlayer.swift in Sources */,
@@ -1985,9 +1991,8 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGN_IDENTITY = "";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1998,6 +2003,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = xyz.planetable.Planet.PlanetDockPlugIn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
