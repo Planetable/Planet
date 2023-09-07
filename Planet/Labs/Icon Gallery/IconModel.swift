@@ -10,11 +10,7 @@ struct DockIcon: Decodable, Equatable, Hashable {
     let unlocked: Bool
     
     private func iconKey() -> String {
-        #if DEBUG
-        return "dev.xyz.planetable.Planet.icon.unlocked.id." + String(self.id)
-        #else
         return "xyz.planetable.Planet.icon.unlocked.id." + String(self.id)
-        #endif
     }
     
     func unlockIcon() throws {
