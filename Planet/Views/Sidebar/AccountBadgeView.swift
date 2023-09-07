@@ -252,7 +252,11 @@ struct AccountBadgeView: View {
                     let tier = String(Int(decimalID)).first
                 {
                     debugPrint("User has tier \(tier)")
-                    // TODO: Unlock app icon
+                    do {
+                        try IconManager.shared.unlockIcon(byIDString: String(tier))
+                    } catch {
+                        debugPrint("failed to unlock icon by id: \(tier), error: \(error)")
+                    }
                 }
             }
         }
