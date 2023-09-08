@@ -1335,7 +1335,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         // MARK: - Render index.html and pages
         let itemsPerPage = template.idealItemsPerPage ?? 10
         let generateIndexPagination = template.generateIndexPagination ?? false
-        if generateIndexPagination && publicPlanet.articles.count > itemsPerPage {
+        if generateIndexPagination == true && publicPlanet.articles.count > itemsPerPage {
             let pages = Int(ceil(Double(publicPlanet.articles.count) / Double(itemsPerPage)))
             debugPrint("Rendering \(pages) pages")
             for i in 1...pages {
@@ -1679,6 +1679,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                                         }
                                     }
                                 }
+                            }
+                            Task {
+                                try? newArticle.savePublic()
                             }
                             DispatchQueue.main.async {
                                 self.articles.append(newArticle)
