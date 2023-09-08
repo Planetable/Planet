@@ -1282,7 +1282,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     string: templateStringRSS,
                     context: context
                 )
-                debugPrint("rssXML: \(rssXML)")
                 if podcastOnly {
                     try rssXML.data(using: .utf8)?.write(to: publicPodcastPath)
                 }
