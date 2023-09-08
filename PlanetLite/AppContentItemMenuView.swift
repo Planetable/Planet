@@ -15,7 +15,7 @@ struct AppContentItemMenuView: View {
                         try WriterStore.shared.editArticle(for: article)
                     }
                     catch {
-                        PlanetStore.shared.alert(title: "Failed to launch writer")
+                        PlanetStore.shared.alert(title: "Failed to launch writer", message: error.localizedDescription)
                     }
                 } label: {
                     Text("Edit Post")

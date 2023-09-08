@@ -13,6 +13,8 @@ struct AppContentView: View {
 
     let dropDelegate: AppContentDropDelegate
 
+    let timer = Timer.publish(every: 30, on: .current, in: .common).autoconnect()
+
     init() {
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)
         dropDelegate = AppContentDropDelegate()
@@ -52,6 +54,11 @@ struct AppContentView: View {
         .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
         .background(Color(NSColor.textBackgroundColor))
         .onDrop(of: [.image], delegate: dropDelegate) // TODO: Video and Audio support
+        .onReceive(timer) { _ in
+            Task {
+                await planetStore.aggregate()
+            }
+        }
         .sheet(isPresented: $planetStore.isConfiguringCPN) {
             if case .myPlanet(let planet) = planetStore.selectedView {
                 CPNSettings(planet: planet)

@@ -1607,6 +1607,100 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return status
     }
 
+    func aggregate() async {
+        guard let aggregation = aggregation else {
+            return
+        }
+        for site in aggregation {
+            debugPrint("Aggregation: fetching \(site)")
+            if let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(site)/planet.json") {
+                do {
+                    let (planetJSONData, _) = try await URLSession.shared.data(from: feedURL)
+                    let planet = try JSONDecoder.shared.decode(PublicPlanetModel.self, from: planetJSONData)
+                    debugPrint("Aggregation: fetched \(site) with \(planet.articles.count) articles")
+                    for article in planet.articles {
+                        if !self.articles.contains(where: { $0.id == article.id }) {
+                            debugPrint("Aggregation: adding \(article.id) from \(site)")
+                            let heroImageName: String?
+                            if let heroImage = article.heroImage {
+                                if heroImage.hasPrefix("https://") || heroImage.hasPrefix("http://") {
+                                    // Get the last part of the URL
+                                    if let heroImageURL = URL(string: heroImage) {
+                                        heroImageName = heroImageURL.lastPathComponent
+                                    } else {
+                                        heroImageName = nil
+                                    }
+                                }
+                                else {
+                                    heroImageName = heroImage
+                                }
+                            }
+                            else {
+                                heroImageName = nil
+                            }
+                            let newArticle = MyArticleModel(
+                                id: article.id,
+                                link: article.link,
+                                slug: article.slug,
+                                heroImage: heroImageName,
+                                externalLink: article.externalLink,
+                                title: article.title,
+                                content: article.content,
+                                summary: "",
+                                created: article.created,
+                                starred: nil,
+                                starType: .star,
+                                videoFilename: article.videoFilename,
+                                audioFilename: article.audioFilename,
+                                attachments: article.attachments
+                            )
+                            newArticle.planet = self
+                            try newArticle.save()
+                            if let articleAttachments = article.attachments, articleAttachments.count > 0 {
+                                debugPrint("Aggregation: \(article.title) has \(articleAttachments.count) attachments: \(articleAttachments)")
+                                for name in articleAttachments {
+                                    let publicBasePath = newArticle.publicBasePath
+                                    if !FileManager.default.fileExists(atPath: publicBasePath.path) {
+                                        try FileManager.default.createDirectory(
+                                            at: publicBasePath,
+                                            withIntermediateDirectories: true
+                                        )
+                                    }
+                                    let targetPath = newArticle.publicBasePath.appendingPathComponent(name, isDirectory: false)
+                                    if let attachmentBaseURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(site)/\(article.id)/") {
+                                        let attachmentURL = attachmentBaseURL.appendingPathComponent(name)
+                                        debugPrint("Aggregation: downloading attachment \(attachmentURL.absoluteString)")
+                                        do {
+                                            let (attachmentData, _) = try await URLSession.shared.data(from: attachmentURL)
+                                            try attachmentData.write(to: targetPath)
+                                        }
+                                        catch {
+                                            debugPrint("Aggregation: failed to fetch \(name) from \(site): \(error)")
+                                        }
+                                    }
+                                }
+                            }
+                            DispatchQueue.main.async {
+                                self.articles.append(newArticle)
+                            }
+                        } else {
+                            debugPrint("Aggregation: Skipping \(article.id), already saved")
+                        }
+                    }
+                }
+                catch {
+                    debugPrint("Aggregation: failed to fetch \(site): \(error)")
+                }
+            }
+        }
+        try? save()
+        try? await savePublic()
+        Task { @MainActor in
+            PlanetStore.shared.refreshSelectedArticles()
+        }
+        
+    }
+
     func exportBackup(to directory: URL, isForAirDropSharing: Bool = false) throws {
         let exportPath = directory.appendingPathComponent(
             "\(name.sanitized()).planet",
@@ -1616,6 +1710,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             throw PlanetError.FileExistsError
         }
 
+        // Remember to add new fields to BackupMyPlanetModel
         let backupPlanet = BackupMyPlanetModel(
             id: id,
             name: name,
