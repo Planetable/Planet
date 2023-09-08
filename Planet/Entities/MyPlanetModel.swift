@@ -1656,16 +1656,16 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                             )
                             newArticle.planet = self
                             try newArticle.save()
+                            let publicBasePath = newArticle.publicBasePath
+                            if !FileManager.default.fileExists(atPath: publicBasePath.path) {
+                                try FileManager.default.createDirectory(
+                                    at: publicBasePath,
+                                    withIntermediateDirectories: true
+                                )
+                            }
                             if let articleAttachments = article.attachments, articleAttachments.count > 0 {
                                 debugPrint("Aggregation: \(article.title) has \(articleAttachments.count) attachments: \(articleAttachments)")
                                 for name in articleAttachments {
-                                    let publicBasePath = newArticle.publicBasePath
-                                    if !FileManager.default.fileExists(atPath: publicBasePath.path) {
-                                        try FileManager.default.createDirectory(
-                                            at: publicBasePath,
-                                            withIntermediateDirectories: true
-                                        )
-                                    }
                                     let targetPath = newArticle.publicBasePath.appendingPathComponent(name, isDirectory: false)
                                     if let attachmentBaseURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(site)/\(article.id)/") {
                                         let attachmentURL = attachmentBaseURL.appendingPathComponent(name)
@@ -1698,7 +1698,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Task { @MainActor in
             PlanetStore.shared.refreshSelectedArticles()
         }
-        
     }
 
     func exportBackup(to directory: URL, isForAirDropSharing: Bool = false) throws {
