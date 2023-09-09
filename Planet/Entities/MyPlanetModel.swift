@@ -1638,10 +1638,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                             else {
                                 heroImageName = nil
                             }
+                            // TODO: Extract summary
                             let newArticle = MyArticleModel(
                                 id: article.id,
                                 link: article.link,
-                                slug: article.slug,
+                                slug: nil,
                                 heroImage: heroImageName,
                                 externalLink: article.externalLink,
                                 title: article.title,
