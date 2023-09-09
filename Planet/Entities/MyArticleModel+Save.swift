@@ -82,7 +82,19 @@ extension MyArticleModel {
             filename: publicCoverImagePath.path,
             imageSize: NSSize(width: 512, height: 512)
         )
-        var coverImageCID: String? = obtainCoverImageCID()
+
+        var needsCoverImageCID = false
+        if let attachments = self.attachments, attachments.count == 0 {
+            needsCoverImageCID = true
+        }
+        if audioFilename != nil {
+            needsCoverImageCID = true
+        }
+
+        var coverImageCID: String? = nil
+        if needsCoverImageCID {
+            coverImageCID = obtainCoverImageCID()
+        }
 
         if let attachments = self.attachments, attachments.count == 0 {
             if self.planet.templateName == "Croptop" {
@@ -96,15 +108,21 @@ extension MyArticleModel {
             if let cids = self.cids, cids.count > 0 {
                 for attachment in self.attachments ?? [] {
                     if cids[attachment] == nil {
+                        debugPrint("CID Update for \(self.title): NEEDED because \(attachment) is missing")
                         return true
                     }
                     if let cid = cids[attachment], cid.hasPrefix("Qm") == false {
+                        debugPrint("CID Update for \(self.title): NEEDED because \(attachment) is not CIDv0")
                         return true
                     }
                 }
                 return false
             }
-            return true
+            if self.attachments?.count ?? 0 > 0 {
+                debugPrint("CID Update for \(self.title): NEEDED because cids is nil")
+                return true
+            }
+            return false
         }()
         if needsToUpdateCIDs {
             debugPrint("CID Update for \(self.title): NEEDED")

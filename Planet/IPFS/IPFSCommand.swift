@@ -39,7 +39,7 @@ struct IPFSCommand {
         outputPipe.fileHandleForReading.readabilityHandler = { handler in
             let data = handler.availableData
             guard data.count > 0 else {
-                try? handler.close()
+                handler.closeFile()
                 return
             }
             outputData.append(data)
@@ -51,7 +51,7 @@ struct IPFSCommand {
         errorPipe.fileHandleForReading.readabilityHandler = { handler in
             let data = handler.availableData
             guard data.count > 0 else {
-                try? handler.close()
+                handler.closeFile()
                 return
             }
             errorData.append(data)
@@ -59,6 +59,10 @@ struct IPFSCommand {
         process.standardError = errorPipe
 
         try process.run()
+        
+        process.terminationHandler = { process in
+            // Clean up code here
+        }
         process.waitUntilExit()
 
         outputPipe.fileHandleForReading.readabilityHandler = nil

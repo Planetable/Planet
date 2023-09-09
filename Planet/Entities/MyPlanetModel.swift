@@ -1656,6 +1656,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                                 attachments: article.attachments
                             )
                             newArticle.tags = article.tags
+                            newArticle.cids = article.cids
                             newArticle.planet = self
                             try newArticle.save()
                             let publicBasePath = newArticle.publicBasePath
@@ -1682,11 +1683,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                                     }
                                 }
                             }
-                            Task {
-                                try? await newArticle.savePublic()
-                            }
                             DispatchQueue.main.async {
                                 self.articles.append(newArticle)
+                                self.articles.sorted(by: { $0.created > $1.created })
                                 PlanetStore.shared.refreshSelectedArticles()
                             }
                         } else {
@@ -1696,6 +1695,18 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
                 catch {
                     debugPrint("Aggregation: failed to fetch \(site): \(error)")
+                }
+            }
+        }
+        Task {
+            await withTaskGroup(of: Void.self) { taskGroup in
+                for (i, article) in self.articles.enumerated() {
+                    taskGroup.addTask {
+                        try? article.savePublic()
+                    }
+                    if i >= 2 {
+                        await taskGroup.next()
+                    }
                 }
             }
         }
