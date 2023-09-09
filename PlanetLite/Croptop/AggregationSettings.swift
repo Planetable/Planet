@@ -113,9 +113,8 @@ struct AggregationSettings: View {
                         Task {
                             try planet.save()
                             Task(priority: .background) {
-                                try await planet.rebuild()
+                                try await planet.aggregate()
                             }
-                            NotificationCenter.default.post(name: .loadArticle, object: nil)
                         }
                         dismiss()
                     } label: {

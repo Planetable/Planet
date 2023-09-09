@@ -118,7 +118,9 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isMigrating = false
     @Published var isRebuilding = false
     @Published var rebuildTasks: Int = 0
-    @Published var isQuickSharing = false   // use in macOS 12 only.
+    @Published var isQuickSharing = false  // use in macOS 12 only.
+
+    @Published var isAggregating: Bool = false  // at any time, only one aggregation task is allowed.
 
     @Published var isShowingWalletConnectV1QRCode: Bool = false
     @Published var isShowingWalletAccount: Bool = false
@@ -337,6 +339,13 @@ enum PlanetDetailViewType: Hashable, Equatable {
     }
 
     func aggregate() async {
+        guard isAggregating == false else {
+            return
+        }
+        defer {
+            isAggregating = false
+        }
+        isAggregating = true
         Task {
             await withTaskGroup(of: Void.self) { taskGroup in
                 for myPlanet in myPlanets {

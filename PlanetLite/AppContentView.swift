@@ -13,7 +13,7 @@ struct AppContentView: View {
 
     let dropDelegate: AppContentDropDelegate
 
-    let timer = Timer.publish(every: 30, on: .current, in: .common).autoconnect()
+    let timer = Timer.publish(every: 300, on: .current, in: .common).autoconnect()
 
     init() {
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)

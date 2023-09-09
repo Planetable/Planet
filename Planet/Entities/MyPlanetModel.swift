@@ -1654,6 +1654,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                                 audioFilename: article.audioFilename,
                                 attachments: article.attachments
                             )
+                            newArticle.tags = article.tags
                             newArticle.planet = self
                             try newArticle.save()
                             let publicBasePath = newArticle.publicBasePath
@@ -1681,10 +1682,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                                 }
                             }
                             Task {
-                                try? newArticle.savePublic()
+                                try? await newArticle.savePublic()
                             }
                             DispatchQueue.main.async {
                                 self.articles.append(newArticle)
+                                PlanetStore.shared.refreshSelectedArticles()
                             }
                         } else {
                             debugPrint("Aggregation: Skipping \(article.id), already saved")
@@ -1696,8 +1698,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
             }
         }
+        self.tags = self.consolidateTags()
         try? save()
         try? await savePublic()
+        try? await publish()
         Task { @MainActor in
             PlanetStore.shared.refreshSelectedArticles()
         }
