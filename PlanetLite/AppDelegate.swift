@@ -5,6 +5,7 @@
 
 import Cocoa
 import SwiftUI
+import UserNotifications
 
 
 class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
@@ -30,6 +31,7 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
             appWindowController = AppWindowController()
         }
         appWindowController?.showWindow(nil)
+        setupNotification()
         PlanetUpdater.shared.checkForUpdatesInBackground()
     }
 
@@ -94,5 +96,34 @@ extension PlanetLiteAppDelegate {
 
     @objc func checkForUpdate(_ sender: Any) {
         PlanetUpdater.shared.checkForUpdates()
+    }
+}
+
+
+extension PlanetLiteAppDelegate: UNUserNotificationCenterDelegate {
+    func setupNotification() {
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { settings in
+            guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional || settings.authorizationStatus == .notDetermined else { return }
+            if settings.alertSetting == .disabled || settings.authorizationStatus == .notDetermined {
+                center.requestAuthorization(options: [.alert, .badge]) { _, _ in
+                }
+            } else {
+                center.delegate = self
+                let readArticleCategory = UNNotificationCategory(identifier: .readArticleAlert, actions: [], intentIdentifiers: [], options: [])
+                let showPlanetCategory = UNNotificationCategory(identifier: .showPlanetAlert, actions: [], intentIdentifiers: [], options: [])
+                center.setNotificationCategories([readArticleCategory, showPlanetCategory])
+            }
+        }
+    }
+
+    // MARK: - UNUserNotificationCenterDelegate
+
+    func userNotificationCenter(_: UNUserNotificationCenter, willPresent _: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .badge])
+    }
+
+    func userNotificationCenter(_: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        completionHandler()
     }
 }

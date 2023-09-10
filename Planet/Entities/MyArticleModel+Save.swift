@@ -580,6 +580,8 @@ extension MyArticleModel {
 
     /// Save cover image to `_cover.png`
     func saveCoverImage(with string: String, filename: String, imageSize: NSSize) {
+        // MARK: a crash ?
+        debugPrint("updating saving \(string) as filename: \(filename), for size: \(imageSize) ...")
         let image = NSImage(size: imageSize)
 
         image.lockFocus()
