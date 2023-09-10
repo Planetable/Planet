@@ -110,9 +110,6 @@ extension PlanetLiteAppDelegate: UNUserNotificationCenterDelegate {
                 }
             } else {
                 center.delegate = self
-                let readArticleCategory = UNNotificationCategory(identifier: .readArticleAlert, actions: [], intentIdentifiers: [], options: [])
-                let showPlanetCategory = UNNotificationCategory(identifier: .showPlanetAlert, actions: [], intentIdentifiers: [], options: [])
-                center.setNotificationCategories([readArticleCategory, showPlanetCategory])
             }
         }
     }
