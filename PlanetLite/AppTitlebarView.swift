@@ -48,7 +48,6 @@ struct AppTitlebarView: View {
         .frame(width: size.width, height: size.height)
         .onReceive(NotificationCenter.default.publisher(for: .updatePlanetLiteWindowTitles)) { n in
             guard let titles = n.object as? [String: String] else { return }
-            debugPrint("updating lite title: \(titles) ")
             Task { @MainActor in
                 if let theTitle = titles["title"], theTitle != "" {
                     self.title = theTitle
