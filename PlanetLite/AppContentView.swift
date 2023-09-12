@@ -21,38 +21,77 @@ struct AppContentView: View {
     }
 
     var body: some View {
-        VStack {
-            if planetStore.myPlanets.count == 0 {
-                // Default empty view of the Lite app
-                Text("Hello World :)")
-                    .foregroundColor(.secondary)
-                Button {
-                    planetStore.isCreatingPlanet = true
-                } label: {
-                    Text("Create First Site")
-                }
-                .disabled(planetStore.isCreatingPlanet)
-                Text("Learn more about [Croptop](https://croptop.eth.limo)")
-                    .foregroundColor(.secondary)
-            } else {
-                switch planetStore.selectedView {
-                case .myPlanet(let planet):
-                    if planet.articles.count == 0 {
-                        // TODO: Add an illustration here
-                        Text("Drag and drop a picture here to start.")
-                            .foregroundColor(.secondary)
-                    } else {
-                        AppContentGridView(planet: planet, itemSize: NSSize(width: Self.itemWidth, height: Self.itemWidth))
-                    }
-                default:
-                    Text("No Content")
+        ZStack {
+            VStack {
+                if planetStore.myPlanets.count == 0 {
+                    // Default empty view of the Lite app
+                    Text("Hello World :)")
                         .foregroundColor(.secondary)
+                    Button {
+                        planetStore.isCreatingPlanet = true
+                    } label: {
+                        Text("Create First Site")
+                    }
+                    .disabled(planetStore.isCreatingPlanet)
+                    Text("Learn more about [Croptop](https://croptop.eth.limo)")
+                        .foregroundColor(.secondary)
+                } else {
+                    switch planetStore.selectedView {
+                    case .myPlanet(let planet):
+                        if planet.articles.count == 0 {
+                            // TODO: Add an illustration here
+                            Text("Drag and drop a picture here to start.")
+                                .foregroundColor(.secondary)
+                        } else {
+                            AppContentGridView(planet: planet, itemSize: NSSize(width: Self.itemWidth, height: Self.itemWidth))
+                        }
+                    default:
+                        Text("No Content")
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
+            .padding(0)
+            .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
+            .background(Color(NSColor.textBackgroundColor))
+
+            if planetStore.isAggregating {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 8) {
+                        switch (planetStore.currentTaskProgressIndicator) {
+                        case .none:
+                            Spacer()
+                            .frame(width: 16, height: 16)
+                        case .progress:
+                            ProgressView()
+                            .progressViewStyle(.circular)
+                            .controlSize(.small)
+                        case .done:
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.system(size: 16))
+                        }
+                        Text(PlanetStore.shared.currentTaskMessage)
+                            .font(.footnote)
+                    }
+                    .padding(8)
+                    .background(
+                        .thinMaterial,
+                        in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    )
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color("BorderColor"), lineWidth: 0.5)
+                    )
+                    .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                }.padding(.bottom, 10)
+            }
         }
-        .padding(0)
-        .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
-        .background(Color(NSColor.textBackgroundColor))
+        .onChange(of: planetStore.isAggregating) { newValue in
+            debugPrint("PlanetStore: new value of isAggregating: \(newValue)")
+        }
         .onDrop(of: [.image], delegate: dropDelegate) // TODO: Video and Audio support
         .onReceive(timer) { _ in
             Task {

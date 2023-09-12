@@ -1608,7 +1608,23 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func aggregate() async {
-        guard let aggregation = aggregation else {
+        DispatchQueue.main.async {
+            debugPrint("Aggregation: Started for \(self.name)")
+            PlanetStore.shared.currentTaskMessage = "Fetching posts from other sites..."
+            PlanetStore.shared.currentTaskProgressIndicator = .progress
+            PlanetStore.shared.isAggregating = true
+        }
+        defer {
+            DispatchQueue.main.async {
+                debugPrint("Aggregation: Finished for \(self.name)")
+                PlanetStore.shared.currentTaskMessage = "Fetched posts from other sites"
+                PlanetStore.shared.currentTaskProgressIndicator = .done
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    PlanetStore.shared.isAggregating = false
+                }
+            }
+        }
+        guard let aggregation = aggregation, aggregation.count > 0 else {
             return
         }
         for site in aggregation {
@@ -1683,9 +1699,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                                     }
                                 }
                             }
+                            Task(priority: .background) {
+                                try newArticle.savePublic()
+                            }
                             DispatchQueue.main.async {
                                 self.articles.append(newArticle)
-                                self.articles.sorted(by: { $0.created > $1.created })
+                                self.articles.sort(by: { $0.created > $1.created })
                                 PlanetStore.shared.refreshSelectedArticles()
                             }
                         } else {
@@ -1698,21 +1717,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
             }
         }
-        Task {
-            await withTaskGroup(of: Void.self) { taskGroup in
-                for (i, article) in self.articles.enumerated() {
-                    taskGroup.addTask {
-                        try? article.savePublic()
-                    }
-                    if i >= 2 {
-                        await taskGroup.next()
-                    }
-                }
-            }
-        }
         self.tags = self.consolidateTags()
         try? save()
         try? await savePublic()
+        Task { @MainActor in
+            PlanetStore.shared.currentTaskMessage = "Publishing \(self.name)..."
+        }
         try? await publish()
         Task { @MainActor in
             PlanetStore.shared.refreshSelectedArticles()

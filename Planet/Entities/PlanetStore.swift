@@ -6,6 +6,12 @@ enum PlanetAppShell: Int, Codable {
     case lite = 1
 }
 
+enum TaskProgressIndicatorType: Int, Codable {
+    case none = 0
+    case progress = 1
+    case done = 2
+}
+
 enum PlanetDetailViewType: Hashable, Equatable {
     case today
     case unread
@@ -121,6 +127,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isQuickSharing = false  // use in macOS 12 only.
 
     @Published var isAggregating: Bool = false  // at any time, only one aggregation task is allowed.
+    @Published var currentTaskMessage: String = ""
+    @Published var currentTaskProgressIndicator: TaskProgressIndicatorType = .none
 
     @Published var isShowingWalletConnectV1QRCode: Bool = false
     @Published var isShowingWalletAccount: Bool = false
@@ -339,13 +347,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
     }
 
     func aggregate() async {
-        guard isAggregating == false else {
-            return
-        }
-        defer {
-            isAggregating = false
-        }
-        isAggregating = true
         Task {
             await withTaskGroup(of: Void.self) { taskGroup in
                 for myPlanet in myPlanets {
