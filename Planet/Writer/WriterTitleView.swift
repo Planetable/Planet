@@ -196,7 +196,6 @@ struct WriterTitleView: View {
             .padding(10)
         }
         .frame(width: 280)
-
     }
 }
 

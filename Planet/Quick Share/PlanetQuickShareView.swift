@@ -7,12 +7,13 @@
 
 import SwiftUI
 import ASMediaView
-
+import WrappingHStack
 
 struct PlanetQuickShareView: View {
     @StateObject private var viewModel: PlanetQuickShareViewModel
-    
+
     @State private var isPosting: Bool = false
+    @State private var updatingTags: Bool = false
 
     init() {
         _viewModel = StateObject(wrappedValue: PlanetQuickShareViewModel.shared)
@@ -111,10 +112,27 @@ struct PlanetQuickShareView: View {
     @ViewBuilder
     private func articleContentSection() -> some View {
         VStack {
-            HStack {
+            HStack(spacing: 10) {
                 TextField("Title", text: $viewModel.title)
                     .textFieldStyle(.roundedBorder)
-                Spacer(minLength: 1)
+
+                Button {
+                    updatingTags.toggle()
+                } label: {
+                    Image(systemName: "tag")
+                    if viewModel.tags.count > 0 {
+                        Text("\(viewModel.tags.count)")
+                            .font(.system(size: 12, weight: .regular, design: .default))
+                            .foregroundColor(.secondary)
+                            .background(Color(NSColor.textBackgroundColor))
+                            .cornerRadius(4)
+                    }
+                }
+                .buttonStyle(.plain)
+                .help(viewModel.tags.values.joined(separator: ", "))
+                .popover(isPresented: $updatingTags) {
+                    tagsView()
+                }
             }
             .padding(.top, 2)
             .padding(.bottom, 6)
@@ -139,7 +157,7 @@ struct PlanetQuickShareView: View {
             .keyboardShortcut(.escape, modifiers: [])
 
             Spacer()
-            
+
             HStack {
                 ProgressView()
                     .progressViewStyle(.circular)
@@ -198,6 +216,69 @@ struct PlanetQuickShareView: View {
         }
     }
 
+    private func addTag() {
+        let aTag = viewModel.newTag.trim()
+        let normalizedTag = aTag.normalizedTag()
+        if normalizedTag.count > 0 {
+            if viewModel.tags.keys.contains(aTag) {
+                // tag already exists
+                return
+            }
+            viewModel.tags[normalizedTag] = aTag
+            viewModel.newTag = ""
+        }
+    }
+
+    @ViewBuilder
+    private func tagsView() -> some View {
+        VStack(spacing: 0) {
+            VStack(spacing: 10) {
+                HStack {
+                    Text("Tags")
+                }
+
+                // Tag capsules
+                WrappingHStack(
+                    viewModel.tags.values.sorted(),
+                    id: \.self,
+                    alignment: .leading,
+                    spacing: .constant(2),
+                    lineSpacing: 4
+                ) { tag in
+                    TagView(tag: tag)
+                        .onTapGesture {
+                            viewModel.tags.removeValue(forKey: tag.normalizedTag())
+                        }
+                }
+            }
+            .padding(10)
+            .background(Color(NSColor.textBackgroundColor))
+
+            Divider()
+
+            HStack(spacing: 10) {
+                HStack {
+                    Text("Add a Tag")
+                    Spacer()
+                }
+
+                TextField("", text: $viewModel.newTag)
+                    .onSubmit {
+                        addTag()
+                    }
+                    .disableAutocorrection(true)
+                    .textFieldStyle(.roundedBorder)
+
+                Button {
+                    addTag()
+                } label: {
+                    Text("Add")
+                }
+            }
+            .padding(10)
+        }
+        .frame(width: 280)
+    }
 }
 
 struct PlanetQuickShareView_Previews: PreviewProvider {

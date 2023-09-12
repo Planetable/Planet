@@ -19,8 +19,12 @@ class PlanetQuickShareViewModel: ObservableObject {
             UserDefaults.standard.set(selectedPlanetID.uuidString, forKey: .lastSelectedQuickSharePlanetID)
         }
     }
+
+    // If you need to add a new feature, you can add a new property here.
     @Published var title: String = ""
     @Published var content: String = ""
+    @Published var tags: [String : String] = [:]
+    @Published var newTag: String = ""
     @Published var externalLink: String = ""
     @Published var fileURLs: [URL] = []
     @Published private var draft: DraftModel?
@@ -89,6 +93,9 @@ class PlanetQuickShareViewModel: ObservableObject {
         draft?.content = finalContent
         if !externalLink.isEmpty {
             draft?.externalLink = externalLink
+        }
+        if !tags.isEmpty {
+            draft?.tags = tags
         }
         try draft?.saveToArticle()
         cleanup()
