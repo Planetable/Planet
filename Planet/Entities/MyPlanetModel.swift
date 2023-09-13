@@ -1627,6 +1627,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         guard let aggregation = aggregation, aggregation.count > 0 else {
             return
         }
+        var newArticles: [MyArticleModel] = []
         for site in aggregation {
             debugPrint("Aggregation: fetching \(site)")
             if let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(site)/planet.json") {
@@ -1699,6 +1700,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                                     }
                                 }
                             }
+                            newArticles.append(newArticle)
                             Task(priority: .background) {
                                 try newArticle.savePublic()
                             }
@@ -1717,15 +1719,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
             }
         }
-        self.tags = self.consolidateTags()
-        try? save()
-        try? await savePublic()
-        Task { @MainActor in
-            PlanetStore.shared.currentTaskMessage = "Publishing \(self.name)..."
-        }
-        try? await publish()
-        Task { @MainActor in
-            PlanetStore.shared.refreshSelectedArticles()
+        if newArticles.count > 0 {
+            self.tags = self.consolidateTags()
+            try? save()
+            try? await savePublic()
+            Task { @MainActor in
+                PlanetStore.shared.currentTaskMessage = "Publishing \(self.name)..."
+            }
+            try? await publish()
+            Task { @MainActor in
+                PlanetStore.shared.refreshSelectedArticles()
+            }
         }
     }
 
