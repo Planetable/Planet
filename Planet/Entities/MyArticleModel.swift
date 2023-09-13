@@ -19,6 +19,11 @@ class MyArticleModel: ArticleModel, Codable {
 
     var tags: [String: String]? = nil
 
+    var originalSiteName: String? = nil
+    var originalSiteDomain: String? = nil
+    var originalPostID: String? = nil
+    var originalPostDate: Date? = nil
+
     // populated when initializing
     unowned var planet: MyPlanetModel! = nil
     var draft: DraftModel? = nil
@@ -80,7 +85,11 @@ class MyArticleModel: ArticleModel, Codable {
             attachments: attachments,
             heroImage: socialImageURL?.absoluteString,
             cids: cids,
-            tags: tags
+            tags: tags,
+            originalSiteName: originalSiteName,
+            originalSiteDomain: originalSiteDomain,
+            originalPostID: originalPostID,
+            originalPostDate: originalPostDate
         )
     }
     var localGatewayURL: URL? {
@@ -136,7 +145,8 @@ class MyArticleModel: ArticleModel, Codable {
             videoFilename, audioFilename,
             attachments, cids, tags,
             isIncludedInNavigation,
-            navigationWeight
+            navigationWeight,
+            originalSiteName, originalSiteDomain, originalPostID, originalPostDate
     }
 
     required init(from decoder: Decoder) throws {
@@ -167,6 +177,10 @@ class MyArticleModel: ArticleModel, Codable {
         let attachments = try container.decodeIfPresent([String].self, forKey: .attachments)
         cids = try? container.decodeIfPresent([String: String].self, forKey: .cids) ?? [:]
         tags = try? container.decodeIfPresent([String: String].self, forKey: .tags) ?? [:]
+        originalSiteName = try? container.decodeIfPresent(String.self, forKey: .originalSiteName)
+        originalSiteDomain = try? container.decodeIfPresent(String.self, forKey: .originalSiteDomain)
+        originalPostID = try? container.decodeIfPresent(String.self, forKey: .originalPostID)
+        originalPostDate = try? container.decodeIfPresent(Date.self, forKey: .originalPostDate)
         super.init(
             id: id,
             title: title,
@@ -201,6 +215,10 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(attachments, forKey: .attachments)
         try container.encodeIfPresent(cids, forKey: .cids)
         try container.encodeIfPresent(tags, forKey: .tags)
+        try container.encodeIfPresent(originalSiteName, forKey: .originalSiteName)
+        try container.encodeIfPresent(originalSiteDomain, forKey: .originalSiteDomain)
+        try container.encodeIfPresent(originalPostID, forKey: .originalPostID)
+        try container.encodeIfPresent(originalPostDate, forKey: .originalPostDate)
     }
 
     init(

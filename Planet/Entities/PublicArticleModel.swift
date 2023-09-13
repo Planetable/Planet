@@ -26,4 +26,8 @@ struct PublicArticleModel: Codable {
     let heroImage: String?
     var cids: [String: String]? = [:]
     var tags: [String: String]? = [:]
+    var originalSiteName: String? = nil
+    var originalSiteDomain: String? = nil
+    var originalPostID: String? = nil
+    var originalPostDate: Date? = nil
 }

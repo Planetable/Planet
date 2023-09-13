@@ -27,4 +27,8 @@ struct BackupArticleModel: Codable {
     let tags: [String: String]?
     let isIncludedInNavigation: Bool?
     let navigationWeight: Int?
+    let originalSiteName: String?
+    let originalSiteDomain: String?
+    let originalPostID: String?
+    let originalPostDate: Date?
 }

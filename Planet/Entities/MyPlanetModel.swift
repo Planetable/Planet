@@ -1636,7 +1636,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     let planet = try JSONDecoder.shared.decode(PublicPlanetModel.self, from: planetJSONData)
                     debugPrint("Aggregation: fetched \(site) with \(planet.articles.count) articles")
                     for article in planet.articles {
-                        if !self.articles.contains(where: { $0.id == article.id }) {
+                        if !self.articles.contains(where: { $0.originalPostID == article.id.uuidString }) {
                             debugPrint("Aggregation: adding \(article.id) from \(site)")
                             let heroImageName: String?
                             if let heroImage = article.heroImage {
@@ -1657,7 +1657,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                             }
                             // TODO: Extract summary
                             let newArticle = MyArticleModel(
-                                id: article.id,
+                                id: UUID(),
                                 link: article.link,
                                 slug: nil,
                                 heroImage: heroImageName,
@@ -1674,6 +1674,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                             )
                             newArticle.tags = article.tags
                             newArticle.cids = article.cids
+                            newArticle.originalSiteName = planet.name
+                            newArticle.originalSiteDomain = site
+                            newArticle.originalPostID = article.id.uuidString
+                            newArticle.originalPostDate = article.created
                             newArticle.planet = self
                             try newArticle.save()
                             let publicBasePath = newArticle.publicBasePath
@@ -1815,7 +1819,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     cids: $0.cids,
                     tags: $0.tags,
                     isIncludedInNavigation: $0.isIncludedInNavigation,
-                    navigationWeight: $0.navigationWeight
+                    navigationWeight: $0.navigationWeight,
+                    originalSiteName: $0.originalSiteName,
+                    originalSiteDomain: $0.originalSiteDomain,
+                    originalPostID: $0.originalPostID,
+                    originalPostDate: $0.originalPostDate
                 )
             },
             tags: tags,
