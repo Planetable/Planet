@@ -1719,11 +1719,18 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
             }
         }
-        if newArticles.count > 0 {
+        let newArticlesCount: Int = newArticles.count
+        if newArticlesCount > 0 {
+            DispatchQueue.main.async {
+                PlanetStore.shared.currentTaskProgressIndicator = .done
+                PlanetStore.shared.currentTaskMessage = "\(newArticlesCount) new posts fetched"
+            }
             self.tags = self.consolidateTags()
             try? save()
             try? await savePublic()
-            Task { @MainActor in
+            // So the previous message can be seen for a while
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                PlanetStore.shared.currentTaskProgressIndicator = .progress
                 PlanetStore.shared.currentTaskMessage = "Publishing \(self.name)..."
             }
             try? await publish()
