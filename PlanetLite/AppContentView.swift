@@ -108,7 +108,7 @@ struct AppContentView: View {
         .onChange(of: planetStore.isAggregating) { newValue in
             debugPrint("PlanetStore: new value of isAggregating: \(newValue)")
             Task { @MainActor in
-                withAnimation(.easeInOut(duration: 0.25)) {
+                withAnimation(.easeInOut) {
                     self.isShowingTaskProgressIndicator = newValue
                 }
             }
