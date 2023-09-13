@@ -5,7 +5,6 @@
 
 import SwiftUI
 
-
 struct AppContentView: View {
     @StateObject private var planetStore: PlanetStore
 
@@ -35,15 +34,20 @@ struct AppContentView: View {
                     .disabled(planetStore.isCreatingPlanet)
                     Text("Learn more about [Croptop](https://croptop.eth.limo)")
                         .foregroundColor(.secondary)
-                } else {
+                }
+                else {
                     switch planetStore.selectedView {
                     case .myPlanet(let planet):
                         if planet.articles.count == 0 {
                             // TODO: Add an illustration here
                             Text("Drag and drop a picture here to start.")
                                 .foregroundColor(.secondary)
-                        } else {
-                            AppContentGridView(planet: planet, itemSize: NSSize(width: Self.itemWidth, height: Self.itemWidth))
+                        }
+                        else {
+                            AppContentGridView(
+                                planet: planet,
+                                itemSize: NSSize(width: Self.itemWidth, height: Self.itemWidth)
+                            )
                         }
                     default:
                         Text("No Content")
@@ -52,21 +56,29 @@ struct AppContentView: View {
                 }
             }
             .padding(0)
-            .frame(minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN, maxWidth: .infinity, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity, alignment: .center)
+            .frame(
+                minWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN,
+                idealWidth: PlanetUI.WINDOW_CONTENT_WIDTH_MIN,
+                maxWidth: .infinity,
+                minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN,
+                idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN,
+                maxHeight: .infinity,
+                alignment: .center
+            )
             .background(Color(NSColor.textBackgroundColor))
 
             if planetStore.isAggregating {
                 VStack {
                     Spacer()
                     HStack(spacing: 8) {
-                        switch (planetStore.currentTaskProgressIndicator) {
+                        switch planetStore.currentTaskProgressIndicator {
                         case .none:
                             Spacer()
-                            .frame(width: 16, height: 16)
+                                .frame(width: 16, height: 16)
                         case .progress:
                             ProgressView()
-                            .progressViewStyle(.circular)
-                            .controlSize(.small)
+                                .progressViewStyle(.circular)
+                                .controlSize(.small)
                         case .done:
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
@@ -83,7 +95,7 @@ struct AppContentView: View {
                     .cornerRadius(8)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color("BorderColor"), lineWidth: 0.5)
+                            .stroke(Color("BorderColor"), lineWidth: 0.5)
                     )
                     .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                 }.padding(.bottom, 10)
@@ -92,7 +104,7 @@ struct AppContentView: View {
         .onChange(of: planetStore.isAggregating) { newValue in
             debugPrint("PlanetStore: new value of isAggregating: \(newValue)")
         }
-        .onDrop(of: [.image], delegate: dropDelegate) // TODO: Video and Audio support
+        .onDrop(of: [.image], delegate: dropDelegate)  // TODO: Video and Audio support
         .onReceive(timer) { _ in
             Task {
                 await planetStore.aggregate()
