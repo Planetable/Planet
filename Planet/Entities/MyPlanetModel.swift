@@ -1617,7 +1617,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         defer {
             DispatchQueue.main.async {
                 debugPrint("Aggregation: Finished for \(self.name)")
-                PlanetStore.shared.currentTaskMessage = "Fetched posts from other sites"
+                PlanetStore.shared.currentTaskMessage = "Aggregation completed"
                 PlanetStore.shared.currentTaskProgressIndicator = .done
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                     PlanetStore.shared.isAggregating = false
