@@ -14,6 +14,8 @@ struct AppContentView: View {
 
     let timer = Timer.publish(every: 300, on: .current, in: .common).autoconnect()
 
+    @State private var isShowingTaskProgressIndicator: Bool = false
+
     init() {
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)
         dropDelegate = AppContentDropDelegate()
@@ -67,9 +69,9 @@ struct AppContentView: View {
             )
             .background(Color(NSColor.textBackgroundColor))
 
-            if planetStore.isAggregating {
-                VStack {
-                    Spacer()
+            VStack {
+                Spacer()
+                if isShowingTaskProgressIndicator {
                     HStack(spacing: 8) {
                         switch planetStore.currentTaskProgressIndicator {
                         case .none:
@@ -98,11 +100,18 @@ struct AppContentView: View {
                             .stroke(Color("BorderColor"), lineWidth: 0.5)
                     )
                     .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
-                }.padding(.bottom, 10)
+                    .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
+                }
             }
+            .padding(.bottom, 10)
         }
         .onChange(of: planetStore.isAggregating) { newValue in
             debugPrint("PlanetStore: new value of isAggregating: \(newValue)")
+            Task { @MainActor in
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    self.isShowingTaskProgressIndicator = newValue
+                }
+            }
         }
         .onDrop(of: [.image], delegate: dropDelegate)  // TODO: Video and Audio support
         .onReceive(timer) { _ in
