@@ -91,6 +91,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     static func isReservedTag(_ tag: String) -> Bool {
         return RESERVED_KEYWORDS_FOR_TAGS.contains(tag)
     }
+    func removeReservedTags() -> [String: String] {
+        var tags = self.tags ?? [:]
+        for tag in Self.RESERVED_KEYWORDS_FOR_TAGS {
+            tags.removeValue(forKey: tag)
+        }
+        return tags
+    }
     var basePath: URL {
         return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
     }
@@ -1422,7 +1429,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 let tagPath = publicTagPath(tag: key)
                 try tagHTML.data(using: .utf8)?.write(to: tagPath)
             }
-
             if template.hasTagsHTML {
                 let tagsContext: [String: Any] = [
                     "planet": publicPlanet,
@@ -1432,7 +1438,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "og_image_url": ogImageURLString,
                     "has_podcast": publicPlanet.hasAudioContent(),
                     "has_podcast_cover_art": hasPodcastCoverArt,
-                    "tags": tags,
+                    "tags": self.removeReservedTags(),
                     "tag_articles": tagArticles,
                 ]
                 let tagsHTML = try template.renderTags(context: tagsContext)
