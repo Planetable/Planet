@@ -483,7 +483,9 @@ extension MyArticleModel {
             }
         }
         if firstImage != nil {
-            debugPrint("HeroImage: return the first image anyway: \(firstImage!)")
+            debugPrint("HeroImage: return the first image anyway for \(self.title): \(firstImage!)")
+            heroImage = firstImage
+            try? self.save()
             return firstImage
         }
         debugPrint("HeroImage: NOT FOUND")
