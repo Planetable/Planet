@@ -11,6 +11,9 @@ struct PlanetSidebarView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @StateObject var ipfsState = IPFSState.shared
 
+    let timer1m = Timer.publish(every: 60, on: .current, in: .common).autoconnect()
+    let timer3m = Timer.publish(every: 180, on: .current, in: .common).autoconnect()
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if planetStore.walletAddress.count > 0 {
@@ -146,6 +149,16 @@ struct PlanetSidebarView: View {
                         debugPrint("Failed to publish: \(planet.name) id=\(planet.id)")
                     }
                 }
+            }
+        }
+        .onReceive(timer1m) { _ in
+            Task {
+                await planetStore.checkPinnable()
+            }
+        }
+        .onReceive(timer3m) { _ in
+            Task {
+                await planetStore.pin()
             }
         }
     }

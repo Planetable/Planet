@@ -1588,6 +1588,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
+    /// Send pin request to Pinnable API if enabled
     func callPinnable() async {
         if let enabled = self.pinnableEnabled, !enabled {
             return

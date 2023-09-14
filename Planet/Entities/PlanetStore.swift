@@ -346,18 +346,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
         }
     }
 
-    func aggregate() async {
-        Task {
-            await withTaskGroup(of: Void.self) { taskGroup in
-                for myPlanet in myPlanets {
-                    taskGroup.addTask {
-                        await myPlanet.aggregate()
-                    }
-                }
-            }
-        }
-    }
-
     func alert(title: String, message: String? = nil) {
         isShowingAlert = true
         alertTitle = title
