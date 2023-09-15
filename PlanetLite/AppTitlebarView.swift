@@ -6,14 +6,13 @@
 import SwiftUI
 import UserNotifications
 
-
 struct AppTitlebarView: View {
     @StateObject private var planetStore: PlanetStore
     @State private var title: String = "Croptop"
     @State private var subtitle: String = ""
-    
+
     var size: CGSize
-    
+
     init(size: CGSize) {
         self.size = size
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)
@@ -54,27 +53,17 @@ struct AppTitlebarView: View {
                 }
                 if let theSubtitle = titles["subtitle"], theSubtitle != "" {
                     self.subtitle = theSubtitle
-                } else {
+                }
+                else {
                     self.subtitle = ""
                 }
             }
         }
     }
-    
+
     private func copyIPNSAction(fromPlanet planet: MyPlanetModel) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(planet.ipns, forType: .string)
-        Task(priority: .background) {
-            let content = UNMutableNotificationContent()
-            content.title = planet.name
-            content.subtitle = "IPNS copied."
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-            let request = UNNotificationRequest(
-                identifier: planet.ipns,
-                content: content,
-                trigger: trigger
-            )
-            try? await UNUserNotificationCenter.current().add(request)
-        }
+        NotificationCenter.default.post(name: .copiedIPNS, object: planet)
     }
 }
