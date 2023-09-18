@@ -32,13 +32,15 @@ struct AppContentItemView: View {
                         ASMediaManager.shared.activatePhotoView(withPhotos: attachmentURLs, title: article.title, andID: article.id)
                     }
                 } else {
-                    let urls = self.getPhotos(fromArticle: self.article)
+                    let urls = self.getAttachments(fromArticle: article)
                     if hasVideo {
                         ASMediaManager.shared.activateVideoView(withVideos: urls, title: article.title, andID: article.id)
                     } else {
                         ASMediaManager.shared.activatePhotoView(withPhotos: urls, title: article.title, andID: article.id)
                     }
-                    self.attachmentURLs = urls
+                    Task { @MainActor in
+                        self.attachmentURLs = urls
+                    }
                 }
             }
             .contextMenu {
@@ -77,20 +79,20 @@ struct AppContentItemView: View {
             )
             .task(id: article.id, priority: .utility) {
                 guard attachmentURLs == nil else { return }
-                attachmentURLs = getPhotos(fromArticle: article)
+                attachmentURLs = getAttachments(fromArticle: article)
             }
     }
 
-    private func getPhotos(fromArticle article: MyArticleModel) -> [URL] {
-        var photoURLs: [URL] = []
+    private func getAttachments(fromArticle article: MyArticleModel) -> [URL] {
+        var urls: [URL] = []
         if let attachmentNames: [String] = article.attachments {
             for name in attachmentNames {
                 if let url = article.getAttachmentURL(name: name), FileManager.default.fileExists(atPath: url.path) {
-                    photoURLs.append(url)
+                    urls.append(url)
                 }
             }
         }
-        return photoURLs
+        return urls
     }
 
     @ViewBuilder
