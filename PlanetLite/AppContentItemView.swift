@@ -24,11 +24,20 @@ struct AppContentItemView: View {
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
             .onTapGesture {
+                let hasVideo = article.hasVideo
                 if let attachmentURLs {
-                    ASMediaManager.shared.activatePhotoView(withPhotos: attachmentURLs, title: article.title, andID: article.id)
+                    if hasVideo {
+                        ASMediaManager.shared.activateVideoView(withVideos: attachmentURLs, title: article.title, andID: article.id)
+                    } else {
+                        ASMediaManager.shared.activatePhotoView(withPhotos: attachmentURLs, title: article.title, andID: article.id)
+                    }
                 } else {
                     let urls = self.getPhotos(fromArticle: self.article)
-                    ASMediaManager.shared.activatePhotoView(withPhotos: urls, title: article.title, andID: article.id)
+                    if hasVideo {
+                        ASMediaManager.shared.activateVideoView(withVideos: urls, title: article.title, andID: article.id)
+                    } else {
+                        ASMediaManager.shared.activatePhotoView(withPhotos: urls, title: article.title, andID: article.id)
+                    }
                     self.attachmentURLs = urls
                 }
             }
