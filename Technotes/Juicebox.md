@@ -92,6 +92,6 @@ As an example, this is the metadata of the JuiceboxDAO project:
 
 Features we can build for the integration:
 
-- [ ] Show a Juicebox button on the toolbar. Click on it will display basic project information. It can be opened with Chrome for further interaction.
-- [ ] Link the Juicebox project from the site's homepage
+- [x] Show a Juicebox button on the toolbar. Click on it will display basic project information. It can be opened with Chrome for further interaction.
+- [x] Link the Juicebox project from the site's homepage
 - [ ] Utilize WalletConnect to pay the project
