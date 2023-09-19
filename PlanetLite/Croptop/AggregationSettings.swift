@@ -82,8 +82,8 @@ struct AggregationSettings: View {
                     Button {
                         Task {
                             try await planet.aggregate()
-                            dismiss()
                         }
+                        dismiss()
                     } label: {
                         Text("Aggregate Now")
                     }
