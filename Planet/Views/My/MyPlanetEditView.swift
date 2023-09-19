@@ -500,7 +500,7 @@ struct MyPlanetEditView: View {
 
                             TextEditor(text: $about)
                                 .font(.system(size: 13, weight: .regular, design: .default))
-                                .lineSpacing(8)
+                                .lineSpacing(2)
                                 .disableAutocorrection(true)
                                 .cornerRadius(6)
                                 .frame(height: 80)
