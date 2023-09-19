@@ -484,7 +484,7 @@ extension MyArticleModel {
         }
         if firstImage != nil {
             debugPrint("HeroImage: return the first image anyway for \(self.title): \(firstImage!)")
-            heroImage = firstImage
+            self.heroImage = firstImage
             try? self.save()
             return firstImage
         }
