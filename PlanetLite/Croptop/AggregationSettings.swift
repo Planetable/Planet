@@ -46,10 +46,10 @@ struct AggregationSettings: View {
 
                             TextEditor(text: $newSites)
                                 .font(.system(size: 13, weight: .regular, design: .default))
-                                .lineSpacing(8)
+                                .lineSpacing(4)
                                 .disableAutocorrection(true)
                                 .cornerRadius(6)
-                                .frame(height: 80)
+                                .frame(height: 120)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
                                         .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
@@ -63,9 +63,9 @@ struct AggregationSettings: View {
                             .frame(width: CONTROL_CAPTION_WIDTH + 10)
 
                             Text(
-                                "Please enter the sites you wish to aggregate, one per line. You can use ENS (Ethereum Name Service) or IPNS (InterPlanetary Name System) addresses."
+                                "Please enter the sites you wish to aggregate, listing one per line. You can use ENS (Ethereum Name Service) or IPNS (InterPlanetary Name System) addresses. If you want to aggregate RSS, Atom, or JSON feeds, provide the full URL."
                             )
-                            .lineLimit(2)
+                            .lineLimit(4)
                             .font(.footnote)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
