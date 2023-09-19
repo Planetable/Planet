@@ -491,6 +491,19 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                 }
             }
         }
+
+        // Croptop: delete cached hero image after editing.
+        Task { @MainActor in
+            if PlanetStore.shared.app == .lite {
+                Task(priority: .background) {
+                    if let heroImageName = article.getHeroImage() {
+                        let cachedHeroImageName = article.id.uuidString + "-" + heroImageName
+                        let cachedPath = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(cachedHeroImageName)!
+                        try? FileManager.default.removeItem(at: cachedPath)
+                    }
+                }
+            }
+        }
     }
 
     func save() throws {
