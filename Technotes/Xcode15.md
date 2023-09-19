@@ -2,7 +2,7 @@
 
 If you encounter the following issue while building with Xcode 15, as depicted in the screenshot below:
 
-![](images/xcode15_build_issue.png)
+![](https://raw.githubusercontent.com/Planetable/Planet/main/Technotes/Images/xcode15_build_issue.png)
 
 ```
 Call can throw, but it is not marked with 'try' and the error is not handled
