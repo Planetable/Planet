@@ -33,15 +33,15 @@ struct AppTitlebarView: View {
                     Text(subtitle)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                        .onTapGesture {
-                            if case .myPlanet(let planet) = planetStore.selectedView {
-                                copyIPNSAction(fromPlanet: planet)
-                            }
-                        }
-                        .help("Click to copy IPNS")
                     Spacer()
                 }
             }
+            .onTapGesture {
+                if case .myPlanet(let planet) = planetStore.selectedView {
+                    copyIPNSAction(fromPlanet: planet)
+                }
+            }
+            .help("Click to copy IPNS")
             Spacer(minLength: 0)
         }
         .frame(width: size.width, height: size.height)
