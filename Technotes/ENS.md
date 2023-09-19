@@ -8,6 +8,7 @@ Here is a minimal query to get all domains owned by a specific address.
 query getNamesFromSubgraph($address: String) {
   domains(first: 1000, where: {owner: $address}) {
     name
+    expiryDate
   }
 }
 ```
@@ -16,7 +17,7 @@ With variables:
 
 ```
 {
-    "address": "0x18deee9699526f8c8a87004b2e4e55029fb26b9a"
+  "address": "0x18deee9699526f8c8a87004b2e4e55029fb26b9a"
 }
 ```
 
