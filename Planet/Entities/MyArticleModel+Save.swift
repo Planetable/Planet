@@ -484,8 +484,10 @@ extension MyArticleModel {
         }
         if firstImage != nil {
             debugPrint("HeroImage: return the first image anyway for \(self.title): \(firstImage!)")
-            self.heroImage = firstImage
-            try? self.save()
+            DispatchQueue.main.async {
+                self.heroImage = firstImage
+                try? self.save()
+            }
             return firstImage
         }
         debugPrint("HeroImage: NOT FOUND")
