@@ -216,10 +216,10 @@ actor IPFSDaemon {
                         //     UserDefaults.standard.set(Date().ISO8601Format(), forKey: "PlanetOnboarding")
                         // }
                     }
-                    Self.logger.debug("[IPFS stdout]\n\(data.logFormat())")
+                    Self.logger.debug("[IPFS stdout]\n\(data.logFormat(), privacy: .public)")
                 },
                 errHandler: { data in
-                    Self.logger.debug("[IPFS error]\n\(data.logFormat())")
+                    Self.logger.debug("[IPFS error]\n\(data.logFormat(), privacy: .public)")
                 }
             )
         } catch {
@@ -283,7 +283,7 @@ actor IPFSDaemon {
         } else {
             peers = 0
         }
-        Self.logger.info("Daemon \(online ? "online (\(peers))" : "offline")")
+        Self.logger.info("Daemon \(online ? "online (\(peers))" : "offline", privacy: .public)")
         await MainActor.run {
             if online {
                 IPFSState.shared.isBootstrapping = false

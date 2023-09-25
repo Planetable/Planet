@@ -1050,7 +1050,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         case .planet, .dnslink:
             let newCID = try await IPFSDaemon.shared.resolveIPNSorDNSLink(name: link)
             if cid == newCID {
-                Self.logger.info("Planet \(self.name) has no update")
+                Self.logger.info("Planet \(self.name, privacy: .public) has no update")
                 return
             }
             Task {
@@ -1188,7 +1188,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 throw PlanetError.ENSNoContentHashError
             }
             if cid == newCID {
-                Self.logger.info("Planet \(self.name) has no update")
+                Self.logger.info("Planet \(self.name, privacy: .public) has no update")
                 return
             }
             else {
@@ -1335,11 +1335,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 newCID = resolved
             }
             if cid == newCID {
-                Self.logger.info("Planet \(self.name) has no update")
+                Self.logger.info("Planet \(self.name, privacy: .public) has no update")
                 return
             }
             else {
-                Self.logger.info("Planet \(self.name) has update")
+                Self.logger.info("Planet \(self.name, privacy: .public) has update")
             }
             Task {
                 try await IPFSDaemon.shared.pin(cid: newCID)
