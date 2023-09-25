@@ -455,6 +455,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         try article.savePublic()
         try delete()
         try planet.copyTemplateAssets()
+        planet.tags = planet.consolidateTags()
         planet.updated = Date()
         try planet.save()
 
