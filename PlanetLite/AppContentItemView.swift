@@ -24,20 +24,11 @@ struct AppContentItemView: View {
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
             .onTapGesture {
-                let hasVideo = article.hasVideo
                 if let attachmentURLs {
-                    if hasVideo {
-                        ASMediaManager.shared.activateVideoView(withVideos: attachmentURLs, title: article.title, andID: article.id)
-                    } else {
-                        ASMediaManager.shared.activatePhotoView(withPhotos: attachmentURLs, title: article.title, andID: article.id)
-                    }
+                    processAttachments(attachmentURLs)
                 } else {
                     let urls = self.getAttachments(fromArticle: article)
-                    if hasVideo {
-                        ASMediaManager.shared.activateVideoView(withVideos: urls, title: article.title, andID: article.id)
-                    } else {
-                        ASMediaManager.shared.activatePhotoView(withPhotos: urls, title: article.title, andID: article.id)
-                    }
+                    processAttachments(urls)
                     Task { @MainActor in
                         self.attachmentURLs = urls
                     }
@@ -93,6 +84,14 @@ struct AppContentItemView: View {
             }
         }
         return urls
+    }
+    
+    private func processAttachments(_ urls: [URL]) {
+        if article.hasVideo {
+            ASMediaManager.shared.activateVideoView(withVideos: urls, title: article.title, andID: article.id)
+        } else {
+            ASMediaManager.shared.activatePhotoView(withPhotos: urls, title: article.title, andID: article.id)
+        }
     }
 
     @ViewBuilder
