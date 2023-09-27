@@ -70,7 +70,9 @@ extension MyArticleModel {
         // Remove article-level .DS_Store if any
         self.removeDSStore()
         // Save article.md
-        self.saveMarkdown()
+        Task(priority: .background) {
+            await self.saveMarkdown()
+        }
         // Save cover image
         //TODO: Clean up the logic here
         // MARK: Cover Image
@@ -645,7 +647,7 @@ extension MyArticleModel {
     }
 
     // MARK: - Save Markdown content to article.md
-    func saveMarkdown() {
+    func saveMarkdown() async {
         let markdownPath = publicBasePath.appendingPathComponent("article.md")
         if FileManager.default.fileExists(atPath: markdownPath.path) {
             do {
