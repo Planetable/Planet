@@ -63,7 +63,7 @@ struct AppTitlebarView: View {
 
     private func copyIPNSAction(fromPlanet planet: MyPlanetModel) {
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(planet.ipns, forType: .string)
+        NSPasteboard.general.setString("ipns://" + planet.ipns, forType: .string)
         NotificationCenter.default.post(name: .copiedIPNS, object: planet)
     }
 }
