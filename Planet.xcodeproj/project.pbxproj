@@ -485,6 +485,8 @@
 		2A2556B9293E1F35006462D8 /* TBSidebarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBSidebarViewController.swift; sourceTree = "<group>"; };
 		2A2556BB293E1F53006462D8 /* TemplateBrowserInspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserInspectorView.swift; sourceTree = "<group>"; };
 		2A2556BD293E1F92006462D8 /* TBInspectorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBInspectorViewController.swift; sourceTree = "<group>"; };
+		2A2766452AC5906500240622 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		2A2766462AC593E700240622 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		2A2774462A95159700A5DDC2 /* PlanetDockPlugIn.docktileplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlanetDockPlugIn.docktileplugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		2A27744A2A9515BF00A5DDC2 /* IconManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IconManager.swift; sourceTree = "<group>"; };
 		2A27744D2A9515EB00A5DDC2 /* IconModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IconModel.swift; sourceTree = "<group>"; };
@@ -1952,6 +1954,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				E8B4FE3E2A8D144E00C01E94 /* zh-Hans */,
+				2A2766452AC5906500240622 /* en */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -1960,6 +1963,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				E8B4FE432A8D146100C01E94 /* zh-Hans */,
+				2A2766462AC593E700240622 /* en */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";

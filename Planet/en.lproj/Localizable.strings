@@ -1,0 +1,416 @@
+/*
+  Localizable.strings
+  Planet
+  
+*/
+
+"Planet" = "";
+
+// MARK: - Menu
+
+"Writer" = "";
+"Tools" = "";
+"Template Browser" = "";
+"Downloads" = "";
+"Publish My Planets" = "";
+"Update Following Planets" = "";
+"Reload Planets" = "";
+"Failed to Rebuild Planet" = "";
+"Rebuild Planet" = "";
+"Import Planet" = "";
+"Library Location" = "";
+"Choose Planet Data" = "";
+
+// MARK: - PlanetSidebarView
+
+"Smart Feeds" = "";
+"Today" = "";
+"Unread" = "";
+"Starred" = "";
+"My Planets" = "";
+"Following Planets" = "";
+"Offline" = "";
+"Online" = "";
+"Create Planet" = "";
+"Follow Planet" = "";
+
+// MARK: - Article List
+
+"articles" = "";
+"total" = "";
+"unread" = "";
+"fetched today" = "";
+"Show All" = "";
+"Show Pages" = "";
+"Show Navigation Items" = "";
+"Show Unread" = "";
+"Show All Starred" = "";
+"No Articles" = "";
+"No Pages" = "";
+"No Navigation Items" = "";
+"No Unread Articles" = "";
+"No Starred Articles" = "";
+"No Items with Plan Type" = "";
+"No Items with To Do Type" = "";
+"No Items with Done Type" = "";
+"No Items with Sparkles Type" = "";
+"No Items with Heart Type" = "";
+"No Items with Question Type" = "";
+"No Items with Paperplane Type" = "";
+"Mark as Read" = "";
+"Mark as Unread" = "";
+"Delete Article" = "";
+"Remove Star" = "";
+"Star" = "";
+"Sparkles" = "";
+"Heart" = "";
+"Question" = "";
+"Paperplane" = "";
+"Plan" = "";
+"To Do" = "";
+"Done" = "";
+
+"Copy Public Link" = "";
+"Open in Browser" = "";
+"Copy Link" = "";
+"Failed to Create Post" = "";
+"More Actions" = "";
+"Displays available actions" = "";
+"Publishing" = "";
+"Folder is missing" = "";
+"Open in Public Gateway" = "";
+"Open in Local Gateway" = "";
+"Reveal in Finder" = "";
+"Publish" = "";
+"Backup Folder Key" = "";
+"Remove" = "";
+"Add Folder" = "";
+"Dashboard" = "";
+"Check for Updates" = "";
+"Check for update" = "";
+"Updating" = "";
+"Disconnect Wallet" = "";
+"Connect Wallet" = "";
+"Connect Wallet V2" = "";
+
+"Send" = "";
+"Insert Emoji" = "";
+"Attach Photo" = "";
+"Attach Video" = "";
+"Attach Audio" = "";
+"Remove Attachments" = "";
+"Failed to import planet" = "";
+"Published Folders" = "";
+"Options" = "";
+"Automatically Publish" = "";
+"Nostalgia" = "";
+"Published" = "";
+"Date" = "";
+"Amount" = "";
+"Recipient" = "";
+
+// MARK: - Key Manager
+
+"Key Manager" = "";
+"Sync" = "";
+"Sync with Keychain" = "";
+"Reload" = "";
+"Reload Planet Keys" = "";
+"Import" = "";
+"Import Planet Key" = "";
+"Export" = "";
+"Export Planet Key" = "";
+"Keystore Status" = "";
+"In Keystore" = "";
+"Not in Keystore" = "";
+"Keychain Status" = "";
+"In Keychain" = "";
+"Not in Keychain" = "";
+"Key Name" = "";
+"Key ID" = "";
+
+"Time" = "";
+"Now" = "";
+"Set" = "";
+
+// MARK: - Icon Gallery
+
+"Icon Gallery" = "";
+
+// MARK: - Published Folders
+
+"Publish Folder" = "";
+"Remove Folder" = "";
+"Published Folders Dashboard" = "";
+"Never Published" = "";
+"Last Published" = "";
+"No Published Folder Selected" = "";
+
+"Folder is in publishing progress, please try again later." = "";
+"Folder Published" = "";
+"Folder content hasn't changed since last publish." = "";
+"Failed to Publish Folder" = "";
+"Failed to Remove Folder" = "";
+"Toggle Sidebar" = "";
+"Backward" = "";
+"Forward" = "";
+"Home" = "";
+"More" = "";
+"Toggle Inspector View" = "";
+"Connected with %@" = "";
+"Failed to Change Library Location" = "";
+"Change" = "";
+"Reset" = "";
+"Public Gateway" = "";
+"Ethereum Network" = "";
+"Unknown Chain ID" = "";
+"Choose Library Location" = "";
+"Choose" = "";
+"Existing Planet Library Found" = "";
+"Continue & Update" = "";
+"General" = "";
+"Planets" = "";
+"Archived My Planet" = "";
+"Archived Following Planet" = "";
+"Unarchive" = "";
+"Enable Public API" = "";
+"Require Authentication" = "";
+"API Key" = "";
+"API Server Port" = "";
+"API Server Username" = "";
+"API Server Passcode" = "";
+"Failed to create planet" = "";
+"Enable custom code inside <head></head>" = "";
+"Head" = "";
+"Body Start" = "";
+"Body End" = "";
+"Enable custom code after the start of <body>" = "";
+"Enable custom code before </body>" = "";
+"Clear" = "";
+"Follow" = "";
+"New Planet" = "";
+"New Site" = "";
+"Name" = "";
+"Create" = "";
+"Failed to follow planet" = "";
+"This ENS has no contenthash." = "";
+"Unable to follow planet" = "";
+"Following %@" = "";
+"Failed to send article:" = "";
+"Failed to delete article:" = "";
+"Save Draft" = "";
+"Delete Draft" = "";
+"Failed to Access to Folder" = "";
+"Choose attachments to publish" = "";
+"Choose Folder to Publish" = "";
+"Failed to Add Folder" = "";
+"Selected folder has already been added." = "";
+"Failed to Export Folder Key" = "";
+"Folder key doesn't exist, please make sure this folder has been successfully published." = "";
+"Choose Directory to Save Folder Key" = "";
+"Choose location to save planet key" = "";
+"Choose key file to import" = "";
+"Failed to Import Planet Key" = "";
+"Failed to Export Planet Key" = "";
+"Failed to Sync Planet Key to Keychain" = "";
+"Article Slug Issue" = "";
+"Failed to Export Planet" = "";
+"There is already an exported Planet in the destination." = "";
+"We do not recommend override your backup." = "";
+"Please choose another destination, or rename your previous backup." = "";
+"The slug is already used by" = "";
+"Please choose a different slug" = "";
+"Please try again." = "";
+"Failed to Start AirDrop Service" = "";
+"Cover Art" = "";
+"Language" = "";
+"Podcast contains explicit contents" = "";
+"Categories" = "";
+"more" = "";
+
+// Errors
+"Persistence Error" = "";
+"Network Error" = "";
+"IPFS Error" = "";
+"Ethereum Error" = "";
+"Planet Feed Error"= "";
+"Planet Exists Error"= "";
+"Planet Not Exists Error"= "";
+"Missing Template Error"= "";
+"Missing Planet Key Error"= "";
+"Avatar Error"= "";
+"Podcast Cover Art Error"= "";
+"Import Planet Error"= "";
+"Export Planet Error"= "";
+"File Exists Error"= "";
+"Follow Local Planet Error"= "";
+"Follow Planet Verify Error"= "";
+"Invalid Planet URL Error"= "";
+"ENS No Content Hash Error"= "";
+"DotBit No DWeb Record Error"= "";
+"DotBit IPNS Resolve Error"= "";
+"Render Markdown Error"= "";
+"Published Service Folder Unchanged Error"= "";
+"Published Service Folder Permission Error"= "";
+"Move Publishing Planet Article Error"= "";
+"Wallet Connect V2 Project ID Missing Error"= "";
+"Public API Error"= "";
+"Key Manager Saving Key Error"= "";
+"Key Manager Loading Key Error"= "";
+"Key Manager Deleting Key Error"= "";
+"Key Manager Generating Key Error"= "";
+"Key Manager Importing Key Error"= "";
+"Key Manager Importing Key Exists Error"= "";
+"Key Manager Exporting Key Exists Error"= "";
+"Internal Error" = "";
+
+
+"New Post" = "";
+"Add Attachments" = "";
+"Or drag and drop images here." = "";
+"Cancel" = "";
+"Post" = "";
+"Please scan the QR code with your wallet app" = "";
+"Copy URL" = "";
+"Copied" = "";
+"Disconnect" = "";
+"OK" = "";
+"Please select the amount" = "";
+"Are you sure you want to disconnect?" = "";
+"Share" = "";
+"Delete" = "";
+
+
+"Edit" = "";
+"Title" = "";
+"External Link" = "";
+"Type" = "";
+"Blog" = "";
+"Page" = "";
+"Basic" = "";
+"Slug" = "";
+"Tags" = "";
+"Add a Tag" = "";
+"Add" = "";
+"Navigation Weight" = "";
+"Navigation" = "";
+
+"Are you sure you want to delete this article?" = "";
+"Move Article to" = "";
+"Edit Article" = "";
+"Settings" = "";
+"Template Settings" = "";
+"Save" = "";
+"New Article" = "";
+"Edit Planet" = "";
+"Custom Code" = "";
+"Podcast Settings" = "";
+"Copy IPNS" = "";
+"Show IPNS and CID" = "";
+"Share via AirDrop" = "";
+"Archive Planet" = "";
+"Save as Planet Data File" = "";
+"Delete Planet" = "";
+
+"Archive" = "";
+"Open in WorldWideWeb Server" = "";
+"Rebuild" = "";
+"Check with Pinnable" = "";
+"Export Planet" = "";
+"Publish Planet" = "";
+"Domain" = "";
+"API Server" = "";
+"Analytics" = "";
+"Social" = "";
+"API Endpoint" = "";
+"Pin Status" = "";
+"Pin Name" = "";
+"API Token" = "";
+"Request ID" = "";
+"Site Name" = "";
+"About" = "";
+
+"Author Name" = "";
+"Template" = "";
+"Basic Info" = "";
+"Pinning" = "";
+"Project ID" = "";
+"Project ID (Goerli)" = "";
+"Integrations" = "";
+"Enable Pinnable for Pinning" = "";
+"Enable Filebase for Pinning" = "";
+"Enable Juicebox Integration" = "";
+"Enable Plausible for Traffic Analytics" = "";
+"Enable dWebServices.xyz for IPNS" = "";
+
+"Visitors Today" = "";
+"Pageviews Today" = "";
+"Loading Analytics Data" = "";
+"Open Dashboard" = "";
+
+"Include in Site Navigation" = "";
+
+"Updated" = "";
+"Failed to locate downloaded file." = "";
+"Please try to redownload it from article." = "";
+"Dismiss" = "";
+"Open" = "";
+"Show in Finder" = "";
+"Copy Address" = "";
+"Remove from List" = "";
+"View on Etherscan" = "";
+"Quit" = "";
+"What's New in Planet" = "";
+
+// Welcome to Planet
+"Welcome to Planet" = "";
+"Build and publish and follow websites on IPFS" = "";
+"Manage multiple IPNS ready to be linked to your ENS" = "";
+"Two-column Markdown editor for writing and previewing" = "";
+"Export and import websites between Macs" = "";
+
+"Continue" = "";
+
+"Mark All as Read" = "";
+"Unfollow" = "";
+
+"Do you want to save your changes as a draft?" = "";
+
+"Are you sure you want to unfollow this planet?" = "";
+
+"Here are your archived Planets. Archived planets are not auto published or updated. You can unarchive them from here." = "";
+
+
+"Are you sure you want to delete %@? This action cannot be undone." = "";
+
+"Are you sure you want to delete this post?\n\n%@?\n\nThis action cannot be undone." = "";
+
+"Would you like to use new library location at" = "";
+
+"current database including following planets will be replaced with contents at this location" = "";
+
+"When you tip a creator, transactions will be sent to the selected Ethereum network." = "";
+
+"Are you sure you want to archive this planet? Archived planets will not be auto updated. You can later unarchive it from settings." = "";
+
+"Planet lets you build and host your website on your Mac without requiring a centralized service." = "";
+
+"You can also use Planet to follow the content creators you like." = "";
+
+"The big difference is that there is no middle layer between you and the content creators you follow." = "";
+
+"You will receive the latest updates in a peer-to-peer manner." = "";
+
+"The slug is the part of the URL that identifies the article. It should be unique and contain only lowercased letters, numbers, and hyphens." = "";
+
+"If you want this article to redirect to an external link, enter the URL here." = "";
+
+"This domain will be used in places that need a domain prefix, like for RSS or Podcast feeds." = "";
+
+"Are you sure you want to archive this planet? Archived planets will not be auto published. You can later unarchive it from settings." = "";
+
+"Please input an integer for sorting, entries with smaller numbers will be ranked first." = "";
+
+"Articles of the Page type are not listed on the blog index page, nor are they included in the RSS feed." = "";
+
+"Are you sure you want to delete this article? This action will remove it from your feed. However, if the article is still available on the source, it will reappear in your feed the next time you refresh it." = "";

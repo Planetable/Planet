@@ -1,0 +1,8 @@
+/*
+  InfoPlist.strings
+  Planet
+
+*/
+
+CFBundleName = "Planet";
+CFBundleDisplayName = "Planet";
