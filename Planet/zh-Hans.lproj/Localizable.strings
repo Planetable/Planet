@@ -6,7 +6,8 @@
 
 "Planet" = "Planet";
 
-// 顶部菜单 - Menu
+// MARK: - 顶部菜单 - Menu
+
 "Writer" = "编辑器";
 "Tools" = "工具";
 "Template Browser" = "模板浏览器";
@@ -20,7 +21,8 @@
 "Library Location" = "数据文件位置";
 "Choose Planet Data" = "选择数据";
 
-// 左侧栏 - PlanetSidebarView
+// MARK: - 左侧栏 - PlanetSidebarView
+
 "Smart Feeds" = "时间线";
 "Today" = "今天";
 "Unread" = "未读";
@@ -32,7 +34,8 @@
 "Create Planet" = "创建网站";
 "Follow Planet" = "关注网站";
 
-// 中间文章列表 - Article List
+// MARK: - 中间文章列表 - Article List
+
 "articles" = "文章";
 "total" = "总计";
 "unread" = "未读";
@@ -105,7 +108,9 @@
 "Date" = "日期";
 "Amount" = "数量";
 "Recipient" = "接受者";
-// 密钥管理器 - Key Manager
+
+// MARK: - 密钥管理器 - Key Manager
+
 "Key Manager" = "密钥管理器";
 "Sync" = "同步";
 "Sync with Keychain" = "与钥匙串同步";
@@ -127,6 +132,12 @@
 "Time" = "时间";
 "Now" = "现在";
 "Set" = "设置";
+
+// MARK: - Icon Gallery
+
+"Icon Gallery" = "图标库";
+
+// MARK: - Published Folders
 
 "Publish Folder" = "发布文件夹";
 "Remove Folder" = "删除文件夹";
@@ -217,7 +228,7 @@
 "Categories" = "类别";
 "more" = "更多";
 
-// 错误信息 - Errors
+// MARK: - 错误信息 - Errors
 "Persistence Error"  =  "持久性错误";
 "Network Error"  =  "网络错误";
 "IPFS Error"  =  "IPFS 错误";
@@ -351,7 +362,8 @@
 "View on Etherscan" = "在 Etherscan 上查看";
 "Quit" = "退出";
 "What's New in Planet" = "行星的新功能";
-// Welcome to Planet
+
+// MARK: - Welcome to Planet
 "Welcome to Planet" = "欢迎来到 Planet";
 "Build and publish and follow websites on IPFS" = "在 IPFS 上构建、发布和关注网站";
 "Manage multiple IPNS ready to be linked to your ENS" = "管理多个准备链接到您的 ENS 的 IPNS";

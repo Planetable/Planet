@@ -6,7 +6,8 @@
 
 "Planet" = "";
 
-// Menu
+// MARK: - Menu
+
 "Writer" = "";
 "Tools" = "";
 "Template Browser" = "";
@@ -20,7 +21,8 @@
 "Library Location" = "";
 "Choose Planet Data" = "";
 
-// PlanetSidebarView
+// MARK: - PlanetSidebarView
+
 "Smart Feeds" = "";
 "Today" = "";
 "Unread" = "";
@@ -32,7 +34,8 @@
 "Create Planet" = "";
 "Follow Planet" = "";
 
-// Article List
+// MARK: - Article List
+
 "articles" = "";
 "total" = "";
 "unread" = "";
@@ -106,7 +109,8 @@
 "Amount" = "";
 "Recipient" = "";
 
-// Key Manager
+// MARK: - Key Manager
+
 "Key Manager" = "";
 "Sync" = "";
 "Sync with Keychain" = "";
@@ -128,6 +132,12 @@
 "Time" = "";
 "Now" = "";
 "Set" = "";
+
+// MARK: - Icon Gallery
+
+"Icon Gallery" = "";
+
+// MARK: - Published Folders
 
 "Publish Folder" = "";
 "Remove Folder" = "";
@@ -323,7 +333,6 @@
 "Author Name" = "";
 "Template" = "";
 "Basic Info" = "";
-// TODO: What would be the best translation for Pinning?
 "Pinning" = "";
 "Project ID" = "";
 "Project ID (Goerli)" = "";
@@ -352,6 +361,7 @@
 "View on Etherscan" = "";
 "Quit" = "";
 "What's New in Planet" = "";
+
 // Welcome to Planet
 "Welcome to Planet" = "";
 "Build and publish and follow websites on IPFS" = "";
