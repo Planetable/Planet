@@ -2376,8 +2376,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/WalletConnect/WalletConnectSwiftV2";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = exactVersion;
+				version = 1.8.6;
 			};
 		};
 		6ADF40C229151407007A24E8 /* XCRemoteSwiftPackageReference "Starscream" */ = {
