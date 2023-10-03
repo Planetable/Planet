@@ -16,14 +16,14 @@ struct MyArticleItemView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 0) {
                         Text(article.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
+                            .font(.headline)
+                            .foregroundColor(.primary)
 
                         Spacer()
 
                         Text(article.humanizeCreated())
-                        .font(.body)
-                        .foregroundColor(.secondary)
+                            .font(.body)
+                            .foregroundColor(.secondary)
                     }
                     if let summary = article.summary, summary.count > 0 {
                         Text(summary.prefix(280))
@@ -71,12 +71,12 @@ struct MyArticleItemView: View {
                     // This is a hack to make the layout consistent
                     if article.hasNoSpecialContent() {
                         Text(" ")
-                        .font(.caption)
-                        .foregroundColor(.clear)
+                            .font(.caption)
+                            .foregroundColor(.clear)
                         Spacer()
                         Text(" ")
-                        .font(.caption)
-                        .foregroundColor(.clear)
+                            .font(.caption)
+                            .foregroundColor(.clear)
                     }
                 }
             }
@@ -130,12 +130,22 @@ struct MyArticleItemView: View {
                 } label: {
                     Text("Copy Public Link")
                 }
+
                 Button {
                     if let url = article.browserURL {
+                        debugPrint("My Planet Browser URL: \(url.absoluteString)")
                         NSWorkspace.shared.open(url)
                     }
                 } label: {
-                    Text("Open in Browser")
+                    Text("Open in Public Gateway")
+                }
+
+                Button {
+                    if let url = article.localGatewayURL {
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Text("Open in Local Gateway")
                 }
             }
         }
