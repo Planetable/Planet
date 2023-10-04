@@ -64,7 +64,7 @@ actor IPFSDaemon {
         // add peering
         // peers from https://docs.ipfs.io/how-to/peering-with-content-providers/#content-provider-list
         // adding Cloudflare and ProtocolLabs
-        // last updated: 2022-05-09
+        // last updated: 2023-OCT-03
         Self.logger.info("Setting peers")
         let peers = JSON([
             ["ID": "12D3KooWBJY6ZVV8Tk8UDDFMEqWoxn89Xc8wnpm8uBFSR3ijDkui", "Addrs": ["/ip4/167.71.172.216/tcp/4001", "/ip6/2604:a880:800:10::826:1/tcp/4001"]],
@@ -85,9 +85,6 @@ actor IPFSDaemon {
             ["ID": "QmUd6zHcbkbcs7SMxwLs48qZVX3vpcM8errYS7xEczwRMA", "Addrs": ["/dns/cluster2.fsn.dwebops.pub"]],
             ["ID": "QmbVWZQhCGrS7DhgLqWbgvdmKN7JueKCREVanfnVpgyq8x", "Addrs": ["/dns/cluster3.fsn.dwebops.pub"]],
             ["ID": "QmdnXwLrC8p1ueiq2Qya8joNvk3TVVDAut7PrikmZwubtR", "Addrs": ["/dns/cluster4.fsn.dwebops.pub"]],
-            ["ID": "12D3KooWCRscMgHgEo3ojm8ovzheydpvTEqsDtq7Vby38cMHrYjt", "Addrs": ["/dns4/nft-storage-am6.nft.dwebops.net/tcp/18402"]],
-            ["ID": "12D3KooWQtpvNvUYFzAo1cRYkydgk15JrMSHp6B6oujqgYSnvsVm", "Addrs": ["/dns4/nft-storage-dc13.nft.dwebops.net/tcp/18402"]],
-            ["ID": "12D3KooWQcgCwNCTYkyLXXQSZuL5ry1TzpM8PRe9dKddfsk1BxXZ", "Addrs": ["/dns4/nft-storage-sv15.nft.dwebops.net/tcp/18402"]],
         ])
         guard let result = try? IPFSCommand.setPeers(peersJSON: String(data: peers.rawData(), encoding: .utf8)!).run(),
               result.ret == 0
