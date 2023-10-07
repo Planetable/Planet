@@ -77,13 +77,6 @@ struct WriterView: View {
             }
             try? draft.renderPreview()
         }
-        .onChange(of: viewModel.isChoosingAttachment) { _ in
-            do {
-                try addAttachmentsAction()
-            } catch {
-                debugPrint("failed to add attachment: \(error)")
-            }
-        }
         .onAppear {
             if draft.attachments.contains(where: { $0.type == .image || $0.type == .file }) {
                 viewModel.isMediaTrayOpen = true
@@ -93,6 +86,13 @@ struct WriterView: View {
                 focusTitle = true
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: WriterViewModel.choosingAttachment), perform: { _ in
+            do {
+                try addAttachmentsAction()
+            } catch {
+                debugPrint("failed to add attachment: \(error)")
+            }
+        })
 //        .fileImporter(
 //            isPresented: $viewModel.isChoosingAttachment,
 //            allowedContentTypes: viewModel.allowedContentTypes,
