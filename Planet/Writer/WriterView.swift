@@ -86,22 +86,29 @@ struct WriterView: View {
                 focusTitle = true
             }
         }
-        .fileImporter(
-            isPresented: $viewModel.isChoosingAttachment,
-            allowedContentTypes: viewModel.allowedContentTypes,
-            allowsMultipleSelection: viewModel.allowMultipleSelection
-        ) { result in
-            if let urls = try? result.get() {
-                if viewModel.attachmentType == .image {
-                    viewModel.isMediaTrayOpen = true
-                }
-                urls.forEach { url in
-                    _ = try? draft.addAttachment(path: url, type: viewModel.attachmentType)
-                }
-                try? draft.renderPreview()
-                try? draft.save()
+        .onReceive(NotificationCenter.default.publisher(for: WriterViewModel.choosingAttachment), perform: { _ in
+            do {
+                try addAttachmentsAction()
+            } catch {
+                debugPrint("failed to add attachment: \(error)")
             }
-        }
+        })
+//        .fileImporter(
+//            isPresented: $viewModel.isChoosingAttachment,
+//            allowedContentTypes: viewModel.allowedContentTypes,
+//            allowsMultipleSelection: viewModel.allowMultipleSelection
+//        ) { result in
+//            if let urls = try? result.get() {
+//                if viewModel.attachmentType == .image {
+//                    viewModel.isMediaTrayOpen = true
+//                }
+//                urls.forEach { url in
+//                    _ = try? draft.addAttachment(path: url, type: viewModel.attachmentType)
+//                }
+//                try? draft.renderPreview()
+//                try? draft.save()
+//            }
+//        }
         .confirmationDialog(
             Text("Do you want to save your changes as a draft?"),
             isPresented: $viewModel.isShowingDiscardConfirmation
@@ -198,5 +205,26 @@ struct WriterView: View {
             .background(Color.secondary.opacity(0.03))
             .onDrop(of: [.fileURL], delegate: dragAndDrop)
         }
+    }
+    
+    private func addAttachmentsAction() throws {
+        let panel = NSOpenPanel()
+        panel.message = "Choose Attachments"
+        panel.prompt = "Choose"
+        panel.allowsMultipleSelection = viewModel.allowMultipleSelection
+        panel.allowedContentTypes = viewModel.allowedContentTypes
+        panel.canChooseDirectories = false
+        panel.showsHiddenFiles = false
+        let response = panel.runModal()
+        guard response == .OK, panel.urls.count > 0 else { return }
+        let urls = panel.urls
+        if viewModel.attachmentType == .image {
+            viewModel.isMediaTrayOpen = true
+        }
+        try urls.forEach { url in
+            _ = try draft.addAttachment(path: url, type: viewModel.attachmentType)
+        }
+        try draft.renderPreview()
+        try draft.save()
     }
 }

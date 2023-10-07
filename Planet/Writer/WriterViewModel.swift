@@ -2,8 +2,9 @@ import Foundation
 import UniformTypeIdentifiers
 
 @MainActor class WriterViewModel: ObservableObject {
+    static let choosingAttachment: Notification.Name = Notification.Name("WriterChooseAttachmentsNotification")
+    
     @Published var attachmentType: AttachmentType = .file
-    @Published var isChoosingAttachment = false
     @Published var allowedContentTypes: [UTType] = []
     @Published var allowMultipleSelection = false
     @Published var isMediaTrayOpen = false
@@ -14,20 +15,20 @@ import UniformTypeIdentifiers
         attachmentType = .image
         allowedContentTypes = [.png, .webP, .jpeg, .gif]
         allowMultipleSelection = true
-        isChoosingAttachment = true
+        NotificationCenter.default.post(name: Self.choosingAttachment, object: nil)
     }
 
     func chooseVideo() {
         attachmentType = .video
         allowedContentTypes = [.mpeg4Movie, .quickTimeMovie]
         allowMultipleSelection = false
-        isChoosingAttachment = true
+        NotificationCenter.default.post(name: Self.choosingAttachment, object: nil)
     }
 
     func chooseAudio() {
         attachmentType = .audio
         allowedContentTypes = [.mp3, .mpeg4Audio, .wav]
         allowMultipleSelection = false
-        isChoosingAttachment = true
+        NotificationCenter.default.post(name: Self.choosingAttachment, object: nil)
     }
 }
