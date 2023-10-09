@@ -5,8 +5,9 @@
 //  Created by Kai on 4/12/23.
 //
 
-import SwiftUI
 import ASMediaView
+import SwiftUI
+import UniformTypeIdentifiers
 import WrappingHStack
 
 struct PlanetQuickShareView: View {
@@ -61,7 +62,7 @@ struct PlanetQuickShareView: View {
             .frame(width: 200)
         }
     }
-    
+
     @ViewBuilder
     private func attachmentSectionPlaceholder() -> some View {
         VStack {
@@ -77,30 +78,84 @@ struct PlanetQuickShareView: View {
         .contentShape(Rectangle())
     }
 
+    func handlePaste(_ itemProviders: [NSItemProvider]) {
+        itemProviders.forEach { item in
+            debugPrint("item: \(item)")
+            item.loadItem(forTypeIdentifier: kUTTypeURL as String) {
+                data,
+                error in
+                if data is URL {
+                    let url = data as! URL
+                    debugPrint("url: \(url)")
+                }
+                if data is Data {
+                    let str = String(data: data as! Data, encoding: .utf8)
+                    debugPrint("str: \(str)")
+                }
+                debugPrint("Pasted Error:\(error)")
+            }
+            item.loadItem(forTypeIdentifier: UTType.image.identifier) {
+                data,
+                error in
+                if data is Data {
+                    let image = NSImage(data: data as! Data)
+                    debugPrint("image: \(image)")
+                    if let pngImageData = image?.PNGData {
+                        // Write the image as a PNG into temporary and add it to the attachments
+                        let fileName = UUID().uuidString + ".png"
+                        // Save image to temporary directory
+                        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(
+                            fileName
+                        )
+                        do {
+                            try pngImageData.write(to: fileURL)
+                            Task { @MainActor in
+                                PlanetQuickShareViewModel.shared.fileURLs.append(fileURL)
+                            }
+                        }
+                        catch {
+                            debugPrint("Failed to write image to temporary directory: \(error)")
+                        }
+                    }
+                }
+                debugPrint("Pasted Error:\(error)")
+            }
+        }
+    }
+
     @ViewBuilder
     private func attachmentSection() -> some View {
         if viewModel.fileURLs.count == 0 {
             if PlanetStore.shared.app == .lite {
                 let dropDelegate = PlanetQuickShareDropDelegate()
                 attachmentSectionPlaceholder()
+                    .focusable()
+                    .onPasteCommand(of: [.image, .fileURL], perform: handlePaste)
                     .onDrop(of: [.image], delegate: dropDelegate)
-            } else {
+            }
+            else {
                 attachmentSectionPlaceholder()
             }
-        } else if viewModel.fileURLs.count == 1, let url = viewModel.fileURLs.first, let img = NSImage(contentsOf: url) {
+        }
+        else if viewModel.fileURLs.count == 1, let url = viewModel.fileURLs.first,
+            let img = NSImage(contentsOf: url)
+        {
             HStack {
                 ZStack {
                     Image(nsImage: img)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                    if PlanetStore.shared.app == .lite && ASMediaManager.shared.imageIsGIF(image: img) {
+                    if PlanetStore.shared.app == .lite
+                        && ASMediaManager.shared.imageIsGIF(image: img)
+                    {
                         GIFIndicatorView()
                             .frame(width: 180, height: 180 / (img.size.width / img.size.height))
                     }
                 }
                 .frame(width: 180, height: 180)
             }
-        } else {
+        }
+        else {
             ScrollView(.horizontal) {
                 LazyHStack(alignment: .center) {
                     ForEach(viewModel.fileURLs, id: \.self) { url in
@@ -109,9 +164,14 @@ struct PlanetQuickShareView: View {
                                 Image(nsImage: img)
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                if PlanetStore.shared.app == .lite && ASMediaManager.shared.imageIsGIF(image: img) {
+                                if PlanetStore.shared.app == .lite
+                                    && ASMediaManager.shared.imageIsGIF(image: img)
+                                {
                                     GIFIndicatorView()
-                                        .frame(width: 180, height: 180 / (img.size.width / img.size.height))
+                                        .frame(
+                                            width: 180,
+                                            height: 180 / (img.size.width / img.size.height)
+                                        )
                                 }
                             }
                             .frame(width: 180, height: 180)
