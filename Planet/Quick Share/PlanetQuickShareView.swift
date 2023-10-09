@@ -61,18 +61,31 @@ struct PlanetQuickShareView: View {
             .frame(width: 200)
         }
     }
+    
+    @ViewBuilder
+    private func attachmentSectionPlaceholder() -> some View {
+        VStack {
+            Button {
+                addAttachmentsAction()
+            } label: {
+                Text("Add Attachments...")
+            }
+            Text("Or drag and drop images here.")
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+    }
 
     @ViewBuilder
     private func attachmentSection() -> some View {
         if viewModel.fileURLs.count == 0 {
-            VStack {
-                Button {
-                    addAttachmentsAction()
-                } label: {
-                    Text("Add Attachments...")
-                }
-                Text("Or drag and drop images here.")
-                    .foregroundColor(.secondary)
+            if PlanetStore.shared.app == .lite {
+                let dropDelegate = PlanetQuickShareDropDelegate()
+                attachmentSectionPlaceholder()
+                    .onDrop(of: [.image], delegate: dropDelegate)
+            } else {
+                attachmentSectionPlaceholder()
             }
         } else if viewModel.fileURLs.count == 1, let url = viewModel.fileURLs.first, let img = NSImage(contentsOf: url) {
             HStack {
