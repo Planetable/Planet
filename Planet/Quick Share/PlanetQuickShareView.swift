@@ -127,13 +127,16 @@ struct PlanetQuickShareView: View {
     private func attachmentSection() -> some View {
         if viewModel.fileURLs.count == 0 {
             if PlanetStore.shared.app == .lite {
-                let dropDelegate = PlanetQuickShareDropDelegate()
-                attachmentSectionPlaceholder()
-                    .focusable()
-                    .onPasteCommand(of: [.image, .fileURL], perform: handlePaste)
-                    .onDrop(of: [.image], delegate: dropDelegate)
-            }
-            else {
+                ZStack {
+                    let dropDelegate = PlanetQuickShareDropDelegate()
+                    attachmentSectionPlaceholder()
+                        .onDrop(of: [.image], delegate: dropDelegate)
+                    PlanetQuickSharePasteView()
+                        .focusable()
+                        .opacity(0)
+                        .onPasteCommand(of: [.image, .fileURL], perform: handlePaste)
+                }
+            } else {
                 attachmentSectionPlaceholder()
             }
         }
