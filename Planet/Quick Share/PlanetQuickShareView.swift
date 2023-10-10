@@ -41,6 +41,72 @@ struct PlanetQuickShareView: View {
         }
     }
 
+    // TODO: move this func to MyPlanetModel
+    // TODO: Consolidate duplicated code in MyArticleItemView
+    private func articleItemAvatarImage(fromPlanet planet: MyPlanetModel) -> NSImage? {
+        let size = CGSize(width: 16, height: 16)
+        let img = NSImage(size: size)
+        img.lockFocus()
+        defer {
+            img.unlockFocus()
+        }
+        if let image = planet.avatar {
+            if let ctx = NSGraphicsContext.current {
+                ctx.imageInterpolation = .high
+                let targetRect = NSRect(origin: .zero, size: size)
+                let radius: CGFloat = size.width / 2.0
+                let path: NSBezierPath = NSBezierPath(
+                    roundedRect: targetRect,
+                    xRadius: radius,
+                    yRadius: radius
+                )
+                path.addClip()
+                image.draw(
+                    in: targetRect,
+                    from: NSRect(origin: .zero, size: image.size),
+                    operation: .copy,
+                    fraction: 1.0
+                )
+            }
+            return img
+        }
+        else if let font = NSFont(name: "Arial Rounded MT Bold", size: size.width / 2.0) {
+            let t = NSAttributedString(
+                string: planet.nameInitials,
+                attributes: [
+                    NSAttributedString.Key.font: font,
+                    NSAttributedString.Key.foregroundColor: NSColor.white,
+                ]
+            )
+            let drawPoint = NSPoint(
+                x: (size.width - t.size().width) / 2.0,
+                y: (size.height - t.size().height) / 2.0
+            )
+            let leastSignificantUInt8 = planet.id.uuid.15
+            let index = Int(leastSignificantUInt8) % ViewUtils.presetGradients.count
+            let gradient = ViewUtils.presetGradients[index]
+            if let ctx = NSGraphicsContext.current {
+                ctx.imageInterpolation = .high
+                let targetRect = NSRect(origin: .zero, size: size)
+                let radius: CGFloat = size.width / 2.0
+                let path: NSBezierPath = NSBezierPath(
+                    roundedRect: targetRect,
+                    xRadius: radius,
+                    yRadius: radius
+                )
+                path.addClip()
+                let gradient = NSGradient(
+                    starting: NSColor(gradient.stops.first?.color ?? .white),
+                    ending: NSColor(gradient.stops.last?.color ?? .gray)
+                )
+                gradient?.draw(in: targetRect, angle: -90)
+                t.draw(at: drawPoint)
+            }
+            return img
+        }
+        return nil
+    }
+
     @ViewBuilder
     private func headerSection() -> some View {
         HStack {
@@ -49,8 +115,16 @@ struct PlanetQuickShareView: View {
             Spacer()
             Picker("To", selection: $viewModel.selectedPlanetID) {
                 ForEach(viewModel.myPlanets, id: \.id) { planet in
-                    Text(planet.name)
-                        .tag(planet.id)
+                    HStack(spacing: 4) {
+                        if let image = articleItemAvatarImage(fromPlanet: planet) {
+                            Image(nsImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                        }
+                        Text(planet.name)
+                        Spacer(minLength: 4)
+                    }
+                    .tag(planet.id)
                 }
             }
             .onChange(
@@ -59,6 +133,7 @@ struct PlanetQuickShareView: View {
                     viewModel.selectedPlanetID = newValue
                 }
             )
+            .pickerStyle(.menu)
             .frame(width: 200)
         }
     }
@@ -88,7 +163,8 @@ struct PlanetQuickShareView: View {
                         .onDrop(of: [.image], delegate: dropDelegate)
                     PlanetQuickSharePasteView()
                 }
-            } else {
+            }
+            else {
                 attachmentSectionPlaceholder()
             }
         }
