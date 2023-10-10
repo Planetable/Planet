@@ -78,51 +78,6 @@ struct PlanetQuickShareView: View {
         .contentShape(Rectangle())
     }
 
-    func handlePaste(_ itemProviders: [NSItemProvider]) {
-        itemProviders.forEach { item in
-            debugPrint("item: \(item)")
-            item.loadItem(forTypeIdentifier: kUTTypeURL as String) {
-                data,
-                error in
-                if data is URL {
-                    let url = data as! URL
-                    debugPrint("url: \(url)")
-                }
-                if data is Data {
-                    let str = String(data: data as! Data, encoding: .utf8)
-                    debugPrint("str: \(str)")
-                }
-                debugPrint("Pasted Error:\(error)")
-            }
-            item.loadItem(forTypeIdentifier: UTType.image.identifier) {
-                data,
-                error in
-                if data is Data {
-                    let image = NSImage(data: data as! Data)
-                    debugPrint("image: \(image)")
-                    if let pngImageData = image?.PNGData {
-                        // Write the image as a PNG into temporary and add it to the attachments
-                        let fileName = UUID().uuidString + ".png"
-                        // Save image to temporary directory
-                        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(
-                            fileName
-                        )
-                        do {
-                            try pngImageData.write(to: fileURL)
-                            Task { @MainActor in
-                                PlanetQuickShareViewModel.shared.fileURLs.append(fileURL)
-                            }
-                        }
-                        catch {
-                            debugPrint("Failed to write image to temporary directory: \(error)")
-                        }
-                    }
-                }
-                debugPrint("Pasted Error:\(error)")
-            }
-        }
-    }
-
     @ViewBuilder
     private func attachmentSection() -> some View {
         if viewModel.fileURLs.count == 0 {
