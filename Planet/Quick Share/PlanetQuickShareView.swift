@@ -132,9 +132,6 @@ struct PlanetQuickShareView: View {
                     attachmentSectionPlaceholder()
                         .onDrop(of: [.image], delegate: dropDelegate)
                     PlanetQuickSharePasteView()
-                        .focusable()
-                        .opacity(0)
-                        .onPasteCommand(of: [.image, .fileURL], perform: handlePaste)
                 }
             } else {
                 attachmentSectionPlaceholder()
