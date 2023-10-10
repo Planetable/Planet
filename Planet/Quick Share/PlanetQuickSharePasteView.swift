@@ -11,7 +11,7 @@ import UniformTypeIdentifiers
 struct PlanetQuickSharePasteView: View {
     var body: some View {
         VStack {
-            Text("")
+            EmptyView()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .focusable()
