@@ -556,6 +556,8 @@ extension PlanetPublishedServiceStore {
             let updatedFolders = folders
             Task { @MainActor in
                 self.updatePublishedFolders(updatedFolders)
+                self.selectedFolderID = folder.id
+                PlanetAppDelegate.shared.openPublishedFoldersDashboardWindow()
             }
         } catch {
             debugPrint("failed to add folder: \(error)")
