@@ -160,8 +160,9 @@ struct PlanetQuickShareView: View {
                 ZStack {
                     let dropDelegate = PlanetQuickShareDropDelegate()
                     attachmentSectionPlaceholder()
+                        .focusable()
                         .onDrop(of: [.image], delegate: dropDelegate)
-                    PlanetQuickSharePasteView()
+                        .onPasteCommand(of: [.fileURL, .image], perform: PlanetQuickShareViewModel.shared.processPasteItems(_:))
                 }
             }
             else {
