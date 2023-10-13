@@ -444,6 +444,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content),
             let soup = try? SwiftSoup.parseBodyFragment(contentHTML), let summary = try? soup.text()
         {
+            article.contentRendered = contentHTML
             if summary.count > 280 {
                 article.summary = summary.prefix(280) + "..."
             }

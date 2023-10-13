@@ -10,6 +10,8 @@ class MyArticleModel: ArticleModel, Codable {
     @Published var heroImage: String? = nil
     @Published var externalLink: String? = nil
 
+    /// Rendered HTML from content
+    var contentRendered: String? = nil
     @Published var summary: String? = nil
 
     @Published var isIncludedInNavigation: Bool? = false
@@ -75,6 +77,7 @@ class MyArticleModel: ArticleModel, Codable {
             externalLink: externalLink ?? "",
             title: title,
             content: content,
+            contentRendered: contentRendered,
             created: created,
             hasVideo: hasVideo,
             videoFilename: videoFilename,
@@ -84,6 +87,8 @@ class MyArticleModel: ArticleModel, Codable {
             audioByteLength: getAttachmentByteLength(name: audioFilename),
             attachments: attachments,
             heroImage: socialImageURL?.absoluteString,
+            heroImageURL: socialImageURL?.absoluteString,
+            heroImageFilename: heroImage,
             cids: cids,
             tags: tags,
             originalSiteName: originalSiteName,
@@ -140,7 +145,7 @@ class MyArticleModel: ArticleModel, Codable {
     enum CodingKeys: String, CodingKey {
         case id, articleType,
             link, slug, heroImage, externalLink,
-            title, content, summary,
+            title, content, contentRendered, summary,
             created, starred, starType,
             videoFilename, audioFilename,
             attachments, cids, tags,
@@ -164,6 +169,7 @@ class MyArticleModel: ArticleModel, Codable {
         externalLink = try container.decodeIfPresent(String.self, forKey: .externalLink)
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
+        contentRendered = try container.decodeIfPresent(String.self, forKey: .contentRendered)
         summary = try container.decodeIfPresent(String.self, forKey: .summary)
         isIncludedInNavigation =
             try container.decodeIfPresent(Bool.self, forKey: .isIncludedInNavigation) ?? false
@@ -204,6 +210,7 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(externalLink, forKey: .externalLink)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
+        try container.encodeIfPresent(contentRendered, forKey: .contentRendered)
         try container.encode(summary, forKey: .summary)
         try container.encodeIfPresent(isIncludedInNavigation, forKey: .isIncludedInNavigation)
         try container.encodeIfPresent(navigationWeight, forKey: .navigationWeight)
@@ -229,6 +236,7 @@ class MyArticleModel: ArticleModel, Codable {
         externalLink: String? = nil,
         title: String,
         content: String,
+        contentRendered: String? = nil,
         summary: String?,
         created: Date,
         starred: Date?,
@@ -243,6 +251,7 @@ class MyArticleModel: ArticleModel, Codable {
         self.slug = slug
         self.heroImage = heroImage
         self.externalLink = externalLink
+        self.contentRendered = contentRendered
         self.summary = summary
         self.isIncludedInNavigation = isIncludedInNavigation
         self.navigationWeight = navigationWeight
@@ -344,6 +353,7 @@ extension MyArticleModel {
             externalLink: nil,
             title: "Example Article",
             content: "This is an example article.",
+            contentRendered: "This is an example article.",
             summary: "This is an example article.",
             created: Date(),
             starred: nil,

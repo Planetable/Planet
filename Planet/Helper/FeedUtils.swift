@@ -236,6 +236,7 @@ struct FeedUtils {
             link: sanitizedLink,
             title: title,
             content: content,
+            contentRendered: content, // TODO: Should prefer HTML from the feed
             created: created,
             hasVideo: false,
             videoFilename: nil,
@@ -244,7 +245,9 @@ struct FeedUtils {
             audioDuration: nil,
             audioByteLength: nil,
             attachments: nil,
-            heroImage: nil
+            heroImage: nil,
+            heroImageURL: nil,  // TODO: Extract og:image and put it here
+            heroImageFilename: nil
         )
     }
 
@@ -282,6 +285,7 @@ struct FeedUtils {
                     link: sanitizedLink,
                     title: title,
                     content: content,
+                    contentRendered: content,
                     created: created,
                     hasVideo: false,
                     videoFilename: nil,
@@ -290,7 +294,9 @@ struct FeedUtils {
                     audioDuration: nil,
                     audioByteLength: nil,
                     attachments: nil,
-                    heroImage: nil
+                    heroImage: nil,
+                    heroImageURL: nil,
+                    heroImageFilename: nil
                 )
             }
             return (name, about, nil, articles)
@@ -316,6 +322,7 @@ struct FeedUtils {
                     link: sanitizedLink,
                     title: title,
                     content: description,
+                    contentRendered: description,
                     created: created,
                     hasVideo: false,
                     videoFilename: nil,
@@ -324,7 +331,9 @@ struct FeedUtils {
                     audioDuration: nil,
                     audioByteLength: nil,
                     attachments: nil,
-                    heroImage: nil
+                    heroImage: nil,
+                    heroImageURL: nil,
+                    heroImageFilename: nil
                 )
             }
             return (name, about, nil, articles)

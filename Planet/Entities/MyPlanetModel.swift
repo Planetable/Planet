@@ -1374,6 +1374,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 )
                 let pageContext: [String: Any] = [
                     "planet": publicPlanet,
+                    "planet_ipns": self.ipns,
                     "my_planet": self,
                     "site_navigation": siteNavigation,
                     "has_avatar": hasAvatar,
@@ -1398,6 +1399,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         else {
             let pageContext: [String: Any] = [
                 "planet": publicPlanet,
+                "planet_ipns": self.ipns,
                 "my_planet": self,
                 "site_navigation": siteNavigation,
                 "has_avatar": self.hasAvatar(),
@@ -1434,6 +1436,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             for (key, value) in tagArticles {
                 let tagContext: [String: Any] = [
                     "planet": publicPlanet,
+                    "planet_ipns": self.ipns,
                     "my_planet": self,
                     "site_navigation": siteNavigation,
                     "has_avatar": self.hasAvatar(),
@@ -1453,6 +1456,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             if template.hasTagsHTML {
                 let tagsContext: [String: Any] = [
                     "planet": publicPlanet,
+                    "planet_ipns": self.ipns,
                     "my_planet": self,
                     "site_navigation": siteNavigation,
                     "has_avatar": self.hasAvatar(),
@@ -1487,6 +1491,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
                 let archiveContext: [String: Any] = [
                     "planet": publicPlanet,
+                    "planet_ipns": self.ipns,
                     "my_planet": self,
                     "site_navigation": siteNavigation,
                     "has_avatar": self.hasAvatar(),
@@ -2026,6 +2031,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     externalLink: $0.externalLink,
                     title: $0.title,
                     content: $0.content,
+                    contentRendered: $0.contentRendered,
                     summary: $0.summary,
                     starred: $0.starred,
                     starType: $0.starType,

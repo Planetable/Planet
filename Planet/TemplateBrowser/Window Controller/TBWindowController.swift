@@ -206,9 +206,9 @@ extension TBWindowController: NSToolbarDelegate {
                     let item = NSToolbarItem(itemIdentifier: itemIdentifier)
                     item.target = self
                     item.action = #selector(self.toolbarItemAction(_:))
-                    item.label = "Open in VSCode"
-                    item.paletteLabel = "Open in VSCode"
-                    item.toolTip = "Open in VSCode"
+                    item.label = "Edit Template in VSCode"
+                    item.paletteLabel = "Edit Template in VSCode"
+                    item.toolTip = "Edit Template in VSCode"
                     item.isBordered = true
                     item.image = NSImage(systemSymbolName: "chevron.left.forwardslash.chevron.right", accessibilityDescription: "Open in VSCode")
                     return item

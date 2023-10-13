@@ -16,6 +16,7 @@ struct BackupArticleModel: Codable {
     let externalLink: String?
     let title: String
     let content: String
+    let contentRendered: String?
     let summary: String?
     let starred: Date?
     let starType: ArticleStarType

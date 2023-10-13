@@ -73,6 +73,12 @@ extension MyArticleModel {
         Task(priority: .background) {
             await self.saveMarkdown()
         }
+        if self.content.count > 0 {
+            if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: self.content) {
+                self.contentRendered = contentHTML
+                try? self.save()
+            }
+        }
         // Save cover image
         //TODO: Clean up the logic here
         // MARK: Cover Image

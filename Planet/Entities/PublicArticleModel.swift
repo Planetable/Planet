@@ -15,6 +15,7 @@ struct PublicArticleModel: Codable {
     var externalLink: String? = ""
     let title: String
     let content: String
+    let contentRendered: String?
     let created: Date
     let hasVideo: Bool?
     let videoFilename: String?
@@ -24,6 +25,8 @@ struct PublicArticleModel: Codable {
     let audioByteLength: Int?
     let attachments: [String]?
     let heroImage: String?
+    let heroImageURL: String?
+    let heroImageFilename: String?
     var cids: [String: String]? = [:]
     var tags: [String: String]? = [:]
     var originalSiteName: String? = nil

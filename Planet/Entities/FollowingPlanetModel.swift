@@ -564,6 +564,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 link: "/",
                 title: (try? htmlSoup.title()) ?? "Homepage",
                 content: "",
+                contentRendered: nil,
                 created: now,
                 hasVideo: false,
                 videoFilename: nil,
@@ -572,7 +573,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioDuration: nil,
                 audioByteLength: nil,
                 attachments: nil,
-                heroImage: nil
+                heroImage: nil,
+                heroImageURL: nil,
+                heroImageFilename: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)
@@ -758,6 +761,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 link: "/",
                 title: (try? htmlSoup.title()) ?? "Homepage",
                 content: "",
+                contentRendered: nil,
                 created: now,
                 hasVideo: false,
                 videoFilename: nil,
@@ -766,7 +770,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioDuration: nil,
                 audioByteLength: nil,
                 attachments: nil,
-                heroImage: nil
+                heroImage: nil,
+                heroImageURL: nil,
+                heroImageFilename: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)
@@ -996,6 +1002,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 link: "/",
                 title: (try? htmlSoup.title()) ?? "Homepage",
                 content: "",
+                contentRendered: nil,
                 created: now,
                 hasVideo: false,
                 videoFilename: nil,
@@ -1004,7 +1011,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioDuration: nil,
                 audioByteLength: nil,
                 attachments: nil,
-                heroImage: nil
+                heroImage: nil,
+                heroImageURL: nil,
+                heroImageFilename: nil
             )
             planet.articles = [
                 FollowingArticleModel.from(publicArticle: homepage, planet: planet)

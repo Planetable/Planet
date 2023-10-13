@@ -9,7 +9,7 @@ import SwiftUI
 
 struct TemplateBrowserSidebar: View {
     @StateObject private var store: TemplateStore
-    
+
     init() {
         _store = StateObject(wrappedValue: TemplateStore.shared)
     }
@@ -30,7 +30,8 @@ struct TemplateBrowserSidebar: View {
                         Button {
                             openVSCode(template)
                         } label: {
-                            Text("Open in VSCode")
+                            Image(systemName: "curlybraces")
+                            Text("Edit Template with VSCode")
                         }
                     }
 

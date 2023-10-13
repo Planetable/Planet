@@ -404,12 +404,7 @@ class Template: Codable, Identifiable {
 
         let articlePath = articleFolderPath.appendingPathComponent(index == 1 ? "index.html" : "blog.html")
         let id = UUID()
-        let article = PublicArticleModel(
-            id: id,
-            link: id.uuidString,
-            title: "Template Preview \(name)",
-            content:
-                """
+        let content = """
                 Demo Article Content
 
                 ### List
@@ -440,7 +435,14 @@ class Template: Codable, Identifiable {
                 | --- | --- |
                 | Row 1 Col 1 | Row 1 Col 2 |
                 | Row 2 Col 1 | Row 2 Col 2 |
-                """,
+                """
+        let contentRendered = CMarkRenderer.renderMarkdownHTML(markdown: content)
+        let article = PublicArticleModel(
+            id: id,
+            link: id.uuidString,
+            title: "Template Preview \(name)",
+            content: content,
+            contentRendered: contentRendered,
             created: Date(),
             hasVideo: false,
             videoFilename: nil,
@@ -449,7 +451,9 @@ class Template: Codable, Identifiable {
             audioDuration: nil,
             audioByteLength: nil,
             attachments: nil,
-            heroImage: nil
+            heroImage: nil,
+            heroImageURL: nil,
+            heroImageFilename: nil
         )
 
         // render markdown
@@ -490,7 +494,8 @@ class Template: Codable, Identifiable {
             "page_title": index == 1 ? self.name : article.title,
             "page_description": "Template preview for \(self.name)",
             "page_description_html": "Template preview for <strong>\(self.name)</strong>",
-            "planet": publicPlanet
+            "planet": publicPlanet,
+            "planet_ipns": "k51qzi"
         ]
         let targetPath = index == 1 ? indexPath : blogPath
         let loader = FileSystemLoader(paths: [Path(targetPath.deletingLastPathComponent().path)])
