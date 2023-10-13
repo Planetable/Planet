@@ -293,6 +293,22 @@ struct MyPlanetSidebarItem: View {
         }
     }
 
+    private func templateHasGitRepo() -> Bool {
+        if let template = planet.template, template.hasGitRepo {
+            return true
+        }
+        return false
+    }
+
+    private func openVSCode(_ template: Template) {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.microsoft.VSCode")
+        else { return }
+
+        let url = URL(fileURLWithPath: template.path.path)
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
+    }
+
     @ViewBuilder
     private func developMenu() -> some View {
         Group {
@@ -321,6 +337,14 @@ struct MyPlanetSidebarItem: View {
                 Text("Rebuild")
             }
             .keyboardShortcut("r", modifiers: [.command])
+
+            if templateHasGitRepo(), let template = planet.template {
+                Button {
+                    openVSCode(template)
+                } label: {
+                    Text("Edit Template")
+                }
+            }
 
             if let enabled = planet.pinnableEnabled, enabled {
                 Button {
