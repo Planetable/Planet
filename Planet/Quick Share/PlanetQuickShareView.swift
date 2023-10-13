@@ -163,6 +163,9 @@ struct PlanetQuickShareView: View {
                         .focusable()
                         .onDrop(of: [.image], delegate: dropDelegate)
                         .onPasteCommand(of: [.fileURL, .image], perform: PlanetQuickShareViewModel.shared.processPasteItems(_:))
+                        .contextMenu {
+                            PasteButton(supportedContentTypes: [.fileURL, .image], payloadAction: PlanetQuickShareViewModel.shared.processPasteItems(_:))
+                        }
                 }
             }
             else {
