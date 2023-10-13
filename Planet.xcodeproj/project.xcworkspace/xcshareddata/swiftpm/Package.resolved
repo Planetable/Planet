@@ -78,7 +78,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "ff0673b94e26bd7a7533a360ba9e823fa37d6845"
+        "revision" : "bcc34f264c1a7968feb94ae7cb2d82d1e0c80545"
       }
     },
     {
@@ -239,8 +239,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dkk/WrappingHStack",
       "state" : {
-        "revision" : "f31b8fdc57759c5aa5fc98c70746db5556e73300",
-        "version" : "2.2.10"
+        "revision" : "425d9488ba55f58f0b34498c64c054c77fc2a44b",
+        "version" : "2.2.11"
       }
     },
     {
