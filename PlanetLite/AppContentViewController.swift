@@ -34,4 +34,8 @@ class AppContentViewController: NSViewController {
         self.view.layer?.backgroundColor = .clear
     }
 
+    override func viewWillLayout() {
+        super.viewWillLayout()
+        NotificationCenter.default.post(name: AppContentGridView.layoutNotification, object: nil)
+    }
 }

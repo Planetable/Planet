@@ -69,6 +69,7 @@ struct AppContentView: View {
                                 planet: planet,
                                 itemSize: NSSize(width: Self.itemWidth, height: Self.itemWidth)
                             )
+                            .edgesIgnoringSafeArea(.top)
                         }
                     default:
                         Text("No Content")

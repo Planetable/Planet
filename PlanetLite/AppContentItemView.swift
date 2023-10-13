@@ -168,7 +168,7 @@ struct AppContentItemView: View {
             }
         }
         .contentShape(Rectangle())
-        .frame(width: size.width, height: size.height)
+//        .frame(width: size.width, height: size.height)
         .cornerRadius(6)
     }
 
