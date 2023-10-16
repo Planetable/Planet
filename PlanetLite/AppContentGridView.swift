@@ -7,6 +7,9 @@ struct AppContentGridView: NSViewRepresentable {
     @ObservedObject var planet: MyPlanetModel
     
     static let layoutNotification: Notification.Name = Notification.Name("AppContentGridViewWillLayoutNotification")
+    static let gridPadding: CGFloat = 16
+    static let gridItemMinWidth: CGFloat = 128
+    static let gridItemMaxWidth: CGFloat = 256
 
     // MARK: - Coordinator for Delegate & Data Source & Flow Layout
 
@@ -36,7 +39,7 @@ struct AppContentGridView: NSViewRepresentable {
         
         func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> NSSize {
             let currentViewSize = collectionView.bounds.size
-            let maxItemWidth: CGFloat = 256
+            let maxItemWidth: CGFloat = AppContentGridView.gridItemMaxWidth
             let itemRatio: CGFloat = 4.0 / 3.0
             // full-screen width of a popular 13-inch Mac's built-in screen
             if currentViewSize.width > 1440 {
@@ -54,18 +57,18 @@ struct AppContentGridView: NSViewRepresentable {
         }
         
         func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-            return 16
+            return AppContentGridView.gridPadding
         }
         
         func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-            return 16
+            return AppContentGridView.gridPadding
         }
         
         private func calculateItemWidth(containerWidth: CGFloat, numberOfItems: Int) -> CGFloat {
-            let minimumItemWidth: CGFloat = 128
-            let maximumItemWidth: CGFloat = 256
-            let minimumContainerWidth: CGFloat = PlanetUI.CROPTOP_WINDOW_CONTENT_WIDTH_MIN - 32
-            let padding: CGFloat = 16
+            let minimumItemWidth: CGFloat = AppContentGridView.gridItemMinWidth
+            let maximumItemWidth: CGFloat = AppContentGridView.gridItemMaxWidth
+            let minimumContainerWidth: CGFloat = PlanetUI.CROPTOP_WINDOW_CONTENT_WIDTH_MIN - AppContentGridView.gridPadding * 2
+            let padding: CGFloat = AppContentGridView.gridPadding
             let availableWidth = containerWidth - CGFloat(numberOfItems + 1) * padding
             let itemWidth = max(minimumItemWidth, min(maximumItemWidth, availableWidth / CGFloat(numberOfItems)))
             if containerWidth < minimumContainerWidth {
@@ -86,7 +89,7 @@ struct AppContentGridView: NSViewRepresentable {
     func makeNSView(context: Context) -> some NSScrollView {
         let layout = NSCollectionViewFlowLayout()
         layout.scrollDirection = .vertical
-        layout.sectionInset = .init(top: 16, left: 16, bottom: 16, right: 16)
+        layout.sectionInset = .init(top: AppContentGridView.gridPadding, left: AppContentGridView.gridPadding, bottom: AppContentGridView.gridPadding, right: AppContentGridView.gridPadding)
         let collectionView = NSCollectionView()
         collectionView.delegate = context.coordinator
         collectionView.dataSource = context.coordinator
