@@ -11,13 +11,13 @@ class AppContentGridCell: NSCollectionViewItem {
         self.view.layer?.backgroundColor = .clear
     }
     
-    func configureCell(_ article: MyArticleModel, size: NSSize) {
+    func configureCell(_ article: MyArticleModel) {
         for v in self.view.subviews {
-            v.removeFromSuperview()
+            if v.isKind(of: NSHostingView<AppContentItemView>.self) {
+                v.removeFromSuperview()
+            }
         }
-        let contentView = NSHostingView(rootView:
-            AppContentItemView(article: article, size: size).environmentObject(PlanetStore.shared)
-        )
+        let contentView = NSHostingView(rootView: AppContentItemView(article: article).environmentObject(PlanetStore.shared))
         contentView.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(contentView)
         contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true

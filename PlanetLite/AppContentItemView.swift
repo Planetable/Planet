@@ -8,11 +8,10 @@ import ASMediaView
 
 
 struct AppContentItemView: View {
-    @EnvironmentObject private var planetStore: PlanetStore
-
+    @ObservedObject private var planetStore: PlanetStore = PlanetStore.shared
+    
     var article: MyArticleModel
-    var size: NSSize
-
+    
     @State private var isShowingDeleteConfirmation = false
     @State private var isSharingLink: Bool = false
     @State private var isGIF: Bool = false
@@ -20,7 +19,7 @@ struct AppContentItemView: View {
     @State private var thumbnail: NSImage?
     @State private var thumbnailCachedPath: URL?
     @State private var attachmentURLs: [URL]?
-
+    
     var body: some View {
         itemPreviewImageView(forArticle: self.article)
             .onTapGesture {
@@ -38,7 +37,7 @@ struct AppContentItemView: View {
                 AppContentItemMenuView(isShowingDeleteConfirmation: $isShowingDeleteConfirmation, isSharingLink: $isSharingLink, sharedLink: $sharedLink, article: article)
             }
             .confirmationDialog(
-                Text("Are you sure you want to delete this post?\n\n\(article.title)?\n\nThis action cannot be undone."), 
+                Text("Are you sure you want to delete this post?\n\n\(article.title)?\n\nThis action cannot be undone."),
                 isPresented: $isShowingDeleteConfirmation
             ) {
                 Button(role: .destructive) {
@@ -73,7 +72,7 @@ struct AppContentItemView: View {
                 attachmentURLs = getAttachments(fromArticle: article)
             }
     }
-
+    
     private func getAttachments(fromArticle article: MyArticleModel) -> [URL] {
         var urls: [URL] = []
         if let attachmentNames: [String] = article.attachments {
@@ -93,33 +92,41 @@ struct AppContentItemView: View {
             ASMediaManager.shared.activatePhotoView(withPhotos: urls, title: article.title, andID: article.id)
         }
     }
-
+    
     @ViewBuilder
     private func itemPreviewImageView(forArticle article: MyArticleModel) -> some View {
         ZStack {
             Rectangle()
                 .fill(.secondary.opacity(0.15))
             if let thumbnail = thumbnail {
-                Image(nsImage: thumbnail)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
+                GeometryReader { g in
+                    Image(nsImage: thumbnail)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: g.size.width, height: g.size.height)
+                        .clipShape(Rectangle())
+                }
             } else {
                 if let heroImageName = article.getHeroImage() {
                     let cachedHeroImageName = article.id.uuidString + "-" + heroImageName
                     let cachedPath = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(cachedHeroImageName)!
                     if let cachedHeroImage = NSImage(contentsOf: cachedPath) {
-                        Image(nsImage: cachedHeroImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .task(priority: .background) {
-                                let heroImagePath = article.publicBasePath.appendingPathComponent(heroImageName)
-                                guard let heroImage = NSImage(contentsOf: heroImagePath) else { return }
-                                if ASMediaManager.shared.imageIsGIF(image: heroImage) {
-                                    await MainActor.run {
-                                        self.isGIF = true
+                        GeometryReader { g in
+                            Image(nsImage: cachedHeroImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: g.size.width, height: g.size.height)
+                                .clipShape(Rectangle())
+                                .task(priority: .background) {
+                                    let heroImagePath = article.publicBasePath.appendingPathComponent(heroImageName)
+                                    guard let heroImage = NSImage(contentsOf: heroImagePath) else { return }
+                                    if ASMediaManager.shared.imageIsGIF(image: heroImage) {
+                                        await MainActor.run {
+                                            self.isGIF = true
+                                        }
                                     }
                                 }
-                            }
+                        }
                     } else {
                         ProgressView()
                             .progressViewStyle(.circular)
@@ -132,7 +139,7 @@ struct AppContentItemView: View {
                                     }
                                     return
                                 }
-                                if let image = heroImage.resizeSquare(maxLength: Int(size.width * 2)) {
+                                if let image = heroImage.resizeSquare(maxLength: 512) {
                                     Task(priority: .background) {
                                         do {
                                             try image.PNGData?.write(to: cachedPath)
@@ -168,8 +175,7 @@ struct AppContentItemView: View {
             }
         }
         .contentShape(Rectangle())
-//        .frame(width: size.width, height: size.height)
         .cornerRadius(6)
     }
-
+    
 }

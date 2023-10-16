@@ -26,8 +26,6 @@ struct CapsuleBar: ViewModifier {
 struct AppContentView: View {
     @StateObject private var planetStore: PlanetStore
 
-    static let itemWidth: CGFloat = 128
-
     let dropDelegate: AppContentDropDelegate
 
     let timer = Timer.publish(every: 300, on: .current, in: .common).autoconnect()
@@ -63,13 +61,9 @@ struct AppContentView: View {
                             // TODO: Add an illustration here
                             Text("Drag and drop a picture here to start.")
                                 .foregroundColor(.secondary)
-                        }
-                        else {
-                            AppContentGridView(
-                                planet: planet,
-                                itemSize: NSSize(width: Self.itemWidth, height: Self.itemWidth)
-                            )
-                            .edgesIgnoringSafeArea(.top)
+                        } else {
+                            AppContentGridView(planet: planet)
+                                .edgesIgnoringSafeArea(.top)
                         }
                     default:
                         Text("No Content")
