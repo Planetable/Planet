@@ -15,6 +15,7 @@ actor PlanetAPIHelper {
 
     private var isRelaunchingServer: Bool = false
     private var server: HttpServer
+    private var bonjourService: PlanetAPIService? = nil
 
     init() {
         server = HttpServer()
@@ -110,6 +111,10 @@ actor PlanetAPIHelper {
         if let portString = UserDefaults.standard.string(forKey: .settingsAPIPort), let port = Int(portString) {
             try server.start(in_port_t(port), forceIPv4: false, priority: .utility)
             debugPrint("Planet api server started at port: \(portString)")
+            
+            if self.bonjourService == nil {
+                self.bonjourService = PlanetAPIService(port)
+            }
         } else {
             throw PlanetError.PublicAPIError
         }

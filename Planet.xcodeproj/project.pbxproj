@@ -305,6 +305,7 @@
 		6A18F2062A0F0FA700FC4050 /* RebuildProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A18F2052A0F0FA700FC4050 /* RebuildProgressView.swift */; };
 		6A1DA07D28B4278300C6B5A9 /* DecentralizedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1DA07C28B4278300C6B5A9 /* DecentralizedApp.swift */; };
 		6A1DF9CF28E8E4B6000499E3 /* RSS.xml in Resources */ = {isa = PBXBuildFile; fileRef = 6A1DF9CE28E8E4B6000499E3 /* RSS.xml */; };
+		6A1F97A62ADDDE0100C75625 /* PlanetAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1F97A52ADDDE0100C75625 /* PlanetAPIService.swift */; };
 		6A1FD5032A75A64500391972 /* Avatars.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6A1FD5022A75A64500391972 /* Avatars.xcassets */; };
 		6A1FD5062A75A6A000391972 /* NSTG.json in Resources */ = {isa = PBXBuildFile; fileRef = 6A1FD5052A75A6A000391972 /* NSTG.json */; };
 		6A28FDA82838598A00036BA6 /* NoSelection.html in Resources */ = {isa = PBXBuildFile; fileRef = 6A28FDA72838598A00036BA6 /* NoSelection.html */; };
@@ -620,6 +621,7 @@
 		6A18F2052A0F0FA700FC4050 /* RebuildProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RebuildProgressView.swift; sourceTree = "<group>"; };
 		6A1DA07C28B4278300C6B5A9 /* DecentralizedApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecentralizedApp.swift; sourceTree = "<group>"; };
 		6A1DF9CE28E8E4B6000499E3 /* RSS.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = RSS.xml; sourceTree = "<group>"; };
+		6A1F97A52ADDDE0100C75625 /* PlanetAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIService.swift; sourceTree = "<group>"; };
 		6A1FD5022A75A64500391972 /* Avatars.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Avatars.xcassets; sourceTree = "<group>"; };
 		6A1FD5052A75A6A000391972 /* NSTG.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = NSTG.json; sourceTree = "<group>"; };
 		6A28FDA72838598A00036BA6 /* NoSelection.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = NoSelection.html; sourceTree = "<group>"; };
@@ -984,6 +986,7 @@
 		2AC4994727BB6E7500F1C2D1 /* Planet */ = {
 			isa = PBXGroup;
 			children = (
+				6A1F97A42ADDDDE500C75625 /* API */,
 				6A1FD5042A75A67C00391972 /* Art */,
 				2AC4996927BB987B00F1C2D1 /* Info.plist */,
 				E8B4FE442A8D146100C01E94 /* InfoPlist.strings */,
@@ -1159,6 +1162,14 @@
 				6A1DA07C28B4278300C6B5A9 /* DecentralizedApp.swift */,
 			);
 			path = dApps;
+			sourceTree = "<group>";
+		};
+		6A1F97A42ADDDDE500C75625 /* API */ = {
+			isa = PBXGroup;
+			children = (
+				6A1F97A52ADDDE0100C75625 /* PlanetAPIService.swift */,
+			);
+			path = API;
 			sourceTree = "<group>";
 		};
 		6A1FD0B628CF9ACB00750861 /* My */ = {
@@ -1861,6 +1872,7 @@
 				72114A84BE7EC3DA2AAF14F5 /* Planet.swift in Sources */,
 				6A52FAEC2A889577000E85F0 /* BackupArticleModel.swift in Sources */,
 				7211466B9B1D3BAF1FC23CA1 /* PlanetArticle.swift in Sources */,
+				6A1F97A62ADDDE0100C75625 /* PlanetAPIService.swift in Sources */,
 				72114A48526B9490A72FD92A /* MyArticleModel.swift in Sources */,
 				2AA7974129496F730031E873 /* PFDashboardSidebarView.swift in Sources */,
 				2AA7974529496F730031E873 /* PFDashboardViewController.swift in Sources */,
