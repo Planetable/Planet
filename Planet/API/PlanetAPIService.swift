@@ -15,15 +15,35 @@ class PlanetAPIService: NSObject, NetServiceDelegate {
         super.init()
         setupService()
     }
-    
+
     init(_ port: Int) {
         super.init()
         setupService(port)
     }
 
+    private func getHostname() -> String? {
+        var name = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+        if gethostname(&name, name.count) == 0 {
+            let hostname = String(cString: name)
+            return hostname
+        }
+        else {
+            return nil
+        }
+    }
+
     private func setupService(_ port: Int = 9191) {
         // Initialize NetService object with domain, service type, name, and port.
-        netService = NetService(domain: "local.", type: "_http._tcp.", name: "Planet API Server", port: Int32(port))
+        var serviceName = "Planet API Server"
+        if let hostname = getHostname() {
+            serviceName = serviceName + " on \(hostname)"
+        }
+        netService = NetService(
+            domain: "local.",
+            type: "_http._tcp.",
+            name: serviceName,
+            port: Int32(port)
+        )
 
         // Set the delegate for the NetService object to self.
         netService.delegate = self
@@ -39,7 +59,7 @@ class PlanetAPIService: NSObject, NetServiceDelegate {
         debugPrint("Successfully published Bonjour service: \(sender)")
     }
 
-    func netService(_ sender: NetService, didNotPublish errorDict: [String : NSNumber]) {
+    func netService(_ sender: NetService, didNotPublish errorDict: [String: NSNumber]) {
         debugPrint("Failed to publish Bonjour service: \(errorDict)")
     }
 }
