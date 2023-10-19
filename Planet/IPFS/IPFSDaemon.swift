@@ -61,7 +61,7 @@ actor IPFSDaemon {
             fatalError("Unable to find open gateway port for IPFS")
         }
 
-        // add peering
+        // IPFS peering
         // peers from https://docs.ipfs.io/how-to/peering-with-content-providers/#content-provider-list
         // adding Cloudflare and ProtocolLabs
         // last updated: 2023-OCT-03
@@ -85,6 +85,21 @@ actor IPFSDaemon {
             ["ID": "QmUd6zHcbkbcs7SMxwLs48qZVX3vpcM8errYS7xEczwRMA", "Addrs": ["/dns/cluster2.fsn.dwebops.pub"]],
             ["ID": "QmbVWZQhCGrS7DhgLqWbgvdmKN7JueKCREVanfnVpgyq8x", "Addrs": ["/dns/cluster3.fsn.dwebops.pub"]],
             ["ID": "QmdnXwLrC8p1ueiq2Qya8joNvk3TVVDAut7PrikmZwubtR", "Addrs": ["/dns/cluster4.fsn.dwebops.pub"]],
+            ["ID": "12D3KooWLBMmT1dft1zcJvXNYkAfoUqj2RtRm7f9XkF17YmZsu4o",
+             "Addrs": [
+               "/ip4/104.131.8.159/tcp/4001",
+               "/ip6/2604:a880:800:10::bc4:e001/tcp/4001"
+            ]],
+            ["ID": "12D3KooWMHpq3mdygcbZWbjkuDdCsX5rjZHX31uRbCp9vAZXBxcD",
+             "Addrs": [
+               "/ip4/104.131.8.143/tcp/4001",
+               "/ip6/2604:a880:800:10::ac1:2001/tcp/4001"
+            ]],
+            ["ID": "12D3KooWQ1b2WBM1NM1a5jWS5Kny3y93zyK6iPBuVAA6uk95zdyJ",
+             "Addrs": [
+               "/ip4/45.55.43.156/tcp/4001",
+               "/ip6/2604:a880:800:10::c59:6001/tcp/4001"
+            ]]
         ])
         guard let result = try? IPFSCommand.setPeers(peersJSON: String(data: peers.rawData(), encoding: .utf8)!).run(),
               result.ret == 0
