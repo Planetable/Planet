@@ -6,7 +6,8 @@
 {
     "ID": "12D3KooWLBMmT1dft1zcJvXNYkAfoUqj2RtRm7f9XkF17YmZsu4o",
     "Addrs": [
-        "/ip4/167.71.172.216/tcp/4001"
+        "/ip4/167.71.172.216/tcp/4001",
+        "/ip6/2604:a880:800:10::826:1/tcp/4001"
     ]
 }
 ```
