@@ -313,6 +313,7 @@
 		6A2B9BE627ED24A00005467C /* FollowingArticleItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2B9BE527ED24A00005467C /* FollowingArticleItemView.swift */; };
 		6A2C0BBC2A729DC2009E53DE /* AvatarPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2C0BBB2A729DC2009E53DE /* AvatarPickerView.swift */; };
 		6A2D6B8D285141A60078F531 /* Saver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2D6B8C285141A60078F531 /* Saver.swift */; };
+		6A2DEF2E2AE10BB3004A41D9 /* PlanetAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1F97A52ADDDE0100C75625 /* PlanetAPIService.swift */; };
 		6A2F5F1128DB74C500034D55 /* Filebase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1028DB74C500034D55 /* Filebase.swift */; };
 		6A2F5F1328DB75F700034D55 /* Plausible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1228DB75F700034D55 /* Plausible.swift */; };
 		6A2F5F1528DB767A00034D55 /* dWebServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1428DB767A00034D55 /* dWebServices.swift */; };
@@ -1638,6 +1639,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6A2DEF2E2AE10BB3004A41D9 /* PlanetAPIService.swift in Sources */,
 				2A95E6472A19A398001288B8 /* PFDashboardSidebarViewController.swift in Sources */,
 				2A95E6592A19A3A2001288B8 /* WalletTransactionProgressView.swift in Sources */,
 				2A95E6922A19A3D0001288B8 /* PlanetKeyManager+Extension.swift in Sources */,
