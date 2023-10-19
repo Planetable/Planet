@@ -42,16 +42,18 @@ struct AppContentView: View {
 
     var body: some View {
         ZStack {
-            VStack {
+            VStack(spacing: 20) {
                 if planetStore.myPlanets.count == 0 {
                     // Default empty view of the Lite app
-                    Text("Hello World :)")
-                        .foregroundColor(.secondary)
                     Button {
                         planetStore.isCreatingPlanet = true
                     } label: {
                         Text("Create First Site")
                     }
+                    .keyboardShortcut(.defaultAction)
+                        .buttonStyle(.borderedProminent)
+                        .buttonBorderShape(.roundedRectangle)
+                        .controlSize(.large)
                     .disabled(planetStore.isCreatingPlanet)
                     Text("Learn more about [Croptop](https://croptop.eth.limo)")
                         .foregroundColor(.secondary)
