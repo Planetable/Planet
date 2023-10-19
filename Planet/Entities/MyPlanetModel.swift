@@ -1607,12 +1607,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         guard let rootURL = browserURL else { return }
         let planetJSONURL = rootURL.appendingPathComponent("planet.json")
         do {
+            debugPrint("About to prewarm \(name): \(rootURL)")
+            let (rootData, _) = try await URLSession.shared.data(from: rootURL)
+            debugPrint("Prewarmed \(name): \(rootData.count) bytes")
+        }
+        catch {
+            debugPrint("Failed to prewarm \(name) \(rootURL): \(error)")
+        }
+        do {
             debugPrint("About to prewarm \(name): \(planetJSONURL)")
             let (planetJSONData, _) = try await URLSession.shared.data(from: planetJSONURL)
             debugPrint("Prewarmed \(name): \(planetJSONData.count) bytes")
         }
         catch {
-            debugPrint("Failed to prewarm \(name): \(error)")
+            debugPrint("Failed to prewarm \(name) \(planetJSONURL): \(error)")
         }
     }
 
