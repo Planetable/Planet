@@ -10,6 +10,9 @@ struct AppSidebarView: View {
     @StateObject private var ipfsState: IPFSState
     @StateObject private var planetStore: PlanetStore
 
+    let timer1m = Timer.publish(every: 60, on: .current, in: .common).autoconnect()
+    let timer3m = Timer.publish(every: 180, on: .current, in: .common).autoconnect()
+
     init() {
         _ipfsState = StateObject(wrappedValue: IPFSState.shared)
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)
@@ -108,6 +111,16 @@ struct AppSidebarView: View {
             }
         }
         .frame(minWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, maxWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MAX, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity)
+        .onReceive(timer1m) { _ in
+            Task {
+                await planetStore.checkPinnable()
+            }
+        }
+        .onReceive(timer3m) { _ in
+            Task {
+                await planetStore.pin()
+            }
+        }
     }
 }
 
