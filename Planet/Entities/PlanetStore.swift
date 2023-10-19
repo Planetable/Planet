@@ -204,8 +204,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
         }
          */
 
-        // Publish my planets every 30 minutes
-        RunLoop.main.add(Timer(timeInterval: 1800, repeats: true) { [self] timer in
+        // Publish my planets every 10 minutes
+        RunLoop.main.add(Timer(timeInterval: 600, repeats: true) { [self] timer in
             publishMyPlanets()
         }, forMode: .common)
         // Check content update every 15 minutes
