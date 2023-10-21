@@ -77,6 +77,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var metrics: Metrics?
 
     @Published var isPublishing = false
+    @Published var isRebuilding = false
+
     // populated when initializing
 
     @Published var avatar: NSImage? = nil
@@ -338,6 +340,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(lastPublished)
         hasher.combine(lastPublishedCID)
         hasher.combine(isPublishing)
+        hasher.combine(isRebuilding)
         hasher.combine(archived)
         hasher.combine(archivedAt)
         hasher.combine(plausibleEnabled)
@@ -408,6 +411,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.plausibleAPIKey == rhs.plausibleAPIKey
             && lhs.plausibleAPIServer == rhs.plausibleAPIServer
             && lhs.isPublishing == rhs.isPublishing
+            && lhs.isRebuilding == rhs.isRebuilding
             && lhs.twitterUsername == rhs.twitterUsername
             && lhs.githubUsername == rhs.githubUsername
             && lhs.telegramUsername == rhs.telegramUsername
@@ -1523,6 +1527,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func publish() async throws {
+        if isRebuilding {
+            debugPrint("Planet \(name) is being rebuilt, skipping publish")
+            return
+        }
         if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
             Task {
                 try? await PlanetAPIHelper.shared.relaunch()
@@ -2135,6 +2143,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     func rebuild() async throws {
         let started = Date()
+        await MainActor.run {
+            self.isRebuilding = true
+        }
+        defer {
+            Task { @MainActor in
+                self.isRebuilding = false
+            }
+        }
         Task { @MainActor in
             PlanetStore.shared.isRebuilding = true
             PlanetStore.shared.rebuildTasks = self.articles.count
@@ -2175,6 +2191,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     try await group.waitForAll()
                 }
             }
+        }
+        await MainActor.run {
+            self.isRebuilding = false
         }
         Task { @MainActor in
             PlanetStore.shared.isRebuilding = false
