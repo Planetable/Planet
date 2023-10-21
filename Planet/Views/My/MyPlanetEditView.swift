@@ -214,6 +214,21 @@ struct MyPlanetEditView: View {
                 .textFieldStyle(.roundedBorder)
         }
 
+        HStack {
+            HStack {
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+            Text(
+                "You can get your API endpoint after you have added this site to [Pinnable](https://pinnable.xyz)."
+            )
+            .lineLimit(2)
+            .font(.footnote)
+            .foregroundColor(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+
         if let enabled = planet.pinnableEnabled, enabled {
             HStack {
                 HStack {
