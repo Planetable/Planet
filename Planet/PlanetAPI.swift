@@ -110,8 +110,8 @@ actor PlanetAPIHelper {
         }
         if let portString = UserDefaults.standard.string(forKey: .settingsAPIPort), let port = Int(portString) {
             try server.start(in_port_t(port), forceIPv4: false, priority: .utility)
-            debugPrint("Planet api server started at port: \(portString)")
-            
+            debugPrint("Planet API server started: port=\(portString)")
+
             if self.bonjourService == nil {
                 self.bonjourService = PlanetAPIService(port)
             }
@@ -386,6 +386,7 @@ extension PlanetAPI {
             return .notFound()
         }
         let info: [String: Any] = processPlanetArticleRequest(r)
+        debugPrint("Planet API: createPlanetArticle: info: \(info)")
         let articleTitle = info["title"] as? String ?? ""
         let articleDateString = info["date"] as? String ?? Date().dateDescription()
         let articleContent = info["content"] as? String ?? ""
@@ -595,7 +596,9 @@ extension PlanetAPI {
         let multipartDatas = r.parseMultiPartFormData()
         let supportedContentTypes: [String] = AttachmentType.supportedImageContentTypes + AttachmentType.supportedAudioContentTypes + AttachmentType.supportedVideoContentTypes
         for multipartData in multipartDatas {
+            debugPrint("Planet API: processPlanetArticleRequest: multipartData: \(multipartData)")
             guard let propertyName = multipartData.name else { continue }
+            debugPrint("Planet API: processPlanetArticleRequest: propertyName: \(propertyName)")
             switch propertyName {
             case "title", "date", "content":
                 info[propertyName] = String(decoding: multipartData.body, as: UTF8.self)
