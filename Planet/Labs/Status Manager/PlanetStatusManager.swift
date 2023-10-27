@@ -12,8 +12,17 @@ class PlanetStatusManager: ObservableObject {
 
     @Published private(set) var isClear: Bool = true
     
-    func updateClearStatus(_ flag: Bool) {
-        isClear = flag
+    @MainActor
+    func updateStatus() {
+        let ongoingPlanets = PlanetStore.shared.myPlanets.filter({ $0.isPublishing || $0.isRebuilding })
+        let processesCount: Int
+        if PlanetStore.shared.app == .planet {
+            let publishingFolders = PlanetPublishedServiceStore.shared.publishingFolders
+            processesCount = ongoingPlanets.count + publishingFolders.count
+        } else {
+            processesCount = ongoingPlanets.count
+        }
+        isClear = processesCount == 0
     }
     
     // PlanetStatusManager controls current app termination status, if there're ongoing processes, notify user (with options) before termination.
