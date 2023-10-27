@@ -51,6 +51,8 @@
 		2A69F04727E1B53A00141DC0 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A69F04627E1B53A00141DC0 /* FeedKit */; };
 		2A6BCFA92AA5D65A007A4485 /* AppTitlebarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6BCFA82AA5D65A007A4485 /* AppTitlebarViewController.swift */; };
 		2A6BCFAB2AA5D6BD007A4485 /* AppTitlebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6BCFAA2AA5D6BD007A4485 /* AppTitlebarView.swift */; };
+		2A6DC6272AEB7F9D0025D6A7 /* PlanetStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6DC6262AEB7F9D0025D6A7 /* PlanetStatusManager.swift */; };
+		2A6DC6282AEB7F9D0025D6A7 /* PlanetStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6DC6262AEB7F9D0025D6A7 /* PlanetStatusManager.swift */; };
 		2A6E16D62A18678E00704A08 /* AppSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D52A18678E00704A08 /* AppSidebarView.swift */; };
 		2A6E16D82A18679A00704A08 /* AppContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D72A18679A00704A08 /* AppContentView.swift */; };
 		2A6E16DA2A186B0100704A08 /* AppWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6E16D92A186B0100704A08 /* AppWindow.swift */; };
@@ -313,7 +315,6 @@
 		6A2B9BE627ED24A00005467C /* FollowingArticleItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2B9BE527ED24A00005467C /* FollowingArticleItemView.swift */; };
 		6A2C0BBC2A729DC2009E53DE /* AvatarPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2C0BBB2A729DC2009E53DE /* AvatarPickerView.swift */; };
 		6A2D6B8D285141A60078F531 /* Saver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2D6B8C285141A60078F531 /* Saver.swift */; };
-		6A2DEF2E2AE10BB3004A41D9 /* PlanetAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1F97A52ADDDE0100C75625 /* PlanetAPIService.swift */; };
 		6A2F5F1128DB74C500034D55 /* Filebase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1028DB74C500034D55 /* Filebase.swift */; };
 		6A2F5F1328DB75F700034D55 /* Plausible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1228DB75F700034D55 /* Plausible.swift */; };
 		6A2F5F1528DB767A00034D55 /* dWebServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1428DB767A00034D55 /* dWebServices.swift */; };
@@ -515,6 +516,7 @@
 		2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorLabelView.swift; sourceTree = "<group>"; };
 		2A6BCFA82AA5D65A007A4485 /* AppTitlebarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTitlebarViewController.swift; sourceTree = "<group>"; };
 		2A6BCFAA2AA5D6BD007A4485 /* AppTitlebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTitlebarView.swift; sourceTree = "<group>"; };
+		2A6DC6262AEB7F9D0025D6A7 /* PlanetStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetStatusManager.swift; sourceTree = "<group>"; };
 		2A6E16D52A18678E00704A08 /* AppSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSidebarView.swift; sourceTree = "<group>"; };
 		2A6E16D72A18679A00704A08 /* AppContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentView.swift; sourceTree = "<group>"; };
 		2A6E16D92A186B0100704A08 /* AppWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppWindow.swift; sourceTree = "<group>"; };
@@ -902,6 +904,14 @@
 			path = "Create & Follow Planet";
 			sourceTree = "<group>";
 		};
+		2A6DC6292AEB7FA30025D6A7 /* Status Manager */ = {
+			isa = PBXGroup;
+			children = (
+				2A6DC6262AEB7F9D0025D6A7 /* PlanetStatusManager.swift */,
+			);
+			path = "Status Manager";
+			sourceTree = "<group>";
+		};
 		2A7022EE2897DF1B00022F13 /* Downloads */ = {
 			isa = PBXGroup;
 			children = (
@@ -1154,6 +1164,7 @@
 				6AB6E4F92915226400F17328 /* Wallet */,
 				2A04DADB28EAD2080040D8E0 /* Published Folders */,
 				6A1DA07B28B4274400C6B5A9 /* dApps */,
+				2A6DC6292AEB7FA30025D6A7 /* Status Manager */,
 			);
 			path = Labs;
 			sourceTree = "<group>";
@@ -1656,6 +1667,7 @@
 				2A95E6832A19A3CA001288B8 /* WriterWindow.swift in Sources */,
 				2A95E66B2A19A3AF001288B8 /* TBContainerViewController.swift in Sources */,
 				2A95E6862A19A3CA001288B8 /* WriterView.swift in Sources */,
+				2A6DC6282AEB7F9D0025D6A7 /* PlanetStatusManager.swift in Sources */,
 				2A95E6EF2A19A764001288B8 /* Planet.xcdatamodeld in Sources */,
 				2A95E65D2A19A3A2001288B8 /* EthereumTransaction.swift in Sources */,
 				2A95E6802A19A3C4001288B8 /* Saver.swift in Sources */,
@@ -1806,6 +1818,7 @@
 				6A2F5F1128DB74C500034D55 /* Filebase.swift in Sources */,
 				6ACF166529246BD800AE318B /* TipSelectView.swift in Sources */,
 				2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */,
+				2A6DC6272AEB7F9D0025D6A7 /* PlanetStatusManager.swift in Sources */,
 				2AEEBF5428C0758000A0A092 /* ArticleWebViewModel.swift in Sources */,
 				6A669052282BD6E6009E56E2 /* TemplateBrowserPreviewWebView.swift in Sources */,
 				2A79FB2E289819AD00F06DDF /* PlanetDownloadsItemView.swift in Sources */,

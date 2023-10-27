@@ -55,11 +55,7 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        Task.detached(priority: .utility) {
-            IPFSDaemon.shared.shutdownDaemon()
-            await NSApplication.shared.reply(toApplicationShouldTerminate: true)
-        }
-        return .terminateLater
+        return PlanetStatusManager.shared.reply()
     }
     
     func application(_ application: NSApplication, open urls: [URL]) {
