@@ -1548,10 +1548,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         await MainActor.run {
             self.isPublishing = true
+            PlanetStatusManager.shared.updateStatus()
         }
         defer {
             Task { @MainActor in
                 self.isPublishing = false
+                PlanetStatusManager.shared.updateStatus()
             }
         }
         // Make sure planet key is available in keystore or in keychain, abort publishing if not.
@@ -2159,11 +2161,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         defer {
             Task { @MainActor in
                 self.isRebuilding = false
+                PlanetStatusManager.shared.updateStatus()
             }
         }
         Task { @MainActor in
             PlanetStore.shared.isRebuilding = true
             PlanetStore.shared.rebuildTasks = self.articles.count
+            PlanetStatusManager.shared.updateStatus()
         }
         try self.copyTemplateAssets()
         // according to benchmarks, using parallel processing would take half the time to rebuild

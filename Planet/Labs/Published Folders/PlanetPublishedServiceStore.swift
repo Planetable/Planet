@@ -313,11 +313,14 @@ class PlanetPublishedServiceStore: ObservableObject {
     func addPublishingFolder(_ folder: PlanetPublishedFolder) {
         guard !publishingFolders.contains(folder.id) else { return }
         publishingFolders.append(folder.id)
+        PlanetStatusManager.shared.updateStatus()
     }
 
+    @MainActor
     private func removePublishingFolder(_ folder: PlanetPublishedFolder) {
         guard publishingFolders.contains(folder.id) else { return }
         guard let _ = publishingFolders.removeFirst(item: folder.id) else { return }
+        PlanetStatusManager.shared.updateStatus()
     }
 
     private func unpublishFolder(keyName: String) async throws {

@@ -115,12 +115,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        Task.detached(priority: .utility) {
-            await PlanetAPIHelper.shared.shutdown()
-            IPFSDaemon.shared.shutdownDaemon()
-            await NSApplication.shared.reply(toApplicationShouldTerminate: true)
-        }
-        return .terminateLater
+        return PlanetStatusManager.shared.reply()
     }
 }
 
