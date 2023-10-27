@@ -205,6 +205,8 @@ struct ArticleWebView: NSViewRepresentable {
                let mimeType = navigationResponse.response.mimeType
             {
                 if shouldHandleDownloadForMIMEType(mimeType) || PlanetDownloadItem.downloadableFileExtensions().contains(url.pathExtension) {
+                    debugPrint("branch 1 condition 1: shouldHandleDownloadForMIMEType: \(shouldHandleDownloadForMIMEType(mimeType))")
+                    debugPrint("branch 1 condition 2: downloadableFileExtensions: \(PlanetDownloadItem.downloadableFileExtensions().contains(url.pathExtension))")
                     debugPrint(
                         "WKNavigationResponse: .download branch 1 -> canShowMIMEType: \(navigationResponse.canShowMIMEType), url: \(String(describing: navigationResponse.response.url)), mimeType: \(String(describing: navigationResponse.response.mimeType))"
                     )

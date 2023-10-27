@@ -28,7 +28,7 @@ extension PlanetDownloadItem {
     func downloadItemName() -> String {
         return download.progress.fileURL?.lastPathComponent ?? "planet.default.download"
     }
-    
+
     static func downloadableMIMETypes() -> [String] {
         return [
             "application/atom+xml",
@@ -86,8 +86,6 @@ extension PlanetDownloadItem {
             "cda",
             "cer",
             "cfg",
-            "cfm",
-            "cgi",
             "class",
             "com",
             "cpl",
