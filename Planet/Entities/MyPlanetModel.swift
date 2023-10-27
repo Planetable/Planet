@@ -1113,8 +1113,18 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func removeAvatar() throws {
-        try FileManager.default.removeItem(at: avatarPath)
-        try FileManager.default.removeItem(at: publicAvatarPath)
+        if FileManager.default.fileExists(atPath: avatarPath.path) {
+            try FileManager.default.removeItem(at: avatarPath)
+        }
+        if FileManager.default.fileExists(atPath: publicAvatarPath.path) {
+            try FileManager.default.removeItem(at: publicAvatarPath)
+        }
+        if FileManager.default.fileExists(atPath: faviconPath.path) {
+            try FileManager.default.removeItem(at: faviconPath)
+        }
+        if FileManager.default.fileExists(atPath: publicFaviconPath.path) {
+            try FileManager.default.removeItem(at: publicFaviconPath)
+        }
         avatar = nil
     }
 
