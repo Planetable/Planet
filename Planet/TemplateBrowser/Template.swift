@@ -435,6 +435,20 @@ class Template: Codable, Identifiable {
                 | --- | --- |
                 | Row 1 Col 1 | Row 1 Col 2 |
                 | Row 2 Col 1 | Row 2 Col 2 |
+
+                ---
+
+                # Heading 1
+
+                ## Heading 2
+
+                ### Heading 3
+
+                #### Heading 4
+
+                ##### Heading 5
+
+                ###### Heading 6
                 """
         let contentRendered = CMarkRenderer.renderMarkdownHTML(markdown: content)
         let article = PublicArticleModel(
