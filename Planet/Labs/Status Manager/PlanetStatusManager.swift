@@ -37,6 +37,9 @@ class PlanetStatusManager: ObservableObject {
     }
     
     private func wait() {
+        DispatchQueue.main.async {
+            NSApp.requestUserAttention(.criticalRequest)
+        }
         let alert = NSAlert()
         alert.alertStyle = .critical
         alert.messageText = "There're unfinished publish processes running, please wait for a few more seconds."
