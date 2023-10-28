@@ -50,6 +50,7 @@ struct MyPlanetInfoView: View {
                         planetIPNS = "planet://\(planet.ipns)"
                     } label: {
                         Text("Share")
+                            .frame(minWidth: PlanetUI.BUTTON_MIN_WIDTH_SHORT)
                     }
 
                     Button {
@@ -59,6 +60,7 @@ struct MyPlanetInfoView: View {
                         dismiss()
                     } label: {
                         Text(planet.isPublishing ? "Publishing" : "Publish")
+                            .frame(minWidth: PlanetUI.BUTTON_MIN_WIDTH_SHORT)
                     }
                     .disabled(planet.isPublishing)
 
@@ -69,6 +71,7 @@ struct MyPlanetInfoView: View {
                         dismiss()
                     } label: {
                         Text("Edit")
+                            .frame(minWidth: PlanetUI.BUTTON_MIN_WIDTH_SHORT)
                     }
                 }
                 .padding(.leading, 10)

@@ -139,6 +139,12 @@ struct AvatarPickerView: View {
                 Divider()
 
                 HStack(spacing: 12) {
+                    Button {
+                        randomPick()
+                    } label: {
+                        Text("Random Pick")
+                    }
+
                     Spacer()
 
                     Button {
@@ -153,6 +159,7 @@ struct AvatarPickerView: View {
                             case .myPlanet(let planet) = store.selectedView
                         {
                             try? planet.updateAvatar(path: avatarURL)
+                            NotificationCenter.default.post(name: .publishMyPlanet, object: planet)
                             dismiss()
                         }
                     } label: {
@@ -179,6 +186,26 @@ struct AvatarPickerView: View {
         .onChange(of: selection) { newValue in
             if let category = newValue {
                 avatars = loadAvatars(category: category)
+            }
+        }
+    }
+
+    private func randomPick() {
+        if let avatars = avatars, let keys = Array(avatars.keys) as? [String] {
+            let randomIndex = Int.random(in: 0..<keys.count)
+            let randomKey = keys[randomIndex]
+            debugPrint("Randomly picked avatar: \(randomKey)")
+            do {
+                let image = NSImage(named: randomKey)
+                if let image = image, let avatarURL = image.temporaryURL
+                {
+                    selectedAvatar = image
+                    avatarChanged = true
+                    debugPrint("Set planet avatar to \(randomKey)")
+                }
+            }
+            catch {
+                debugPrint("failed to randomly pick avatar: \(error)")
             }
         }
     }
