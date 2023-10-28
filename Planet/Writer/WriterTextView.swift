@@ -133,7 +133,9 @@ class WriterCustomTextView: NSView {
         NotificationCenter.default.addObserver(forName: NSView.boundsDidChangeNotification, object: nil, queue: .main) { [weak self] n in
             guard let scroller = self?.scrollView.verticalScroller else { return }
             if let currentScrollerOffset = self?.draft.scrollerOffset, currentScrollerOffset != scroller.floatValue {
-                self?.draft.scrollerOffset = scroller.floatValue
+                Task { @MainActor in
+                    self?.draft.scrollerOffset = scroller.floatValue
+                }
             }
         }
     }
