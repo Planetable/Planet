@@ -40,7 +40,7 @@ class PlanetAPIService: NSObject, NetServiceDelegate {
         }
         netService = NetService(
             domain: "local.",
-            type: "_http._tcp.",
+            type: "_planet._tcp.",
             name: serviceName,
             port: Int32(port)
         )
