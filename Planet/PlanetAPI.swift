@@ -58,6 +58,9 @@ actor PlanetAPIHelper {
 
     private func launch() throws {
         guard UserDefaults.standard.bool(forKey: .settingsAPIEnabled) else { return }
+        server["/v0/id"] = { r in
+            return PlanetAPI.shared.getNodeID(forRequest: r)
+        }
         server["/v0/planets/my"] = { r in
             switch r.method {
             case "GET":
@@ -184,6 +187,52 @@ class PlanetAPI: NSObject {
 // MARK: - API Functions -
 
 extension PlanetAPI {
+    // MARK: GET /v0/id
+    // TODO: This implementation is ugly
+    /// Return IPFS ID
+    func getNodeID(forRequest r: HttpRequest) -> HttpResponse {
+        let semaphore = DispatchSemaphore(value: 0)
+        var result: HttpResponse!
+        let queue = DispatchQueue(label: "xyz.planetable.APIQueue")
+
+        Task {
+            do {
+                let data = try await IPFSDaemon.shared.api(path: "id")
+                if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
+                    var id: String? = nil
+                    if let dict = json as? [String: Any] {
+                        id = dict["ID"] as? String
+                    } else if let dict = json as? [String: String] {
+                        id = dict["ID"]
+                    }
+                    if let id = id {
+                        queue.sync {
+                            result = .ok(.text(id))
+                        }
+                    } else {
+                        queue.sync {
+                            result = .error("failed to get node id.")
+                        }
+                    }
+                } else {
+                    queue.sync {
+                        result = .error("failed to get node id.")
+                    }
+                }
+                let str = String(decoding: data, as: UTF8.self)
+
+            } catch {
+                queue.sync {
+                    result = .error(error.localizedDescription)
+                }
+            }
+            semaphore.signal()
+        }
+
+        semaphore.wait()
+        return result
+    }
+
     // MARK: GET /v0/planets/my
     func getPlanets(forRequest r: HttpRequest) -> HttpResponse {
         guard validateRequest(r) else { return .unauthorized(nil) }
