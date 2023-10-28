@@ -145,8 +145,7 @@ struct AvatarPickerView: View {
                         dismiss()
                     } label: {
                         Text("Cancel")
-                            .padding(.vertical, 4)
-                            .padding(.horizontal, 16)
+                            .frame(minWidth: PlanetUI.BUTTON_MIN_WIDTH_SHORT)
                     }
 
                     Button {
@@ -158,8 +157,7 @@ struct AvatarPickerView: View {
                         }
                     } label: {
                         Text("Save")
-                            .padding(.vertical, 4)
-                            .padding(.horizontal, 16)
+                            .frame(minWidth: PlanetUI.BUTTON_MIN_WIDTH_SHORT)
                     }
                     .disabled(!avatarChanged)
                 }

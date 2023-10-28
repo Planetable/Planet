@@ -3,7 +3,7 @@ import SwiftUI
 
 struct IconGalleryView: View {
     @EnvironmentObject private var iconManager: IconManager
-    
+
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedGroupName: String?
@@ -21,9 +21,9 @@ struct IconGalleryView: View {
                     }
                 }
                 .listStyle(.sidebar)
-                
+
                 Spacer(minLength: 20)
-                
+
                 if let selectedDockIcon, selectedDockIcon.verifyIconStatus() {
                     iconManager.iconPreview(icon: selectedDockIcon, size: Self.previewItemSize)
                 } else if let currentDockIcon = iconManager.activeDockIcon, currentDockIcon.verifyIconStatus() {
@@ -31,7 +31,7 @@ struct IconGalleryView: View {
                 }
             }
             .frame(width: 180)
-            
+
             VStack(spacing: 0) {
                 if selectedGroupName != nil {
                     ScrollView {
@@ -45,9 +45,9 @@ struct IconGalleryView: View {
                         }
                         .padding(.vertical, 20)
                     }
-                    
+
                     Divider()
-                    
+
                     HStack(spacing: 12) {
                         if (iconManager.activeDockIcon != nil && selectedDockIcon != nil) || iconManager.activeDockIcon != nil {
                             Button {
@@ -57,15 +57,16 @@ struct IconGalleryView: View {
                                 Text("Reset App Icon")
                             }
                         }
-                        
+
                         Spacer()
-                        
+
                         Button {
                             dismiss()
                         } label: {
                             Text("Cancel")
+                                .frame(minWidth: PlanetUI.BUTTON_MIN_WIDTH_SHORT)
                         }
-                        
+
                         Button {
                             if let selectedDockIcon {
                                 iconManager.setIcon(icon: selectedDockIcon)
@@ -94,7 +95,7 @@ struct IconGalleryView: View {
             DistributedNotificationCenter.default().post(name: Notification.Name("xyz.planetable.Planet.PlanetDockIconSyncPackageName"), object: lastPackageName)
         }
     }
-    
+
     private func availableGroupsAndIcons() -> (groups: [String], icons: [DockIcon]) {
         let availableIcons: [DockIcon] = iconManager.dockIcons.filter({ $0.verifyIconStatus() })
         let availableGroups: [String] = availableIcons.map() { icon in

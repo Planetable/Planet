@@ -170,7 +170,7 @@ struct WalletAccountView: View {
                     dismiss()
                 } label: {
                     Text("OK")
-                        .frame(minWidth: 50)
+                        .frame(minWidth: PlanetUI.BUTTON_MIN_WIDTH_SHORT)
                 }
                 .keyboardShortcut(.escape, modifiers: [])
             }.padding(10)
