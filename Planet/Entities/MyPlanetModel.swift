@@ -1132,6 +1132,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     func avatarView(size: CGFloat) -> some View {
         if let image = self.avatar {
             Image(nsImage: image)
+                 .interpolation(.high)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: size, height: size, alignment: .center)
