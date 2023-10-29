@@ -189,6 +189,8 @@ class PlanetAPI: NSObject {
 extension PlanetAPI {
     // MARK: GET /v0/id
     // TODO: This implementation is ugly
+    /* Another good way to implement this is to save the node ID in Planet Store upon startup and simply read it here.
+     */
     /// Return IPFS ID
     func getNodeID(forRequest r: HttpRequest) -> HttpResponse {
         let semaphore = DispatchSemaphore(value: 0)
