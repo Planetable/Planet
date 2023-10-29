@@ -22,6 +22,7 @@ struct RebuildProgressView: View {
                 }
                 Spacer()
                 Text("\(completed)/\(total) items done")
+                    // TODO: - use a better signal to update progress
                     .onReceive(NotificationCenter.default.publisher(for: .myArticleBuilt)) {
                         aNotification in
                         Task { @MainActor in

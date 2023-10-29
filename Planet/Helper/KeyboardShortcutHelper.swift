@@ -69,7 +69,7 @@ class KeyboardShortcutHelper: ObservableObject {
                     Text("Connect Wallet V2")
                 }
             }
-            
+
             if PlanetStore.shared.app == .planet {
                 Divider()
                 Button {
@@ -181,7 +181,7 @@ class KeyboardShortcutHelper: ObservableObject {
                 } label: {
                     Text("Update Following Planets")
                 }
-                .keyboardShortcut("r", modifiers: [.command, .shift])
+                .keyboardShortcut("u", modifiers: [.command, .shift])
 
                 Divider()
             }
@@ -206,6 +206,24 @@ class KeyboardShortcutHelper: ObservableObject {
                     Text("Reload Planets")
                 }
                 .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
+
+                Button {
+                    Task(priority: .background) {
+                        do {
+                            try await self.activeMyPlanet?.quickRebuild()
+                        } catch {
+                            Task { @MainActor in
+                                PlanetStore.shared.isShowingAlert = true
+                                PlanetStore.shared.alertTitle = "Failed to Quick Rebuild Planet"
+                                PlanetStore.shared.alertMessage = error.localizedDescription
+                            }
+                        }
+                    }
+                } label: {
+                    Text("Quick Rebuild Planet")
+                }
+                .disabled(activeMyPlanet == nil)
+                .keyboardShortcut("r", modifiers: [.command, .shift])
 
                 Button {
                     Task(priority: .background) {
@@ -238,7 +256,7 @@ class KeyboardShortcutHelper: ObservableObject {
             }
         }
     }
-    
+
     func importPlanetAction() {
         let panel = NSOpenPanel()
         panel.message = "Choose Planet Data"

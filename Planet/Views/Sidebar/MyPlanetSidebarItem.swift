@@ -323,6 +323,24 @@ struct MyPlanetSidebarItem: View {
             Button {
                 do {
                     Task(priority: .background) {
+                        try await planet.quickRebuild()
+                    }
+                }
+                catch {
+                    Task { @MainActor in
+                        self.planetStore.isShowingAlert = true
+                        self.planetStore.alertTitle = "Failed to Quick Rebuild Planet"
+                        self.planetStore.alertMessage = error.localizedDescription
+                    }
+                }
+            } label: {
+                Text("Quick Rebuild")
+            }
+            .keyboardShortcut("r", modifiers: [.command, .shift])
+
+            Button {
+                do {
+                    Task(priority: .background) {
                         try await planet.rebuild()
                     }
                 }
@@ -334,7 +352,7 @@ struct MyPlanetSidebarItem: View {
                     }
                 }
             } label: {
-                Text("Rebuild")
+                Text("Full Rebuild")
             }
             .keyboardShortcut("r", modifiers: [.command])
 

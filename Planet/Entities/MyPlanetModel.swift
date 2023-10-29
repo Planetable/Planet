@@ -2236,6 +2236,60 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         await sendNotificationForRebuild()
     }
 
+    func quickRebuild() async throws {
+        let started = Date()
+        await MainActor.run {
+            self.isRebuilding = true
+        }
+        defer {
+            Task { @MainActor in
+                self.isRebuilding = false
+                PlanetStatusManager.shared.updateStatus()
+            }
+        }
+        Task { @MainActor in
+            PlanetStore.shared.isRebuilding = true
+            PlanetStore.shared.rebuildTasks = 2
+            PlanetStatusManager.shared.updateStatus()
+        }
+        try self.copyTemplateAssets()
+        Task { @MainActor in
+            PlanetStore.shared.rebuildTasks = 1
+            NotificationCenter.default.post(name: .myArticleBuilt, object:nil)
+        }
+        try await self.savePublic()
+        await MainActor.run {
+            self.isRebuilding = false
+        }
+        Task { @MainActor in
+            PlanetStore.shared.isRebuilding = false
+        }
+        Task {
+            do {
+                try self.saveOps()
+            }
+            catch {
+                debugPrint("failed to save ops to file: \(error)")
+            }
+        }
+        Task { @MainActor in
+            PlanetStore.shared.rebuildTasks = 0
+            NotificationCenter.default.post(name: .myArticleBuilt, object:nil)
+        }
+        let ended = Date()
+        let timeInterval = ended.timeIntervalSince(started)
+        debugPrint("Quick Rebuild planet: \(name) took \(timeInterval) seconds")
+        NotificationCenter.default.post(name: .loadArticle, object: nil)
+        Task { @MainActor in
+            NotificationCenter.default.post(name: .publishMyPlanet, object: self)
+            // Update Planet Lite Window Titles
+            let liteSubtitle = "ipns://\(self.ipns.shortIPNS())"
+            let info = ["title": self.name, "subtitle": liteSubtitle]
+            NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
+        }
+        await sendNotificationForRebuild()
+    }
+
     func sendNotificationForRebuild() async {
         let notification = UNMutableNotificationContent()
         notification.title = "Planet Rebuilt"
