@@ -24,7 +24,7 @@ struct AccountBadgeView: View {
             if let avatarImage = avatarImage {
                 HStack(spacing: 0) {
                     Image(nsImage: avatarImage)
-                        .interpolation(Image.Interpolation.high)
+                        .interpolation(.high)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 36, height: 36, alignment: .center)

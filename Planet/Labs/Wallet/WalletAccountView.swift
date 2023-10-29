@@ -30,6 +30,7 @@ struct WalletAccountView: View {
             HStack {
                 if let avatarImage = avatarImage {
                     Image(nsImage: avatarImage)
+                        .interpolation(.high)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: AVATAR_SIZE, height: AVATAR_SIZE, alignment: .center)
