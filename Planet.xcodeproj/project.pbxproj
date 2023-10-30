@@ -2370,8 +2370,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airwolfspace/mediaview";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMinorVersion;
+				minimumVersion = 1.0.0;
 			};
 		};
 		6A2A4D2A2A86422700F4491A /* XCRemoteSwiftPackageReference "WrappingHStack" */ = {
