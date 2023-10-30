@@ -17,7 +17,8 @@ struct MyPlanetSidebarItem: View {
             Spacer()
             if planet.isPublishing {
                 LoadingIndicatorView()
-            } else {
+            }
+            else {
                 if planet.isPinned {
                     Image(systemName: "externaldrive.fill.badge.checkmark")
                         .foregroundColor(.secondary)
@@ -302,11 +303,18 @@ struct MyPlanetSidebarItem: View {
 
     private func openVSCode(_ template: Template) {
         guard
-            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.microsoft.VSCode")
+            let appUrl = NSWorkspace.shared.urlForApplication(
+                withBundleIdentifier: "com.microsoft.VSCode"
+            )
         else { return }
 
         let url = URL(fileURLWithPath: template.path.path)
-        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
+        NSWorkspace.shared.open(
+            [url],
+            withApplicationAt: appUrl,
+            configuration: self.openConfiguration(),
+            completionHandler: nil
+        )
     }
 
     @ViewBuilder
@@ -321,17 +329,17 @@ struct MyPlanetSidebarItem: View {
             }
 
             Button {
-                do {
-                    Task(priority: .background) {
-                        PlanetStore.shared.selectedView = .myPlanet(planet)
+                Task(priority: .background) {
+                    PlanetStore.shared.selectedView = .myPlanet(planet)
+                    do {
                         try await planet.quickRebuild()
                     }
-                }
-                catch {
-                    Task { @MainActor in
-                        self.planetStore.isShowingAlert = true
-                        self.planetStore.alertTitle = "Failed to Quick Rebuild Planet"
-                        self.planetStore.alertMessage = error.localizedDescription
+                    catch {
+                        Task { @MainActor in
+                            self.planetStore.isShowingAlert = true
+                            self.planetStore.alertTitle = "Failed to Quick Rebuild Planet"
+                            self.planetStore.alertMessage = error.localizedDescription
+                        }
                     }
                 }
             } label: {
@@ -340,17 +348,17 @@ struct MyPlanetSidebarItem: View {
             .keyboardShortcut("r", modifiers: [.command, .shift])
 
             Button {
-                do {
-                    Task(priority: .background) {
-                        PlanetStore.shared.selectedView = .myPlanet(planet)
+                Task(priority: .background) {
+                    PlanetStore.shared.selectedView = .myPlanet(planet)
+                    do {
                         try await planet.rebuild()
                     }
-                }
-                catch {
-                    Task { @MainActor in
-                        self.planetStore.isShowingAlert = true
-                        self.planetStore.alertTitle = "Failed to Rebuild Planet"
-                        self.planetStore.alertMessage = error.localizedDescription
+                    catch {
+                        Task { @MainActor in
+                            self.planetStore.isShowingAlert = true
+                            self.planetStore.alertTitle = "Failed to Rebuild Planet"
+                            self.planetStore.alertMessage = error.localizedDescription
+                        }
                     }
                 }
             } label: {
