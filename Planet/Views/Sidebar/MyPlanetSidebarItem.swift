@@ -323,6 +323,7 @@ struct MyPlanetSidebarItem: View {
             Button {
                 do {
                     Task(priority: .background) {
+                        PlanetStore.shared.selectedView = .myPlanet(planet)
                         try await planet.quickRebuild()
                     }
                 }
@@ -341,6 +342,7 @@ struct MyPlanetSidebarItem: View {
             Button {
                 do {
                     Task(priority: .background) {
+                        PlanetStore.shared.selectedView = .myPlanet(planet)
                         try await planet.rebuild()
                     }
                 }

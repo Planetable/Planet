@@ -1171,6 +1171,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     func smallAvatarAndNameView(label: String? = nil) -> some View {
         if let image = self.avatar {
             Image(nsImage: image)
+                .interpolation(.high)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 24, height: 24, alignment: .center)
