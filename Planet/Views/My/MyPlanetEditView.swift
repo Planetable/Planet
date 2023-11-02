@@ -487,7 +487,7 @@ struct MyPlanetEditView: View {
                             }
                             .frame(width: CONTROL_CAPTION_WIDTH)
 
-                            TextField("", text: $domain)
+                            TextField("", text: $domain, prompt: Text("example.eth"))
                                 .textFieldStyle(.roundedBorder)
                         }
 
