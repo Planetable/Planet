@@ -1,5 +1,28 @@
 import Foundation
 
+struct IPFSVersion: Codable {
+    let version: String
+    let repo: String
+    let system: String
+
+    enum CodingKeys: String, CodingKey {
+        case version = "Version"
+        case repo = "Repo"
+        case system = "System"
+    }
+}
+
+struct IPFSID: Codable {
+    let id: String
+    let publicKey: String
+    let addresses: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case id = "ID"
+        case publicKey = "PublicKey"
+        case addresses = "Addresses"
+    }
+}
 struct IPFSPeers: Codable {
     let peers: [IPFSPeer]?
 

@@ -284,6 +284,9 @@ actor IPFSDaemon {
             online = false
         }
         if online {
+            Task(priority: .background) {
+                await PlanetStore.shared.updateServerInfo()
+            }
             do {
                 let data = try await IPFSDaemon.shared.api(path: "swarm/peers")
                 let decoder = JSONDecoder()

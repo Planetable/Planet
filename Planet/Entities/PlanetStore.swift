@@ -157,6 +157,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
     @Published var app: PlanetAppShell = (Bundle.main.executableURL?.lastPathComponent == "Croptop") ? .lite : .planet
 
+    var serverInfo: ServerInfo? = nil
+
     init() {
         // Init UserDefaults
         if UserDefaults.standard.value(forKey: String.settingsPublicGatewayIndex) == nil {

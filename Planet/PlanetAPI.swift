@@ -61,6 +61,9 @@ actor PlanetAPIHelper {
         server["/v0/id"] = { r in
             return PlanetAPI.shared.getNodeID(forRequest: r)
         }
+        server["/v0/info"] = { r in
+            return PlanetAPI.shared.getServerInfo(forRequest: r)
+        }
         server["/v0/planets/my"] = { r in
             switch r.method {
             case "GET":
@@ -233,6 +236,34 @@ extension PlanetAPI {
 
         semaphore.wait()
         return result
+    }
+
+    // MARK: GET /v0/info
+    /* Contents of ServerInfo:
+       - hostName: String
+       - version: String
+       - ipfsPeerID: String
+       - ipfsPeerCount: Int
+       - ipfsVersion: String
+    */
+    /// Return ServerInfo
+    func getServerInfo(forRequest r: HttpRequest) -> HttpResponse {
+        var info: ServerInfo?
+        DispatchQueue.main.sync {
+            info = PlanetStore.shared.serverInfo
+        }
+        if let info = info {
+            let encoder = JSONEncoder()
+            do {
+                let data = try encoder.encode(info)
+                let jsonObject = try JSONSerialization.jsonObject(with: data)
+                return .ok(.json(jsonObject))
+            } catch {
+                return .error(error.localizedDescription)
+            }
+        } else {
+            return .error("ServerInfo not available.")
+        }
     }
 
     // MARK: GET /v0/planets/my
