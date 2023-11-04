@@ -59,8 +59,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/airwolfspace/mediaview",
       "state" : {
-        "revision" : "c64f8e9056203cdde5493ed469b350e14217b053",
-        "version" : "1.0.0"
+        "revision" : "6fd69d38532298d94e14e442034097432f93f8d8",
+        "version" : "1.0.3"
       }
     },
     {
@@ -78,7 +78,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "9770804343e0b52316f3ab82c6ea185cacf75856"
+        "revision" : "7298bfcd76a1e26c4e15a4c47ad62c9424ef262f"
       }
     },
     {
