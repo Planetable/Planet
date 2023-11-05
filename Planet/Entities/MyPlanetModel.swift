@@ -2178,11 +2178,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         do {
             // split the articles into groups
             let cpuCount = ProcessInfo.processInfo.activeProcessorCount
-            let articleGroups = self.articles.chunked(into: cpuCount > 20 ? 16 : cpuCount)
+            let articleGroups = self.articles.chunked(into: cpuCount > 8 ? 8 : cpuCount)
             for articleGroup in articleGroups {
                 // after some benchmarking, it seems that using DispatchGroup is faster than using TaskGroup
 
-                /*
+                /* DispatchGroup */
                 let group = DispatchGroup()
                 DispatchQueue.concurrentPerform(iterations: articleGroup.count) { index in
                     group.enter()
@@ -2196,8 +2196,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     }
                 }
                 group.wait()
-                */
 
+                /* TaskGroup */
+                /*
                 try await withThrowingTaskGroup(of: Void.self) { group in
                     for article in articleGroup {
                         group.addTask(priority: .high) {
@@ -2206,6 +2207,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     }
                     try await group.waitForAll()
                 }
+                */
             }
         }
         await MainActor.run {

@@ -58,14 +58,10 @@ extension MyArticleModel {
     /// Save the article into UUID/index.html along with its attachments.
     func savePublic() throws {
         let started: Date = Date()
+        var marks: [String: Date] = [:]
+        marks["Started"] = started
         guard let template = planet.template else {
             throw PlanetError.MissingTemplateError
-        }
-        defer {
-            Task { @MainActor in
-                debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
-                NotificationCenter.default.post(name: .myArticleBuilt, object: self)
-            }
         }
         // Remove article-level .DS_Store if any
         self.removeDSStore()
@@ -73,22 +69,40 @@ extension MyArticleModel {
         Task(priority: .background) {
             await self.saveMarkdown()
         }
-        if self.content.count > 0 {
+        if self.content.count > 0, self.contentRendered == nil {
             if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: self.content) {
                 self.contentRendered = contentHTML
                 try? self.save()
             }
         }
+        let doneContentRendered: Date = Date()
+        marks["ContentRendered"] = doneContentRendered
+        debugPrint(
+            "Content rendered for \(self.title) took: \(doneContentRendered.timeIntervalSince(marks["Started"]!))"
+        )
         // Save cover image
         //TODO: Clean up the logic here
         // MARK: Cover Image
 
         let coverImageText = self.getCoverImageText()
+        let doneCoverImageText: Date = Date()
+        marks["CoverImageText"] = doneCoverImageText
+        debugPrint(
+            "Cover image text for \(self.title) took: \(doneCoverImageText.timeIntervalSince(marks["ContentRendered"]!))"
+        )
 
-        saveCoverImage(
-            with: coverImageText,
-            filename: publicCoverImagePath.path,
-            imageSize: NSSize(width: 512, height: 512)
+        if self.planet.templateName == "Croptop" {
+            saveCoverImage(
+                with: coverImageText,
+                filename: publicCoverImagePath.path,
+                imageSize: NSSize(width: 512, height: 512)
+            )
+        }
+
+        let doneCoverImage: Date = Date()
+        marks["CoverImage"] = doneCoverImage
+        debugPrint(
+            "Cover image for \(self.title) took: \(doneCoverImage.timeIntervalSince(marks["CoverImageText"]!))"
         )
 
         var needsCoverImageCID = false
@@ -143,7 +157,8 @@ extension MyArticleModel {
         }
 
         let doneCIDUpdate: Date = Date()
-        debugPrint("CID Update for \(self.title) took: \(doneCIDUpdate.timeIntervalSince(started))")
+        marks["CIDUpdate"] = doneCIDUpdate
+        debugPrint("CID Update for \(self.title) took: \(doneCIDUpdate.timeIntervalSince(marks["CoverImage"]!))")
 
         // MARK: - Video
         if self.hasVideoContent() {
@@ -279,6 +294,11 @@ extension MyArticleModel {
 
         let doneSlug: Date = Date()
         debugPrint("Slug for \(self.title) took: \(doneSlug.timeIntervalSince(doneHeroGrid))")
+
+        Task { @MainActor in
+            debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
+                NotificationCenter.default.post(name: .myArticleBuilt, object: self)
+        }
     }
 
     // MARK: - Attachment Functions
