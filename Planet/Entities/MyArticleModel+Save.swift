@@ -47,7 +47,8 @@ extension MyArticleModel {
                 do {
                     let coverImageCID = try IPFSDaemon.shared.getFileCIDv0(url: coverImageURL)
                     return coverImageCID
-                } catch {
+                }
+                catch {
                     return nil
                 }
             }
@@ -55,35 +56,23 @@ extension MyArticleModel {
         return nil
     }
 
-    /// Save the article into UUID/index.html along with its attachments.
-    func savePublic() throws {
-        let started: Date = Date()
-        var marks: [String: Date] = [:]
-        marks["Started"] = started
-        guard let template = planet.template else {
-            throw PlanetError.MissingTemplateError
-        }
-        // Remove article-level .DS_Store if any
-        self.removeDSStore()
-        // Save article.md
+    /// Save article.md
+    func saveMarkdownInBackground() {
         Task(priority: .background) {
             await self.saveMarkdown()
         }
-        if self.content.count > 0, self.contentRendered == nil {
-            if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: self.content) {
-                self.contentRendered = contentHTML
-                try? self.save()
-            }
-        }
-        let doneContentRendered: Date = Date()
-        marks["ContentRendered"] = doneContentRendered
-        debugPrint(
-            "Content rendered for \(self.title) took: \(doneContentRendered.timeIntervalSince(marks["Started"]!))"
-        )
-        // Save cover image
-        //TODO: Clean up the logic here
-        // MARK: Cover Image
+    }
 
+    func processContent() throws {
+        guard self.content.count > 0, self.contentRendered == nil else { return }
+
+        if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: self.content) {
+            self.contentRendered = contentHTML
+            try self.save()
+        }
+    }
+
+    func saveCoverImageIfNeeded(with marks: inout [String: Date]) throws {
         let coverImageText = self.getCoverImageText()
         let doneCoverImageText: Date = Date()
         marks["CoverImageText"] = doneCoverImageText
@@ -104,12 +93,29 @@ extension MyArticleModel {
         debugPrint(
             "Cover image for \(self.title) took: \(doneCoverImage.timeIntervalSince(marks["CoverImageText"]!))"
         )
+    }
+
+    /// Save the article into UUID/index.html along with its attachments.
+    func savePublic() throws {
+        let started: Date = Date()
+        var marks: [String: Date] = ["Started": started]
+
+        guard let template = planet.template else {
+            throw PlanetError.MissingTemplateError
+        }
+        removeDSStore()
+        saveMarkdownInBackground()
+
+        try processContent()
+        marks.recordEvent("ContentRendered", for: self.title)
+
+        try saveCoverImageIfNeeded(with: &marks)
 
         var needsCoverImageCID = false
-        if let attachments = self.attachments, attachments.count == 0 {
+        if let attachments = self.attachments, attachments.count == 0, self.planet.templateName == "Croptop" {
             needsCoverImageCID = true
         }
-        if audioFilename != nil {
+        if audioFilename != nil, self.planet.templateName == "Croptop" {
             needsCoverImageCID = true
         }
 
@@ -130,11 +136,15 @@ extension MyArticleModel {
             if let cids = self.cids, cids.count > 0 {
                 for attachment in self.attachments ?? [] {
                     if cids[attachment] == nil {
-                        debugPrint("CID Update for \(self.title): NEEDED because \(attachment) is missing")
+                        debugPrint(
+                            "CID Update for \(self.title): NEEDED because \(attachment) is missing"
+                        )
                         return true
                     }
                     if let cid = cids[attachment], cid.hasPrefix("Qm") == false {
-                        debugPrint("CID Update for \(self.title): NEEDED because \(attachment) is not CIDv0")
+                        debugPrint(
+                            "CID Update for \(self.title): NEEDED because \(attachment) is not CIDv0"
+                        )
                         return true
                     }
                 }
@@ -158,7 +168,9 @@ extension MyArticleModel {
 
         let doneCIDUpdate: Date = Date()
         marks["CIDUpdate"] = doneCIDUpdate
-        debugPrint("CID Update for \(self.title) took: \(doneCIDUpdate.timeIntervalSince(marks["CoverImage"]!))")
+        debugPrint(
+            "CID Update for \(self.title) took: \(doneCIDUpdate.timeIntervalSince(marks["CoverImage"]!))"
+        )
 
         // MARK: - Video
         if self.hasVideoContent() {
@@ -216,11 +228,13 @@ extension MyArticleModel {
                 value: self.title.sha256()
             )
             attributes.append(titleSHA256Attribute)
-            let contentSHA256Attribute = self.content.count > 0 ? NFTAttribute(
-                trait_type: "content_sha256",
-                value: self.content.sha256()
-            )
-            : nil
+            let contentSHA256Attribute =
+                self.content.count > 0
+                ? NFTAttribute(
+                    trait_type: "content_sha256",
+                    value: self.content.sha256()
+                )
+                : nil
             if let contentSHA256Attribute = contentSHA256Attribute {
                 attributes.append(contentSHA256Attribute)
             }
@@ -297,7 +311,7 @@ extension MyArticleModel {
 
         Task { @MainActor in
             debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
-                NotificationCenter.default.post(name: .myArticleBuilt, object: self)
+            NotificationCenter.default.post(name: .myArticleBuilt, object: self)
         }
     }
 
@@ -737,5 +751,16 @@ extension MyArticleModel {
                 }
             }
         }
+    }
+}
+
+extension Dictionary where Key == String, Value == Date {
+    fileprivate mutating func recordEvent(_ event: String, for title: String) {
+        let currentTime = Date()
+        self[event] = currentTime
+        let previousEventTime = self[event] ?? currentTime
+        debugPrint(
+            "\(event) for \(title) took: \(currentTime.timeIntervalSince(previousEventTime))"
+        )
     }
 }
