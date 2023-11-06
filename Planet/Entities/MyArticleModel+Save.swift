@@ -40,265 +40,54 @@ extension MyArticleModel {
 
     // MARK: - Save to Public/:planet_id/:article_id/index.html
 
-    // TODO: Fix a potential crash here
-    func obtainCoverImageCID() -> String? {
-        if let coverImageURL = getAttachmentURL(name: "_cover.png") {
-            if FileManager.default.fileExists(atPath: coverImageURL.path) {
-                do {
-                    let coverImageCID = try IPFSDaemon.shared.getFileCIDv0(url: coverImageURL)
-                    return coverImageCID
-                }
-                catch {
-                    return nil
-                }
-            }
-        }
-        return nil
-    }
-
-    /// Save article.md
-    func saveMarkdownInBackground() {
-        Task(priority: .background) {
-            await self.saveMarkdown()
-        }
-    }
-
-    func processContent() throws {
-        guard self.content.count > 0, self.contentRendered == nil else { return }
-
-        if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: self.content) {
-            self.contentRendered = contentHTML
-            try self.save()
-        }
-    }
-
-    func saveCoverImageIfNeeded(with marks: inout [String: Date]) throws {
-        let coverImageText = self.getCoverImageText()
-        let doneCoverImageText: Date = Date()
-        marks["CoverImageText"] = doneCoverImageText
-        debugPrint(
-            "Cover image text for \(self.title) took: \(doneCoverImageText.timeIntervalSince(marks["ContentRendered"]!))"
-        )
-
-        if self.planet.templateName == "Croptop" {
-            saveCoverImage(
-                with: coverImageText,
-                filename: publicCoverImagePath.path,
-                imageSize: NSSize(width: 512, height: 512)
-            )
-        }
-
-        let doneCoverImage: Date = Date()
-        marks["CoverImage"] = doneCoverImage
-        debugPrint(
-            "Cover image for \(self.title) took: \(doneCoverImage.timeIntervalSince(marks["CoverImageText"]!))"
-        )
-    }
-
-    func getCoverImageCIDIfNeeded() -> String? {
-        var needsCoverImageCID = false
-        if let attachments = self.attachments, attachments.count == 0, self.planet.templateName == "Croptop" {
-            needsCoverImageCID = true
-        }
-        if audioFilename != nil, self.planet.templateName == "Croptop" {
-            needsCoverImageCID = true
-        }
-
-        var coverImageCID: String? = nil
-        if needsCoverImageCID {
-            coverImageCID = obtainCoverImageCID()
-        }
-
-        return coverImageCID
-    }
-
     /// Save the article into UUID/index.html along with its attachments.
     func savePublic() throws {
         let started: Date = Date()
         var marks: [String: Date] = ["Started": started]
 
-        guard let template = planet.template else {
-            throw PlanetError.MissingTemplateError
-        }
         removeDSStore()
         saveMarkdownInBackground()
 
         try processContent()
         marks.recordEvent("ContentRendered", for: self.title)
 
-        try saveCoverImageIfNeeded(with: &marks)
+        // MARK: - Cover Image `_cover.png`
 
-        var coverImageCID: String? = getCoverImageCIDIfNeeded()
+        try saveCoverImageIfNeeded()
+        marks.recordEvent("SaveCoverImage", for: self.title)
+
+        let coverImageCID: String? = getCoverImageCIDIfNeeded()
         marks.recordEvent("CoverImageCID", for: self.title)
 
-        if let attachments = self.attachments, attachments.count == 0 {
-            if self.planet.templateName == "Croptop" {
-                // _cover.png CID is only needed by Croptop now
-                let newAttachments: [String] = ["_cover.png"]
-                self.attachments = newAttachments
-            }
-        }
-        var attachmentCIDs: [String: String] = self.cids ?? [:]
-        let needsToUpdateCIDs = {
-            if let cids = self.cids, cids.count > 0 {
-                for attachment in self.attachments ?? [] {
-                    if cids[attachment] == nil {
-                        debugPrint(
-                            "CID Update for \(self.title): NEEDED because \(attachment) is missing"
-                        )
-                        return true
-                    }
-                    if let cid = cids[attachment], cid.hasPrefix("Qm") == false {
-                        debugPrint(
-                            "CID Update for \(self.title): NEEDED because \(attachment) is not CIDv0"
-                        )
-                        return true
-                    }
-                }
-                return false
-            }
-            if self.attachments?.count ?? 0 > 0 {
-                debugPrint("CID Update for \(self.title): NEEDED because cids is nil")
-                return true
-            }
-            return false
-        }()
-        if needsToUpdateCIDs {
-            debugPrint("CID Update for \(self.title): NEEDED")
-            attachmentCIDs = getCIDs()
-            self.cids = attachmentCIDs
-            try? self.save()
-        }
-        else {
-            debugPrint("CID Update for \(self.title): NOT NEEDED")
-        }
-
+        processAttachmentCIDIfNeeded()
         marks.recordEvent("AttachmentCID", for: self.title)
 
         // MARK: - Video
-        if self.hasVideoContent() {
-            self.saveVideoThumbnail()
-        }
 
+        processVideoThumbnail()
         marks.recordEvent("VideoThumbnail", for: self.title)
 
         // MARK: - NFT
-        // TODO: Move all NFT-related operations into an extension
-        if attachmentCIDs.count > 0, let firstKeyValuePair = attachmentCIDs.first,
-            let generateNFTMetadata = template.generateNFTMetadata, generateNFTMetadata
-        {
-            debugPrint("Writing NFT metadata for \(self.title) \(cids)")
-            let (firstKey, firstValue) = firstKeyValuePair
-            // For image and text-only NFTs, we use the first image as the NFT image
-            var imageCID: String
-            imageCID = firstValue
-            // For video NFTs, we use the CID of _videoThumbnail.png for image
-            if self.hasVideoContent(),
-                let videoThumbnailURL = getAttachmentURL(name: "_videoThumbnail.png"),
-                let videoThumbnailCID = try? IPFSDaemon.shared.getFileCIDv0(url: videoThumbnailURL)
-            {
-                imageCID = videoThumbnailCID
-            }
-            var animationCID: String? = nil
-            // For audio NFTs, we use the CID of _cover.png for image
-            if let audioFilename = audioFilename, let coverImageCID = coverImageCID {
-                debugPrint(
-                    "Audio NFT for \(self.title): \(audioFilename) coverImageCID: \(coverImageCID)"
-                )
-                imageCID = coverImageCID
-            }
-            if let audioFilename = audioFilename, let audioCID = attachmentCIDs[audioFilename] {
-                debugPrint(
-                    "Audio NFT for \(self.title): \(audioFilename) animationCID: \(audioCID)"
-                )
-                animationCID = audioCID
-            }
-            if let videoFilename = videoFilename, let videoCID = attachmentCIDs[videoFilename] {
-                animationCID = videoCID
-            }
-            debugPrint("NFT image CIDv0 for \(self.title): \(imageCID)")
-            var attributes: [NFTAttribute] = []
-            let titleAttribute = NFTAttribute(
-                trait_type: "title",
-                value: self.title
-            )
-            attributes.append(titleAttribute)
-            let titleSHA256Attribute = NFTAttribute(
-                trait_type: "title_sha256",
-                value: self.title.sha256()
-            )
-            attributes.append(titleSHA256Attribute)
-            let contentSHA256Attribute =
-                self.content.count > 0
-                ? NFTAttribute(
-                    trait_type: "content_sha256",
-                    value: self.content.sha256()
-                )
-                : nil
-            if let contentSHA256Attribute = contentSHA256Attribute {
-                attributes.append(contentSHA256Attribute)
-            }
-            let createdAtAttribute = NFTAttribute(
-                trait_type: "created_at",
-                value: String(Int(self.created.timeIntervalSince1970))
-            )
-            attributes.append(createdAtAttribute)
-            let nft = NFTMetadata(
-                name: self.title,
-                description: self.summary ?? firstKey,
-                image: "https://ipfs.io/ipfs/\(imageCID)",
-                external_url: (self.externalLink ?? self.browserURL?.absoluteString) ?? "",
-                mimeType: self.getAttachmentMimeType(name: firstKey),
-                animation_url: animationCID != nil ? "https://ipfs.io/ipfs/\(animationCID!)" : nil,
-                attributes: attributes
-            )
-            let nftData = try JSONEncoder.shared.encode(nft)
-            try nftData.write(to: publicNFTMetadataPath)
-            let nftMetadataCID = self.getNFTJSONCID()
-            debugPrint("NFT metadata CID: \(nftMetadataCID ?? "nil")")
-            let nftMetadataCIDPath = publicBasePath.appendingPathComponent("nft.json.cid.txt")
-            try? nftMetadataCID?.write(to: nftMetadataCIDPath, atomically: true, encoding: .utf8)
-        }
-        else {
-            debugPrint(
-                "Not writing NFT metadata for \(self.title) and CIDs: \(self.cids ?? [:]) \(template.generateNFTMetadata ?? false) \(self.attachments ?? [])"
-            )
-        }
 
+        try processNFTMetadata(with: coverImageCID)
         marks.recordEvent("NFTMetadata", for: self.title)
 
         // MARK: - Render Markdown
-        // TODO: This part seems very slow, it takes seconds to render the article HTML
-        let articleHTML = try template.render(article: self)
-        try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
 
-        if template.hasSimpleHTML {
-            let simpleHTML = try template.render(article: self, forSimpleHTML: true)
-            try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath)
-        }
-
+        try processArticleHTML()
         marks.recordEvent("ArticleHTML", for: self.title)
 
-        if self.hasHeroImage() || self.hasVideoContent() {
-            self.saveHeroGrid()
-        }
-
+        // MARK: - Hero Grid
+        processHeroGrid()
         marks.recordEvent("HeroGrid", for: self.title)
 
         try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
-        if let articleSlug = self.slug, articleSlug.count > 0 {
-            let publicSlugBasePath = planet.publicBasePath.appendingPathComponent(
-                articleSlug,
-                isDirectory: true
-            )
-            if FileManager.default.fileExists(atPath: publicSlugBasePath.path) {
-                try? FileManager.default.removeItem(at: publicSlugBasePath)
-            }
-            try? FileManager.default.copyItem(at: publicBasePath, to: publicSlugBasePath)
-        }
 
+        // MARK: - Slug copy
+        processSlug()
         marks.recordEvent("ArticleSlug", for: self.title)
 
+        // MARK: - Send notification when done
         Task { @MainActor in
             debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
             NotificationCenter.default.post(name: .myArticleBuilt, object: self)

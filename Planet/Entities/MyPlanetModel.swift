@@ -959,6 +959,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     externalLink: backupArticle.externalLink,
                     title: backupArticle.title,
                     content: backupArticle.content,
+                    contentRendered: backupArticle.contentRendered,
                     summary: backupArticle.summary,
                     created: backupArticle.created,
                     starred: nil,
@@ -2218,7 +2219,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         let ended = Date()
         let timeInterval = ended.timeIntervalSince(started)
-        debugPrint("Rebuild planet: \(name) took \(timeInterval) seconds")
+        debugPrint("Rebuild planet: \(name) took \(String(format: "%.3f", timeInterval)) seconds")
         Task {
             do {
                 try self.saveOps()
