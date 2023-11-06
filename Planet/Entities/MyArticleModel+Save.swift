@@ -95,6 +95,23 @@ extension MyArticleModel {
         )
     }
 
+    func getCoverImageCIDIfNeeded() -> String? {
+        var needsCoverImageCID = false
+        if let attachments = self.attachments, attachments.count == 0, self.planet.templateName == "Croptop" {
+            needsCoverImageCID = true
+        }
+        if audioFilename != nil, self.planet.templateName == "Croptop" {
+            needsCoverImageCID = true
+        }
+
+        var coverImageCID: String? = nil
+        if needsCoverImageCID {
+            coverImageCID = obtainCoverImageCID()
+        }
+
+        return coverImageCID
+    }
+
     /// Save the article into UUID/index.html along with its attachments.
     func savePublic() throws {
         let started: Date = Date()
@@ -111,18 +128,8 @@ extension MyArticleModel {
 
         try saveCoverImageIfNeeded(with: &marks)
 
-        var needsCoverImageCID = false
-        if let attachments = self.attachments, attachments.count == 0, self.planet.templateName == "Croptop" {
-            needsCoverImageCID = true
-        }
-        if audioFilename != nil, self.planet.templateName == "Croptop" {
-            needsCoverImageCID = true
-        }
-
-        var coverImageCID: String? = nil
-        if needsCoverImageCID {
-            coverImageCID = obtainCoverImageCID()
-        }
+        var coverImageCID: String? = getCoverImageCIDIfNeeded()
+        marks.recordEvent("CoverImageCID", for: self.title)
 
         if let attachments = self.attachments, attachments.count == 0 {
             if self.planet.templateName == "Croptop" {
@@ -166,21 +173,14 @@ extension MyArticleModel {
             debugPrint("CID Update for \(self.title): NOT NEEDED")
         }
 
-        let doneCIDUpdate: Date = Date()
-        marks["CIDUpdate"] = doneCIDUpdate
-        debugPrint(
-            "CID Update for \(self.title) took: \(doneCIDUpdate.timeIntervalSince(marks["CoverImage"]!))"
-        )
+        marks.recordEvent("AttachmentCID", for: self.title)
 
         // MARK: - Video
         if self.hasVideoContent() {
             self.saveVideoThumbnail()
         }
 
-        let doneVideoThumbnail: Date = Date()
-        debugPrint(
-            "Video thumbnail for \(self.title) took: \(doneVideoThumbnail.timeIntervalSince(doneCIDUpdate))"
-        )
+        marks.recordEvent("VideoThumbnail", for: self.title)
 
         // MARK: - NFT
         // TODO: Move all NFT-related operations into an extension
@@ -265,10 +265,7 @@ extension MyArticleModel {
             )
         }
 
-        let doneNFTMetadata: Date = Date()
-        debugPrint(
-            "NFT metadata for \(self.title) took: \(doneNFTMetadata.timeIntervalSince(doneVideoThumbnail))"
-        )
+        marks.recordEvent("NFTMetadata", for: self.title)
 
         // MARK: - Render Markdown
         // TODO: This part seems very slow, it takes seconds to render the article HTML
@@ -280,19 +277,13 @@ extension MyArticleModel {
             try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath)
         }
 
-        let doneArticleHTML: Date = Date()
-        debugPrint(
-            "Article HTML for \(self.title) took: \(doneArticleHTML.timeIntervalSince(doneNFTMetadata))"
-        )
+        marks.recordEvent("ArticleHTML", for: self.title)
 
         if self.hasHeroImage() || self.hasVideoContent() {
             self.saveHeroGrid()
         }
 
-        let doneHeroGrid: Date = Date()
-        debugPrint(
-            "Hero grid for \(self.title) took: \(doneHeroGrid.timeIntervalSince(doneArticleHTML))"
-        )
+        marks.recordEvent("HeroGrid", for: self.title)
 
         try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
         if let articleSlug = self.slug, articleSlug.count > 0 {
@@ -306,8 +297,7 @@ extension MyArticleModel {
             try? FileManager.default.copyItem(at: publicBasePath, to: publicSlugBasePath)
         }
 
-        let doneSlug: Date = Date()
-        debugPrint("Slug for \(self.title) took: \(doneSlug.timeIntervalSince(doneHeroGrid))")
+        marks.recordEvent("ArticleSlug", for: self.title)
 
         Task { @MainActor in
             debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
@@ -760,7 +750,7 @@ extension Dictionary where Key == String, Value == Date {
         self[event] = currentTime
         let previousEventTime = self[event] ?? currentTime
         debugPrint(
-            "\(event) for \(title) took: \(currentTime.timeIntervalSince(previousEventTime))"
+            "\(event) for \(title) took: \(String(format: "%.3f", currentTime.timeIntervalSince(previousEventTime))) seconds"
         )
     }
 }
