@@ -193,7 +193,7 @@ extension MyArticleModel {
                 image: "https://ipfs.io/ipfs/\(imageCID)",
                 external_url: (self.externalLink ?? self.browserURL?.absoluteString) ?? "",
                 mimeType: self.getAttachmentMimeType(name: firstKey),
-                animation_url: animationCID != nil ? "https://ipfs.io/ipfs/\(animationCID!)" : nil,
+                animation_url: "https://ipfs.io/ipfs/\(animationCID)" ?? nil,
                 attributes: attributes
             )
             let nftData = try JSONEncoder.shared.encode(nft)
