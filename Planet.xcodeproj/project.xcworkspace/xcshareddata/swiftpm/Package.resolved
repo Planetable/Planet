@@ -59,8 +59,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/airwolfspace/mediaview",
       "state" : {
-        "revision" : "ad7fd5758f38cac780ff4f840c9d1680ce828433",
-        "version" : "1.0.7"
+        "revision" : "a65e636e4a3da948cc523a7cf72db928864b3bf2",
+        "version" : "1.1.1"
       }
     },
     {

@@ -89,18 +89,18 @@ struct AppContentItemView: View {
     private func processAttachments(_ urls: [URL]) {
         if article.hasVideo {
             DispatchQueue.global(qos: .userInitiated).async {
-                if let videoThumbnail = self.article.getVideoThumbnail(), !CGSizeEqualToSize(.zero, videoThumbnail.size) {
+                if let url = urls.first, ASMediaManager.shared.isSupportedVideo(url: url), let videoThumbnail = self.article.getVideoThumbnail(), !CGSizeEqualToSize(.zero, videoThumbnail.size) {
                     DispatchQueue.main.async {
-                        ASMediaManager.shared.activateVideoView(withVideos: urls, title: self.article.title, id: self.article.id, defaultSize: videoThumbnail.size)
+                        ASMediaManager.shared.activateMediaView(withURLs: urls, title: self.article.title, id: self.article.id, defaultSize: videoThumbnail.size)
                     }
                 } else {
                     DispatchQueue.main.async {
-                        ASMediaManager.shared.activateVideoView(withVideos: urls, title: self.article.title, id: self.article.id)
+                        ASMediaManager.shared.activateMediaView(withURLs: urls, title: self.article.title, id: self.article.id)
                     }
                 }
             }
         } else {
-            ASMediaManager.shared.activatePhotoView(withPhotos: urls, title: article.title, id: article.id)
+            ASMediaManager.shared.activateMediaView(withURLs: urls, title: article.title, id: article.id)
         }
     }
 
