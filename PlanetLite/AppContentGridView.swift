@@ -5,19 +5,19 @@ import ASMediaView
 
 
 private class AppCollectionView: NSCollectionView {
-    
+
     var planet: MyPlanetModel
     private var rightClickIndex: Int = NSNotFound
-    
+
     init(planet: MyPlanetModel) {
         self.planet = planet
         super.init(frame: .zero)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func menu(for event: NSEvent) -> NSMenu? {
         rightClickIndex = NSNotFound
         let point = convert(event.locationInWindow, from: nil)
@@ -29,14 +29,14 @@ private class AppCollectionView: NSCollectionView {
             }
         }
         guard rightClickIndex != NSNotFound, let articles = planet.articles, rightClickIndex < articles.count else { return nil }
-        
+
         let menu = NSMenu()
-        
+
         menu.addItem(editPostItem())
         menu.addItem(settingsItem())
-        
+
         menu.addItem(.separator())
-        
+
         let items = IPFSItems()
         if items.count > 0 {
             for item in items {
@@ -44,24 +44,24 @@ private class AppCollectionView: NSCollectionView {
             }
             menu.addItem(.separator())
         }
-        
+
         menu.addItem(copyShareableItem())
         menu.addItem(openShareableItem())
         menu.addItem(testPostItem())
-        
+
         menu.addItem(.separator())
-        
+
         menu.addItem(shareItem())
-        
+
         menu.addItem(.separator())
 
         menu.addItem(deletionItem())
-        
+
         return menu
     }
-    
+
     // MARK: - Settings Item
-    
+
     private func settingsItem() -> NSMenuItem {
         let settingsItem = NSMenuItem()
         settingsItem.representedObject = planet.articles?[rightClickIndex] ?? nil
@@ -70,15 +70,15 @@ private class AppCollectionView: NSCollectionView {
         settingsItem.action = #selector(settingsAction(_:))
         return settingsItem
     }
-    
+
     @objc private func settingsAction(_ sender: Any?) {
         guard let object = sender as? NSMenuItem, let article = object.representedObject as? MyArticleModel else { return }
         PlanetStore.shared.selectedArticle = article
         PlanetStore.shared.isShowingMyArticleSettings = true
     }
-    
+
     // MARK: - Edit Post Item
-    
+
     private func editPostItem() -> NSMenuItem {
         let editItem = NSMenuItem()
         editItem.representedObject = planet.articles?[rightClickIndex] ?? nil
@@ -87,14 +87,14 @@ private class AppCollectionView: NSCollectionView {
         editItem.action = #selector(editAction(_:))
         return editItem
     }
-    
+
     @objc private func editAction(_ sender: Any?) {
         guard let object = sender as? NSMenuItem, let article = object.representedObject as? MyArticleModel else { return }
         try? WriterStore.shared.editArticle(for: article)
     }
-    
+
     // MARK: - View on IPFS Items
-    
+
     private func IPFSItems() -> [NSMenuItem] {
         var items: [NSMenuItem] = []
         if let article = planet.articles?[rightClickIndex], let attachments = article.attachments, attachments.count > 0 {
@@ -112,14 +112,14 @@ private class AppCollectionView: NSCollectionView {
         }
         return items
     }
-    
+
     @objc private func viewOnIPFSAction(_ sender: Any?) {
         guard let object = sender as? NSMenuItem, let url = object.representedObject as? URL else { return }
         NSWorkspace.shared.open(url)
     }
-    
+
     // MARK: - Copy Shareable Link
-    
+
     private func copyShareableItem() -> NSMenuItem {
         let shareItem = NSMenuItem()
         shareItem.representedObject = planet.articles?[rightClickIndex] ?? nil
@@ -128,15 +128,15 @@ private class AppCollectionView: NSCollectionView {
         shareItem.action = #selector(copyShareableAction(_:))
         return shareItem
     }
-    
+
     @objc private func copyShareableAction(_ sender: Any?) {
         guard let object = sender as? NSMenuItem, let article = object.representedObject as? MyArticleModel, let url = article.browserURL else { return }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(url.absoluteString, forType: .string)
     }
-    
+
     // MARK: - Open Shareable Link in Browser
-    
+
     private func openShareableItem() -> NSMenuItem {
         let shareItem = NSMenuItem()
         shareItem.representedObject = planet.articles?[rightClickIndex] ?? nil
@@ -145,14 +145,14 @@ private class AppCollectionView: NSCollectionView {
         shareItem.action = #selector(openShareableAction(_:))
         return shareItem
     }
-    
+
     @objc private func openShareableAction(_ sender: Any?) {
         guard let object = sender as? NSMenuItem, let article = object.representedObject as? MyArticleModel, let url = article.browserURL else { return }
         NSWorkspace.shared.open(url)
     }
-    
+
     // MARK: - Test Post in Browser Item
-    
+
     private func testPostItem() -> NSMenuItem {
         let testItem = NSMenuItem()
         testItem.representedObject = planet.articles?[rightClickIndex] ?? nil
@@ -161,14 +161,14 @@ private class AppCollectionView: NSCollectionView {
         testItem.action = #selector(testAction(_:))
         return testItem
     }
-    
+
     @objc private func testAction(_ sender: Any?) {
         guard let object = sender as? NSMenuItem, let article = object.representedObject as? MyArticleModel, let url = article.localGatewayURL else { return }
         NSWorkspace.shared.open(url)
     }
-    
+
     // MARK: - Share Article Item
-    
+
     private func shareItem() -> NSMenuItem {
         let shareItem = NSMenuItem()
         shareItem.representedObject = planet.articles?[rightClickIndex] ?? nil
@@ -177,25 +177,25 @@ private class AppCollectionView: NSCollectionView {
         shareItem.action = #selector(shareAction(_:))
         return shareItem
     }
-    
+
     @objc private func shareAction(_ sender: Any?) {
         guard let object = sender as? NSMenuItem, let article = object.representedObject as? MyArticleModel, let itemView = self.item(at: rightClickIndex), let url = article.browserURL else { return }
         let sharingPicker = NSSharingServicePicker(items: [url])
         sharingPicker.delegate = self
         sharingPicker.show(relativeTo: .zero, of: itemView.view, preferredEdge: .minY)
     }
-    
-    // MARK: - Delete Article Item
+
+    // MARK: - Delete Post Item
 
     private func deletionItem() -> NSMenuItem {
         let deletionItem = NSMenuItem()
         deletionItem.representedObject = planet.articles?[rightClickIndex] ?? nil
-        deletionItem.title = "Delete Article"
+        deletionItem.title = "Delete Post"
         deletionItem.target = self
         deletionItem.action = #selector(deleteAction(_:))
         return deletionItem
     }
-    
+
     @objc private func deleteAction(_ sender: Any?) {
         guard let object = sender as? NSMenuItem, let article = object.representedObject as? MyArticleModel else { return }
         let alert = NSAlert()
@@ -234,7 +234,7 @@ extension AppCollectionView: NSSharingServicePickerDelegate {
         share.insert(copyService, at: 0)
         return share
     }
-    
+
     func sharingServicePicker(_ sharingServicePicker: NSSharingServicePicker, didChoose service: NSSharingService?) {
         sharingServicePicker.delegate = nil
     }
@@ -259,39 +259,39 @@ struct AppContentGridView: NSViewRepresentable {
             self.articles = articles
             self.itemSize = itemSize
         }
-        
+
         func numberOfSections(in collectionView: NSCollectionView) -> Int {
             return 1
         }
-        
+
         func collectionView(_ collectionView: NSCollectionView, numberOfItemsInSection section: Int) -> Int {
             return articles.count
         }
-        
+
         func collectionView(_ collectionView: NSCollectionView, itemForRepresentedObjectAt indexPath: IndexPath) -> NSCollectionViewItem {
             let item = collectionView.makeItem(withIdentifier: .init(AppContentGridCell.identifier), for: indexPath) as! AppContentGridCell
             let article = articles[indexPath.item]
             item.configureCell(article, size: itemSize)
             return item
         }
-        
+
         func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> NSSize {
             return parent.itemSize
         }
-        
+
         func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
             return 16
         }
-        
+
         func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
             return 16
         }
     }
-    
+
     func makeCoordinator() -> Coordinator {
         return Coordinator(parent: self, articles: planet.articles, itemSize: itemSize)
     }
-    
+
     // MARK: - NSViewRepresentable
 
     func makeNSView(context: Context) -> some NSScrollView {
@@ -310,7 +310,7 @@ struct AppContentGridView: NSViewRepresentable {
         collectionView.register(AppContentGridCell.self, forItemWithIdentifier: .init(AppContentGridCell.identifier))
         return scrollView
     }
-    
+
     func updateNSView(_ nsView: NSViewType, context: Context) {
         if let collectionView = nsView.documentView as? AppCollectionView {
             collectionView.planet = planet
