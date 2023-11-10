@@ -34,9 +34,9 @@ struct AppContentItemView: View {
                     }
                 }
             }
-            .contextMenu {
-                AppContentItemMenuView(isShowingDeleteConfirmation: $isShowingDeleteConfirmation, isSharingLink: $isSharingLink, sharedLink: $sharedLink, article: article)
-            }
+//            .contextMenu {
+//                AppContentItemMenuView(isShowingDeleteConfirmation: $isShowingDeleteConfirmation, isSharingLink: $isSharingLink, sharedLink: $sharedLink, article: article)
+//            }
             .confirmationDialog(
                 Text("Are you sure you want to delete this post?\n\n\(article.title)?\n\nThis action cannot be undone."), 
                 isPresented: $isShowingDeleteConfirmation
