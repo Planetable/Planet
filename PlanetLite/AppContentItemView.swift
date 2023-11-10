@@ -34,40 +34,6 @@ struct AppContentItemView: View {
                     }
                 }
             }
-            .contextMenu {
-                AppContentItemMenuView(isShowingDeleteConfirmation: $isShowingDeleteConfirmation, isSharingLink: $isSharingLink, sharedLink: $sharedLink, article: article)
-            }
-            .confirmationDialog(
-                Text("Are you sure you want to delete this post?\n\n\(article.title)?\n\nThis action cannot be undone."), 
-                isPresented: $isShowingDeleteConfirmation
-            ) {
-                Button(role: .destructive) {
-                    do {
-                        if let planet = article.planet {
-                            ASMediaManager.shared.deactivateView(byID: article.id)
-                            article.delete()
-                            planet.updated = Date()
-                            try planet.save()
-                            Task {
-                                try await planet.savePublic()
-                                try await planet.publish()
-                            }
-                            Task(priority: .background) {
-                                if let thumbnailCachedPath = thumbnailCachedPath {
-                                    try? FileManager.default.removeItem(at: thumbnailCachedPath)
-                                }
-                            }
-                        }
-                    } catch {
-                        PlanetStore.shared.alert(title: "Failed to delete article: \(error)")
-                    }
-                } label: {
-                    Text("Delete")
-                }
-            }
-            .background(
-                SharingServicePicker(isPresented: $isSharingLink, sharingItems: [sharedLink ?? ""])
-            )
             .task(id: article.id, priority: .utility) {
                 guard attachmentURLs == nil else { return }
                 attachmentURLs = getAttachments(fromArticle: article)
