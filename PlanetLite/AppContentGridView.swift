@@ -28,10 +28,10 @@ private class AppCollectionView: NSCollectionView {
                 break
             }
         }
-        guard rightClickIndex != NSNotFound else { return nil }
+        guard rightClickIndex != NSNotFound, let articles = planet.articles else { return nil }
         
         let menu = NSMenu()
-        menu.addItem(withTitle: "Right Select \(rightClickIndex), Planet: \(planet.name)", action: nil, keyEquivalent: "")
+        menu.addItem(withTitle: "Right Select \(rightClickIndex), Planet: \(planet.name), Article Count: \(articles.count)", action: nil, keyEquivalent: "")
         
         menu.addItem(deletionItem())
         
@@ -140,6 +140,7 @@ struct AppContentGridView: NSViewRepresentable {
     
     func updateNSView(_ nsView: NSViewType, context: Context) {
         if let collectionView = nsView.documentView as? AppCollectionView {
+            collectionView.planet = planet
             context.coordinator.articles = planet.articles
             context.coordinator.itemSize = itemSize
             collectionView.reloadData()
