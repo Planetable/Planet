@@ -51,9 +51,9 @@ struct AppContentView: View {
                         Text("Create First Site")
                     }
                     .keyboardShortcut(.defaultAction)
-                        .buttonStyle(.borderedProminent)
-                        .buttonBorderShape(.roundedRectangle)
-                        .controlSize(.large)
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.roundedRectangle)
+                    .controlSize(.large)
                     .disabled(planetStore.isCreatingPlanet)
                     Text("Learn more about [Croptop](https://croptop.eth.limo)")
                         .foregroundColor(.secondary)
@@ -67,11 +67,33 @@ struct AppContentView: View {
                                 .foregroundColor(.secondary)
                         }
                         else {
+                            /*
                             AppContentGridView(
                                 planet: planet,
                                 itemSize: NSSize(width: Self.itemWidth, height: Self.itemWidth)
                             )
                             .edgesIgnoringSafeArea(.top)
+                            */
+
+                            ScrollView() {
+                                LazyVGrid(
+                                    columns: [
+                                        GridItem(.adaptive(minimum: 128, maximum: 256), spacing: 20)
+                                    ],
+                                    alignment: .center,
+                                    spacing: 20
+                                ) {
+                                    ForEach(planet.articles, id: \.self) { article in
+                                        MyArticleGridView(article: article)
+                                    }
+
+                                }
+                                .padding([.top], 10)
+                                .padding([.leading], 20)
+                                .padding([.trailing], 20)
+                                .padding([.bottom], 20)
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 400)
                         }
                     default:
                         Text("No Content")

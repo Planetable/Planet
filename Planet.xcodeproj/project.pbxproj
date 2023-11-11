@@ -367,6 +367,8 @@
 		6A941CED2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A941CEC2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift */; };
 		6A941CEE2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A941CEC2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift */; };
 		6A9C211029792464005A815E /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A9C210F29792464005A815E /* AVKit.framework */; };
+		6AA2C2022AFF538B00F6C633 /* MyArticleGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA2C2012AFF538B00F6C633 /* MyArticleGridView.swift */; };
+		6AA2C2032AFF538B00F6C633 /* MyArticleGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA2C2012AFF538B00F6C633 /* MyArticleGridView.swift */; };
 		6AABC6A7291A6216009FD13F /* WalletConnectV1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AABC6A6291A6216009FD13F /* WalletConnectV1.swift */; };
 		6AABC6AA291A62A9009FD13F /* WalletConnectSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 6AABC6A9291A62A9009FD13F /* WalletConnectSwift */; };
 		6AABC6AC291A698B009FD13F /* WalletConnectV1QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AABC6AB291A698B009FD13F /* WalletConnectV1QRCodeView.swift */; };
@@ -668,6 +670,7 @@
 		6A941CEC2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlanetStore+ServerInfo.swift"; sourceTree = "<group>"; };
 		6A9C210F29792464005A815E /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		6AA2BC3227DC09AE00AC96B5 /* Planet v3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v3.xcdatamodel"; sourceTree = "<group>"; };
+		6AA2C2012AFF538B00F6C633 /* MyArticleGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyArticleGridView.swift; sourceTree = "<group>"; };
 		6AABC6A6291A6216009FD13F /* WalletConnectV1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV1.swift; sourceTree = "<group>"; };
 		6AABC6AB291A698B009FD13F /* WalletConnectV1QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV1QRCodeView.swift; sourceTree = "<group>"; };
 		6AADD6C52AF8809600898A6E /* MyArticleModel+SavePublic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MyArticleModel+SavePublic.swift"; sourceTree = "<group>"; };
@@ -1204,6 +1207,7 @@
 				6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */,
 				6A18F2052A0F0FA700FC4050 /* RebuildProgressView.swift */,
 				6A2C0BBB2A729DC2009E53DE /* AvatarPickerView.swift */,
+				6AA2C2012AFF538B00F6C633 /* MyArticleGridView.swift */,
 			);
 			path = My;
 			sourceTree = "<group>";
@@ -1682,6 +1686,7 @@
 				2A95E6E72A19A64F001288B8 /* SharingServicePicker.swift in Sources */,
 				2A95E68C2A19A3CA001288B8 /* WriterTextView.swift in Sources */,
 				2A95E64D2A19A398001288B8 /* PFDashboardContentView.swift in Sources */,
+				6AA2C2032AFF538B00F6C633 /* MyArticleGridView.swift in Sources */,
 				6AB75A8E2A5496F20050AD58 /* MyPlanetTemplateSettingsView.swift in Sources */,
 				2A996ADA2A1DA6D100BEF898 /* PlanetDownloadsWebView.swift in Sources */,
 				6A16E3522AB30BE8005D3E7E /* PlanetStore+Timer.swift in Sources */,
@@ -1921,6 +1926,7 @@
 				6A2C0BBC2A729DC2009E53DE /* AvatarPickerView.swift in Sources */,
 				2A2556B8293E1F13006462D8 /* TBContainerViewController.swift in Sources */,
 				721146E58D1D1E45CF92E17A /* IPFSAPIModel.swift in Sources */,
+				6AA2C2022AFF538B00F6C633 /* MyArticleGridView.swift in Sources */,
 				6A373A3C28E8178500750256 /* MyPlanetCustomCodeView.swift in Sources */,
 				72114B6486572E7F6AF5AC62 /* LoadingIndicatorView.swift in Sources */,
 				7211479EB744642D1895087E /* SharingServicePicker.swift in Sources */,

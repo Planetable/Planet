@@ -8,6 +8,7 @@ class MyArticleModel: ArticleModel, Codable {
     @Published var link: String
     @Published var slug: String? = nil
     @Published var heroImage: String? = nil
+    @Published var hasHeroGrid: Bool = false
     @Published var externalLink: String? = nil
 
     /// Rendered HTML from content
@@ -127,7 +128,7 @@ class MyArticleModel: ArticleModel, Codable {
                 return URL(string: "https://\(domain).limo\(urlPath)")
             }
             if domain.hasSuffix(".bit") {
-                return URL(string: "https://\(domain).cc\(urlPath)")
+                return URL(string: "https://\(domain).site\(urlPath)")
             }
             if domain.hasCommonTLDSuffix() {
                 return URL(string: "https://\(domain)\(urlPath)")
@@ -140,6 +141,40 @@ class MyArticleModel: ArticleModel, Codable {
             return baseURL.appendingPathComponent(heroImage)
         }
         return nil
+    }
+    var attachmentURLs: [URL] {
+        var urls: [URL] = []
+        if let attachments = attachments {
+            for attachment in attachments {
+                if let url = getAttachmentURL(name: attachment) {
+                    urls.append(url)
+                }
+            }
+        }
+        if let videoFilename = videoFilename {
+            if let url = getAttachmentURL(name: videoFilename) {
+                // move video URL the first item (it's already in the urls array)
+                if let index = urls.firstIndex(of: url) {
+                    urls.remove(at: index)
+                }
+                urls.insert(url, at: 0)
+            }
+        }
+        return urls
+    }
+    var videoURL: URL? {
+        if let videoFilename = videoFilename {
+            return getAttachmentURL(name: videoFilename)
+        }
+        return nil
+    }
+    var hasGIF: Bool {
+        for attachment in attachments ?? [] {
+            if attachment.hasSuffix(".gif") {
+                return true
+            }
+        }
+        return false
     }
 
     enum CodingKeys: String, CodingKey {
@@ -285,6 +320,13 @@ class MyArticleModel: ArticleModel, Codable {
         )
         if FileManager.default.fileExists(atPath: draftPath.path) {
             article.draft = try? DraftModel.load(from: draftPath, article: article)
+        }
+        let heroGridPath = article.publicBasePath.appendingPathComponent(
+                "_grid.png",
+                isDirectory: false
+            )
+        if FileManager.default.fileExists(atPath: heroGridPath.path) {
+            article.hasHeroGrid = true
         }
         return article
     }

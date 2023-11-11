@@ -192,7 +192,7 @@ struct WriterView: View {
                                             object: markdown
                                         )
                                     }
-                                    try? attachment.draft.deleteAttachment(name: attachment.name)
+                                    attachment.draft.deleteAttachment(name: attachment.name)
                                 } label: {
                                     Text("Remove")
                                 }

@@ -315,6 +315,17 @@ extension MyArticleModel {
         return nil
     }
 
+    func getHeroGridLocalURL() -> URL? {
+        let heroGridPath = publicBasePath.appendingPathComponent(
+                "_grid.png",
+                isDirectory: false
+            )
+        if FileManager.default.fileExists(atPath: heroGridPath.path) {
+            return heroGridPath
+        }
+        return nil
+    }
+
     /**
      If the article has a hero image, generate a grid version of it.
      */
@@ -345,9 +356,20 @@ extension MyArticleModel {
                 try? gridJPEGData.write(to: heroGridJPEGPath)
             }
         }
+        DispatchQueue.main.async {
+            self.hasHeroGrid = true
+        }
         Task { @MainActor in
+            debugPrint("Hero grid is saved for \(self.title)")
             self.planet.ops[opKey] = Date()
         }
+    }
+
+    var heroGridImage: NSImage? {
+        if let heroGridLocalURL = getHeroGridLocalURL() {
+            return NSImage(contentsOf: heroGridLocalURL)
+        }
+        return nil
     }
 
     // MARK: - Cover Image

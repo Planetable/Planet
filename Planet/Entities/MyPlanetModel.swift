@@ -297,7 +297,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 return "\(domain).limo"
             }
             if domain.hasSuffix(".bit") {
-                return "\(domain).cc"
+                return "\(domain).site"
             }
             if domain.count > 0 {
                 return domain
@@ -1843,7 +1843,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                             }
                         }
                         newArticles.append(newArticle)
-                        Task(priority: .background) {
+                        Task(priority: .utility) {
                             try newArticle.savePublic()
                         }
                         DispatchQueue.main.async {

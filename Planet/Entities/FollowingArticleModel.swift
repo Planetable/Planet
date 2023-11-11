@@ -99,9 +99,9 @@ class FollowingArticleModel: ArticleModel, Codable {
                linkURL.isHTTP {
                 // article from a feed with an absolute HTTP URL: https://vitalik.ca/general/2022/05/25/stable.html
                 // transform URL to load with limo
-                return URL(string: "https://\(planet.link).cc\(linkURL.pathQueryFragment)")
+                return URL(string: "https://\(planet.link).site\(linkURL.pathQueryFragment)")
             }
-            if let gateway = URL(string: "https://\(planet.link).cc") {
+            if let gateway = URL(string: "https://\(planet.link).site") {
                 // relative URL: /general/2022/05/25/stable.html, index.html, ./index.html, etc.
                 return URL(string: link, relativeTo: gateway)?.absoluteURL
             }

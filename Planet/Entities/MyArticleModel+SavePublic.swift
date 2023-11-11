@@ -57,7 +57,9 @@ extension MyArticleModel {
 
     func getCoverImageCIDIfNeeded() -> String? {
         var needsCoverImageCID = false
-        if let attachments = self.attachments, attachments.count == 0, self.planet.templateName == "Croptop" {
+        if let attachments = self.attachments, attachments.count == 0,
+            self.planet.templateName == "Croptop"
+        {
             needsCoverImageCID = true
         }
         if audioFilename != nil, self.planet.templateName == "Croptop" {
@@ -77,7 +79,9 @@ extension MyArticleModel {
             if self.planet.templateName == "Croptop" {
                 // _cover.png CID is only needed by Croptop now
                 let newAttachments: [String] = ["_cover.png"]
-                self.attachments = newAttachments
+                DispatchQueue.main.async {
+                    self.attachments = newAttachments
+                }
             }
         }
         var attachmentCIDs: [String: String] = self.cids ?? [:]
