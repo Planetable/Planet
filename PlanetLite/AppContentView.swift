@@ -75,23 +75,23 @@ struct AppContentView: View {
                             .edgesIgnoringSafeArea(.top)
                             */
 
-                            ScrollView() {
+                            ScrollView(.vertical) {
                                 LazyVGrid(
                                     columns: [
-                                        GridItem(.adaptive(minimum: 128, maximum: 256), spacing: 20)
+                                        GridItem(
+                                            .adaptive(minimum: 128, maximum: 256),
+                                            spacing: 16
+                                        )
                                     ],
                                     alignment: .center,
-                                    spacing: 20
+                                    spacing: 16
                                 ) {
                                     ForEach(planet.articles, id: \.self) { article in
                                         MyArticleGridView(article: article)
                                     }
 
                                 }
-                                .padding([.top], 20)
-                                .padding([.leading], 20)
-                                .padding([.trailing], 20)
-                                .padding([.bottom], 20)
+                                .padding(16)
                             }
                         }
                     default:
