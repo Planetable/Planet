@@ -8,6 +8,8 @@ class MyArticleModel: ArticleModel, Codable {
     @Published var link: String
     @Published var slug: String? = nil
     @Published var heroImage: String? = nil
+    // TODO: Use more runtime flags to optimize the time to rebuild Planet
+    /// hasHeroGrid is a runtime flag to indicate whether the article has a hero grid image on disk. It is not persisted in the article JSON file.
     @Published var hasHeroGrid: Bool = false
     @Published var externalLink: String? = nil
 
