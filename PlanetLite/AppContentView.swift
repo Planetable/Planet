@@ -88,12 +88,11 @@ struct AppContentView: View {
                                     }
 
                                 }
-                                .padding([.top], 10)
+                                .padding([.top], 20)
                                 .padding([.leading], 20)
                                 .padding([.trailing], 20)
                                 .padding([.bottom], 20)
                             }
-                            .frame(maxWidth: .infinity, minHeight: 400)
                         }
                     default:
                         Text("No Content")
