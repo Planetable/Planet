@@ -18,6 +18,7 @@ struct AggregationSettings: View {
     @State private var selectedTab: String = "aggregation"
 
     @State private var newSites: String = ""
+    @State private var reuseOriginalID: Bool = false
 
     init(planet: MyPlanetModel) {
         self.planet = planet
@@ -64,6 +65,36 @@ struct AggregationSettings: View {
 
                             Text(
                                 "Please enter the sites you wish to aggregate, listing one per line. You can use ENS (Ethereum Name Service) or IPNS (InterPlanetary Name System) addresses. If you want to aggregate RSS, Atom, or JSON feeds, provide the full URL."
+                            )
+                            .lineLimit(4)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH + 10)
+
+                            Toggle(
+                                "Trust and reuse original IDs",
+                                isOn: $reuseOriginalID
+                            )
+                            .toggleStyle(.checkbox)
+                            .frame(alignment: .leading)
+                            Spacer()
+                        }
+
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+
+                            Text(
+                                "Reuse post IDs from the sources if you trust the sources. The can keep IDs in URL consistent."
                             )
                             .lineLimit(4)
                             .font(.footnote)

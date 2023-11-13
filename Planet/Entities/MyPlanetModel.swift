@@ -1699,7 +1699,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 debugPrint("Aggregation: Finished for \(self.name)")
                 PlanetStore.shared.currentTaskMessage = "Aggregation completed"
                 PlanetStore.shared.currentTaskProgressIndicator = .done
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
                     PlanetStore.shared.isAggregating = false
                 }
             }
@@ -1777,6 +1777,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                         }
                         // TODO: Extract summary
                         let newArticle = MyArticleModel(
+                            // TODO: If the remote source is trusted, it can use the original ID here
                             id: UUID(),
                             link: article.link,
                             slug: nil,
