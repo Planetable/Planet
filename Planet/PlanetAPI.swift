@@ -80,6 +80,8 @@ actor PlanetAPIHelper {
                 return PlanetAPI.shared.getPlanetInfo(forRequest: r)
             case "POST":
                 return PlanetAPI.shared.modifyPlanetInfo(forRequest: r)
+            case "DELETE":
+                return PlanetAPI.shared.deletePlanet(forRequest: r)
             default:
                 return .error()
             }
@@ -394,6 +396,33 @@ extension PlanetAPI {
                 try await planet.publish()
             } catch {
                 debugPrint("failed to publish planet: \(planet), error: \(error)")
+            }
+        }
+        return .success()
+    }
+
+    // MARK: DELETE /v0/planets/my/:uuid
+    func deletePlanet(forRequest r: HttpRequest) -> HttpResponse {
+        guard validateRequest(r) else { return .unauthorized(nil) }
+        guard
+            let uuid = planetUUIDFromRequest(r),
+            let planet = myPlanets.first(where: { $0.id == uuid })
+        else {
+            return .notFound()
+        }
+        Task {
+            do {
+                try planet.delete()
+                await MainActor.run {
+                    if case .myPlanet(let selectedPlanet) = PlanetStore.shared.selectedView,
+                        planet == selectedPlanet
+                    {
+                        PlanetStore.shared.selectedView = nil
+                    }
+                    PlanetStore.shared.myPlanets.removeAll { $0.id == planet.id }
+                }
+            } catch {
+                debugPrint("failed to delete planet: \(planet), error: \(error)")
             }
         }
         return .success()
