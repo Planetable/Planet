@@ -55,4 +55,5 @@ struct BackupMyPlanetModel: Codable {
     let articles: [BackupArticleModel]
     let tags: [String: String]?
     let aggregation: [String]?
+    let reuseOriginalID: Bool?
 }

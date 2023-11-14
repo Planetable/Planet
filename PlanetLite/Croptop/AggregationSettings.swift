@@ -25,6 +25,8 @@ struct AggregationSettings: View {
 
         let sites: [String] = planet.aggregation ?? []
         _newSites = State(initialValue: sites.joined(separator: "\n"))
+
+        _reuseOriginalID = State(wrappedValue: planet.reuseOriginalID ?? false)
     }
 
     var body: some View {
@@ -72,27 +74,19 @@ struct AggregationSettings: View {
                             .fixedSize(horizontal: false, vertical: true)
                         }
 
-                        HStack {
-                            HStack {
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 10)
+                        Divider()
 
+                        HStack {
                             Toggle(
                                 "Trust and reuse original IDs",
                                 isOn: $reuseOriginalID
                             )
-                            .toggleStyle(.checkbox)
+                            .toggleStyle(.switch)
                             .frame(alignment: .leading)
                             Spacer()
                         }
 
                         HStack {
-                            HStack {
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH)
-
                             Text(
                                 "Reuse post IDs from the sources if you trust the sources. The can keep IDs in URL consistent."
                             )
@@ -100,6 +94,9 @@ struct AggregationSettings: View {
                             .font(.footnote)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
+                            .frame(alignment: .leading)
+
+                            Spacer()
                         }
                     }
                     .padding(16)
@@ -140,6 +137,7 @@ struct AggregationSettings: View {
                         ).map(String.init).sorted()
 
                         planet.aggregation = aggregation
+                        planet.reuseOriginalID = reuseOriginalID
 
                         Task {
                             try planet.save()

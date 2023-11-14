@@ -90,8 +90,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     var ops: [String: Date] = [:]
 
     var tags: [String: String]? = [:]
-
+    /// Array of remote sources for aggregating content
     var aggregation: [String]? = nil
+
+    /// When aggregating, reuse original ID if the remote sources are trusted
+    @Published var reuseOriginalID: Bool? = false
 
     static func myPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
@@ -384,6 +387,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         hasher.combine(tags)
         hasher.combine(aggregation)
+        hasher.combine(reuseOriginalID)
     }
 
     static func == (lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
@@ -445,6 +449,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.articles == rhs.articles
             && lhs.tags == rhs.tags
             && lhs.aggregation == rhs.aggregation
+            && lhs.reuseOriginalID == rhs.reuseOriginalID
     }
 
     enum CodingKeys: String, CodingKey {
@@ -462,7 +467,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             podcastCategories, podcastLanguage, podcastExplicit,
             juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli,
             tags,
-            aggregation
+            aggregation, reuseOriginalID
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -536,6 +541,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         )
         tags = try? container.decodeIfPresent([String: String].self, forKey: .tags) ?? [:]
         aggregation = try? container.decodeIfPresent([String].self, forKey: .aggregation) ?? []
+        reuseOriginalID = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .reuseOriginalID
+        )
     }
 
     func encode(to encoder: Encoder) throws {
@@ -589,6 +598,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(juiceboxProjectIDGoerli, forKey: .juiceboxProjectIDGoerli)
         try container.encodeIfPresent(tags, forKey: .tags)
         try container.encodeIfPresent(aggregation, forKey: .aggregation)
+        try container.encodeIfPresent(reuseOriginalID, forKey: .reuseOriginalID)
     }
 
     init(
@@ -900,6 +910,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         // Restore aggregation
         planet.aggregation = backupPlanet.aggregation
+        planet.reuseOriginalID = backupPlanet.reuseOriginalID
 
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
@@ -2082,7 +2093,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 )
             },
             tags: tags,
-            aggregation: aggregation
+            aggregation: aggregation,
+            reuseOriginalID: reuseOriginalID
         )
         do {
             try FileManager.default.copyItem(at: publicBasePath, to: exportPath)
