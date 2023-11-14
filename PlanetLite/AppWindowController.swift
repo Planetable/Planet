@@ -190,7 +190,7 @@ extension AppWindowController: NSToolbarDelegate {
         case .titlebarItem:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             let windowWidth = self.window?.frame.size.width ?? 200
-            let width = windowWidth == 200 ? windowWidth : windowWidth / 3.0
+            let width = windowWidth == 200 ? windowWidth : windowWidth / 2.0
             let size = CGSize(width: width, height: 52)
             let vc = AppTitlebarViewController(withSize: size)
             vc.view.frame = CGRect(origin: .zero, size: size)
