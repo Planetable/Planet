@@ -1787,9 +1787,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                             heroImageName = nil
                         }
                         // TODO: Extract summary
+                        let postID: UUID
+                        if let reuseOriginalID = self.reuseOriginalID, reuseOriginalID == true {
+                            postID = article.id
+                        } else {
+                            postID = UUID()
+                        }
                         let newArticle = MyArticleModel(
-                            // TODO: If the remote source is trusted, it can use the original ID here
-                            id: UUID(),
+                            id: postID,
                             link: article.link,
                             slug: nil,
                             heroImage: heroImageName,
