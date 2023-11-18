@@ -206,7 +206,7 @@ struct WriterView: View {
             .onDrop(of: [.fileURL], delegate: dragAndDrop)
         }
     }
-    
+
     private func addAttachmentsAction() throws {
         let panel = NSOpenPanel()
         panel.message = "Choose Attachments"

@@ -394,6 +394,8 @@
 		6ADF40B92914D88C007A24E8 /* MyPlanetIPNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */; };
 		6ADF40C429151407007A24E8 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 6ADF40C329151407007A24E8 /* Starscream */; };
 		6AE096BF2A5CC35700A2BECB /* MyPlanetIPNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */; };
+		6AE1839B2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE1839A2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift */; };
+		6AE1839C2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE1839A2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift */; };
 		6AE93656290CB10700BAC092 /* PlanetSettingsPlanetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */; };
 		7211413A9B3CC77620629D22 /* ViewUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143C73AEAD5F0C049DF86 /* ViewUtils.swift */; };
 		7211421E15A5A630DF93A519 /* MyPlanetInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D264DD084A74B49BF8 /* MyPlanetInfoView.swift */; };
@@ -687,6 +689,7 @@
 		6ACF16682927267800AE318B /* WalletTransactionProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletTransactionProgressView.swift; sourceTree = "<group>"; };
 		6ADD7D872A51B616003D2E54 /* MyArticleModel+Save.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MyArticleModel+Save.swift"; sourceTree = "<group>"; };
 		6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetIPNSView.swift; sourceTree = "<group>"; };
+		6AE1839A2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MyPlanetModel+Aggregate.swift"; sourceTree = "<group>"; };
 		6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsPlanetsView.swift; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 		7211403BD64F1D6E5B14D69E /* WriterVideoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WriterVideoView.swift; sourceTree = "<group>"; };
@@ -1385,6 +1388,7 @@
 				6AADD6C52AF8809600898A6E /* MyArticleModel+SavePublic.swift */,
 				6A52FAEB2A889577000E85F0 /* BackupArticleModel.swift */,
 				72114299E3D896326AFFF5D0 /* MyPlanetModel.swift */,
+				6AE1839A2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift */,
 				6A52FAEE2A88969A000E85F0 /* BackupMyPlanetModel.swift */,
 				6A52FAF12A88A2C2000E85F0 /* PublicPlanetModel.swift */,
 				72114BCC75EE5AAA9D0CA991 /* FollowingPlanetModel.swift */,
@@ -1757,6 +1761,7 @@
 				2A95E6942A19A3D0001288B8 /* PlanetKeyManagerWindow.swift in Sources */,
 				2A996AD42A1DA6C100BEF898 /* PlanetDownloadsView.swift in Sources */,
 				6A52FAEA2A8893E9000E85F0 /* PublicArticleModel.swift in Sources */,
+				6AE1839C2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift in Sources */,
 				2A95E6E42A19A64F001288B8 /* CLTextFieldView.swift in Sources */,
 				2A95E6882A19A3CA001288B8 /* AttachmentThumbnailView.swift in Sources */,
 				2A95E6FC2A1B0011001288B8 /* MyPlanetInfoView.swift in Sources */,
@@ -1834,6 +1839,7 @@
 				6ACF166529246BD800AE318B /* TipSelectView.swift in Sources */,
 				2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */,
 				2A6DC6272AEB7F9D0025D6A7 /* PlanetStatusManager.swift in Sources */,
+				6AE1839B2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift in Sources */,
 				2AEEBF5428C0758000A0A092 /* ArticleWebViewModel.swift in Sources */,
 				6A669052282BD6E6009E56E2 /* TemplateBrowserPreviewWebView.swift in Sources */,
 				2A79FB2E289819AD00F06DDF /* PlanetDownloadsItemView.swift in Sources */,

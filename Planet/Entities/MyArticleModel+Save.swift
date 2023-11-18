@@ -22,7 +22,9 @@ extension MyArticleModel {
         if let slug = self.slug, slug.count > 0 {
             self.removeSlug(slug)
         }
-        planet.articles.removeAll { $0.id == id }
+        Task { @MainActor in
+            planet.articles.removeAll { $0.id == id }
+        }
         try? FileManager.default.removeItem(at: path)
         try? FileManager.default.removeItem(at: publicBasePath)
     }
