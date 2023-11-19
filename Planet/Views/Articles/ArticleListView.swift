@@ -122,16 +122,21 @@ struct ArticleListView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            VStack {
-                if let articles = articles {
-                    if articles.isEmpty {
-                        Text(ListViewFilter.emptyLabels[filter.rawValue] ?? "No Articles")
-                            .foregroundColor(.secondary)
-                            .font(.system(size: 14, weight: .regular))
+        VStack(spacing: 0) {
+            if let articles = articles {
+                if articles.isEmpty {
+                    /*
+                    Text(ListViewFilter.emptyLabels[filter.rawValue] ?? "No Articles")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 14, weight: .regular))
+                    */
+                    // It seems an empty List here gives us the expected Safe Area behavior
+                    List {
                     }
-                    else {
-                        ScrollViewReader { proxy in
-                            List(articles, id: \.self, selection: $planetStore.selectedArticle) {
+                }
+                else {
+                    ScrollViewReader { proxy in
+                        List(articles, id: \.self, selection: $planetStore.selectedArticle) {
                                 article in
                                 if let myArticle = article as? MyArticleModel {
                                     if #available(macOS 13.0, *) {
@@ -155,13 +160,19 @@ struct ArticleListView: View {
                         }
                     }
                 }
-                else {
-                    Text("No Planet Selected")
-                        .foregroundColor(.secondary)
-                        .font(.system(size: 14, weight: .regular))
+            else {
+                /*
+                Text("No Planet Selected")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 14, weight: .regular))
+                */
+                List {
+
                 }
             }
-            .safeAreaInset(edge: .top, spacing: 0) {
+        }
+
+        .safeAreaInset(edge: .top, spacing: 0) {
                 Spacer()
                     .frame(height: geometry.safeAreaInsets.top)
             }
@@ -238,7 +249,6 @@ struct ArticleListView: View {
                     default:
                         break
                     }
-
                 }
             }
         }
