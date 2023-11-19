@@ -22,8 +22,9 @@ extension MyArticleModel {
         if let slug = self.slug, slug.count > 0 {
             self.removeSlug(slug)
         }
-        Task { @MainActor in
-            planet.articles.removeAll { $0.id == id }
+        DispatchQueue.main.async {
+            self.planet.articles.removeAll { $0.id == self.id }
+            PlanetStore.shared.refreshSelectedArticles()
         }
         try? FileManager.default.removeItem(at: path)
         try? FileManager.default.removeItem(at: publicBasePath)

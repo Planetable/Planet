@@ -121,39 +121,51 @@ struct ArticleListView: View {
     }
 
     var body: some View {
-        VStack {
-            if let articles = articles {
-                if articles.isEmpty {
-                    Text(ListViewFilter.emptyLabels[filter.rawValue] ?? "No Articles")
-                        .foregroundColor(.secondary)
-                        .font(.system(size: 14, weight: .regular))
-                }
-                else {
-                    List(articles, id: \.self, selection: $planetStore.selectedArticle) { article in
-                        if let myArticle = article as? MyArticleModel {
-                            if #available(macOS 13.0, *) {
-                                MyArticleItemView(article: myArticle)
-                                    .listRowSeparator(.visible)
-                            } else {
-                                MyArticleItemView(article: myArticle)
-                            }
-                        }
-                        else if let followingArticle = article as? FollowingArticleModel {
-                            if #available(macOS 13.0, *) {
-                                FollowingArticleItemView(article: followingArticle)
-                                    .listRowSeparator(.visible)
-                            } else {
-                                FollowingArticleItemView(article: followingArticle)
+        GeometryReader { geometry in
+            VStack {
+                if let articles = articles {
+                    if articles.isEmpty {
+                        Text(ListViewFilter.emptyLabels[filter.rawValue] ?? "No Articles")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 14, weight: .regular))
+                    }
+                    else {
+                        ScrollViewReader { proxy in
+                            List(articles, id: \.self, selection: $planetStore.selectedArticle) {
+                                article in
+                                if let myArticle = article as? MyArticleModel {
+                                    if #available(macOS 13.0, *) {
+                                        MyArticleItemView(article: myArticle)
+                                            .listRowSeparator(.visible)
+                                    }
+                                    else {
+                                        MyArticleItemView(article: myArticle)
+                                    }
+                                }
+                                else if let followingArticle = article as? FollowingArticleModel {
+                                    if #available(macOS 13.0, *) {
+                                        FollowingArticleItemView(article: followingArticle)
+                                            .listRowSeparator(.visible)
+                                    }
+                                    else {
+                                        FollowingArticleItemView(article: followingArticle)
+                                    }
+                                }
                             }
                         }
                     }
                 }
+                else {
+                    Text("No Planet Selected")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 14, weight: .regular))
+                }
             }
-            else {
-                Text("No Planet Selected")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 14, weight: .regular))
+            .safeAreaInset(edge: .top, spacing: 0) {
+                Spacer()
+                    .frame(height: geometry.safeAreaInsets.top)
             }
+            .edgesIgnoringSafeArea(.vertical)
         }
         .navigationTitle(
             Text(planetStore.navigationTitle)
