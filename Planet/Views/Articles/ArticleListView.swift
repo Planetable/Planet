@@ -130,24 +130,26 @@ struct ArticleListView: View {
                             .font(.system(size: 14, weight: .regular))
                     }
                     else {
-                        List(articles, id: \.self, selection: $planetStore.selectedArticle) {
-                            article in
-                            if let myArticle = article as? MyArticleModel {
-                                if #available(macOS 13.0, *) {
-                                    MyArticleItemView(article: myArticle)
-                                        .listRowSeparator(.visible)
+                        ScrollViewReader { proxy in
+                            List(articles, id: \.self, selection: $planetStore.selectedArticle) {
+                                article in
+                                if let myArticle = article as? MyArticleModel {
+                                    if #available(macOS 13.0, *) {
+                                        MyArticleItemView(article: myArticle)
+                                            .listRowSeparator(.visible)
+                                    }
+                                    else {
+                                        MyArticleItemView(article: myArticle)
+                                    }
                                 }
-                                else {
-                                    MyArticleItemView(article: myArticle)
-                                }
-                            }
-                            else if let followingArticle = article as? FollowingArticleModel {
-                                if #available(macOS 13.0, *) {
-                                    FollowingArticleItemView(article: followingArticle)
-                                        .listRowSeparator(.visible)
-                                }
-                                else {
-                                    FollowingArticleItemView(article: followingArticle)
+                                else if let followingArticle = article as? FollowingArticleModel {
+                                    if #available(macOS 13.0, *) {
+                                        FollowingArticleItemView(article: followingArticle)
+                                            .listRowSeparator(.visible)
+                                    }
+                                    else {
+                                        FollowingArticleItemView(article: followingArticle)
+                                    }
                                 }
                             }
                         }
