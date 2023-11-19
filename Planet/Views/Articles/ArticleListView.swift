@@ -122,21 +122,21 @@ struct ArticleListView: View {
 
     var body: some View {
         GeometryReader { geometry in
-        VStack(spacing: 0) {
-            if let articles = articles {
-                if articles.isEmpty {
-                    /*
-                    Text(ListViewFilter.emptyLabels[filter.rawValue] ?? "No Articles")
-                        .foregroundColor(.secondary)
-                        .font(.system(size: 14, weight: .regular))
-                    */
-                    // It seems an empty List here gives us the expected Safe Area behavior
-                    List {
+            VStack(spacing: 0) {
+                if let articles = articles {
+                    if articles.isEmpty {
+                        /*
+                        Text(ListViewFilter.emptyLabels[filter.rawValue] ?? "No Articles")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 14, weight: .regular))
+                        */
+                        // It seems an empty List here gives us the expected Safe Area behavior
+                        List {
+                        }
                     }
-                }
-                else {
-                    ScrollViewReader { proxy in
-                        List(articles, id: \.self, selection: $planetStore.selectedArticle) {
+                    else {
+                        ScrollViewReader { proxy in
+                            List(articles, id: \.self, selection: $planetStore.selectedArticle) {
                                 article in
                                 if let myArticle = article as? MyArticleModel {
                                     if #available(macOS 13.0, *) {
@@ -160,19 +160,18 @@ struct ArticleListView: View {
                         }
                     }
                 }
-            else {
-                /*
+                else {
+                    /*
                 Text("No Planet Selected")
                     .foregroundColor(.secondary)
                     .font(.system(size: 14, weight: .regular))
                 */
-                List {
+                    List {
 
+                    }
                 }
             }
-        }
-
-        .safeAreaInset(edge: .top, spacing: 0) {
+            .safeAreaInset(edge: .top, spacing: 0) {
                 Spacer()
                     .frame(height: geometry.safeAreaInsets.top)
             }
