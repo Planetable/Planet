@@ -389,6 +389,7 @@
 		6ACF166529246BD800AE318B /* TipSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF166429246BD800AE318B /* TipSelectView.swift */; };
 		6ACF1667292570AF00AE318B /* PlanetUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF1666292570AF00AE318B /* PlanetUI.swift */; };
 		6ACF16692927267800AE318B /* WalletTransactionProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF16682927267800AE318B /* WalletTransactionProgressView.swift */; };
+		6AD447712B0DCAF0007E92A2 /* MyPlanetCustomCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A373A3B28E8178500750256 /* MyPlanetCustomCodeView.swift */; };
 		6ADD7D882A51B616003D2E54 /* MyArticleModel+Save.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADD7D872A51B616003D2E54 /* MyArticleModel+Save.swift */; };
 		6ADD7D892A51B616003D2E54 /* MyArticleModel+Save.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADD7D872A51B616003D2E54 /* MyArticleModel+Save.swift */; };
 		6ADF40B92914D88C007A24E8 /* MyPlanetIPNSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */; };
@@ -1787,6 +1788,7 @@
 				2A95E6772A19A3C4001288B8 /* URLUtils.swift in Sources */,
 				2A6E16DA2A186B0100704A08 /* AppWindow.swift in Sources */,
 				2ABD1CC42A1616DA0082D7EA /* AppDelegate.swift in Sources */,
+				6AD447712B0DCAF0007E92A2 /* MyPlanetCustomCodeView.swift in Sources */,
 				2A95E69E2A19A446001288B8 /* FollowingPlanetModel.swift in Sources */,
 				2A95E68D2A19A3CA001288B8 /* WriterWebView.swift in Sources */,
 				2AC063A72A4DC49F004F0A29 /* AppContentGridCell.swift in Sources */,

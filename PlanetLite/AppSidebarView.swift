@@ -98,6 +98,11 @@ struct AppSidebarView: View {
                 MyArticleSettingsView(article: article)
             }
         }
+        .sheet(isPresented: $planetStore.isEditingPlanetCustomCode) {
+            if case .myPlanet(let planet) = planetStore.selectedView {
+                MyPlanetCustomCodeView(planet: planet)
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .publishMyPlanet)) {
             aNotification in
             if let userObject = aNotification.object, let planet = userObject as? MyPlanetModel {

@@ -197,6 +197,15 @@ struct AppSidebarItemView: View {
                 Button {
                     Task {
                         PlanetStore.shared.selectedView = .myPlanet(planet)
+                        PlanetStore.shared.isEditingPlanetCustomCode = true
+                    }
+                } label: {
+                    Text("Custom Code")
+                }
+
+                Button {
+                    Task {
+                        PlanetStore.shared.selectedView = .myPlanet(planet)
                         PlanetStore.shared.isConfiguringAggregation = true
                     }
                 } label: {
