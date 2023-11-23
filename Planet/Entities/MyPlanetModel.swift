@@ -324,6 +324,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return URL(string: "https://\(ipns).ipfs2.eth.limo/")
     }
 
+    var cidURL: URL? {
+        guard let cid = self.lastPublishedCID else { return nil }
+        return URL(string: "https://\(cid).ipfs2.eth.limo/")
+    }
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(name)
@@ -1649,6 +1654,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         catch {
             debugPrint("Failed to prewarm \(name) \(planetJSONURL): \(error)")
+        }
+        guard let cidURL = cidURL else { return }
+        do {
+            debugPrint("About to prewarm \(name) CID: \(cidURL)")
+            let (cidData, _) = try await URLSession.shared.data(from: cidURL)
+            debugPrint("Prewarmed \(name) CID: \(cidData.count) bytes")
+        }
+        catch {
+            debugPrint("Failed to prewarm \(name) \(cidURL) CID: \(error)")
         }
     }
 

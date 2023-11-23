@@ -369,6 +369,7 @@ class MyArticleModel: ArticleModel, Codable {
     func prewarm() async {
         guard let postURL = browserURL else { return }
         let articleJSONURL = postURL.appendingPathComponent("article.json")
+        // post page: /UUID/ or /slug/
         do {
             debugPrint("About to prewarm \(planet.name) post: \(postURL)")
             let (postData, _) = try await URLSession.shared.data(from: postURL)
@@ -377,8 +378,9 @@ class MyArticleModel: ArticleModel, Codable {
         catch {
             debugPrint("Failed to prewarm \(planet.name) post \(postURL): \(error)")
         }
+        // metadata: /UUID/article.json or /slug/article.json
         do {
-            debugPrint("About to prewarm \(planet.name) post: \(articleJSONURL)")
+            debugPrint("About to prewarm \(planet.name) post metadata: \(articleJSONURL)")
             let (articleJSONData, _) = try await URLSession.shared.data(from: articleJSONURL)
             debugPrint("Prewarmed \(planet.name) post metadata: \(articleJSONData.count) bytes")
         }
