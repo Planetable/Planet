@@ -136,7 +136,8 @@ class MyArticleModel: ArticleModel, Codable {
                 return URL(string: "https://\(domain)\(urlPath)")
             }
         }
-        return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.ipns)\(urlPath)")
+        // return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.ipns)\(urlPath)")
+        return URL(string: "https://\(planet.ipns).ipfs2.eth.limo\(urlPath)")
     }
     var socialImageURL: URL? {
         if let heroImage = getHeroImage(), let baseURL = browserURL {
@@ -361,6 +362,29 @@ class MyArticleModel: ArticleModel, Codable {
             withIntermediateDirectories: true
         )
         return article
+    }
+
+    // MARK: Prewarm
+
+    func prewarm() async {
+        guard let postURL = browserURL else { return }
+        let articleJSONURL = postURL.appendingPathComponent("article.json")
+        do {
+            debugPrint("About to prewarm \(planet.name) post: \(postURL)")
+            let (postData, _) = try await URLSession.shared.data(from: postURL)
+            debugPrint("Prewarmed \(planet.name) post: \(postData.count) bytes")
+        }
+        catch {
+            debugPrint("Failed to prewarm \(planet.name) post \(postURL): \(error)")
+        }
+        do {
+            debugPrint("About to prewarm \(planet.name) post: \(articleJSONURL)")
+            let (articleJSONData, _) = try await URLSession.shared.data(from: articleJSONURL)
+            debugPrint("Prewarmed \(planet.name) post metadata: \(articleJSONData.count) bytes")
+        }
+        catch {
+            debugPrint("Failed to prewarm \(planet.name) post metadata \(articleJSONURL): \(error)")
+        }
     }
 
     // MARK: Attachment

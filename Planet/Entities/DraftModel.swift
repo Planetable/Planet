@@ -463,6 +463,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         Task {
             try await planet.savePublic()
             try await planet.publish()
+            Task(priority: .background) {
+                await article.prewarm()
+            }
         }
 
         Task { @MainActor in
