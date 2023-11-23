@@ -205,11 +205,10 @@ struct MyPlanetCustomCodeView: View {
                         planet.customCodeBodyEnd = customCodeBodyEnd
                         Task {
                             try planet.save()
-                            try planet.copyTemplateAssets()
-                            try planet.articles.forEach { try $0.savePublic() }
-                            try await planet.savePublic()
+                            Task(priority: .background) {
+                                try await planet.rebuild()
+                            }
                             NotificationCenter.default.post(name: .loadArticle, object: nil)
-                            try await planet.publish()
                         }
                         dismiss()
                     } label: {
