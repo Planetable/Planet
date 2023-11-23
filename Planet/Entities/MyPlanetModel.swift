@@ -320,7 +320,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if let domainWithGateway = domainWithGateway {
             return URL(string: "https://" + domainWithGateway + "/")
         }
-        return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(ipns)/")
+        // return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(ipns)/")
+        return URL(string: "https://\(ipns).ipfs2.eth.limo/")
     }
 
     func hash(into hasher: inout Hasher) {

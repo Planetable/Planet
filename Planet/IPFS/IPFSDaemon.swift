@@ -145,13 +145,15 @@ actor IPFSDaemon {
     }
 
     static func urlForCID(_ cid: String) -> URL? {
-        let gateway = IPFSDaemon.preferredGateway()
-        return URL(string: gateway + "/ipfs/" + cid)
+        // let gateway = IPFSDaemon.preferredGateway()
+        // return URL(string: gateway + "/ipfs/" + cid)
+        return URL(string: "https://\(cid).ipfs2.eth.limo/")
     }
 
     static func urlForIPNS(_ ipns: String) -> URL? {
-        let gateway = IPFSDaemon.preferredGateway()
-        return URL(string: gateway + "/ipns/" + ipns)
+        // let gateway = IPFSDaemon.preferredGateway()
+        // return URL(string: gateway + "/ipns/" + ipns)
+        return URL(string: "https://\(ipns).ipfs2.eth.limo/")
     }
 
     // Reference: https://stackoverflow.com/a/65162953
