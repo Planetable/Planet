@@ -11,7 +11,7 @@ struct PlanetSettingsGeneralView: View {
     let CAPTION_WIDTH: CGFloat = 120
 
     @EnvironmentObject private var viewModel: PlanetSettingsViewModel
-    
+
     @State private var libraryLocation: String = URLUtils.repoPath().path {
         didSet {
             Task(priority: .userInitiated) {
@@ -88,6 +88,8 @@ struct PlanetSettingsGeneralView: View {
                     }
                     .padding(.top, -10)
 
+                    // Obsoleted by ipfs2.eth.limo
+                    /*
                     HStack(spacing: 4) {
                         Text("Public Gateway")
                             .frame(width: CAPTION_WIDTH, alignment: .trailing)
@@ -103,6 +105,7 @@ struct PlanetSettingsGeneralView: View {
                             NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
                         }
                     }
+                    */
 
                     VStack {
                         HStack(spacing: 4) {
@@ -147,7 +150,7 @@ struct PlanetSettingsGeneralView: View {
         UserDefaults.standard.removeObject(forKey: .settingsLibraryLocation)
         libraryLocation = URLUtils.repoPath().path
     }
-    
+
     private func updateLibraryLocation() throws {
         let panel = NSOpenPanel()
         panel.message = "Choose Library Location"
