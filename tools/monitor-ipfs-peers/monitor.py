@@ -1,7 +1,7 @@
+import arrow
 import socket
 import crayons
 import config
-import json
 import ssl
 import time
 from nostr.event import Event
@@ -39,12 +39,12 @@ def check_connection(address, port):
 
 def main():
     filename = "peers.txt"  # Updated file name
-    o = ""
+    o = str(arrow.get().to('US/Pacific')) + "\n\n"
     with open(filename, "r") as file:
         for line in file:
             line = line.strip()
             # Skip lines starting with #
-            if line.startswith("#") or line == "":
+            if line.startswith("#") or line.startswith("//") or line == "":
                 o = o + line + "\n"
                 continue
             parts = line.split()  # Splits by whitespace
