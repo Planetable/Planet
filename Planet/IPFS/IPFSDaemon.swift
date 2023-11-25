@@ -63,11 +63,8 @@ actor IPFSDaemon {
 
         // IPFS peering
         // peers from https://docs.ipfs.io/how-to/peering-with-content-providers/#content-provider-list
-        // adding Cloudflare and ProtocolLabs
-        // last updated: 2023-OCT-03
         Self.logger.info("Setting peers")
         let peers = JSON([
-            ["ID": "12D3KooWBJY6ZVV8Tk8UDDFMEqWoxn89Xc8wnpm8uBFSR3ijDkui", "Addrs": ["/ip4/167.71.172.216/tcp/4001", "/ip6/2604:a880:800:10::826:1/tcp/4001"]],
             ["ID": "QmcFf2FH3CEgTNHeMRGhN7HNHU1EXAxoEk6EFuSyXCsvRE", "Addrs": ["/dnsaddr/node-1.ingress.cloudflare-ipfs.com"]],
             ["ID": "QmcFmLd5ySfk2WZuJ1mfSWLDjdmHZq7rSAua4GoeSQfs1z", "Addrs": ["/dnsaddr/node-2.ingress.cloudflare-ipfs.com"]],
             ["ID": "QmcfFmzSDVbwexQ9Au2pt5YEXHK5xajwgaU6PpkbLWerMa", "Addrs": ["/dnsaddr/node-3.ingress.cloudflare-ipfs.com"]],
@@ -80,26 +77,30 @@ actor IPFSDaemon {
             ["ID": "QmcfR3V5YAtHBzxVACWCzXTt26SyEkxdwhGJ6875A8BuWx", "Addrs": ["/dnsaddr/node-10.ingress.cloudflare-ipfs.com"]],
             ["ID": "Qmcfuo1TM9uUiJp6dTbm915Rf1aTqm3a3dnmCdDQLHgvL5", "Addrs": ["/dnsaddr/node-11.ingress.cloudflare-ipfs.com"]],
             ["ID": "QmcfV2sg9zaq7UUHVCGuSvT2M2rnLBAPsiE79vVyK3Cuev", "Addrs": ["/dnsaddr/node-12.ingress.cloudflare-ipfs.com"]],
-            ["ID": "QmUEMvxS2e7iDrereVYc5SWPauXPyNwxcy9BXZrC1QTcHE", "Addrs": ["/dns/cluster0.fsn.dwebops.pub"]],
-            ["ID": "QmNSYxZAiJHeLdkBg38roksAR9So7Y5eojks1yjEcUtZ7i", "Addrs": ["/dns/cluster1.fsn.dwebops.pub"]],
-            ["ID": "QmUd6zHcbkbcs7SMxwLs48qZVX3vpcM8errYS7xEczwRMA", "Addrs": ["/dns/cluster2.fsn.dwebops.pub"]],
-            ["ID": "QmbVWZQhCGrS7DhgLqWbgvdmKN7JueKCREVanfnVpgyq8x", "Addrs": ["/dns/cluster3.fsn.dwebops.pub"]],
-            ["ID": "QmdnXwLrC8p1ueiq2Qya8joNvk3TVVDAut7PrikmZwubtR", "Addrs": ["/dns/cluster4.fsn.dwebops.pub"]],
+            ["ID": "12D3KooWBJY6ZVV8Tk8UDDFMEqWoxn89Xc8wnpm8uBFSR3ijDkui", "Addrs": ["/ip4/167.71.172.216/tcp/4001", "/ip6/2604:a880:800:10::826:1/tcp/4001"]],  // Pinnable
             ["ID": "12D3KooWLBMmT1dft1zcJvXNYkAfoUqj2RtRm7f9XkF17YmZsu4o",
              "Addrs": [
                "/ip4/104.131.8.159/tcp/4001",
                "/ip6/2604:a880:800:10::bc4:e001/tcp/4001"
-            ]],
+            ]], // eth.limo
             ["ID": "12D3KooWMHpq3mdygcbZWbjkuDdCsX5rjZHX31uRbCp9vAZXBxcD",
              "Addrs": [
                "/ip4/104.131.8.143/tcp/4001",
                "/ip6/2604:a880:800:10::ac1:2001/tcp/4001"
-            ]],
+            ]], // eth.limo
             ["ID": "12D3KooWQ1b2WBM1NM1a5jWS5Kny3y93zyK6iPBuVAA6uk95zdyJ",
              "Addrs": [
                "/ip4/45.55.43.156/tcp/4001",
                "/ip6/2604:a880:800:10::c59:6001/tcp/4001"
-            ]]
+            ]], // eth.limo
+            ["ID": "12D3KooWJ6MTkNM8Bu8DzNiRm1GY3Wqh8U8Pp1zRWap6xY3MvsNw",
+             "Addrs": [
+               "/dnsaddr/node-1.ipfs.bit.site"
+            ]], // bit.site
+            ["ID": "12D3KooWQ85aSCFwFkByr5e3pUCQeuheVhobVxGSSs1DrRQHGv1t",
+             "Addrs": [
+               "/dnsaddr/node-1.ipfs.4everland.net"
+            ]]  // 4everland.io
         ])
         guard let result = try? IPFSCommand.setPeers(peersJSON: String(data: peers.rawData(), encoding: .utf8)!).run(),
               result.ret == 0
