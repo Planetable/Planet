@@ -147,8 +147,35 @@ extension MyPlanetModel {
                 )
                 debugPrint("Aggregation: fetched \(site) with \(planet.articles.count) articles")
                 for article in planet.articles {
-                    if !self.articles.contains(where: { $0.originalPostID == article.id.uuidString }
-                    ) {
+                    if let existingArticle = self.articles.first(
+                        where: { $0.originalPostID == article.id.uuidString })
+                     {
+                        // TODO: Update existing article
+                        var changed = false
+                        if existingArticle.title != article.title {
+                            debugPrint(
+                                "Aggregation: updating \(article.id) title from \(existingArticle.title) to \(article.title)"
+                            )
+                            existingArticle.title = article.title
+                            changed = true
+                        }
+                        if existingArticle.content != article.content {
+                            debugPrint(
+                                "Aggregation: updating \(article.id) content from \(existingArticle.content) to \(article.content)"
+                            )
+                            existingArticle.content = article.content
+                            changed = true
+                        }
+                        if changed {
+                            try existingArticle.save()
+                            Task(priority: .utility) {
+                                try existingArticle.savePublic()
+                            }
+                            DispatchQueue.main.async {
+                                PlanetStore.shared.refreshSelectedArticles()
+                            }
+                        }
+                    } else {
                         debugPrint("Aggregation: adding \(article.id) from \(site)")
                         let heroImageName: String?
                         if let heroImage = article.heroImage {
@@ -250,9 +277,6 @@ extension MyPlanetModel {
                             self.articles.sort(by: { $0.created > $1.created })
                             PlanetStore.shared.refreshSelectedArticles()
                         }
-                    }
-                    else {
-                        debugPrint("Aggregation: Skipping \(article.id), already saved")
                     }
                 }
             }

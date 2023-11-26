@@ -4,7 +4,7 @@ struct ArticleExternalLinkView: View {
     @ObservedObject var article: ArticleModel
 
     var body: some View {
-        if let myArticle = article as? MyArticleModel, let link = myArticle.externalLink {
+        if let myArticle = article as? MyArticleModel, let link = myArticle.externalLink, link.count > 0 {
             VStack(alignment: .leading, spacing: 0) {
                 Divider()
                 HStack(spacing: 8) {
