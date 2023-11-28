@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftSoup
+import SwiftUI
 
 enum AggregationEndpointType: Int, Codable, CaseIterable {
     case ipns = 1
@@ -30,6 +31,26 @@ extension MyPlanetModel {
             return .http
         }
         return .unknown
+    }
+
+    @ViewBuilder
+    func batchDeleteMenu() -> some View {
+        if showBatchDeleteMenu() {
+            Menu {
+                ForEach(getUniqueOriginalSiteDomains(), id: \.self) { domain in
+                    Button {
+                        Task {
+                            try await self.batchDeletePosts(domain: domain)
+                        }
+                    } label: {
+                        Text("Posts from \(domain)")
+                            .badge(self.getPostCount(domain: domain))
+                    }
+                }
+            } label: {
+                Text("Batch Delete")
+            }
+        }
     }
 
     func showBatchDeleteMenu() -> Bool {

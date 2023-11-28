@@ -85,26 +85,37 @@ struct MyArticleItemView: View {
         .contentShape(Rectangle())
         .contextMenu {
             VStack {
-                Button {
-                    do {
-                        try WriterStore.shared.editArticle(for: article)
+                if !article.isAggregated() {
+                    Button {
+                        do {
+                            try WriterStore.shared.editArticle(for: article)
+                        }
+                        catch {
+                            PlanetStore.shared.alert(title: "Failed to launch writer")
+                        }
+                    } label: {
+                        Text("Edit Article")
                     }
-                    catch {
-                        PlanetStore.shared.alert(title: "Failed to launch writer")
+                    Button {
+                        PlanetStore.shared.selectedArticle = article
+                        PlanetStore.shared.isShowingMyArticleSettings = true
+                    } label: {
+                        Text("Settings")
                     }
-                } label: {
-                    Text("Edit Article")
-                }
-                Button {
-                    PlanetStore.shared.selectedArticle = article
-                    PlanetStore.shared.isShowingMyArticleSettings = true
-                } label: {
-                    Text("Settings")
+
+                    Divider()
+                } else {
+                    if let siteName = article.originalSiteName {
+                        Section {
+                            Text("Aggregated from " + siteName)   
+                        }
+                    }
                 }
 
-                Divider()
                 moveArticleItem()
+
                 Divider()
+
 
                 Button {
                     isShowingDeleteConfirmation = true

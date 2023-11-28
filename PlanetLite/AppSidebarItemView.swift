@@ -212,22 +212,7 @@ struct AppSidebarItemView: View {
                     Text("Aggregation")
                 }
 
-                if planet.showBatchDeleteMenu() {
-                    Menu {
-                        ForEach(planet.getUniqueOriginalSiteDomains(), id: \.self) { domain in
-                            Button {
-                                Task {
-                                    try await planet.batchDeletePosts(domain: domain)
-                                }
-                            } label: {
-                                Text("Posts from \(domain)")
-                                .badge(planet.getPostCount(domain: domain))
-                            }
-                        }
-                    } label: {
-                        Text("Batch Delete")
-                    }
-                }
+                planet.batchDeleteMenu()
 
                 Divider()
             }

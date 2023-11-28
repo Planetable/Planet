@@ -88,6 +88,8 @@ struct MyPlanetSidebarItem: View {
                     Text("Aggregation")
                 }
 
+                planet.batchDeleteMenu()
+
                 Button {
                     Task {
                         try await planet.publish()

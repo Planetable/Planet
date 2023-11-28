@@ -411,6 +411,21 @@ class MyArticleModel: ArticleModel, Codable {
         let isIncludedInNavigation = self.isIncludedInNavigation ?? false
         return attachmentsCount == 0 && !isPage && !isIncludedInNavigation
     }
+
+    func isAggregated() -> Bool {
+        if let originalSiteDomain = originalSiteDomain, originalSiteDomain.count > 0 {
+            return true
+        }
+        return false
+    }
+
+    /// If the article is aggregated from a remote source, it can't be edited.
+    func canEdit() -> Bool {
+        if let originalSiteDomain = originalSiteDomain, originalSiteDomain.count > 0 {
+            return false
+        }
+        return true
+    }
 }
 
 extension MyArticleModel {
