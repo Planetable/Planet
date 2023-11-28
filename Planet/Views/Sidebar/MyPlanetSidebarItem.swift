@@ -81,6 +81,15 @@ struct MyPlanetSidebarItem: View {
 
                 Button {
                     Task {
+                        PlanetStore.shared.selectedView = .myPlanet(planet)
+                        PlanetStore.shared.isConfiguringAggregation = true
+                    }
+                } label: {
+                    Text("Aggregation")
+                }
+
+                Button {
+                    Task {
                         try await planet.publish()
                     }
                 } label: {
