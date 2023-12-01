@@ -95,6 +95,13 @@ extension MyArticleModel {
             debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
             NotificationCenter.default.post(name: .myArticleBuilt, object: self)
         }
+
+        // MARK: - Restart the API server
+        if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
+            Task {
+                try? await PlanetAPIHelper.shared.relaunch()
+            }
+        }
     }
 
     // MARK: - Attachment Functions

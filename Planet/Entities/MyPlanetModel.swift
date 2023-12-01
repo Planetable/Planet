@@ -1554,11 +1554,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             debugPrint("Planet \(name) is being rebuilt, skipping publish")
             return
         }
-        if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-            Task {
-                try? await PlanetAPIHelper.shared.relaunch()
-            }
-        }
         await MainActor.run {
             self.isPublishing = true
             PlanetStatusManager.shared.updateStatus()
