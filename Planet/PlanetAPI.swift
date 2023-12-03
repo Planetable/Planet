@@ -64,6 +64,9 @@ actor PlanetAPIHelper {
         server["/v0/info"] = { r in
             return PlanetAPI.shared.getServerInfo(forRequest: r)
         }
+        server["/v0/ping"] = { r in
+            return PlanetAPI.shared.getPing(forRequest: r)
+        }
         server["/v0/planets/my"] = { r in
             switch r.method {
             case "GET":
@@ -241,14 +244,15 @@ extension PlanetAPI {
     }
 
     // MARK: GET /v0/info
-    /* Contents of ServerInfo:
-       - hostName: String
-       - version: String
-       - ipfsPeerID: String
-       - ipfsPeerCount: Int
-       - ipfsVersion: String
-    */
     /// Return ServerInfo
+    ///
+    /// ### Contents of ServerInfo
+    ///
+    /// - ``hostName``: String
+    /// - ``version``: String
+    /// - ``ipfsPeerID``: String
+    /// - ``ipfsPeerCount``: Int
+    /// - ``ipfsVersion``: String
     func getServerInfo(forRequest r: HttpRequest) -> HttpResponse {
         var info: ServerInfo?
         DispatchQueue.main.sync {
@@ -266,6 +270,13 @@ extension PlanetAPI {
         } else {
             return .error("ServerInfo not available.")
         }
+    }
+
+    // MARK: GET /v0/ping
+    /// Simple ping/pong test for authenticated user.
+    func getPing(forRequest r: HttpRequest) -> HttpResponse {
+        guard validateRequest(r) else { return .unauthorized(nil) }
+        return .ok(.text("pong"))
     }
 
     // MARK: GET /v0/planets/my
