@@ -213,7 +213,9 @@ extension MyArticleModel {
     // MARK: - Video Related Functions
 
     func hasVideoContent() -> Bool {
-        return videoFilename != nil
+        let result: Bool = videoFilename != nil
+        debugPrint("Checking video content for \(self.title): \(result)")
+        return result
     }
 
     func saveVideoThumbnail() {
@@ -273,6 +275,7 @@ extension MyArticleModel {
             return heroImage
         }
         if self.hasVideoContent() {
+            debugPrint("HeroImage: video content found")
             return "_videoThumbnail.png"
         }
         debugPrint("HeroImage: finding from \(attachments ?? [])")

@@ -159,13 +159,13 @@ class PlanetQuickShareViewModel: ObservableObject {
         }
         draft = try DraftModel.create(for: targetPlanet)
         for file in fileURLs {
-            try draft?.addAttachment(path: file, type: .image)
+            try draft?.addAttachment(path: file, type: AttachmentType.from(file))
         }
         draft?.title = title
         var finalContent = ""
         if let attachments = draft?.attachments {
             for attachment in attachments {
-                if let markdown = attachment.markdown {
+                if attachment.type == .image, let markdown = attachment.markdown {
                     finalContent += markdown + "\n\n\n"
                 }
             }

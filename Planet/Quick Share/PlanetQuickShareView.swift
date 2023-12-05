@@ -304,7 +304,7 @@ struct PlanetQuickShareView: View {
         panel.message = "Choose attachments to publish"
         panel.prompt = "Choose"
         panel.allowsMultipleSelection = true
-        panel.allowedContentTypes = [.image]
+        panel.allowedContentTypes = [.image, .movie]
         panel.canChooseDirectories = false
         panel.showsHiddenFiles = false
         let response = panel.runModal()
