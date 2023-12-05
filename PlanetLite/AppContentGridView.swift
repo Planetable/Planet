@@ -200,7 +200,7 @@ private class AppCollectionView: NSCollectionView {
         guard let object = sender as? NSMenuItem, let article = object.representedObject as? MyArticleModel else { return }
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "Are you sure you want to delete this post?\n\n\(article.title)?\n\nThis action cannot be undone."
+        alert.messageText = "Are you sure you want to delete this post?\n\n\(article.title)\n\nThis action cannot be undone."
         alert.addButton(withTitle: "Cancel")
         alert.addButton(withTitle: "Delete")
         alert.buttons.last?.hasDestructiveAction = true

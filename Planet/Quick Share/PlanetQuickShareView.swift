@@ -5,6 +5,7 @@
 //  Created by Kai on 4/12/23.
 //
 
+import AVKit
 import ASMediaView
 import SwiftUI
 import UniformTypeIdentifiers
@@ -15,6 +16,8 @@ struct PlanetQuickShareView: View {
 
     @State private var isPosting: Bool = false
     @State private var updatingTags: Bool = false
+
+    @State private var player: AVPlayer?
 
     init() {
         _viewModel = StateObject(wrappedValue: PlanetQuickShareViewModel.shared)
@@ -161,16 +164,19 @@ struct PlanetQuickShareView: View {
                     let dropDelegate = PlanetQuickShareDropDelegate()
                     attachmentSectionPlaceholder()
                         .focusable()
-                        .onDrop(of: [.image], delegate: dropDelegate)
-                        .onPasteCommand(of: [.fileURL, .image], perform: PlanetQuickShareViewModel.shared.processPasteItems(_:))
+                        .onDrop(of: [.image, .movie], delegate: dropDelegate)
+                        .onPasteCommand(of: [.fileURL, .image, .movie], perform: PlanetQuickShareViewModel.shared.processPasteItems(_:))
                         .contextMenu {
-                            PasteButton(supportedContentTypes: [.fileURL, .image], payloadAction: PlanetQuickShareViewModel.shared.processPasteItems(_:))
+                            PasteButton(supportedContentTypes: [.fileURL, .image, .movie], payloadAction: PlanetQuickShareViewModel.shared.processPasteItems(_:))
                         }
                 }
             }
             else {
                 attachmentSectionPlaceholder()
             }
+        }
+        else if viewModel.fileURLs.count == 1, let url = viewModel.fileURLs.first, AttachmentType.from(url) == .video {
+            videoView(url: url)
         }
         else if viewModel.fileURLs.count == 1, let url = viewModel.fileURLs.first,
             let img = NSImage(contentsOf: url)
@@ -251,6 +257,26 @@ struct PlanetQuickShareView: View {
                 .cornerRadius(6)
                 .padding(1)
                 .shadow(color: .secondary.opacity(0.75), radius: 0.5, x: 0, y: 0.5)
+        }
+    }
+
+    @ViewBuilder
+    private func videoView(url: URL) -> some View {
+        HStack(spacing: 0) {
+            VideoPlayer(player: player)
+                .frame(minHeight: 180)
+                .onAppear {
+                    self.player = AVPlayer(url: url)
+                    player?.play()
+                }
+        }
+        .contextMenu {
+            Button {
+                player?.pause()
+                viewModel.fileURLs.removeAll(where: { $0 == url })
+            } label: {
+                Text("Remove Video")
+            }
         }
     }
 

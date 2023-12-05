@@ -11,6 +11,7 @@ import SwiftUI
 struct MyArticleGridView: View {
     @ObservedObject var article: MyArticleModel
     @State private var isSharing = false
+    @State private var isDeleting = false
 
     var body: some View {
         ZStack {
@@ -69,6 +70,26 @@ struct MyArticleGridView: View {
                 ]
             )
         )
+        .confirmationDialog(
+            "Are you sure you want to delete this post?\n\n\(article.title)\n\nThis action cannot be undone.",
+            isPresented: $isDeleting
+        ) {
+            Button("Delete", role: .destructive) {
+                ASMediaManager.shared.deactivateView(byID: article.id)
+                article.delete()
+                PlanetStore.shared.refreshSelectedArticles()
+                article.planet.updated = Date()
+                try? article.planet.save()
+
+                Task(priority: .userInitiated) {
+                    try? await article.planet.savePublic()
+                    Task(priority: .background) {
+                        try? await article.planet.publish()
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
         .contextMenu {
             Button {
                 do {
@@ -140,16 +161,7 @@ struct MyArticleGridView: View {
             Divider()
 
             Button {
-                ASMediaManager.shared.deactivateView(byID: article.id)
-                article.delete()
-                PlanetStore.shared.refreshSelectedArticles()
-                article.planet.updated = Date()
-                try? article.planet.save()
-
-                Task(priority: .utility) {
-                    try? await article.planet.savePublic()
-                    try? await article.planet.publish()
-                }
+                isDeleting = true
             } label: {
                 Text("Delete Post")
             }
