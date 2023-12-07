@@ -277,6 +277,7 @@ struct ArticleView: View {
                         ArticleToolbarStarView(article: article)
                     }
                 }
+
                 if let article = planetStore.selectedArticle,
                     article.hasAudio
                 {
@@ -289,6 +290,21 @@ struct ArticleView: View {
                 {
                     toolbarAttachmentsView(article: article)
                 }
+
+                if let article = planetStore.selectedArticle as? MyArticleModel, !article.isAggregated() {
+                    Button {
+                        do {
+                            try WriterStore.shared.editArticle(for: article)
+                        }
+                        catch {
+                            PlanetStore.shared.alert(title: "Failed to launch writer")
+                        }
+                    } label: {
+                        Image(systemName: "pencil.line")
+                    }
+                    .help("Edit Selected Article")
+                    .keyboardShortcut("e", modifiers: [.command])
+                }
             }
 
             ToolbarItemGroup(placement: .automatic) {
@@ -298,6 +314,7 @@ struct ArticleView: View {
                 } label: {
                     Image(systemName: "magnifyingglass")
                 }
+                .help("Search")
                 .keyboardShortcut("f", modifiers: [.command])
 
                 if let article = planetStore.selectedArticle {
@@ -314,6 +331,7 @@ struct ArticleView: View {
                             ]
                         )
                     )
+                    .help("Share Selected Article")
                 }
             }
         }
