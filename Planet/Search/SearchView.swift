@@ -17,11 +17,19 @@ struct SearchView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                    .font(.title2)
+                    .padding(.leading, 15)
+                    .padding(.vertical, 10)
+                    .padding(.trailing, 0)
+
                 TextField("Type to Search", text: $planetStore.searchText)
                     .font(.title2)
                     .textFieldStyle(PlainTextFieldStyle())
-                    .padding(.vertical, 10)
-                    .padding(.leading, 15)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
+                    .padding(.leading, 8)
                     .padding(.trailing, 10)
 
                 Button {
