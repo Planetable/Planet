@@ -124,6 +124,9 @@ struct PlanetMainView: View {
                 Text("Disconnect")
             }
         }
+        .sheet(isPresented: $planetStore.isShowingSearch) {
+            SearchView()
+        }
         .sheet(isPresented: $planetStore.isShowingOnboarding) {
             OnboardingView()
         }

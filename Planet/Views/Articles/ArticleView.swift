@@ -145,11 +145,11 @@ struct ArticleView: View {
     static let noSelectionURL = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
     @EnvironmentObject var planetStore: PlanetStore
 
-    @State private var url = Self.noSelectionURL
+    @State private var url: URL = Self.noSelectionURL
     @State private var isShowingAnalyticsPopover: Bool = false
     @State private var selectedAttachment: String? = nil
 
-    @State private var isSharing = false
+    @State private var isSharing: Bool = false
 
     @State private var sharingItem: URL?
     @State private var currentItemHost: String? = nil
@@ -292,8 +292,13 @@ struct ArticleView: View {
             }
 
             ToolbarItemGroup(placement: .automatic) {
+                Spacer()
+                Button {
+                    planetStore.isShowingSearch = true
+                } label: {
+                    Image(systemName: "magnifyingglass")
+                }
                 if let article = planetStore.selectedArticle {
-                    Spacer()
                     Button {
                         isSharing = true
                     } label: {

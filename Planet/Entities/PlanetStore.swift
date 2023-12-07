@@ -149,6 +149,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
     @Published var isShowingIconGallery: Bool = false
 
+    @Published var isShowingSearch: Bool = false
+    @Published var searchText: String = ""
+    @Published var searchResult: [MyArticleModel] = []
+
     @Published var isShowingOnboarding = false
 
     @Published var isShowingAlert = false
