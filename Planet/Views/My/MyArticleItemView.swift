@@ -18,6 +18,7 @@ struct MyArticleItemView: View {
                         Text(article.title)
                             .font(.headline)
                             .foregroundColor(.primary)
+                            .lineLimit(1)
 
                         Spacer()
 
@@ -28,14 +29,14 @@ struct MyArticleItemView: View {
                     if let summary = article.summary, summary.count > 0 {
                         Text(summary.prefix(280))
                             .foregroundColor(.secondary)
-                        if summary.count < 40 {
+                        if String(summary.prefix(280)).width(usingFont: .body) < 160 {
                             Spacer()
                         }
                     }
                     else if article.content.count > 0 {
                         Text(article.content.prefix(280))
                             .foregroundColor(.secondary)
-                        if article.content.count < 40 {
+                        if String(article.content.prefix(280)).width(usingFont: .body) < 160 {
                             Spacer()
                         }
                     }
@@ -107,7 +108,7 @@ struct MyArticleItemView: View {
                 } else {
                     if let siteName = article.originalSiteName {
                         Section {
-                            Text("Aggregated from " + siteName)   
+                            Text("Aggregated from " + siteName)
                         }
                     }
                 }

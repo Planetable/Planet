@@ -101,6 +101,37 @@ extension String {
 
         return trimmedTag
     }
+
+    func width(usingFont font: Font) -> CGFloat {
+        let nsFont: NSFont
+
+        // Map SwiftUI Font to NSFont
+        switch font {
+        case .largeTitle:
+            nsFont = NSFont.systemFont(ofSize: NSFont.systemFontSize * 1.5, weight: .regular)
+        case .title:
+            nsFont = NSFont.systemFont(ofSize: NSFont.systemFontSize * 1.4, weight: .regular)
+        case .headline:
+            nsFont = NSFont.systemFont(ofSize: NSFont.systemFontSize * 1.2, weight: .semibold)
+        case .subheadline:
+            nsFont = NSFont.systemFont(ofSize: NSFont.systemFontSize * 1.1, weight: .regular)
+        case .body:
+            nsFont = NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        case .callout:
+            nsFont = NSFont.systemFont(ofSize: NSFont.systemFontSize * 1.1, weight: .regular)
+        case .footnote:
+            nsFont = NSFont.systemFont(ofSize: NSFont.systemFontSize * 0.9, weight: .regular)
+        case .caption:
+            nsFont = NSFont.systemFont(ofSize: NSFont.systemFontSize * 0.8, weight: .regular)
+        // Add other cases as needed
+        default:
+            nsFont = NSFont.systemFont(ofSize: NSFont.systemFontSize)
+        }
+
+        let attributes: [NSAttributedString.Key: Any] = [.font: nsFont]
+        let size = (self as NSString).size(withAttributes: attributes)
+        return size.width
+    }
 }
 
 // User Notification
