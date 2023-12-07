@@ -298,6 +298,8 @@ struct ArticleView: View {
                 } label: {
                     Image(systemName: "magnifyingglass")
                 }
+                .keyboardShortcut("f", modifiers: [.command])
+
                 if let article = planetStore.selectedArticle {
                     Button {
                         isSharing = true
