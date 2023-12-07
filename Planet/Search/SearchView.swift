@@ -72,12 +72,9 @@ struct SearchView: View {
                 ForEach(result, id: \.self) { article in
                     searchResultRow(article)
                         .onTapGesture {
-                            planetStore.selectedView = .myPlanet(article.planet)
-                            Task(priority: .userInitiated) { @MainActor in
-                                planetStore.selectedArticle = article
-                            }
-                            dismiss()
+                            goToArticle(article)
                         }
+
                 }
             }.padding(0)
             .listStyle(PlainListStyle())
@@ -85,6 +82,16 @@ struct SearchView: View {
             List {
             }.padding(0)
         }
+    }
+
+    private func goToArticle(_ article: MyArticleModel) {
+        Task(priority: .userInitiated) { @MainActor in
+            planetStore.selectedView = .myPlanet(article.planet)
+            Task(priority: .userInitiated) { @MainActor in
+                planetStore.selectedArticle = article
+            }
+        }
+        dismiss()
     }
 
     @ViewBuilder

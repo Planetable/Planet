@@ -150,8 +150,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isShowingIconGallery: Bool = false
 
     @Published var isShowingSearch: Bool = false
-    @Published var searchText: String = ""
-    @Published var searchResult: [MyArticleModel] = []
+    @Published var searchText: String = UserDefaults.standard.string(forKey: "searchText") ?? "" {
+        didSet {
+            UserDefaults.standard.set(searchText, forKey: "searchText")
+        }
+    }
 
     @Published var isShowingOnboarding = false
 
