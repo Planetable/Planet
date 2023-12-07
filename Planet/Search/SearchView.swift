@@ -15,20 +15,32 @@ struct SearchView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TextField("Type to Search", text: $planetStore.searchText)
-                .font(.title2)
-                .textFieldStyle(PlainTextFieldStyle())
-                .padding(.vertical, 10)
-                .padding(.leading, 15)
-                .padding(.trailing, 10)
+            HStack(spacing: 10) {
+                TextField("Type to Search", text: $planetStore.searchText)
+                    .font(.title2)
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .padding(.vertical, 10)
+                    .padding(.leading, 15)
+                    .padding(.trailing, 10)
+
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                        .font(.title2)
+                        .padding(10)
+                        .contentShape(Rectangle())
+                }.buttonStyle(PlainButtonStyle())
+            }
             Divider()
             ScrollViewReader { proxy in
                 VStack(spacing: 0) {
                     searchResult()
                 }.id("top")
-                .onChange(of: result.count) { _ in
-                    proxy.scrollTo("top", anchor: .top)
-                }
+                    .onChange(of: result.count) { _ in
+                        proxy.scrollTo("top", anchor: .top)
+                    }
             }
             Divider()
             statusView()
@@ -40,7 +52,8 @@ struct SearchView: View {
                 DispatchQueue.main.async {
                     result = []
                 }
-            } else {
+            }
+            else {
                 search()
             }
         }
@@ -74,11 +87,11 @@ struct SearchView: View {
                         .onTapGesture {
                             goToArticle(article)
                         }
-
                 }
             }.padding(0)
-            .listStyle(PlainListStyle())
-        } else {
+                .listStyle(PlainListStyle())
+        }
+        else {
             List {
             }.padding(0)
         }
@@ -118,7 +131,7 @@ struct SearchView: View {
             .padding(.vertical, 5)
             .padding(.horizontal, 0)
         }.padding(0)
-        .contentShape(Rectangle())
+            .contentShape(Rectangle())
     }
 
     @ViewBuilder
@@ -127,7 +140,8 @@ struct SearchView: View {
             if result.count > 1 {
                 Text("\(result.count) results")
                     .foregroundColor(.secondary)
-            } else if result.count == 1 {
+            }
+            else if result.count == 1 {
                 Text("1 result")
                     .foregroundColor(.secondary)
             }
