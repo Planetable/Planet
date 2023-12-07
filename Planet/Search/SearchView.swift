@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SearchView: View {
     @EnvironmentObject var planetStore: PlanetStore
+
     @State private var result: [MyArticleModel] = []
 
     @Environment(\.dismiss) private var dismiss
@@ -88,8 +89,9 @@ struct SearchView: View {
                             goToArticle(article)
                         }
                 }
-            }.padding(0)
-                .listStyle(PlainListStyle())
+            }
+            .padding(0)
+            .listStyle(PlainListStyle())
         }
         else {
             List {
