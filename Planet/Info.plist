@@ -48,6 +48,24 @@
 				<string>public.image</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeIconSystemGenerated</key>
+			<integer>1</integer>
+			<key>CFBundleTypeName</key>
+			<string>Drop Video</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.mpeg-4</string>
+				<string>public.avi</string>
+				<string>com.apple.quicktime-movie</string>
+				<string>public.mpeg</string>
+				<string>public.movie</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
