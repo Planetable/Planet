@@ -5,24 +5,6 @@
 
 import SwiftUI
 
-// TODO: Put all the modifiers in a separate file
-struct CapsuleBar: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .padding(8)
-            .background(
-                .thinMaterial,
-                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
-            )
-            .cornerRadius(8)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color("BorderColor"), lineWidth: 0.5)
-            )
-            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
-    }
-}
-
 struct AppContentView: View {
     @StateObject private var planetStore: PlanetStore
 
@@ -134,7 +116,7 @@ struct AppContentView: View {
                 }
             }
         }
-        .onDrop(of: [.image], delegate: dropDelegate)  // TODO: Video and Audio support
+        .onDrop(of: [.image, .movie], delegate: dropDelegate)  // TODO: Audio support
         .onReceive(timer) { _ in
             Task {
                 await planetStore.aggregate()
