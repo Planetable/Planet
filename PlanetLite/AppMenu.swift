@@ -103,6 +103,14 @@ extension PlanetLiteAppDelegate: FileMenuActions, WriterMenuActions {
 
         menu.addItem(NSMenuItem.separator())
 
+        title = NSLocalizedString("Settings...", comment: "")
+        let settingsMenuItem = NSMenuItem(title: title, action: #selector(self.openSettingsWindow(_:)), keyEquivalent: ",")
+        settingsMenuItem.keyEquivalentModifierMask = .command
+        settingsMenuItem.target = self
+        menu.addItem(settingsMenuItem)
+
+        menu.addItem(NSMenuItem.separator())
+
         title = NSLocalizedString("Services", comment: "Services menu item")
         menuItem = menu.addItem(withTitle: title, action: nil, keyEquivalent: "")
         let servicesMenu = NSMenu(title: "Services")

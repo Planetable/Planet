@@ -12,6 +12,7 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
     static let shared = PlanetLiteAppDelegate()
     
     var appWindowController: AppWindowController?
+    var settingsWindowController: AppSettingsWindowController?
 
     lazy var applicationName: String = {
         if let bundleName = Bundle.main.object(forInfoDictionaryKey:"CFBundleName"), let bundleNameAsString = bundleName as? String {
@@ -92,6 +93,13 @@ extension PlanetLiteAppDelegate {
 
     @objc func checkForUpdate(_ sender: Any) {
         PlanetUpdater.shared.checkForUpdates()
+    }
+
+    @objc func openSettingsWindow(_ sender: Any) {
+        if self.settingsWindowController == nil {
+            self.settingsWindowController = AppSettingsWindowController(window: nil)
+        }
+        self.settingsWindowController?.showWindow(nil)
     }
 }
 
