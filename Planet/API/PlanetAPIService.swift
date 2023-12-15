@@ -32,9 +32,14 @@ class PlanetAPIService: NSObject, NetServiceDelegate {
         }
     }
 
-    private func setupService(_ port: Int = 9191) {
+    private func setupService(_ port: Int = 8086) {
         // Initialize NetService object with domain, service type, name, and port.
-        var serviceName = "Planet API Server"
+        var serviceName: String
+        if Bundle.main.executableURL?.lastPathComponent == "Croptop" {
+            serviceName = "Croptop"
+        } else {
+            serviceName = "Planet"
+        }
         if let hostname = getHostname() {
             serviceName = serviceName + " on \(hostname)"
         }

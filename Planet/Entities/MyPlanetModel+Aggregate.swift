@@ -85,7 +85,7 @@ extension MyPlanetModel {
                 article.delete()
             }
         }
-        tags = consolidateTags()
+        self.tags = self.consolidateTags()
         try? save()
         try? await savePublic()
         Task { @MainActor in

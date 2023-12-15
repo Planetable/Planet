@@ -9,14 +9,14 @@ import SwiftUI
 
 
 struct PlanetSettingsAPIView: View {
-    
+
     @AppStorage(String.settingsAPIEnabled) private var apiEnabled: Bool =
     UserDefaults.standard.bool(forKey: String.settingsAPIEnabled)
     @AppStorage(String.settingsAPIUsesPasscode) private var apiUsesPasscode: Bool = UserDefaults.standard.bool(forKey: String.settingsAPIUsesPasscode)
     @AppStorage(String.settingsAPIUsername) private var apiUsername: String = UserDefaults.standard.string(forKey: String.settingsAPIUsername) ?? "Planet"
     @AppStorage(String.settingsAPIPort) private var apiPort: String = UserDefaults
-        .standard.string(forKey: String.settingsAPIPort) ?? "9191"
-    
+        .standard.string(forKey: String.settingsAPIPort) ?? "8086"
+
     @State private var apiPasscode: String = ""
     @State private var isShowingPasscode: Bool = false
 
@@ -111,7 +111,7 @@ struct PlanetSettingsAPIView: View {
             }
         }
     }
-    
+
     private func updatePasscode(_ passcode: String) {
         guard passcode != "" else { return }
         do {
@@ -120,7 +120,7 @@ struct PlanetSettingsAPIView: View {
             debugPrint("failed to save passcode to keychain: \(error)")
         }
     }
-    
+
     private func reloadAPIServer() {
         Task {
             do {

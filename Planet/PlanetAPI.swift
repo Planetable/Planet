@@ -21,7 +21,7 @@ actor PlanetAPIHelper {
         server = HttpServer()
         let defaults = UserDefaults.standard
         if defaults.value(forKey: .settingsAPIPort) == nil {
-            defaults.set("9191", forKey: .settingsAPIPort)
+            defaults.set("8086", forKey: .settingsAPIPort)
         }
         if defaults.value(forKey: .settingsAPIEnabled) == nil {
             defaults.set(false, forKey: .settingsAPIEnabled)
@@ -121,7 +121,13 @@ actor PlanetAPIHelper {
         }
         if let portString = UserDefaults.standard.string(forKey: .settingsAPIPort), let port = Int(portString) {
             try server.start(in_port_t(port), forceIPv4: false, priority: .utility)
-            debugPrint("Planet API server started: port=\(portString)")
+            var serviceName: String
+            if Bundle.main.executableURL?.lastPathComponent == "Croptop" {
+                serviceName = "Croptop"
+            } else {
+                serviceName = "Planet"
+            }
+            debugPrint("\(serviceName) API server started: port=\(portString)")
 
             if self.bonjourService == nil {
                 self.bonjourService = PlanetAPIService(port)

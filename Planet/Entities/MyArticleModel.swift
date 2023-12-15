@@ -110,7 +110,7 @@ class MyArticleModel: ArticleModel, Codable {
         if apiEnabled {
             let apiPort =
                 UserDefaults
-                .standard.string(forKey: String.settingsAPIPort) ?? "9191"
+                .standard.string(forKey: String.settingsAPIPort) ?? "8086"
             return URL(
                 string:
                     "http://127.0.0.1:\(apiPort)/v0/planets/my/\(planet.id.uuidString)/public/\(id.uuidString)/index.html"
