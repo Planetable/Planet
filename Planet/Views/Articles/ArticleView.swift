@@ -482,6 +482,7 @@ struct ArticleView: View {
             } label: {
                 Image(systemName: "square.and.pencil")
             }
+
             if let plausibleEnabled = planet.plausibleEnabled, plausibleEnabled {
                 Button {
                     isShowingAnalyticsPopover = true
@@ -561,6 +562,11 @@ struct ArticleView: View {
                 } label: {
                     Image("custom.juicebox")
                 }.help("Visit Juicebox Project")
+            }
+            Button {
+                NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+            } label: {
+                Image(systemName: "arrow.up")
             }
         default:
             Text("")

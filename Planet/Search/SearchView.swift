@@ -112,6 +112,9 @@ struct SearchView: View {
             planetStore.selectedView = .myPlanet(article.planet)
             Task(priority: .userInitiated) { @MainActor in
                 planetStore.selectedArticle = article
+                Task(priority: .userInitiated) { @MainActor in
+                    NotificationCenter.default.post(name: .scrollToArticle, object: article)
+                }
             }
         }
         dismiss()

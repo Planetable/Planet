@@ -141,19 +141,39 @@ struct ArticleListView: View {
                                 if let myArticle = article as? MyArticleModel {
                                     if #available(macOS 13.0, *) {
                                         MyArticleItemView(article: myArticle)
+                                            .id(myArticle.id.uuidString)
                                             .listRowSeparator(.visible)
                                     }
                                     else {
                                         MyArticleItemView(article: myArticle)
+                                        .id(myArticle.id.uuidString)
                                     }
                                 }
                                 else if let followingArticle = article as? FollowingArticleModel {
                                     if #available(macOS 13.0, *) {
                                         FollowingArticleItemView(article: followingArticle)
+                                            .id(followingArticle.id.uuidString)
                                             .listRowSeparator(.visible)
                                     }
                                     else {
                                         FollowingArticleItemView(article: followingArticle)
+                                        .id(followingArticle.id.uuidString)
+                                    }
+                                }
+                            }
+                            .onReceive(NotificationCenter.default.publisher(for: .scrollToTopArticleList)) { n in
+                                if let article = articles.first {
+                                    debugPrint("Scrolling to top of Article List: \(article)")
+                                    withAnimation {
+                                        proxy.scrollTo(article.id.uuidString, anchor: .top)
+                                    }
+                                }
+                            }
+                            .onReceive(NotificationCenter.default.publisher(for: .scrollToArticle)) { n in
+                                if let article = n.object as? ArticleModel {
+                                    debugPrint("Scrolling to Article: \(article)")
+                                    withAnimation {
+                                        proxy.scrollTo(article.id.uuidString, anchor: .center)
                                     }
                                 }
                             }

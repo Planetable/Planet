@@ -482,6 +482,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                         else {
                             PlanetStore.shared.selectedArticle = article
                         }
+                        Task(priority: .userInitiated) {
+                            NotificationCenter.default.post(name: .scrollToArticle, object: article)
+                        }
                     }
                 }
             }
@@ -492,6 +495,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                     }
                     else {
                         PlanetStore.shared.selectedArticle = article
+                    }
+                    Task(priority: .userInitiated) {
+                        NotificationCenter.default.post(name: .scrollToArticle, object: article)
                     }
                 }
             }

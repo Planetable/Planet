@@ -169,6 +169,9 @@ extension Notification.Name {
     static let myArticleBuilt = Notification.Name("PlanetMyArticleBuiltNotification")
 
     static let copiedIPNS = Notification.Name("PlanetCopiedIPNSNotification")
+
+    static let scrollToTopArticleList = Notification.Name("PlanetScrollToTopArticleListNotification")
+    static let scrollToArticle = Notification.Name("PlanetScrollToArticleNotification")
 }
 
 // Writer
