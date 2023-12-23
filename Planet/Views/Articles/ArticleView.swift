@@ -563,11 +563,6 @@ struct ArticleView: View {
                     Image("custom.juicebox")
                 }.help("Visit Juicebox Project")
             }
-            Button {
-                NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
-            } label: {
-                Image(systemName: "arrow.up")
-            }
         default:
             Text("")
         }
