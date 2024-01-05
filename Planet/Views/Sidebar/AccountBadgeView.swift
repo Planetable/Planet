@@ -178,7 +178,7 @@ struct AccountBadgeView: View {
                 try await verifyNFTOwnership(address: walletAddress)
             }
             catch {
-                debugPrint("Error ocurred when verifying NFT ownership: \(error)")
+                debugPrint("Error occurred when verifying NFT ownership: \(error)")
             }
 
         }
