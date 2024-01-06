@@ -325,7 +325,7 @@ class PlanetPublishedServiceStore: ObservableObject {
 
     private func unpublishFolder(keyName: String) async throws {
         debugPrint("Removing published folder with key id: \(keyName) ...")
-        // 1. save removed id list in case unpublishing process was interupt
+        // 1. save removed id list in case unpublishing process was interrupt
         var removedIDs: [String] = UserDefaults.standard.stringArray(forKey: Self.removedListKey) ?? []
         if !removedIDs.contains(keyName) {
             removedIDs.append(keyName)
