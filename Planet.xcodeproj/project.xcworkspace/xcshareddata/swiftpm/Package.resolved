@@ -113,8 +113,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sparkle-project/Sparkle",
       "state" : {
-        "revision" : "1f07f4096e52f19b5e7abaa697b7fc592b7ff57c",
-        "version" : "2.5.1"
+        "revision" : "47d3d90aee3c52b6f61d04ceae426e607df62347",
+        "version" : "2.5.2"
       }
     },
     {
@@ -185,8 +185,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/scinfu/SwiftSoup.git",
       "state" : {
-        "revision" : "8b6cf29eead8841a1fa7822481cb3af4ddaadba6",
-        "version" : "2.6.1"
+        "revision" : "f83c097597094a04124eb6e0d1e894d24129af87",
+        "version" : "2.7.0"
       }
     },
     {
