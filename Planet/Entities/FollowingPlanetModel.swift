@@ -1657,6 +1657,106 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
     }
 
+    func removeIcon() async {
+        try? FileManager.default.removeItem(at: avatarPath)
+        DispatchQueue.main.async {
+            self.avatar = nil
+        }
+    }
+
+    func refreshIcon() async {
+        switch planetType {
+        case .planet:
+            if let planetAvatarURL = URL(
+                string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/avatar.png"
+            ),
+                let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
+                let httpResponse = response as? HTTPURLResponse,
+                httpResponse.ok,
+                let image = NSImage(data: data),
+                let _ = try? data.write(to: self.avatarPath)
+            {
+                DispatchQueue.main.async {
+                    self.avatar = image
+                }
+            }
+        case .dns:
+            guard let feedURL = URL(string: link) else {
+                return
+            }
+            do {
+                let (feedData, htmlSoup) = try await FeedUtils.findFeed(url: feedURL)
+
+                guard let feedData = feedData else {
+                    return
+                }
+
+                var feedAvatar: Data? = nil
+                var urlForFindingAvatar: URL? = nil
+                let homepageDocument: Document?
+
+                if htmlSoup == nil {
+                    if let domain = feedURL.host {
+                        urlForFindingAvatar = URL(string: "https://\(domain)")
+                    }
+                    if let avatarPageURL = urlForFindingAvatar {
+                        homepageDocument = try await FeedUtils.getHTMLDocument(url: avatarPageURL)
+                    }
+                    else {
+                        homepageDocument = nil
+                    }
+                }
+                else {
+                    homepageDocument = htmlSoup
+                    urlForFindingAvatar = feedURL
+                }
+                if let soup = homepageDocument, let url = urlForFindingAvatar {
+                    debugPrint("refreshIcon: Trying to fetch og:image as feed avatar from \(url)")
+                    feedAvatar = try await FeedUtils.findAvatarFromHTMLOGImage(
+                        htmlDocument: soup,
+                        htmlURL: url
+                    )
+                    var avatarIsSquare = true
+                    if let imageData = feedAvatar, let feedAvatarImage = NSImage(data: imageData) {
+                        avatarIsSquare = feedAvatarImage.size.width == feedAvatarImage.size.height
+                    }
+                    if feedAvatar == nil || !avatarIsSquare {
+                        debugPrint(
+                            "refreshIcon: Trying to fetch icons from links as feed avatar from \(url)"
+                        )
+                        feedAvatar = try await FeedUtils.findAvatarFromHTMLIcons(
+                            htmlDocument: soup,
+                            htmlURL: feedURL
+                        )
+                    }
+                    if feedAvatar == nil {
+                        debugPrint("refreshIcon: avatar not found for \(feedURL)")
+                    }
+                    else {
+                        if let data = feedAvatar, let image = NSImage(data: data),
+                            let _ = try? data.write(to: self.avatarPath)
+                        {
+                            DispatchQueue.main.async {
+                                self.avatar = image
+                            }
+                            debugPrint(
+                                "refreshIcon: written avatar for \(self.name) to \(self.avatarPath)"
+                            )
+                        }
+                    }
+                }
+                else {
+                    debugPrint("refreshIcon: no soup")
+                }
+            }
+            catch {
+                debugPrint("refreshIcon error: \(error)")
+            }
+        default:
+            break
+        }
+    }
+
     func save() throws {
         try JSONEncoder.shared.encode(self).write(to: infoPath)
     }

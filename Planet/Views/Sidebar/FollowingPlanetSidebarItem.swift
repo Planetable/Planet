@@ -57,6 +57,24 @@ struct FollowingPlanetSidebarItem: View {
 
                 Divider()
 
+                #if DEBUG
+                Button {
+                    Task {
+                        try await planet.refreshIcon()
+                    }
+                } label: {
+                    Text("Refresh Icon")
+                }
+
+                Button {
+                    Task {
+                        try await planet.removeIcon()
+                    }
+                } label: {
+                    Text("Remove Icon")
+                }
+                #endif
+
                 Button {
                     isShowingArchiveConfirmation = true
                 } label: {
