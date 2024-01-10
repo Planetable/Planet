@@ -246,7 +246,6 @@
 		2AB6A94029707980007186A7 /* PlanetSettingsAPIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB6A93F29707980007186A7 /* PlanetSettingsAPIView.swift */; };
 		2ABD1CC42A1616DA0082D7EA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */; };
 		2ABD1CC82A1616DB0082D7EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2ABD1CC72A1616DB0082D7EA /* Assets.xcassets */; };
-		2ABD1CD12A1617300082D7EA /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABD1CD02A1617300082D7EA /* main.swift */; };
 		2ABD1CD52A1617660082D7EA /* AppMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABD1CD42A1617660082D7EA /* AppMenu.swift */; };
 		2AC063822A4D0796004F0A29 /* AppContentGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC063812A4D0796004F0A29 /* AppContentGridView.swift */; };
 		2AC063A72A4DC49F004F0A29 /* AppContentGridCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC063A62A4DC49F004F0A29 /* AppContentGridCell.swift */; };
@@ -283,6 +282,7 @@
 		2AE44EAC28CD218200944786 /* PlanetSettingsGeneralView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE44EAB28CD218200944786 /* PlanetSettingsGeneralView.swift */; };
 		2AE44EAE28CD219700944786 /* PlanetSettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */; };
 		2AE44EB028CD223C00944786 /* PlanetSettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE44EAF28CD223C00944786 /* PlanetSettingsViewModel.swift */; };
+		2AED38A92B4E431800E0B9BA /* CroptopApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AED38A82B4E431800E0B9BA /* CroptopApp.swift */; };
 		2AEEBF5428C0758000A0A092 /* ArticleWebViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */; };
 		2AF1318727C7CDAF007792FE /* ArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF1318627C7CDAF007792FE /* ArticleView.swift */; };
 		2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */; };
@@ -621,6 +621,7 @@
 		2AE44EAB28CD218200944786 /* PlanetSettingsGeneralView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsGeneralView.swift; sourceTree = "<group>"; };
 		2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsModel.swift; sourceTree = "<group>"; };
 		2AE44EAF28CD223C00944786 /* PlanetSettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsViewModel.swift; sourceTree = "<group>"; };
+		2AED38A82B4E431800E0B9BA /* CroptopApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CroptopApp.swift; sourceTree = "<group>"; };
 		2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleWebViewModel.swift; sourceTree = "<group>"; };
 		2AF1318627C7CDAF007792FE /* ArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleView.swift; sourceTree = "<group>"; };
 		2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = TemplatePlaceholder.html; sourceTree = "<group>"; };
@@ -977,6 +978,7 @@
 		2ABD1CC22A1616DA0082D7EA /* PlanetLite */ = {
 			isa = PBXGroup;
 			children = (
+				2AED38A82B4E431800E0B9BA /* CroptopApp.swift */,
 				6A74E49A2A5929AB00FF2F2A /* Croptop */,
 				2A95E6F42A19AAEE001288B8 /* Info.plist */,
 				2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */,
@@ -1720,6 +1722,7 @@
 				2A95E68B2A19A3CA001288B8 /* WriterAudioView.swift in Sources */,
 				2A95E6832A19A3CA001288B8 /* WriterWindow.swift in Sources */,
 				2A95E66B2A19A3AF001288B8 /* TBContainerViewController.swift in Sources */,
+				2AED38A92B4E431800E0B9BA /* CroptopApp.swift in Sources */,
 				2A95E6862A19A3CA001288B8 /* WriterView.swift in Sources */,
 				2A6DC6282AEB7F9D0025D6A7 /* PlanetStatusManager.swift in Sources */,
 				2A95E6EF2A19A764001288B8 /* Planet.xcdatamodeld in Sources */,
@@ -1811,7 +1814,6 @@
 				2A996AD22A1DA64800BEF898 /* PlanetAppDelegate.swift in Sources */,
 				2AF3F0432AD2C9BE001A97E1 /* PlanetQuickShareDropDelegate.swift in Sources */,
 				2A6E16DE2A1875CA00704A08 /* AppWindowController.swift in Sources */,
-				2ABD1CD12A1617300082D7EA /* main.swift in Sources */,
 				2A95E6A12A19A446001288B8 /* FollowingArticleModel.swift in Sources */,
 				2A95E6402A18B21F001288B8 /* PlanetError.swift in Sources */,
 				2A95E6642A19A3AA001288B8 /* TemplateBrowserView.swift in Sources */,
