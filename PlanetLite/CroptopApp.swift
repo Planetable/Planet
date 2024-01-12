@@ -47,7 +47,7 @@ struct CroptopApp: App {
 
     @SceneBuilder
     private func appMainWindowGroup() -> some Scene {
-        let event: Set<String> = Set(arrayLiteral: "croptop://Croptop")
+        let event: Set<String> = Set(arrayLiteral: "planet://Croptop")
         WindowGroup("Croptop") {
             AppMainView()
                 .frame(minWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN + PlanetUI.WINDOW_CONTENT_WIDTH_MIN, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN)
