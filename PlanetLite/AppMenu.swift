@@ -84,75 +84,74 @@ extension PlanetLiteAppDelegate: FileMenuActions, WriterMenuActions {
     // MARK: - Menu: Application -
 
     func populateApplicationMenu(_ menu: NSMenu) {
+//        var title = NSLocalizedString("About", comment: "About menu item") + " " + applicationName
+//        var menuItem = menu.addItem(
+//            withTitle: title,
+//            action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
+//            keyEquivalent: ""
+//        )
+//        menuItem.target = NSApp
 
-        var title = NSLocalizedString("About", comment: "About menu item") + " " + applicationName
-        var menuItem = menu.addItem(
-            withTitle: title,
-            action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
-            keyEquivalent: ""
-        )
-        menuItem.target = NSApp
+//        title = NSLocalizedString("Check for Updates", comment: "")
+//        menuItem = menu.addItem(
+//            withTitle: title,
+//            action: #selector(self.checkForUpdate(_:)),
+//            keyEquivalent: ""
+//        )
+//        menuItem.target = self
+//
+//        menu.addItem(NSMenuItem.separator())
+//
+//        title = NSLocalizedString("Settings...", comment: "")
+//        let settingsMenuItem = NSMenuItem(title: title, action: #selector(self.openSettingsWindow(_:)), keyEquivalent: ",")
+//        settingsMenuItem.keyEquivalentModifierMask = .command
+//        settingsMenuItem.target = self
+//        menu.addItem(settingsMenuItem)
 
-        title = NSLocalizedString("Check for Updates", comment: "")
-        menuItem = menu.addItem(
-            withTitle: title,
-            action: #selector(self.checkForUpdate(_:)),
-            keyEquivalent: ""
-        )
-        menuItem.target = self
-
-        menu.addItem(NSMenuItem.separator())
-
-        title = NSLocalizedString("Settings...", comment: "")
-        let settingsMenuItem = NSMenuItem(title: title, action: #selector(self.openSettingsWindow(_:)), keyEquivalent: ",")
-        settingsMenuItem.keyEquivalentModifierMask = .command
-        settingsMenuItem.target = self
-        menu.addItem(settingsMenuItem)
-
-        menu.addItem(NSMenuItem.separator())
-
-        title = NSLocalizedString("Services", comment: "Services menu item")
-        menuItem = menu.addItem(withTitle: title, action: nil, keyEquivalent: "")
-        let servicesMenu = NSMenu(title: "Services")
-        menu.setSubmenu(servicesMenu, for: menuItem)
-        NSApp.servicesMenu = servicesMenu
-
-        menu.addItem(NSMenuItem.separator())
-
-        title = NSLocalizedString("Hide", comment: "Hide menu item") + " " + applicationName
-        menuItem = menu.addItem(
-            withTitle: title,
-            action: #selector(NSApplication.hide(_:)),
-            keyEquivalent: "h"
-        )
-        menuItem.target = NSApp
-
-        title = NSLocalizedString("Hide Others", comment: "Hide Others menu item")
-        menuItem = menu.addItem(
-            withTitle: title,
-            action: #selector(NSApplication.hideOtherApplications(_:)),
-            keyEquivalent: "h"
-        )
-        menuItem.keyEquivalentModifierMask = [.command, .option]
-        menuItem.target = NSApp
-
-        title = NSLocalizedString("Show All", comment: "Show All menu item")
-        menuItem = menu.addItem(
-            withTitle: title,
-            action: #selector(NSApplication.unhideAllApplications(_:)),
-            keyEquivalent: ""
-        )
-        menuItem.target = NSApp
-
-        menu.addItem(NSMenuItem.separator())
-
-        title = NSLocalizedString("Quit", comment: "Quit menu item") + " " + applicationName
-        menuItem = menu.addItem(
-            withTitle: title,
-            action: #selector(NSApplication.terminate(_:)),
-            keyEquivalent: "q"
-        )
-        menuItem.target = NSApp
+//        menu.addItem(NSMenuItem.separator())
+//
+//        title = NSLocalizedString("Services", comment: "Services menu item")
+//        menuItem = menu.addItem(withTitle: title, action: nil, keyEquivalent: "")
+//        let servicesMenu = NSMenu(title: "Services")
+//        menu.setSubmenu(servicesMenu, for: menuItem)
+//        NSApp.servicesMenu = servicesMenu
+//
+//        menu.addItem(NSMenuItem.separator())
+//
+//        title = NSLocalizedString("Hide", comment: "Hide menu item") + " " + applicationName
+//        menuItem = menu.addItem(
+//            withTitle: title,
+//            action: #selector(NSApplication.hide(_:)),
+//            keyEquivalent: "h"
+//        )
+//        menuItem.target = NSApp
+//
+//        title = NSLocalizedString("Hide Others", comment: "Hide Others menu item")
+//        menuItem = menu.addItem(
+//            withTitle: title,
+//            action: #selector(NSApplication.hideOtherApplications(_:)),
+//            keyEquivalent: "h"
+//        )
+//        menuItem.keyEquivalentModifierMask = [.command, .option]
+//        menuItem.target = NSApp
+//
+//        title = NSLocalizedString("Show All", comment: "Show All menu item")
+//        menuItem = menu.addItem(
+//            withTitle: title,
+//            action: #selector(NSApplication.unhideAllApplications(_:)),
+//            keyEquivalent: ""
+//        )
+//        menuItem.target = NSApp
+//
+//        menu.addItem(NSMenuItem.separator())
+//
+//        title = NSLocalizedString("Quit", comment: "Quit menu item") + " " + applicationName
+//        menuItem = menu.addItem(
+//            withTitle: title,
+//            action: #selector(NSApplication.terminate(_:)),
+//            keyEquivalent: "q"
+//        )
+//        menuItem.target = NSApp
     }
 
     func populateFileMenu(_ menu: NSMenu) {

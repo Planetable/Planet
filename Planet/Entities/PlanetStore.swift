@@ -81,13 +81,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
                         KeyboardShortcutHelper.shared.activeMyPlanet = planet
                         // Update Planet Lite Window Titles
                         let liteSubtitle = "ipns://\(planet.ipns.shortIPNS())"
-                        let info = ["title": planet.name, "subtitle": liteSubtitle]
-                        NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
+                        navigationSubtitle = liteSubtitle
                     default:
                         KeyboardShortcutHelper.shared.activeMyPlanet = nil
                         // Reset Planet Lite Window Titles
-                        let info = ["title": .liteAppName, "subtitle": ""]
-                        NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
+                        navigationSubtitle = ""
                     }
                 }
             }

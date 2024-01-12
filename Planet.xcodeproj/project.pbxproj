@@ -283,6 +283,9 @@
 		2AE44EAE28CD219700944786 /* PlanetSettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */; };
 		2AE44EB028CD223C00944786 /* PlanetSettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE44EAF28CD223C00944786 /* PlanetSettingsViewModel.swift */; };
 		2AED38A92B4E431800E0B9BA /* CroptopApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AED38A82B4E431800E0B9BA /* CroptopApp.swift */; };
+		2AED38AB2B4EF48C00E0B9BA /* AppSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AED38AA2B4EF48C00E0B9BA /* AppSettingsView.swift */; };
+		2AED38AC2B4EF4B600E0B9BA /* PlanetSettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */; };
+		2AED38AE2B50D51C00E0B9BA /* AppMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AED38AD2B50D51C00E0B9BA /* AppMainView.swift */; };
 		2AEEBF5428C0758000A0A092 /* ArticleWebViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */; };
 		2AF1318727C7CDAF007792FE /* ArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF1318627C7CDAF007792FE /* ArticleView.swift */; };
 		2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */; };
@@ -622,6 +625,8 @@
 		2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsModel.swift; sourceTree = "<group>"; };
 		2AE44EAF28CD223C00944786 /* PlanetSettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsViewModel.swift; sourceTree = "<group>"; };
 		2AED38A82B4E431800E0B9BA /* CroptopApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CroptopApp.swift; sourceTree = "<group>"; };
+		2AED38AA2B4EF48C00E0B9BA /* AppSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsView.swift; sourceTree = "<group>"; };
+		2AED38AD2B50D51C00E0B9BA /* AppMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMainView.swift; sourceTree = "<group>"; };
 		2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleWebViewModel.swift; sourceTree = "<group>"; };
 		2AF1318627C7CDAF007792FE /* ArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleView.swift; sourceTree = "<group>"; };
 		2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = TemplatePlaceholder.html; sourceTree = "<group>"; };
@@ -978,9 +983,11 @@
 		2ABD1CC22A1616DA0082D7EA /* PlanetLite */ = {
 			isa = PBXGroup;
 			children = (
-				2AED38A82B4E431800E0B9BA /* CroptopApp.swift */,
 				6A74E49A2A5929AB00FF2F2A /* Croptop */,
 				2A95E6F42A19AAEE001288B8 /* Info.plist */,
+				2AED38A82B4E431800E0B9BA /* CroptopApp.swift */,
+				2AED38AD2B50D51C00E0B9BA /* AppMainView.swift */,
+				2AED38AA2B4EF48C00E0B9BA /* AppSettingsView.swift */,
 				2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */,
 				2ABD1CD42A1617660082D7EA /* AppMenu.swift */,
 				2A6E16D92A186B0100704A08 /* AppWindow.swift */,
@@ -1716,8 +1723,10 @@
 				2A95E6662A19A3AF001288B8 /* TBInspectorViewController.swift in Sources */,
 				2A95E67A2A19A3C4001288B8 /* JSONUtils.swift in Sources */,
 				2A95E6792A19A3C4001288B8 /* FeedUtils.swift in Sources */,
+				2AED38AE2B50D51C00E0B9BA /* AppMainView.swift in Sources */,
 				2AC063822A4D0796004F0A29 /* AppContentGridView.swift in Sources */,
 				2A95E6DE2A19A521001288B8 /* Pinnable.swift in Sources */,
+				2AED38AB2B4EF48C00E0B9BA /* AppSettingsView.swift in Sources */,
 				2A996AD52A1DA6C400BEF898 /* PlanetDownloadsItemView.swift in Sources */,
 				2A95E68B2A19A3CA001288B8 /* WriterAudioView.swift in Sources */,
 				2A95E6832A19A3CA001288B8 /* WriterWindow.swift in Sources */,
@@ -1792,6 +1801,7 @@
 				2A58329C2B27FE2500A478CA /* AppSettingsViewController.swift in Sources */,
 				2A95E6912A19A3D0001288B8 /* PlanetKeyManagerViewController.swift in Sources */,
 				2A95E69F2A19A446001288B8 /* AttachmentModel.swift in Sources */,
+				2AED38AC2B4EF4B600E0B9BA /* PlanetSettingsModel.swift in Sources */,
 				6A52FAED2A889577000E85F0 /* BackupArticleModel.swift in Sources */,
 				2A95E6562A19A3A2001288B8 /* WalletConnectV1QRCodeView.swift in Sources */,
 				2A95E6672A19A3AF001288B8 /* TBWindow.swift in Sources */,
