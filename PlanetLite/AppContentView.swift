@@ -97,6 +97,14 @@ struct AppContentView: View {
         .navigationSubtitle(
             Text(planetStore.navigationSubtitle)
         )
+        .task {
+            if case .myPlanet(let planet) = planetStore.selectedView {
+                let liteSubtitle = "ipns://\(planet.ipns.shortIPNS())"
+                Task { @MainActor in
+                    self.planetStore.navigationSubtitle = liteSubtitle
+                }
+            }
+        }
         .onChange(of: planetStore.isAggregating) { newValue in
             debugPrint("PlanetStore: new value of isAggregating: \(newValue)")
             Task { @MainActor in

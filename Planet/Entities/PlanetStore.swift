@@ -176,6 +176,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
             UserDefaults.standard.set(2, forKey: String.settingsEthereumTipAmount)
         }
 
+        if app == .lite {
+            navigationTitle = "Croptop"
+        }
+
         do {
             try load()
         } catch {
@@ -389,7 +393,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
             navigationSubtitle = planet.navigationSubtitle()
         case .none:
             selectedArticleList = nil
-            navigationTitle = "Planet"
+            navigationTitle = app == .lite ? "Croptop" : "Planet"
             navigationSubtitle = ""
         }
     }
