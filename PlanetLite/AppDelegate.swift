@@ -12,7 +12,6 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
         UserDefaults.standard.set(false, forKey: "NSFullScreenMenuItemEverywhere")
-        populateMainMenu()
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
