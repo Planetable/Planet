@@ -9,29 +9,12 @@ import UserNotifications
 
 
 class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
-    static let shared = PlanetLiteAppDelegate()
-    
-    var appWindowController: AppWindowController?
-    var settingsWindowController: AppSettingsWindowController?
-
-    lazy var applicationName: String = {
-        if let bundleName = Bundle.main.object(forInfoDictionaryKey:"CFBundleName"), let bundleNameAsString = bundleName as? String {
-            return bundleNameAsString
-        }
-        return NSLocalizedString(.liteAppName, comment:"")
-    }()
-
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
         UserDefaults.standard.set(false, forKey: "NSFullScreenMenuItemEverywhere")
-        populateMainMenu()
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        if appWindowController == nil {
-            appWindowController = AppWindowController()
-        }
-        appWindowController?.showWindow(nil)
         setupNotification()
         PlanetUpdater.shared.checkForUpdatesInBackground()
     }
@@ -44,10 +27,6 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if appWindowController == nil {
-            appWindowController = AppWindowController()
-        }
-        appWindowController?.showWindow(nil)
         return true
     }
     
@@ -89,17 +68,6 @@ extension PlanetLiteAppDelegate {
                 alert.runModal()
             }
         }
-    }
-
-    @objc func checkForUpdate(_ sender: Any) {
-        PlanetUpdater.shared.checkForUpdates()
-    }
-
-    @objc func openSettingsWindow(_ sender: Any) {
-        if self.settingsWindowController == nil {
-            self.settingsWindowController = AppSettingsWindowController(window: nil)
-        }
-        self.settingsWindowController?.showWindow(nil)
     }
 }
 

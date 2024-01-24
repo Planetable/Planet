@@ -81,13 +81,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
                         KeyboardShortcutHelper.shared.activeMyPlanet = planet
                         // Update Planet Lite Window Titles
                         let liteSubtitle = "ipns://\(planet.ipns.shortIPNS())"
-                        let info = ["title": planet.name, "subtitle": liteSubtitle]
-                        NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
+                        navigationSubtitle = liteSubtitle
                     default:
                         KeyboardShortcutHelper.shared.activeMyPlanet = nil
                         // Reset Planet Lite Window Titles
-                        let info = ["title": .liteAppName, "subtitle": ""]
-                        NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
+                        navigationSubtitle = ""
                     }
                 }
             }
@@ -176,6 +174,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
         }
         if UserDefaults.standard.value(forKey: String.settingsEthereumTipAmount) == nil {
             UserDefaults.standard.set(2, forKey: String.settingsEthereumTipAmount)
+        }
+
+        if app == .lite {
+            navigationTitle = "Croptop"
         }
 
         do {
@@ -391,7 +393,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
             navigationSubtitle = planet.navigationSubtitle()
         case .none:
             selectedArticleList = nil
-            navigationTitle = "Planet"
+            navigationTitle = app == .lite ? "Croptop" : "Planet"
             navigationSubtitle = ""
         }
     }

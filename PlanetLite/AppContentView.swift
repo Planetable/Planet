@@ -14,6 +14,8 @@ struct AppContentView: View {
 
     let timer = Timer.publish(every: 300, on: .current, in: .common).autoconnect()
 
+    @State private var isSharing: Bool = false
+    @State private var sharingItem: URL?
     @State private var isShowingTaskProgressIndicator: Bool = false
     @State private var isShowingCopiedIPNS: Bool = false
 
@@ -49,14 +51,6 @@ struct AppContentView: View {
                                 .foregroundColor(.secondary)
                         }
                         else {
-                            /*
-                            AppContentGridView(
-                                planet: planet,
-                                itemSize: NSSize(width: Self.itemWidth, height: Self.itemWidth)
-                            )
-                            .edgesIgnoringSafeArea(.top)
-                            */
-
                             ScrollView(.vertical) {
                                 LazyVGrid(
                                     columns: [
@@ -97,14 +91,17 @@ struct AppContentView: View {
             copiedIPNS()
             taskProgress()
         }
-        .onReceive(NotificationCenter.default.publisher(for: .copiedIPNS)) { n in
-            Task {
-                withAnimation(.easeInOut) {
-                    self.isShowingCopiedIPNS = true
-                }
-                await Task.sleep(1_000_000_000)
-                withAnimation(.easeInOut) {
-                    self.isShowingCopiedIPNS = false
+        .navigationTitle(
+            Text(planetStore.navigationTitle)
+        )
+        .navigationSubtitle(
+            Text(planetStore.navigationSubtitle)
+        )
+        .task {
+            if case .myPlanet(let planet) = planetStore.selectedView {
+                let liteSubtitle = "ipns://\(planet.ipns.shortIPNS())"
+                Task { @MainActor in
+                    self.planetStore.navigationSubtitle = liteSubtitle
                 }
             }
         }
@@ -120,6 +117,78 @@ struct AppContentView: View {
         .onReceive(timer) { _ in
             Task {
                 await planetStore.aggregate()
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .automatic) {
+                // action
+                Menu {
+                    Button {
+                        if case .myPlanet(let planet) = planetStore.selectedView {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(planet.ipns, forType: .string)
+                            Task {
+                                withAnimation(.easeInOut) {
+                                    self.isShowingCopiedIPNS = true
+                                }
+                                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                                withAnimation(.easeInOut) {
+                                    self.isShowingCopiedIPNS = false
+                                }
+                            }
+                        }
+                    } label: {
+                        Text("Copy IPNS")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+                .help("Action")
+
+                // show info
+                Button {
+                    guard planetStore.isShowingPlanetInfo == false else { return }
+                    planetStore.isShowingPlanetInfo = true
+                } label: {
+                    Image(systemName: "info.circle")
+                }
+                .help("Show Info")
+
+                // share
+                Button {
+                    if case .myPlanet(let planet) = planetStore.selectedView {
+                        sharingItem = URL(string: "planet://\(planet.ipns)")
+                        isSharing.toggle()
+                    }
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .background(
+                    SharingServicePicker(
+                        isPresented: $isSharing,
+                        sharingItems: [
+                            sharingItem ?? URL(string: "https://planetable.eth.limo")!
+                        ]
+                    )
+                )
+                .help("Share Site")
+
+                // add
+                Button {
+                    switch planetStore.selectedView {
+                    case .myPlanet(let planet):
+                        Task { @MainActor in
+                            PlanetQuickShareViewModel.shared.myPlanets = PlanetStore.shared.myPlanets
+                            PlanetQuickShareViewModel.shared.selectedPlanetID = planet.id
+                            self.planetStore.isQuickSharing = true
+                        }
+                    default:
+                        break
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .help("New Article")
             }
         }
         .sheet(isPresented: $planetStore.isConfiguringCPN) {
@@ -143,8 +212,11 @@ struct AppContentView: View {
     @ViewBuilder
     private func copiedIPNS() -> some View {
         VStack {
+            Spacer()
             if isShowingCopiedIPNS {
                 HStack {
+                    Spacer()
+
                     HStack(spacing: 8) {
                         Image(systemName: "square.on.square")
                         Text("IPNS copied to clipboard")
@@ -153,12 +225,10 @@ struct AppContentView: View {
 
                     Spacer()
                 }
-                .transition(AnyTransition.move(edge: .top).combined(with: .opacity))
+                .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
             }
-            Spacer()
         }
-        .padding(.leading, 16)
-        .padding(.top, 16)
+        .padding(.bottom, 10)
     }
 
     /// Show the task progress, when aggregating

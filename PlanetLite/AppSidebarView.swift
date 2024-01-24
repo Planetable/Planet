@@ -59,6 +59,14 @@ struct AppSidebarView: View {
             .padding(.trailing, 10)
             .background(Color.secondary.opacity(0.05))
         }
+        .toolbar {
+            ToolbarItem {
+                Button(action: toggleSidebar) {
+                    Image(systemName: "sidebar.left")
+                        .help("Toggle Sidebar")
+                }
+            }
+        }
         .alert(isPresented: $planetStore.isShowingAlert) {
             Alert(
                 title: Text(PlanetStore.shared.alertTitle),
@@ -115,7 +123,7 @@ struct AppSidebarView: View {
                 }
             }
         }
-        .frame(minWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, maxWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MAX, minHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, maxHeight: .infinity)
+        .frame(minWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, idealWidth: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN, maxHeight: .infinity)
         .onReceive(timer1m) { _ in
             Task {
                 await planetStore.checkPinnable()
@@ -126,6 +134,11 @@ struct AppSidebarView: View {
                 await planetStore.pin()
             }
         }
+    }
+
+    private func toggleSidebar() {
+        NSApp.keyWindow?.firstResponder?
+            .tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
     }
 }
 
