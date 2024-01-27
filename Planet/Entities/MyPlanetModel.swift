@@ -35,6 +35,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var githubUsername: String?
     @Published var telegramUsername: String?
     @Published var mastodonUsername: String?
+    @Published var discordLink: String?
 
     @Published var dWebServicesEnabled: Bool? = false
     @Published var dWebServicesDomain: String?
@@ -353,6 +354,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(githubUsername)
         hasher.combine(telegramUsername)
         hasher.combine(mastodonUsername)
+        hasher.combine(discordLink)
+
         hasher.combine(dWebServicesEnabled)
         hasher.combine(dWebServicesDomain)
         hasher.combine(dWebServicesAPIKey)
@@ -419,6 +422,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.githubUsername == rhs.githubUsername
             && lhs.telegramUsername == rhs.telegramUsername
             && lhs.mastodonUsername == rhs.mastodonUsername
+            && lhs.discordLink == rhs.discordLink
             && lhs.dWebServicesEnabled == rhs.dWebServicesEnabled
             && lhs.dWebServicesDomain == rhs.dWebServicesDomain
             && lhs.dWebServicesAPIKey == rhs.dWebServicesAPIKey
@@ -458,6 +462,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             archived, archivedAt,
             plausibleEnabled, plausibleDomain, plausibleAPIKey, plausibleAPIServer,
             twitterUsername, githubUsername, telegramUsername, mastodonUsername,
+            discordLink,
             dWebServicesEnabled, dWebServicesDomain, dWebServicesAPIKey,
             pinnableEnabled, pinnableAPIEndpoint, pinnablePinCID,
             filebaseEnabled, filebasePinName, filebaseAPIToken, filebaseRequestID, filebasePinCID,
@@ -494,6 +499,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         githubUsername = try container.decodeIfPresent(String.self, forKey: .githubUsername)
         telegramUsername = try container.decodeIfPresent(String.self, forKey: .telegramUsername)
         mastodonUsername = try container.decodeIfPresent(String.self, forKey: .mastodonUsername)
+        discordLink = try container.decodeIfPresent(String.self, forKey: .discordLink)
         dWebServicesEnabled = try container.decodeIfPresent(Bool.self, forKey: .dWebServicesEnabled)
         dWebServicesDomain = try container.decodeIfPresent(String.self, forKey: .dWebServicesDomain)
         dWebServicesAPIKey = try container.decodeIfPresent(String.self, forKey: .dWebServicesAPIKey)
@@ -569,6 +575,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(githubUsername, forKey: .githubUsername)
         try container.encodeIfPresent(telegramUsername, forKey: .telegramUsername)
         try container.encodeIfPresent(mastodonUsername, forKey: .mastodonUsername)
+        try container.encodeIfPresent(discordLink, forKey: .discordLink)
         try container.encodeIfPresent(dWebServicesEnabled, forKey: .dWebServicesEnabled)
         try container.encodeIfPresent(dWebServicesDomain, forKey: .dWebServicesDomain)
         try container.encodeIfPresent(dWebServicesAPIKey, forKey: .dWebServicesAPIKey)
@@ -821,6 +828,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         if backupPlanet.mastodonUsername != nil {
             planet.mastodonUsername = backupPlanet.mastodonUsername
+        }
+        if backupPlanet.discordLink != nil {
+            planet.discordLink = backupPlanet.discordLink
         }
 
         // Restore DWebServices
@@ -1301,6 +1311,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     githubUsername: githubUsername,
                     telegramUsername: telegramUsername,
                     mastodonUsername: mastodonUsername,
+                    discordLink: discordLink,
                     podcastCategories: podcastCategories,
                     podcastLanguage: podcastLanguage,
                     podcastExplicit: podcastExplicit,
@@ -1379,6 +1390,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             githubUsername: githubUsername,
             telegramUsername: telegramUsername,
             mastodonUsername: mastodonUsername,
+            discordLink: discordLink,
             podcastCategories: podcastCategories,
             podcastLanguage: podcastLanguage,
             podcastExplicit: podcastExplicit,
@@ -1719,6 +1731,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             githubUsername: githubUsername,
             telegramUsername: telegramUsername,
             mastodonUsername: mastodonUsername,
+            discordLink: discordLink,
             dWebServicesEnabled: dWebServicesEnabled,
             dWebServicesDomain: dWebServicesDomain,
             dWebServicesAPIKey: dWebServicesAPIKey,

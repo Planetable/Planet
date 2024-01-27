@@ -27,6 +27,7 @@ struct MyPlanetEditView: View {
     @State private var githubUsername: String
     @State private var telegramUsername: String
     @State private var mastodonUsername: String
+    @State private var discordLink: String
 
     @State private var dWebServicesEnabled: Bool = false
     @State private var dWebServicesDomain: String
@@ -64,6 +65,7 @@ struct MyPlanetEditView: View {
         _githubUsername = State(wrappedValue: planet.githubUsername ?? "")
         _telegramUsername = State(wrappedValue: planet.telegramUsername ?? "")
         _mastodonUsername = State(wrappedValue: planet.mastodonUsername ?? "")
+        _discordLink = State(wrappedValue: planet.discordLink ?? "")
         _dWebServicesEnabled = State(wrappedValue: planet.dWebServicesEnabled ?? false)
         _dWebServicesDomain = State(wrappedValue: planet.dWebServicesDomain ?? "")
         _dWebServicesAPIKey = State(wrappedValue: planet.dWebServicesAPIKey ?? "")
@@ -142,8 +144,8 @@ struct MyPlanetEditView: View {
         VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
             HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                 HStack {
+                    Text("Mastodon")
                     Spacer()
-                    Text("Mastodon:")
                 }
                 .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
 
@@ -153,8 +155,8 @@ struct MyPlanetEditView: View {
 
             HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                 HStack {
+                    Text("Twitter")
                     Spacer()
-                    Text("Twitter:")
                 }
                 .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
 
@@ -164,8 +166,8 @@ struct MyPlanetEditView: View {
 
             HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                 HStack {
+                    Text("GitHub")
                     Spacer()
-                    Text("GitHub:")
                 }
                 .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
 
@@ -175,12 +177,23 @@ struct MyPlanetEditView: View {
 
             HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                 HStack {
+                    Text("Telegram")
                     Spacer()
-                    Text("Telegram:")
                 }
                 .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
 
                 TextField("", text: $telegramUsername)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
+                HStack {
+                    Text("Discord Link")
+                    Spacer()
+                }
+                .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
+
+                TextField("", text: $discordLink)
                     .textFieldStyle(.roundedBorder)
             }
         }
@@ -709,6 +722,7 @@ struct MyPlanetEditView: View {
                         planet.githubUsername = githubUsername.sanitized().trim()
                         planet.telegramUsername = telegramUsername.sanitized().trim()
                         planet.mastodonUsername = mastodonUsername.sanitized().trim()
+                        planet.discordLink = discordLink.trim()
                         planet.dWebServicesEnabled = dWebServicesEnabled
                         planet.dWebServicesDomain = dWebServicesDomain
                         planet.dWebServicesAPIKey = dWebServicesAPIKey

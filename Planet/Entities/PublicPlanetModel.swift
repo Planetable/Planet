@@ -28,6 +28,7 @@ struct PublicPlanetModel: Codable {
     let githubUsername: String?
     let telegramUsername: String?
     let mastodonUsername: String?
+    let discordLink: String?
 
     let podcastCategories: [String: [String]]?
     let podcastLanguage: String?

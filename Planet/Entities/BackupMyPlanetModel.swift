@@ -29,6 +29,7 @@ struct BackupMyPlanetModel: Codable {
     let githubUsername: String?
     let telegramUsername: String?
     let mastodonUsername: String?
+    let discordLink: String?
     let dWebServicesEnabled: Bool?
     let dWebServicesDomain: String?
     let dWebServicesAPIKey: String?
