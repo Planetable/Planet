@@ -57,6 +57,7 @@ extension MyArticleModel {
         // MARK: - Cover Image `_cover.png`
 
         try saveCoverImageIfNeeded()
+        savePreviewImageFromPDF()
         marks.recordEvent("SaveCoverImage", for: self.title)
 
         let coverImageCID: String? = getCoverImageCIDIfNeeded()
@@ -266,6 +267,10 @@ extension MyArticleModel {
 
     // MARK: - Various Generated Images
 
+    func hasPDFContent() -> Bool {
+        return self.attachments?.contains { $0.hasSuffix(".pdf") } ?? false
+    }
+
     func hasHeroImage() -> Bool {
         return self.getHeroImage() != nil
     }
@@ -277,6 +282,10 @@ extension MyArticleModel {
         if self.hasVideoContent() {
             debugPrint("HeroImage: video content found")
             return "_videoThumbnail.png"
+        }
+        if self.hasPDFContent() {
+            debugPrint("HeroImage: PDF content found")
+            return "_preview.png"
         }
         debugPrint("HeroImage: finding from \(attachments ?? [])")
         let images: [String]? = attachments?.compactMap {
@@ -436,6 +445,23 @@ extension MyArticleModel {
             return text
         }
         return getCoverImageTextForTextOnlyPost()
+    }
+
+    /// Save preview image from PDF
+    func savePreviewImageFromPDF() {
+        // If PDF is the only attachment, generate a preview image
+        if let attachments = self.attachments, attachments.count == 1, let url = getAttachmentURL(name: attachments[0]) {
+            let image = NSImage(contentsOf: url)
+            // Write image to `_preview.png`
+            if let image = image {
+                let imageFilename = "_preview.png"
+                let imagePath = publicBasePath.appendingPathComponent(imageFilename)
+                if let imagePNGData = image.PNGData {
+                    try? imagePNGData.write(to: imagePath)
+                }
+                self.heroImage = imageFilename
+            }
+        }
     }
 
     /// Save cover image to `_cover.png`

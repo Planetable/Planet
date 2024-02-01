@@ -231,11 +231,11 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         )
         draft.attachments =
             try publicArticleFiles
-            // exclude index.html, article.json
+            // exclude generated files like index.html, article.json
             .filter {
                 ![
                     "index.html", "simple.html", "article.json", "nft.json", "nft.json.cid.txt",
-                    "_videoThumbnail.png", "_grid.jpg", "_grid.png", "_cover.png", "article.md",
+                    "_videoThumbnail.png", "_grid.jpg", "_grid.png", "_cover.png", "_preview.png", "article.md",
                 ].contains($0.lastPathComponent)
             }
             .map { filePath in
