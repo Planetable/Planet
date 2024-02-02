@@ -98,6 +98,8 @@ struct WriterTitleView: View {
                         }
                         Button {
                             updatingDate = false
+                            // Reset seconds value to zero if set date manually.
+                            date = eliminateDateSeconds(fromDate: date)
                         } label: {
                             Text("Set")
                         }
@@ -132,6 +134,12 @@ struct WriterTitleView: View {
         .task {
             initDate = date
         }
+    }
+
+    private func eliminateDateSeconds(fromDate d: Date) -> Date {
+        let calendar = Calendar.current
+        let dateComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: d)
+        return calendar.date(from: dateComponents) ?? d
     }
 
     private func addTag() {
