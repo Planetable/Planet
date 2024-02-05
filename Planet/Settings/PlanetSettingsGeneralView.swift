@@ -28,14 +28,6 @@ struct PlanetSettingsGeneralView: View {
                     }
                 }
             }
-            /*
-            // Update library path monitoring
-            if URLUtils.repoPath().path == libraryLocation {
-                PlanetPublishedServiceStore.shared.stopRepoPathMonitoring()
-            } else {
-                PlanetPublishedServiceStore.shared.startRepoPathMonitoring(targetURL: URLUtils.repoPath())
-            }
-             */
         }
     }
 

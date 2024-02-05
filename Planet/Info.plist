@@ -77,8 +77,8 @@
 			<string>Alternate</string>
 			<key>LSItemContentTypes</key>
 			<array>
-            	<string>com.adobe.pdf</string>
-        	</array>
+				<string>com.adobe.pdf</string>
+			</array>
 		</dict>
 	</array>
 	<key>CFBundleURLTypes</key>

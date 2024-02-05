@@ -54,7 +54,6 @@ class PlanetPublishedServiceStore: ObservableObject {
     @Published private(set) var publishingFolders: [UUID] = []
 
     private var monitors: [PlanetPublishedServiceMonitor] = []
-    private var repoMonitor: PlanetPublishedServiceMonitor?
 
     init() {
         reloadPublishedFolders()
@@ -93,26 +92,7 @@ class PlanetPublishedServiceStore: ObservableObject {
             }
         }
     }
-    
-    func startRepoPathMonitoring(targetURL: URL) {
-        if repoMonitor != nil {
-            repoMonitor?.reset()
-            repoMonitor = nil
-        }
-        repoMonitor = PlanetPublishedServiceMonitor(url: targetURL, folderID: UUID())
-        do {
-            try repoMonitor?.startMonitoringRepoPath()
-        } catch {
-            debugPrint("failed to start monitoring library path: \(targetURL), error: \(error)")
-            repoMonitor = nil
-        }
-    }
-    
-    func stopRepoPathMonitoring() {
-        repoMonitor?.reset()
-        repoMonitor = nil
-    }
-    
+
     func restoreSelectedFolderNavigation() {
         if let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
             NotificationCenter.default.post(name: .dashboardResetWebViewHistory, object: id)
@@ -654,38 +634,6 @@ private class PlanetPublishedServiceMonitor {
         directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: DispatchSource.FileSystemEvent.write, queue: self.monitorQueue) as? DispatchSource
         directoryMonitorSource?.setEventHandler{
             PlanetPublishedServiceStore.shared.requestToPublishFolder(withURL: self.url)
-        }
-        directoryMonitorSource?.setCancelHandler{
-            close(self.monitoredDirectoryFileDescriptor)
-            self.monitoredDirectoryFileDescriptor = -1
-            self.directoryMonitorSource = nil
-            self.url.stopAccessingSecurityScopedResource()
-        }
-        directoryMonitorSource?.resume()
-    }
-    
-    func startMonitoringRepoPath() throws {
-        reset()
-        monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
-        directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: [.attrib, .write, .delete], queue: self.monitorQueue) as? DispatchSource
-        directoryMonitorSource?.setEventHandler{
-            // MARK: TODO: reloading gracefully or manually for now.
-            /*
-            Task(priority: .userInitiated) {
-                await MainActor.run {
-                    do {
-                        try PlanetStore.shared.load()
-                        try TemplateStore.shared.load()
-                        PlanetStore.shared.selectedView = nil
-                        PlanetStore.shared.selectedArticle = nil
-                        PlanetStore.shared.selectedArticleList = nil
-                        PlanetStore.shared.refreshSelectedArticles()
-                    } catch {
-                        debugPrint("failed to reload: \(error)")
-                    }
-                }
-            }
-             */
         }
         directoryMonitorSource?.setCancelHandler{
             close(self.monitoredDirectoryFileDescriptor)
