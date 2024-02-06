@@ -1,6 +1,7 @@
 import Foundation
 import PlanetSiteTemplates
 import os
+import UserNotifications
 
 class TemplateStore: ObservableObject {
     static let shared = TemplateStore()
@@ -127,7 +128,7 @@ class TemplateStore: ObservableObject {
         for template in templates {
             template.prepareTemporaryAssetsForPreview()
             let monitor = TemplateMonitor(byID: template.id) {
-                debugPrint("template has changed: \(template)")
+                self.reloadTemplate(byID: template.id)
             }
             do {
                 try monitor.startMonitoring()
@@ -148,6 +149,42 @@ class TemplateStore: ObservableObject {
                 return templates.first(where: { $0.id == id })
             }
             return nil
+        }
+    }
+
+    private func reloadTemplate(byID id: Template.ID) {
+        // template.json has changes, select and reload it locally.
+        let templatesPath = URLUtils.repoPath().appendingPathComponent(
+            "Templates",
+            isDirectory: true
+        )
+        let targetTemplatePath = templatesPath.appendingPathComponent(id)
+        guard FileManager.default.fileExists(atPath: targetTemplatePath.path) else { return }
+        let updatedTemplates: [Template] = templates.map { t in
+            if t.id == id, let tt = Template.from(path: targetTemplatePath) {
+                tt.prepareTemporaryAssetsForPreview()
+                return tt
+            } else {
+                return t
+            }
+        }
+        Task { @MainActor in
+            self.templates = updatedTemplates.sorted(by: { $0.name < $1.name })
+            if self.selectedTemplateID != id {
+                self.selectedTemplateID = id
+            }
+            NotificationCenter.default.post(name: .refreshTemplatePreview, object: nil)
+            NotificationCenter.default.post(name: .templateTitleSubtitleUpdated, object: nil)
+            let notification = UNMutableNotificationContent()
+            notification.title = "Template \(id) Reloaded"
+            notification.interruptionLevel = .active
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+            let request = UNNotificationRequest(
+                identifier: UUID().uuidString,
+                content: notification,
+                trigger: trigger
+            )
+            try? await UNUserNotificationCenter.current().add(request)
         }
     }
 }
