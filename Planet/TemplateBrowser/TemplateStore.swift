@@ -17,6 +17,8 @@ class TemplateStore: ObservableObject {
         }
     }
 
+    private var monitors: [TemplateMonitor] = []
+
     init() {
         do {
             try load()
@@ -29,6 +31,10 @@ class TemplateStore: ObservableObject {
         catch {
             logger.error("Failed to load templates, cause: \(error.localizedDescription)")
         }
+    }
+
+    deinit {
+        monitors.removeAll()
     }
 
     func load() throws {
@@ -120,6 +126,15 @@ class TemplateStore: ObservableObject {
         }
         for template in templates {
             template.prepareTemporaryAssetsForPreview()
+            let monitor = TemplateMonitor(byID: template.id) {
+                debugPrint("template has changed: \(template)")
+            }
+            do {
+                try monitor.startMonitoring()
+                monitors.append(monitor)
+            } catch {
+                debugPrint("failed to start template monitoring: \(error)")
+            }
         }
     }
 
