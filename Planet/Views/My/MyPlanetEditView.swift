@@ -575,8 +575,9 @@ struct MyPlanetEditView: View {
                     }
                     .tag("basic")
 
+                    analyticsTab()
+
                     if planetStore.app == .planet {
-                        analyticsTab()
                         socialTab()
                     }
 
