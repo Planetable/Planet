@@ -187,6 +187,11 @@ struct MyArticleGridView: View {
         if article.hasGIF {
             GIFIndicatorView()
         }
+        else if article.hasVideo {
+            VideoIndicatorView()
+        } else {
+
+        }
         if article.attachmentURLs.count > 1 {
             GroupIndicatorView()
         }

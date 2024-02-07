@@ -224,18 +224,30 @@ extension MyArticleModel {
     }
 
     /// Render article HTML
-    func processArticleHTML() throws {
+    func processArticleHTML(usingTasks: Bool = false) throws {
         guard let template = planet.template else {
             throw PlanetError.MissingTemplateError
         }
 
-        Task(priority: .userInitiated) {
+        if (usingTasks) {
+            Task(priority: .userInitiated) {
+                let articleHTML = try template.render(article: self)
+                try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
+                debugPrint("HTML for \(self.title) saved to \(publicIndexPath.path)")
+            }
+
+            Task(priority: .userInitiated) {
+                if template.hasSimpleHTML {
+                    let simpleHTML = try template.render(article: self, forSimpleHTML: true)
+                    try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath)
+                    debugPrint("Simple HTML for \(self.title) saved to \(publicSimplePath.path)")
+                }
+            }
+        } else {
             let articleHTML = try template.render(article: self)
             try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
             debugPrint("HTML for \(self.title) saved to \(publicIndexPath.path)")
-        }
 
-        Task(priority: .userInitiated) {
             if template.hasSimpleHTML {
                 let simpleHTML = try template.render(article: self, forSimpleHTML: true)
                 try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath)

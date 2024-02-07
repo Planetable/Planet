@@ -1399,6 +1399,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let hasPodcastCoverArt = FileManager.default.fileExists(
             atPath: publicPodcastCoverArtPath.path
         )
+
+        // MARK: - Render RSS and podcast RSS
+        renderRSS(podcastOnly: false)
+
+        if publicPlanet.hasAudioContent() {
+            renderRSS(podcastOnly: true)
+        }
+        reduceRebuildTasks()
+
         // MARK: - Render index.html and pages
         let itemsPerPage = template.idealItemsPerPage ?? 10
         let generateIndexPagination = template.generateIndexPagination ?? false
@@ -1458,6 +1467,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             let indexHTML = try template.renderIndex(context: pageContext)
             try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
         }
+        reduceRebuildTasks()
 
         // MARK: - Render tags
         if let generateTagPages = template.generateTagPages, generateTagPages {
@@ -1520,6 +1530,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         else {
             debugPrint("Skip generating tags for planet \(name)")
         }
+        reduceRebuildTasks()
 
         // MARK: - Render archive.html
         if let generateArchive = template.generateArchive, generateArchive {
@@ -1556,13 +1567,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         else {
             debugPrint("Skip generating archive for planet \(name)")
         }
-
-        // MARK: - Render RSS and podcast RSS
-        renderRSS(podcastOnly: false)
-
-        if publicPlanet.hasAudioContent() {
-            renderRSS(podcastOnly: true)
-        }
+        reduceRebuildTasks()
 
         // MARK: - Save planet.json
         let info = try JSONEncoder.shared.encode(publicPlanet)
@@ -1890,7 +1895,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         // heaviest task is generating thumbnails
 
-        // try self.articles.forEach { try $0.savePublic() }
+        // try self.articles.forEach { try $0.savePublic(usingTasks: true) }
 
         do {
             // split the articles into groups
@@ -1904,7 +1909,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 DispatchQueue.concurrentPerform(iterations: articleGroup.count) { index in
                     group.enter()
                     do {
-                        try articleGroup[index].savePublic()
+                        try articleGroup[index].savePublic(usingTasks: true)
                         group.leave()
                     }
                     catch {
@@ -1919,7 +1924,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 try await withThrowingTaskGroup(of: Void.self) { group in
                     for article in articleGroup {
                         group.addTask(priority: .high) {
-                            try article.savePublic()
+                            try article.savePublic(usingTasks: true)
                         }
                     }
                     try await group.waitForAll()
@@ -1956,6 +1961,25 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         await sendNotificationForRebuild()
     }
 
+    func quickRebuildTaskCount() -> Int {
+        let copyTemplateAssetsTask = 1
+        let pagesTask = 1
+        let tagsTask = 1
+        let archiveTask = 1
+        let rssTask = 1
+        return copyTemplateAssetsTask + pagesTask + tagsTask + archiveTask + rssTask
+    }
+
+    func reduceRebuildTasks() {
+        Task { @MainActor in
+            let before = PlanetStore.shared.rebuildTasks
+            PlanetStore.shared.rebuildTasks -= 1
+            let after = PlanetStore.shared.rebuildTasks
+            debugPrint("Rebuild tasks reduced from \(before) to \(after) at \(Date())")
+            NotificationCenter.default.post(name: .myArticleBuilt, object:nil)
+        }
+    }
+
     func quickRebuild() async throws {
         let started = Date()
         await MainActor.run {
@@ -1969,14 +1993,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         Task { @MainActor in
             PlanetStore.shared.isRebuilding = true
-            PlanetStore.shared.rebuildTasks = 2
+            PlanetStore.shared.rebuildTasks = quickRebuildTaskCount()
             PlanetStatusManager.shared.updateStatus()
         }
         try self.copyTemplateAssets()
-        Task { @MainActor in
-            PlanetStore.shared.rebuildTasks = 1
-            NotificationCenter.default.post(name: .myArticleBuilt, object:nil)
-        }
+        reduceRebuildTasks()
         try await self.savePublic()
         await MainActor.run {
             self.isRebuilding = false

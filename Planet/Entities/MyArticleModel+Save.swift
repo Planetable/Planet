@@ -45,7 +45,7 @@ extension MyArticleModel {
     // MARK: - Save to Public/:planet_id/:article_id/index.html
 
     /// Save the article into UUID/index.html along with its attachments.
-    func savePublic() throws {
+    func savePublic(usingTasks: Bool = false) throws {
         let started: Date = Date()
         var marks: OrderedDictionary<String, Date> = ["Started": started]
 
@@ -79,7 +79,7 @@ extension MyArticleModel {
 
         // MARK: - Render Markdown
 
-        try processArticleHTML()
+        try processArticleHTML(usingTasks: usingTasks)
         marks.recordEvent("ArticleHTML", for: self.title)
 
         // MARK: - Hero Grid
@@ -317,6 +317,10 @@ extension MyArticleModel {
                         debugPrint("HeroImage: candidate size: \(image.size)")
                         if image.size.width >= 600 && image.size.height >= 400 {
                             debugPrint("HeroImage: \(item)")
+                            DispatchQueue.main.async {
+                                self.heroImage = firstImage
+                                try? self.save()
+                            }
                             return item
                         }
                     }
