@@ -8,6 +8,7 @@
 import AVKit
 import Foundation
 import SwiftUI
+import OrderedCollections
 
 extension MyArticleModel {
     // MARK: -  Save to My/:planet_id/Articles/:article_id.json
@@ -46,7 +47,7 @@ extension MyArticleModel {
     /// Save the article into UUID/index.html along with its attachments.
     func savePublic() throws {
         let started: Date = Date()
-        var marks: [String: Date] = ["Started": started]
+        var marks: OrderedDictionary<String, Date> = ["Started": started]
 
         removeDSStore()
         saveMarkdownInBackground()
@@ -56,7 +57,7 @@ extension MyArticleModel {
 
         // MARK: - Cover Image `_cover.png`
 
-        try saveCoverImageIfNeeded()
+        try saveCoverImage()
         savePreviewImageFromPDF()
         marks.recordEvent("SaveCoverImage", for: self.title)
 
@@ -450,7 +451,7 @@ extension MyArticleModel {
     /// Save preview image from PDF
     func savePreviewImageFromPDF() {
         // If PDF is the only attachment, generate a preview image
-        if let attachments = self.attachments, attachments.count == 1, let url = getAttachmentURL(name: attachments[0]) {
+        if let attachments = self.attachments, attachments.count == 1, attachments[0].lowercased().hasSuffix(".pdf"), let url = getAttachmentURL(name: attachments[0]) {
             let image = NSImage(contentsOf: url)
             // Write image to `_preview.png`
             if let image = image {
@@ -459,7 +460,9 @@ extension MyArticleModel {
                 if let imagePNGData = image.PNGData {
                     try? imagePNGData.write(to: imagePath)
                 }
-                self.heroImage = imageFilename
+                DispatchQueue.main.async {
+                    self.heroImage = imageFilename
+                }
             }
         }
     }
@@ -594,11 +597,11 @@ extension MyArticleModel {
     }
 }
 
-extension Dictionary where Key == String, Value == Date {
+extension OrderedDictionary where Key == String, Value == Date {
     fileprivate mutating func recordEvent(_ event: String, for title: String) {
+        let previousEventTime = self.values.last ?? Date()
         let currentTime = Date()
         self[event] = currentTime
-        let previousEventTime = self[event] ?? currentTime
         debugPrint(
             "\(event) for \(title) took: \(String(format: "%.3f", currentTime.timeIntervalSince(previousEventTime))) seconds"
         )

@@ -30,8 +30,8 @@ struct TemplateBrowserSidebar: View {
                         Button {
                             openVSCode(template)
                         } label: {
-                            Image(systemName: "curlybraces")
-                            Text("Edit Template with VSCode")
+                            Image(systemName: "chevron.left.slash.chevron.right")
+                            Text("Edit Template")
                         }
                     }
 

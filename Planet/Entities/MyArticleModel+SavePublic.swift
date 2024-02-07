@@ -26,16 +26,25 @@ extension MyArticleModel {
         }
     }
 
-    /// Save `_cover.png` for Croptop
-    func saveCoverImageIfNeeded() throws {
-        let coverImageText = self.getCoverImageText()
+    func hasTextOnlyContent() -> Bool {
+        let mediaExtensions = [".png", ".apng", ".jpeg", ".jpg", ".tiff", ".webp", ".gif", ".mp4", ".mov", ".pdf"]
+        return !(self.attachments ?? []).contains { attachment in
+            mediaExtensions.contains(where: attachment.lowercased().hasSuffix)
+        }
+    }
 
-        if self.planet.templateName == "Croptop" {
-            saveCoverImage(
-                with: coverImageText,
-                filename: publicCoverImagePath.path,
-                imageSize: NSSize(width: 512, height: 512)
-            )
+    /// Save `_cover.png` for Croptop for text-only posts
+    func saveCoverImage() throws {
+        if hasTextOnlyContent() {
+            let coverImageText = self.getCoverImageText()
+
+            if self.planet.templateName == "Croptop" {
+                saveCoverImage(
+                    with: coverImageText,
+                    filename: publicCoverImagePath.path,
+                    imageSize: NSSize(width: 512, height: 512)
+                )
+            }
         }
     }
 
@@ -220,12 +229,18 @@ extension MyArticleModel {
             throw PlanetError.MissingTemplateError
         }
 
-        let articleHTML = try template.render(article: self)
-        try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
+        Task(priority: .userInitiated) {
+            let articleHTML = try template.render(article: self)
+            try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
+            debugPrint("HTML for \(self.title) saved to \(publicIndexPath.path)")
+        }
 
-        if template.hasSimpleHTML {
-            let simpleHTML = try template.render(article: self, forSimpleHTML: true)
-            try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath)
+        Task(priority: .userInitiated) {
+            if template.hasSimpleHTML {
+                let simpleHTML = try template.render(article: self, forSimpleHTML: true)
+                try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath)
+                debugPrint("Simple HTML for \(self.title) saved to \(publicSimplePath.path)")
+            }
         }
     }
 

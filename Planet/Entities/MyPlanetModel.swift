@@ -1424,14 +1424,18 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "pages": pages,
                     "articles": pageArticles,
                 ]
-                let pageHTML = try template.renderIndex(context: pageContext)
-                let pagePath = publicIndexPagePath(page: i)
-                try pageHTML.data(using: .utf8)?.write(to: pagePath)
+                Task(priority: .userInitiated) {
+                    let pageHTML = try template.renderIndex(context: pageContext)
+                    let pagePath = publicIndexPagePath(page: i)
+                    try pageHTML.data(using: .utf8)?.write(to: pagePath)
+                }
 
                 if i == 1 {
                     debugPrint("Build index.html: hasAvatar=\(self.hasAvatar())")
-                    let indexHTML = try template.renderIndex(context: pageContext)
-                    try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
+                    Task(priority: .userInitiated) {
+                        let indexHTML = try template.renderIndex(context: pageContext)
+                        try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
+                    }
                 }
             }
         }
@@ -1488,9 +1492,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "articles": value,
                     "page_title": "\(self.name) - \(self.tags?[key] ?? key)",
                 ]
-                let tagHTML = try template.renderIndex(context: tagContext)
-                let tagPath = publicTagPath(tag: key)
-                try tagHTML.data(using: .utf8)?.write(to: tagPath)
+                Task(priority: .userInitiated) {
+                    let tagHTML = try template.renderIndex(context: tagContext)
+                    let tagPath = publicTagPath(tag: key)
+                    try tagHTML.data(using: .utf8)?.write(to: tagPath)
+                }
             }
             if template.hasTagsHTML {
                 let tagsContext: [String: Any] = [
@@ -1505,8 +1511,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "tags": self.removeReservedTags(),
                     "tag_articles": tagArticles,
                 ]
-                let tagsHTML = try template.renderTags(context: tagsContext)
-                try tagsHTML.data(using: .utf8)?.write(to: publicTagsPath)
+                Task(priority: .userInitiated) {
+                    let tagsHTML = try template.renderTags(context: tagsContext)
+                    try tagsHTML.data(using: .utf8)?.write(to: publicTagsPath)
+                }
             }
         }
         else {
@@ -1877,9 +1885,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             PlanetStatusManager.shared.updateStatus()
         }
         try self.copyTemplateAssets()
+
         // according to benchmarks, using parallel processing would take half the time to rebuild
+
         // heaviest task is generating thumbnails
+
         // try self.articles.forEach { try $0.savePublic() }
+
         do {
             // split the articles into groups
             let cpuCount = ProcessInfo.processInfo.activeProcessorCount

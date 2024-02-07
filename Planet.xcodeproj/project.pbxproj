@@ -398,6 +398,12 @@
 		6AE1839B2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE1839A2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift */; };
 		6AE1839C2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE1839A2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift */; };
 		6AE93656290CB10700BAC092 /* PlanetSettingsPlanetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */; };
+		6AFCF7DC2B7353C6002299BA /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7DB2B7353C6002299BA /* Collections */; };
+		6AFCF7DE2B7353C6002299BA /* DequeModule in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7DD2B7353C6002299BA /* DequeModule */; };
+		6AFCF7E02B7353C6002299BA /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7DF2B7353C6002299BA /* OrderedCollections */; };
+		6AFCF7E22B7353FE002299BA /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7E12B7353FE002299BA /* Collections */; };
+		6AFCF7E42B7353FE002299BA /* DequeModule in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7E32B7353FE002299BA /* DequeModule */; };
+		6AFCF7E62B7353FE002299BA /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7E52B7353FE002299BA /* OrderedCollections */; };
 		7211413A9B3CC77620629D22 /* ViewUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143C73AEAD5F0C049DF86 /* ViewUtils.swift */; };
 		7211421E15A5A630DF93A519 /* MyPlanetInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D264DD084A74B49BF8 /* MyPlanetInfoView.swift */; };
 		72114265702BCDF356C98046 /* FollowingPlanetAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721140CF1813A5B4340B90F3 /* FollowingPlanetAvatarView.swift */; };
@@ -751,6 +757,7 @@
 			files = (
 				2A95E6D92A19A48C001288B8 /* Swifter in Frameworks */,
 				2A95E6A82A19A48C001288B8 /* ENSKit in Frameworks */,
+				6AFCF7E42B7353FE002299BA /* DequeModule in Frameworks */,
 				2AFDF8AA2A3A1E8500386B9A /* ASMediaView in Frameworks */,
 				2A95E6C32A19A48C001288B8 /* WalletConnectPairing in Frameworks */,
 				6A4A256A2A865DFB00B18C36 /* WrappingHStack in Frameworks */,
@@ -767,10 +774,12 @@
 				2A95E6B42A19A48C001288B8 /* CodeMirror-SwiftUI in Frameworks */,
 				2A95E6A62A19A48C001288B8 /* FeedKit in Frameworks */,
 				2A95E6AE2A19A48C001288B8 /* Sparkle in Frameworks */,
+				6AFCF7E22B7353FE002299BA /* Collections in Frameworks */,
 				2A95E6AA2A19A48C001288B8 /* PlanetSiteTemplates in Frameworks */,
 				2A95E6AC2A19A48C001288B8 /* SwiftSoup in Frameworks */,
 				2A95E6C52A19A48C001288B8 /* WalletConnectPush in Frameworks */,
 				2A95E6C12A19A48C001288B8 /* WalletConnectNetworking in Frameworks */,
+				6AFCF7E62B7353FE002299BA /* OrderedCollections in Frameworks */,
 				2A95E6D32A19A48C001288B8 /* Web3 in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -784,8 +793,10 @@
 				2A466FD42A809F65009FB646 /* ASMediaView in Frameworks */,
 				BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */,
 				6A9C211029792464005A815E /* AVKit.framework in Frameworks */,
+				6AFCF7E02B7353C6002299BA /* OrderedCollections in Frameworks */,
 				BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */,
 				2A2774412A9514EE00A5DDC2 /* Zip in Frameworks */,
+				6AFCF7DE2B7353C6002299BA /* DequeModule in Frameworks */,
 				2AB6A93E29703825007186A7 /* Swifter in Frameworks */,
 				BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */,
 				6A373A4428E8263800750256 /* CodeMirror-SwiftUI in Frameworks */,
@@ -801,6 +812,7 @@
 				BB6FC66D28423AF80072C3A1 /* SwiftSoup in Frameworks */,
 				6AABC6AA291A62A9009FD13F /* WalletConnectSwift in Frameworks */,
 				6AB6E517291527B800F17328 /* WalletConnectPush in Frameworks */,
+				6AFCF7DC2B7353C6002299BA /* Collections in Frameworks */,
 				6A71896D2947FD0500279D77 /* Web3PromiseKit in Frameworks */,
 				6AB6E513291527B800F17328 /* WalletConnectNetworking in Frameworks */,
 			);
@@ -1465,6 +1477,9 @@
 				2A95E6D82A19A48C001288B8 /* Swifter */,
 				2AFDF8A92A3A1E8500386B9A /* ASMediaView */,
 				6A4A25692A865DFB00B18C36 /* WrappingHStack */,
+				6AFCF7E12B7353FE002299BA /* Collections */,
+				6AFCF7E32B7353FE002299BA /* DequeModule */,
+				6AFCF7E52B7353FE002299BA /* OrderedCollections */,
 			);
 			productName = Croptop;
 			productReference = 2ABD1CC12A1616DA0082D7EA /* Croptop.app */;
@@ -1509,6 +1524,9 @@
 				2A466FD32A809F65009FB646 /* ASMediaView */,
 				6A2A4D2B2A86422700F4491A /* WrappingHStack */,
 				2A2774402A9514EE00A5DDC2 /* Zip */,
+				6AFCF7DB2B7353C6002299BA /* Collections */,
+				6AFCF7DD2B7353C6002299BA /* DequeModule */,
+				6AFCF7DF2B7353C6002299BA /* OrderedCollections */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -1564,6 +1582,7 @@
 				2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */,
 				6A2A4D2A2A86422700F4491A /* XCRemoteSwiftPackageReference "WrappingHStack" */,
 				2A27743F2A9514EE00A5DDC2 /* XCRemoteSwiftPackageReference "Zip" */,
+				6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -2454,6 +2473,14 @@
 				minimumVersion = 3.1.0;
 			};
 		};
+		6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.6;
+			};
+		};
 		BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
@@ -2699,6 +2726,36 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6ADF40C229151407007A24E8 /* XCRemoteSwiftPackageReference "Starscream" */;
 			productName = Starscream;
+		};
+		6AFCF7DB2B7353C6002299BA /* Collections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = Collections;
+		};
+		6AFCF7DD2B7353C6002299BA /* DequeModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = DequeModule;
+		};
+		6AFCF7DF2B7353C6002299BA /* OrderedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = OrderedCollections;
+		};
+		6AFCF7E12B7353FE002299BA /* Collections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = Collections;
+		};
+		6AFCF7E32B7353FE002299BA /* DequeModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = DequeModule;
+		};
+		6AFCF7E52B7353FE002299BA /* OrderedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = OrderedCollections;
 		};
 		BB6FC66C28423AF80072C3A1 /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
