@@ -384,6 +384,7 @@ struct MyPlanetSidebarItem: View {
                 Button {
                     openVSCode(template)
                 } label: {
+                    Image(systemName: "chevron.left.slash.chevron.right")
                     Text("Edit Template")
                 }
             }
