@@ -335,6 +335,7 @@ struct MyPlanetSidebarItem: View {
                 Button {
                     openWorldWideWeb(planet.publicBasePath)
                 } label: {
+                    Image(systemName: "network")
                     Text("Open in WorldWideWeb Server")
                 }
             }
@@ -354,6 +355,7 @@ struct MyPlanetSidebarItem: View {
                     }
                 }
             } label: {
+                Image(systemName: "bolt.fill")
                 Text("Quick Rebuild")
             }
             .keyboardShortcut("r", modifiers: [.command, .shift])
@@ -373,6 +375,7 @@ struct MyPlanetSidebarItem: View {
                     }
                 }
             } label: {
+                Image(systemName: "arrow.clockwise")
                 Text("Full Rebuild")
             }
             .keyboardShortcut("r", modifiers: [.command])
