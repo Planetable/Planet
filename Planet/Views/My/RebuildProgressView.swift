@@ -27,10 +27,17 @@ struct RebuildProgressView: View {
                         aNotification in
                         Task { @MainActor in
                             self.completed = self.completed + 1
-                            if total == 0 {
+                            if total == 0 || total < 0 {
                                 self.progress = 0
                             } else {
-                                self.progress = Double(completed) / Double(total) * 100
+                                var p = Double(completed) / Double(total) * 100
+                                if p > 100 {
+                                    p = 100
+                                }
+                                if p < 0 {
+                                    p = 0
+                                }
+                                self.progress = p
                             }
                         }
                     }

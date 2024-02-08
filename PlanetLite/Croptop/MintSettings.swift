@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CPNSettings: View {
+struct MintSettings: View {
     let CONTROL_CAPTION_WIDTH: CGFloat = 170
     let CONTROL_ROW_SPACING: CGFloat = 8
 
@@ -20,17 +20,17 @@ struct CPNSettings: View {
     @State private var userSettings: [String: String] = [:]
 
     @State private var settingKeys: [String] = [
-        "mainnetCollectionID",
-        "mainnetCollectionCategory",
-        "mainnetRPC",
-        "mainnetCPNBeneficiaryAddress",
+        "ethereumSepoliaCollectionID",
+        "ethereumSepoliaCollectionCategory",
+        "ethereumSepoliaRPC",
+        "ethereumSepoliaBeneficiaryAddress",
         "separator1",
-        "goerliCollectionID",
-        "goerliCollectionCategory",
-        "goerliRPC",
-        "goerliCPNBeneficiaryAddress",
-        "separator2",
-        "highlightColor",
+        "optimismSepoliaCollectionID",
+        "optimismSepoliaCollectionCategory",
+        "optimismSepoliaRPC",
+        "optimismSepoliaBeneficiaryAddress",
+        // "separator2",
+        // "highlightColor",
     ]
 
     init(planet: MyPlanetModel) {
@@ -91,7 +91,7 @@ struct CPNSettings: View {
                     }
                     .padding(16)
                     .tabItem {
-                        Text("CPN Settings")
+                        Text("Mint Settings")
                     }
                 }
 
@@ -99,7 +99,7 @@ struct CPNSettings: View {
                     Spacer()
 
                     Button {
-                        PlanetStore.shared.isConfiguringCPN = false
+                        PlanetStore.shared.isConfiguringMint = false
                     } label: {
                         Text("Cancel")
                             .frame(width: 50)

@@ -191,9 +191,9 @@ struct AppContentView: View {
                 .help("New Article")
             }
         }
-        .sheet(isPresented: $planetStore.isConfiguringCPN) {
+        .sheet(isPresented: $planetStore.isConfiguringMint) {
             if case .myPlanet(let planet) = planetStore.selectedView {
-                CPNSettings(planet: planet)
+                MintSettings(planet: planet)
             }
         }
         .sheet(isPresented: $planetStore.isConfiguringAggregation) {
