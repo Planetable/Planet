@@ -189,6 +189,9 @@ struct MyArticleGridView: View {
         }
         else if article.hasVideo {
             VideoIndicatorView()
+        }
+        else if article.hasPDF {
+            PDFIndicatorView()
         } else {
 
         }

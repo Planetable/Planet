@@ -50,3 +50,25 @@ struct VideoIndicatorView: View {
         }
     }
 }
+
+
+struct PDFIndicatorView: View {
+    var body: some View {
+        VStack {
+            Spacer()
+            HStack {
+                Text("PDF")
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.85))
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 2)
+                    .background(Color.secondary.opacity(0.75))
+                    .cornerRadius(4)
+                    .multilineTextAlignment(.center)
+                Spacer()
+            }
+            .padding(.leading, 4)
+            .padding(.bottom, 4)
+        }
+    }
+}

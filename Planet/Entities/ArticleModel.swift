@@ -36,6 +36,10 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
         audioFilename != nil
     }
 
+    var hasPDF: Bool {
+        return attachments?.contains { $0.hasSuffix(".pdf") } ?? false
+    }
+
     init(
         id: UUID,
         title: String,
