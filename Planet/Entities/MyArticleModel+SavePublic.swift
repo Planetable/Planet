@@ -84,6 +84,7 @@ extension MyArticleModel {
     }
 
     func processAttachmentCIDIfNeeded() {
+        // This logic is needed because the Croptop grid view needs at least one picture
         if let attachments = self.attachments, attachments.count == 0 {
             if self.planet.templateName == "Croptop" {
                 // _cover.png CID is only needed by Croptop now
