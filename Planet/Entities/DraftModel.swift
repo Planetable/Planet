@@ -438,7 +438,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         article.attachments = currentAttachments
         article.heroImage = heroImage
         article.tags = tags
-        article.cids = article.getCIDs()
+        article.cids = article.getCIDs(for: currentAttachments)
         article.videoFilename = videoFilename
         article.audioFilename = audioFilename
         if let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content),

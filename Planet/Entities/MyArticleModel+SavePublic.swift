@@ -93,10 +93,17 @@ extension MyArticleModel {
                 }
             }
         }
+        var attachmentsToProcess: [String] = []
+        if let attachments = self.attachments {
+            attachmentsToProcess = attachments
+        }
+        if attachmentsToProcess.count == 0, self.planet.templateName == "Croptop" {
+            attachmentsToProcess = ["_cover.png"]
+        }
         var attachmentCIDs: [String: String] = self.cids ?? [:]
         let needsToUpdateCIDs = {
             if let cids = self.cids, cids.count > 0 {
-                for attachment in self.attachments ?? [] {
+                for attachment in attachmentsToProcess {
                     if cids[attachment] == nil {
                         debugPrint(
                             "CID Update for \(self.title): NEEDED because \(attachment) is missing"
@@ -112,7 +119,7 @@ extension MyArticleModel {
                 }
                 return false
             }
-            if self.attachments?.count ?? 0 > 0 {
+            if attachmentsToProcess.count > 0 {
                 debugPrint("CID Update for \(self.title): NEEDED because cids is nil")
                 return true
             }
@@ -120,7 +127,7 @@ extension MyArticleModel {
         }()
         if needsToUpdateCIDs {
             debugPrint("CID Update for \(self.title): NEEDED")
-            attachmentCIDs = getCIDs()
+            attachmentCIDs = getCIDs(for: attachmentsToProcess)
             self.cids = attachmentCIDs
             try? self.save()
         }
@@ -206,7 +213,7 @@ extension MyArticleModel {
                 image: "https://ipfs.io/ipfs/\(imageCID)",
                 external_url: (self.externalLink ?? self.browserURL?.absoluteString) ?? "",
                 mimeType: self.getAttachmentMimeType(name: firstKey),
-                animation_url: "https://ipfs.io/ipfs/\(animationCID)" ?? nil,
+                animation_url: animationCID != nil ? "https://ipfs.io/ipfs/\(animationCID)" : nil,
                 attributes: attributes
             )
             let nftData = try JSONEncoder.shared.encode(nft)

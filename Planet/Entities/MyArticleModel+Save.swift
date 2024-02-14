@@ -147,10 +147,10 @@ extension MyArticleModel {
     }
 
     /// Get CIDs of all attachments
-    func getCIDs() -> [String: String] {
-        if let attachments = self.attachments, attachments.count > 0 {
+    func getCIDs(for attachmentsToProcess: [String]) -> [String: String] {
+        if attachmentsToProcess.count > 0 {
             var cids: [String: String] = [:]
-            for attachment in attachments {
+            for attachment in attachmentsToProcess {
                 if let attachmentURL = getAttachmentURL(name: attachment) {
                     if let attachmentCID = try? IPFSDaemon.shared.getFileCIDv0(url: attachmentURL) {
                         debugPrint("CID for \(attachment): \(attachmentCID)")

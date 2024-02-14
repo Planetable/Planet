@@ -133,7 +133,7 @@ struct AppSidebarItemView: View {
                     Button {
                         openVSCode(template)
                     } label: {
-                        Image(systemName: "curlybraces")
+                        Image(systemName: "chevron.left.slash.chevron.right")
                         Text("Open Template in VSCode")
                     }
                 }
