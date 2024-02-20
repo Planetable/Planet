@@ -4,6 +4,7 @@ struct AttachmentThumbnailView: View {
     @ObservedObject var attachment: Attachment
 
     @State private var isShowingControl = false
+    @State private var hoverWindow: NSWindow?
 
     var body: some View {
         ZStack {
@@ -57,10 +58,12 @@ struct AttachmentThumbnailView: View {
         .frame(width: 60, height: 60, alignment: .center)
         .padding(.leading, 12)
         .padding(.trailing, 8)
-        .onHover { isHovering in
+        .onHover { hovering in
             withAnimation {
-                isShowingControl = isHovering
+                isShowingControl = hovering
             }
+            guard attachment.type == .image else { return }
+            previewAttachment(onHovering: hovering)
         }
     }
 
@@ -80,6 +83,31 @@ struct AttachmentThumbnailView: View {
                 object: markdown
             )
         }
-        try? attachment.draft.deleteAttachment(name: attachment.name)
+        attachment.draft.deleteAttachment(name: attachment.name)
+    }
+
+    func previewAttachment(onHovering hovering: Bool) {
+        if hovering {
+            let hoverView = Text("Hovering Image: \(attachment.name)")
+                .frame(width: 200, height: 100)
+                .background(Color.gray.opacity(0.5))
+
+            let controller = NSHostingController(rootView: hoverView)
+            let window = NSWindow(contentViewController: controller)
+            window.styleMask = .borderless
+            window.backgroundColor = NSColor.clear
+            window.isOpaque = false
+            window.hasShadow = false
+            window.ignoresMouseEvents = true
+
+            let mouseLocation = NSEvent.mouseLocation
+            window.setFrameOrigin(NSPoint(x: mouseLocation.x + 100, y: mouseLocation.y))
+
+            window.makeKeyAndOrderFront(nil)
+            self.hoverWindow = window
+        } else {
+            self.hoverWindow?.close()
+            self.hoverWindow = nil
+        }
     }
 }
