@@ -251,17 +251,9 @@ class WriterEditorTextView: NSTextView {
         }
     }
 
-    private func processEnterOrReturnEvent() throws {
-        func getLocationOfFirstNewline(fromString string: NSString, beforeLocation loc: UInt) -> UInt {
-            var location: UInt = loc
-            if location > string.length {
-                location = UInt(string.length)
-            }
-            var start: UInt = 0
-            string.getLineStart(&start, end: nil, contentsEnd: nil, for: NSRange(location: Int(location), length: 0))
-            return start
-        }
+    // MARK: - Process enter / return key event
 
+    private func processEnterOrReturnEvent() throws {
         let selectedRange = self.selectedRange()
         let location = selectedRange.location - 1
         let content = NSString(string: self.string)
@@ -271,11 +263,31 @@ class WriterEditorTextView: NSTextView {
         let line = NSString(string: content.substring(with: range))
         let regex = try NSRegularExpression(pattern: "^(\\s*)((?:(?:\\*|\\+|-|)\\s+)?)((?:\\d+\\.\\s+)?)(\\S)?", options: .anchorsMatchLines)
         guard let result: NSTextCheckingResult = regex.firstMatch(in: line as String, range: NSRange(location: 0, length: line.length)) else { return }
+        let indent = NSString(string: line.substring(with: result.range(at: 1)))
+        let prefix = getPrefix(result: result, line: line, start: start, indent: indent, selectedRange: selectedRange, range: range)
+        guard prefix != "" else { return }
+        var targetRange = selectedRange
+        targetRange.length = 0
+        var extendedContent = NSString(format: "%@%@ ", indent, prefix)
+        extendedContent = getExtendedContent(line: line, indent: indent, prefix: prefix, extendedContent: extendedContent, range: range)
+        self.insertText(extendedContent, replacementRange: targetRange)
+    }
+
+    private func getLocationOfFirstNewline(fromString string: NSString, beforeLocation loc: UInt) -> UInt {
+        var location: UInt = loc
+        if location > string.length {
+            location = UInt(string.length)
+        }
+        var start: UInt = 0
+        string.getLineStart(&start, end: nil, contentsEnd: nil, for: NSRange(location: Int(location), length: 0))
+        return start
+    }
+
+    private func getPrefix(result: NSTextCheckingResult, line: NSString, start: UInt, indent: NSString, selectedRange: NSRange, range: NSRange) -> NSString {
         var prefix: NSString = NSString(string: "")
         let isUnordered = result.range(at: 2).length != 0
         let isOrdered = result.range(at: 3).length != 0
         let isPreviousLineEmpty = result.range(at: 4).length == 0
-        let indent = NSString(string: line.substring(with: result.range(at: 1)))
         if isPreviousLineEmpty {
             var replaceRange = NSRange(location: NSNotFound, length: 0)
             if isUnordered {
@@ -304,24 +316,23 @@ class WriterEditorTextView: NSTextView {
             let capturedIndex = NSString(string: line.substring(with: theRange)).integerValue
             prefix = NSString(format: "%ld.", capturedIndex + 1)
         }
-        guard prefix != "" else { return }
-        var targetRange = selectedRange
-        targetRange.length = 0
-        var extendedContent = NSString(format: "%@%@ ", indent, prefix)
+        return prefix
+    }
+
+    private func getExtendedContent(line: NSString, indent: NSString, prefix: NSString, extendedContent: NSString, range: NSRange) -> NSString {
+        var extendedContent = extendedContent
         // Improvements for todo item in unordered list:
         // "- [ ] "
         // "- [x] "
         // "- [X] "
-        if isUnordered {
-            if line.hasPrefix("- [ ] ") || line.hasPrefix("- [x] ") || line.hasPrefix("- [X] ") {
-                if line.length == "- [ ] ".count {
-                    extendedContent = NSString(format: "")
-                    self.replaceCharacters(in: range, with: "")
-                } else {
-                    extendedContent = NSString(format: "%@%@ [ ] ", indent, prefix)
-                }
+        if line.hasPrefix("- [ ] ") || line.hasPrefix("- [x] ") || line.hasPrefix("- [X] ") {
+            if line.length == "- [ ] ".count {
+                extendedContent = NSString(format: "")
+                self.replaceCharacters(in: range, with: "")
+            } else {
+                extendedContent = NSString(format: "%@%@ [ ] ", indent, prefix)
             }
         }
-        self.insertText(extendedContent, replacementRange: targetRange)
+        return extendedContent
     }
 }
