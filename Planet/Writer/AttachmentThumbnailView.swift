@@ -87,23 +87,25 @@ struct AttachmentThumbnailView: View {
     }
 
     func previewAttachment(onHovering hovering: Bool) {
-        if hovering {
-            let hoverView = Text("Hovering Image: \(attachment.name)")
-                .frame(width: 200, height: 100)
-                .background(Color.gray.opacity(0.5))
-
+        if hovering, let image = NSImage(contentsOf: attachment.path) {
+            let width = min(image.size.width * 0.5, 400)
+            let ratio = image.size.width / image.size.height
+            let height = width / ratio
+            let hoverView = Image(nsImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: width, height: height)
+                .background(Color(nsColor: .windowBackgroundColor))
             let controller = NSHostingController(rootView: hoverView)
             let window = NSWindow(contentViewController: controller)
-            window.styleMask = .borderless
-            window.backgroundColor = NSColor.clear
-            window.isOpaque = false
-            window.hasShadow = false
-            window.ignoresMouseEvents = true
-
+            window.styleMask = [.titled]
+            window.backgroundColor = NSColor.windowBackgroundColor
+            window.isOpaque = true
+            window.hasShadow = true
+            window.title = attachment.name
             let mouseLocation = NSEvent.mouseLocation
             window.setFrameOrigin(NSPoint(x: mouseLocation.x + 100, y: mouseLocation.y))
-
-            window.makeKeyAndOrderFront(nil)
+            window.orderFront(nil)
             self.hoverWindow = window
         } else {
             self.hoverWindow?.close()
