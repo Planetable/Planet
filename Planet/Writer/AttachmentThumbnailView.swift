@@ -4,6 +4,7 @@ struct AttachmentThumbnailView: View {
     @ObservedObject var attachment: Attachment
 
     @State private var isShowingControl = false
+    @State private var hoverWindow: NSWindow?
 
     var body: some View {
         ZStack {
@@ -57,9 +58,13 @@ struct AttachmentThumbnailView: View {
         .frame(width: 60, height: 60, alignment: .center)
         .padding(.leading, 12)
         .padding(.trailing, 8)
-        .onHover { isHovering in
+        .onHover { hovering in
             withAnimation {
-                isShowingControl = isHovering
+                isShowingControl = hovering
+            }
+            guard attachment.type == .image else { return }
+            Task {
+                await previewAttachment(onHovering: hovering)
             }
         }
     }
@@ -80,6 +85,48 @@ struct AttachmentThumbnailView: View {
                 object: markdown
             )
         }
-        try? attachment.draft.deleteAttachment(name: attachment.name)
+        attachment.draft.deleteAttachment(name: attachment.name)
+    }
+
+    func previewAttachment(onHovering hovering: Bool) async {
+        if !hovering {
+            closePreviewWindow()
+        }
+        try? await Task.sleep(nanoseconds: 1 * 1_000_000_000)
+        guard self.isShowingControl else {
+            closePreviewWindow()
+            return
+        }
+        if hovering, let image = NSImage(contentsOf: attachment.path) {
+            let width = min(image.size.width * 0.5, 400)
+            let ratio = image.size.width / image.size.height
+            let height = width / ratio
+            let hoverView = Image(nsImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: width, height: height)
+                .background(Color(nsColor: .windowBackgroundColor))
+            let controller = NSHostingController(rootView: hoverView)
+            let window = NSPanel(contentViewController: controller)
+            window.styleMask = [.utilityWindow, .titled]
+            window.backgroundColor = NSColor.windowBackgroundColor
+            window.isOpaque = true
+            window.hasShadow = true
+            window.title = attachment.name
+            let mouseLocation = NSEvent.mouseLocation
+            window.setFrameOrigin(NSPoint(x: mouseLocation.x + 64, y: mouseLocation.y))
+            window.orderFront(nil)
+            self.hoverWindow = window
+        } else {
+            self.hoverWindow?.close()
+            self.hoverWindow = nil
+        }
+    }
+
+    private func closePreviewWindow() {
+        if let w = self.hoverWindow, w.isVisible {
+            w.close()
+            self.hoverWindow = nil
+        }
     }
 }
