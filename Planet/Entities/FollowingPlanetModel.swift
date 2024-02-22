@@ -93,12 +93,25 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
         return URL(string: link)
     }
+    /// URL that can be viewed or shared in a regular browser.
     var browserURL: URL? {
         if planetType == .ens {
             return URL(string: "https://\(link).limo")
         }
+        // IPNS
+        if link.hasPrefix("k51qaz") {
+            return URL(string: "https://\(link).ipfs2.eth.limo/")
+        }
         if let cid = cid {
-            return URL(string: "\(IPFSDaemon.preferredGateway())/ipfs/\(cid)/")
+            debugPrint("Following Planet CID: \(cid)")
+            // CIDv0
+            if cid.hasPrefix("Qm") {
+                return URL(string: "\(IPFSDaemon.preferredGateway())/ipfs/\(cid)/")
+            }
+            // CIDv1
+            if cid.hasPrefix("bafy") {
+                return URL(string: "https://\(cid).ipfs2.eth.limo/")
+            }
         }
         return URL(string: link)
     }
