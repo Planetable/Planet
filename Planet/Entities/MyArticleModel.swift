@@ -20,6 +20,7 @@ class MyArticleModel: ArticleModel, Codable {
     @Published var isIncludedInNavigation: Bool? = false
     @Published var navigationWeight: Int? = 1
 
+    /// CIDv0 of attachments, useful for NFT metadata.
     var cids: [String: String]? = [:]
 
     var tags: [String: String]? = nil
@@ -120,6 +121,7 @@ class MyArticleModel: ArticleModel, Codable {
             return localGatewayURL
         }
     }
+    /// The URL that can be viewed and shared in a regular browser.
     var browserURL: URL? {
         var urlPath = "/\(id.uuidString)/"
         if let slug = slug, slug.count > 0 {

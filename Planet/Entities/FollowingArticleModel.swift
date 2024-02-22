@@ -76,12 +76,14 @@ class FollowingArticleModel: ArticleModel, Codable {
             return nil
         }
     }
+    /// URL that can be viewed and shared in a regular browser.
     var browserURL: URL? {
         debugPrint("Generating browserURL: planet.type: \(planet.planetType) planet.link: \(planet.link) article.link: \(link)")
         switch planet.planetType {
         case .planet:
             // planet article link: /12345678-90AB-CDEF-1234-567890ABCDEF/
-            return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.link)\(link)")
+            // return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.link)\(link)")
+            return URL(string: "https://\(planet.link).ipfs2.eth.limo\(link)")
         case .ens:
             if let linkURL = URL(string: link),
                linkURL.isHTTP {
@@ -108,11 +110,13 @@ class FollowingArticleModel: ArticleModel, Codable {
             return nil
         case .dnslink:
             // TODO: Fix how type 0 planet was mishandled as a dnslink
+            // FIXME: This issue still exists as of 2024-Feb-21
             if planet.link.count == 62, planet.link.starts(with: "k51"), link.starts(with: "/") {
                 if link.hasPrefix("/ipfs/Q") || link.hasPrefix("/ipfs/b") || link.hasPrefix("/ipns/") {
                     return URL(string: "\(IPFSDaemon.preferredGateway())\(link)")
                 }
-                return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.link)\(link)")
+                // return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.link)\(link)")
+                return URL(string: "https://\(planet.link).ipfs2.eth.limo\(link)")
             }
             if link.starts(with: "/"), !planet.link.contains("://") {
                 return URL(string: "https://\(planet.link)\(link)")?.absoluteURL
