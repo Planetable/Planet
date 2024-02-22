@@ -10,7 +10,7 @@ import SwiftUI
 struct SearchView: View {
     @EnvironmentObject var planetStore: PlanetStore
 
-    @State private var result: [MyArticleModel] = []
+    @State private var result: [SearchResult] = []
 
     @Environment(\.dismiss) private var dismiss
 
@@ -56,18 +56,32 @@ struct SearchView: View {
         }
         .frame(minWidth: 500, minHeight: 300)
         .onChange(of: planetStore.searchText) { _ in
-            debugPrint("New search text length: \(planetStore.searchText.count)")
-            if planetStore.searchText.count == 0 {
-                DispatchQueue.main.async {
-                    result = []
-                }
-            }
-            else {
-                search()
-            }
+            debounceSearch()
         }
         .onAppear {
             search()
+        }
+    }
+
+    @State private var searchTimer: Timer?
+
+    private let searchDebounceInterval: TimeInterval = 0.08  // 80 milliseconds
+
+    private func debounceSearch() {
+        // Invalidate and nullify the existing timer if it exists
+        searchTimer?.invalidate()
+        searchTimer = nil
+
+        // Create and schedule a new timer
+        searchTimer = Timer.scheduledTimer(withTimeInterval: searchDebounceInterval, repeats: false)
+        { _ in
+            debugPrint("New search text length: \(self.planetStore.searchText.count)")
+            if self.planetStore.searchText.count == 0 {
+                self.result = []
+            }
+            else {
+                self.search()
+            }
         }
     }
 
@@ -75,13 +89,13 @@ struct SearchView: View {
         let searchText = planetStore.searchText
         if searchText != "" {
             Task(priority: .userInitiated) {
-                let articles = await planetStore.searchArticles(text: searchText)
+                let items = await planetStore.searchAllArticles(text: searchText)
                 DispatchQueue.main.async {
                     let latestSearchText = planetStore.searchText
                     if latestSearchText != searchText {
                         return
                     }
-                    result = articles
+                    result = items
                 }
             }
         }
@@ -91,10 +105,10 @@ struct SearchView: View {
     private func searchResult() -> some View {
         if result.count > 0 {
             List {
-                ForEach(result, id: \.self) { article in
-                    searchResultRow(article)
+                ForEach(result, id: \.self) { item in
+                    searchResultRow(item)
                         .onTapGesture {
-                            goToArticle(article)
+                            goToArticle(item)
                         }
                 }
             }
@@ -107,8 +121,26 @@ struct SearchView: View {
         }
     }
 
-    private func goToArticle(_ article: MyArticleModel) {
+    @ViewBuilder
+    func planetAvatarView(result: SearchResult, size: CGFloat) -> some View {
+        switch result.planetKind {
+        case .my:
+            if let planet = PlanetStore.shared.myPlanets.first(where: { $0.id == result.planetID })
+            {
+                planet.avatarView(size: size)
+            }
+        case .following:
+            if let planet = PlanetStore.shared.followingPlanets.first(where: {
+                $0.id == result.planetID
+            }) {
+                planet.avatarView(size: size)
+            }
+        }
+    }
+
+    private func goToArticle(_ item: SearchResult) {
         Task(priority: .userInitiated) { @MainActor in
+            /*
             planetStore.selectedView = .myPlanet(article.planet)
             Task(priority: .userInitiated) { @MainActor in
                 planetStore.selectedArticle = article
@@ -116,14 +148,42 @@ struct SearchView: View {
                     NotificationCenter.default.post(name: .scrollToArticle, object: article)
                 }
             }
+            */
+            switch item.planetKind {
+            case .my:
+                if let planet = planetStore.myPlanets.first(where: { $0.id == item.planetID }),
+                    let article = planet.articles.first(where: { $0.id == item.articleID })
+                {
+                    planetStore.selectedView = .myPlanet(planet)
+
+                    Task(priority: .userInitiated) { @MainActor in
+                        planetStore.selectedArticle = article
+                        Task(priority: .userInitiated) { @MainActor in
+                            NotificationCenter.default.post(name: .scrollToArticle, object: article)
+                        }
+                    }
+                }
+            case .following:
+                if let planet = planetStore.followingPlanets.first(where: { $0.id == item.planetID }
+                ), let article = planet.articles.first(where: { $0.id == item.articleID }) {
+                    planetStore.selectedView = .followingPlanet(planet)
+
+                    Task(priority: .userInitiated) { @MainActor in
+                        planetStore.selectedArticle = article
+                        Task(priority: .userInitiated) { @MainActor in
+                            NotificationCenter.default.post(name: .scrollToArticle, object: article)
+                        }
+                    }
+                }
+            }
         }
         dismiss()
     }
 
     @ViewBuilder
-    private func searchResultRow(_ item: MyArticleModel) -> some View {
+    private func searchResultRow(_ item: SearchResult) -> some View {
         HStack(spacing: 10) {
-            item.planet.avatarView(size: 32)
+            planetAvatarView(result: item, size: 32)
             VStack(alignment: .leading, spacing: 5) {
                 HStack(spacing: 10) {
                     Text(item.title)
@@ -132,12 +192,12 @@ struct SearchView: View {
 
                     Spacer()
 
-                    Text(item.planet.name)
+                    Text(item.planetName)
                         .font(.subheadline)
                         .lineLimit(1)
                         .foregroundColor(.secondary)
                 }
-                Text(item.content)
+                Text(item.preview)
                     .lineLimit(1)
                     .foregroundColor(.secondary)
             }
