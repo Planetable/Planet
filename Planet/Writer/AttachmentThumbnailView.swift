@@ -107,14 +107,14 @@ struct AttachmentThumbnailView: View {
                 .frame(width: width, height: height)
                 .background(Color(nsColor: .windowBackgroundColor))
             let controller = NSHostingController(rootView: hoverView)
-            let window = NSWindow(contentViewController: controller)
-            window.styleMask = [.titled]
+            let window = NSPanel(contentViewController: controller)
+            window.styleMask = [.utilityWindow, .titled]
             window.backgroundColor = NSColor.windowBackgroundColor
             window.isOpaque = true
             window.hasShadow = true
             window.title = attachment.name
             let mouseLocation = NSEvent.mouseLocation
-            window.setFrameOrigin(NSPoint(x: mouseLocation.x + 100, y: mouseLocation.y))
+            window.setFrameOrigin(NSPoint(x: mouseLocation.x + 64, y: mouseLocation.y))
             window.orderFront(nil)
             self.hoverWindow = window
         } else {
