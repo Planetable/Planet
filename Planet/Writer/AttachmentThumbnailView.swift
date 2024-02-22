@@ -63,7 +63,9 @@ struct AttachmentThumbnailView: View {
                 isShowingControl = hovering
             }
             guard attachment.type == .image else { return }
-            previewAttachment(onHovering: hovering)
+            Task {
+                await previewAttachment(onHovering: hovering)
+            }
         }
     }
 
@@ -86,7 +88,15 @@ struct AttachmentThumbnailView: View {
         attachment.draft.deleteAttachment(name: attachment.name)
     }
 
-    func previewAttachment(onHovering hovering: Bool) {
+    func previewAttachment(onHovering hovering: Bool) async {
+        if !hovering {
+            closePreviewWindow()
+        }
+        try? await Task.sleep(nanoseconds: 1 * 1_000_000_000)
+        guard self.isShowingControl else {
+            closePreviewWindow()
+            return
+        }
         if hovering, let image = NSImage(contentsOf: attachment.path) {
             let width = min(image.size.width * 0.5, 400)
             let ratio = image.size.width / image.size.height
@@ -109,6 +119,13 @@ struct AttachmentThumbnailView: View {
             self.hoverWindow = window
         } else {
             self.hoverWindow?.close()
+            self.hoverWindow = nil
+        }
+    }
+
+    private func closePreviewWindow() {
+        if let w = self.hoverWindow, w.isVisible {
+            w.close()
             self.hoverWindow = nil
         }
     }
