@@ -114,12 +114,20 @@ struct AttachmentThumbnailView: View {
             window.hasShadow = true
             window.title = attachment.name
             let mouseLocation = NSEvent.mouseLocation
-            window.setFrameOrigin(NSPoint(x: mouseLocation.x + 64, y: mouseLocation.y))
+            let locationY: CGFloat
+            if let y = getPreviousPreviewMouseLocationY() {
+                locationY = y
+            } else {
+                locationY = mouseLocation.y
+                updateMouseLocationY(locationY)
+            }
+            window.setFrameOrigin(NSPoint(x: mouseLocation.x + 64, y: locationY))
             window.orderFront(nil)
             self.hoverWindow = window
         } else {
             self.hoverWindow?.close()
             self.hoverWindow = nil
+            removeMouseLocationY()
         }
     }
 
@@ -128,5 +136,32 @@ struct AttachmentThumbnailView: View {
             w.close()
             self.hoverWindow = nil
         }
+        removeMouseLocationY()
+    }
+
+    // Use one y location for the same writer window.
+    private func getPreviousPreviewMouseLocationY() -> CGFloat? {
+        if let key = locationKeyY(), UserDefaults.standard.value(forKey: key) != nil {
+            return CGFloat(UserDefaults.standard.float(forKey: key))
+        }
+        return nil
+    }
+
+    private func updateMouseLocationY(_ y: CGFloat) {
+        guard let key = locationKeyY() else { return }
+        UserDefaults.standard.set(Float(y), forKey: key)
+    }
+
+    private func removeMouseLocationY() {
+        if let key = locationKeyY() {
+            UserDefaults.standard.removeObject(forKey: key)
+        }
+    }
+
+    private func locationKeyY() -> String? {
+        if let draft = attachment.draft {
+            return draft.basePath.absoluteString.md5()
+        }
+        return nil
     }
 }
