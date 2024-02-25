@@ -164,6 +164,10 @@ extension MyPlanetModel {
         to newArticle: MyArticleModel
     ) async -> Int {
         var saved = 0
+        var attachmentCount = 0
+        if let articleAttachments = article.attachments {
+            attachmentCount = articleAttachments.count
+        }
         if let articleAttachments = article.attachments,
             articleAttachments.count > 0
         {
@@ -214,6 +218,56 @@ extension MyPlanetModel {
                             "Aggregation: failed to fetch \(name) from \(site): \(error)"
                         )
                     }
+                }
+            }
+        }
+        // In early versions, sometimes when attachments are empty, videoFilename is not nil, it should be treated as an attachment
+        if attachmentCount == 0, let videoFilename = article.videoFilename, videoFilename.count > 0
+        {
+            debugPrint("Aggregation: \(article.title) has video \(videoFilename)")
+            let targetPath = newArticle.publicBasePath.appendingPathComponent(
+                videoFilename,
+                isDirectory: false
+            )
+            if let attachmentBaseURL = URL(
+                string:
+                    "\(IPFSDaemon.shared.gateway)/ipns/\(site)/\(article.id)/"
+            ) {
+                let attachmentURL = attachmentBaseURL.appendingPathComponent(
+                    videoFilename
+                )
+                debugPrint(
+                    "Aggregation: downloading video \(attachmentURL.absoluteString)"
+                )
+                do {
+                    let (attachmentData, _) = try await URLSession.shared.data(
+                        from: attachmentURL
+                    )
+                    let existingAttachmentData = try? Data(contentsOf: targetPath)
+                    var shouldSave = true
+                    if let existingAttachmentData = existingAttachmentData {
+                        if existingAttachmentData == attachmentData {
+                            shouldSave = false
+                        }
+                    }
+                    if shouldSave {
+                        debugPrint(
+                            "Aggregation: saving video \(videoFilename): \(attachmentData.count) bytes"
+                        )
+                        saved += 1
+                        try attachmentData.write(to: targetPath)
+                        newArticle.attachments = [videoFilename]
+                    }
+                    else {
+                        debugPrint(
+                            "Aggregation: video \(videoFilename) is already saved"
+                        )
+                    }
+                }
+                catch {
+                    debugPrint(
+                        "Aggregation: failed to fetch \(videoFilename) from \(site): \(error)"
+                    )
                 }
             }
         }
