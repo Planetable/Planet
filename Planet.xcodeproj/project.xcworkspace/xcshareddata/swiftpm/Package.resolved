@@ -78,7 +78,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "03ff5d3b63436f3e1273439124154da970ed3424"
+        "revision" : "608abaf8b9e8da32c2b3585a2526391aaa803c07"
       }
     },
     {
@@ -194,8 +194,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/scinfu/SwiftSoup.git",
       "state" : {
-        "revision" : "f83c097597094a04124eb6e0d1e894d24129af87",
-        "version" : "2.7.0"
+        "revision" : "1d39e56d364cba79ce43b341f9661b534cccb18d",
+        "version" : "2.7.1"
       }
     },
     {
