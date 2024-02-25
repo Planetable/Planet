@@ -157,6 +157,69 @@ extension MyPlanetModel {
         }
     }
 
+    @discardableResult
+    func fetchArticleAttachments(
+        in site: String,
+        from article: PublicArticleModel,
+        to newArticle: MyArticleModel
+    ) async -> Int {
+        var saved = 0
+        if let articleAttachments = article.attachments,
+            articleAttachments.count > 0
+        {
+            debugPrint(
+                "Aggregation: \(article.title) has \(articleAttachments.count) attachments: \(articleAttachments)"
+            )
+            for name in articleAttachments {
+                let targetPath = newArticle.publicBasePath.appendingPathComponent(
+                    name,
+                    isDirectory: false
+                )
+                if let attachmentBaseURL = URL(
+                    string:
+                        "\(IPFSDaemon.shared.gateway)/ipns/\(site)/\(article.id)/"
+                ) {
+                    let attachmentURL = attachmentBaseURL.appendingPathComponent(
+                        name
+                    )
+                    debugPrint(
+                        "Aggregation: downloading attachment \(attachmentURL.absoluteString)"
+                    )
+                    do {
+                        let (attachmentData, _) = try await URLSession.shared.data(
+                            from: attachmentURL
+                        )
+                        let existingAttachmentData = try? Data(contentsOf: targetPath)
+                        var shouldSave = true
+                        if let existingAttachmentData = existingAttachmentData {
+                            if existingAttachmentData == attachmentData {
+                                shouldSave = false
+                            }
+                        }
+                        if shouldSave {
+                            debugPrint(
+                                "Aggregation: saving attachment \(name): \(attachmentData.count) bytes"
+                            )
+                            saved += 1
+                            try attachmentData.write(to: targetPath)
+                        }
+                        else {
+                            debugPrint(
+                                "Aggregation: attachment \(name) is already saved"
+                            )
+                        }
+                    }
+                    catch {
+                        debugPrint(
+                            "Aggregation: failed to fetch \(name) from \(site): \(error)"
+                        )
+                    }
+                }
+            }
+        }
+        return saved
+    }
+
     func fetchPlanetSite(site: String) async -> Int {
         var newArticles: [MyArticleModel] = []
         if let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(site)/planet.json") {
@@ -170,7 +233,7 @@ extension MyPlanetModel {
                 for article in planet.articles {
                     if let existingArticle = self.articles.first(
                         where: { $0.originalPostID == article.id.uuidString })
-                     {
+                    {
                         // TODO: Update existing article
                         var changed = false
                         if existingArticle.title != article.title {
@@ -187,6 +250,14 @@ extension MyPlanetModel {
                             existingArticle.content = article.content
                             changed = true
                         }
+                        let savedAttachments = await fetchArticleAttachments(
+                            in: site,
+                            from: article,
+                            to: existingArticle
+                        )
+                        if savedAttachments > 0 {
+                            changed = true
+                        }
                         if changed {
                             try existingArticle.save()
                             Task(priority: .utility) {
@@ -196,7 +267,8 @@ extension MyPlanetModel {
                                 PlanetStore.shared.refreshSelectedArticles()
                             }
                         }
-                    } else {
+                    }
+                    else {
                         debugPrint("Aggregation: adding \(article.id) from \(site)")
                         let heroImageName: String?
                         if let heroImage = article.heroImage {
@@ -220,7 +292,8 @@ extension MyPlanetModel {
                         let postID: UUID
                         if let reuseOriginalID = self.reuseOriginalID, reuseOriginalID == true {
                             postID = article.id
-                        } else {
+                        }
+                        else {
                             postID = UUID()
                         }
                         let newArticle = MyArticleModel(
@@ -254,41 +327,7 @@ extension MyPlanetModel {
                                 withIntermediateDirectories: true
                             )
                         }
-                        if let articleAttachments = article.attachments,
-                            articleAttachments.count > 0
-                        {
-                            debugPrint(
-                                "Aggregation: \(article.title) has \(articleAttachments.count) attachments: \(articleAttachments)"
-                            )
-                            for name in articleAttachments {
-                                let targetPath = newArticle.publicBasePath.appendingPathComponent(
-                                    name,
-                                    isDirectory: false
-                                )
-                                if let attachmentBaseURL = URL(
-                                    string:
-                                        "\(IPFSDaemon.shared.gateway)/ipns/\(site)/\(article.id)/"
-                                ) {
-                                    let attachmentURL = attachmentBaseURL.appendingPathComponent(
-                                        name
-                                    )
-                                    debugPrint(
-                                        "Aggregation: downloading attachment \(attachmentURL.absoluteString)"
-                                    )
-                                    do {
-                                        let (attachmentData, _) = try await URLSession.shared.data(
-                                            from: attachmentURL
-                                        )
-                                        try attachmentData.write(to: targetPath)
-                                    }
-                                    catch {
-                                        debugPrint(
-                                            "Aggregation: failed to fetch \(name) from \(site): \(error)"
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                        await fetchArticleAttachments(in: site, from: article, to: newArticle)
                         newArticles.append(newArticle)
                         Task(priority: .utility) {
                             try newArticle.savePublic()
