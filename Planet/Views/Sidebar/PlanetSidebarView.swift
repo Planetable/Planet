@@ -137,11 +137,27 @@ struct PlanetSidebarView: View {
         }
         .frame(minWidth: 200)
         .toolbar {
-            ToolbarItem {
-                Button(action: toggleSidebar) {
-                    Image(systemName: "sidebar.left")
-                        .help("Toggle Sidebar")
+            Button(action: toggleSidebar) {
+                Image(systemName: "sidebar.left")
+                    .help("Toggle Sidebar")
+            }
+
+            Spacer()
+
+            Menu {
+                Button {
+                    PlanetAppDelegate.shared.openTemplateWindow()
+                } label: {
+                    Text("Template Browser")
                 }
+
+                Button {
+                    PlanetAppDelegate.shared.openPublishedFoldersDashboardWindow()
+                } label: {
+                    Text("Published Folders")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .publishMyPlanet)) {
