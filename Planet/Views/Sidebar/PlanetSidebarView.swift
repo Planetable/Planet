@@ -18,7 +18,9 @@ struct PlanetSidebarView: View {
         VStack(alignment: .leading, spacing: 0) {
             if planetStore.walletAddress.count > 0 {
                 AccountBadgeView(walletAddress: planetStore.walletAddress)
+                Divider()
             }
+
             List(selection: $planetStore.selectedView) {
                 Section(header: Text("Smart Feeds")) {
                     HStack(spacing: 4) {
@@ -57,6 +59,7 @@ struct PlanetSidebarView: View {
                     }
                     .tag(PlanetDetailViewType.starred)
                 }
+                .padding(.top, planetStore.walletAddress.count > 0 ? 6 : 0)
 
                 Section(header: Text("My Planets")) {
                     ForEach(planetStore.myPlanets) { planet in
@@ -83,6 +86,8 @@ struct PlanetSidebarView: View {
                 }
             }
             .listStyle(.sidebar)
+
+            Divider()
 
             HStack(spacing: 6) {
                 Circle()
@@ -145,7 +150,8 @@ struct PlanetSidebarView: View {
                 Task(priority: .background) {
                     do {
                         try await planet.publish()
-                    } catch {
+                    }
+                    catch {
                         debugPrint("Failed to publish: \(planet.name) id=\(planet.id)")
                     }
                 }
