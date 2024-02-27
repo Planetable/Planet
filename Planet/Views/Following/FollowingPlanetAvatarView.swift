@@ -8,6 +8,7 @@ struct FollowingPlanetAvatarView: View {
         VStack {
             if let image = planet.avatar {
                 Image(nsImage: image)
+                    .interpolation(.high)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 80, height: 80, alignment: .center)
