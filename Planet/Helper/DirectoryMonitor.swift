@@ -12,11 +12,13 @@ class DirectoryMonitor {
     }
     
     private let directory: String
+    private var directoryDidChange: (() -> Void)?
     private var lastProcessedPath: String?
     private var lastEventId: FSEventStreamEventId = FSEventStreamEventId(kFSEventStreamEventIdSinceNow)
-    
-    init(directory: String) {
+
+    init(directory: String, changed: (() -> Void)?) {
         self.directory = directory
+        self.directoryDidChange = changed
     }
     
     func start() {
@@ -26,7 +28,6 @@ class DirectoryMonitor {
         var context = FSEventStreamContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
         context.info = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         
-        // Create the stream
         stream = FSEventStreamCreate(
             kCFAllocatorDefault,
             callback,
@@ -54,7 +55,9 @@ class DirectoryMonitor {
         if path == lastProcessedPath {
             return
         }
-        print("Directory \(path) has changed.")
+        if let directoryDidChange {
+            directoryDidChange()
+        }
         lastProcessedPath = path
         lastEventId = eventId
     }

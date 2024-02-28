@@ -597,7 +597,6 @@ private class PlanetPublishedServiceMonitor {
     var directoryMonitorSource: DispatchSource?
     var url: URL
     var folderID: UUID
-    
     var monitor: DirectoryMonitor?
 
     init(url: URL, folderID: UUID) {
@@ -621,6 +620,7 @@ private class PlanetPublishedServiceMonitor {
         if let monitor {
             monitor.stop()
         }
+        url.stopAccessingSecurityScopedResource()
     }
 
     func startMonitoring() throws {
@@ -635,20 +635,25 @@ private class PlanetPublishedServiceMonitor {
         guard url.startAccessingSecurityScopedResource() else {
             throw PlanetError.PublishedServiceFolderPermissionError
         }
-//        monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
-//        directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: DispatchSource.FileSystemEvent.write, queue: self.monitorQueue) as? DispatchSource
-//        directoryMonitorSource?.setEventHandler{
-//            PlanetPublishedServiceStore.shared.requestToPublishFolder(withURL: self.url)
-//        }
-//        directoryMonitorSource?.setCancelHandler{
-//            close(self.monitoredDirectoryFileDescriptor)
-//            self.monitoredDirectoryFileDescriptor = -1
-//            self.directoryMonitorSource = nil
-//            self.url.stopAccessingSecurityScopedResource()
-//        }
-//        directoryMonitorSource?.resume()
-        // Try directory monitor
-        monitor = DirectoryMonitor(directory: url.path)
+        
+        /*
+        monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
+        directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: DispatchSource.FileSystemEvent.write, queue: self.monitorQueue) as? DispatchSource
+        directoryMonitorSource?.setEventHandler{
+            PlanetPublishedServiceStore.shared.requestToPublishFolder(withURL: self.url)
+        }
+        directoryMonitorSource?.setCancelHandler{
+            close(self.monitoredDirectoryFileDescriptor)
+            self.monitoredDirectoryFileDescriptor = -1
+            self.directoryMonitorSource = nil
+            self.url.stopAccessingSecurityScopedResource()
+        }
+        directoryMonitorSource?.resume()
+         */
+         
+        monitor = DirectoryMonitor(directory: url.path, changed: {
+            PlanetPublishedServiceStore.shared.requestToPublishFolder(withURL: self.url)
+        })
         monitor?.start()
     }
 }
