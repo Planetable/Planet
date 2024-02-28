@@ -594,7 +594,7 @@ extension PlanetPublishedServiceStore {
 private class PlanetPublishedServiceMonitor {
     var url: URL
     var folderID: UUID
-    var monitor: DirectoryMonitor?
+    var monitor: PlanetDirectoryMonitor?
 
     init(url: URL, folderID: UUID) {
         self.url = url
@@ -624,7 +624,7 @@ private class PlanetPublishedServiceMonitor {
         guard url.startAccessingSecurityScopedResource() else {
             throw PlanetError.PublishedServiceFolderPermissionError
         }
-        monitor = DirectoryMonitor(directory: url.path, changed: {
+        monitor = PlanetDirectoryMonitor(directory: url.path, changed: {
             PlanetPublishedServiceStore.shared.requestToPublishFolder(withURL: self.url)
         })
         monitor?.start()

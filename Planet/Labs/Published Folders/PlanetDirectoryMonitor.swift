@@ -1,10 +1,10 @@
 import Foundation
 
 
-class DirectoryMonitor {
+class PlanetDirectoryMonitor {
     private var stream: FSEventStreamRef?
     private let callback: FSEventStreamCallback = { (stream, contextInfo, numEvents, eventPaths, eventFlags, eventIds) in
-        let watcher: DirectoryMonitor = unsafeBitCast(contextInfo, to: DirectoryMonitor.self)
+        let watcher: PlanetDirectoryMonitor = unsafeBitCast(contextInfo, to: PlanetDirectoryMonitor.self)
         for idx in 0..<Int(numEvents) {
             let path = unsafeBitCast(eventPaths, to: NSArray.self)[idx] as! String
             watcher.processEvent(path: path, eventId: eventIds[idx])
@@ -15,7 +15,7 @@ class DirectoryMonitor {
     private var directoryDidChange: (() -> Void)?
     private var lastProcessedPath: String?
     private var lastEventId: FSEventStreamEventId = FSEventStreamEventId(kFSEventStreamEventIdSinceNow)
-
+    
     init(directory: String, changed: (() -> Void)?) {
         self.directory = directory
         self.directoryDidChange = changed
@@ -23,11 +23,9 @@ class DirectoryMonitor {
     
     func start() {
         let pathsToWatch: CFArray = [directory] as CFArray
-        let latency: CFTimeInterval = 1.0 // Latency in seconds
-        
+        let latency: CFTimeInterval = 1.0
         var context = FSEventStreamContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
         context.info = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
-        
         stream = FSEventStreamCreate(
             kCFAllocatorDefault,
             callback,
@@ -37,7 +35,6 @@ class DirectoryMonitor {
             latency,
             UInt32(kFSEventStreamCreateFlagUseCFTypes | kFSEventStreamCreateFlagFileEvents)
         )
-        
         FSEventStreamScheduleWithRunLoop(stream!, CFRunLoopGetCurrent(), CFRunLoopMode.defaultMode.rawValue)
         FSEventStreamStart(stream!)
     }
