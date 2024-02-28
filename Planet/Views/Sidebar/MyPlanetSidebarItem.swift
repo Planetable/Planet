@@ -395,6 +395,7 @@ struct MyPlanetSidebarItem: View {
                         await planet.callPinnable()
                     }
                 } label: {
+                    Image(systemName: "arrow.triangle.2.circlepath")
                     Text("Check with Pinnable")
                 }
             }
