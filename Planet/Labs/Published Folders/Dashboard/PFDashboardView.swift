@@ -94,12 +94,16 @@ struct PFDashboardView: View {
     
     @ViewBuilder
     private func publishingFolderView(folder: PlanetPublishedFolder) -> some View {
-        VStack {
+        VStack(spacing: 8) {
             Text(folder.url.path)
-            Text("Publishing ...")
-                .foregroundColor(.secondary)
-                .font(.caption)
+            HStack(spacing: 4) {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .controlSize(.small)
+                Text("Publishing...")
+            }
         }
+        .foregroundColor(.secondary)
     }
 }
 
