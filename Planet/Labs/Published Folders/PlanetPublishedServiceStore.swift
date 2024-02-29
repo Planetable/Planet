@@ -592,16 +592,13 @@ extension PlanetPublishedServiceStore {
 
 
 private class PlanetPublishedServiceMonitor {
-    var monitorQueue: DispatchQueue
-    var monitoredDirectoryFileDescriptor: CInt = -1
-    var directoryMonitorSource: DispatchSource?
     var url: URL
     var folderID: UUID
+    var monitor: PlanetDirectoryMonitor?
 
     init(url: URL, folderID: UUID) {
         self.url = url
         self.folderID = folderID
-        self.monitorQueue = DispatchQueue(label: "planet.monitor.\(url.absoluteString.md5())", attributes: .concurrent)
     }
 
     deinit {
@@ -609,13 +606,10 @@ private class PlanetPublishedServiceMonitor {
     }
 
     func reset() {
-        if directoryMonitorSource != nil {
-            directoryMonitorSource?.cancel()
-            directoryMonitorSource = nil
+        if let monitor {
+            monitor.stop()
         }
-        if monitoredDirectoryFileDescriptor != -1 {
-            monitoredDirectoryFileDescriptor = -1
-        }
+        url.stopAccessingSecurityScopedResource()
     }
 
     func startMonitoring() throws {
@@ -630,17 +624,9 @@ private class PlanetPublishedServiceMonitor {
         guard url.startAccessingSecurityScopedResource() else {
             throw PlanetError.PublishedServiceFolderPermissionError
         }
-        monitoredDirectoryFileDescriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
-        directoryMonitorSource = DispatchSource.makeFileSystemObjectSource(fileDescriptor: monitoredDirectoryFileDescriptor, eventMask: DispatchSource.FileSystemEvent.write, queue: self.monitorQueue) as? DispatchSource
-        directoryMonitorSource?.setEventHandler{
+        monitor = PlanetDirectoryMonitor(directory: url.path, changed: {
             PlanetPublishedServiceStore.shared.requestToPublishFolder(withURL: self.url)
-        }
-        directoryMonitorSource?.setCancelHandler{
-            close(self.monitoredDirectoryFileDescriptor)
-            self.monitoredDirectoryFileDescriptor = -1
-            self.directoryMonitorSource = nil
-            self.url.stopAccessingSecurityScopedResource()
-        }
-        directoryMonitorSource?.resume()
+        })
+        monitor?.start()
     }
 }
