@@ -33,4 +33,5 @@ struct PublicArticleModel: Codable {
     var originalSiteDomain: String? = nil
     var originalPostID: String? = nil
     var originalPostDate: Date? = nil
+    var pinned: Date? = nil
 }

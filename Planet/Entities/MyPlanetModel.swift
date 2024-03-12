@@ -663,7 +663,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             try? MyArticleModel.load(from: $0, planet: planet)
         }
         planet.articles = articles.sorted {
-            $0.created > $1.created
+            switch ($0.pinned, $1.pinned) {
+            case (nil, nil): // Both articles are not pinned, sort by created date
+                return $0.created > $1.created
+            case (nil, _): // Only the first article is not pinned, the second one goes first
+                return false
+            case (_, nil): // Only the second article is not pinned, the first one goes first
+                return true
+            case (_, _): // Both articles are pinned, sort by pinned date
+                if let pinned0 = $0.pinned, let pinned1 = $1.pinned {
+                    return pinned0 > pinned1
+                } else {
+                    return $0.created > $1.created
+                }
+            }
         }
         try? planet.loadOps()
         return planet
@@ -1793,7 +1806,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     originalSiteName: $0.originalSiteName,
                     originalSiteDomain: $0.originalSiteDomain,
                     originalPostID: $0.originalPostID,
-                    originalPostDate: $0.originalPostDate
+                    originalPostDate: $0.originalPostDate,
+                    pinned: $0.pinned
                 )
             },
             tags: tags,

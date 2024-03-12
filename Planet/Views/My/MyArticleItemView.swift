@@ -15,6 +15,12 @@ struct MyArticleItemView: View {
             VStack(alignment: .leading, spacing: 4) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 0) {
+                        if article.pinned != nil {
+                            Image(systemName: "pin.fill")
+                                .font(.caption)
+                                .foregroundColor(.accentColor)
+                                .padding(.trailing, 4)
+                        }
                         Text(article.title)
                             .font(.headline)
                             .foregroundColor(.primary)
@@ -105,7 +111,8 @@ struct MyArticleItemView: View {
                     }
 
                     Divider()
-                } else {
+                }
+                else {
                     if let siteName = article.originalSiteName {
                         Section {
                             Text("Aggregated from " + siteName)
@@ -116,7 +123,6 @@ struct MyArticleItemView: View {
                 moveArticleItem()
 
                 Divider()
-
 
                 Button {
                     isShowingDeleteConfirmation = true
@@ -134,6 +140,25 @@ struct MyArticleItemView: View {
                         Text("Remove Star")
                     }
                 }
+                if article.pinned == nil {
+                    Button {
+                        article.pinned = Date()
+                        try? article.save()
+                    } label: {
+                        Text("Pin Article")
+                    }
+                }
+                else {
+                    Button {
+                        article.pinned = nil
+                        try? article.save()
+                    } label: {
+                        Text("Unpin Article")
+                    }
+                }
+
+                Divider()
+
                 Button {
                     if let url = article.browserURL {
                         NSPasteboard.general.clearContents()

@@ -30,6 +30,8 @@ class MyArticleModel: ArticleModel, Codable {
     var originalPostID: String? = nil
     var originalPostDate: Date? = nil
 
+    @Published var pinned: Date? = nil
+
     // populated when initializing
     unowned var planet: MyPlanetModel! = nil
     var draft: DraftModel? = nil
@@ -98,7 +100,8 @@ class MyArticleModel: ArticleModel, Codable {
             originalSiteName: originalSiteName,
             originalSiteDomain: originalSiteDomain,
             originalPostID: originalPostID,
-            originalPostDate: originalPostDate
+            originalPostDate: originalPostDate,
+            pinned: pinned
         )
     }
     var localGatewayURL: URL? {
@@ -191,7 +194,8 @@ class MyArticleModel: ArticleModel, Codable {
             attachments, cids, tags,
             isIncludedInNavigation,
             navigationWeight,
-            originalSiteName, originalSiteDomain, originalPostID, originalPostDate
+            originalSiteName, originalSiteDomain, originalPostID, originalPostDate,
+            pinned
     }
 
     required init(from decoder: Decoder) throws {
@@ -227,6 +231,7 @@ class MyArticleModel: ArticleModel, Codable {
         originalSiteDomain = try? container.decodeIfPresent(String.self, forKey: .originalSiteDomain)
         originalPostID = try? container.decodeIfPresent(String.self, forKey: .originalPostID)
         originalPostDate = try? container.decodeIfPresent(Date.self, forKey: .originalPostDate)
+        pinned = try? container.decodeIfPresent(Date.self, forKey: .pinned)
         super.init(
             id: id,
             title: title,
@@ -266,6 +271,7 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(originalSiteDomain, forKey: .originalSiteDomain)
         try container.encodeIfPresent(originalPostID, forKey: .originalPostID)
         try container.encodeIfPresent(originalPostDate, forKey: .originalPostDate)
+        try container.encodeIfPresent(pinned, forKey: .pinned)
     }
 
     init(

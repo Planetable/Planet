@@ -32,4 +32,5 @@ struct BackupArticleModel: Codable {
     let originalSiteDomain: String?
     let originalPostID: String?
     let originalPostDate: Date?
+    let pinned: Date?
 }
