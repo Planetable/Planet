@@ -142,10 +142,12 @@ struct MyArticleItemView: View {
                 }
                 if article.pinned == nil {
                     Button {
-                        do {
-                            try updateArticlePinStatus(true)
-                        } catch {
-                            debugPrint("failed to pin article: \(error)")
+                        Task {
+                            do {
+                                try await updateArticlePinStatus(true)
+                            } catch {
+                                debugPrint("failed to pin article: \(error)")
+                            }
                         }
                     } label: {
                         Text("Pin Article")
@@ -153,10 +155,12 @@ struct MyArticleItemView: View {
                 }
                 else {
                     Button {
-                        do {
-                            try updateArticlePinStatus(false)
-                        } catch {
-                            debugPrint("failed to unpin article: \(error)")
+                        Task {
+                            do {
+                                try await updateArticlePinStatus(false)
+                            } catch {
+                                debugPrint("failed to unpin article: \(error)")
+                            }
                         }
                     } label: {
                         Text("Unpin Article")
@@ -331,8 +335,10 @@ struct MyArticleItemView: View {
         return nil
     }
 
-    private func updateArticlePinStatus(_ flag: Bool) throws {
-        guard let planet = self.article.planet else { return }
+    private func updateArticlePinStatus(_ flag: Bool) async throws {
+        guard let planet = self.article.planet else {
+            throw PlanetError.InternalError
+        }
         self.article.pinned = flag ? Date() : nil
         try article.save()
         planet.updated = Date()
@@ -352,17 +358,16 @@ struct MyArticleItemView: View {
                 }
             }
         }
-        Task {
-            try planet.save()
-            try await planet.savePublic()
-            Task(priority: .userInitiated) { @MainActor in
-                withAnimation {
-                    PlanetStore.shared.selectedArticleList = planet.articles
-                    PlanetStore.shared.selectedArticle = article
-                }
-                if flag {
-                    NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
-                }
+        try planet.save()
+        try await planet.savePublic()
+        Task(priority: .userInitiated) { @MainActor in
+            PlanetStore.shared.selectedArticle = article
+            withAnimation {
+                PlanetStore.shared.selectedArticleList = planet.articles
+            }
+            try await Task.sleep(nanoseconds: 2_500_000_00)
+            if flag {
+                NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
             }
         }
     }
