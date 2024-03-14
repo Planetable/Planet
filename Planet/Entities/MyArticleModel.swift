@@ -372,6 +372,26 @@ class MyArticleModel: ArticleModel, Codable {
         return article
     }
 
+    static func reorder(
+        a: MyArticleModel,
+        b: MyArticleModel
+    ) -> Bool {
+        switch (a.pinned, b.pinned) {
+        case (nil, nil): // Both articles are not pinned, sort by created date
+            return a.created > b.created
+        case (nil, _): // Only the first article is not pinned, the second one goes first
+            return false
+        case (_, nil): // Only the second article is not pinned, the first one goes first
+            return true
+        case (_, _): // Both articles are pinned, sort by pinned date
+            if let pinned1 = a.pinned, let pinned2 = b.pinned {
+                return pinned1 > pinned2
+            } else {
+                return a.created > b.created
+            }
+        }
+    }
+
     // MARK: Prewarm
 
     func prewarm() async {
