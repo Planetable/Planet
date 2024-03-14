@@ -142,16 +142,22 @@ struct MyArticleItemView: View {
                 }
                 if article.pinned == nil {
                     Button {
-                        article.pinned = Date()
-                        try? article.save()
+                        do {
+                            try updateArticlePinStatus(true)
+                        } catch {
+                            debugPrint("failed to pin article: \(error)")
+                        }
                     } label: {
                         Text("Pin Article")
                     }
                 }
                 else {
                     Button {
-                        article.pinned = nil
-                        try? article.save()
+                        do {
+                            try updateArticlePinStatus(false)
+                        } catch {
+                            debugPrint("failed to unpin article: \(error)")
+                        }
                     } label: {
                         Text("Unpin Article")
                     }
@@ -323,5 +329,41 @@ struct MyArticleItemView: View {
             return img
         }
         return nil
+    }
+
+    private func updateArticlePinStatus(_ flag: Bool) throws {
+        guard let planet = self.article.planet else { return }
+        self.article.pinned = flag ? Date() : nil
+        try article.save()
+        planet.updated = Date()
+        planet.articles = planet.articles.sorted {
+            switch ($0.pinned, $1.pinned) {
+            case (nil, nil): // Both articles are not pinned, sort by created date
+                return $0.created > $1.created
+            case (nil, _): // Only the first article is not pinned, the second one goes first
+                return false
+            case (_, nil): // Only the second article is not pinned, the first one goes first
+                return true
+            case (_, _): // Both articles are pinned, sort by pinned date
+                if let pinned0 = $0.pinned, let pinned1 = $1.pinned {
+                    return pinned0 > pinned1
+                } else {
+                    return $0.created > $1.created
+                }
+            }
+        }
+        Task {
+            try planet.save()
+            try await planet.savePublic()
+            Task(priority: .userInitiated) { @MainActor in
+                withAnimation {
+                    PlanetStore.shared.selectedArticleList = planet.articles
+                    PlanetStore.shared.selectedArticle = article
+                }
+                if flag {
+                    NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+                }
+            }
+        }
     }
 }
