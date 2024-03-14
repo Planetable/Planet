@@ -1,4 +1,5 @@
 {
+  "originHash" : "2d350f39146062b36abb00c558bb2f952938a1a96238113e0d424870f7d32ad3",
   "pins" : [
     {
       "identity" : "bigint",
@@ -257,10 +258,9 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/marmelroy/Zip",
       "state" : {
-        "revision" : "67fa55813b9e7b3b9acee9c0ae501def28746d76",
-        "version" : "2.1.2"
+        "revision" : "bca30f6d6c7d37cbc4aa8f6b0002e281dcc36195"
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
