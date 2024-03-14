@@ -369,7 +369,6 @@ struct MyArticleItemView: View {
             if flag {
                 NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
             } else {
-                try await Task.sleep(nanoseconds: 2_000_000_00)
                 NotificationCenter.default.post(name: .scrollToArticle, object: self.article)
             }
         }
