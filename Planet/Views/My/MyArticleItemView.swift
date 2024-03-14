@@ -361,13 +361,16 @@ struct MyArticleItemView: View {
         try planet.save()
         try await planet.savePublic()
         Task(priority: .userInitiated) { @MainActor in
-            PlanetStore.shared.selectedArticle = article
+            PlanetStore.shared.selectedArticle = self.article
             withAnimation {
                 PlanetStore.shared.selectedArticleList = planet.articles
             }
             try await Task.sleep(nanoseconds: 2_500_000_00)
             if flag {
                 NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+            } else {
+                try await Task.sleep(nanoseconds: 2_000_000_00)
+                NotificationCenter.default.post(name: .scrollToArticle, object: self.article)
             }
         }
     }
