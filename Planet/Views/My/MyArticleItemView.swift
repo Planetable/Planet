@@ -142,16 +142,26 @@ struct MyArticleItemView: View {
                 }
                 if article.pinned == nil {
                     Button {
-                        article.pinned = Date()
-                        try? article.save()
+                        Task {
+                            do {
+                                try await updateArticlePinStatus(true)
+                            } catch {
+                                debugPrint("failed to pin article: \(error)")
+                            }
+                        }
                     } label: {
                         Text("Pin Article")
                     }
                 }
                 else {
                     Button {
-                        article.pinned = nil
-                        try? article.save()
+                        Task {
+                            do {
+                                try await updateArticlePinStatus(false)
+                            } catch {
+                                debugPrint("failed to unpin article: \(error)")
+                            }
+                        }
                     } label: {
                         Text("Unpin Article")
                     }
@@ -323,5 +333,29 @@ struct MyArticleItemView: View {
             return img
         }
         return nil
+    }
+
+    private func updateArticlePinStatus(_ flag: Bool) async throws {
+        guard let planet = self.article.planet else {
+            throw PlanetError.InternalError
+        }
+        self.article.pinned = flag ? Date() : nil
+        try article.save()
+        planet.updated = Date()
+        planet.articles = planet.articles.sorted(by: { MyArticleModel.reorder(a: $0, b: $1) })
+        try planet.save()
+        try await planet.savePublic()
+        Task(priority: .userInitiated) { @MainActor in
+            PlanetStore.shared.selectedArticle = self.article
+            withAnimation {
+                PlanetStore.shared.selectedArticleList = planet.articles
+            }
+            try await Task.sleep(nanoseconds: 2_500_000_00)
+            if flag {
+                NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+            } else {
+                NotificationCenter.default.post(name: .scrollToArticle, object: self.article)
+            }
+        }
     }
 }

@@ -662,22 +662,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let articles = articleFiles.compactMap {
             try? MyArticleModel.load(from: $0, planet: planet)
         }
-        planet.articles = articles.sorted {
-            switch ($0.pinned, $1.pinned) {
-            case (nil, nil): // Both articles are not pinned, sort by created date
-                return $0.created > $1.created
-            case (nil, _): // Only the first article is not pinned, the second one goes first
-                return false
-            case (_, nil): // Only the second article is not pinned, the first one goes first
-                return true
-            case (_, _): // Both articles are pinned, sort by pinned date
-                if let pinned0 = $0.pinned, let pinned1 = $1.pinned {
-                    return pinned0 > pinned1
-                } else {
-                    return $0.created > $1.created
-                }
-            }
-        }
+        planet.articles = articles.sorted(by: { MyArticleModel.reorder(a: $0, b: $1) })
         try? planet.loadOps()
         return planet
     }
