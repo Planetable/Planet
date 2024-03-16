@@ -71,11 +71,10 @@ class KeyboardShortcutHelper: ObservableObject {
             }
 
             if PlanetStore.shared.app == .planet {
-                Divider()
                 Button {
                     PlanetStore.shared.isShowingIconGallery = true
                 } label: {
-                    Text("Icon Gallery")
+                    Text("Change App Icon")
                 }
             }
         }
