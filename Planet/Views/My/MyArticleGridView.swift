@@ -102,6 +102,33 @@ struct MyArticleGridView: View {
                 Text("Edit Post")
             }
 
+            if article.pinned == nil {
+                Button {
+                    Task {
+                        do {
+                            try await updateArticlePinStatus(true)
+                        } catch {
+                            debugPrint("failed to pin article: \(error)")
+                        }
+                    }
+                } label: {
+                    Text("Pin Post")
+                }
+            }
+            else {
+                Button {
+                    Task {
+                        do {
+                            try await updateArticlePinStatus(false)
+                        } catch {
+                            debugPrint("failed to unpin article: \(error)")
+                        }
+                    }
+                } label: {
+                    Text("Unpin Post")
+                }
+            }
+
             Button {
                 PlanetStore.shared.selectedArticle = article
                 PlanetStore.shared.isShowingMyArticleSettings = true
@@ -195,6 +222,9 @@ struct MyArticleGridView: View {
         } else {
 
         }
+        if article.pinned != nil {
+            PinnedIndicatorView()
+        }
         if article.attachmentURLs.count > 1 {
             GroupIndicatorView()
         }
@@ -232,5 +262,29 @@ struct MyArticleGridView: View {
             .lineLimit(3)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 8)
+    }
+
+    private func updateArticlePinStatus(_ flag: Bool) async throws {
+        guard let planet = self.article.planet else {
+            throw PlanetError.InternalError
+        }
+        self.article.pinned = flag ? Date() : nil
+        try article.save()
+        planet.updated = Date()
+        planet.articles = planet.articles.sorted(by: { MyArticleModel.reorder(a: $0, b: $1) })
+        try planet.save()
+        try await planet.savePublic()
+        Task(priority: .userInitiated) { @MainActor in
+            PlanetStore.shared.selectedArticle = self.article
+            withAnimation {
+                PlanetStore.shared.selectedArticleList = planet.articles
+            }
+            try await Task.sleep(nanoseconds: 2_500_000_00)
+            if flag {
+                NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+            } else {
+                NotificationCenter.default.post(name: .scrollToArticle, object: self.article)
+            }
+        }
     }
 }
