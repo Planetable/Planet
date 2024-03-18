@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct PlanetSettingsGeneralView: View {
-    let CAPTION_WIDTH: CGFloat = 120
-
     @EnvironmentObject private var viewModel: PlanetSettingsViewModel
 
     @State private var libraryLocation: String = URLUtils.repoPath().path {
@@ -43,7 +41,7 @@ struct PlanetSettingsGeneralView: View {
                 VStack(spacing: 20) {
                     HStack(spacing: 12) {
                         Text("Library Location")
-                            .frame(width: CAPTION_WIDTH, alignment: .trailing)
+                            .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)
                         Text(libraryLocation)
                             .lineLimit(3)
                             .onTapGesture {
@@ -54,7 +52,7 @@ struct PlanetSettingsGeneralView: View {
                     }
                     HStack(spacing: 12) {
                         Spacer()
-                            .frame(width: CAPTION_WIDTH, alignment: .trailing)
+                            .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)
                         Button {
                             do {
                                 try updateLibraryLocation()
@@ -102,7 +100,7 @@ struct PlanetSettingsGeneralView: View {
                     VStack {
                         HStack(spacing: 4) {
                             Text("Ethereum Network")
-                                .frame(width: CAPTION_WIDTH, alignment: .trailing)
+                                .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)
                             Picker(selection: $ethereumChainId, label: Text("")) {
                                 ForEach(EthereumChainID.allCases, id: \.id) { value in
                                     Text(
@@ -115,7 +113,7 @@ struct PlanetSettingsGeneralView: View {
                         }
                         HStack {
                             Text("")
-                                .frame(width: CAPTION_WIDTH)
+                                .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH)
                             Text(
                                 "When you tip a creator, transactions will be sent to the selected Ethereum network."
                             )

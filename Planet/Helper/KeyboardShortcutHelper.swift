@@ -410,16 +410,6 @@ class KeyboardShortcutHelper: ObservableObject {
                 Text("Dashboard")
             }
             .keyboardShortcut("f", modifiers: [.command, .shift])
-
-            Menu("Options") {
-                Toggle("Automatically Publish", isOn: $serviceStore.autoPublish)
-                    .onChange(of: serviceStore.autoPublish) { newValue in
-                        Task { @MainActor in
-                            self.serviceStore.autoPublish = newValue
-                        }
-                    }
-                    .help("Turn on to publish changes automatically.")
-            }
         }
         .onReceive(serviceStore.timer) { _ in
             self.serviceStore.timestamp = Int(Date().timeIntervalSince1970)

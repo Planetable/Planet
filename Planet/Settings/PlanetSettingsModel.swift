@@ -12,4 +12,5 @@ enum PlanetSettingsTab: Hashable {
     case general
     case planets
     case api
+    case publishedFolders
 }
