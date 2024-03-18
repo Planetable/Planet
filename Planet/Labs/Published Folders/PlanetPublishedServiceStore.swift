@@ -365,10 +365,13 @@ class PlanetPublishedServiceStore: ObservableObject {
     private func updateMonitoring() {
         if autoPublish {
             for folder in publishedFolders {
-                if let _ = monitors.first(where: { $0.url == folder.url }) { continue }
+                if let _ = monitors.first(where: { $0.url == folder.url }) {
+                    continue
+                }
                 let monitor = PlanetPublishedServiceMonitor(url: folder.url, folderID: folder.id)
                 do {
                     try monitor.startMonitoring()
+                    debugPrint("start monitoring folder: \(monitor.url)")
                 } catch {
                     debugPrint("failed to start monitoring at: \(folder.url), error: \(error)")
                     monitor.reset()
@@ -380,6 +383,7 @@ class PlanetPublishedServiceStore: ObservableObject {
             for monitor in monitors {
                 monitor.reset()
             }
+            monitors.removeAll()
         }
     }
 }

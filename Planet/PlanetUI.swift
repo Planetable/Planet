@@ -31,4 +31,6 @@ struct PlanetUI {
 
     // Button min width for buttons with short labels like "OK"
     static let BUTTON_MIN_WIDTH_SHORT: CGFloat = 50
+
+    static let SETTINGS_CAPTION_WIDTH: CGFloat = 120
 }

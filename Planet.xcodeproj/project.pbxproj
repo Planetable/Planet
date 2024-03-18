@@ -33,6 +33,7 @@
 		2A2E33F227F4A93B0093F405 /* AttachmentThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2E33F127F4A93B0093F405 /* AttachmentThumbnailView.swift */; };
 		2A2F70EC2967057100755931 /* WriterTitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70EB2967057100755931 /* WriterTitleView.swift */; };
 		2A2F70EE29670D1300755931 /* CLTextFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70ED29670D1300755931 /* CLTextFieldView.swift */; };
+		2A3388C02BA7E3CD00D563A7 /* PlanetSettingsPublishedFoldersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3388BF2BA7E3CD00D563A7 /* PlanetSettingsPublishedFoldersView.swift */; };
 		2A4164D429E64755009BFC24 /* PlanetQuickShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164D329E64755009BFC24 /* PlanetQuickShareView.swift */; };
 		2A4164D729E64878009BFC24 /* PlanetQuickShareViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164D629E64878009BFC24 /* PlanetQuickShareViewModel.swift */; };
 		2A4164DF29E64C97009BFC24 /* PlanetQuickShare+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4164DE29E64C97009BFC24 /* PlanetQuickShare+Extension.swift */; };
@@ -524,6 +525,7 @@
 		2A2E33F127F4A93B0093F405 /* AttachmentThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentThumbnailView.swift; sourceTree = "<group>"; };
 		2A2F70EB2967057100755931 /* WriterTitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriterTitleView.swift; sourceTree = "<group>"; };
 		2A2F70ED29670D1300755931 /* CLTextFieldView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CLTextFieldView.swift; sourceTree = "<group>"; };
+		2A3388BF2BA7E3CD00D563A7 /* PlanetSettingsPublishedFoldersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsPublishedFoldersView.swift; sourceTree = "<group>"; };
 		2A4164D329E64755009BFC24 /* PlanetQuickShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetQuickShareView.swift; sourceTree = "<group>"; };
 		2A4164D629E64878009BFC24 /* PlanetQuickShareViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetQuickShareViewModel.swift; sourceTree = "<group>"; };
 		2A4164DE29E64C97009BFC24 /* PlanetQuickShare+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlanetQuickShare+Extension.swift"; sourceTree = "<group>"; };
@@ -1114,6 +1116,7 @@
 				6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */,
 				2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */,
 				2AE44EAF28CD223C00944786 /* PlanetSettingsViewModel.swift */,
+				2A3388BF2BA7E3CD00D563A7 /* PlanetSettingsPublishedFoldersView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -1978,6 +1981,7 @@
 				6A7F60662B21A37100475731 /* SearchView.swift in Sources */,
 				721146E58D1D1E45CF92E17A /* IPFSAPIModel.swift in Sources */,
 				6AA2C2022AFF538B00F6C633 /* MyArticleGridView.swift in Sources */,
+				2A3388C02BA7E3CD00D563A7 /* PlanetSettingsPublishedFoldersView.swift in Sources */,
 				6A373A3C28E8178500750256 /* MyPlanetCustomCodeView.swift in Sources */,
 				72114B6486572E7F6AF5AC62 /* LoadingIndicatorView.swift in Sources */,
 				7211479EB744642D1895087E /* SharingServicePicker.swift in Sources */,

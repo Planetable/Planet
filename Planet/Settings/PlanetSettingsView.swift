@@ -9,9 +9,11 @@ import SwiftUI
 
 struct PlanetSettingsView: View {
     @StateObject private var store: PlanetStore
+    @StateObject private var serviceStore: PlanetPublishedServiceStore
 
     init() {
         _store = StateObject(wrappedValue: PlanetStore.shared)
+        _serviceStore = StateObject(wrappedValue: PlanetPublishedServiceStore.shared)
     }
 
     var body: some View {
@@ -38,6 +40,14 @@ struct PlanetSettingsView: View {
                 }
                 .tag(PlanetSettingsTab.api)
                 .frame(width: 420, height: 240)
+
+            PlanetSettingsPublishedFoldersView()
+                .tabItem {
+                    Label("Published Folders", systemImage: "server.rack")
+                }
+                .tag(PlanetSettingsTab.publishedFolders)
+                .frame(width: 420, height: 180)
+                .environmentObject(serviceStore)
         }
     }
 }
