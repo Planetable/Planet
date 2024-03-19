@@ -8,7 +8,7 @@ Planet is a free and open-source software for publishing and following web conte
 
 - Build a blog and publish it to IPFS
 - Built-in local IPFS node
-- Generate an IPNS that is ready to be set as [EIP-1577](https://eips.ethereum.org/EIPS/eip-1577) ENS contenthash
+- Generate an IPNS that is ready to be set as [EIP-1577](https://eips.ethereum.org/EIPS/eip-1577) ENS content hash
 - Pinning content when following, make content usable offline
 - Follow the updates of websites running on ENS, NFT avatar as site icon is supported
 - Markdown editor with live preview
@@ -27,6 +27,10 @@ Planet is a free and open-source software for publishing and following web conte
 If you would like to add your site to this list, please share it in a [discussion](https://github.com/Planetable/Planet/discussions). We can't wait to see your creations!
 
 - [planetable.eth](https://planetable.eth.limo)
+- [jango.eth](https://jango.eth.limo)
+- [banny.eth](https://banny.eth.limo)
+- [ohlife.eth](https://ohlife.eth.limo)
+- [macos9.eth](https://macos9.eth.limo)
 - [olivida.eth](https://olivida.eth.limo)
 - [yihanphotos.eth](https://yihanphotos.eth.limo)
 - [gamedb.eth](https://gamedb.eth.limo)
