@@ -38,6 +38,14 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                 PlanetStore.shared.myPlanets.insert(planet, at: 0)
                 PlanetStore.shared.selectedView = .myPlanet(planet)
             }
+        } else if url.lastPathComponent.hasSuffix(".article") {
+            Task { @MainActor in
+                do {
+                    try await MyArticleModel.importArticles(fromURLs: urls)
+                } catch {
+                    debugPrint("failed to import articles: \(error)")
+                }
+            }
         } else {
             createQuickShareWindow(forFiles: urls)
         }

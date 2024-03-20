@@ -247,6 +247,36 @@ class KeyboardShortcutHelper: ObservableObject {
 
             Group {
                 Button {
+                    let panel = NSOpenPanel()
+                    panel.message = "Choose Planet Articles to Import"
+                    panel.prompt = "Import"
+                    panel.allowsMultipleSelection = true
+                    let planetDataIdentifier = {
+                        if let name = Bundle.main.object(forInfoDictionaryKey: "ORGANIZATION_IDENTIFIER_PREFIX") as? String {
+                            return name + ".planet.article.data"
+                        } else {
+                            return "xyz.planetable.planet.article.data"
+                        }
+                    }()
+                    panel.allowedContentTypes = [UTType(planetDataIdentifier)!]
+                    panel.canChooseDirectories = false
+                    panel.canChooseFiles = true
+                    panel.canCreateDirectories = false
+                    let response = panel.runModal()
+                    guard response == .OK, panel.urls.count > 0 else { return }
+                    Task {
+                        do {
+                            try await MyArticleModel.importArticles(fromURLs: panel.urls)
+                        } catch {
+                            debugPrint("failed to import articles: \(error)")
+                        }
+                    }
+                } label: {
+                    Text("Import Article")
+                }
+                .keyboardShortcut("i", modifiers: [.command, .option, .shift])
+
+                Button {
                     self.importPlanetAction()
                 } label: {
                     Text("Import Planet")

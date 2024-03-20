@@ -80,6 +80,20 @@
 				<string>com.adobe.pdf</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeIconSystemGenerated</key>
+			<integer>1</integer>
+			<key>CFBundleTypeName</key>
+			<string>Planet Article Data</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>$(ORGANIZATION_IDENTIFIER_PREFIX).planet.article.data</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -136,6 +150,32 @@
 				</array>
 			</dict>
 		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Planet Article Data</string>
+			<key>UTTypeIcons</key>
+			<dict>
+				<key>UTTypeIconBackgroundName</key>
+				<string>AppDataIcon-Fill</string>
+				<key>UTTypeIconBadgeName</key>
+				<string>AppDataIcon-Image</string>
+				<key>UTTypeIconText</key>
+				<string>data</string>
+			</dict>
+			<key>UTTypeIdentifier</key>
+			<string>$(ORGANIZATION_IDENTIFIER_PREFIX).planet.article.data</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>article</string>
+				</array>
+			</dict>
+		</dict>
 	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
@@ -162,6 +202,32 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>planet</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Planet Article Data</string>
+			<key>UTTypeIcons</key>
+			<dict>
+				<key>UTTypeIconBackgroundName</key>
+				<string>AppDataIcon-Fill</string>
+				<key>UTTypeIconBadgeName</key>
+				<string>AppDataIcon-Image</string>
+				<key>UTTypeIconText</key>
+				<string>data</string>
+			</dict>
+			<key>UTTypeIdentifier</key>
+			<string>$(ORGANIZATION_IDENTIFIER_PREFIX).planet.article.data</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>article</string>
 				</array>
 			</dict>
 		</dict>

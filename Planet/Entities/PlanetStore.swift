@@ -147,6 +147,9 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
     @Published var isShowingIconGallery: Bool = false
 
+    @Published var isShowingPlanetPicker: Bool = false
+    var importingArticleURLs: [URL] = []
+
     @Published var isShowingSearch: Bool = false
     @Published var searchText: String = UserDefaults.standard.string(forKey: "searchText") ?? "" {
         didSet {

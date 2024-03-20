@@ -122,6 +122,16 @@ struct MyArticleItemView: View {
 
                 moveArticleItem()
 
+                Button {
+                    do {
+                        try article.exportArticle()
+                    } catch {
+                        debugPrint("failed to export article: \(error)")
+                    }
+                } label: {
+                    Text("Export Article")
+                }
+
                 Divider()
 
                 Button {
