@@ -393,6 +393,25 @@ extension MyPlanetModel {
                         }
                     }
                 }
+                // Delete articles that are no longer in the original site
+                var deleted = 0
+                for article in self.articles {
+                    if article.originalSiteDomain == site,
+                        !planet.articles.contains(where: { $0.id.uuidString == article.originalPostID })
+                    {
+                        debugPrint("Aggregation: deleting \(article.originalPostID) from \(site)")
+                        article.delete()
+                        deleted += 1
+                    }
+                }
+                if deleted > 0 {
+                    self.tags = self.consolidateTags()
+                    try? save()
+                    try? await savePublic()
+                    Task { @MainActor in
+                        PlanetStore.shared.refreshSelectedArticles()
+                    }
+                }
             }
             catch {
                 debugPrint("Aggregation: failed to fetch \(site): \(error)")
