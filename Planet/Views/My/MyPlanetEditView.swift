@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MyPlanetEditView: View {
-    let CONTROL_CAPTION_WIDTH: CGFloat = 100
+    let CONTROL_CAPTION_WIDTH: CGFloat = 120
     let SOCIAL_CONTROL_CAPTION_WIDTH: CGFloat = 120
 
     @Environment(\.dismiss) var dismiss
@@ -49,6 +49,13 @@ struct MyPlanetEditView: View {
     @State private var filebasePinStatus: String? = nil
     @State private var filebasePinStatusMessage: String? = nil
     @State private var filebasePinCID: String? = nil
+
+    // Template Settings
+    @State private var currentSettings: [String: String] = [:]
+    @State private var userSettings: [String: String] = [:]
+
+    // Highlight Color (Currently only for Croptop)
+    @State private var selectedColor: Color = Color(hex: "#F056C1")
 
     init(planet: MyPlanetModel) {
         self.planet = planet
@@ -568,6 +575,24 @@ struct MyPlanetEditView: View {
                             }
                             .pickerStyle(.menu)
                         }
+
+                        if planetStore.app == .lite {
+                            HStack {
+                                HStack {
+                                    Text("Highlight Color")
+                                    Spacer()
+                                }
+                                .frame(width: CONTROL_CAPTION_WIDTH - 10)
+
+                                ColorPicker("", selection: $selectedColor)
+                                .onChange(of: selectedColor) { color in
+                                    let hex = color.toHexString()
+                                    userSettings["highlightColor"] = hex
+                                }
+
+                                Spacer()
+                            }
+                        }
                     }
                     .padding(16)
                     .tabItem {
@@ -736,6 +761,8 @@ struct MyPlanetEditView: View {
                         planet.filebasePinName = filebasePinName
                         planet.filebaseAPIToken = filebaseAPIToken
                         Task {
+                            planet.updateTemplateSettings(settings: userSettings)
+                            try? planet.copyTemplateSettings()
                             try planet.save()
                             Task(priority: .background) {
                                 try await planet.rebuild()
@@ -753,6 +780,15 @@ struct MyPlanetEditView: View {
         }
         .padding(0)
         .frame(width: 520, height: nil, alignment: .top)
+        .onAppear {
+            currentSettings = planet.templateSettings()
+            for (key, value) in currentSettings {
+                userSettings[key] = value
+                if key == "highlightColor" {
+                    selectedColor = Color(hex: value)
+                }
+            }
+        }
     }
 }
 

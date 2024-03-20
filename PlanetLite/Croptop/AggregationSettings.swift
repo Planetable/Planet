@@ -140,9 +140,9 @@ struct AggregationSettings: View {
                         planet.reuseOriginalID = reuseOriginalID
 
                         Task {
-                            planet.save()
+                            try planet.save()
                             Task(priority: .background) {
-                                try await planet.aggregate()
+                                await planet.aggregate()
                             }
                         }
                         dismiss()
