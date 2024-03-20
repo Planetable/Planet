@@ -40,7 +40,7 @@ extension MyPlanetModel {
                 ForEach(getUniqueOriginalSiteDomains(), id: \.self) { domain in
                     Button {
                         Task {
-                            try await self.batchDeletePosts(domain: domain)
+                            await self.batchDeletePosts(domain: domain)
                         }
                     } label: {
                         Text("Posts from \(domain)")
