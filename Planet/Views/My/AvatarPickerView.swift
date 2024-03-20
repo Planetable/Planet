@@ -195,17 +195,12 @@ struct AvatarPickerView: View {
             let randomIndex = Int.random(in: 0..<keys.count)
             let randomKey = keys[randomIndex]
             debugPrint("Randomly picked avatar: \(randomKey)")
-            do {
-                let image = NSImage(named: randomKey)
-                if let image = image, let avatarURL = image.temporaryURL
-                {
-                    selectedAvatar = image
-                    avatarChanged = true
-                    debugPrint("Set planet avatar to \(randomKey)")
-                }
-            }
-            catch {
-                debugPrint("failed to randomly pick avatar: \(error)")
+            let image = NSImage(named: randomKey)
+            if let image = image, let avatarURL = image.temporaryURL
+            {
+                selectedAvatar = image
+                avatarChanged = true
+                debugPrint("Set planet avatar to \(randomKey)")
             }
         }
     }
