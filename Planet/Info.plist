@@ -236,5 +236,7 @@
 	<false/>
 	<key>WALLETCONNECTV2_PROJECT_ID</key>
 	<string>$(WALLETCONNECTV2_PROJECT_ID)</string>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
 </dict>
 </plist>

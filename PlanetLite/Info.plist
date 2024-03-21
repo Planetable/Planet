@@ -47,8 +47,8 @@
 			<string>Alternate</string>
 			<key>LSItemContentTypes</key>
 			<array>
-            	<string>com.adobe.pdf</string>
-        	</array>
+				<string>com.adobe.pdf</string>
+			</array>
 		</dict>
 		<dict>
 			<key>CFBundleTypeIconSystemGenerated</key>
@@ -151,8 +151,11 @@
 	<key>ATSApplicationFontsPath</key>
 	<string>.</string>
 	<key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key><true/>
-    </dict>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
 </dict>
 </plist>
