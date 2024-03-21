@@ -264,11 +264,19 @@ class KeyboardShortcutHelper: ObservableObject {
                     panel.canCreateDirectories = false
                     let response = panel.runModal()
                     guard response == .OK, panel.urls.count > 0 else { return }
-                    Task {
+                    Task { @MainActor in
                         do {
                             try await MyArticleModel.importArticles(fromURLs: panel.urls)
                         } catch {
                             debugPrint("failed to import articles: \(error)")
+                            PlanetStore.shared.isShowingAlert = true
+                            PlanetStore.shared.alertTitle = "Failed to Import Articles"
+                            switch error {
+                            case PlanetError.ImportPlanetArticlePublishingError:
+                                PlanetStore.shared.alertMessage = "Planet is publishing progress, please try again later."
+                            default:
+                                PlanetStore.shared.alertMessage = error.localizedDescription
+                            }
                         }
                     }
                 } label: {

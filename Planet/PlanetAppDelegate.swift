@@ -44,6 +44,14 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                     try await MyArticleModel.importArticles(fromURLs: urls)
                 } catch {
                     debugPrint("failed to import articles: \(error)")
+                    PlanetStore.shared.isShowingAlert = true
+                    PlanetStore.shared.alertTitle = "Failed to Import Articles"
+                    switch error {
+                    case PlanetError.ImportPlanetArticlePublishingError:
+                        PlanetStore.shared.alertMessage = "Planet is in publishing progress, please try again later."
+                    default:
+                        PlanetStore.shared.alertMessage = error.localizedDescription
+                    }
                 }
             }
         } else {

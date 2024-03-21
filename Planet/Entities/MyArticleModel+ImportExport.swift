@@ -108,7 +108,7 @@ extension MyArticleModel {
 
     private static func importArticles(_ urls: [URL], toPlanet planet: MyPlanetModel) async throws {
         guard planet.isPublishing == false else {
-            throw PlanetError.MovePublishingPlanetArticleError
+            throw PlanetError.ImportPlanetArticlePublishingError
         }
         var selectingArticle: MyArticleModel?
         var planetArticles: [MyArticleModel] = planet.articles
@@ -117,6 +117,11 @@ extension MyArticleModel {
             let articleInfoPath = url.appendingPathComponent("article.json")
             let articleData = try Data(contentsOf: articleInfoPath)
             let articleToImport = try decoder.decode(MyArticleModel.self, from: articleData)
+            // Verify importing article is not duplicated
+            if planet.articles.first(where: { $0.title == articleToImport.title && $0.content == articleToImport.content }) != nil {
+                throw PlanetError.ImportPlanetArticleError
+            }
+            // Verify importing article has attachments
             if let attachments = articleToImport.attachments {
                 for attachment in attachments {
                     let attachmentURL = url.appendingPathComponent(attachment)
