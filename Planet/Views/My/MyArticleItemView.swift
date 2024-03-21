@@ -340,7 +340,8 @@ struct MyArticleItemView: View {
             throw PlanetError.InternalError
         }
         self.article.pinned = flag ? Date() : nil
-        try article.save()
+        try self.article.save()
+        try self.article.savePublic()
         planet.updated = Date()
         planet.articles = planet.articles.sorted(by: { MyArticleModel.reorder(a: $0, b: $1) })
         try planet.save()
