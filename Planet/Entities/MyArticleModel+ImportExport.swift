@@ -18,7 +18,7 @@ extension MyArticleModel {
             PlanetStore.shared.importingArticleURLs = urls
             PlanetStore.shared.isShowingPlanetPicker = true
         } else if planets.count == 1, let planet = planets.first {
-            try importArticles(urls, toPlanet: planet)
+            try await importArticles(urls, toPlanet: planet)
         } else {
             throw PlanetError.PlanetNotExistsError
         }
@@ -41,7 +41,7 @@ extension MyArticleModel {
                         let urls = PlanetStore.shared.importingArticleURLs
                         Task.detached(priority: .userInitiated) {
                             do {
-                                try self.importArticles(urls, toPlanet: planet)
+                                try await self.importArticles(urls, toPlanet: planet)
                             } catch {
                                 debugPrint("failed to import articles: \(error)")
                             }
@@ -99,7 +99,81 @@ extension MyArticleModel {
         NSWorkspace.shared.activateFileViewerSelecting([exportURL])
     }
 
-    private static func importArticles(_ urls: [URL], toPlanet planet: MyPlanetModel) throws {
-        // MARK: TODO: import articles.
+    private static func importArticles(_ urls: [URL], toPlanet planet: MyPlanetModel) async throws {
+        guard planet.isPublishing == false else {
+            throw PlanetError.MovePublishingPlanetArticleError
+        }
+        var selectingArticle: MyArticleModel?
+        var planetArticles: [MyArticleModel] = planet.articles
+        let decoder = JSONDecoder()
+        for url in urls {
+            let articleInfoPath = url.appendingPathComponent("article.json")
+            let articleData = try Data(contentsOf: articleInfoPath)
+            let articleToImport = try decoder.decode(MyArticleModel.self, from: articleData)
+            if let attachments = articleToImport.attachments {
+                for attachment in attachments {
+                    let attachmentURL = url.appendingPathComponent(attachment)
+                    guard FileManager.default.fileExists(atPath: attachmentURL.path) else {
+                        throw PlanetError.ImportPlanetArticleError
+                    }
+                }
+            }
+            let newArticleUUID = UUID()
+            let newArticle = MyArticleModel(
+                id: newArticleUUID,
+                link: newArticleUUID.uuidString,
+                slug: articleToImport.slug,
+                heroImage: articleToImport.heroImage,
+                externalLink: articleToImport.externalLink,
+                title: articleToImport.title,
+                content: articleToImport.content,
+                contentRendered: articleToImport.contentRendered,
+                summary: articleToImport.summary,
+                created: articleToImport.created,
+                starred: articleToImport.starred,
+                starType: articleToImport.starType,
+                videoFilename: articleToImport.videoFilename,
+                audioFilename: articleToImport.audioFilename,
+                attachments: articleToImport.attachments,
+                isIncludedInNavigation: articleToImport.isIncludedInNavigation,
+                navigationWeight: articleToImport.navigationWeight
+            )
+            newArticle.planet = planet
+            try FileManager.default.copyItem(at: url, to: newArticle.publicBasePath)
+            try newArticle.save()
+            try newArticle.savePublic()
+            planetArticles.append(newArticle)
+            selectingArticle = newArticle
+        }
+        planetArticles.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
+        let updatedPlanetArticles = planetArticles
+        await MainActor.run {
+            planet.articles = updatedPlanetArticles
+        }
+        try planet.save()
+        try await planet.savePublic()
+        let updatedPlanet = try MyPlanetModel.load(from: planet.basePath)
+        await MainActor.run {
+            PlanetStore.shared.myPlanets = PlanetStore.shared.myPlanets.map { p in
+                if p.id == planet.id {
+                    return updatedPlanet
+                }
+                return p
+            }
+            PlanetStore.shared.selectedView = .myPlanet(updatedPlanet)
+            withAnimation {
+                PlanetStore.shared.selectedArticleList = updatedPlanet.articles
+            }
+        }
+        if urls.count == 1, let selectingArticle {
+            await MainActor.run {
+                PlanetStore.shared.selectedArticle = selectingArticle
+            }
+            try await Task.sleep(nanoseconds: 500_000_000)
+            await MainActor.run {
+                NotificationCenter.default.post(name: .scrollToArticle, object: selectingArticle)
+            }
+        }
+        try await planet.publish()
     }
 }
