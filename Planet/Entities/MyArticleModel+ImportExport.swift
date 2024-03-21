@@ -47,12 +47,19 @@ extension MyArticleModel {
                             }
                         }
                     } label: {
-                        VStack {
-                            Text(planet.name)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Text(planet.about)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .foregroundStyle(Color.secondary)
+                        HStack {
+                            planet.avatarView(size: 36)
+                            VStack {
+                                Text(planet.name)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                if planet.about.count > 0 {
+                                    Text(planet.about)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .foregroundStyle(Color.secondary)
+                                } else {
+                                    Spacer()
+                                }
+                            }
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
