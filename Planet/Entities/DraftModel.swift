@@ -388,7 +388,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             }
             var articles = planet.articles
             articles?.append(article)
-            articles?.sort(by: { $0.created > $1.created })
+            articles?.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
             planet.articles = articles
         case .article(let wrapper):
             article = wrapper.value
