@@ -146,6 +146,7 @@ extension MyArticleModel {
                 navigationWeight: articleToImport.navigationWeight
             )
             newArticle.planet = planet
+            newArticle.pinned = articleToImport.pinned
             try FileManager.default.copyItem(at: url, to: newArticle.publicBasePath)
             try newArticle.save()
             try newArticle.savePublic()
@@ -178,7 +179,11 @@ extension MyArticleModel {
             }
             try await Task.sleep(nanoseconds: 500_000_000)
             await MainActor.run {
-                NotificationCenter.default.post(name: .scrollToArticle, object: selectingArticle)
+                if selectingArticle.pinned != nil {
+                    NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+                } else {
+                    NotificationCenter.default.post(name: .scrollToArticle, object: selectingArticle)
+                }
             }
         }
         try await planet.publish()
