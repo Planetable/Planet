@@ -127,7 +127,6 @@ struct MyArticleItemView: View {
                         do {
                             try article.exportArticle()
                         } catch {
-                            debugPrint("failed to export article: \(error)")
                             Task { @MainActor in
                                 PlanetStore.shared.isShowingAlert = true
                                 PlanetStore.shared.alertTitle = "Failed to Export Article"
@@ -146,7 +145,6 @@ struct MyArticleItemView: View {
                                 PlanetStore.shared.alertTitle = "Failed to Share Article"
                                 PlanetStore.shared.alertMessage = error.localizedDescription
                             }
-                            debugPrint("failed to share article: \(error)")
                         }
                     } label: {
                         Text("Share via AirDrop")

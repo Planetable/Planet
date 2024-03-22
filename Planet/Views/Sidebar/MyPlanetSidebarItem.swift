@@ -156,7 +156,15 @@ struct MyPlanetSidebarItem: View {
                         Text("Save as Planet Data File")
                     }
                     Button {
-                        airdropPlanet()
+                        do {
+                            try airDropPlanet()
+                        } catch {
+                            Task { @MainActor in
+                                self.planetStore.isShowingAlert = true
+                                self.planetStore.alertTitle = "Failed to Share Planet Data"
+                                self.planetStore.alertMessage = error.localizedDescription
+                            }
+                        }
                     } label: {
                         Text("Share via AirDrop")
                     }
@@ -269,39 +277,23 @@ struct MyPlanetSidebarItem: View {
         return conf
     }
 
-    private func airdropPlanet() {
-        func failedWithErrorDescription(_ description: String) {
-            Task { @MainActor in
-                self.planetStore.isShowingAlert = true
-                self.planetStore.alertTitle = "Failed to Start AirDrop Service"
-                self.planetStore.alertMessage = description
-            }
-        }
-
+    private func airDropPlanet() throws {
         guard let service: NSSharingService = NSSharingService(named: .sendViaAirDrop) else {
-            failedWithErrorDescription("Please check your system settings and try again later.")
-            return
+            throw PlanetError.ServiceAirDropNotExistsError
         }
         let url = URLUtils.temporaryPath
         let planetPath = url.appendingPathComponent(
             "\(planet.name.sanitized()).planet",
             isDirectory: true
         )
-        do {
-            if FileManager.default.fileExists(atPath: planetPath.path) {
-                try FileManager.default.removeItem(at: planetPath)
-            }
-            try planet.exportBackup(to: url, isForAirDropSharing: true)
-            if service.canPerform(withItems: [planetPath]) {
-                service.perform(withItems: [planetPath])
-            }
-            else {
-                failedWithErrorDescription("Please check your system settings and try again later.")
-            }
+        if FileManager.default.fileExists(atPath: planetPath.path) {
+            try FileManager.default.removeItem(at: planetPath)
         }
-        catch {
-            try? FileManager.default.removeItem(at: planetPath)
-            failedWithErrorDescription(error.localizedDescription)
+        try planet.exportBackup(to: url, isForAirDropSharing: true)
+        if service.canPerform(withItems: [planetPath]) {
+            service.perform(withItems: [planetPath])
+        } else {
+            throw PlanetError.ServiceAirDropNotExistsError
         }
     }
 
