@@ -99,6 +99,33 @@ extension Color {
             opacity: alpha
         )
     }
+
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        self.init(
+            .sRGB,
+            red: Double((int & 0xFF0000) >> 16) / 255,
+            green: Double((int & 0x00FF00) >> 8) / 255,
+            blue: Double(int & 0x0000FF) / 255,
+            opacity: 1
+        )
+    }
+
+    func toHexString() -> String {
+        var components: (CGFloat, CGFloat, CGFloat, CGFloat) {
+           let c = NSColor(self).usingColorSpace(.deviceRGB)!
+
+           return (c.redComponent, c.greenComponent, c.blueComponent, c.alphaComponent)
+        }
+        return String(
+            format: "#%02X%02X%02X",
+            Int(components.0 * 0xFF),
+            Int(components.1 * 0xFF),
+            Int(components.2 * 0xFF)
+        )
+    }
 }
 
 enum ViewVisibility: CaseIterable {

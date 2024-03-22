@@ -142,7 +142,7 @@ struct AggregationSettings: View {
                         Task {
                             try planet.save()
                             Task(priority: .background) {
-                                try await planet.aggregate()
+                                await planet.aggregate()
                             }
                         }
                         dismiss()
