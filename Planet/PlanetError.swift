@@ -37,6 +37,7 @@ enum PlanetError: Error {
     case KeyManagerImportingKeyError
     case KeyManagerImportingKeyExistsError
     case KeyManagerExportingKeyExistsError
+    case ServiceAirDropNotExistsError
     case InternalError
     case UnknownError(Error)
 }
@@ -115,6 +116,8 @@ extension PlanetError: LocalizedError {
             return NSLocalizedString("Key Manager Importing Key Exists Error", comment: "")
         case .KeyManagerExportingKeyExistsError:
             return NSLocalizedString("Key Manager Exporting Key Exists Error", comment: "")
+        case .ServiceAirDropNotExistsError:
+            return NSLocalizedString("Service AirDrop Not Exists Error", comment: "")
         case .InternalError:
             return NSLocalizedString("Internal Error", comment: "")
         case .UnknownError(let error):

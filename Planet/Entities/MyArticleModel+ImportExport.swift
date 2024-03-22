@@ -106,6 +106,24 @@ extension MyArticleModel {
         NSWorkspace.shared.activateFileViewerSelecting([exportURL])
     }
 
+    func airDropArticle() throws {
+        guard let service: NSSharingService = NSSharingService(named: .sendViaAirDrop) else {
+            throw PlanetError.ServiceAirDropNotExistsError
+        }
+        let url = URLUtils.temporaryPath
+        let name = self.title.sanitized()
+        let exportURL = url.appendingPathComponent("\(name).article")
+        if FileManager.default.fileExists(atPath: exportURL.path) {
+            try FileManager.default.removeItem(at: exportURL)
+        }
+        try FileManager.default.copyItem(at: self.publicBasePath, to: exportURL)
+        if service.canPerform(withItems: [exportURL]) {
+            service.perform(withItems: [exportURL])
+        } else {
+            throw PlanetError.ServiceAirDropNotExistsError
+        }
+    }
+
     private static func importArticles(_ urls: [URL], toPlanet planet: MyPlanetModel) async throws {
         guard planet.isPublishing == false else {
             throw PlanetError.ImportPlanetArticlePublishingError

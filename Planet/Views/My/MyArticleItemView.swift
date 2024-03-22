@@ -122,14 +122,35 @@ struct MyArticleItemView: View {
 
                 moveArticleItem()
 
-                Button {
-                    do {
-                        try article.exportArticle()
-                    } catch {
-                        debugPrint("failed to export article: \(error)")
+                Menu("Export Article") {
+                    Button {
+                        do {
+                            try article.exportArticle()
+                        } catch {
+                            debugPrint("failed to export article: \(error)")
+                            Task { @MainActor in
+                                PlanetStore.shared.isShowingAlert = true
+                                PlanetStore.shared.alertTitle = "Failed to Export Article"
+                                PlanetStore.shared.alertMessage = error.localizedDescription
+                            }
+                        }
+                    } label: {
+                        Text("Save as Planet Data File")
                     }
-                } label: {
-                    Text("Export Article")
+                    Button {
+                        do {
+                            try article.airDropArticle()
+                        } catch {
+                            Task { @MainActor in
+                                PlanetStore.shared.isShowingAlert = true
+                                PlanetStore.shared.alertTitle = "Failed to Share Article"
+                                PlanetStore.shared.alertMessage = error.localizedDescription
+                            }
+                            debugPrint("failed to share article: \(error)")
+                        }
+                    } label: {
+                        Text("Share via AirDrop")
+                    }
                 }
 
                 Divider()
