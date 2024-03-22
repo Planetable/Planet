@@ -15,6 +15,8 @@ enum PlanetError: Error {
     case PodcastCoverArtError
     case ImportPlanetError
     case ExportPlanetError
+    case ImportPlanetArticleError
+    case ImportPlanetArticlePublishingError
     case FileExistsError
     case FollowLocalPlanetError
     case FollowPlanetVerifyError
@@ -35,6 +37,7 @@ enum PlanetError: Error {
     case KeyManagerImportingKeyError
     case KeyManagerImportingKeyExistsError
     case KeyManagerExportingKeyExistsError
+    case ServiceAirDropNotExistsError
     case InternalError
     case UnknownError(Error)
 }
@@ -69,6 +72,10 @@ extension PlanetError: LocalizedError {
             return NSLocalizedString("Import Planet Error", comment: "")
         case .ExportPlanetError:
             return NSLocalizedString("Export Planet Error", comment: "")
+        case .ImportPlanetArticlePublishingError:
+            return NSLocalizedString("Import Planet Article Publishing Error", comment: "")
+        case .ImportPlanetArticleError:
+            return NSLocalizedString("Import Planet Article Error", comment: "")
         case .FileExistsError:
             return NSLocalizedString("File Exists Error", comment: "")
         case .FollowLocalPlanetError:
@@ -109,6 +116,8 @@ extension PlanetError: LocalizedError {
             return NSLocalizedString("Key Manager Importing Key Exists Error", comment: "")
         case .KeyManagerExportingKeyExistsError:
             return NSLocalizedString("Key Manager Exporting Key Exists Error", comment: "")
+        case .ServiceAirDropNotExistsError:
+            return NSLocalizedString("Service AirDrop Not Exists Error", comment: "")
         case .InternalError:
             return NSLocalizedString("Internal Error", comment: "")
         case .UnknownError(let error):

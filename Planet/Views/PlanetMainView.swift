@@ -114,6 +114,9 @@ struct PlanetMainView: View {
             IconGalleryView()
                 .environmentObject(iconManager)
         }
+        .sheet(isPresented: $planetStore.isShowingPlanetPicker) {
+            MyArticleModel.planetPickerView()
+        }
         .confirmationDialog(
             Text("Are you sure you want to disconnect?"),
             isPresented: $planetStore.isShowingWalletDisconnectConfirmation

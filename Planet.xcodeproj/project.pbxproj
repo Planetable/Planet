@@ -23,6 +23,8 @@
 		2A2556BA293E1F35006462D8 /* TBSidebarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556B9293E1F35006462D8 /* TBSidebarViewController.swift */; };
 		2A2556BC293E1F53006462D8 /* TemplateBrowserInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556BB293E1F53006462D8 /* TemplateBrowserInspectorView.swift */; };
 		2A2556BE293E1F92006462D8 /* TBInspectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556BD293E1F92006462D8 /* TBInspectorViewController.swift */; };
+		2A2593312BAB0CB000DE758C /* MyArticleModel+ImportExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2593302BAB0CB000DE758C /* MyArticleModel+ImportExport.swift */; };
+		2A2593322BAB0CB000DE758C /* MyArticleModel+ImportExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2593302BAB0CB000DE758C /* MyArticleModel+ImportExport.swift */; };
 		2A2774412A9514EE00A5DDC2 /* Zip in Frameworks */ = {isa = PBXBuildFile; productRef = 2A2774402A9514EE00A5DDC2 /* Zip */; };
 		2A27744B2A9515BF00A5DDC2 /* IconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A27744A2A9515BF00A5DDC2 /* IconManager.swift */; };
 		2A27744E2A9515EB00A5DDC2 /* IconModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A27744D2A9515EB00A5DDC2 /* IconModel.swift */; };
@@ -515,6 +517,7 @@
 		2A2556B9293E1F35006462D8 /* TBSidebarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBSidebarViewController.swift; sourceTree = "<group>"; };
 		2A2556BB293E1F53006462D8 /* TemplateBrowserInspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserInspectorView.swift; sourceTree = "<group>"; };
 		2A2556BD293E1F92006462D8 /* TBInspectorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBInspectorViewController.swift; sourceTree = "<group>"; };
+		2A2593302BAB0CB000DE758C /* MyArticleModel+ImportExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MyArticleModel+ImportExport.swift"; sourceTree = "<group>"; };
 		2A2766452AC5906500240622 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		2A2766462AC593E700240622 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		2A2774462A95159700A5DDC2 /* PlanetDockPlugIn.docktileplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlanetDockPlugIn.docktileplugin; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1418,6 +1421,7 @@
 				6A941CEC2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift */,
 				72114BAE1D6E54DD9D1059CB /* MyArticleModel.swift */,
 				6ADD7D872A51B616003D2E54 /* MyArticleModel+Save.swift */,
+				2A2593302BAB0CB000DE758C /* MyArticleModel+ImportExport.swift */,
 				6AADD6C52AF8809600898A6E /* MyArticleModel+SavePublic.swift */,
 				6A8A6A582BA5B0CA00FBF67D /* MyArticleModel+Views.swift */,
 				6A52FAEB2A889577000E85F0 /* BackupArticleModel.swift */,
@@ -1755,6 +1759,7 @@
 				2A95E6752A19A3C4001288B8 /* ENSUtils.swift in Sources */,
 				2A95E6F22A19A781001288B8 /* PlanetArticle.swift in Sources */,
 				6A52FAF02A88969A000E85F0 /* BackupMyPlanetModel.swift in Sources */,
+				2A2593322BAB0CB000DE758C /* MyArticleModel+ImportExport.swift in Sources */,
 				6A43E7D22B873F4900316F81 /* SearchResult.swift in Sources */,
 				2A95E6462A19A336001288B8 /* PlanetQuickShare+Extension.swift in Sources */,
 				2A95E6542A19A39C001288B8 /* PlanetPublishedFolders+Extension.swift in Sources */,
@@ -1968,6 +1973,7 @@
 				2AC889422B71D4200090D355 /* TemplateMonitor.swift in Sources */,
 				6ACF16692927267800AE318B /* WalletTransactionProgressView.swift in Sources */,
 				721142A9C5080D3F17D23F1F /* JSONUtils.swift in Sources */,
+				2A2593312BAB0CB000DE758C /* MyArticleModel+ImportExport.swift in Sources */,
 				721146EC85B1251B2669195C /* ENSUtils.swift in Sources */,
 				721145EEDE381A8BDED43E93 /* FeedUtils.swift in Sources */,
 				721144331A990EB4451F1C1F /* MyPlanetModel.swift in Sources */,
