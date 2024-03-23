@@ -34,9 +34,15 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
             }
         } else if url.lastPathComponent.hasSuffix(".planet") {
             Task { @MainActor in
-                let planet = try MyPlanetModel.importBackup(from: url)
-                PlanetStore.shared.myPlanets.insert(planet, at: 0)
-                PlanetStore.shared.selectedView = .myPlanet(planet)
+                do {
+                    let planet = try MyPlanetModel.importBackup(from: url)
+                    PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                    PlanetStore.shared.selectedView = .myPlanet(planet)
+                } catch {
+                    PlanetStore.shared.isShowingAlert = true
+                    PlanetStore.shared.alertTitle = "Failed to Import Planet"
+                    PlanetStore.shared.alertMessage = error.localizedDescription
+                }
             }
         } else if url.lastPathComponent.hasSuffix(".article") {
             Task { @MainActor in

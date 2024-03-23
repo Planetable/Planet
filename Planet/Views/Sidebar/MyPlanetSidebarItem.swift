@@ -6,7 +6,6 @@ struct MyPlanetSidebarItem: View {
     @ObservedObject var planet: MyPlanetModel
     @State var isShowingArchiveConfirmation = false
     @State var isShowingDeleteConfirmation = false
-    @State var isExportingPlanet = false
 
     var body: some View {
         HStack(spacing: 4) {
@@ -151,7 +150,25 @@ struct MyPlanetSidebarItem: View {
             Group {
                 Menu("Export Planet") {
                     Button {
-                        isExportingPlanet = true
+                        do {
+                            try exportPlanet()
+                        } catch PlanetError.FileExistsError {
+                            Task { @MainActor in
+                                self.planetStore.isShowingAlert = true
+                                self.planetStore.alertTitle = "Failed to Share Planet Data"
+                                self.planetStore.alertMessage = """
+                                    There is already an exported Planet in the destination.
+                                    We do not recommend override your backup.
+                                    Please choose another destination, or rename your previous backup.
+                                """
+                            }
+                        } catch {
+                            Task { @MainActor in
+                                self.planetStore.isShowingAlert = true
+                                self.planetStore.alertTitle = "Failed to Share Planet Data"
+                                self.planetStore.alertMessage = error.localizedDescription
+                            }
+                        }
                     } label: {
                         Text("Save as Planet Data File")
                     }
@@ -220,32 +237,32 @@ struct MyPlanetSidebarItem: View {
                 Text("Delete")
             }
         }
-        .fileImporter(
-            isPresented: $isExportingPlanet,
-            allowedContentTypes: [.directory]
-        ) { result in
-            if let url = try? result.get() {
-                do {
-                    try planet.exportBackup(to: url)
-                    return
-                }
-                catch PlanetError.FileExistsError {
-                    PlanetStore.shared.alert(
-                        title: "Failed to Export Planet",
-                        message: """
-                            There is already an exported Planet in the destination. \
-                            We do not recommend override your backup. \
-                            Please choose another destination, or rename your previous backup.
-                            """
-                    )
-                    return
-                }
-                catch {
-                    // use general alert
-                }
-            }
-            PlanetStore.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
-        }
+//        .fileImporter(
+//            isPresented: $isExportingPlanet,
+//            allowedContentTypes: [.directory]
+//        ) { result in
+//            if let url = try? result.get() {
+//                do {
+//                    try planet.exportBackup(to: url)
+//                    return
+//                }
+//                catch PlanetError.FileExistsError {
+//                    PlanetStore.shared.alert(
+//                        title: "Failed to Export Planet",
+//                        message: """
+//                            There is already an exported Planet in the destination. \
+//                            We do not recommend override your backup. \
+//                            Please choose another destination, or rename your previous backup.
+//                            """
+//                    )
+//                    return
+//                }
+//                catch {
+//                    // use general alert
+//                }
+//            }
+//            PlanetStore.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
+//        }
     }
 
     private func hasWorldWideWeb() -> Bool {
@@ -275,6 +292,19 @@ struct MyPlanetSidebarItem: View {
         conf.hides = false
         conf.activates = true
         return conf
+    }
+
+    private func exportPlanet() throws {
+        let panel = NSOpenPanel()
+        panel.message = "Choose Directory to Export Planet"
+        panel.prompt = "Export"
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.folder]
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        let response = panel.runModal()
+        guard response == .OK, let url = panel.url else { return }
+        try planet.exportBackup(to: url)
     }
 
     private func airDropPlanet() throws {
