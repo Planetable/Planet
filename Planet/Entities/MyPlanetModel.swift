@@ -713,6 +713,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     @MainActor static func importBackup(from path: URL) throws -> MyPlanetModel {
+        guard path.lastPathComponent.hasSuffix(".planet") else {
+            throw PlanetError.InternalError
+        }
         Self.logger.info("Importing backup from \(path)")
         let backupInfoPath = path.appendingPathComponent("planet.json", isDirectory: false)
         let backupAssetsPath = path.appendingPathComponent("assets", isDirectory: true)
