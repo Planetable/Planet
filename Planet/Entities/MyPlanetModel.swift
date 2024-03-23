@@ -1824,6 +1824,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             try backupPlanet.write(to: backupPlanetInfoPath)
         }
         catch {
+            debugPrint("Export Planet error: \(error)")
             throw PlanetError.ExportPlanetError
         }
 
