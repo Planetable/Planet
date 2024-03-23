@@ -270,14 +270,7 @@ class KeyboardShortcutHelper: ObservableObject {
         panel.message = "Choose Planet Articles to Import"
         panel.prompt = "Import"
         panel.allowsMultipleSelection = true
-        let planetDataIdentifier = {
-            if let name = Bundle.main.object(forInfoDictionaryKey: "ORGANIZATION_IDENTIFIER_PREFIX") as? String {
-                return name + ".planet.article.data"
-            } else {
-                return "xyz.planetable.planet.article.data"
-            }
-        }()
-        panel.allowedContentTypes = [UTType(planetDataIdentifier)!]
+        panel.allowedContentTypes = [.package]
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.canCreateDirectories = false
@@ -304,14 +297,7 @@ class KeyboardShortcutHelper: ObservableObject {
         panel.message = "Choose Planet Data to Import"
         panel.prompt = "Import"
         panel.allowsMultipleSelection = false
-        let planetDataIdentifier = {
-            if let name = Bundle.main.object(forInfoDictionaryKey: "ORGANIZATION_IDENTIFIER_PREFIX") as? String {
-                return name + ".planet.data"
-            } else {
-                return "xyz.planetable.planet.data"
-            }
-        }()
-        panel.allowedContentTypes = [UTType(planetDataIdentifier)!]
+        panel.allowedContentTypes = [.package]
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.canCreateDirectories = false
