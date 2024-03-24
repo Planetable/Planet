@@ -247,38 +247,7 @@ class KeyboardShortcutHelper: ObservableObject {
 
             Group {
                 Button {
-                    let panel = NSOpenPanel()
-                    panel.message = "Choose Planet Articles to Import"
-                    panel.prompt = "Import"
-                    panel.allowsMultipleSelection = true
-                    let planetDataIdentifier = {
-                        if let name = Bundle.main.object(forInfoDictionaryKey: "ORGANIZATION_IDENTIFIER_PREFIX") as? String {
-                            return name + ".planet.article.data"
-                        } else {
-                            return "xyz.planetable.planet.article.data"
-                        }
-                    }()
-                    panel.allowedContentTypes = [UTType(planetDataIdentifier)!]
-                    panel.canChooseDirectories = false
-                    panel.canChooseFiles = true
-                    panel.canCreateDirectories = false
-                    let response = panel.runModal()
-                    guard response == .OK, panel.urls.count > 0 else { return }
-                    Task { @MainActor in
-                        do {
-                            try await MyArticleModel.importArticles(fromURLs: panel.urls)
-                        } catch {
-                            debugPrint("failed to import articles: \(error)")
-                            PlanetStore.shared.isShowingAlert = true
-                            PlanetStore.shared.alertTitle = "Failed to Import Articles"
-                            switch error {
-                            case PlanetError.ImportPlanetArticlePublishingError:
-                                PlanetStore.shared.alertMessage = "Planet is publishing progress, please try again later."
-                            default:
-                                PlanetStore.shared.alertMessage = error.localizedDescription
-                            }
-                        }
-                    }
+                    self.importArticleAction()
                 } label: {
                     Text("Import Article")
                 }
@@ -294,19 +263,41 @@ class KeyboardShortcutHelper: ObservableObject {
         }
     }
 
-    func importPlanetAction() {
+    // MARK: -
+
+    private func importArticleAction() {
         let panel = NSOpenPanel()
-        panel.message = "Choose Planet Data"
+        panel.message = "Choose Planet Articles to Import"
+        panel.prompt = "Import"
+        panel.allowsMultipleSelection = true
+        panel.allowedContentTypes = [.package]
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.canCreateDirectories = false
+        let response = panel.runModal()
+        guard response == .OK, panel.urls.count > 0 else { return }
+        Task { @MainActor in
+            do {
+                try await MyArticleModel.importArticles(fromURLs: panel.urls)
+            } catch {
+                PlanetStore.shared.isShowingAlert = true
+                PlanetStore.shared.alertTitle = "Failed to Import Articles"
+                switch error {
+                case PlanetError.ImportPlanetArticlePublishingError:
+                    PlanetStore.shared.alertMessage = "Planet is publishing progress, please try again later."
+                default:
+                    PlanetStore.shared.alertMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    private func importPlanetAction() {
+        let panel = NSOpenPanel()
+        panel.message = "Choose Planet Data to Import"
         panel.prompt = "Import"
         panel.allowsMultipleSelection = false
-        let planetDataIdentifier = {
-            if let name = Bundle.main.object(forInfoDictionaryKey: "ORGANIZATION_IDENTIFIER_PREFIX") as? String {
-                return name + ".planet.data"
-            } else {
-                return "xyz.planetable.planet.data"
-            }
-        }()
-        panel.allowedContentTypes = [UTType(planetDataIdentifier)!]
+        panel.allowedContentTypes = [.package]
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.canCreateDirectories = false
@@ -318,12 +309,10 @@ class KeyboardShortcutHelper: ObservableObject {
                 PlanetStore.shared.myPlanets.insert(planet, at: 0)
                 PlanetStore.shared.selectedView = .myPlanet(planet)
             } catch {
-                PlanetStore.shared.alert(title: "Failed to import planet")
+                PlanetStore.shared.alert(title: "Failed to Import Planet", message: error.localizedDescription)
             }
         }
     }
-
-    // MARK: -
 
     @ViewBuilder
     private func publishedFoldersMenus() -> some View {

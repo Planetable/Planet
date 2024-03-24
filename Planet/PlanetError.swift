@@ -44,7 +44,7 @@ enum PlanetError: Error {
 
 
 extension PlanetError: LocalizedError {
-    public var errorDescription: String? {
+    public var localizedDescription: String? {
         switch self {
         case .PersistenceError:
             return NSLocalizedString("Persistence Error", comment: "")

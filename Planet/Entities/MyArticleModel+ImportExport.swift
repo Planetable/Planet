@@ -10,15 +10,16 @@ import SwiftUI
 extension MyArticleModel {
     @MainActor
     static func importArticles(fromURLs urls: [URL]) async throws {
-        guard urls.filter({ $0.lastPathComponent.hasSuffix(".article") }).count > 0 else {
+        let articleURLs: [URL] = urls.filter({ $0.lastPathComponent.hasSuffix(".article") })
+        guard articleURLs.count > 0 else {
             throw PlanetError.InternalError
         }
         let planets = PlanetStore.shared.myPlanets
         if planets.count > 1 {
-            PlanetStore.shared.importingArticleURLs = urls
+            PlanetStore.shared.importingArticleURLs = articleURLs
             PlanetStore.shared.isShowingPlanetPicker = true
         } else if planets.count == 1, let planet = planets.first {
-            try await importArticles(urls, toPlanet: planet)
+            try await importArticles(articleURLs, toPlanet: planet)
         } else {
             throw PlanetError.PlanetNotExistsError
         }
