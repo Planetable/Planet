@@ -38,6 +38,7 @@ enum PlanetError: Error {
     case KeyManagerImportingKeyExistsError
     case KeyManagerExportingKeyExistsError
     case ServiceAirDropNotExistsError
+    case WriterUnsupportedAttachmentTypeError
     case InternalError
     case UnknownError(Error)
 }
@@ -120,6 +121,8 @@ extension PlanetError: LocalizedError {
             return NSLocalizedString("Service AirDrop Not Exists Error", comment: "")
         case .InternalError:
             return NSLocalizedString("Internal Error", comment: "")
+        case .WriterUnsupportedAttachmentTypeError:
+            return NSLocalizedString("Writer Unsupported Attachment Type Error", comment: "")
         case .UnknownError(let error):
             return error.localizedDescription
         }

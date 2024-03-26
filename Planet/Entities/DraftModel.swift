@@ -270,6 +270,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
 
     @discardableResult func addAttachment(path: URL, type: AttachmentType) throws -> Attachment {
+        guard path.pathExtension != "" else {
+            throw PlanetError.WriterUnsupportedAttachmentTypeError
+        }
         let name = path.lastPathComponent
         let targetPath = attachmentsPath.appendingPathComponent(name, isDirectory: false)
         if FileManager.default.fileExists(atPath: targetPath.path) {
