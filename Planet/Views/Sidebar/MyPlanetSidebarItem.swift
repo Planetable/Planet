@@ -237,32 +237,6 @@ struct MyPlanetSidebarItem: View {
                 Text("Delete")
             }
         }
-//        .fileImporter(
-//            isPresented: $isExportingPlanet,
-//            allowedContentTypes: [.directory]
-//        ) { result in
-//            if let url = try? result.get() {
-//                do {
-//                    try planet.exportBackup(to: url)
-//                    return
-//                }
-//                catch PlanetError.FileExistsError {
-//                    PlanetStore.shared.alert(
-//                        title: "Failed to Export Planet",
-//                        message: """
-//                            There is already an exported Planet in the destination. \
-//                            We do not recommend override your backup. \
-//                            Please choose another destination, or rename your previous backup.
-//                            """
-//                    )
-//                    return
-//                }
-//                catch {
-//                    // use general alert
-//                }
-//            }
-//            PlanetStore.shared.alert(title: "Failed to Export Planet", message: "Please try again.")
-//        }
     }
 
     private func hasWorldWideWeb() -> Bool {

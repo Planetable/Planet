@@ -93,22 +93,6 @@ struct WriterView: View {
                 debugPrint("failed to add attachment: \(error)")
             }
         })
-//        .fileImporter(
-//            isPresented: $viewModel.isChoosingAttachment,
-//            allowedContentTypes: viewModel.allowedContentTypes,
-//            allowsMultipleSelection: viewModel.allowMultipleSelection
-//        ) { result in
-//            if let urls = try? result.get() {
-//                if viewModel.attachmentType == .image {
-//                    viewModel.isMediaTrayOpen = true
-//                }
-//                urls.forEach { url in
-//                    _ = try? draft.addAttachment(path: url, type: viewModel.attachmentType)
-//                }
-//                try? draft.renderPreview()
-//                try? draft.save()
-//            }
-//        }
         .confirmationDialog(
             Text("Do you want to save your changes as a draft?"),
             isPresented: $viewModel.isShowingDiscardConfirmation
