@@ -292,7 +292,7 @@ class KeyboardShortcutHelper: ObservableObject {
         }
     }
 
-    private func importPlanetAction() {
+    func importPlanetAction() {
         let panel = NSOpenPanel()
         panel.message = "Choose Planet Data to Import"
         panel.prompt = "Import"
