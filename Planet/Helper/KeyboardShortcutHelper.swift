@@ -293,8 +293,13 @@ class KeyboardShortcutHelper: ObservableObject {
     }
 
     func importPlanetAction() {
+        let isCroptopSiteData: Bool = PlanetStore.shared.app == .lite
         let panel = NSOpenPanel()
-        panel.message = "Choose Planet Data to Import"
+        if isCroptopSiteData {
+            panel.message = "Choose Croptop Site to Import"
+        } else {
+            panel.message = "Choose Planet Data to Import"
+        }
         panel.prompt = "Import"
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.package]
@@ -305,7 +310,7 @@ class KeyboardShortcutHelper: ObservableObject {
         guard response == .OK, let url = panel.url else { return }
         Task { @MainActor in
             do {
-                let planet = try MyPlanetModel.importBackup(from: url)
+                let planet = try MyPlanetModel.importBackup(from: url, isCroptopSiteData: isCroptopSiteData)
                 PlanetStore.shared.myPlanets.insert(planet, at: 0)
                 PlanetStore.shared.selectedView = .myPlanet(planet)
             } catch {

@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ATSApplicationFontsPath</key>
+	<string>.</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -54,14 +56,14 @@
 			<key>CFBundleTypeIconSystemGenerated</key>
 			<integer>1</integer>
 			<key>CFBundleTypeName</key>
-			<string>Planet Data</string>
+			<string>Site Data</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>$(ORGANIZATION_IDENTIFIER_PREFIX).planet.data</string>
+				<string>$(ORGANIZATION_IDENTIFIER_PREFIX).site.data</string>
 			</array>
 		</dict>
 	</array>
@@ -78,6 +80,13 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
 	<key>ORGANIZATION_IDENTIFIER_PREFIX</key>
 	<string>$(ORGANIZATION_IDENTIFIER_PREFIX)</string>
 	<key>PLANET_LITE_ICON_NAME</key>
@@ -98,7 +107,7 @@
 				<string>com.apple.package</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Planet Data</string>
+			<string>Site Data</string>
 			<key>UTTypeIcons</key>
 			<dict>
 				<key>UTTypeIconBackgroundName</key>
@@ -109,12 +118,12 @@
 				<string>data</string>
 			</dict>
 			<key>UTTypeIdentifier</key>
-			<string>$(ORGANIZATION_IDENTIFIER_PREFIX).planet.data</string>
+			<string>$(ORGANIZATION_IDENTIFIER_PREFIX).site.data</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
 				<array>
-					<string>planet</string>
+					<string>site</string>
 				</array>
 			</dict>
 		</dict>
@@ -127,7 +136,7 @@
 				<string>com.apple.package</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Planet Data</string>
+			<string>Site Data</string>
 			<key>UTTypeIcons</key>
 			<dict>
 				<key>UTTypeIconBackgroundName</key>
@@ -138,24 +147,15 @@
 				<string>data</string>
 			</dict>
 			<key>UTTypeIdentifier</key>
-			<string>$(ORGANIZATION_IDENTIFIER_PREFIX).planet.data</string>
+			<string>$(ORGANIZATION_IDENTIFIER_PREFIX).site.data</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
 				<array>
-					<string>planet</string>
+					<string>site</string>
 				</array>
 			</dict>
 		</dict>
 	</array>
-	<key>ATSApplicationFontsPath</key>
-	<string>.</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
-	<key>NSSupportsSuddenTermination</key>
-	<false/>
 </dict>
 </plist>

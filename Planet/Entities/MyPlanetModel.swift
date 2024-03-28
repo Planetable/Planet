@@ -712,9 +712,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return planet
     }
 
-    @MainActor static func importBackup(from path: URL) throws -> MyPlanetModel {
-        guard path.lastPathComponent.hasSuffix(".planet") else {
-            throw PlanetError.InternalError
+    @MainActor static func importBackup(from path: URL, isCroptopSiteData: Bool = false) throws -> MyPlanetModel {
+        let suffix: String = isCroptopSiteData ? ".site" : ".planet"
+        guard path.lastPathComponent.hasSuffix(suffix) else {
+            throw PlanetError.ImportUnsupportedFileTypeError
         }
         Self.logger.info("Importing backup from \(path)")
         let backupInfoPath = path.appendingPathComponent("planet.json", isDirectory: false)
