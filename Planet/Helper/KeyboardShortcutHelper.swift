@@ -314,7 +314,8 @@ class KeyboardShortcutHelper: ObservableObject {
                 PlanetStore.shared.myPlanets.insert(planet, at: 0)
                 PlanetStore.shared.selectedView = .myPlanet(planet)
             } catch {
-                PlanetStore.shared.alert(title: "Failed to Import Planet", message: error.localizedDescription)
+                let title = isCroptopSiteData ? "Failed to Import Site" : "Failed to Import Planet"
+                PlanetStore.shared.alert(title: title, message: error.localizedDescription)
             }
         }
     }
