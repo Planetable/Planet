@@ -88,9 +88,10 @@ extension MyArticleModel {
         .frame(width: 360, height: 480)
     }
 
-    func exportArticle() throws {
+    func exportArticle(isCroptopData: Bool = false) throws {
         let panel = NSOpenPanel()
-        panel.message = "Choose Directory to Export Article"
+        let exportName = isCroptopData ? "Post" : "Article"
+        panel.message = "Choose Directory to Export \(exportName)"
         panel.prompt = "Export"
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.folder]
@@ -99,7 +100,8 @@ extension MyArticleModel {
         let response = panel.runModal()
         guard response == .OK, let url = panel.url else { return }
         let name = self.title.sanitized()
-        let exportURL = url.appendingPathComponent("\(name).article")
+        let suffix = isCroptopData ? ".post" : ".article"
+        let exportURL = url.appendingPathComponent("\(name)\(suffix)")
         if FileManager.default.fileExists(atPath: exportURL.path) {
             throw PlanetError.FileExistsError
         }
@@ -107,13 +109,14 @@ extension MyArticleModel {
         NSWorkspace.shared.activateFileViewerSelecting([exportURL])
     }
 
-    func airDropArticle() throws {
+    func airDropArticle(isCroptopData: Bool = false) throws {
         guard let service: NSSharingService = NSSharingService(named: .sendViaAirDrop) else {
             throw PlanetError.ServiceAirDropNotExistsError
         }
         let url = URLUtils.temporaryPath
         let name = self.title.sanitized()
-        let exportURL = url.appendingPathComponent("\(name).article")
+        let suffix = isCroptopData ? ".post" : ".article"
+        let exportURL = url.appendingPathComponent("\(name)\(suffix)")
         if FileManager.default.fileExists(atPath: exportURL.path) {
             try FileManager.default.removeItem(at: exportURL)
         }

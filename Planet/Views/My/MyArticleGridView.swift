@@ -187,6 +187,35 @@ struct MyArticleGridView: View {
 
             Divider()
 
+            Menu("Export Post") {
+                Button {
+                    do {
+                        try article.exportArticle(isCroptopData: true)
+                    } catch {
+                        Task { @MainActor in
+                            PlanetStore.shared.isShowingAlert = true
+                            PlanetStore.shared.alertTitle = "Failed to Export Post"
+                            PlanetStore.shared.alertMessage = error.localizedDescription
+                        }
+                    }
+                } label: {
+                    Text("Save as Post Data File")
+                }
+                Button {
+                    do {
+                        try article.airDropArticle(isCroptopData: true)
+                    } catch {
+                        Task { @MainActor in
+                            PlanetStore.shared.isShowingAlert = true
+                            PlanetStore.shared.alertTitle = "Failed to Share Post"
+                            PlanetStore.shared.alertMessage = error.localizedDescription
+                        }
+                    }
+                } label: {
+                    Text("Share via AirDrop")
+                }
+            }
+
             Button {
                 isDeleting = true
             } label: {
