@@ -712,9 +712,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return planet
     }
 
-    @MainActor static func importBackup(from path: URL) throws -> MyPlanetModel {
-        guard path.lastPathComponent.hasSuffix(".planet") else {
-            throw PlanetError.InternalError
+    @MainActor static func importBackup(from path: URL, isCroptopSiteData: Bool = false) throws -> MyPlanetModel {
+        let suffix: String = isCroptopSiteData ? ".site" : ".planet"
+        guard path.lastPathComponent.hasSuffix(suffix) else {
+            throw PlanetError.ImportUnsupportedFileTypeError
         }
         Self.logger.info("Importing backup from \(path)")
         let backupInfoPath = path.appendingPathComponent("planet.json", isDirectory: false)
@@ -1713,9 +1714,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return status
     }
 
-    func exportBackup(to directory: URL, isForAirDropSharing: Bool = false) throws {
+    func exportBackup(to directory: URL, isForAirDropSharing: Bool = false, isCroptopSiteData: Bool = false) throws {
+        let suffix = isCroptopSiteData ? ".site" : ".planet"
         let exportPath = directory.appendingPathComponent(
-            "\(name.sanitized()).planet",
+            "\(name.sanitized())\(suffix)",
             isDirectory: true
         )
         guard !FileManager.default.fileExists(atPath: exportPath.path) else {

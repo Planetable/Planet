@@ -272,7 +272,7 @@ struct AppSidebarItemView: View {
                     let response = panel.runModal()
                     guard response == .OK, let url = panel.url else { return }
                     do {
-                        try planet.exportBackup(to: url)
+                        try planet.exportBackup(to: url, isCroptopSiteData: true)
                     }
                     catch PlanetError.FileExistsError {
                         PlanetStore.shared.alert(
