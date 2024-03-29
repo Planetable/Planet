@@ -158,7 +158,7 @@ struct AggregationSettings: View {
     }
 
     private func verifyUserInput() -> Int {
-        var errors: Int = 0
+        let errors: Int = 0
         return errors
     }
 }
