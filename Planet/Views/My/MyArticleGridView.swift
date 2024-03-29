@@ -187,32 +187,34 @@ struct MyArticleGridView: View {
 
             Divider()
 
-            Menu("Export Post") {
-                Button {
-                    do {
-                        try article.exportArticle(isCroptopData: true)
-                    } catch {
-                        Task { @MainActor in
-                            PlanetStore.shared.isShowingAlert = true
-                            PlanetStore.shared.alertTitle = "Failed to Export Post"
-                            PlanetStore.shared.alertMessage = error.localizedDescription
+            if PlanetStore.shared.app == .lite {
+                Menu("Export Post") {
+                    Button {
+                        do {
+                            try article.exportArticle(isCroptopData: true)
+                        } catch {
+                            Task { @MainActor in
+                                PlanetStore.shared.isShowingAlert = true
+                                PlanetStore.shared.alertTitle = "Failed to Export Post"
+                                PlanetStore.shared.alertMessage = error.localizedDescription
+                            }
                         }
+                    } label: {
+                        Text("Save as Post Data File")
                     }
-                } label: {
-                    Text("Save as Post Data File")
-                }
-                Button {
-                    do {
-                        try article.airDropArticle(isCroptopData: true)
-                    } catch {
-                        Task { @MainActor in
-                            PlanetStore.shared.isShowingAlert = true
-                            PlanetStore.shared.alertTitle = "Failed to Share Post"
-                            PlanetStore.shared.alertMessage = error.localizedDescription
+                    Button {
+                        do {
+                            try article.airDropArticle(isCroptopData: true)
+                        } catch {
+                            Task { @MainActor in
+                                PlanetStore.shared.isShowingAlert = true
+                                PlanetStore.shared.alertTitle = "Failed to Share Post"
+                                PlanetStore.shared.alertMessage = error.localizedDescription
+                            }
                         }
+                    } label: {
+                        Text("Share via AirDrop")
                     }
-                } label: {
-                    Text("Share via AirDrop")
                 }
             }
 
