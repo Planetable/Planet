@@ -39,11 +39,28 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func application(_ application: NSApplication, open urls: [URL]) {
-        if let url = urls.first, url.lastPathComponent.hasSuffix(".planet") {
+        guard let url = urls.first else { return }
+        if url.lastPathComponent.hasSuffix(".planet") {
             Task { @MainActor in
                 let planet = try MyPlanetModel.importBackup(from: url)
                 PlanetStore.shared.myPlanets.insert(planet, at: 0)
                 PlanetStore.shared.selectedView = .myPlanet(planet)
+            }
+        } else if url.lastPathComponent.hasSuffix(".post") {
+            Task { @MainActor in
+                do {
+                    try await MyArticleModel.importArticles(fromURLs: urls, isCroptopData: true)
+                } catch {
+                    debugPrint("failed to import posts: \(error)")
+                    PlanetStore.shared.isShowingAlert = true
+                    PlanetStore.shared.alertTitle = "Failed to Import Posts"
+                    switch error {
+                    case PlanetError.ImportPlanetArticlePublishingError:
+                        PlanetStore.shared.alertMessage = "Croptop is in publishing progress, please try again later."
+                    default:
+                        PlanetStore.shared.alertMessage = error.localizedDescription
+                    }
+                }
             }
         } else {
             createQuickShareWindow(forFiles: urls)

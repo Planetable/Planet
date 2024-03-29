@@ -9,8 +9,9 @@ import SwiftUI
 
 extension MyArticleModel {
     @MainActor
-    static func importArticles(fromURLs urls: [URL]) async throws {
-        let articleURLs: [URL] = urls.filter({ $0.lastPathComponent.hasSuffix(".article") })
+    static func importArticles(fromURLs urls: [URL], isCroptopData: Bool = false) async throws {
+        let suffix = isCroptopData ? ".post" : ".article"
+        let articleURLs: [URL] = urls.filter({ $0.lastPathComponent.hasSuffix(suffix) })
         guard articleURLs.count > 0 else {
             throw PlanetError.InternalError
         }
@@ -19,7 +20,7 @@ extension MyArticleModel {
             PlanetStore.shared.importingArticleURLs = articleURLs
             PlanetStore.shared.isShowingPlanetPicker = true
         } else if planets.count == 1, let planet = planets.first {
-            try await importArticles(articleURLs, toPlanet: planet)
+            try await importArticles(articleURLs, toPlanet: planet, isCroptopData: isCroptopData)
         } else {
             throw PlanetError.PlanetNotExistsError
         }
@@ -28,9 +29,11 @@ extension MyArticleModel {
     @MainActor 
     @ViewBuilder
     static func planetPickerView() -> some View {
+        let isCroptopData = PlanetStore.shared.app == .lite
         let planets = PlanetStore.shared.myPlanets
         VStack(spacing: 0) {
-            Text("Choose Planet to Import Articles")
+            let title = isCroptopData ? "Choose Site to Import Posts" : "Choose Planet to Import Articles"
+            Text(title)
                 .font(.headline)
                 .frame(height: 44)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -42,7 +45,7 @@ extension MyArticleModel {
                         let urls = PlanetStore.shared.importingArticleURLs
                         Task.detached(priority: .userInitiated) {
                             do {
-                                try await self.importArticles(urls, toPlanet: planet)
+                                try await self.importArticles(urls, toPlanet: planet, isCroptopData: isCroptopData)
                             } catch {
                                 debugPrint("failed to import articles: \(error)")
                             }
@@ -128,7 +131,7 @@ extension MyArticleModel {
         }
     }
 
-    private static func importArticles(_ urls: [URL], toPlanet planet: MyPlanetModel) async throws {
+    private static func importArticles(_ urls: [URL], toPlanet planet: MyPlanetModel, isCroptopData: Bool = false) async throws {
         guard planet.isPublishing == false else {
             throw PlanetError.ImportPlanetArticlePublishingError
         }
@@ -200,16 +203,18 @@ extension MyArticleModel {
                 PlanetStore.shared.selectedArticleList = updatedPlanet.articles
             }
         }
-        if urls.count == 1, let selectingArticle {
-            await MainActor.run {
-                PlanetStore.shared.selectedArticle = selectingArticle
-            }
-            try await Task.sleep(nanoseconds: 500_000_000)
-            await MainActor.run {
-                if selectingArticle.pinned != nil {
-                    NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
-                } else {
-                    NotificationCenter.default.post(name: .scrollToArticle, object: selectingArticle)
+        if !isCroptopData {
+            if urls.count == 1, let selectingArticle {
+                await MainActor.run {
+                    PlanetStore.shared.selectedArticle = selectingArticle
+                }
+                try await Task.sleep(nanoseconds: 500_000_000)
+                await MainActor.run {
+                    if selectingArticle.pinned != nil {
+                        NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+                    } else {
+                        NotificationCenter.default.post(name: .scrollToArticle, object: selectingArticle)
+                    }
                 }
             }
         }
