@@ -60,7 +60,7 @@ struct FollowingPlanetSidebarItem: View {
                 #if DEBUG
                 Button {
                     Task {
-                        try await planet.refreshIcon()
+                        await planet.refreshIcon()
                     }
                 } label: {
                     Text("Refresh Icon")
@@ -68,7 +68,7 @@ struct FollowingPlanetSidebarItem: View {
 
                 Button {
                     Task {
-                        try await planet.removeIcon()
+                        await planet.removeIcon()
                     }
                 } label: {
                     Text("Remove Icon")

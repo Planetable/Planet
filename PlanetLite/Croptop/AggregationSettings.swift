@@ -109,7 +109,7 @@ struct AggregationSettings: View {
                 HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                     Button {
                         Task {
-                            try await planet.aggregate()
+                            await planet.aggregate()
                         }
                         dismiss()
                     } label: {

@@ -124,18 +124,18 @@ struct ArticleWebView: NSViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            debugPrint("ArticleWebView: didFinish \(navigation)")
+            debugPrint("ArticleWebView: didFinish \(String(describing: navigation))")
         }
 
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!)
         {
             debugPrint(
-                "ArticleWebView: didStartProvisionalNavigation \(navigation) \(navigationType)"
+                "ArticleWebView: didStartProvisionalNavigation \(String(describing: navigation)) \(navigationType)"
             )
         }
 
         func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-            debugPrint("ArticleWebView: didCommit \(navigation)")
+            debugPrint("ArticleWebView: didCommit \(String(describing: navigation))")
         }
 
         func webView(
