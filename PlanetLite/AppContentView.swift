@@ -188,7 +188,7 @@ struct AppContentView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
-                .help("New Article")
+                .help("New Post")
             }
         }
         .sheet(isPresented: $planetStore.isConfiguringMint) {

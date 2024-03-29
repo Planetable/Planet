@@ -47,7 +47,10 @@ extension MyArticleModel {
                             do {
                                 try await self.importArticles(urls, toPlanet: planet, isCroptopData: isCroptopData)
                             } catch {
-                                debugPrint("failed to import articles: \(error)")
+                                let title = isCroptopData ? "Failed to Import Posts" : "Failed to Import Articles"
+                                Task { @MainActor in
+                                    PlanetStore.shared.alert(title: title, message: error.localizedDescription)
+                                }
                             }
                         }
                     } label: {
@@ -180,6 +183,15 @@ extension MyArticleModel {
             try FileManager.default.copyItem(at: url, to: newArticle.publicBasePath)
             try newArticle.save()
             try newArticle.savePublic()
+            if isCroptopData {
+                let heroGridPath = newArticle.publicBasePath.appendingPathComponent(
+                        "_grid.png",
+                        isDirectory: false
+                    )
+                if FileManager.default.fileExists(atPath: heroGridPath.path) {
+                    newArticle.hasHeroGrid = true
+                }
+            }
             planetArticles.append(newArticle)
             selectingArticle = newArticle
         }
@@ -203,18 +215,16 @@ extension MyArticleModel {
                 PlanetStore.shared.selectedArticleList = updatedPlanet.articles
             }
         }
-        if !isCroptopData {
-            if urls.count == 1, let selectingArticle {
-                await MainActor.run {
-                    PlanetStore.shared.selectedArticle = selectingArticle
-                }
-                try await Task.sleep(nanoseconds: 500_000_000)
-                await MainActor.run {
-                    if selectingArticle.pinned != nil {
-                        NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
-                    } else {
-                        NotificationCenter.default.post(name: .scrollToArticle, object: selectingArticle)
-                    }
+        if urls.count == 1, let selectingArticle {
+            await MainActor.run {
+                PlanetStore.shared.selectedArticle = selectingArticle
+            }
+            try await Task.sleep(nanoseconds: 500_000_000)
+            await MainActor.run {
+                if selectingArticle.pinned != nil {
+                    NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+                } else {
+                    NotificationCenter.default.post(name: .scrollToArticle, object: selectingArticle)
                 }
             }
         }

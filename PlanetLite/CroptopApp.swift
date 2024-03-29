@@ -69,6 +69,35 @@ struct CroptopApp: App {
     func fileCommands() -> some Commands {
         CommandGroup(after: .importExport) {
             Button {
+                let panel = NSOpenPanel()
+                panel.message = "Choose Posts to Import"
+                panel.prompt = "Import"
+                panel.allowsMultipleSelection = true
+                panel.allowedContentTypes = [.package]
+                panel.canChooseDirectories = false
+                panel.canChooseFiles = true
+                panel.canCreateDirectories = false
+                let response = panel.runModal()
+                guard response == .OK, panel.urls.count > 0 else { return }
+                Task { @MainActor in
+                    do {
+                        try await MyArticleModel.importArticles(fromURLs: panel.urls, isCroptopData: true)
+                    } catch {
+                        PlanetStore.shared.isShowingAlert = true
+                        PlanetStore.shared.alertTitle = "Failed to Import Posts"
+                        switch error {
+                        case PlanetError.ImportPlanetArticlePublishingError:
+                            PlanetStore.shared.alertMessage = "Croptop is publishing progress, please try again later."
+                        default:
+                            PlanetStore.shared.alertMessage = error.localizedDescription
+                        }
+                    }
+                }
+            } label: {
+                Text("Import Posts")
+            }
+            
+            Button {
                 KeyboardShortcutHelper.shared.importPlanetAction()
             } label: {
                 Text("Import Site")
