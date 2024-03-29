@@ -126,7 +126,7 @@ class EthereumTransaction: Codable, Identifiable {
                 return "Ξ"
             }
         }()
-        var ethers: Float = Float(amount) / 100
+        let ethers: Float = Float(amount) / 100
         return String(format: "%.2f \(e)", ethers)
     }
 }

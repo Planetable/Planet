@@ -34,7 +34,7 @@ struct Filebase: Codable {
                 for result in results {
                     if let name = result["pin"]["name"].string, name == pinName {
                         requestID = result["requestid"].string
-                        debugPrint("Filebase: request ID for \(pinName) found: \(requestID)")
+                        debugPrint("Filebase: request ID for \(pinName) found: \(requestID ?? "N/A")")
                         break
                     }
                 }

@@ -17,7 +17,7 @@ struct Pinnable {
             debugPrint("Call Pinnable.xyz API: Incorrect URL")
             return
         }
-        guard let (data, resp) = try? await URLSession.shared.data(from: url)
+        guard let (_, resp) = try? await URLSession.shared.data(from: url)
         else {
             debugPrint("Call Pinnable.xyz API: Unexpected URLResponse")
             return
@@ -44,7 +44,7 @@ struct Pinnable {
             debugPrint("Check Pinnable.xyz Pin Status: Unexpected URLResponse")
             return nil
         }
-        guard let httpResp = resp as? HTTPURLResponse else {
+        guard let _ = resp as? HTTPURLResponse else {
             debugPrint("Check Pinnable.xyz Pin Status: Invalid HTTPResponse")
             return nil
         }
