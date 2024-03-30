@@ -5,9 +5,22 @@
 
 import Foundation
 import SwiftUI
+import UniformTypeIdentifiers
 
 
 extension MyArticleModel {
+    static let postTypeIdentifier: String = {
+        if let name = Bundle.main.object(forInfoDictionaryKey: "ORGANIZATION_IDENTIFIER_PREFIX") as? String {
+            return name + ".post.data"
+        } else {
+            return "xyz.planetable.post.data"
+        }
+    }()
+
+    static let postType: UTType = {
+        return UTType(postTypeIdentifier)!
+    }()
+
     @MainActor
     static func importArticles(fromURLs urls: [URL], isCroptopData: Bool = false) async throws {
         let suffix = isCroptopData ? ".post" : ".article"
@@ -24,6 +37,19 @@ extension MyArticleModel {
         } else {
             throw PlanetError.PlanetNotExistsError
         }
+    }
+
+    @MainActor
+    static func importPosts(fromURLs urls: [URL], forPlanet planet: MyPlanetModel) async throws {
+        let articleURLs: [URL] = urls.filter({ $0.lastPathComponent.hasSuffix(".post") })
+        guard articleURLs.count > 0 else {
+            throw PlanetError.InternalError
+        }
+        let planets = PlanetStore.shared.myPlanets
+        guard let _ = planets.first(where: { $0.id == planet.id }) else {
+            throw PlanetError.PlanetNotExistsError
+        }
+        try await importArticles(articleURLs, toPlanet: planet, isCroptopData: true)
     }
 
     @MainActor 

@@ -9,6 +9,8 @@ import UniformTypeIdentifiers
 
 // TODO: Rename this to QuickShareDropDelegate and use it in ArticleList too
 class AppContentDropDelegate: DropDelegate {
+    private var validated: Bool = false
+
     init() {
     }
 
@@ -18,12 +20,15 @@ class AppContentDropDelegate: DropDelegate {
 
     func validateDrop(info: DropInfo) -> Bool {
         guard !PlanetStore.shared.isQuickSharing else { return false }
-        guard let _ = info.itemProviders(for: [.image]).first else { return false }
+        validated = info.itemProviders(for: [.image, .pdf, .movie, MyArticleModel.postType]).count > 0
+        debugPrint("validating: \(validated)")
         return true
     }
 
     func performDrop(info: DropInfo) -> Bool {
+        guard validated else { return false }
         guard !PlanetStore.shared.isQuickSharing else { return false }
+        debugPrint("perform drop: \(info)")
         Task { @MainActor in
             if #available(macOS 13.0, *) {
                 var urls: [URL] = []
@@ -74,6 +79,26 @@ class AppContentDropDelegate: DropDelegate {
                         alert.alertStyle = .warning
                         alert.addButton(withTitle: "OK")
                         alert.runModal()
+                    }
+                }
+            }
+            if case .myPlanet(let planet) = PlanetStore.shared.selectedView {
+                var urls: [URL] = []
+                let supportedExtensions = ["post"]
+                for provider in info.itemProviders(for: [MyArticleModel.postType]) {
+                    debugPrint("provider: \(provider)")
+                    if let item = try? await provider.loadItem(forTypeIdentifier: MyArticleModel.postTypeIdentifier),
+                       let data = item as? Data,
+                       let path = URL(dataRepresentation: data, relativeTo: nil),
+                       supportedExtensions.contains(path.pathExtension) {
+                        urls.append(path)
+                    }
+                }
+                if urls.count > 0 {
+                    do {
+                        try await MyArticleModel.importPosts(fromURLs: urls, forPlanet: planet)
+                    } catch {
+                        PlanetStore.shared.alert(title: "Failed to Import Posts", message: error.localizedDescription)
                     }
                 }
             }
