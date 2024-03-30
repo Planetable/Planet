@@ -9,8 +9,9 @@ import SwiftUI
 
 extension MyArticleModel {
     @MainActor
-    static func importArticles(fromURLs urls: [URL]) async throws {
-        let articleURLs: [URL] = urls.filter({ $0.lastPathComponent.hasSuffix(".article") })
+    static func importArticles(fromURLs urls: [URL], isCroptopData: Bool = false) async throws {
+        let suffix = isCroptopData ? ".post" : ".article"
+        let articleURLs: [URL] = urls.filter({ $0.lastPathComponent.hasSuffix(suffix) })
         guard articleURLs.count > 0 else {
             throw PlanetError.InternalError
         }
@@ -19,7 +20,7 @@ extension MyArticleModel {
             PlanetStore.shared.importingArticleURLs = articleURLs
             PlanetStore.shared.isShowingPlanetPicker = true
         } else if planets.count == 1, let planet = planets.first {
-            try await importArticles(articleURLs, toPlanet: planet)
+            try await importArticles(articleURLs, toPlanet: planet, isCroptopData: isCroptopData)
         } else {
             throw PlanetError.PlanetNotExistsError
         }
@@ -28,9 +29,11 @@ extension MyArticleModel {
     @MainActor 
     @ViewBuilder
     static func planetPickerView() -> some View {
+        let isCroptopData = PlanetStore.shared.app == .lite
         let planets = PlanetStore.shared.myPlanets
         VStack(spacing: 0) {
-            Text("Choose Planet to Import Articles")
+            let title = isCroptopData ? "Choose Site to Import Posts" : "Choose Planet to Import Articles"
+            Text(title)
                 .font(.headline)
                 .frame(height: 44)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -42,9 +45,12 @@ extension MyArticleModel {
                         let urls = PlanetStore.shared.importingArticleURLs
                         Task.detached(priority: .userInitiated) {
                             do {
-                                try await self.importArticles(urls, toPlanet: planet)
+                                try await self.importArticles(urls, toPlanet: planet, isCroptopData: isCroptopData)
                             } catch {
-                                debugPrint("failed to import articles: \(error)")
+                                let title = isCroptopData ? "Failed to Import Posts" : "Failed to Import Articles"
+                                Task { @MainActor in
+                                    PlanetStore.shared.alert(title: title, message: error.localizedDescription)
+                                }
                             }
                         }
                     } label: {
@@ -88,9 +94,10 @@ extension MyArticleModel {
         .frame(width: 360, height: 480)
     }
 
-    func exportArticle() throws {
+    func exportArticle(isCroptopData: Bool = false) throws {
         let panel = NSOpenPanel()
-        panel.message = "Choose Directory to Export Article"
+        let exportName = isCroptopData ? "Post" : "Article"
+        panel.message = "Choose Directory to Export \(exportName)"
         panel.prompt = "Export"
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.folder]
@@ -99,7 +106,8 @@ extension MyArticleModel {
         let response = panel.runModal()
         guard response == .OK, let url = panel.url else { return }
         let name = self.title.sanitized()
-        let exportURL = url.appendingPathComponent("\(name).article")
+        let suffix = isCroptopData ? ".post" : ".article"
+        let exportURL = url.appendingPathComponent("\(name)\(suffix)")
         if FileManager.default.fileExists(atPath: exportURL.path) {
             throw PlanetError.FileExistsError
         }
@@ -107,13 +115,14 @@ extension MyArticleModel {
         NSWorkspace.shared.activateFileViewerSelecting([exportURL])
     }
 
-    func airDropArticle() throws {
+    func airDropArticle(isCroptopData: Bool = false) throws {
         guard let service: NSSharingService = NSSharingService(named: .sendViaAirDrop) else {
             throw PlanetError.ServiceAirDropNotExistsError
         }
         let url = URLUtils.temporaryPath
         let name = self.title.sanitized()
-        let exportURL = url.appendingPathComponent("\(name).article")
+        let suffix = isCroptopData ? ".post" : ".article"
+        let exportURL = url.appendingPathComponent("\(name)\(suffix)")
         if FileManager.default.fileExists(atPath: exportURL.path) {
             try FileManager.default.removeItem(at: exportURL)
         }
@@ -125,7 +134,7 @@ extension MyArticleModel {
         }
     }
 
-    private static func importArticles(_ urls: [URL], toPlanet planet: MyPlanetModel) async throws {
+    private static func importArticles(_ urls: [URL], toPlanet planet: MyPlanetModel, isCroptopData: Bool = false) async throws {
         guard planet.isPublishing == false else {
             throw PlanetError.ImportPlanetArticlePublishingError
         }
@@ -174,6 +183,15 @@ extension MyArticleModel {
             try FileManager.default.copyItem(at: url, to: newArticle.publicBasePath)
             try newArticle.save()
             try newArticle.savePublic()
+            if isCroptopData {
+                let heroGridPath = newArticle.publicBasePath.appendingPathComponent(
+                        "_grid.png",
+                        isDirectory: false
+                    )
+                if FileManager.default.fileExists(atPath: heroGridPath.path) {
+                    newArticle.hasHeroGrid = true
+                }
+            }
             planetArticles.append(newArticle)
             selectingArticle = newArticle
         }

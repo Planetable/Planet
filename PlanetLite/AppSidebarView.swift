@@ -111,6 +111,9 @@ struct AppSidebarView: View {
                 MyPlanetCustomCodeView(planet: planet)
             }
         }
+        .sheet(isPresented: $planetStore.isShowingPlanetPicker) {
+            MyArticleModel.planetPickerView()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .publishMyPlanet)) {
             aNotification in
             if let userObject = aNotification.object, let planet = userObject as? MyPlanetModel {

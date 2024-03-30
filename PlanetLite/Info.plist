@@ -66,6 +66,18 @@
 				<string>$(ORGANIZATION_IDENTIFIER_PREFIX).site.data</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Post Data</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>$(ORGANIZATION_IDENTIFIER_PREFIX).post.data</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -127,6 +139,32 @@
 				</array>
 			</dict>
 		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Post Data</string>
+			<key>UTTypeIcons</key>
+			<dict>
+				<key>UTTypeIconBackgroundName</key>
+				<string>AppDataIcon-Fill</string>
+				<key>UTTypeIconBadgeName</key>
+				<string>AppDataIcon-Image</string>
+				<key>UTTypeIconText</key>
+				<string>data</string>
+			</dict>
+			<key>UTTypeIdentifier</key>
+			<string>$(ORGANIZATION_IDENTIFIER_PREFIX).post.data</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>post</string>
+				</array>
+			</dict>
+		</dict>
 	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
@@ -153,6 +191,32 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>site</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Post Data</string>
+			<key>UTTypeIcons</key>
+			<dict>
+				<key>UTTypeIconBackgroundName</key>
+				<string>AppDataIcon-Fill</string>
+				<key>UTTypeIconBadgeName</key>
+				<string>AppDataIcon-Image</string>
+				<key>UTTypeIconText</key>
+				<string>data</string>
+			</dict>
+			<key>UTTypeIdentifier</key>
+			<string>$(ORGANIZATION_IDENTIFIER_PREFIX).post.data</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>post</string>
 				</array>
 			</dict>
 		</dict>
