@@ -80,29 +80,31 @@ class AppContentDropDelegate: DropDelegate {
                     }
                 }
             }
-            if case .myPlanet(let planet) = PlanetStore.shared.selectedView {
-                var urls: [URL] = []
-                let supportedExtensions = ["post"]
-                for provider in info.itemProviders(for: [.fileURL]) {
-                    if let item = try? await provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier),
-                       let data = item as? Data,
-                       let path = URL(dataRepresentation: data, relativeTo: nil),
-                       supportedExtensions.contains(path.pathExtension) {
-                        urls.append(path)
-                    }
+            var urls: [URL] = []
+            let supportedExtensions = ["post"]
+            for provider in info.itemProviders(for: [.fileURL]) {
+                if let item = try? await provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier),
+                   let data = item as? Data,
+                   let path = URL(dataRepresentation: data, relativeTo: nil),
+                   supportedExtensions.contains(path.pathExtension) {
+                    urls.append(path)
                 }
-                if urls.count > 0 {
-                    do {
+            }
+            if urls.count > 0 {
+                do {
+                    if case .myPlanet(let planet) = PlanetStore.shared.selectedView {
                         try await MyArticleModel.importPosts(fromURLs: urls, forPlanet: planet)
-                    } catch {
-                        PlanetStore.shared.isShowingAlert = true
-                        PlanetStore.shared.alertTitle = "Failed to Import Posts"
-                        switch error {
-                        case PlanetError.ImportPlanetArticlePublishingError:
-                            PlanetStore.shared.alertMessage = "Site is in publishing progress, please try again later."
-                        default:
-                            PlanetStore.shared.alertMessage = error.localizedDescription
-                        }
+                    } else {
+                        try await MyArticleModel.importArticles(fromURLs: urls)
+                    }
+                } catch {
+                    PlanetStore.shared.isShowingAlert = true
+                    PlanetStore.shared.alertTitle = "Failed to Import Posts"
+                    switch error {
+                    case PlanetError.ImportPlanetArticlePublishingError:
+                        PlanetStore.shared.alertMessage = "Site is in publishing progress, please try again later."
+                    default:
+                        PlanetStore.shared.alertMessage = error.localizedDescription
                     }
                 }
             }
