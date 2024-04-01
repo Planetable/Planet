@@ -21,14 +21,12 @@ class AppContentDropDelegate: DropDelegate {
     func validateDrop(info: DropInfo) -> Bool {
         guard !PlanetStore.shared.isQuickSharing else { return false }
         validated = info.itemProviders(for: [.image, .pdf, .movie, MyArticleModel.postType]).count > 0
-        debugPrint("validating: \(validated)")
         return true
     }
 
     func performDrop(info: DropInfo) -> Bool {
         guard validated else { return false }
         guard !PlanetStore.shared.isQuickSharing else { return false }
-        debugPrint("perform drop: \(info)")
         Task { @MainActor in
             if #available(macOS 13.0, *) {
                 var urls: [URL] = []
@@ -85,9 +83,8 @@ class AppContentDropDelegate: DropDelegate {
             if case .myPlanet(let planet) = PlanetStore.shared.selectedView {
                 var urls: [URL] = []
                 let supportedExtensions = ["post"]
-                for provider in info.itemProviders(for: [MyArticleModel.postType]) {
-                    debugPrint("provider: \(provider)")
-                    if let item = try? await provider.loadItem(forTypeIdentifier: MyArticleModel.postTypeIdentifier),
+                for provider in info.itemProviders(for: [.fileURL]) {
+                    if let item = try? await provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier),
                        let data = item as? Data,
                        let path = URL(dataRepresentation: data, relativeTo: nil),
                        supportedExtensions.contains(path.pathExtension) {
@@ -98,7 +95,14 @@ class AppContentDropDelegate: DropDelegate {
                     do {
                         try await MyArticleModel.importPosts(fromURLs: urls, forPlanet: planet)
                     } catch {
-                        PlanetStore.shared.alert(title: "Failed to Import Posts", message: error.localizedDescription)
+                        PlanetStore.shared.isShowingAlert = true
+                        PlanetStore.shared.alertTitle = "Failed to Import Posts"
+                        switch error {
+                        case PlanetError.ImportPlanetArticlePublishingError:
+                            PlanetStore.shared.alertMessage = "Site is in publishing progress, please try again later."
+                        default:
+                            PlanetStore.shared.alertMessage = error.localizedDescription
+                        }
                     }
                 }
             }
