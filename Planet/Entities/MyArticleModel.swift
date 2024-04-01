@@ -228,7 +228,10 @@ class MyArticleModel: ArticleModel, Codable {
         cids = try? container.decodeIfPresent([String: String].self, forKey: .cids) ?? [:]
         tags = try? container.decodeIfPresent([String: String].self, forKey: .tags) ?? [:]
         originalSiteName = try? container.decodeIfPresent(String.self, forKey: .originalSiteName)
-        originalSiteDomain = try? container.decodeIfPresent(String.self, forKey: .originalSiteDomain)
+        originalSiteDomain = try? container.decodeIfPresent(
+            String.self,
+            forKey: .originalSiteDomain
+        )
         originalPostID = try? container.decodeIfPresent(String.self, forKey: .originalPostID)
         originalPostDate = try? container.decodeIfPresent(Date.self, forKey: .originalPostDate)
         pinned = try? container.decodeIfPresent(Date.self, forKey: .pinned)
@@ -333,9 +336,9 @@ class MyArticleModel: ArticleModel, Codable {
             article.draft = try? DraftModel.load(from: draftPath, article: article)
         }
         let heroGridPath = article.publicBasePath.appendingPathComponent(
-                "_grid.png",
-                isDirectory: false
-            )
+            "_grid.png",
+            isDirectory: false
+        )
         if FileManager.default.fileExists(atPath: heroGridPath.path) {
             article.hasHeroGrid = true
         }
@@ -377,16 +380,17 @@ class MyArticleModel: ArticleModel, Codable {
         b: MyArticleModel
     ) -> Bool {
         switch (a.pinned, b.pinned) {
-        case (nil, nil): // Both articles are not pinned, sort by created date
+        case (nil, nil):  // Both articles are not pinned, sort by created date
             return a.created > b.created
-        case (nil, _): // Only the first article is not pinned, the second one goes first
+        case (nil, _):  // Only the first article is not pinned, the second one goes first
             return false
-        case (_, nil): // Only the second article is not pinned, the first one goes first
+        case (_, nil):  // Only the second article is not pinned, the first one goes first
             return true
-        case (_, _): // Both articles are pinned, sort by pinned date
+        case (_, _):  // Both articles are pinned, sort by pinned date
             if let pinned1 = a.pinned, let pinned2 = b.pinned {
                 return pinned1 > pinned2
-            } else {
+            }
+            else {
                 return a.created > b.created
             }
         }
@@ -414,6 +418,59 @@ class MyArticleModel: ArticleModel, Codable {
         }
         catch {
             debugPrint("Failed to prewarm \(planet.name) post metadata \(articleJSONURL): \(error)")
+        }
+        Task(priority: .background) {
+            if let attachments = self.attachments {
+                for attachment in attachments {
+                    let attachmentURL = postURL.appendingPathComponent(attachment)
+                    do {
+                        debugPrint("About to prewarm \(planet.name) attachment: \(attachmentURL)")
+                        let (attachmentData, _) = try await URLSession.shared.data(
+                            from: attachmentURL
+                        )
+                        debugPrint(
+                            "Prewarmed \(planet.name) attachment: \(attachmentData.count) bytes"
+                        )
+                    }
+                    catch {
+                        debugPrint(
+                            "Failed to prewarm \(planet.name) attachment \(attachmentURL): \(error)"
+                        )
+                    }
+                }
+            }
+            if let videoFilename = self.videoFilename {
+                let videoThumbnailURL = postURL.appendingPathComponent("_videoThumbnail.png")
+                do {
+                    debugPrint(
+                        "About to prewarm \(planet.name) video thumbnail: \(videoThumbnailURL)"
+                    )
+                    let (videoThumbnailData, _) = try await URLSession.shared.data(
+                        from: videoThumbnailURL
+                    )
+                    debugPrint(
+                        "Prewarmed \(planet.name) video thumbnail: \(videoThumbnailData.count) bytes"
+                    )
+                }
+                catch {
+                    debugPrint(
+                        "Failed to prewarm \(planet.name) video thumbnail \(videoThumbnailURL): \(error)"
+                    )
+                }
+            }
+            if self.hasHeroGrid {
+                let heroGridURL = postURL.appendingPathComponent("_grid.png")
+                do {
+                    debugPrint("About to prewarm \(planet.name) hero grid: \(heroGridURL)")
+                    let (heroGridData, _) = try await URLSession.shared.data(from: heroGridURL)
+                    debugPrint("Prewarmed \(planet.name) hero grid: \(heroGridData.count) bytes")
+                }
+                catch {
+                    debugPrint(
+                        "Failed to prewarm \(planet.name) hero grid \(heroGridURL): \(error)"
+                    )
+                }
+            }
         }
     }
 

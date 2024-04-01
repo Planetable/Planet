@@ -31,7 +31,7 @@ struct dWebServices: Codable {
             if let status = json["status"].string, status == "ok" {
                 if let data = json["data"][0].dictionary, let id = data["uid"]?.string {
                     uid = id
-                    debugPrint("dWebServices: uid for \(domain) found: \(uid)")
+                    debugPrint("dWebServices: uid for \(domain) found: \(uid ?? "N/A")")
                 }
                 else {
                     debugPrint("dWebServices: uid for \(domain) not found")

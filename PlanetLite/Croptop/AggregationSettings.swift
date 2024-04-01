@@ -109,7 +109,7 @@ struct AggregationSettings: View {
                 HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                     Button {
                         Task {
-                            try await planet.aggregate()
+                            await planet.aggregate()
                         }
                         dismiss()
                     } label: {
@@ -158,7 +158,7 @@ struct AggregationSettings: View {
     }
 
     private func verifyUserInput() -> Int {
-        var errors: Int = 0
+        let errors: Int = 0
         return errors
     }
 }
