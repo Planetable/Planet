@@ -26,7 +26,7 @@ struct FollowingPlanetSidebarItem: View {
                         planetStore.refreshSelectedArticles()
                     }
                 } label: {
-                    Text(planet.isUpdating ? "Updating..." : "Check for update")
+                    Text(planet.isUpdating ? "Updating..." : "Check for Updates")
                 }
                 .disabled(planet.isUpdating)
 

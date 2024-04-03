@@ -60,7 +60,7 @@ extension PlanetStore {
                 }
             }
             // Collect results from all tasks
-            var allResults = await group.reduce(into: []) { $0 += $1 }
+            let allResults = await group.reduce(into: []) { $0 += $1 }
 
             // Sort if needed or apply any criteria for determining 'top' results
             // This step is optional and can be adjusted based on how you define 'top'
