@@ -100,7 +100,7 @@ extension PlanetStore {
                 }
             }
             // Collect results from all tasks
-            var allResults = await group.reduce(into: []) { $0 += $1 }
+            let allResults = await group.reduce(into: []) { $0 += $1 }
 
             // Optionally sort the results if you have a specific criterion for 'top' results
             // allResults.sort(by: { $0.articleCreated > $1.articleCreated })
