@@ -142,6 +142,7 @@ struct PlanetSidebarView: View {
                     .help("Toggle Sidebar")
             }
 
+            /*
             Spacer()
 
             Menu {
@@ -159,6 +160,7 @@ struct PlanetSidebarView: View {
             } label: {
                 Image(systemName: "ellipsis.circle")
             }
+            */
         }
         .onReceive(NotificationCenter.default.publisher(for: .publishMyPlanet)) {
             aNotification in
