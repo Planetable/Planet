@@ -141,6 +141,26 @@ struct PlanetSidebarView: View {
                 Image(systemName: "sidebar.left")
                     .help("Toggle Sidebar")
             }
+
+            if #available(macOS 14.0, *) {
+                Spacer()
+            }
+
+            Menu {
+                Button {
+                    PlanetAppDelegate.shared.openTemplateWindow()
+                } label: {
+                    Text("Template Browser")
+                }
+
+                Button {
+                    PlanetAppDelegate.shared.openPublishedFoldersDashboardWindow()
+                } label: {
+                    Text("Published Folders")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .publishMyPlanet)) {
             aNotification in
