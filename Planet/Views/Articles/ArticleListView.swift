@@ -1,4 +1,6 @@
 import SwiftUI
+import UniformTypeIdentifiers
+
 
 enum ListViewFilter: String, CaseIterable {
     case all = "All"
@@ -59,10 +61,48 @@ enum ListViewFilter: String, CaseIterable {
     ]
 }
 
+class ArticleListDropDelegate: DropDelegate {
+    init() {}
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        return DropProposal(operation: .copy)
+    }
+
+    func validateDrop(info: DropInfo) -> Bool {
+        return info.itemProviders(for: [.fileURL]).count > 0
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        Task { @MainActor in
+            let urls: [URL] = await PlanetQuickShareDropDelegate.processDropInfo(info)
+            guard urls.count > 0 else { return }
+            do {
+                try PlanetQuickShareViewModel.shared.prepareFiles(urls)
+                PlanetStore.shared.isQuickSharing = true
+                if #available(macOS 14.0, *) {
+                    NSApp.activate()
+                } else {
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+            } catch {
+                let alert = NSAlert()
+                alert.messageText = "Failed to Create Post"
+                alert.informativeText = error.localizedDescription
+                alert.alertStyle = .warning
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+            }
+        }
+        return true
+    }
+}
+
 struct ArticleListView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @State var filter: ListViewFilter = .all
     @State var articles: [ArticleModel]? = []
+
+    let articleDropDelegate = ArticleListDropDelegate()
 
     private func filterArticles(_ articles: [ArticleModel]) -> [ArticleModel]? {
         switch filter {
@@ -271,5 +311,6 @@ struct ArticleListView: View {
                 }
             }
         }
+        .onDrop(of: [.fileURL], delegate: articleDropDelegate)
     }
 }
