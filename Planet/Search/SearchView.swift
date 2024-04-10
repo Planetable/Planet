@@ -11,6 +11,7 @@ struct SearchView: View {
     @EnvironmentObject var planetStore: PlanetStore
 
     @State private var result: [SearchResult] = []
+    @FocusState private var focusedResult: SearchResult?
 
     @Environment(\.dismiss) private var dismiss
 
@@ -31,6 +32,11 @@ struct SearchView: View {
                     .padding(.bottom, 8)
                     .padding(.leading, 8)
                     .padding(.trailing, 10)
+                    .onSubmit {
+                        if let topResult = result.first {
+                            focusedResult = topResult
+                        }
+                    }
 
                 Button {
                     dismiss()
@@ -45,7 +51,29 @@ struct SearchView: View {
             Divider()
             ScrollViewReader { proxy in
                 VStack(spacing: 0) {
-                    searchResult()
+//                    searchResult()
+                    if result.count > 0 {
+                        List {
+                            ForEach(result, id: \.self) { item in
+                                let focused = focusedResult == item
+                                searchResultRow(item)
+                                    .focusable()
+                                    .focused($focusedResult, equals: item)
+                                    .onTapGesture {
+                                        focusedResult = item
+                                        goToArticle(item)
+                                    }
+                                    .background(focused ? Color.accentColor : Color.clear)
+                                    .foregroundStyle(focused ? Color.white : Color.primary, focused ? Color.primary : Color.secondary)
+                            }
+                        }
+                        .padding(0)
+                        .listStyle(PlainListStyle())
+                    }
+                    else {
+                        List {
+                        }.padding(0)
+                    }
                 }.id("top")
                     .onChange(of: result.count) { _ in
                         proxy.scrollTo("top", anchor: .top)
