@@ -80,7 +80,7 @@ class PFDashboardWindowController: NSWindowController {
         serviceStore.revealFolderInFinder(folder)
     }
 
-    @objc func publishFolder(_ sender: Any) {
+    @objc func publishFolderAction(_ sender: Any) {
         guard let object = sender as? NSMenuItem, let folder = object.representedObject as? PlanetPublishedFolder else { return }
         let serviceStore = PlanetPublishedServiceStore.shared
         guard !serviceStore.publishingFolders.contains(folder.id) else {
@@ -93,34 +93,7 @@ class PFDashboardWindowController: NSWindowController {
             return
         }
         Task { @MainActor in
-            do {
-                try await serviceStore.publishFolder(folder, skipCIDCheck: true)
-                let content = UNMutableNotificationContent()
-                content.title = "Folder Published"
-                content.subtitle = folder.url.absoluteString
-                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                let request = UNNotificationRequest(
-                    identifier: folder.id.uuidString,
-                    content: content,
-                    trigger: trigger
-                )
-                try? await UNUserNotificationCenter.current().add(request)
-            } catch PlanetError.PublishedServiceFolderUnchangedError {
-                let alert = NSAlert()
-                alert.messageText = "Failed to Publish Folder"
-                alert.informativeText = "Folder content hasn't changed since last publish."
-                alert.alertStyle = .informational
-                alert.addButton(withTitle: "OK")
-                alert.runModal()
-            } catch {
-                debugPrint("Failed to publish folder: \(folder), error: \(error)")
-                let alert = NSAlert()
-                alert.messageText = "Failed to Publish Folder"
-                alert.informativeText = error.localizedDescription
-                alert.alertStyle = .informational
-                alert.addButton(withTitle: "OK")
-                alert.runModal()
-            }
+            await serviceStore.prepareToPublishFolder(folder, skipCIDCheck: true)
         }
     }
 
@@ -341,7 +314,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
                 publishFolderItem.representedObject = folder
                 publishFolderItem.title = "Publish Folder"
                 publishFolderItem.target = self
-                publishFolderItem.action = #selector(self.publishFolder(_:))
+                publishFolderItem.action = #selector(self.publishFolderAction(_:))
                 menu.addItem(publishFolderItem)
 
                 menu.addItem(NSMenuItem.separator())

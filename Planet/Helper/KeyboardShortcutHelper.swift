@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import UserNotifications
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -371,34 +370,7 @@ class KeyboardShortcutHelper: ObservableObject {
                             }
                             Button {
                                 Task { @MainActor in
-                                    do {
-                                        try await self.serviceStore.publishFolder(folder, skipCIDCheck: true)
-                                        let content = UNMutableNotificationContent()
-                                        content.title = "Folder Published"
-                                        content.subtitle = folder.url.absoluteString
-                                        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                                        let request = UNNotificationRequest(
-                                            identifier: folder.id.uuidString,
-                                            content: content,
-                                            trigger: trigger
-                                        )
-                                        try? await UNUserNotificationCenter.current().add(request)
-                                    } catch PlanetError.PublishedServiceFolderUnchangedError {
-                                        let alert = NSAlert()
-                                        alert.messageText = "Failed to Publish Folder"
-                                        alert.informativeText = "Folder content hasn't changed since last publish."
-                                        alert.alertStyle = .informational
-                                        alert.addButton(withTitle: "OK")
-                                        alert.runModal()
-                                    } catch {
-                                        debugPrint("Failed to publish folder: \(folder), error: \(error)")
-                                        let alert = NSAlert()
-                                        alert.messageText = "Failed to Publish Folder"
-                                        alert.informativeText = error.localizedDescription
-                                        alert.alertStyle = .informational
-                                        alert.addButton(withTitle: "OK")
-                                        alert.runModal()
-                                    }
+                                    await self.serviceStore.prepareToPublishFolder(folder, skipCIDCheck: true)
                                 }
                             } label: {
                                 Text("Publish")

@@ -31,18 +31,8 @@ struct PFDashboardSidebarItemView: View {
                 Text("Publishing ...")
             } else {
                 Button {
-                    Task {
-                        do {
-                            try await self.serviceStore.publishFolder(folder, skipCIDCheck: true)
-                        } catch {
-                            debugPrint("failed to publish folder: \(folder), error: \(error)")
-                            let alert = NSAlert()
-                            alert.messageText = "Failed to Publish Folder"
-                            alert.informativeText = error.localizedDescription
-                            alert.alertStyle = .informational
-                            alert.addButton(withTitle: "OK")
-                            alert.runModal()
-                        }
+                    Task { @MainActor in
+                        await self.serviceStore.prepareToPublishFolder(folder, skipCIDCheck: true)
                     }
                 } label: {
                     Text("Publish Folder")
