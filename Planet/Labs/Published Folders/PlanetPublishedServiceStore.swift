@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UserNotifications
 import SwiftUI
 
 
@@ -221,7 +222,70 @@ class PlanetPublishedServiceStore: ObservableObject {
     }
 
     @MainActor
-    func publishFolder(_ folder: PlanetPublishedFolder, skipCIDCheck: Bool = false) async throws {
+    func prepareToPublishFolder(_ folder: PlanetPublishedFolder, skipCIDCheck: Bool = false) async {
+        do {
+            try await self.publishFolder(folder, skipCIDCheck: true)
+            let content = UNMutableNotificationContent()
+            content.title = "Folder Published"
+            content.subtitle = folder.url.absoluteString
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+            let request = UNNotificationRequest(
+                identifier: folder.id.uuidString,
+                content: content,
+                trigger: trigger
+            )
+            try? await UNUserNotificationCenter.current().add(request)
+        } catch PlanetError.IPFSInactiveError {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Publish Folder"
+            alert.informativeText = "IPFS not ready, please wait for a few seconds then try again."
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        } catch PlanetError.PublishedServiceFolderUnchangedError {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Publish Folder"
+            alert.informativeText = "Folder content hasn't changed since last publish."
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        } catch {
+            debugPrint("Failed to publish folder: \(folder), error: \(error)")
+            let alert = NSAlert()
+            alert.messageText = "Failed to Publish Folder"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
+    }
+
+    @MainActor
+    func updatePublishedFolders(_ folders: [PlanetPublishedFolder]) {
+        publishedFolders = folders.sorted(by: { a, b in
+            return a.created > b.created
+        })
+        Task(priority: .background) {
+            do {
+                try savePublishedFolders()
+            } catch {
+                debugPrint("failed to save published folders: \(error)")
+            }
+        }
+    }
+
+    @MainActor
+    func addPublishingFolder(_ folder: PlanetPublishedFolder) {
+        guard !publishingFolders.contains(folder.id) else { return }
+        publishingFolders.append(folder.id)
+        PlanetStatusManager.shared.updateStatus()
+    }
+
+    @MainActor
+    private func publishFolder(_ folder: PlanetPublishedFolder, skipCIDCheck: Bool = false) async throws {
+        guard IPFSState.shared.online else {
+            throw PlanetError.IPFSInactiveError
+        }
         addPublishingFolder(folder)
         defer {
             removePublishingFolder(folder)
@@ -273,27 +337,6 @@ class PlanetPublishedServiceStore: ObservableObject {
             self?.updateWindowTitles()
         }
         debugPrint("Folder published -> \(folder.url)")
-    }
-
-    @MainActor
-    func updatePublishedFolders(_ folders: [PlanetPublishedFolder]) {
-        publishedFolders = folders.sorted(by: { a, b in
-            return a.created > b.created
-        })
-        Task(priority: .background) {
-            do {
-                try savePublishedFolders()
-            } catch {
-                debugPrint("failed to save published folders: \(error)")
-            }
-        }
-    }
-
-    @MainActor
-    func addPublishingFolder(_ folder: PlanetPublishedFolder) {
-        guard !publishingFolders.contains(folder.id) else { return }
-        publishingFolders.append(folder.id)
-        PlanetStatusManager.shared.updateStatus()
     }
 
     @MainActor
