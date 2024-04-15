@@ -14,6 +14,14 @@ Now that Kubo has reached version 0.28, I think we should give this version anot
 
 There is a repository migration step involved when upgrading Kubo. To test the upgrade, perform it in a development environment with disposable data, or ensure the data is fully backed up before testing.
 
+## How to Back Up IPFS Data in Planet
+
+IPFS repo location:
+
+```
+~/Library/Containers/xyz.planetable.Planet/Data/Library/Application Support/ipfs
+```
+
 ## git-lfs
 
 The two binaries of Kubo are tracked with [git-lfs](https://git-lfs.com/). Ensure they are added with git-lfs before pushing a commit.
