@@ -22,6 +22,8 @@ IPFS repo location:
 ~/Library/Containers/xyz.planetable.Planet/Data/Library/Application Support/ipfs
 ```
 
+The process could be slow because there are many small files in the repo.
+
 ## git-lfs
 
 The two binaries of Kubo are tracked with [git-lfs](https://git-lfs.com/). Ensure they are added with git-lfs before pushing a commit.
