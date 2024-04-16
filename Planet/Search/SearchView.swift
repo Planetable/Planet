@@ -11,7 +11,11 @@ struct SearchView: View {
     @EnvironmentObject var planetStore: PlanetStore
 
     @State private var result: [SearchResult] = []
-    @FocusState private var focusedResult: SearchResult?
+    @FocusState private var focusedResult: SearchResult? {
+        didSet {
+            debugPrint("focused result: \(focusedResult?.title)")
+        }
+    }
 
     @Environment(\.dismiss) private var dismiss
 
@@ -33,9 +37,7 @@ struct SearchView: View {
                     .padding(.leading, 8)
                     .padding(.trailing, 10)
                     .onSubmit {
-                        if let topResult = result.first {
-                            focusedResult = topResult
-                        }
+                        goToNextSearchResult()
                     }
 
                 Button {
@@ -53,24 +55,8 @@ struct SearchView: View {
                 VStack(spacing: 0) {
 //                    searchResult()
                     if result.count > 0 {
-                        List {
-                            ForEach(result, id: \.self) { item in
-                                let focused = focusedResult == item
-                                searchResultRow(item)
-                                    .focusable()
-                                    .focused($focusedResult, equals: item)
-                                    .onTapGesture {
-                                        focusedResult = item
-                                        goToArticle(item)
-                                    }
-                                    .background(focused ? Color.accentColor : Color.clear)
-                                    .foregroundStyle(focused ? Color.white : Color.primary, focused ? Color.primary : Color.secondary)
-                            }
-                        }
-                        .padding(0)
-                        .listStyle(PlainListStyle())
-                    }
-                    else {
+                        searchResultView()
+                    } else {
                         List {
                         }.padding(0)
                     }
@@ -148,6 +134,69 @@ struct SearchView: View {
             }.padding(0)
         }
     }
+    
+    @ViewBuilder
+    private func searchResultView() -> some View {
+        ZStack {
+            List {
+                ForEach(result, id: \.self) { item in
+                    searchResultRow(item)
+                        .focusable()
+                        .focused($focusedResult, equals: item)
+                        .onTapGesture {
+                            goToArticle(item)
+                        }
+                }
+            }
+            .padding(0)
+            .listStyle(PlainListStyle())
+            // arrow key navigation hack
+            VStack {
+                Spacer()
+                HStack {
+                    Button {
+                        goToPreviousSearchResult()
+                    } label: {
+                        Text("")
+                    }
+                    .keyboardShortcut(.upArrow, modifiers: [])
+                    Button {
+                        goToNextSearchResult()
+                    } label: {
+                        Text("")
+                    }
+                    .keyboardShortcut(.downArrow, modifiers: [])
+                }
+            }
+            .opacity(0)
+        }
+    }
+    
+    private func goToNextSearchResult() {
+        guard result.count > 0 else { return }
+        if let currentFocusedResult = focusedResult {
+            if let index = result.firstIndex(of: currentFocusedResult) {
+                if index + 1 < result.count {
+                    focusedResult = result[index + 1]
+                }
+            }
+        } else {
+            focusedResult = result.first
+        }
+    }
+    
+    private func goToPreviousSearchResult() {
+        guard result.count > 0 else { return }
+        if let currentFocusedResult = focusedResult {
+            if let index = result.firstIndex(of: currentFocusedResult) {
+                if index > 0 {
+                    focusedResult = result[index - 1]
+                }
+            }
+        } else {
+            focusedResult = result.last
+        }
+    }
 
     @ViewBuilder
     func planetAvatarView(result: SearchResult, size: CGFloat) -> some View {
@@ -210,29 +259,41 @@ struct SearchView: View {
 
     @ViewBuilder
     private func searchResultRow(_ item: SearchResult) -> some View {
-        HStack(spacing: 10) {
-            planetAvatarView(result: item, size: 32)
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 10) {
-                    Text(item.title)
-                        .lineLimit(1)
-                        .font(.headline)
+        ZStack {
+            HStack(spacing: 10) {
+                planetAvatarView(result: item, size: 32)
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack(spacing: 10) {
+                        Text(item.title)
+                            .lineLimit(1)
+                            .font(.headline)
 
-                    Spacer()
+                        Spacer()
 
-                    Text(item.planetName)
-                        .font(.subheadline)
+                        Text(item.planetName)
+                            .font(.subheadline)
+                            .lineLimit(1)
+                            .foregroundColor(.secondary)
+                    }
+                    Text(item.preview)
                         .lineLimit(1)
                         .foregroundColor(.secondary)
                 }
-                Text(item.preview)
-                    .lineLimit(1)
-                    .foregroundColor(.secondary)
+                .padding(.vertical, 5)
+                .padding(.horizontal, 0)
             }
-            .padding(.vertical, 5)
-            .padding(.horizontal, 0)
-        }.padding(0)
+            .padding(0)
             .contentShape(Rectangle())
+            // arrow key navigation hack
+            Button {
+                guard let focusedResult else { return }
+                goToArticle(focusedResult)
+            } label: {
+                Text("")
+            }
+            .keyboardShortcut(.return, modifiers: [])
+            .opacity(0)
+        }
     }
 
     @ViewBuilder
