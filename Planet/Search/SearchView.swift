@@ -11,11 +11,7 @@ struct SearchView: View {
     @EnvironmentObject var planetStore: PlanetStore
 
     @State private var result: [SearchResult] = []
-    @FocusState private var focusedResult: SearchResult? {
-        didSet {
-            debugPrint("focused result: \(focusedResult?.title)")
-        }
-    }
+    @FocusState private var focusedResult: SearchResult?
 
     @Environment(\.dismiss) private var dismiss
 
