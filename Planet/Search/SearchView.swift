@@ -11,7 +11,7 @@ struct SearchView: View {
     @EnvironmentObject var planetStore: PlanetStore
 
     @State private var result: [SearchResult] = []
-    @FocusState private var focusedResult: SearchResult?
+    @State private var focusedResult: SearchResult?
 
     @Environment(\.dismiss) private var dismiss
 
@@ -32,9 +32,6 @@ struct SearchView: View {
                     .padding(.bottom, 8)
                     .padding(.leading, 8)
                     .padding(.trailing, 10)
-                    .onSubmit {
-                        goToNextSearchResult()
-                    }
 
                 Button {
                     dismiss()
@@ -56,10 +53,16 @@ struct SearchView: View {
                         List {
                         }.padding(0)
                     }
-                }.id("top")
-                    .onChange(of: result.count) { _ in
-                        proxy.scrollTo("top", anchor: .top)
+                }
+                .id("top")
+                .onChange(of: result.count) { _ in
+                    proxy.scrollTo("top", anchor: .top)
+                }
+                .onChange(of: focusedResult) { _ in
+                    if let id = focusedResult?.articleID {
+                        proxy.scrollTo(id)
                     }
+                }
             }
             Divider()
             statusView()
@@ -92,6 +95,7 @@ struct SearchView: View {
             else {
                 self.search()
             }
+            focusedResult = nil
         }
     }
 
@@ -137,8 +141,7 @@ struct SearchView: View {
             List {
                 ForEach(result, id: \.self) { item in
                     searchResultRow(item)
-                        .focusable()
-                        .focused($focusedResult, equals: item)
+                        .id(item.articleID)
                         .onTapGesture {
                             goToArticle(item)
                         }
@@ -150,6 +153,19 @@ struct SearchView: View {
             VStack {
                 Spacer()
                 HStack {
+                    Spacer()
+                    Button {
+                        // highlight first search result when return key event was sent to search field.
+                        if focusedResult == nil && result.count > 0 {
+                            focusedResult = result.first
+                            return
+                        }
+                        guard let item = focusedResult else { return }
+                        goToArticle(item)
+                    } label: {
+                        Text("")
+                    }
+                    .keyboardShortcut(.return, modifiers: [])
                     Button {
                         goToPreviousSearchResult()
                     } label: {
@@ -162,6 +178,7 @@ struct SearchView: View {
                         Text("")
                     }
                     .keyboardShortcut(.downArrow, modifiers: [])
+                    Spacer()
                 }
             }
             .opacity(0)
@@ -276,19 +293,16 @@ struct SearchView: View {
                         .foregroundColor(.secondary)
                 }
                 .padding(.vertical, 5)
-                .padding(.horizontal, 0)
+                .padding(.horizontal, 4)
             }
             .padding(0)
             .contentShape(Rectangle())
-            // arrow key navigation hack
-            Button {
-                guard let focusedResult else { return }
-                goToArticle(focusedResult)
-            } label: {
-                Text("")
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.accentColor, lineWidth: 2)
+                    .opacity(focusedResult == item ? 1.0 : 0)
+                    .padding(.horizontal, 2)
             }
-            .keyboardShortcut(.return, modifiers: [])
-            .opacity(0)
         }
     }
 
