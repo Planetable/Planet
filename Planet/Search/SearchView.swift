@@ -11,6 +11,7 @@ struct SearchView: View {
     @EnvironmentObject var planetStore: PlanetStore
 
     @State private var result: [SearchResult] = []
+    @State private var focusedResult: SearchResult?
 
     @Environment(\.dismiss) private var dismiss
 
@@ -45,11 +46,23 @@ struct SearchView: View {
             Divider()
             ScrollViewReader { proxy in
                 VStack(spacing: 0) {
-                    searchResult()
-                }.id("top")
-                    .onChange(of: result.count) { _ in
-                        proxy.scrollTo("top", anchor: .top)
+//                    searchResult()
+                    if result.count > 0 {
+                        searchResultView()
+                    } else {
+                        List {
+                        }.padding(0)
                     }
+                }
+                .id("top")
+                .onChange(of: result.count) { _ in
+                    proxy.scrollTo("top", anchor: .top)
+                }
+                .onChange(of: focusedResult) { _ in
+                    if let id = focusedResult?.articleID {
+                        proxy.scrollTo(id)
+                    }
+                }
             }
             Divider()
             statusView()
@@ -82,6 +95,7 @@ struct SearchView: View {
             else {
                 self.search()
             }
+            focusedResult = nil
         }
     }
 
@@ -118,6 +132,82 @@ struct SearchView: View {
         else {
             List {
             }.padding(0)
+        }
+    }
+    
+    @ViewBuilder
+    private func searchResultView() -> some View {
+        ZStack {
+            List {
+                ForEach(result, id: \.self) { item in
+                    searchResultRow(item)
+                        .id(item.articleID)
+                        .onTapGesture {
+                            goToArticle(item)
+                        }
+                }
+            }
+            .padding(0)
+            .listStyle(PlainListStyle())
+            // arrow key navigation hack
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button {
+                        // highlight first search result when return key event was sent to search field.
+                        if focusedResult == nil && result.count > 0 {
+                            focusedResult = result.first
+                            return
+                        }
+                        guard let item = focusedResult else { return }
+                        goToArticle(item)
+                    } label: {
+                        Text("")
+                    }
+                    .keyboardShortcut(.return, modifiers: [])
+                    Button {
+                        goToPreviousSearchResult()
+                    } label: {
+                        Text("")
+                    }
+                    .keyboardShortcut(.upArrow, modifiers: [])
+                    Button {
+                        goToNextSearchResult()
+                    } label: {
+                        Text("")
+                    }
+                    .keyboardShortcut(.downArrow, modifiers: [])
+                    Spacer()
+                }
+            }
+            .opacity(0)
+        }
+    }
+    
+    private func goToNextSearchResult() {
+        guard result.count > 0 else { return }
+        if let currentFocusedResult = focusedResult {
+            if let index = result.firstIndex(of: currentFocusedResult) {
+                if index + 1 < result.count {
+                    focusedResult = result[index + 1]
+                }
+            }
+        } else {
+            focusedResult = result.first
+        }
+    }
+    
+    private func goToPreviousSearchResult() {
+        guard result.count > 0 else { return }
+        if let currentFocusedResult = focusedResult {
+            if let index = result.firstIndex(of: currentFocusedResult) {
+                if index > 0 {
+                    focusedResult = result[index - 1]
+                }
+            }
+        } else {
+            focusedResult = result.last
         }
     }
 
@@ -182,29 +272,39 @@ struct SearchView: View {
 
     @ViewBuilder
     private func searchResultRow(_ item: SearchResult) -> some View {
-        HStack(spacing: 10) {
-            planetAvatarView(result: item, size: 32)
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 10) {
-                    Text(item.title)
-                        .lineLimit(1)
-                        .font(.headline)
+        ZStack {
+            HStack(spacing: 10) {
+                planetAvatarView(result: item, size: 32)
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack(spacing: 10) {
+                        Text(item.title)
+                            .lineLimit(1)
+                            .font(.headline)
 
-                    Spacer()
+                        Spacer()
 
-                    Text(item.planetName)
-                        .font(.subheadline)
+                        Text(item.planetName)
+                            .font(.subheadline)
+                            .lineLimit(1)
+                            .foregroundColor(.secondary)
+                    }
+                    Text(item.preview)
                         .lineLimit(1)
                         .foregroundColor(.secondary)
                 }
-                Text(item.preview)
-                    .lineLimit(1)
-                    .foregroundColor(.secondary)
+                .padding(.vertical, 5)
+                .padding(.horizontal, 4)
             }
-            .padding(.vertical, 5)
-            .padding(.horizontal, 0)
-        }.padding(0)
+            .padding(0)
+            .padding(.leading, 2)
             .contentShape(Rectangle())
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.accentColor, lineWidth: 2)
+                    .opacity(focusedResult == item ? 1.0 : 0)
+                    .padding(.horizontal, 2)
+            }
+        }
     }
 
     @ViewBuilder
