@@ -296,6 +296,7 @@ struct SearchView: View {
                 .padding(.horizontal, 4)
             }
             .padding(0)
+            .padding(.leading, 2)
             .contentShape(Rectangle())
             .overlay {
                 RoundedRectangle(cornerRadius: 8)
