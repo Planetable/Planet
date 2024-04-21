@@ -90,6 +90,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     /// When aggregating, reuse original ID if the remote sources are trusted
     @Published var reuseOriginalID: Bool? = false
 
+    /// Save round version of avatar image on disk
+    @Published var saveRoundAvatar: Bool? = false
+
     static func myPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
@@ -390,6 +393,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(tags)
         hasher.combine(aggregation)
         hasher.combine(reuseOriginalID)
+
+        hasher.combine(saveRoundAvatar)
     }
 
     static func == (lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
@@ -453,6 +458,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.tags == rhs.tags
             && lhs.aggregation == rhs.aggregation
             && lhs.reuseOriginalID == rhs.reuseOriginalID
+            && lhs.saveRoundAvatar == rhs.saveRoundAvatar
     }
 
     enum CodingKeys: String, CodingKey {
@@ -471,7 +477,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             podcastCategories, podcastLanguage, podcastExplicit,
             juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli,
             tags,
-            aggregation, reuseOriginalID
+            aggregation, reuseOriginalID,
+            saveRoundAvatar
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -550,6 +557,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Bool.self,
             forKey: .reuseOriginalID
         )
+        saveRoundAvatar = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .saveRoundAvatar
+        )
     }
 
     func encode(to encoder: Encoder) throws {
@@ -605,6 +616,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(tags, forKey: .tags)
         try container.encodeIfPresent(aggregation, forKey: .aggregation)
         try container.encodeIfPresent(reuseOriginalID, forKey: .reuseOriginalID)
+        try container.encodeIfPresent(saveRoundAvatar, forKey: .saveRoundAvatar)
     }
 
     init(
@@ -923,6 +935,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         planet.aggregation = backupPlanet.aggregation
         planet.reuseOriginalID = backupPlanet.reuseOriginalID
 
+        // Restore saveRoundAvatar
+        planet.saveRoundAvatar = backupPlanet.saveRoundAvatar
+
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
         if FileManager.default.fileExists(atPath: planet.publicBasePath.path) {
@@ -1080,7 +1095,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         else {
             throw PlanetError.AvatarError
         }
-        let size = image.size
+        let i: NSImage
+        if let saveRoundAvatar = self.saveRoundAvatar, saveRoundAvatar {
+            i = image.circleCropped()
+        } else {
+            i = image
+        }
+        let size = i.size
         // if path is already a PNG and size is within 120x120 and 288x288 then just use it
         if path.pathExtension == "png",
             size.width >= 120 && size.width <= 288 && size.height >= 120 && size.height <= 288
@@ -1093,21 +1114,21 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 try FileManager.default.removeItem(at: publicAvatarPath)
             }
             try FileManager.default.copyItem(at: path, to: publicAvatarPath)
-            avatar = image
-            try updateFavicon(witImage: image)
+            avatar = i
+            try updateFavicon(withImage: i)
             return
         }
         // write 144x144 avatar.png
-        if let resizedImage = image.resizeSquare(maxLength: 144), let data = resizedImage.PNGData {
+        if let resizedImage = i.resizeSquare(maxLength: 144), let data = resizedImage.PNGData {
             try data.write(to: avatarPath)
             try data.write(to: publicAvatarPath)
             avatar = resizedImage
         }
         // write 32x32 favicon.ico
-        try updateFavicon(witImage: image)
+        try updateFavicon(withImage: i)
     }
 
-    func updateFavicon(witImage image: NSImage) throws {
+    func updateFavicon(withImage image: NSImage) throws {
         if let resizedIcon = image.resizeSquare(maxLength: 32),
             let iconData = resizedIcon.PNGData
         {
@@ -1802,7 +1823,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             },
             tags: tags,
             aggregation: aggregation,
-            reuseOriginalID: reuseOriginalID
+            reuseOriginalID: reuseOriginalID,
+            saveRoundAvatar: saveRoundAvatar
         )
         do {
             try FileManager.default.copyItem(at: publicBasePath, to: exportPath)

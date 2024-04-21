@@ -343,6 +343,7 @@ extension MyPlanetModel {
                             heroImageName = nil
                         }
                         // TODO: Extract summary
+                        // TODO: Reuse original ID is dangerous if user do not understand the full implications
                         let postID: UUID
                         if let reuseOriginalID = self.reuseOriginalID, reuseOriginalID == true {
                             postID = article.id

@@ -19,6 +19,24 @@ extension NSImage {
         return NSRect(x: x, y: y, width: min, height: min)
     }
 
+    /// Return a circularized NSImage
+    func circleCropped() -> NSImage {
+        let imageSize = self.size
+        let radius = min(imageSize.width, imageSize.height) / 2
+        let circlePath = NSBezierPath(ovalIn: CGRect(x: (imageSize.width - 2 * radius) / 2, y: (imageSize.height - 2 * radius) / 2, width: 2 * radius, height: 2 * radius))
+
+        let imageRect = CGRect(origin: .zero, size: imageSize)
+        let newImage = NSImage(size: imageSize)
+
+        newImage.lockFocus()
+        NSGraphicsContext.current?.imageInterpolation = .high
+        circlePath.addClip()
+        self.draw(at: CGPoint.zero, from: imageRect, operation: .sourceOver, fraction: 1.0)
+        newImage.unlockFocus()
+
+        return newImage
+    }
+
     // Resize image reference: https://stackoverflow.com/a/42915296/12861158
     // Crop the largest center square of the image, and shrink if it is bigger than the given size
     // Example when resize with max length of 160:

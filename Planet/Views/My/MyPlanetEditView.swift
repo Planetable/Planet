@@ -17,6 +17,7 @@ struct MyPlanetEditView: View {
     @State private var domain: String
     @State private var authorName: String
     @State private var templateName: String
+    @State private var saveRoundAvatar: Bool = false
 
     @State private var plausibleEnabled: Bool = false
     @State private var plausibleDomain: String
@@ -64,6 +65,7 @@ struct MyPlanetEditView: View {
         _domain = State(wrappedValue: planet.domain ?? "")
         _authorName = State(wrappedValue: planet.authorName ?? "")
         _templateName = State(wrappedValue: planet.templateName)
+        _saveRoundAvatar = State(wrappedValue: planet.saveRoundAvatar ?? false)
         _plausibleEnabled = State(wrappedValue: planet.plausibleEnabled ?? false)
         _plausibleDomain = State(wrappedValue: planet.plausibleDomain ?? "")
         _plausibleAPIKey = State(wrappedValue: planet.plausibleAPIKey ?? "")
@@ -593,6 +595,16 @@ struct MyPlanetEditView: View {
                                 Spacer()
                             }
                         }
+
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }.frame(width: CONTROL_CAPTION_WIDTH + 10)
+                            Toggle("Save circularized avatar image on disk", isOn: $saveRoundAvatar)
+                                .toggleStyle(.checkbox)
+                                .frame(alignment: .leading)
+                            Spacer()
+                        }
                     }
                     .padding(16)
                     .tabItem {
@@ -740,6 +752,7 @@ struct MyPlanetEditView: View {
                             }
                         }
                         planet.templateName = templateName
+                        planet.saveRoundAvatar = saveRoundAvatar
                         planet.plausibleEnabled = plausibleEnabled
                         planet.plausibleDomain = plausibleDomain.trim()
                         planet.plausibleAPIKey = plausibleAPIKey
