@@ -123,6 +123,10 @@ extension MyPlanetModel {
         }
         var newArticlesCount: Int = 0
         for site in aggregation {
+            // Skip comments
+            if site.hasPrefix("#") || site.hasPrefix("//") {
+                continue
+            }
             let siteType = determineSiteType(site: site)
             debugPrint("Aggregation: fetching \(site)")
             switch siteType {
