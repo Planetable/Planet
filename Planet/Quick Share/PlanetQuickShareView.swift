@@ -319,7 +319,9 @@ struct PlanetQuickShareView: View {
             } label: {
                 Text("Post")
             }
-            .keyboardShortcut(.return, modifiers: [])
+            .keyboardShortcut(.defaultAction)
+            .keyboardShortcut("d", modifiers: [.command, .shift])
+            .keyboardShortcut(.return, modifiers: [.command])
             .keyboardShortcut(.end, modifiers: [])
             .disabled(isPosting || viewModel.getTargetPlanet() == nil)
         }

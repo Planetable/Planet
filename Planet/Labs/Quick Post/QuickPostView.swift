@@ -61,6 +61,7 @@ struct QuickPostView: View {
                 } label: {
                     Text("Post")
                 }.keyboardShortcut(.defaultAction)
+                .keyboardShortcut("d", modifiers: [.command, .shift])
                     .buttonStyle(.borderedProminent)
                     .buttonBorderShape(.roundedRectangle)
             }.padding(10)
@@ -80,6 +81,9 @@ struct QuickPostView: View {
             summary: nil,
             planet: planet
         )
+        article.attachments = []
+        // TODO: Support tags in Quick Post
+        article.tags = [:]
         var articles = planet.articles
         articles?.append(article)
         articles?.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
