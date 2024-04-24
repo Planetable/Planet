@@ -123,6 +123,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isRebuilding = false
     @Published var rebuildTasks: Int = 0
     @Published var isQuickSharing = false  // use in macOS 12 only.
+    @Published var isQuickPosting = false
 
     @Published var isAggregating: Bool = false  // at any time, only one aggregation task is allowed.
     @Published var currentTaskMessage: String = ""

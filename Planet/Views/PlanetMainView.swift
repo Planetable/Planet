@@ -110,6 +110,9 @@ struct PlanetMainView: View {
                 .frame(width: .sheetWidth)
                 .frame(minHeight: .sheetHeight)
         }
+        .sheet(isPresented: $planetStore.isQuickPosting) {
+            QuickPostView()
+        }
         .sheet(isPresented: $planetStore.isShowingIconGallery) {
             IconGalleryView()
                 .environmentObject(iconManager)

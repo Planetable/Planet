@@ -483,6 +483,14 @@ struct ArticleView: View {
                 Image(systemName: "square.and.pencil")
             }
 
+            Button {
+                PlanetStore.shared.isQuickPosting = true
+            } label: {
+                Image(systemName: "plus.bubble")
+            }
+            .keyboardShortcut("d", modifiers: [.command])
+            .help("Quick Post")
+
             if let plausibleEnabled = planet.plausibleEnabled, plausibleEnabled {
                 Button {
                     isShowingAnalyticsPopover = true
