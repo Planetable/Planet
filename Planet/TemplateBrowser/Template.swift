@@ -229,6 +229,8 @@ class Template: Codable, Identifiable {
             "has_podcast": hasPodcast,
             "planet_ipns": article.planet.ipns,
             "assets_prefix": "../",
+            "template_settings": self.settings,
+            "user_settings": planet.templateSettings(),
             "article_id": article.id.uuidString,
             "article": article.publicArticle,
             "article_type": article.articleType?.rawValue ?? 0,
@@ -279,6 +281,8 @@ class Template: Codable, Identifiable {
         let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
         var contextForRendering: [String: Any] = [
             "assets_prefix": "./",
+            "template_settings": self.settings,
+            "user_settings": myPlanet.templateSettings(),
             "page_title": planet.name,
             "page_description": planet.about,
             "page_description_html": pageAboutHTML,
@@ -312,6 +316,8 @@ class Template: Codable, Identifiable {
         let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
         var contextForRendering: [String: Any] = [
             "assets_prefix": "./",
+            "template_settings": self.settings,
+            "user_settings": myPlanet.templateSettings(),
             "page_title": "\(planet.name) - Tags",
             "page_description": planet.about,
             "page_description_html": pageAboutHTML,
@@ -340,6 +346,8 @@ class Template: Codable, Identifiable {
         let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
         var contextForRendering: [String: Any] = [
             "assets_prefix": "./",
+            "template_settings": self.settings,
+            "user_settings": myPlanet.templateSettings(),
             "page_title": "\(planet.name) - Archive",
             "page_description": planet.about,
             "page_description_html": pageAboutHTML,
@@ -504,6 +512,8 @@ class Template: Codable, Identifiable {
         // render stencil template
         let context: [String: Any] = [
             "assets_prefix": "../",
+            "template_settings": self.settings,
+            "user_settings": [:],
             "article": article,
             "articles": [article],
             "content_html": content_html,

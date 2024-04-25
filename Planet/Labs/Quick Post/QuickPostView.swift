@@ -28,7 +28,7 @@ struct QuickPostView: View {
 
                 TextEditor(text: $content)
                     .font(.system(size: 14, weight: .regular, design: .default))
-                    .lineSpacing(8)
+                    .lineSpacing(7)
                     .disableAutocorrection(true)
                     .padding(.top, 10)
                     .padding(.bottom, 10)
@@ -60,7 +60,8 @@ struct QuickPostView: View {
                     dismiss()
                 } label: {
                     Text("Post")
-                }.keyboardShortcut(.defaultAction)
+                }
+                .keyboardShortcut(.defaultAction)
                 .keyboardShortcut("d", modifiers: [.command, .shift])
                     .buttonStyle(.borderedProminent)
                     .buttonBorderShape(.roundedRectangle)
