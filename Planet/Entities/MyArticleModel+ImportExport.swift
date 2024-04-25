@@ -180,6 +180,7 @@ extension MyArticleModel {
             )
             newArticle.planet = planet
             newArticle.pinned = articleToImport.pinned
+            newArticle.tags = articleToImport.tags
             try FileManager.default.copyItem(at: url, to: newArticle.publicBasePath)
             try newArticle.save()
             try newArticle.savePublic()
@@ -200,8 +201,20 @@ extension MyArticleModel {
         await MainActor.run {
             planet.articles = updatedPlanetArticles
         }
+        try planet.copyTemplateAssets()
+        await MainActor.run {
+            planet.tags = planet.consolidateTags()
+            planet.updated = Date()
+        }
         try planet.save()
         try await planet.savePublic()
+        Task.detached(priority: .utility) {
+            try await planet.publish()
+            for article in updatedPlanetArticles {
+                await article.prewarm()
+            }
+        }
+        try await Task.sleep(seconds: 1)    // wait for a few seconds for the publish progress
         let updatedPlanet = try MyPlanetModel.load(from: planet.basePath)
         await MainActor.run {
             PlanetStore.shared.myPlanets = PlanetStore.shared.myPlanets.map { p in
@@ -228,6 +241,5 @@ extension MyArticleModel {
                 }
             }
         }
-        try await planet.publish()
     }
 }
