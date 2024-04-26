@@ -105,7 +105,7 @@ extension MyArticleModel {
         panel.canChooseFiles = false
         let response = panel.runModal()
         guard response == .OK, let url = panel.url else { return }
-        let name = self.title.sanitized()
+        let name = self.title.count > 0 ? self.title.sanitized() : self.id.uuidString
         let suffix = isCroptopData ? ".post" : ".article"
         let exportURL = url.appendingPathComponent("\(name)\(suffix)")
         if FileManager.default.fileExists(atPath: exportURL.path) {
@@ -120,7 +120,7 @@ extension MyArticleModel {
             throw PlanetError.ServiceAirDropNotExistsError
         }
         let url = URLUtils.temporaryPath
-        let name = self.title.sanitized()
+        let name = self.title.count > 0 ? self.title.sanitized() : self.id.uuidString
         let suffix = isCroptopData ? ".post" : ".article"
         let exportURL = url.appendingPathComponent("\(name)\(suffix)")
         if FileManager.default.fileExists(atPath: exportURL.path) {
