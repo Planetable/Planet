@@ -191,9 +191,9 @@ struct AccountBadgeView: View {
         case .mainnet:
             web3 = Web3(rpcURL: "https://cloudflare-eth.com")
         case .goerli:
-            web3 = Web3(rpcURL: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
+            web3 = Web3(rpcURL: "https://eth-goerli.public.blastapi.io")
         case .sepolia:
-            web3 = Web3(rpcURL: "https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161")
+            web3 = Web3(rpcURL: "https://eth-sepolia.public.blastapi.io")
         }
         web3.eth.blockNumber { response in
             if response.status.isSuccess, let blockNumber = response.result {
