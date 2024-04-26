@@ -70,6 +70,37 @@ struct QuickPostView: View {
         }.frame(width: 500)
     }
 
+    private func extractTitle(from content: String) -> String {
+        var content = content.trim()
+        let lines = content.components(separatedBy: .newlines)
+        for line in lines {
+            if line.hasPrefix("# ") {
+                return line.replacingOccurrences(of: "# ", with: "")
+            }
+        }
+        return ""
+    }
+
+    private func extractContent(from content: String) -> String {
+        var content = content.trim()
+        let lines = content.components(separatedBy: .newlines)
+        var result = ""
+        var i = 0
+        for line in lines {
+            if i == 0 {
+                if line.hasPrefix("# ") {
+                    i += 1
+                    continue
+                }
+            }
+            if i > 0 {
+                result += line + "\n"
+            }
+            i += 1
+        }
+        return result.trim()
+    }
+
     private func saveContent() throws {
         // Save content as a new MyArticleModel
         guard let planet = KeyboardShortcutHelper.shared.activeMyPlanet else { return }
@@ -77,8 +108,8 @@ struct QuickPostView: View {
         let article: MyArticleModel = try MyArticleModel.compose(
             link: nil,
             date: date,
-            title: "",
-            content: content,
+            title: extractTitle(from: content),
+            content: extractContent(from: content),
             summary: nil,
             planet: planet
         )
