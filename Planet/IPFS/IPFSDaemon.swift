@@ -716,7 +716,7 @@ enum IPFSDaemonError: Error {
     case IPFSAPIError
 }
 
-enum IPFSGateway: String, Codable {
+enum IPFSGateway: String, Codable, CaseIterable {
     case limo
     case sucks
     case croptop
@@ -738,4 +738,11 @@ enum IPFSGateway: String, Codable {
         "cloudflare": "https://cf-ipfs.com",
         "dweblink": "https://dweb.link",
     ]
+
+    static let defaultGateway: IPFSGateway = .limo
+
+    static func selectedGateway() -> IPFSGateway {
+        let gateway = UserDefaults.standard.string(forKey: String.settingsPreferredIPFSPublicGateway)
+        return IPFSGateway(rawValue: gateway ?? IPFSGateway.defaultGateway.rawValue) ?? IPFSGateway.defaultGateway
+    }
 }

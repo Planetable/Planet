@@ -132,7 +132,21 @@ class MyArticleModel: ArticleModel, Codable {
         }
         if let domain = planet.domain {
             if domain.hasSuffix(".eth") {
-                return URL(string: "https://\(domain).limo\(urlPath)")
+                switch IPFSGateway.selectedGateway() {
+                case .limo:
+                    return URL(string: "https://\(domain).limo\(urlPath)")
+                case .sucks:
+                    return URL(string: "https://\(domain).sucks\(urlPath)")
+                case .croptop:
+                    let name = domain.replacingOccurrences(of: ".eth", with: "")
+                    return URL(string: "https://\(name).crop.top\(urlPath)")
+                case .cloudflare:
+                    return URL(string: "https://cf-ipfs.com/ipns/\(domain)\(urlPath)")
+                case .dweblink:
+                    return URL(string: "https://dweb.link/ipns/\(domain)\(urlPath)")
+                default:
+                    return URL(string: "https://\(domain).limo\(urlPath)")
+                }
             }
             if domain.hasSuffix(".bit") {
                 return URL(string: "https://\(domain).site\(urlPath)")
@@ -141,8 +155,20 @@ class MyArticleModel: ArticleModel, Codable {
                 return URL(string: "https://\(domain)\(urlPath)")
             }
         }
-        // return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.ipns)\(urlPath)")
-        return URL(string: "https://\(planet.ipns).ipfs2.eth.limo\(urlPath)")
+        switch IPFSGateway.selectedGateway() {
+        case .limo:
+            return URL(string: "https://\(planet.ipns).ipfs2.eth.limo\(urlPath)")
+        case .sucks:
+            return URL(string: "https://\(planet.ipns).eth.sucks\(urlPath)")
+        case .croptop:
+            return URL(string: "https://\(planet.ipns).crop.top\(urlPath)")
+        case .cloudflare:
+            return URL(string: "https://cf-ipfs.com/ipns/\(planet.ipns)\(urlPath)")
+        case .dweblink:
+            return URL(string: "https://dweb.link/ipns/\(planet.ipns)\(urlPath)")
+        default:
+            return URL(string: "https://\(planet.ipns).ipfs2.eth.limo\(urlPath)")
+        }
     }
     var socialImageURL: URL? {
         if let heroImage = getHeroImage(), let baseURL = browserURL {

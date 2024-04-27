@@ -316,7 +316,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             return "https://\(domain)/avatar.png"
         }
         else {
-            return "https://ipfs.io/ipns/\(ipns)/avatar.png"
+            return "https://\(ipns).eth.sucks/avatar.png"
         }
     }
 
@@ -324,8 +324,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if let domainWithGateway = domainWithGateway {
             return URL(string: "https://" + domainWithGateway + "/")
         }
-        // return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(ipns)/")
-        return URL(string: "https://\(ipns).ipfs2.eth.limo/")
+        switch IPFSGateway.selectedGateway() {
+        case .limo:
+            return URL(string: "https://\(ipns).ipfs2.eth.limo/")
+        case .sucks:
+            return URL(string: "https://\(ipns).eth.sucks/")
+        case .croptop:
+            return URL(string: "https://\(ipns).crop.top/")
+        case .cloudflare:
+            return URL(string: "https://\(ipns).ipns.cf-ipfs.com/")
+        case .dweblink:
+            return URL(string: "https://\(ipns).ipns.dweb.link/")
+        default:
+            return URL(string: "https://\(ipns).ipfs2.eth.limo/")
+        }
     }
 
     var cidURL: URL? {

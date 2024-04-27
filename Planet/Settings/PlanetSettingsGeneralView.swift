@@ -29,8 +29,8 @@ struct PlanetSettingsGeneralView: View {
         }
     }
 
-    @AppStorage(String.settingsPublicGatewayIndex) private var publicGatewayIndex: Int =
-        UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
+    @AppStorage(String.settingsPreferredIPFSPublicGateway) private var preferredIPFSPublicGateway: String =
+        UserDefaults.standard.string(forKey: String.settingsPreferredIPFSPublicGateway) ?? IPFSGateway.defaultGateway.rawValue
 
     @AppStorage(String.settingsEthereumChainId) private var ethereumChainId: Int = UserDefaults
         .standard.integer(forKey: String.settingsEthereumChainId)
@@ -96,6 +96,22 @@ struct PlanetSettingsGeneralView: View {
                         }
                     }
                     */
+
+                    HStack(spacing: 4) {
+                        Text("IPFS Public Gateway")
+                            .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)
+                        Picker(selection: $preferredIPFSPublicGateway, label: Text("")) {
+                            ForEach(IPFSGateway.allCases, id: \.self) { gateway in
+                                Text(IPFSGateway.names[gateway.rawValue] ?? gateway.rawValue)
+                                    .tag(gateway.rawValue)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .onChange(of: preferredIPFSPublicGateway) { newValue in
+                            // Refresh Published Folders Dashboard Toolbar
+                            NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
+                        }
+                    }
 
                     VStack {
                         HStack(spacing: 4) {
