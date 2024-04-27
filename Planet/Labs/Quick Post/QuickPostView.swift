@@ -26,7 +26,7 @@ struct QuickPostView: View {
                 .padding(.bottom, 10)
                 .padding(.leading, 10)
                 .padding(.trailing, 0)
-                
+
                 TextEditor(text: $content)
                     .font(.system(size: 14, weight: .regular, design: .default))
                     .lineSpacing(7)
@@ -37,9 +37,9 @@ struct QuickPostView: View {
                     .padding(.trailing, 10)
                     .frame(height: 160)
             }
-            
+
             Divider()
-            
+
             HStack {
                 Spacer()
                 Button("Cancel", role: .cancel) {
@@ -49,7 +49,7 @@ struct QuickPostView: View {
                 .keyboardShortcut(.cancelAction)
                 .buttonStyle(.bordered)
                 .buttonBorderShape(.roundedRectangle)
-                
+
                 Button {
                     // Save content as a new MyArticleModel
                     do {
@@ -70,7 +70,7 @@ struct QuickPostView: View {
                 .background(Color(NSColor.windowBackgroundColor))
         }.frame(width: 500)
     }
-    
+
     private func extractTitle(from content: String) -> String {
         let content = content.trim()
         let lines = content.components(separatedBy: .newlines)
@@ -81,7 +81,7 @@ struct QuickPostView: View {
         }
         return ""
     }
-    
+
     private func extractContent(from content: String) -> String {
         let content = content.trim()
         let lines = content.components(separatedBy: .newlines)
@@ -92,16 +92,17 @@ struct QuickPostView: View {
                 if line.hasPrefix("# ") {
                     i += 1
                     continue
+                } else {
+                    result += "\(line)\n"
                 }
-            }
-            if i > 0 {
-                result += line + "\n"
+            } else {
+                result += "\(line)\n"
             }
             i += 1
         }
         return result.trim()
     }
-    
+
     private func saveContent() throws {
         // Save content as a new MyArticleModel
         guard let planet = KeyboardShortcutHelper.shared.activeMyPlanet else { return }
@@ -121,14 +122,14 @@ struct QuickPostView: View {
         articles?.append(article)
         articles?.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
         planet.articles = articles
-        
+
         do {
             try article.save()
             try article.savePublic()
             try planet.copyTemplateAssets()
             planet.updated = Date()
             try planet.save()
-            
+
             Task {
                 try await planet.savePublic()
                 try await planet.publish()
@@ -136,7 +137,7 @@ struct QuickPostView: View {
                     await article.prewarm()
                 }
             }
-            
+
             Task { @MainActor in
                 PlanetStore.shared.selectedView = .myPlanet(planet)
                 PlanetStore.shared.refreshSelectedArticles()
