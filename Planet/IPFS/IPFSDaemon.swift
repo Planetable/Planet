@@ -731,6 +731,10 @@ enum IPFSGateway: String, Codable, CaseIterable {
         "dweblink": "DWeb.link",
     ]
 
+    var name: String {
+        IPFSGateway.names[rawValue] ?? rawValue
+    }
+
     static let websites: [String: String] = [
         "limo": "https://eth.limo",
         "sucks": "https://eth.sucks",
