@@ -3,14 +3,14 @@ import Foundation
 
 struct IPFSCommand {
     // executables are under <project_root>/Planet/IPFS/go-ipfs-executables
-    // version: 0.16.0, last updated 2022-10-04
+    // version: 0.28.0, last updated at 2024-04-29
     // NOTE: executables must have executable permission in source code
     static let IPFSExecutablePath: URL = {
         switch ProcessInfo.processInfo.machineHardwareName {
         case "arm64":
-            return Bundle.main.url(forResource: "ipfs-arm64-0.15", withExtension: "bin")!
+            return Bundle.main.url(forResource: "ipfs-arm64-0.28", withExtension: "bin")!
         case "x86_64":
-            return Bundle.main.url(forResource: "ipfs-amd64-0.15", withExtension: "bin")!
+            return Bundle.main.url(forResource: "ipfs-amd64-0.28", withExtension: "bin")!
         default:
             fatalError("Planet is not supported on your operating system.")
         }
@@ -59,7 +59,7 @@ struct IPFSCommand {
         process.standardError = errorPipe
 
         try process.run()
-        
+
         process.terminationHandler = { process in
             // Clean up code here
         }
@@ -68,6 +68,8 @@ struct IPFSCommand {
         outputPipe.fileHandleForReading.readabilityHandler = nil
         errorPipe.fileHandleForReading.readabilityHandler = nil
 
+        debugPrint("IPFS command output: \(String(data: outputData, encoding: .utf8))")
+        debugPrint("IPFS command error: \(String(data: errorData, encoding: .utf8))")
         return (Int(process.terminationStatus), outputData, errorData)
     }
 
@@ -170,6 +172,11 @@ struct IPFSCommand {
             jsonString,
             "--json"
         ])
+    }
+    
+    static func repoMigrate() -> IPFSCommand {
+        debugPrint("About to migrate IPFS repo")
+        return IPFSCommand(arguments: ["repo", "migrate"])
     }
 
     static func launchDaemon() -> IPFSCommand {

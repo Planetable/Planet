@@ -37,6 +37,14 @@ actor IPFSDaemon {
                 fatalError("Error initializing IPFS")
             }
         }
+        else {
+            if let result = try? IPFSCommand.repoMigrate().run(),
+               result.ret == 0 {
+                debugPrint("IPFS repo migrated or no need to migrate at all.")
+            } else {
+                fatalError("Error migrating IPFS")
+            }
+        }
 
         // scout open ports
         Self.logger.info("Scouting open ports")
