@@ -1,4 +1,5 @@
 {
+  "originHash" : "2d350f39146062b36abb00c558bb2f952938a1a96238113e0d424870f7d32ad3",
   "pins" : [
     {
       "identity" : "bigint",
@@ -78,7 +79,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "80284925b78cc27e3db58aa5b2de98ded4d7d9cb"
+        "revision" : "3400d752afa8e75f5c4045869b91062495d0edc0"
       }
     },
     {
@@ -261,5 +262,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

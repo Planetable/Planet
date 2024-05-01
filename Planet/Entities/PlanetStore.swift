@@ -164,7 +164,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var alertTitle: String = ""
     @Published var alertMessage: String = ""
 
-    @Published var app: PlanetAppShell = (Bundle.main.executableURL?.lastPathComponent == "Croptop") ? .lite : .planet
+    nonisolated static let app: PlanetAppShell = (Bundle.main.executableURL?.lastPathComponent == "Croptop") ? .lite : .planet
 
     var serverInfo: ServerInfo? = nil
 
@@ -180,7 +180,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
             UserDefaults.standard.set(2, forKey: String.settingsEthereumTipAmount)
         }
 
-        if app == .lite {
+        if PlanetStore.app == .lite {
             navigationTitle = "Croptop"
         }
 
@@ -388,7 +388,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
             navigationSubtitle = planet.navigationSubtitle()
         case .none:
             selectedArticleList = nil
-            navigationTitle = app == .lite ? "Croptop" : "Planet"
+            navigationTitle = PlanetStore.app == .lite ? "Croptop" : "Planet"
             navigationSubtitle = ""
         }
     }

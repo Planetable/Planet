@@ -16,7 +16,7 @@ class PlanetStatusManager: ObservableObject {
     func updateStatus() {
         let ongoingPlanets = PlanetStore.shared.myPlanets.filter({ $0.isPublishing || $0.isRebuilding })
         let processesCount: Int
-        if PlanetStore.shared.app == .planet {
+        if PlanetStore.app == .planet {
             let publishingFolders = PlanetPublishedServiceStore.shared.publishingFolders
             processesCount = ongoingPlanets.count + publishingFolders.count
         } else {
@@ -57,7 +57,7 @@ class PlanetStatusManager: ObservableObject {
     private func terminate() {
         Task.detached(priority: .utility) {
             Task { @MainActor in
-                if PlanetStore.shared.app == .planet {
+                if PlanetStore.app == .planet {
                     await PlanetAPIHelper.shared.shutdown()
                 }
             }

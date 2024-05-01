@@ -159,7 +159,7 @@ struct PlanetQuickShareView: View {
     @ViewBuilder
     private func attachmentSection() -> some View {
         if viewModel.fileURLs.count == 0 {
-            if PlanetStore.shared.app == .lite {
+            if PlanetStore.app == .lite {
                 ZStack {
                     let dropDelegate = PlanetQuickShareDropDelegate()
                     attachmentSectionPlaceholder()
@@ -186,7 +186,7 @@ struct PlanetQuickShareView: View {
                     Image(nsImage: img)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                    if PlanetStore.shared.app == .lite
+                    if PlanetStore.app == .lite
                         && ASMediaManager.shared.imageIsGIF(image: img)
                     {
                         GIFIndicatorView()
@@ -205,7 +205,7 @@ struct PlanetQuickShareView: View {
                                 Image(nsImage: img)
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                if PlanetStore.shared.app == .lite
+                                if PlanetStore.app == .lite
                                     && ASMediaManager.shared.imageIsGIF(image: img)
                                 {
                                     GIFIndicatorView()

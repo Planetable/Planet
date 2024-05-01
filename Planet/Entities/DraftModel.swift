@@ -508,7 +508,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
 
         // Croptop: delete cached hero image after editing.
         Task { @MainActor in
-            if PlanetStore.shared.app == .lite {
+            if PlanetStore.app == .lite {
                 Task(priority: .background) {
                     if let heroImageName = article.getHeroImage() {
                         let cachedHeroImageName = article.id.uuidString + "-" + heroImageName

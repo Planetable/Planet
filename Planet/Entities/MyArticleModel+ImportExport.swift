@@ -29,7 +29,7 @@ extension MyArticleModel {
     @MainActor 
     @ViewBuilder
     static func planetPickerView() -> some View {
-        let isCroptopData = PlanetStore.shared.app == .lite
+        let isCroptopData = PlanetStore.app == .lite
         let planets = PlanetStore.shared.myPlanets
         VStack(spacing: 0) {
             let title = isCroptopData ? "Choose Site to Import Posts" : "Choose Planet to Import Articles"

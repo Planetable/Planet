@@ -187,7 +187,7 @@ struct MyArticleGridView: View {
 
             Divider()
 
-            if PlanetStore.shared.app == .lite {
+            if PlanetStore.app == .lite {
                 Menu("Export Post") {
                     Button {
                         do {

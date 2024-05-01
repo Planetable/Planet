@@ -743,7 +743,12 @@ enum IPFSGateway: String, Codable, CaseIterable {
         "dweblink": "https://dweb.link",
     ]
 
-    static let defaultGateway: IPFSGateway = .limo
+    static let defaultGateway: IPFSGateway = {
+        if PlanetStore.app == .lite {
+            return .sucks
+        }
+        return .limo
+    }()
 
     static func selectedGateway() -> IPFSGateway {
         let gateway = UserDefaults.standard.string(forKey: String.settingsPreferredIPFSPublicGateway)

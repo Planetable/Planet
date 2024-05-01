@@ -69,7 +69,7 @@ class KeyboardShortcutHelper: ObservableObject {
                 }
             }
 
-            if PlanetStore.shared.app == .planet {
+            if PlanetStore.app == .planet {
                 Button {
                     PlanetStore.shared.isShowingIconGallery = true
                 } label: {
@@ -292,7 +292,7 @@ class KeyboardShortcutHelper: ObservableObject {
     }
 
     func importPlanetAction() {
-        let isCroptopSiteData: Bool = PlanetStore.shared.app == .lite
+        let isCroptopSiteData: Bool = PlanetStore.app == .lite
         let panel = NSOpenPanel()
         if isCroptopSiteData {
             panel.message = "Choose Croptop Site to Import"

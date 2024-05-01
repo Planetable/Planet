@@ -11,7 +11,7 @@ struct CreatePlanetView: View {
 
     var body: some View {
         VStack (spacing: 0) {
-            Text(planetStore.app == .planet ? "New Planet" : "New Site")
+            Text(PlanetStore.app == .planet ? "New Planet" : "New Site")
                 .frame(height: 34, alignment: .leading)
                 .padding(.bottom, 2)
                 .padding(.horizontal, 16)
@@ -52,7 +52,7 @@ struct CreatePlanetView: View {
                         )
                 }
 
-                if planetStore.app == .planet {
+                if PlanetStore.app == .planet {
                     Picker(selection: $templateName) {
                         ForEach(TemplateStore.shared.templates) { template in
                             Text(template.name)

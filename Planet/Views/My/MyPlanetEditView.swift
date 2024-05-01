@@ -547,7 +547,7 @@ struct MyPlanetEditView: View {
                                 )
                         }
 
-                        if planetStore.app == .planet {
+                        if PlanetStore.app == .planet {
                             HStack {
                                 HStack {
                                     Text("Author Name")
@@ -560,8 +560,8 @@ struct MyPlanetEditView: View {
                             }
                         }
 
-                        if planetStore.app == .planet
-                            || ($templateName.wrappedValue != "Croptop" && planetStore.app == .lite)
+                        if PlanetStore.app == .planet
+                            || ($templateName.wrappedValue != "Croptop" && PlanetStore.app == .lite)
                         {
                             Picker(selection: $templateName) {
                                 ForEach(TemplateStore.shared.templates) { template in
@@ -578,7 +578,7 @@ struct MyPlanetEditView: View {
                             .pickerStyle(.menu)
                         }
 
-                        if planetStore.app == .lite {
+                        if PlanetStore.app == .lite {
                             HStack {
                                 HStack {
                                     Text("Highlight Color")
@@ -614,14 +614,14 @@ struct MyPlanetEditView: View {
 
                     analyticsTab()
 
-                    if planetStore.app == .planet {
+                    if PlanetStore.app == .planet {
                         socialTab()
                     }
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
                         pinnableView()
 
-                        if planetStore.app == .planet {
+                        if PlanetStore.app == .planet {
                             Divider()
                                 .padding(.top, 6)
                                 .padding(.bottom, 6)
@@ -636,7 +636,7 @@ struct MyPlanetEditView: View {
                     .tag("pinning")
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
-                        if planetStore.app == .planet {
+                        if PlanetStore.app == .planet {
                             HStack {
                                 HStack {
                                     Spacer()
