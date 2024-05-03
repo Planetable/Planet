@@ -386,6 +386,8 @@ extension MyPlanetModel {
                                 withIntermediateDirectories: true
                             )
                         }
+                        // TODO: What if attachments are not saved?
+                        // TODO: This does not work well on videos.
                         await fetchArticleAttachments(in: site, from: article, to: newArticle)
                         newArticles.append(newArticle)
                         Task(priority: .utility) {
@@ -480,6 +482,10 @@ extension MyPlanetModel {
                                     .appendingPathComponent(socialImageName, isDirectory: false)
                                 try socialImageData.write(to: socialImagePath)
                                 newArticle.heroImage = socialImageName
+                                if let size = newArticle.getImageSize(name: socialImageName) {
+                                    newArticle.heroImageWidth = Int(size.width)
+                                    newArticle.heroImageHeight = Int(size.height)
+                                }
                                 newArticle.attachments = [socialImageName]
                                 try newArticle.save()
                             }

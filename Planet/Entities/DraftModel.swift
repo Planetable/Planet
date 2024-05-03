@@ -439,7 +439,15 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             try FileManager.default.copyItem(at: attachment.path, to: targetPath)
         }
         article.attachments = currentAttachments
-        article.heroImage = heroImage
+        if let heroImage = heroImage, let size = article.getImageSize(name: heroImage) {
+            article.heroImage = heroImage
+            article.heroImageWidth = Int(size.width)
+            article.heroImageHeight = Int(size.height)
+        } else {
+            article.heroImage = nil
+            article.heroImageWidth = nil
+            article.heroImageHeight = nil
+        }
         article.tags = tags
         article.cids = article.getCIDs(for: currentAttachments)
         article.videoFilename = videoFilename

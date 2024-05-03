@@ -8,6 +8,8 @@ class MyArticleModel: ArticleModel, Codable {
     @Published var link: String
     @Published var slug: String? = nil
     @Published var heroImage: String? = nil
+    var heroImageWidth: Int? = nil
+    var heroImageHeight: Int? = nil
     // TODO: Use more runtime flags to optimize the time to rebuild Planet
     /// hasHeroGrid is a runtime flag to indicate whether the article has a hero grid image on disk. It is not persisted in the article JSON file.
     @Published var hasHeroGrid: Bool = false
@@ -94,7 +96,7 @@ class MyArticleModel: ArticleModel, Codable {
             attachments: attachments,
             heroImage: socialImageURL?.absoluteString,
             heroImageURL: socialImageURL?.absoluteString,
-            heroImageFilename: heroImage,
+            heroImageFilename: socialImageURL?.lastPathComponent,
             cids: cids,
             tags: tags,
             originalSiteName: originalSiteName,
@@ -213,7 +215,7 @@ class MyArticleModel: ArticleModel, Codable {
 
     enum CodingKeys: String, CodingKey {
         case id, articleType,
-            link, slug, heroImage, externalLink,
+            link, slug, heroImage, heroImageWidth, heroImageHeight, externalLink,
             title, content, contentRendered, summary,
             created, starred, starType,
             videoFilename, audioFilename,
@@ -236,6 +238,8 @@ class MyArticleModel: ArticleModel, Codable {
         link = try container.decode(String.self, forKey: .link)
         slug = try container.decodeIfPresent(String.self, forKey: .slug)
         heroImage = try container.decodeIfPresent(String.self, forKey: .heroImage)
+        heroImageWidth = try container.decodeIfPresent(Int.self, forKey: .heroImageWidth)
+        heroImageHeight = try container.decodeIfPresent(Int.self, forKey: .heroImageHeight)
         externalLink = try container.decodeIfPresent(String.self, forKey: .externalLink)
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
@@ -281,6 +285,8 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encode(link, forKey: .link)
         try container.encodeIfPresent(slug, forKey: .slug)
         try container.encodeIfPresent(heroImage, forKey: .heroImage)
+        try container.encodeIfPresent(heroImageWidth, forKey: .heroImageWidth)
+        try container.encodeIfPresent(heroImageHeight, forKey: .heroImageHeight)
         try container.encodeIfPresent(externalLink, forKey: .externalLink)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)

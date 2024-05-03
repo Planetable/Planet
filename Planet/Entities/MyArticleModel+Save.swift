@@ -319,6 +319,10 @@ extension MyArticleModel {
                             debugPrint("HeroImage: \(item)")
                             DispatchQueue.main.async {
                                 self.heroImage = firstImage
+                                if let firstImage = firstImage, let size = self.getImageSize(name: firstImage) {
+                                    self.heroImageWidth = Int(size.width)
+                                    self.heroImageHeight = Int(size.height)
+                                }
                                 try? self.save()
                             }
                             return item
@@ -334,11 +338,26 @@ extension MyArticleModel {
             debugPrint("HeroImage: return the first image anyway for \(self.title): \(firstImage!)")
             DispatchQueue.main.async {
                 self.heroImage = firstImage
+                if let firstImage = firstImage, let size = self.getImageSize(name: firstImage) {
+                    self.heroImageWidth = Int(size.width)
+                    self.heroImageHeight = Int(size.height)
+                }
                 try? self.save()
             }
             return firstImage
         }
         debugPrint("HeroImage: NOT FOUND")
+        return nil
+    }
+
+    func getImageSize(name: String) -> NSSize? {
+        let imagePath = publicBasePath.appendingPathComponent(name, isDirectory: false)
+        if let url = URL(string: imagePath.absoluteString) {
+            if let image = NSImage(contentsOf: url) {
+                let imageRep = image.representations.first as? NSBitmapImageRep
+                return NSSize(width: imageRep?.pixelsWide ?? 0, height: imageRep?.pixelsHigh ?? 0)
+            }
+        }
         return nil
     }
 
@@ -466,6 +485,10 @@ extension MyArticleModel {
                 }
                 DispatchQueue.main.async {
                     self.heroImage = imageFilename
+                    if let size = self.getImageSize(name: imageFilename) {
+                        self.heroImageWidth = Int(size.width)
+                        self.heroImageHeight = Int(size.height)
+                    }
                 }
             }
         }
