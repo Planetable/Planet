@@ -95,6 +95,8 @@ class MyArticleModel: ArticleModel, Codable {
             audioByteLength: getAttachmentByteLength(name: audioFilename),
             attachments: attachments,
             heroImage: socialImageURL?.absoluteString,
+            heroImageWidth: heroImageWidth,
+            heroImageHeight: heroImageHeight,
             heroImageURL: socialImageURL?.absoluteString,
             heroImageFilename: socialImageURL?.lastPathComponent,
             cids: cids,

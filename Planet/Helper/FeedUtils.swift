@@ -246,6 +246,8 @@ struct FeedUtils {
             audioByteLength: nil,
             attachments: nil,
             heroImage: nil,
+            heroImageWidth: nil,
+            heroImageHeight: nil,
             heroImageURL: nil,  // TODO: Extract og:image and put it here
             heroImageFilename: nil
         )
@@ -295,6 +297,8 @@ struct FeedUtils {
                     audioByteLength: nil,
                     attachments: nil,
                     heroImage: nil,
+                    heroImageWidth: nil,
+                    heroImageHeight: nil,
                     heroImageURL: nil,
                     heroImageFilename: nil
                 )
@@ -332,6 +336,8 @@ struct FeedUtils {
                     audioByteLength: nil,
                     attachments: nil,
                     heroImage: nil,
+                    heroImageWidth: nil,
+                    heroImageHeight: nil,
                     heroImageURL: nil,
                     heroImageFilename: nil
                 )

@@ -587,6 +587,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioByteLength: nil,
                 attachments: nil,
                 heroImage: nil,
+                heroImageWidth: nil,
+                heroImageHeight: nil,
                 heroImageURL: nil,
                 heroImageFilename: nil
             )
@@ -784,6 +786,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioByteLength: nil,
                 attachments: nil,
                 heroImage: nil,
+                heroImageWidth: nil,
+                heroImageHeight: nil,
                 heroImageURL: nil,
                 heroImageFilename: nil
             )
@@ -1025,6 +1029,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 audioByteLength: nil,
                 attachments: nil,
                 heroImage: nil,
+                heroImageWidth: nil,
+                heroImageHeight: nil,
                 heroImageURL: nil,
                 heroImageFilename: nil
             )

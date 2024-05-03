@@ -475,6 +475,8 @@ class Template: Codable, Identifiable {
             audioByteLength: nil,
             attachments: nil,
             heroImage: nil,
+            heroImageWidth: nil,
+            heroImageHeight: nil,
             heroImageURL: nil,
             heroImageFilename: nil
         )

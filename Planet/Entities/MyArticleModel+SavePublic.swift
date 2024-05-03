@@ -271,6 +271,20 @@ extension MyArticleModel {
         }
     }
 
+    /// Process hero image size
+    func processHeroImageSize() {
+        if let heroImage = self.getHeroImage() {
+            if let size = self.getImageSize(name: heroImage){
+                if (self.heroImageWidth != Int(size.width) || self.heroImageHeight != Int(size.height)) {
+                    self.heroImageWidth = Int(size.width)
+                    self.heroImageHeight = Int(size.height)
+                    debugPrint("Hero image size saved for \(self.title): \(size.width) x \(size.height)")
+                    try? self.save()
+                }
+            }
+        }
+    }
+
     /// Process slug
     func processSlug() {
         if let articleSlug = self.slug, articleSlug.count > 0 {

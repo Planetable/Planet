@@ -86,6 +86,10 @@ extension MyArticleModel {
         processHeroGrid()
         marks.recordEvent("HeroGrid", for: self.title)
 
+        // MARK: - Hero Image Size
+        processHeroImageSize()
+        marks.recordEvent("HeroImageSize", for: self.title)
+
         try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
 
         // MARK: - Slug copy

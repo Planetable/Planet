@@ -25,6 +25,8 @@ struct PublicArticleModel: Codable {
     let audioByteLength: Int?
     let attachments: [String]?
     let heroImage: String?
+    let heroImageWidth: Int?
+    let heroImageHeight: Int?
     let heroImageURL: String?
     let heroImageFilename: String?
     var cids: [String: String]? = [:]
