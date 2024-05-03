@@ -294,7 +294,21 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if let domain: String = domain {
             let domain = domain.trim()
             if domain.hasSuffix(".eth") {
-                return "\(domain).limo"
+                switch IPFSGateway.selectedGateway() {
+                case .limo:
+                    return "\(domain).limo"
+                case .sucks:
+                    return "\(domain).sucks"
+                case .croptop:
+                    let processed = domain.replacingOccurrences(of: ".eth", with: "")
+                    return "\(processed).crop.top"
+                case .cloudflare:
+                    let processed = domain.replacingOccurrences(of: ".", with: "-")
+                    return "\(processed).ipns.cf-ipfs.com"
+                case .dweblink:
+                    let processed = domain.replacingOccurrences(of: ".", with: "-")
+                    return "\(processed).ipns.dweb.link"
+                }
             }
             if domain.hasSuffix(".bit") {
                 return "\(domain).site"
@@ -736,7 +750,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return planet
     }
 
-    @MainActor static func importBackup(from path: URL, isCroptopSiteData: Bool = false) throws -> MyPlanetModel {
+    @MainActor static func importBackup(from path: URL, isCroptopSiteData: Bool = false) throws
+        -> MyPlanetModel
+    {
         let suffix: String = isCroptopSiteData ? ".site" : ".planet"
         guard path.lastPathComponent.hasSuffix(suffix) else {
             throw PlanetError.ImportUnsupportedFileTypeError
@@ -1110,7 +1126,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let i: NSImage
         if let saveRoundAvatar = self.saveRoundAvatar, saveRoundAvatar {
             i = image.circleCropped()
-        } else {
+        }
+        else {
             i = image
         }
         let size = i.size
@@ -1188,7 +1205,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     func avatarView(size: CGFloat) -> some View {
         if let image = self.avatar {
             Image(nsImage: image)
-                 .interpolation(.high)
+                .interpolation(.high)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: size, height: size, alignment: .center)
@@ -1747,7 +1764,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return status
     }
 
-    func exportBackup(to directory: URL, isForAirDropSharing: Bool = false, isCroptopSiteData: Bool = false) throws {
+    func exportBackup(
+        to directory: URL,
+        isForAirDropSharing: Bool = false,
+        isCroptopSiteData: Bool = false
+    ) throws {
         let suffix = isCroptopSiteData ? ".site" : ".planet"
         let exportPath = directory.appendingPathComponent(
             "\(name.sanitized())\(suffix)",
@@ -2017,7 +2038,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             PlanetStore.shared.rebuildTasks -= 1
             let after = PlanetStore.shared.rebuildTasks
             debugPrint("Rebuild tasks reduced from \(before) to \(after) at \(Date())")
-            NotificationCenter.default.post(name: .myArticleBuilt, object:nil)
+            NotificationCenter.default.post(name: .myArticleBuilt, object: nil)
         }
     }
 
@@ -2056,7 +2077,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         Task { @MainActor in
             PlanetStore.shared.rebuildTasks = 0
-            NotificationCenter.default.post(name: .myArticleBuilt, object:nil)
+            NotificationCenter.default.post(name: .myArticleBuilt, object: nil)
         }
         let ended = Date()
         let timeInterval = ended.timeIntervalSince(started)
