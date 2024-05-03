@@ -125,6 +125,13 @@ actor IPFSDaemon {
                 "Addrs": ["/ip4/167.71.172.216/tcp/4001", "/ip6/2604:a880:800:10::826:1/tcp/4001"],
             ],  // Pinnable
             [
+                "ID": "12D3KooWHN5avE25zdCpsuu85kNcCSxYJx2njLNREKxowoDHa1xc",
+                "Addrs": [
+                    "/ip4/143.198.18.166/tcp/4001",
+                    "/ip6/2604:a880:800:10::735:7001/tcp/4001"
+                ]
+            ],  // eth.sucks
+            [
                 "ID": "12D3KooWLBMmT1dft1zcJvXNYkAfoUqj2RtRm7f9XkF17YmZsu4o",
                 "Addrs": [
                     "/ip4/104.131.8.159/tcp/4001",
