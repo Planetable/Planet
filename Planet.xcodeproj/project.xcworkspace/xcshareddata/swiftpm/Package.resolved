@@ -79,7 +79,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "3400d752afa8e75f5c4045869b91062495d0edc0"
+        "revision" : "e7d03ad499f0198e94eb0d51fbb4751b35ecef9c"
       }
     },
     {
@@ -114,8 +114,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sparkle-project/Sparkle",
       "state" : {
-        "revision" : "0a4caaf7a81eea2cece651ef4b17331fa0634dff",
-        "version" : "2.6.0"
+        "revision" : "b328c499a333ebbd871ee61a041b89afecf4fca6",
+        "version" : "2.6.1"
       }
     },
     {
