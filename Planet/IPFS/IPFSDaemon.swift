@@ -439,7 +439,7 @@ actor IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError.IPFSCLIError
+        throw PlanetError.IPFSError
     }
 
     func removeKey(name: String) throws {
@@ -541,7 +541,7 @@ actor IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError.IPFSCLIError
+        throw PlanetError.IPFSError
     }
 
     nonisolated func getFileCID(url: URL) throws -> String {
@@ -575,7 +575,7 @@ actor IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError.IPFSCLIError
+        throw PlanetError.IPFSError
     }
 
     nonisolated func getFileCIDv0(url: URL) throws -> String {
@@ -609,7 +609,7 @@ actor IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError.IPFSCLIError
+        throw PlanetError.IPFSError
     }
 
     func resolveIPNSorDNSLink(name: String) async throws -> String {
@@ -627,7 +627,7 @@ actor IPFSDaemon {
                     error: \(result.logFormat())
                     """
                 )
-                throw IPFSDaemonError.IPFSAPIError
+                throw PlanetError.IPFSAPIError
             }
             let cidWithPrefix = resolved.path
             if cidWithPrefix.starts(with: "/ipfs/") {
@@ -648,7 +648,7 @@ actor IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError.IPFSAPIError
+        throw PlanetError.IPFSAPIError
     }
 
     func pin(cid: String) async throws {
@@ -697,7 +697,7 @@ actor IPFSDaemon {
         guard let httpResponse = response as? HTTPURLResponse,
             httpResponse.ok
         else {
-            throw IPFSDaemonError.IPFSAPIError
+            throw PlanetError.IPFSAPIError
         }
         // debugPrint the response
         if let responseString = String(data: data, encoding: .utf8) {
@@ -718,10 +718,6 @@ actor IPFSDaemon {
     }
 }
 
-enum IPFSDaemonError: Error {
-    case IPFSCLIError
-    case IPFSAPIError
-}
 
 enum IPFSGateway: String, Codable, CaseIterable {
     case limo
