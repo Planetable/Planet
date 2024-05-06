@@ -135,6 +135,18 @@ struct PlanetSidebarView: View {
             .padding(.leading, 16)
             .padding(.trailing, 10)
             .background(Color.secondary.opacity(0.05))
+            .contentShape(Rectangle())
+            .onTapGesture {
+                Task { @MainActor in
+                    self.ipfsState.isShowingStatus.toggle()
+                }
+            }
+            .popover(
+                isPresented: $ipfsState.isShowingStatus,
+                arrowEdge: .top
+            ) {
+                IPFSStatusView()
+            }
         }
         .sheet(isPresented: $planetStore.isFollowingPlanet) {
             FollowPlanetView()

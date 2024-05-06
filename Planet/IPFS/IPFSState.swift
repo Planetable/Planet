@@ -7,6 +7,8 @@ class IPFSState: ObservableObject {
 
     static let refreshRate: TimeInterval = 30
 
+    @Published var isShowingStatus = false
+
     @Published private(set) var isOperating = false
     @Published private(set) var online = false
     @Published private(set) var peers: UInt16 = 0
