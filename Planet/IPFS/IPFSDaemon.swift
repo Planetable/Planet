@@ -2,16 +2,8 @@ import Foundation
 import SwiftyJSON
 import os
 
-actor IPFSDaemon {
-    nonisolated static let publicGateways = [
-        "https://ipfs.io",
-        "https://dweb.link",
-        "https://cloudflare-ipfs.com",
-        "https://gateway.pinata.cloud",
-        "https://ipfs.fleek.co",
-        "https://cf-ipfs.com",
-    ]
 
+actor IPFSDaemon {
     static let shared = IPFSDaemon()
 
     nonisolated let swarmPort: UInt16
@@ -25,6 +17,7 @@ actor IPFSDaemon {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "IPFSDaemon")
 
     init() {
+        debugPrint("IPFS Daemon Init.")
         let repoContents = try! FileManager.default.contentsOfDirectory(
             at: IPFSCommand.IPFSRepositoryPath,
             includingPropertiesForKeys: nil
@@ -222,7 +215,7 @@ actor IPFSDaemon {
 
     static func preferredGateway() -> String {
         let index: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
-        return IPFSDaemon.publicGateways[index]
+        return IPFSGateway.publicGateways[index]
     }
 
     static func urlForCID(_ cid: String) -> URL? {
@@ -271,7 +264,7 @@ actor IPFSDaemon {
         return nil
     }
 
-    func launchDaemon() {
+    func launch() {
         Self.logger.info("Launching daemon")
         do {
             // perform a shutdown to clean possible lock file before launch daemon
@@ -327,12 +320,13 @@ actor IPFSDaemon {
         }
     }
 
-    nonisolated func shutdownDaemon() {
+    func shutdown() throws {
         Self.logger.info("Shutting down daemon")
         do {
             let (ret, out, err) = try IPFSCommand.shutdownDaemon().run()
             if ret == 0 {
                 Self.logger.info("Shutdown daemon returned 0")
+                return
             }
             else {
                 Self.logger.error(
@@ -354,6 +348,7 @@ actor IPFSDaemon {
                 """
             )
         }
+        throw PlanetError.IPFSError
     }
 
     func updateOnlineStatus() async {
@@ -674,6 +669,7 @@ actor IPFSDaemon {
                 \(data.logFormat())
                 """
             )
+            throw PlanetError.IPFSAPIError
         }
         return data
     }
@@ -715,46 +711,5 @@ actor IPFSDaemon {
 
         }
         return data
-    }
-}
-
-
-enum IPFSGateway: String, Codable, CaseIterable {
-    case limo
-    case sucks
-    case croptop
-    case cloudflare
-    case dweblink
-
-    static let names: [String: String] = [
-        "limo": "eth.limo",
-        "sucks": "eth.sucks",
-        "croptop": "Croptop",
-        "cloudflare": "Cloudflare",
-        "dweblink": "DWeb.link",
-    ]
-
-    var name: String {
-        IPFSGateway.names[rawValue] ?? rawValue
-    }
-
-    static let websites: [String: String] = [
-        "limo": "https://eth.limo",
-        "sucks": "https://eth.sucks",
-        "croptop": "https://crop.top",
-        "cloudflare": "https://cf-ipfs.com",
-        "dweblink": "https://dweb.link",
-    ]
-
-    static let defaultGateway: IPFSGateway = {
-        if PlanetStore.app == .lite {
-            return .sucks
-        }
-        return .limo
-    }()
-
-    static func selectedGateway() -> IPFSGateway {
-        let gateway = UserDefaults.standard.string(forKey: String.settingsPreferredIPFSPublicGateway)
-        return IPFSGateway(rawValue: gateway ?? IPFSGateway.defaultGateway.rawValue) ?? IPFSGateway.defaultGateway
     }
 }

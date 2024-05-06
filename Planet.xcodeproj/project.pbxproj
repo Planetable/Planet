@@ -13,6 +13,8 @@
 		2A09A35C27C257D60003A0B5 /* PlanetMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */; };
 		2A09A35F27C2581F0003A0B5 /* PlanetSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */; };
 		2A09A36127C2582B0003A0B5 /* ArticleListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A36027C2582B0003A0B5 /* ArticleListView.swift */; };
+		2A0E918C2BE889B000F69578 /* IPFSGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0E918B2BE889B000F69578 /* IPFSGateway.swift */; };
+		2A0E918D2BE889B000F69578 /* IPFSGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0E918B2BE889B000F69578 /* IPFSGateway.swift */; };
 		2A23C2062B8ED4E2000138DA /* PlanetDirectoryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */; };
 		2A23C2072B8F3B06000138DA /* PlanetDirectoryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */; };
 		2A2556AF293E1E7D006462D8 /* TBWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556AE293E1E7D006462D8 /* TBWindowController.swift */; };
@@ -510,6 +512,7 @@
 		2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetMainView.swift; sourceTree = "<group>"; };
 		2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSidebarView.swift; sourceTree = "<group>"; };
 		2A09A36027C2582B0003A0B5 /* ArticleListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleListView.swift; sourceTree = "<group>"; };
+		2A0E918B2BE889B000F69578 /* IPFSGateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSGateway.swift; sourceTree = "<group>"; };
 		2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDirectoryMonitor.swift; sourceTree = "<group>"; };
 		2A2556AE293E1E7D006462D8 /* TBWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBWindowController.swift; sourceTree = "<group>"; };
 		2A2556B0293E1E98006462D8 /* TB+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TB+Extension.swift"; sourceTree = "<group>"; };
@@ -1402,6 +1405,7 @@
 			children = (
 				721148C9E7BCB6F1BC539F57 /* IPFSState.swift */,
 				72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */,
+				2A0E918B2BE889B000F69578 /* IPFSGateway.swift */,
 				72114270D79DBC89703262B9 /* IPFSCommand.swift */,
 				721141137EDE4A3E5706D234 /* go-ipfs-executables */,
 				72114A5CE56CACB595CD70C6 /* IPFSAPIModel.swift */,
@@ -1859,6 +1863,7 @@
 				2A95E69A2A19A441001288B8 /* IPFSAPIModel.swift in Sources */,
 				2A95E69D2A19A446001288B8 /* MyArticleModel.swift in Sources */,
 				2A95E6682A19A3AF001288B8 /* TBSidebarViewController.swift in Sources */,
+				2A0E918D2BE889B000F69578 /* IPFSGateway.swift in Sources */,
 				2A95E6A02A19A446001288B8 /* MyPlanetModel.swift in Sources */,
 				2A95E6E82A19A64F001288B8 /* ArtworkView.swift in Sources */,
 				2A95E6522A19A398001288B8 /* PFDashboardSidebarItemView.swift in Sources */,
@@ -2026,6 +2031,7 @@
 				2A466FD12A809E2C009FB646 /* IndicatorViews.swift in Sources */,
 				2A79FB2C2898184100F06DDF /* PlanetDownloadModel.swift in Sources */,
 				2A4164D729E64878009BFC24 /* PlanetQuickShareViewModel.swift in Sources */,
+				2A0E918C2BE889B000F69578 /* IPFSGateway.swift in Sources */,
 				6A52FAE92A8893E9000E85F0 /* PublicArticleModel.swift in Sources */,
 				6AC01AF0291ECC7E00EB6B5F /* WalletAccountView.swift in Sources */,
 				721145603D528B27CC6091D1 /* WriterDragAndDrop.swift in Sources */,

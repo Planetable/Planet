@@ -61,7 +61,7 @@ class PlanetStatusManager: ObservableObject {
                     await PlanetAPIHelper.shared.shutdown()
                 }
             }
-            IPFSDaemon.shared.shutdownDaemon()
+            try? await IPFSDaemon.shared.shutdown()
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
     }

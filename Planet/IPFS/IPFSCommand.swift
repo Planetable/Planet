@@ -223,7 +223,8 @@ struct IPFSCommand {
     }
 }
 
-struct IPFSMigration {
+
+struct IPFSMigrationCommand {
     static let repoVersion = 12
 
     static let RepoMigrationExecutableURL: URL = {
