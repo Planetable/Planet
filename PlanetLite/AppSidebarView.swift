@@ -65,6 +65,20 @@ struct AppSidebarView: View {
             .padding(.leading, 16)
             .padding(.trailing, 10)
             .background(Color.secondary.opacity(0.05))
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard !ipfsState.isOperating else { return }
+                Task { @MainActor in
+                    self.ipfsState.isShowingStatus.toggle()
+                }
+            }
+            .popover(
+                isPresented: $ipfsState.isShowingStatus,
+                arrowEdge: .top
+            ) {
+                IPFSStatusView()
+                    .environmentObject(ipfsState)
+            }
         }
         .toolbar {
             ToolbarItem {

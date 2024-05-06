@@ -137,6 +137,7 @@ struct PlanetSidebarView: View {
             .background(Color.secondary.opacity(0.05))
             .contentShape(Rectangle())
             .onTapGesture {
+                guard !ipfsState.isOperating else { return }
                 Task { @MainActor in
                     self.ipfsState.isShowingStatus.toggle()
                 }
@@ -146,6 +147,7 @@ struct PlanetSidebarView: View {
                 arrowEdge: .top
             ) {
                 IPFSStatusView()
+                    .environmentObject(ipfsState)
             }
         }
         .sheet(isPresented: $planetStore.isFollowingPlanet) {

@@ -7,13 +7,9 @@ import SwiftUI
 
 
 struct IPFSStatusView: View {
-    @StateObject private var ipfsState: IPFSState
+    @EnvironmentObject private var ipfsState: IPFSState
 
-    @State private var isDaemonOnline: Bool = false
-
-    init() {
-        _ipfsState = StateObject(wrappedValue: IPFSState.shared)
-    }
+    @State private var isDaemonOnline: Bool = IPFSState.shared.online
 
     var body: some View {
         VStack {
@@ -38,19 +34,29 @@ struct IPFSStatusView: View {
                     Toggle("", isOn: $isDaemonOnline)
                         .toggleStyle(SwitchToggleStyle())
                         .tint(.green)
+                        .onChange(of: isDaemonOnline) { newValue in
+                            Task.detached(priority: .userInitiated) {
+                                if newValue {
+                                    try? await IPFSDaemon.shared.launch()
+                                } else {
+                                    try? await IPFSDaemon.shared.shutdown()
+                                }
+                                await IPFSState.shared.updateStatus()
+                                await MainActor.run {
+                                    self.isDaemonOnline = newValue
+                                }
+                            }
+                        }
                 }
             }
             Spacer()
         }
         .padding()
-        .frame(minWidth: 320, minHeight: 60)
-        .task {
-            isDaemonOnline = ipfsState.online
-        }
+        .frame(minWidth: 320, minHeight: 56)
     }
 }
 
 #Preview {
     IPFSStatusView()
-        .frame(width: 320, height: 160)
+        .frame(width: 320, height: 56)
 }
