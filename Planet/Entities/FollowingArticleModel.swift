@@ -23,14 +23,15 @@ class FollowingArticleModel: ArticleModel, Codable {
         switch planet.planetType {
         case .planet, .dnslink, .ens, .dotbit:
             if let cid = planet.cid {
+                let gateway = IPFSState.shared.getGateway()
                 if link.starts(with: "https://ipfs.io/ipns/") {
-                    let local: String = "\(IPFSDaemon.shared.gateway)\(link.dropFirst(15))"
+                    let local: String = "\(gateway)\(link.dropFirst(15))"
                     debugPrint("Converted to use local gateway: FROM \(link) TO \(local)")
                     debugPrint("When generating webviewURL, reached branch A1")
                     return URL(string: local)
                 }
                 if link.startsWithInternalGateway() {
-                    let local: String = "\(IPFSDaemon.shared.gateway)\(link.dropFirst(22))"
+                    let local: String = "\(gateway)\(link.dropFirst(22))"
                     debugPrint("Converted to use local gateway: FROM \(link) TO \(local)")
                     debugPrint("When generating webviewURL, reached branch A2")
                     return URL(string: local)
@@ -40,20 +41,20 @@ class FollowingArticleModel: ArticleModel, Codable {
                     // article from a feed with an absolute HTTP URL: https://vitalik.ca/general/2022/05/25/stable.html
                     // transform URL to load with IPFS
                     debugPrint("When generating webviewURL, reached branch B")
-                    return URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)\(linkURL.pathQueryFragment)")?.absoluteURL
+                    return URL(string: "\(gateway)/ipfs/\(cid)\(linkURL.pathQueryFragment)")?.absoluteURL
                 }
                 if link.starts(with: "/ipfs/Q") || link.starts(with: "/ipfs/b") {
                     debugPrint("When generating webviewURL, reached branch D")
-                    return URL(string: "\(IPFSDaemon.shared.gateway)\(link)")
+                    return URL(string: "\(gateway)\(link)")
                 }
                 if link.starts(with: "/") {
                     // article from a native planet: /12345678-90AB-CDEF-1234-567890ABCDEF/
                     // OR
                     // article from a feed with relative URL prefixed with slash: /general/2022/05/25/stable.html
                     debugPrint("When generating webviewURL, reached branch C")
-                    return URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)\(link)")
+                    return URL(string: "\(gateway)/ipfs/\(cid)\(link)")
                 }
-                if let base = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/") {
+                if let base = URL(string: "\(gateway)/ipfs/\(cid)/") {
                     // relative URL: index.html, ./index.html, etc.
                     debugPrint("When generating webviewURL, reached branch D")
                     return URL(string: link, relativeTo: base)?.absoluteURL
@@ -63,7 +64,8 @@ class FollowingArticleModel: ArticleModel, Codable {
             return nil
         case .dns:
             if link.starts(with: "https://ipfs.io/ipns/") {
-                let local: String = "\(IPFSDaemon.shared.gateway)\(link.dropFirst(15))"
+                let gateway = IPFSState.shared.getGateway()
+                let local: String = "\(gateway)\(link.dropFirst(15))"
                 debugPrint("Converted to use local gateway: FROM \(link) TO \(local)")
                 return URL(string: local)
             }

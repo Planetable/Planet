@@ -293,7 +293,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
                         publicGatewayActionItem.action = #selector(self.openInPublicGateway(_:))
                         menu.addItem(publicGatewayActionItem)
                     }
-                    if let localhostURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+                    if let localhostURL = URL(string: "\(IPFSState.shared.getGateway())/ipns/\(publishedLink)") {
                         let localhostActionItem = NSMenuItem()
                         localhostActionItem.representedObject = localhostURL
                         localhostActionItem.title = "Open in Local Gateway"

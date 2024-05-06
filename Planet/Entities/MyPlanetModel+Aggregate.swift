@@ -169,6 +169,7 @@ extension MyPlanetModel {
     ) async -> Int {
         var saved = 0
         var attachmentCount = 0
+        let gateway = IPFSState.shared.getGateway()
         if let articleAttachments = article.attachments {
             attachmentCount = articleAttachments.count
         }
@@ -185,7 +186,7 @@ extension MyPlanetModel {
                 )
                 if let attachmentBaseURL = URL(
                     string:
-                        "\(IPFSDaemon.shared.gateway)/ipns/\(site)/\(article.id)/"
+                        "\(gateway)/ipns/\(site)/\(article.id)/"
                 ) {
                     let attachmentURL = attachmentBaseURL.appendingPathComponent(
                         name
@@ -235,7 +236,7 @@ extension MyPlanetModel {
             )
             if let attachmentBaseURL = URL(
                 string:
-                    "\(IPFSDaemon.shared.gateway)/ipns/\(site)/\(article.id)/"
+                    "\(gateway)/ipns/\(site)/\(article.id)/"
             ) {
                 let attachmentURL = attachmentBaseURL.appendingPathComponent(
                     videoFilename
@@ -279,8 +280,9 @@ extension MyPlanetModel {
     }
 
     func fetchPlanetSite(site: String) async -> Int {
+        let gateway = IPFSState.shared.getGateway()
         var newArticles: [MyArticleModel] = []
-        if let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(site)/planet.json") {
+        if let feedURL = URL(string: "\(gateway)/ipns/\(site)/planet.json") {
             do {
                 let (planetJSONData, _) = try await URLSession.shared.data(from: feedURL)
                 let planet = try JSONDecoder.shared.decode(

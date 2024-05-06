@@ -249,7 +249,7 @@ struct AppSidebarItemView: View {
                 }
 
                 Button {
-                    if let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(planet.ipns)") {
+                    if let url = URL(string: "\(IPFSState.shared.getGateway())/ipns/\(planet.ipns)") {
                         NSWorkspace.shared.open(url)
                     }
                 } label: {

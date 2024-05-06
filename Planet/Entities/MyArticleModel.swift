@@ -109,7 +109,7 @@ class MyArticleModel: ArticleModel, Codable {
         )
     }
     var localGatewayURL: URL? {
-        return URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(planet.ipns)/\(id.uuidString)/")
+        return URL(string: "\(IPFSState.shared.getGateway())/ipns/\(planet.ipns)/\(id.uuidString)/")
     }
     var localPreviewURL: URL? {
         // If API is enabled, use the API URL
@@ -148,8 +148,6 @@ class MyArticleModel: ArticleModel, Codable {
                     return URL(string: "https://cf-ipfs.com/ipns/\(domain)\(urlPath)")
                 case .dweblink:
                     return URL(string: "https://dweb.link/ipns/\(domain)\(urlPath)")
-                default:
-                    return URL(string: "https://\(domain).limo\(urlPath)")
                 }
             }
             if domain.hasSuffix(".bit") {
@@ -170,8 +168,6 @@ class MyArticleModel: ArticleModel, Codable {
             return URL(string: "https://cf-ipfs.com/ipns/\(planet.ipns)\(urlPath)")
         case .dweblink:
             return URL(string: "https://dweb.link/ipns/\(planet.ipns)\(urlPath)")
-        default:
-            return URL(string: "https://\(planet.ipns).ipfs2.eth.limo\(urlPath)")
         }
     }
     var socialImageURL: URL? {

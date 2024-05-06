@@ -341,7 +341,7 @@ class KeyboardShortcutHelper: ObservableObject {
                                     Text("Open in Public Gateway")
                                 }
                                 Button {
-                                    if let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+                                    if let url = URL(string: "\(IPFSState.shared.getGateway())/ipns/\(publishedLink)") {
                                         self.openURL(url)
                                     }
                                 } label: {

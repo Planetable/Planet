@@ -35,24 +35,31 @@ struct AppSidebarView: View {
             .listStyle(.sidebar)
 
             HStack(spacing: 6) {
-                Circle()
-                    .frame(width: 11, height: 11, alignment: .center)
-                    .foregroundColor(ipfsState.online ? Color.green : Color.red)
-                Text(ipfsState.online ? "Online (\(ipfsState.peers))" : "Offline")
-                    .font(.body)
+                if ipfsState.isOperating {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .controlSize(.small)
+                    Spacer()
+                } else {
+                    Circle()
+                        .frame(width: 11, height: 11, alignment: .center)
+                        .foregroundColor(ipfsState.online ? Color.green : Color.red)
+                    Text(ipfsState.online ? "Online (\(ipfsState.peers))" : "Offline")
+                        .font(.body)
 
-                Spacer()
+                    Spacer()
 
-                Button {
-                    planetStore.isCreatingPlanet = true
-                } label: {
-                    Image(systemName: "plus")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 14, height: 14, alignment: .center)
+                    Button {
+                        planetStore.isCreatingPlanet = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 14, height: 14, alignment: .center)
+                    }
+                    .disabled(planetStore.isCreatingPlanet)
+                    .buttonStyle(.plain)
                 }
-                .disabled(planetStore.isCreatingPlanet)
-                .buttonStyle(.plain)
             }
             .frame(height: 44)
             .padding(.leading, 16)
