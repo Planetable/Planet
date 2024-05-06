@@ -2,29 +2,28 @@ import Foundation
 import SwiftyJSON
 import os
 
-actor IPFSDaemon {
-    nonisolated static let publicGateways = [
-        "https://ipfs.io",
-        "https://dweb.link",
-        "https://cloudflare-ipfs.com",
-        "https://gateway.pinata.cloud",
-        "https://ipfs.fleek.co",
-        "https://cf-ipfs.com",
-    ]
 
+actor IPFSDaemon {
     static let shared = IPFSDaemon()
 
-    nonisolated let swarmPort: UInt16
-    nonisolated let APIPort: UInt16
-    nonisolated let gatewayPort: UInt16
-
-    nonisolated var gateway: String {
-        "http://127.0.0.1:\(gatewayPort)"
-    }
+    private var isPreparing: Bool = false
+    private var swarmPort: UInt16!
+    private var apiPort: UInt16!
+    private var gatewayPort: UInt16!
 
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "IPFSDaemon")
 
     init() {
+        debugPrint("IPFS Daemon Init.")
+    }
+
+    func setupIPFS() async {
+        guard !isPreparing else { return }
+        defer {
+            isPreparing = false
+        }
+
+        Self.logger.info("Preparing IPFS")
         let repoContents = try! FileManager.default.contentsOfDirectory(
             at: IPFSCommand.IPFSRepositoryPath,
             includingPropertiesForKeys: nil
@@ -34,7 +33,8 @@ actor IPFSDaemon {
             guard let result = try? IPFSCommand.IPFSInit().run(),
                 result.ret == 0
             else {
-                fatalError("Error initializing IPFS")
+                Self.logger.info("Error Initializing IPFS")
+                return
             }
         }
 
@@ -45,27 +45,39 @@ actor IPFSDaemon {
             result.ret == 0
         {
             swarmPort = port
+            await MainActor.run {
+                IPFSState.shared.updateSwarmPort(port)
+            }
         }
         else {
-            fatalError("Unable to find open swarm port for IPFS")
+            Self.logger.info("Unable to find open swarm port for IPFS")
+            return
         }
         if let port = IPFSDaemon.scoutPort(5981...5991),
             let result = try? IPFSCommand.updateAPIPort(port: port).run(),
             result.ret == 0
         {
-            APIPort = port
+            apiPort = port
+            await MainActor.run {
+                IPFSState.shared.updateAPIPort(port)
+            }
         }
         else {
-            fatalError("Unable to find open API port for IPFS")
+            Self.logger.info("Unable to find open API port for IPFS")
+            return
         }
         if let port = IPFSDaemon.scoutPort(18181...18191),
             let result = try? IPFSCommand.updateGatewayPort(port: port).run(),
             result.ret == 0
         {
             gatewayPort = port
+            await MainActor.run {
+                IPFSState.shared.updateGatewayPort(port)
+            }
         }
         else {
-            fatalError("Unable to find open gateway port for IPFS")
+            Self.logger.info("Unable to find open gateway port for IPFS")
+            return
         }
 
         // IPFS peering
@@ -171,7 +183,8 @@ actor IPFSDaemon {
             ).run(),
             result.ret == 0
         else {
-            fatalError("Unable to set peers for IPFS")
+            Self.logger.info("Unable to set peers for IPFS")
+            return
         }
         let swarmConnMgr = JSON(
             [
@@ -187,7 +200,8 @@ actor IPFSDaemon {
             ).run(),
             result.ret == 0
         else {
-            fatalError("Unable to set parameters for Swarm Connection Manager")
+            Self.logger.info("Unable to set parameters for Swarm Connection Manager")
+            return
         }
         let accessControlAllowOrigin = JSON(
             ["https://webui.ipfs.io"]
@@ -198,7 +212,8 @@ actor IPFSDaemon {
             ).run(),
             result.ret == 0
         else {
-            fatalError("Unable to set parameters for Access Control Allow Origin")
+            Self.logger.info("Unable to set parameters for Access Control Allow Origin")
+            return
         }
         let accessControlAllowMethods = JSON(
             ["PUT", "POST"]
@@ -209,132 +224,69 @@ actor IPFSDaemon {
             ).run(),
             result.ret == 0
         else {
-            fatalError("Unable to set parameters for Access Control Allow Methods")
-        }
-        // update webview rule list.
-        Task.detached(priority: .utility) {
-            NotificationCenter.default.post(
-                name: .updateRuleList,
-                object: NSNumber(value: self.APIPort)
-            )
+            Self.logger.info("Unable to set parameters for Access Control Allow Methods")
+            return
         }
     }
 
-    static func preferredGateway() -> String {
-        let index: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
-        return IPFSDaemon.publicGateways[index]
-    }
-
-    static func urlForCID(_ cid: String) -> URL? {
-        // let gateway = IPFSDaemon.preferredGateway()
-        // return URL(string: gateway + "/ipfs/" + cid)
-        return URL(string: "https://\(cid).ipfs2.eth.limo/")
-    }
-
-    static func urlForIPNS(_ ipns: String) -> URL? {
-        // let gateway = IPFSDaemon.preferredGateway()
-        // return URL(string: gateway + "/ipns/" + ipns)
-        return URL(string: "https://\(ipns).ipfs2.eth.limo/")
-    }
-
-    // Reference: https://stackoverflow.com/a/65162953
-    static func isPortOpen(port: in_port_t) -> Bool {
-        let socketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0)
-        if socketFileDescriptor == -1 {
-            return false
-        }
-
-        var addr = sockaddr_in()
-        let sizeOfSocketAddr = MemoryLayout<sockaddr_in>.size
-        addr.sin_len = __uint8_t(sizeOfSocketAddr)
-        addr.sin_family = sa_family_t(AF_INET)
-        addr.sin_port = Int(OSHostByteOrder()) == OSLittleEndian ? _OSSwapInt16(port) : port
-        addr.sin_addr = in_addr(s_addr: inet_addr("0.0.0.0"))
-        addr.sin_zero = (0, 0, 0, 0, 0, 0, 0, 0)
-        var bind_addr = sockaddr()
-        memcpy(&bind_addr, &addr, Int(sizeOfSocketAddr))
-
-        if Darwin.bind(socketFileDescriptor, &bind_addr, socklen_t(sizeOfSocketAddr)) == -1 {
-            return false
-        }
-        let isOpen = listen(socketFileDescriptor, SOMAXCONN) != -1
-        Darwin.close(socketFileDescriptor)
-        return isOpen
-    }
-
-    static func scoutPort(_ range: ClosedRange<UInt16>) -> UInt16? {
-        for port in range {
-            if isPortOpen(port: port) {
-                return port
-            }
-        }
-        return nil
-    }
-
-    func launchDaemon() {
+    func launch() throws {
         Self.logger.info("Launching daemon")
+        if swarmPort == nil || apiPort == nil || gatewayPort == nil {
+            Self.logger.info("IPFS is not ready, abort launching process.")
+            throw PlanetError.IPFSError
+        }
         do {
-            // perform a shutdown to clean possible lock file before launch daemon
-            // the result of shutdown can be safely ignored
+            Task { @MainActor in
+                IPFSState.shared.updateOperatingStatus(true)
+            }
             try IPFSCommand.shutdownDaemon().run()
-
             try IPFSCommand.launchDaemon().run(
-                outHandler: { [self] data in
+                outHandler: { data in
                     if let output = String(data: data, encoding: .utf8),
-                        output.contains("Daemon is ready")
+                       output.contains("Daemon is ready")
                     {
-                        Task {
-                            await updateOnlineStatus()
+                        Self.logger.debug("[IPFS stdout]\n\(data.logFormat(), privacy: .public)")
+                        Task.detached(priority: .utility) {
+                            await IPFSState.shared.updateStatus()
+                            IPFSState.shared.updateAppSettings()
                         }
-                        // refresh published folders
-                        Task.detached(priority: .utility) { @MainActor in
-                            PlanetPublishedServiceStore.shared.reloadPublishedFolders()
+                        Task { @MainActor in
+                            IPFSState.shared.updateOperatingStatus(false)
                         }
-                        // process unpublished folders
-                        Task.detached(priority: .background) {
-                            NotificationCenter.default.post(
-                                name: .dashboardProcessUnpublishedFolders,
-                                object: nil
-                            )
-                        }
-                        // refresh key manager
-                        Task.detached(priority: .utility) { @MainActor in
-                            NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
-                        }
-
-                        // let onboarding = UserDefaults.standard.string(forKey: "PlanetOnboarding")
-                        // if onboarding == nil {
-                        //     Task { @MainActor in
-                        //         let planet = try await FollowingPlanetModel.follow(link: "vitalik.eth")
-                        //         PlanetStore.shared.followingPlanets.append(planet)
-                        //     }
-                        //     Task { @MainActor in
-                        //         let planet = try await FollowingPlanetModel.follow(link: "planetable.eth")
-                        //         PlanetStore.shared.followingPlanets.append(planet)
-                        //     }
-                        //     UserDefaults.standard.set(Date().ISO8601Format(), forKey: "PlanetOnboarding")
-                        // }
                     }
-                    Self.logger.debug("[IPFS stdout]\n\(data.logFormat(), privacy: .public)")
                 },
                 errHandler: { data in
                     Self.logger.debug("[IPFS error]\n\(data.logFormat(), privacy: .public)")
+                    Task { @MainActor in
+                        IPFSState.shared.updateOperatingStatus(false)
+                    }
                 }
             )
         }
         catch {
-            fatalError("Cannot run IPFS process")
+            Self.logger.error(
+                """
+                Failed to launch daemon: error when running IPFS process, \
+                cause: \(String(describing: error))
+                """
+            )
+            Task { @MainActor in
+                IPFSState.shared.updateOperatingStatus(false)
+            }
+            throw PlanetError.IPFSError
         }
     }
 
-    nonisolated func shutdownDaemon() {
+    func shutdown() throws {
         Self.logger.info("Shutting down daemon")
+        Task { @MainActor in
+            IPFSState.shared.updateOperatingStatus(true)
+        }
         do {
             let (ret, out, err) = try IPFSCommand.shutdownDaemon().run()
             if ret == 0 {
                 Self.logger.info("Shutdown daemon returned 0")
-            }
-            else {
+            } else {
                 Self.logger.error(
                     """
                     Failed to shutdown daemon: process returned \(ret)
@@ -354,55 +306,8 @@ actor IPFSDaemon {
                 """
             )
         }
-    }
-
-    func updateOnlineStatus() async {
-        Self.logger.info("Updating online status")
-        // check if management API is online
-        let url = URL(string: "http://127.0.0.1:\(APIPort)/webui")!
-        let request = URLRequest(
-            url: url,
-            cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
-            timeoutInterval: 1
-        )
-        let online: Bool
-        let peers: Int
-        do {
-            let (_, response) = try await URLSession.shared.data(for: request)
-            if let res = response as? HTTPURLResponse, res.statusCode == 200 {
-                online = true
-            }
-            else {
-                online = false
-            }
-        }
-        catch {
-            online = false
-        }
-        if online {
-            Task(priority: .background) {
-                await PlanetStore.shared.updateServerInfo()
-            }
-            do {
-                let data = try await IPFSDaemon.shared.api(path: "swarm/peers")
-                let decoder = JSONDecoder()
-                let swarmPeers = try decoder.decode(IPFSPeers.self, from: data)
-                peers = swarmPeers.peers?.count ?? 0
-            }
-            catch {
-                peers = 0
-            }
-        }
-        else {
-            peers = 0
-        }
-        Self.logger.info("Daemon \(online ? "online (\(peers))" : "offline", privacy: .public)")
-        await MainActor.run {
-            if online {
-                IPFSState.shared.isBootstrapping = false
-            }
-            IPFSState.shared.online = online
-            IPFSState.shared.peers = peers
+        Task { @MainActor in
+            IPFSState.shared.updateOperatingStatus(false)
         }
     }
 
@@ -439,7 +344,7 @@ actor IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError.IPFSCLIError
+        throw PlanetError.IPFSError
     }
 
     func removeKey(name: String) throws {
@@ -541,7 +446,7 @@ actor IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError.IPFSCLIError
+        throw PlanetError.IPFSError
     }
 
     nonisolated func getFileCID(url: URL) throws -> String {
@@ -575,7 +480,7 @@ actor IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError.IPFSCLIError
+        throw PlanetError.IPFSError
     }
 
     nonisolated func getFileCIDv0(url: URL) throws -> String {
@@ -609,7 +514,7 @@ actor IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError.IPFSCLIError
+        throw PlanetError.IPFSError
     }
 
     func resolveIPNSorDNSLink(name: String) async throws -> String {
@@ -627,7 +532,7 @@ actor IPFSDaemon {
                     error: \(result.logFormat())
                     """
                 )
-                throw IPFSDaemonError.IPFSAPIError
+                throw PlanetError.IPFSAPIError
             }
             let cidWithPrefix = resolved.path
             if cidWithPrefix.starts(with: "/ipfs/") {
@@ -648,7 +553,7 @@ actor IPFSDaemon {
                 """
             )
         }
-        throw IPFSDaemonError.IPFSAPIError
+        throw PlanetError.IPFSAPIError
     }
 
     func pin(cid: String) async throws {
@@ -663,6 +568,10 @@ actor IPFSDaemon {
 
     func getFile(ipns: String, path: String = "") async throws -> Data {
         Self.logger.info("Getting file from IPNS \(ipns)\(path)")
+        guard let gatewayPort else {
+            throw PlanetError.IPFSError
+        }
+        let gateway = IPFSState.shared.getGateway()
         let url = URL(string: "\(gateway)/ipns/\(ipns)\(path)")!
         let (data, response) = try await URLSession.shared.data(for: URLRequest(url: url))
         let httpResponse = response as! HTTPURLResponse
@@ -674,6 +583,7 @@ actor IPFSDaemon {
                 \(data.logFormat())
                 """
             )
+            throw PlanetError.IPFSAPIError
         }
         return data
     }
@@ -683,7 +593,10 @@ actor IPFSDaemon {
         args: [String: String] = [:],
         timeout: TimeInterval = 30
     ) async throws -> Data {
-        var url: URL = URL(string: "http://127.0.0.1:\(APIPort)/api/v0/\(path)")!
+        guard let apiPort else {
+            throw PlanetError.IPFSError
+        }
+        var url: URL = URL(string: "http://127.0.0.1:\(apiPort)/api/v0/\(path)")!
         if !args.isEmpty {
             url = url.appendingQueryParameters(args)
         }
@@ -697,7 +610,7 @@ actor IPFSDaemon {
         guard let httpResponse = response as? HTTPURLResponse,
             httpResponse.ok
         else {
-            throw IPFSDaemonError.IPFSAPIError
+            throw PlanetError.IPFSAPIError
         }
         // debugPrint the response
         if let responseString = String(data: data, encoding: .utf8) {
@@ -718,47 +631,56 @@ actor IPFSDaemon {
     }
 }
 
-enum IPFSDaemonError: Error {
-    case IPFSCLIError
-    case IPFSAPIError
-}
 
-enum IPFSGateway: String, Codable, CaseIterable {
-    case limo
-    case sucks
-    case croptop
-    case cloudflare
-    case dweblink
-
-    static let names: [String: String] = [
-        "limo": "eth.limo",
-        "sucks": "eth.sucks",
-        "croptop": "Croptop",
-        "cloudflare": "Cloudflare",
-        "dweblink": "DWeb.link",
-    ]
-
-    var name: String {
-        IPFSGateway.names[rawValue] ?? rawValue
+extension IPFSDaemon {
+    static func preferredGateway() -> String {
+        let index: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
+        return IPFSGateway.publicGateways[index]
     }
 
-    static let websites: [String: String] = [
-        "limo": "https://eth.limo",
-        "sucks": "https://eth.sucks",
-        "croptop": "https://crop.top",
-        "cloudflare": "https://cf-ipfs.com",
-        "dweblink": "https://dweb.link",
-    ]
+    static func urlForCID(_ cid: String) -> URL? {
+        // let gateway = IPFSDaemon.preferredGateway()
+        // return URL(string: gateway + "/ipfs/" + cid)
+        return URL(string: "https://\(cid).ipfs2.eth.limo/")
+    }
 
-    static let defaultGateway: IPFSGateway = {
-        if PlanetStore.app == .lite {
-            return .sucks
+    static func urlForIPNS(_ ipns: String) -> URL? {
+        // let gateway = IPFSDaemon.preferredGateway()
+        // return URL(string: gateway + "/ipns/" + ipns)
+        return URL(string: "https://\(ipns).ipfs2.eth.limo/")
+    }
+
+    // Reference: https://stackoverflow.com/a/65162953
+    static func isPortOpen(port: in_port_t) -> Bool {
+        let socketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0)
+        if socketFileDescriptor == -1 {
+            return false
         }
-        return .limo
-    }()
 
-    static func selectedGateway() -> IPFSGateway {
-        let gateway = UserDefaults.standard.string(forKey: String.settingsPreferredIPFSPublicGateway)
-        return IPFSGateway(rawValue: gateway ?? IPFSGateway.defaultGateway.rawValue) ?? IPFSGateway.defaultGateway
+        var addr = sockaddr_in()
+        let sizeOfSocketAddr = MemoryLayout<sockaddr_in>.size
+        addr.sin_len = __uint8_t(sizeOfSocketAddr)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = Int(OSHostByteOrder()) == OSLittleEndian ? _OSSwapInt16(port) : port
+        addr.sin_addr = in_addr(s_addr: inet_addr("0.0.0.0"))
+        addr.sin_zero = (0, 0, 0, 0, 0, 0, 0, 0)
+        var bind_addr = sockaddr()
+        memcpy(&bind_addr, &addr, Int(sizeOfSocketAddr))
+
+        if Darwin.bind(socketFileDescriptor, &bind_addr, socklen_t(sizeOfSocketAddr)) == -1 {
+            return false
+        }
+        let isOpen = listen(socketFileDescriptor, SOMAXCONN) != -1
+        Darwin.close(socketFileDescriptor)
+        return isOpen
+    }
+
+    static func scoutPort(_ range: ClosedRange<UInt16>) -> UInt16? {
+        for port in range {
+            if isPortOpen(port: port) {
+                return port
+            }
+        }
+        return nil
     }
 }

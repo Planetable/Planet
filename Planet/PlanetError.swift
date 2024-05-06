@@ -5,6 +5,7 @@ enum PlanetError: Error {
     case PersistenceError
     case NetworkError
     case IPFSError
+    case IPFSAPIError
     case IPFSInactiveError
     case EthereumError
     case PlanetFeedError
@@ -55,6 +56,8 @@ extension PlanetError: LocalizedError {
             return NSLocalizedString("Network Error", comment: "")
         case .IPFSError:
             return NSLocalizedString("IPFS Error", comment: "")
+        case .IPFSAPIError:
+            return NSLocalizedString("IPFS API Error", comment: "")
         case .IPFSInactiveError:
             return NSLocalizedString("IPFS Not Active Error", comment: "")
         case .EthereumError:

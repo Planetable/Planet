@@ -72,7 +72,7 @@ struct PFDashboardContentView: NSViewRepresentable {
         }
         
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
-            if await IPFSState.shared.online == false {
+            if !IPFSState.shared.online {
                 return (.cancel, preferences)
             }
             let noSelectionURL = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
@@ -80,7 +80,7 @@ struct PFDashboardContentView: NSViewRepresentable {
                 // handle requests from non-daemon servers with system browsers
                 if url.isFileURL {
                 } else if url == noSelectionURL {
-                } else if (url.host == "127.0.0.1" || url.host == "localhost") && UInt16(url.port ?? 0) == IPFSDaemon.shared.gatewayPort {
+                } else if (url.host == "127.0.0.1" || url.host == "localhost") && UInt16(url.port ?? 0) == IPFSState.shared.gatewayPort {
                 } else {
                     NSWorkspace.shared.open(url)
                     return (.cancel, preferences)
@@ -104,7 +104,7 @@ struct PFDashboardContentView: NSViewRepresentable {
             Task (priority: .userInitiated) {
                 guard currentURL.hasDirectoryPath else { return }
                 guard let _ = currentURL.scheme, let host = currentURL.host, let port = currentURL.port else { return }
-                if (host == "127.0.0.1" || host == "localhost") && UInt16(port) == IPFSDaemon.shared.gatewayPort {
+                if (host == "127.0.0.1" || host == "localhost") && UInt16(port) == IPFSState.shared.gatewayPort {
                     let indexPage = currentURL.appendingPathComponent("index.html")
                     do {
                         let request = URLRequest(url: indexPage, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 0.1)

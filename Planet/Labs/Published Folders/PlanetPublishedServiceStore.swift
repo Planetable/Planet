@@ -95,7 +95,7 @@ class PlanetPublishedServiceStore: ObservableObject {
     }
 
     func restoreSelectedFolderNavigation() {
-        if let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipns/\(publishedLink)") {
+        if let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSState.shared.getGateway())/ipns/\(publishedLink)") {
             NotificationCenter.default.post(name: .dashboardResetWebViewHistory, object: id)
             selectedFolderIDChanged = true
             NotificationCenter.default.post(name: .dashboardLoadPreviewURL, object: url)

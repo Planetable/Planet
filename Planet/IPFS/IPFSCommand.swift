@@ -223,7 +223,9 @@ struct IPFSCommand {
     }
 }
 
-struct IPFSMigration {
+
+// MARK: TODO: migration with offline patch files.
+struct IPFSMigrationCommand {
     static let repoVersion = 12
 
     static let RepoMigrationExecutableURL: URL = {

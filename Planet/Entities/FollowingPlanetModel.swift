@@ -89,7 +89,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
     var webviewURL: URL? {
         if let cid = cid {
-            return URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/")
+            return URL(string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)/")
         }
         return URL(string: link)
     }
@@ -377,7 +377,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     static func getPublicPlanet(from cid: String) async throws -> PublicPlanetModel? {
-        guard let planetURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/planet.json")
+        guard let planetURL = URL(string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)/planet.json")
         else {
             debugPrint("Get Public Planet from CID: Invalid URL")
             return nil
@@ -439,6 +439,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         Task {
             try await IPFSDaemon.shared.pin(cid: cid)
         }
+        let gateway = IPFSState.shared.getGateway()
         // update a native planet if a public planet is found
         if let publicPlanet = try await getPublicPlanet(from: cid) {
             Self.logger.info("Follow \(ens): found native planet \(publicPlanet.name)")
@@ -487,7 +488,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             else
             // try to find native planet avatar
             if let planetAvatarURL = URL(
-                string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/avatar.png"
+                string: "\(gateway)/ipfs/\(cid)/avatar.png"
             ),
                 let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
                 let httpResponse = response as? HTTPURLResponse,
@@ -516,7 +517,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
         debugPrint("Follow \(ens): did not find native planet.json")
         // did not get published planet file, try to get feed
-        guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/") else {
+        guard let feedURL = URL(string: "\(gateway)/ipfs/\(cid)/") else {
             throw PlanetError.InvalidPlanetURLError
         }
         let (feedData, htmlSoup) = try await FeedUtils.findFeed(url: feedURL)
@@ -649,6 +650,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     static func followDotBit(dotbit: String) async throws -> FollowingPlanetModel {
+        let gateway = IPFSState.shared.getGateway()
         guard let dweb = await DotBitKit.shared.resolve(dotbit) else {
             throw PlanetError.DotBitNoDWebRecordError
         }
@@ -669,7 +671,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             try await IPFSDaemon.shared.pin(cid: cid)
         }
         // update a native planet if a public planet is found
-        if let planetURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/planet.json"),
+        if let planetURL = URL(string: "\(gateway)/ipfs/\(cid)/planet.json"),
             let (planetData, planetResponse) = try? await URLSession.shared.data(from: planetURL),
             let httpResponse = planetResponse as? HTTPURLResponse,
             httpResponse.ok,
@@ -708,7 +710,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
             // try to find native planet avatar
             if let planetAvatarURL = URL(
-                string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/avatar.png"
+                string: "\(gateway)/ipfs/\(cid)/avatar.png"
             ),
                 let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
                 let httpResponse = response as? HTTPURLResponse,
@@ -725,7 +727,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             return planet
         }
         // did not get published planet file, try to get feed
-        guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/") else {
+        guard let feedURL = URL(string: "\(gateway)/ipfs/\(cid)/") else {
             throw PlanetError.InvalidPlanetURLError
         }
         let (feedData, htmlSoup) = try await FeedUtils.findFeed(url: feedURL)
@@ -905,11 +907,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     static func followIPNSorDNSLink(name: String) async throws -> FollowingPlanetModel {
         let planetType: PlanetType = ENSUtils.isIPNS(name) ? .planet : .dnslink
         let cid = try await IPFSDaemon.shared.resolveIPNSorDNSLink(name: name)
+        let gateway = IPFSState.shared.getGateway()
         Self.logger.info("Follow \(name): CID \(cid)")
         Task {
             try await IPFSDaemon.shared.pin(cid: cid)
         }
-        if let planetURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/planet.json"),
+        if let planetURL = URL(string: "\(gateway)/ipfs/\(cid)/planet.json"),
             let (planetData, planetResponse) = try? await URLSession.shared.data(from: planetURL),
             let httpResponse = planetResponse as? HTTPURLResponse,
             httpResponse.ok
@@ -950,7 +953,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
 
             if let planetAvatarURL = URL(
-                string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/avatar.png"
+                string: "\(gateway)/ipfs/\(cid)/avatar.png"
             ),
                 let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
                 let httpResponse = response as? HTTPURLResponse,
@@ -968,7 +971,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             return planet
         }
         // did not get published planet file, try to get feed
-        guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/") else {
+        guard let feedURL = URL(string: "\(gateway)/ipfs/\(cid)/") else {
             throw PlanetError.InvalidPlanetURLError
         }
         let (feedData, htmlSoup) = try await FeedUtils.findFeed(url: feedURL)
@@ -1074,6 +1077,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 isUpdating = false
             }
         }
+        let gateway = IPFSState.shared.getGateway()
         switch planetType {
         case .planet, .dnslink:
             let newCID = try await IPFSDaemon.shared.resolveIPNSorDNSLink(name: link)
@@ -1086,7 +1090,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             do {
                 let planetURL = URL(
-                    string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/planet.json"
+                    string: "\(gateway)/ipfs/\(newCID)/planet.json"
                 )!
                 let (planetData, planetResponse) = try await URLSession.shared.data(from: planetURL)
                 if let httpResponse = planetResponse as? HTTPURLResponse,
@@ -1114,7 +1118,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
 
                     if let planetAvatarURL = URL(
-                        string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/avatar.png"
+                        string: "\(gateway)/ipfs/\(newCID)/avatar.png"
                     ),
                         let (data, response) = try? await URLSession.shared.data(
                             from: planetAvatarURL
@@ -1142,7 +1146,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 // ignore
             }
             // did not get published planet file, try to get feed
-            guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/") else {
+            guard let feedURL = URL(string: "\(gateway)/ipfs/\(newCID)/") else {
                 throw PlanetError.InvalidPlanetURLError
             }
             let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
@@ -1227,7 +1231,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             do {
                 let planetURL = URL(
-                    string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/planet.json"
+                    string: "\(gateway)/ipfs/\(newCID)/planet.json"
                 )!
                 let (planetData, planetResponse) = try await URLSession.shared.data(from: planetURL)
                 if let httpResponse = planetResponse as? HTTPURLResponse,
@@ -1263,7 +1267,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         }
                     }
                     else if let planetAvatarURL = URL(
-                        string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/avatar.png"
+                        string: "\(gateway)/ipfs/\(newCID)/avatar.png"
                     ),
                         let (data, response) = try? await URLSession.shared.data(
                             from: planetAvatarURL
@@ -1299,7 +1303,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 // ignore
             }
             // did not get published planet file, try to get feed
-            guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/") else {
+            guard let feedURL = URL(string: "\(gateway)/ipfs/\(newCID)/") else {
                 throw PlanetError.InvalidPlanetURLError
             }
             Self.logger.info("Planet \(self.name) is finding feed at \(feedURL)")
@@ -1374,7 +1378,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             do {
                 let planetURL = URL(
-                    string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/planet.json"
+                    string: "\(gateway)/ipfs/\(newCID)/planet.json"
                 )!
                 let (planetData, planetResponse) = try await URLSession.shared.data(from: planetURL)
                 if let httpResponse = planetResponse as? HTTPURLResponse,
@@ -1398,7 +1402,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                     try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
 
                     if let planetAvatarURL = URL(
-                        string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/avatar.png"
+                        string: "\(gateway)/ipfs/\(newCID)/avatar.png"
                     ),
                         let (data, response) = try? await URLSession.shared.data(
                             from: planetAvatarURL
@@ -1434,7 +1438,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 // ignore
             }
             // did not get published planet file, try to get feed
-            guard let feedURL = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(newCID)/") else {
+            guard let feedURL = URL(string: "\(gateway)/ipfs/\(newCID)/") else {
                 throw PlanetError.InvalidPlanetURLError
             }
             Self.logger.info("Planet \(self.name) is finding feed at \(feedURL)")
@@ -1687,7 +1691,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         switch planetType {
         case .planet:
             if let planetAvatarURL = URL(
-                string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)/avatar.png"
+                string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)/avatar.png"
             ),
                 let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
                 let httpResponse = response as? HTTPURLResponse,

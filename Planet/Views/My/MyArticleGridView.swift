@@ -141,7 +141,7 @@ struct MyArticleGridView: View {
             if let attachments = article.attachments, let cids = article.cids {
                 ForEach(attachments, id: \.self) { attachment in
                     if let cid = cids[attachment],
-                        let url = URL(string: "\(IPFSDaemon.shared.gateway)/ipfs/\(cid)")
+                        let url = URL(string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)")
                     {
                         Button {
                             NSWorkspace.shared.open(url)

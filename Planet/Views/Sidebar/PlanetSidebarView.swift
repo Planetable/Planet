@@ -90,44 +90,65 @@ struct PlanetSidebarView: View {
             Divider()
 
             HStack(spacing: 6) {
-                Circle()
-                    .frame(width: 11, height: 11, alignment: .center)
-                    .foregroundColor(ipfsState.online ? Color.green : Color.red)
-                Text(ipfsState.online ? "Online (\(ipfsState.peers))" : "Offline")
-                    .font(.body)
+                if ipfsState.isOperating {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .controlSize(.small)
+                    Spacer()
+                } else {
+                    Circle()
+                        .frame(width: 11, height: 11, alignment: .center)
+                        .foregroundColor(ipfsState.online ? Color.green : Color.red)
+                    Text(ipfsState.online ? "Online (\(ipfsState.peers))" : "Offline")
+                        .font(.body)
 
-                Spacer()
+                    Spacer()
 
-                Menu {
-                    Button {
-                        planetStore.isCreatingPlanet = true
+                    Menu {
+                        Button {
+                            planetStore.isCreatingPlanet = true
+                        } label: {
+                            Label("Create Planet", systemImage: "plus")
+                        }
+                        .disabled(planetStore.isCreatingPlanet)
+
+                        Divider()
+
+                        Button {
+                            planetStore.isFollowingPlanet = true
+                        } label: {
+                            Label("Follow Planet", systemImage: "plus")
+                        }
                     } label: {
-                        Label("Create Planet", systemImage: "plus")
+                        Image(systemName: "plus")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24, alignment: .center)
                     }
-                    .disabled(planetStore.isCreatingPlanet)
-
-                    Divider()
-
-                    Button {
-                        planetStore.isFollowingPlanet = true
-                    } label: {
-                        Label("Follow Planet", systemImage: "plus")
-                    }
-                } label: {
-                    Image(systemName: "plus")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 24, height: 24, alignment: .center)
+                    .padding(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 0))
+                    .frame(width: 24, height: 24, alignment: .center)
+                    .menuStyle(BorderlessButtonMenuStyle())
+                    .menuIndicator(.hidden)
                 }
-                .padding(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 0))
-                .frame(width: 24, height: 24, alignment: .center)
-                .menuStyle(BorderlessButtonMenuStyle())
-                .menuIndicator(.hidden)
             }
             .frame(height: 44)
             .padding(.leading, 16)
             .padding(.trailing, 10)
             .background(Color.secondary.opacity(0.05))
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard !ipfsState.isOperating else { return }
+                Task { @MainActor in
+                    self.ipfsState.isShowingStatus.toggle()
+                }
+            }
+            .popover(
+                isPresented: $ipfsState.isShowingStatus,
+                arrowEdge: .top
+            ) {
+                IPFSStatusView()
+                    .environmentObject(ipfsState)
+            }
         }
         .sheet(isPresented: $planetStore.isFollowingPlanet) {
             FollowPlanetView()
