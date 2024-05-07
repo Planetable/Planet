@@ -59,4 +59,5 @@ struct BackupMyPlanetModel: Codable {
     let reuseOriginalID: Bool?
     let saveRoundAvatar: Bool?
     let doNotIndex: Bool?
+    let prewarmNewPost: Bool?
 }

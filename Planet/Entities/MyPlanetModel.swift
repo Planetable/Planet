@@ -96,6 +96,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     /// Ask search engines not to index the site
     @Published var doNotIndex: Bool? = false
 
+    /// Prewarm new post on public gateway
+    @Published var prewarmNewPost: Bool? = true
+
     static func myPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
@@ -431,6 +434,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         hasher.combine(saveRoundAvatar)
         hasher.combine(doNotIndex)
+        hasher.combine(prewarmNewPost)
     }
 
     static func == (lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
@@ -496,6 +500,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.reuseOriginalID == rhs.reuseOriginalID
             && lhs.saveRoundAvatar == rhs.saveRoundAvatar
             && lhs.doNotIndex == rhs.doNotIndex
+            && lhs.prewarmNewPost == rhs.prewarmNewPost
     }
 
     enum CodingKeys: String, CodingKey {
@@ -516,7 +521,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             tags,
             aggregation, reuseOriginalID,
             saveRoundAvatar,
-            doNotIndex
+            doNotIndex,
+            prewarmNewPost
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -603,6 +609,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Bool.self,
             forKey: .doNotIndex
         )
+        prewarmNewPost = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .prewarmNewPost
+        )
     }
 
     func encode(to encoder: Encoder) throws {
@@ -660,6 +670,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(reuseOriginalID, forKey: .reuseOriginalID)
         try container.encodeIfPresent(saveRoundAvatar, forKey: .saveRoundAvatar)
         try container.encodeIfPresent(doNotIndex, forKey: .doNotIndex)
+        try container.encodeIfPresent(prewarmNewPost, forKey: .prewarmNewPost)
     }
 
     init(
@@ -985,6 +996,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         // Restore doNotIndex
         planet.doNotIndex = backupPlanet.doNotIndex
+
+        // Restore prewarmNewPost
+        planet.prewarmNewPost = backupPlanet.prewarmNewPost
 
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
@@ -1894,7 +1908,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             aggregation: aggregation,
             reuseOriginalID: reuseOriginalID,
             saveRoundAvatar: saveRoundAvatar,
-            doNotIndex: doNotIndex
+            doNotIndex: doNotIndex,
+            prewarmNewPost: prewarmNewPost
         )
         do {
             try FileManager.default.copyItem(at: publicBasePath, to: exportPath)

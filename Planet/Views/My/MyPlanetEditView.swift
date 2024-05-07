@@ -19,6 +19,7 @@ struct MyPlanetEditView: View {
     @State private var templateName: String
     @State private var saveRoundAvatar: Bool = false
     @State private var doNotIndex: Bool = false
+    @State private var prewarmNewPost: Bool = true
 
     @State private var plausibleEnabled: Bool = false
     @State private var plausibleDomain: String
@@ -68,6 +69,7 @@ struct MyPlanetEditView: View {
         _templateName = State(wrappedValue: planet.templateName)
         _saveRoundAvatar = State(wrappedValue: planet.saveRoundAvatar ?? false)
         _doNotIndex = State(wrappedValue: planet.doNotIndex ?? false)
+        _prewarmNewPost = State(wrappedValue: planet.prewarmNewPost ?? true)
         _plausibleEnabled = State(wrappedValue: planet.plausibleEnabled ?? false)
         _plausibleDomain = State(wrappedValue: planet.plausibleDomain ?? "")
         _plausibleAPIKey = State(wrappedValue: planet.plausibleAPIKey ?? "")
@@ -607,12 +609,22 @@ struct MyPlanetEditView: View {
                                 .frame(alignment: .leading)
                             Spacer()
                         }
-                        
+
                         HStack {
                             HStack {
                                 Spacer()
                             }.frame(width: CONTROL_CAPTION_WIDTH + 10)
                             Toggle("Ask search engine not to index the site", isOn: $doNotIndex)
+                                .toggleStyle(.checkbox)
+                                .frame(alignment: .leading)
+                            Spacer()
+                        }
+
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }.frame(width: CONTROL_CAPTION_WIDTH + 10)
+                            Toggle("Prewarm new post on public gateways", isOn: $prewarmNewPost)
                                 .toggleStyle(.checkbox)
                                 .frame(alignment: .leading)
                             Spacer()
