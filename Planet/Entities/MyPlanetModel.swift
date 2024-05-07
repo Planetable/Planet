@@ -93,6 +93,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     /// Save round version of avatar image on disk
     @Published var saveRoundAvatar: Bool? = false
 
+    /// Ask search engines not to index the site
+    @Published var doNotIndex: Bool? = false
+
     static func myPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
@@ -163,6 +166,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             self.id.uuidString,
             isDirectory: true
         ).appendingPathComponent("planet.json", isDirectory: false)
+    }
+    var publicRobotsTxtPath: URL {
+        return Self.publicPlanetsPath().appendingPathComponent(
+            self.id.uuidString,
+            isDirectory: true
+        ).appendingPathComponent("robots.txt", isDirectory: false)
     }
     var publicAvatarPath: URL {
         return Self.publicPlanetsPath().appendingPathComponent(
@@ -421,6 +430,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(reuseOriginalID)
 
         hasher.combine(saveRoundAvatar)
+        hasher.combine(doNotIndex)
     }
 
     static func == (lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
@@ -485,6 +495,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.aggregation == rhs.aggregation
             && lhs.reuseOriginalID == rhs.reuseOriginalID
             && lhs.saveRoundAvatar == rhs.saveRoundAvatar
+            && lhs.doNotIndex == rhs.doNotIndex
     }
 
     enum CodingKeys: String, CodingKey {
@@ -504,7 +515,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli,
             tags,
             aggregation, reuseOriginalID,
-            saveRoundAvatar
+            saveRoundAvatar,
+            doNotIndex
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -587,6 +599,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Bool.self,
             forKey: .saveRoundAvatar
         )
+        doNotIndex = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .doNotIndex
+        )
     }
 
     func encode(to encoder: Encoder) throws {
@@ -643,6 +659,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(aggregation, forKey: .aggregation)
         try container.encodeIfPresent(reuseOriginalID, forKey: .reuseOriginalID)
         try container.encodeIfPresent(saveRoundAvatar, forKey: .saveRoundAvatar)
+        try container.encodeIfPresent(doNotIndex, forKey: .doNotIndex)
     }
 
     init(
@@ -965,6 +982,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         // Restore saveRoundAvatar
         planet.saveRoundAvatar = backupPlanet.saveRoundAvatar
+
+        // Restore doNotIndex
+        planet.doNotIndex = backupPlanet.doNotIndex
 
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
@@ -1624,6 +1644,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         // MARK: - Save planet.json
         let info = try JSONEncoder.shared.encode(publicPlanet)
         try info.write(to: publicInfoPath)
+
+        // MARK: - Save robots.txt
+        saveRobotsTxt()
+    }
+
+    func saveRobotsTxt() {
+        let robotsTxt: String
+        if let doNotIndex = doNotIndex, doNotIndex {
+            robotsTxt = "User-agent: *\nDisallow: /"
+        }
+        else {
+            robotsTxt = ""
+        }
+        try? robotsTxt.data(using: .utf8)?.write(to: publicRobotsTxtPath)
     }
 
     func publish() async throws {
@@ -1859,7 +1893,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             tags: tags,
             aggregation: aggregation,
             reuseOriginalID: reuseOriginalID,
-            saveRoundAvatar: saveRoundAvatar
+            saveRoundAvatar: saveRoundAvatar,
+            doNotIndex: doNotIndex
         )
         do {
             try FileManager.default.copyItem(at: publicBasePath, to: exportPath)

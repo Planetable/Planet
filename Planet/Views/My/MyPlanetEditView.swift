@@ -18,6 +18,7 @@ struct MyPlanetEditView: View {
     @State private var authorName: String
     @State private var templateName: String
     @State private var saveRoundAvatar: Bool = false
+    @State private var doNotIndex: Bool = false
 
     @State private var plausibleEnabled: Bool = false
     @State private var plausibleDomain: String
@@ -66,6 +67,7 @@ struct MyPlanetEditView: View {
         _authorName = State(wrappedValue: planet.authorName ?? "")
         _templateName = State(wrappedValue: planet.templateName)
         _saveRoundAvatar = State(wrappedValue: planet.saveRoundAvatar ?? false)
+        _doNotIndex = State(wrappedValue: planet.doNotIndex ?? false)
         _plausibleEnabled = State(wrappedValue: planet.plausibleEnabled ?? false)
         _plausibleDomain = State(wrappedValue: planet.plausibleDomain ?? "")
         _plausibleAPIKey = State(wrappedValue: planet.plausibleAPIKey ?? "")
@@ -605,6 +607,16 @@ struct MyPlanetEditView: View {
                                 .frame(alignment: .leading)
                             Spacer()
                         }
+                        
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }.frame(width: CONTROL_CAPTION_WIDTH + 10)
+                            Toggle("Ask search engine not to index the site", isOn: $doNotIndex)
+                                .toggleStyle(.checkbox)
+                                .frame(alignment: .leading)
+                            Spacer()
+                        }
                     }
                     .padding(16)
                     .tabItem {
@@ -753,6 +765,7 @@ struct MyPlanetEditView: View {
                         }
                         planet.templateName = templateName
                         planet.saveRoundAvatar = saveRoundAvatar
+                        planet.doNotIndex = doNotIndex
                         planet.plausibleEnabled = plausibleEnabled
                         planet.plausibleDomain = plausibleDomain.trim()
                         planet.plausibleAPIKey = plausibleAPIKey

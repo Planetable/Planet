@@ -230,26 +230,21 @@ struct MyArticleItemView: View {
             isPresented: $isShowingDeleteConfirmation
         ) {
             Button(role: .destructive) {
-                do {
-                    if let planet = article.planet {
-                        try article.delete()
-                        planet.updated = Date()
-                        Task {
-                            try planet.save()
-                            try await planet.savePublic()
-                        }
-                        if PlanetStore.shared.selectedArticle == article {
-                            PlanetStore.shared.selectedArticle = nil
-                        }
-                        if let selectedArticles = PlanetStore.shared.selectedArticleList,
-                            selectedArticles.contains(article)
-                        {
-                            PlanetStore.shared.refreshSelectedArticles()
-                        }
+                if let planet = article.planet {
+                    article.delete()
+                    planet.updated = Date()
+                    Task {
+                        try planet.save()
+                        try await planet.savePublic()
                     }
-                }
-                catch {
-                    PlanetStore.shared.alert(title: "Failed to delete article: \(error)")
+                    if PlanetStore.shared.selectedArticle == article {
+                        PlanetStore.shared.selectedArticle = nil
+                    }
+                    if let selectedArticles = PlanetStore.shared.selectedArticleList,
+                        selectedArticles.contains(article)
+                    {
+                        PlanetStore.shared.refreshSelectedArticles()
+                    }
                 }
             } label: {
                 Text("Delete")

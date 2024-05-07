@@ -58,4 +58,5 @@ struct BackupMyPlanetModel: Codable {
     let aggregation: [String]?
     let reuseOriginalID: Bool?
     let saveRoundAvatar: Bool?
+    let doNotIndex: Bool?
 }
