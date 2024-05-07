@@ -104,19 +104,7 @@ struct MyPlanetSidebarItem: View {
             developMenu()
 
             Group {
-                Button {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString("planet://\(planet.ipns)", forType: .string)
-                } label: {
-                    Text("Copy URL")
-                }
-
-                Button {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(planet.ipns, forType: .string)
-                } label: {
-                    Text("Copy IPNS")
-                }
+                copyMenu()
 
                 Button {
                     Task {
@@ -322,6 +310,32 @@ struct MyPlanetSidebarItem: View {
             configuration: self.openConfiguration(),
             completionHandler: nil
         )
+    }
+
+    @ViewBuilder
+    private func copyMenu() -> some View {
+        Button {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString("planet://\(planet.ipns)", forType: .string)
+        } label: {
+            Text("Copy URL")
+        }
+
+        Button {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(planet.ipns, forType: .string)
+        } label: {
+            Text("Copy IPNS")
+        }
+
+        if let cid = planet.lastPublishedCID {
+            Button {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(cid, forType: .string)
+            } label: {
+                Text("Copy CID")
+            }
+        }
     }
 
     @ViewBuilder

@@ -39,6 +39,15 @@ struct FollowingPlanetSidebarItem: View {
                     Text("Mark All as Read")
                 }
 
+                if let cid = planet.cid {
+                    Button {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(cid, forType: .string)
+                    } label: {
+                        Text("Copy CID")
+                    }
+                }
+
                 Button {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(planet.shareLink.absoluteString, forType: .string)
