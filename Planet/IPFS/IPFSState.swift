@@ -6,6 +6,7 @@ class IPFSState: ObservableObject {
     static let shared = IPFSState()
 
     static let refreshRate: TimeInterval = 30
+    static let lastUserLaunchState: String = "PlanetIPFSLastUserLaunchStateKey"
 
     @Published var isShowingStatus = false
 
@@ -21,7 +22,9 @@ class IPFSState: ObservableObject {
         Task(priority: .userInitiated) {
             do {
                 await IPFSDaemon.shared.setupIPFS()
-                try await IPFSDaemon.shared.launch()
+                if self.shouldAutoLaunchDaemon() {
+                    try await IPFSDaemon.shared.launch()
+                }
             } catch {
                 debugPrint("Failed to launch: \(error.localizedDescription), will try again shortly.")
             }
@@ -110,7 +113,7 @@ class IPFSState: ObservableObject {
         }
     }
 
-   func updateAppSettings() {
+    func updateAppSettings() {
         // refresh published folders
         Task.detached(priority: .utility) { @MainActor in
             PlanetPublishedServiceStore.shared.reloadPublishedFolders()
@@ -133,5 +136,14 @@ class IPFSState: ObservableObject {
         Task.detached(priority: .utility) { @MainActor in
             NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
         }
+    }
+
+    // MARK: -
+
+    private func shouldAutoLaunchDaemon() -> Bool {
+        if UserDefaults.standard.value(forKey: Self.lastUserLaunchState) != nil, !UserDefaults.standard.bool(forKey: Self.lastUserLaunchState) {
+            return false
+        }
+        return true
     }
 }
