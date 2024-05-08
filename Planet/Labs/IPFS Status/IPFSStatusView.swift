@@ -45,6 +45,7 @@ struct IPFSStatusView: View {
                                 await MainActor.run {
                                     self.isDaemonOnline = newValue
                                 }
+                                UserDefaults.standard.setValue(newValue, forKey: IPFSState.lastUserLaunchState)
                             }
                         }
                 }
