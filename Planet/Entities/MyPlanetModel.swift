@@ -1742,16 +1742,21 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             timeout: 600
         )
         let published = try JSONDecoder.shared.decode(IPFSPublished.self, from: result)
-        Self.logger.info("Published planet \(self.id) to \(published.name)")
-        Task { @MainActor in
-            self.lastPublished = Date()
-            self.lastPublishedCID = cid
-            try self.save()
+        Self.logger.info("Published planet \(published.name): \(cid)")
+        Task.detached(priority: .background) { @MainActor in
+            if cid != self.lastPublishedCID {
+                self.lastPublished = Date()
+                self.lastPublishedCID = cid
+                try self.save()
+                Task.detached(priority: .utility) {
+                    await self.sendNotificationForNewCID(cid: cid)
+                }
+            }
         }
-        Task(priority: .background) {
+        Task.detached(priority: .background) {
             await self.prewarm()
         }
-        Task(priority: .background) {
+        Task.detached(priority: .background) {
             await self.callPinnable()
         }
     }
@@ -2147,6 +2152,25 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let notification = UNMutableNotificationContent()
         notification.title = "Planet Rebuilt"
         notification.subtitle = self.name
+        notification.interruptionLevel = .active
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: id.uuidString,
+            content: notification,
+            trigger: trigger
+        )
+        try? await UNUserNotificationCenter.current().add(request)
+    }
+
+    func sendNotificationForNewCID(cid: String) async {
+        let notification = UNMutableNotificationContent()
+        notification.title = self.name + ": Planet Published"
+        notification.subtitle = "CID: " + cid
+
+        if let attachment = try? UNNotificationAttachment(identifier: "image", url: publicAvatarPath.absoluteURL, options: nil) {
+            notification.attachments = [attachment]
+        }
+
         notification.interruptionLevel = .active
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
         let request = UNNotificationRequest(
