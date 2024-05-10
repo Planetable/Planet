@@ -397,7 +397,7 @@ extension MyPlanetModel {
                         }
                         DispatchQueue.main.async {
                             self.articles.append(newArticle)
-                            self.articles.sort(by: { $0.created > $1.created })
+                            self.articles.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
                             PlanetStore.shared.refreshSelectedArticles()
                         }
                     }
@@ -502,7 +502,7 @@ extension MyPlanetModel {
                             }
                             DispatchQueue.main.async {
                                 self.articles.append(newArticle)
-                                self.articles.sort(by: { $0.created > $1.created })
+                                self.articles.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
                                 PlanetStore.shared.refreshSelectedArticles()
                             }
                         }

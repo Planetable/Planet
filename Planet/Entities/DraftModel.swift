@@ -413,7 +413,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             }
             // reorder articles after editing.
             var articles = planet.articles
-            articles?.sort(by: { $0.created > $1.created })
+            articles?.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
             planet.articles = articles
         }
         try FileManager.default.contentsOfDirectory(
