@@ -39,44 +39,46 @@ struct PlanetSettingsGeneralView: View {
         Form {
             Section {
                 VStack(spacing: 20) {
-                    HStack(spacing: 12) {
-                        Text("Library Location")
-                            .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)
-                        Text(libraryLocation)
-                            .lineLimit(3)
-                            .onTapGesture {
-                                let url = URL(fileURLWithPath: libraryLocation)
-                                NSWorkspace.shared.open(url)
+                    if PlanetStore.app == .planet {
+                        HStack(spacing: 12) {
+                            Text("Library Location")
+                                .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)
+                            Text(libraryLocation)
+                                .lineLimit(3)
+                                .onTapGesture {
+                                    let url = URL(fileURLWithPath: libraryLocation)
+                                    NSWorkspace.shared.open(url)
+                                }
+                            Spacer(minLength: 1)
+                        }
+                        HStack(spacing: 12) {
+                            Spacer()
+                                .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)
+                            Button {
+                                do {
+                                    try updateLibraryLocation()
+                                } catch {
+                                    resetLibraryLocation()
+                                    let alert = NSAlert()
+                                    alert.messageText = "Failed to Change Library Location"
+                                    alert.informativeText = error.localizedDescription
+                                    alert.alertStyle = .informational
+                                    alert.addButton(withTitle: "OK")
+                                    alert.runModal()
+                                }
+                            } label: {
+                                Text("Change...")
                             }
-                        Spacer(minLength: 1)
-                    }
-                    HStack(spacing: 12) {
-                        Spacer()
-                            .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)
-                        Button {
-                            do {
-                                try updateLibraryLocation()
-                            } catch {
+                            Button {
                                 resetLibraryLocation()
-                                let alert = NSAlert()
-                                alert.messageText = "Failed to Change Library Location"
-                                alert.informativeText = error.localizedDescription
-                                alert.alertStyle = .informational
-                                alert.addButton(withTitle: "OK")
-                                alert.runModal()
+                            } label: {
+                                Text("Reset")
                             }
-                        } label: {
-                            Text("Change...")
+                            .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
+                            Spacer()
                         }
-                        Button {
-                            resetLibraryLocation()
-                        } label: {
-                            Text("Reset")
-                        }
-                        .disabled(URLUtils.repoPath() == URLUtils.defaultRepoPath)
-                        Spacer()
+                        .padding(.top, -10)
                     }
-                    .padding(.top, -10)
 
                     // Obsoleted by ipfs2.eth.limo
                     /*
@@ -113,32 +115,32 @@ struct PlanetSettingsGeneralView: View {
                         }
                     }
 
-                    VStack {
-                        HStack(spacing: 4) {
-                            Text("Ethereum Network")
-                                .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)
-                            Picker(selection: $ethereumChainId, label: Text("")) {
-                                ForEach(EthereumChainID.allCases, id: \.id) { value in
-                                    Text(
-                                        "\(EthereumChainID.names[value.rawValue] ?? "Unknown Chain ID \(value.rawValue)")"
-                                    )
-                                    .tag(value)
+                    if PlanetStore.app == .planet {
+                        VStack {
+                            HStack(spacing: 4) {
+                                Text("Ethereum Network")
+                                    .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)
+                                Picker(selection: $ethereumChainId, label: Text("")) {
+                                    ForEach(EthereumChainID.allCases, id: \.id) { value in
+                                        Text(
+                                            "\(EthereumChainID.names[value.rawValue] ?? "Unknown Chain ID \(value.rawValue)")"
+                                        )
+                                        .tag(value)
+                                    }
                                 }
+                                .pickerStyle(.segmented)
                             }
-                            .pickerStyle(.segmented)
+                            HStack {
+                                Text("")
+                                    .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH)
+                                Text(
+                                    "When you tip a creator, transactions will be sent to the selected Ethereum network."
+                                )
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                            }
                         }
-                        HStack {
-                            Text("")
-                                .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH)
-                            Text(
-                                "When you tip a creator, transactions will be sent to the selected Ethereum network."
-                            )
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                        }
-
                     }
-
                 }
             }
 

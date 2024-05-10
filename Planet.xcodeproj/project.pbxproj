@@ -381,6 +381,8 @@
 		6A900193296C9F3800BC088E /* MyArticleSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */; };
 		6A941CED2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A941CEC2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift */; };
 		6A941CEE2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A941CEC2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift */; };
+		6A98E54C2BEDA2590008E3A4 /* PlanetSettingsGeneralView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE44EAB28CD218200944786 /* PlanetSettingsGeneralView.swift */; };
+		6A98E54D2BEDA2910008E3A4 /* PlanetSettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE44EAF28CD223C00944786 /* PlanetSettingsViewModel.swift */; };
 		6A9C211029792464005A815E /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A9C210F29792464005A815E /* AVKit.framework */; };
 		6AA2C2022AFF538B00F6C633 /* MyArticleGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA2C2012AFF538B00F6C633 /* MyArticleGridView.swift */; };
 		6AA2C2032AFF538B00F6C633 /* MyArticleGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA2C2012AFF538B00F6C633 /* MyArticleGridView.swift */; };
@@ -1858,9 +1860,11 @@
 				2A95E6422A19A31D001288B8 /* PlanetQuickShareViewModel.swift in Sources */,
 				2A95E6872A19A3CA001288B8 /* WriterTitleView.swift in Sources */,
 				2A95E65F2A19A3AA001288B8 /* TemplatePreviewView.swift in Sources */,
+				6A98E54D2BEDA2910008E3A4 /* PlanetSettingsViewModel.swift in Sources */,
 				2A95E68E2A19A3D0001288B8 /* PlanetKeyManagerViewModel.swift in Sources */,
 				2A4AE87B2A89EF3600A27B5B /* GroupIndicatorView.swift in Sources */,
 				2A95E6DF2A19A521001288B8 /* Plausible.swift in Sources */,
+				6A98E54C2BEDA2590008E3A4 /* PlanetSettingsGeneralView.swift in Sources */,
 				2A95E6FD2A1B003D001288B8 /* MyPlanetEditView.swift in Sources */,
 				2A996AD62A1DA6C700BEF898 /* PlanetDownloadsViewModel.swift in Sources */,
 				2A466FD22A809E2C009FB646 /* IndicatorViews.swift in Sources */,
