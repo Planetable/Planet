@@ -497,6 +497,16 @@ struct MyPlanetEditView: View {
 
                         HStack {
                             HStack {
+                                Spacer()
+                            }.frame(width: CONTROL_CAPTION_WIDTH + 10)
+                            Toggle("Save circularized avatar image on disk", isOn: $saveRoundAvatar)
+                                .toggleStyle(.checkbox)
+                                .frame(alignment: .leading)
+                            Spacer()
+                        }
+
+                        HStack {
+                            HStack {
                                 Text("Site Name")
                                 Spacer()
                             }
@@ -530,6 +540,16 @@ struct MyPlanetEditView: View {
                             .font(.footnote)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        HStack {
+                            HStack {
+                                Spacer()
+                            }.frame(width: CONTROL_CAPTION_WIDTH + 10)
+                            Toggle("Ask search engine not to index the site", isOn: $doNotIndex)
+                                .toggleStyle(.checkbox)
+                                .frame(alignment: .leading)
+                            Spacer()
                         }
 
                         HStack {
@@ -591,33 +611,13 @@ struct MyPlanetEditView: View {
                                 .frame(width: CONTROL_CAPTION_WIDTH - 10)
 
                                 ColorPicker("", selection: $selectedColor)
-                                .onChange(of: selectedColor) { color in
-                                    let hex = color.toHexString()
-                                    userSettings["highlightColor"] = hex
-                                }
+                                    .onChange(of: selectedColor) { color in
+                                        let hex = color.toHexString()
+                                        userSettings["highlightColor"] = hex
+                                    }
 
                                 Spacer()
                             }
-                        }
-
-                        HStack {
-                            HStack {
-                                Spacer()
-                            }.frame(width: CONTROL_CAPTION_WIDTH + 10)
-                            Toggle("Save circularized avatar image on disk", isOn: $saveRoundAvatar)
-                                .toggleStyle(.checkbox)
-                                .frame(alignment: .leading)
-                            Spacer()
-                        }
-
-                        HStack {
-                            HStack {
-                                Spacer()
-                            }.frame(width: CONTROL_CAPTION_WIDTH + 10)
-                            Toggle("Ask search engine not to index the site", isOn: $doNotIndex)
-                                .toggleStyle(.checkbox)
-                                .frame(alignment: .leading)
-                            Spacer()
                         }
 
                         HStack {
