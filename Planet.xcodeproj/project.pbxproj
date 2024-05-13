@@ -2490,7 +2490,7 @@
 			repositoryURL = "https://github.com/airwolfspace/mediaview";
 			requirement = {
 				kind = exactVersion;
-				version = 1.1.3;
+				version = 1.1.4;
 			};
 		};
 		6A2A4D2A2A86422700F4491A /* XCRemoteSwiftPackageReference "WrappingHStack" */ = {
