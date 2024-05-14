@@ -29,7 +29,7 @@ struct IPFSStatusView: View {
                 .padding(.top, 12)
 
             VStack(spacing: 0) {
-                HStack {
+                HStack(spacing: 6) {
                     Circle()
                         .frame(width: 11, height: 11, alignment: .center)
                         .foregroundColor(ipfsState.online ? Color.green : Color.red)
