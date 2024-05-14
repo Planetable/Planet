@@ -1,5 +1,4 @@
 import Foundation
-import os
 
 
 class IPFSState: ObservableObject {
@@ -15,6 +14,8 @@ class IPFSState: ObservableObject {
     @Published private(set) var apiPort: UInt16 = 5981
     @Published private(set) var gatewayPort: UInt16 = 18181
     @Published private(set) var swarmPort: UInt16 = 4001
+
+    @Published private(set) var serverInfo: ServerInfo?
 
     init() {
         debugPrint("IPFS State Manager Init")
@@ -56,6 +57,12 @@ class IPFSState: ObservableObject {
     func updateGatewayPort(_ port: UInt16) {
         self.gatewayPort = port
     }
+    
+    @MainActor
+    func updateServerInfo(_ info: ServerInfo) {
+        self.serverInfo = info
+        debugPrint("Updated ServerInfo: \(info)")
+    }
 
     func getGateway() -> String {
         return "http://127.0.0.1:\(gatewayPort)"
@@ -87,7 +94,9 @@ class IPFSState: ObservableObject {
 
         // update current peers
         if onlineStatus {
-            await PlanetStore.shared.updateServerInfo()
+            Task.detached(priority: .background) {
+                await self.updateServerInfo()
+            }
         }
 
         await MainActor.run {
@@ -127,5 +136,44 @@ class IPFSState: ObservableObject {
             return false
         }
         return true
+    }
+    
+    private func updateServerInfo() async {
+        var hostName: String = ""
+        if let host = Host.current().localizedName {
+            hostName = host
+        }
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        var ipfsPeerID = ""
+        do {
+            let data = try await IPFSDaemon.shared.api(path: "id")
+            let decoder = JSONDecoder()
+            let idInfo = try decoder.decode(IPFSID.self, from: data)
+            ipfsPeerID = idInfo.id
+        } catch {
+            ipfsPeerID = ""
+        }
+        var ipfsVersion = ""
+        do {
+            let data = try await IPFSDaemon.shared.api(path: "version")
+            let decoder = JSONDecoder()
+            let versionInfo = try decoder.decode(IPFSVersion.self, from: data)
+            ipfsVersion = versionInfo.version
+        } catch {
+            ipfsVersion = ""
+        }
+        var peers = 0
+        do {
+            let data = try await IPFSDaemon.shared.api(path: "swarm/peers")
+            let decoder = JSONDecoder()
+            let swarmPeers = try decoder.decode(IPFSPeers.self, from: data)
+            peers = swarmPeers.peers?.count ?? 0
+        } catch {
+            peers = 0
+        }
+        let info = ServerInfo(hostName: hostName, version: version, ipfsPeerID: ipfsPeerID, ipfsVersion: ipfsVersion, ipfsPeerCount: peers)
+        Task { @MainActor in
+            self.updateServerInfo(info)
+        }
     }
 }
