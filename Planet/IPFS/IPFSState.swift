@@ -5,14 +5,13 @@ import os
 class IPFSState: ObservableObject {
     static let shared = IPFSState()
 
-    static let refreshRate: TimeInterval = 30
+    static let refreshRate: TimeInterval = 20
     static let lastUserLaunchState: String = "PlanetIPFSLastUserLaunchStateKey"
 
     @Published var isShowingStatus = false
 
     @Published private(set) var isOperating = false
     @Published private(set) var online = false
-    @Published private(set) var peers: UInt16 = 0
     @Published private(set) var apiPort: UInt16 = 5981
     @Published private(set) var gatewayPort: UInt16 = 18181
     @Published private(set) var swarmPort: UInt16 = 4001
@@ -89,23 +88,6 @@ class IPFSState: ObservableObject {
         // update current peers
         if onlineStatus {
             await PlanetStore.shared.updateServerInfo()
-            do {
-                let data = try await IPFSDaemon.shared.api(path: "swarm/peers")
-                let decoder = JSONDecoder()
-                let swarmPeers = try decoder.decode(IPFSPeers.self, from: data)
-                await MainActor.run {
-                    self.peers = UInt16(swarmPeers.peers?.count ?? 0)
-                }
-            }
-            catch {
-                await MainActor.run {
-                    self.peers = 0
-                }
-            }
-        } else {
-            await MainActor.run {
-                self.peers = 0
-            }
         }
 
         await MainActor.run {
