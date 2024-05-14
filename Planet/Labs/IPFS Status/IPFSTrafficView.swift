@@ -13,6 +13,7 @@ struct IPFSTrafficView: View {
     var body: some View {
         VStack {
             Text("Traffic View")
+                .foregroundStyle(Color.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.secondary.opacity(0.1))

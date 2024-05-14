@@ -10,6 +10,7 @@ struct IPFSStatusView: View {
     @EnvironmentObject private var ipfsState: IPFSState
 
     @State private var isDaemonOnline: Bool = IPFSState.shared.online
+    @State private var isCalculatingRepoSize: Bool = false
     @State private var repoSize: Int64?
 
     var body: some View {
@@ -19,6 +20,7 @@ struct IPFSStatusView: View {
                 .padding(.top, 12)
 
             IPFSTrafficView()
+                .environmentObject(ipfsState)
                 .frame(height: 96)
                 .padding(.horizontal, 12)
                 .padding(.top, 12)
@@ -65,9 +67,15 @@ struct IPFSStatusView: View {
         }
         .padding(0)
         .frame(width: 280)
-        .task {
+        .onAppear {
             Task.detached(priority: .background) {
+                await MainActor.run {
+                    self.isCalculatingRepoSize = true
+                }
                 await self.calculateRepoSize()
+                await MainActor.run {
+                    self.isCalculatingRepoSize = false
+                }
             }
         }
     }
@@ -85,14 +93,20 @@ struct IPFSStatusView: View {
             HStack {
                 Text("Repo Size")
                 Spacer(minLength: 1)
-                if let repoSize {
-                    let formatter = {
-                        let byteCountFormatter = ByteCountFormatter()
-                        byteCountFormatter.allowedUnits = .useAll
-                        byteCountFormatter.countStyle = .file
-                        return byteCountFormatter
-                    }()
-                    Text(formatter.string(fromByteCount: repoSize))
+                if isCalculatingRepoSize {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .controlSize(.mini)
+                } else {
+                    if let repoSize {
+                        let formatter = {
+                            let byteCountFormatter = ByteCountFormatter()
+                            byteCountFormatter.allowedUnits = .useAll
+                            byteCountFormatter.countStyle = .file
+                            return byteCountFormatter
+                        }()
+                        Text(formatter.string(fromByteCount: repoSize))
+                    }
                 }
             }
             HStack {
