@@ -9,7 +9,6 @@ import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 
-
 class KeyboardShortcutHelper: ObservableObject {
     static let shared = KeyboardShortcutHelper()
 
@@ -47,13 +46,16 @@ class KeyboardShortcutHelper: ObservableObject {
             }
             .disabled(!updater.canCheckForUpdates)
 
+            Divider()
+
             if PlanetStore.shared.hasWalletAddress() {
                 Button {
                     PlanetStore.shared.isShowingWalletDisconnectConfirmation = true
                 } label: {
                     Text("Disconnect Wallet")
                 }
-            } else {
+            }
+            else {
                 Button {
                     WalletManager.shared.connectV1()
                 } label: {
@@ -132,7 +134,9 @@ class KeyboardShortcutHelper: ObservableObject {
                 } label: {
                     Text("Remove Attachments")
                 }
-                .disabled(activeWriterWindow == nil || activeWriterWindow?.draft.attachments.count == 0)
+                .disabled(
+                    activeWriterWindow == nil || activeWriterWindow?.draft.attachments.count == 0
+                )
             }
         }
     }
@@ -195,7 +199,8 @@ class KeyboardShortcutHelper: ObservableObject {
                                 PlanetStore.shared.selectedArticle = nil
                                 PlanetStore.shared.selectedArticleList = nil
                                 PlanetStore.shared.refreshSelectedArticles()
-                            } catch {
+                            }
+                            catch {
                                 debugPrint("failed to reload: \(error)")
                             }
                         }
@@ -209,7 +214,8 @@ class KeyboardShortcutHelper: ObservableObject {
                     Task(priority: .background) {
                         do {
                             try await self.activeMyPlanet?.quickRebuild()
-                        } catch {
+                        }
+                        catch {
                             Task { @MainActor in
                                 PlanetStore.shared.isShowingAlert = true
                                 PlanetStore.shared.alertTitle = "Failed to Quick Rebuild Planet"
@@ -227,7 +233,8 @@ class KeyboardShortcutHelper: ObservableObject {
                     Task(priority: .background) {
                         do {
                             try await self.activeMyPlanet?.rebuild()
-                        } catch {
+                        }
+                        catch {
                             Task { @MainActor in
                                 PlanetStore.shared.isShowingAlert = true
                                 PlanetStore.shared.alertTitle = "Failed to Rebuild Planet"
@@ -278,12 +285,14 @@ class KeyboardShortcutHelper: ObservableObject {
         Task { @MainActor in
             do {
                 try await MyArticleModel.importArticles(fromURLs: panel.urls)
-            } catch {
+            }
+            catch {
                 PlanetStore.shared.isShowingAlert = true
                 PlanetStore.shared.alertTitle = "Failed to Import Articles"
                 switch error {
                 case PlanetError.ImportPlanetArticlePublishingError:
-                    PlanetStore.shared.alertMessage = "Planet is publishing progress, please try again later."
+                    PlanetStore.shared.alertMessage =
+                        "Planet is publishing progress, please try again later."
                 default:
                     PlanetStore.shared.alertMessage = error.localizedDescription
                 }
@@ -296,7 +305,8 @@ class KeyboardShortcutHelper: ObservableObject {
         let panel = NSOpenPanel()
         if isCroptopSiteData {
             panel.message = "Choose Croptop Site to Import"
-        } else {
+        }
+        else {
             panel.message = "Choose Planet Data to Import"
         }
         panel.prompt = "Import"
@@ -309,10 +319,14 @@ class KeyboardShortcutHelper: ObservableObject {
         guard response == .OK, let url = panel.url else { return }
         Task { @MainActor in
             do {
-                let planet = try MyPlanetModel.importBackup(from: url, isCroptopSiteData: isCroptopSiteData)
+                let planet = try MyPlanetModel.importBackup(
+                    from: url,
+                    isCroptopSiteData: isCroptopSiteData
+                )
                 PlanetStore.shared.myPlanets.insert(planet, at: 0)
                 PlanetStore.shared.selectedView = .myPlanet(planet)
-            } catch {
+            }
+            catch {
                 let title = isCroptopSiteData ? "Failed to Import Site" : "Failed to Import Planet"
                 PlanetStore.shared.alert(title: title, message: error.localizedDescription)
             }
@@ -326,22 +340,32 @@ class KeyboardShortcutHelper: ObservableObject {
                 Menu(folder.url.path.removingPercentEncoding ?? folder.url.path) {
                     if self.serviceStore.publishingFolders.contains(folder.id) {
                         Text("Publishing ...")
-                    } else {
+                    }
+                    else {
                         if !FileManager.default.fileExists(atPath: folder.url.path) {
                             Text("Folder is missing ...")
-                        } else {
-                            if let published = folder.published, let publishedLink = folder.publishedLink {
+                        }
+                        else {
+                            if let published = folder.published,
+                                let publishedLink = folder.publishedLink
+                            {
                                 Text("Last Published: " + published.relativeDateDescription())
                                 Divider()
                                 Button {
-                                    if let url = URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(publishedLink)") {
+                                    if let url = URL(
+                                        string:
+                                            "\(IPFSDaemon.preferredGateway())/ipns/\(publishedLink)"
+                                    ) {
                                         self.openURL(url)
                                     }
                                 } label: {
                                     Text("Open in Public Gateway")
                                 }
                                 Button {
-                                    if let url = URL(string: "\(IPFSState.shared.getGateway())/ipns/\(publishedLink)") {
+                                    if let url = URL(
+                                        string:
+                                            "\(IPFSState.shared.getGateway())/ipns/\(publishedLink)"
+                                    ) {
                                         self.openURL(url)
                                     }
                                 } label: {
@@ -350,14 +374,19 @@ class KeyboardShortcutHelper: ObservableObject {
                             }
                             Button {
                                 do {
-                                    let url = try self.serviceStore.restoreFolderAccess(forFolder: folder)
+                                    let url = try self.serviceStore.restoreFolderAccess(
+                                        forFolder: folder
+                                    )
                                     guard url.startAccessingSecurityScopedResource() else {
                                         throw PlanetError.PublishedServiceFolderPermissionError
                                     }
                                     NSWorkspace.shared.open(url)
                                     url.stopAccessingSecurityScopedResource()
-                                } catch {
-                                    debugPrint("failed to request access to folder: \(folder), error: \(error)")
+                                }
+                                catch {
+                                    debugPrint(
+                                        "failed to request access to folder: \(folder), error: \(error)"
+                                    )
                                     let alert = NSAlert()
                                     alert.messageText = "Failed to Access to Folder"
                                     alert.informativeText = error.localizedDescription
@@ -370,7 +399,10 @@ class KeyboardShortcutHelper: ObservableObject {
                             }
                             Button {
                                 Task { @MainActor in
-                                    await self.serviceStore.prepareToPublishFolder(folder, skipCIDCheck: true)
+                                    await self.serviceStore.prepareToPublishFolder(
+                                        folder,
+                                        skipCIDCheck: true
+                                    )
                                 }
                             } label: {
                                 Text("Publish")
