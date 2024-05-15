@@ -146,7 +146,8 @@ class KeyboardShortcutHelper: ObservableObject {
         CommandMenu("Tools") {
             Group {
                 Button {
-                    PlanetStore.shared.isShowingIPFSOpen = true
+//                    PlanetStore.shared.isShowingIPFSOpen = true
+                    IPFSOpenWindowManager.shared.activate()
                 } label: {
                     Text("Open IPFS Resource")
                 }
