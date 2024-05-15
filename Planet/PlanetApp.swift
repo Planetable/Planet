@@ -32,6 +32,7 @@ struct PlanetApp: App {
                     } label: {
                         Text("Open IPFS Resource")
                     }
+                    .keyboardShortcut("o", modifiers: [.command])
                 }
                 keyboardHelper.writerCommands()
                 keyboardHelper.toolsCommands()

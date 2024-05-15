@@ -11,14 +11,25 @@ import SwiftUI
 struct IPFSOpenView: View {
     @Environment(\.dismiss) private var dismiss
     @State var destination: String = ""
+    @State var detectedType: String = " "
+    private let PADDING: CGFloat = 10
 
     var body: some View {
-        VStack {
+        VStack(spacing: 10) {
             TextField("Open CID, IPNS, or ENS with the local IPFS gateway", text: $destination)
                 .disableAutocorrection(true)
                 .textFieldStyle(.roundedBorder)
+                .onSubmit {
+                    open()
+                }
+                .onChange(of: destination) { newValue in
+                    detect()
+                }
 
             HStack {
+                Text($detectedType.wrappedValue)
+                    .foregroundColor(.secondary)
+                    .font(.caption)
                 Spacer()
                 Button {
                     open()
@@ -27,8 +38,29 @@ struct IPFSOpenView: View {
                 }
             }
         }
-        .padding(10)
-        .frame(minWidth: 300, idealWidth: 480, maxWidth: 600, minHeight: 64, idealHeight: 84, maxHeight: 120)
+        .padding(.top, PADDING)
+        .padding(.bottom, PADDING)
+        .padding(.leading, PADDING)
+        .padding(.trailing, PADDING)
+        .frame(minWidth: 450, idealWidth: 600, maxWidth: 680)
+    }
+
+    private func detect() {
+        if destination.hasPrefix("k51qaz") && destination.count == 62 {
+            detectedType = "IPNS"
+        }
+        else if destination.hasPrefix("bafy") && destination.count == 59 {
+            detectedType = "CIDv1"
+        }
+        else if destination.hasPrefix("Qm") && destination.count == 46 {
+            detectedType = "CIDv0"
+        }
+        else if destination.hasSuffix(".eth") {
+            detectedType = "ENS"
+        }
+        else {
+            detectedType = " "
+        }
     }
 
     private func open() {
@@ -51,15 +83,22 @@ struct IPFSOpenView: View {
                 NSWorkspace.shared.open(url)
             }
         }
-        else {
-            if let url = URL(string: "\(localGateway)/ipfs/\(destination)") {
+        else if destination.hasSuffix(".eth") {
+            // ENS
+            if let url = URL(string: "\(localGateway)/ipns/\(destination)") {
                 NSWorkspace.shared.open(url)
             }
         }
+        else {
+            if let url = URL(string: "\(localGateway)/ipns/\(destination)") {
+                NSWorkspace.shared.open(url)
+            }
+        }
+        // TODO: What if user simply pastes an http:// or https:// link?
         IPFSOpenWindowManager.shared.close()
     }
 }
 
-#Preview{
+#Preview {
     IPFSOpenView()
 }
