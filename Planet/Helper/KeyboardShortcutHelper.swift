@@ -145,12 +145,11 @@ class KeyboardShortcutHelper: ObservableObject {
     func toolsCommands() -> some Commands {
         CommandMenu("Tools") {
             Group {
-                Button {
+//                Button {
 //                    PlanetStore.shared.isShowingIPFSOpen = true
-                    IPFSOpenWindowManager.shared.activate()
-                } label: {
-                    Text("Open IPFS Resource")
-                }
+//                } label: {
+//                    Text("Open IPFS Resource")
+//                }
 
                 Button {
                     PlanetAppDelegate.shared.openTemplateWindow()
