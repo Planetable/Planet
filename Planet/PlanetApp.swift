@@ -27,6 +27,11 @@ struct PlanetApp: App {
             .windowStyle(.titleBar)
             .commands {
                 CommandGroup(replacing: .newItem) {
+                    Button {
+                        IPFSOpenWindowManager.shared.activate()
+                    } label: {
+                        Text("Open IPFS Resource")
+                    }
                 }
                 keyboardHelper.writerCommands()
                 keyboardHelper.toolsCommands()

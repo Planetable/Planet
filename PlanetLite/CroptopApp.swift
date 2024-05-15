@@ -24,6 +24,11 @@ struct CroptopApp: App {
             .windowStyle(.titleBar)
             .commands {
                 CommandGroup(replacing: .newItem) {
+                    Button {
+                        IPFSOpenWindowManager.shared.activate()
+                    } label: {
+                        Text("Open IPFS Resource")
+                    }
                 }
                 keyboardHelper.writerCommands()
                 fileCommands()

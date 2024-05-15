@@ -28,7 +28,7 @@ struct IPFSOpenView: View {
             }
         }
         .padding(10)
-        .frame(minWidth: 300, maxWidth: 600)
+        .frame(minWidth: 300, idealWidth: 480, maxWidth: 600, minHeight: 64, idealHeight: 84, maxHeight: 120)
     }
 
     private func open() {
@@ -56,6 +56,7 @@ struct IPFSOpenView: View {
                 NSWorkspace.shared.open(url)
             }
         }
+        IPFSOpenWindowManager.shared.close()
     }
 }
 
