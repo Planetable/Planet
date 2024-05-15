@@ -133,6 +133,9 @@ struct PlanetMainView: View {
         .sheet(isPresented: $planetStore.isShowingSearch) {
             SearchView()
         }
+        .sheet(isPresented: $planetStore.isShowingIPFSOpen) {
+            IPFSOpenView()
+        }
         .sheet(isPresented: $planetStore.isShowingOnboarding) {
             OnboardingView()
         }

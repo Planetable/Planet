@@ -158,6 +158,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
         }
     }
 
+    @Published var isShowingIPFSOpen: Bool = false
+
     @Published var isShowingOnboarding = false
 
     @Published var isShowingAlert = false

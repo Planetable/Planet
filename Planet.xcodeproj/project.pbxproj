@@ -405,6 +405,8 @@
 		6AC01AF0291ECC7E00EB6B5F /* WalletAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */; };
 		6AC0BC4728F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */; };
 		6AC33B932934159A001ABBCF /* EthereumTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC33B922934159A001ABBCF /* EthereumTransaction.swift */; };
+		6AC4FFD42BF498600035B00B /* IPFSOpenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC4FFD32BF498600035B00B /* IPFSOpenView.swift */; };
+		6AC4FFD52BF498600035B00B /* IPFSOpenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC4FFD32BF498600035B00B /* IPFSOpenView.swift */; };
 		6ACF166529246BD800AE318B /* TipSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF166429246BD800AE318B /* TipSelectView.swift */; };
 		6ACF1667292570AF00AE318B /* PlanetUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF1666292570AF00AE318B /* PlanetUI.swift */; };
 		6ACF16692927267800AE318B /* WalletTransactionProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACF16682927267800AE318B /* WalletTransactionProgressView.swift */; };
@@ -713,6 +715,7 @@
 		6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletAccountView.swift; sourceTree = "<group>"; };
 		6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetPodcastSettingsView.swift; sourceTree = "<group>"; };
 		6AC33B922934159A001ABBCF /* EthereumTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EthereumTransaction.swift; sourceTree = "<group>"; };
+		6AC4FFD32BF498600035B00B /* IPFSOpenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSOpenView.swift; sourceTree = "<group>"; };
 		6AC83749284C9A4D00C0F952 /* versioning.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = versioning.xcconfig; sourceTree = "<group>"; };
 		6AC8374B284C9A8500C0F952 /* marketing_version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = marketing_version.xcconfig; sourceTree = "<group>"; };
 		6ACF166429246BD800AE318B /* TipSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipSelectView.swift; sourceTree = "<group>"; };
@@ -1421,6 +1424,7 @@
 		72114ABE784F27251FE3A0BD /* IPFS */ = {
 			isa = PBXGroup;
 			children = (
+				6AC4FFD32BF498600035B00B /* IPFSOpenView.swift */,
 				721148C9E7BCB6F1BC539F57 /* IPFSState.swift */,
 				72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */,
 				2A0E918B2BE889B000F69578 /* IPFSGateway.swift */,
@@ -1785,6 +1789,7 @@
 				2A95E63F2A18B1B6001288B8 /* PlanetUI.swift in Sources */,
 				6A0B9EAA2A6A680100D2286B /* MyArticleSettingsView.swift in Sources */,
 				6A74E49D2A5929BB00FF2F2A /* MintSettings.swift in Sources */,
+				6AC4FFD52BF498600035B00B /* IPFSOpenView.swift in Sources */,
 				2A95E6412A19A317001288B8 /* PlanetQuickShareView.swift in Sources */,
 				2A95E6742A19A3C4001288B8 /* Lifetimes.swift in Sources */,
 				2A95E6932A19A3D0001288B8 /* PlanetKeyManagerWindowController.swift in Sources */,
@@ -2011,6 +2016,7 @@
 				72114842F65B9DF14A1B3F61 /* PlanetStore.swift in Sources */,
 				2A6F8282289A5DAF0099D87E /* PlanetDownloadsWebView.swift in Sources */,
 				6A8C3A6728C9361800339A86 /* DotBitKit.swift in Sources */,
+				6AC4FFD42BF498600035B00B /* IPFSOpenView.swift in Sources */,
 				2AA7973F29496F730031E873 /* PFDashboardInspectorView.swift in Sources */,
 				2AC889422B71D4200090D355 /* TemplateMonitor.swift in Sources */,
 				6ACF16692927267800AE318B /* WalletTransactionProgressView.swift in Sources */,
