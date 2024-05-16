@@ -14,7 +14,8 @@ class IPFSState: ObservableObject {
     @Published private(set) var apiPort: UInt16 = 5981
     @Published private(set) var gatewayPort: UInt16 = 18181
     @Published private(set) var swarmPort: UInt16 = 4001
-
+    @Published private(set) var isCalculatingRepoSize: Bool = false
+    @Published private(set) var repoSize: Int64?
     @Published private(set) var serverInfo: ServerInfo?
 
     init() {
@@ -126,6 +127,33 @@ class IPFSState: ObservableObject {
         // refresh key manager
         Task.detached(priority: .utility) { @MainActor in
             NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
+        }
+    }
+    
+    func calculateRepoSize() async {
+        guard !isCalculatingRepoSize else { return }
+        await MainActor.run {
+            self.isCalculatingRepoSize = true
+        }
+        defer {
+            Task { @MainActor in
+                self.isCalculatingRepoSize = false
+            }
+        }
+        let repoPath = IPFSCommand.IPFSRepositoryPath
+        guard FileManager.default.fileExists(atPath: repoPath.path) else { return }
+        var totalSize: Int64 = 0
+        let resourceKeys: Set<URLResourceKey> = [.fileSizeKey]
+        let enumerator = FileManager.default.enumerator(at: repoPath, includingPropertiesForKeys: Array(resourceKeys))!
+        for case let fileURL as URL in enumerator {
+            let resourceValues = try? fileURL.resourceValues(forKeys: resourceKeys)
+            if let fileSize = resourceValues?.fileSize {
+                totalSize += Int64(fileSize)
+            }
+        }
+        let updatedTotalSize = totalSize
+        await MainActor.run {
+            self.repoSize = updatedTotalSize
         }
     }
 
