@@ -56,3 +56,17 @@ struct IPFSResolved: Codable {
         case path = "Path"
     }
 }
+
+struct IPFSBandwidth: Codable {
+    let totalIn: Int
+    let totalOut: Int
+    let rateIn: Double
+    let rateOut: Double
+
+    enum CodingKeys: String, CodingKey {
+        case totalIn = "TotalIn"
+        case totalOut = "TotalOut"
+        case rateIn = "RateIn"
+        case rateOut = "RateOut"
+    }
+}

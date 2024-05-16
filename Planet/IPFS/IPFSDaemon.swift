@@ -517,6 +517,35 @@ actor IPFSDaemon {
         throw PlanetError.IPFSError
     }
 
+    func getStatsBW() async throws -> IPFSBandwidth {
+        Self.logger.info("Getting IPFS bandwidth stats")
+        do {
+            let result = try await api(path: "stats/bw")
+            do {
+                return try JSONDecoder.shared.decode(IPFSBandwidth.self, from: result)
+            }
+            catch {
+                Self.logger.error(
+                    """
+                    Failed to get IPFS bandwidth stats: got error from API call, \
+                    result: \(result.logFormat()) \
+                    error: \(String(describing: error))
+                    """
+                )
+                throw PlanetError.IPFSAPIError
+            }
+        }
+        catch {
+            Self.logger.error(
+                """
+                Failed to get IPFS bandwidth stats: error when accessing IPFS API, \
+                cause: \(String(describing: error))
+                """
+            )
+        }
+        throw PlanetError.IPFSAPIError
+    }
+
     func resolveIPNSorDNSLink(name: String) async throws -> String {
         Self.logger.info("Resolving IPNS or DNSLink \(name)")
         do {

@@ -170,6 +170,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
     var serverInfo: ServerInfo? = nil
 
+    @Published var ipfsStats: [Int: IPFSBandwidth] = [:]
+
     init() {
         // Init UserDefaults
         if UserDefaults.standard.value(forKey: String.settingsPublicGatewayIndex) == nil {
