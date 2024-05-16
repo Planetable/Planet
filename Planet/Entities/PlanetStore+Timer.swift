@@ -33,6 +33,7 @@ extension PlanetStore {
                     if ipfsStats.count > 120 {
                         ipfsStats = ipfsStats.suffix(120).reduce(into: [:]) { $0[$1.key] = $1.value }
                     }
+                    // TODO: Remove this debugPrint later
                     debugPrint("IPFS bandwidth stats: \(ipfsStats.count) entries: \(ipfsStats)")
                 }
             }
