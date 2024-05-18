@@ -17,6 +17,7 @@ class IPFSState: ObservableObject {
     @Published private(set) var isCalculatingRepoSize: Bool = false
     @Published private(set) var repoSize: Int64?
     @Published private(set) var serverInfo: ServerInfo?
+    @Published private(set) var bandwidths: [Int: IPFSBandwidth] = [:]
 
     init() {
         debugPrint("IPFS State Manager Init")
@@ -63,6 +64,15 @@ class IPFSState: ObservableObject {
     func updateServerInfo(_ info: ServerInfo) {
         self.serverInfo = info
         debugPrint("Updated ServerInfo: \(info)")
+    }
+    
+    @MainActor
+    func updateBandwidths(data: IPFSBandwidth) {
+        let now = Int(Date().timeIntervalSince1970)
+        bandwidths[now] = data
+        if bandwidths.count > 120 {
+            bandwidths = bandwidths.suffix(120).reduce(into: [:]) { $0[$1.key] = $1.value }
+        }
     }
 
     func getGateway() -> String {

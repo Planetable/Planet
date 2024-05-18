@@ -24,18 +24,10 @@ extension PlanetStore {
 
     /// Run every 5 seconds in Planet, collect bandwidth usage from IPFS
     func collectIPFSBandwidthStats() async {
-        Task {
-            if let stats = await try? IPFSDaemon.shared.getStatsBW() {
-                Task { @MainActor in
-                    let now = Int(Date().timeIntervalSince1970)
-                    ipfsStats[now] = stats
-                    // Keep only the last 120 entries
-                    if ipfsStats.count > 120 {
-                        ipfsStats = ipfsStats.suffix(120).reduce(into: [:]) { $0[$1.key] = $1.value }
-                    }
-                    // TODO: Remove this debugPrint later
-                    debugPrint("IPFS bandwidth stats: \(ipfsStats.count) entries: \(ipfsStats)")
-                }
+        Task.detached(priority: .background) {
+            guard let stats = try? await IPFSDaemon.shared.getStatsBW() else { return }
+            await MainActor.run {
+                IPFSState.shared.updateBandwidths(data: stats)
             }
         }
     }
