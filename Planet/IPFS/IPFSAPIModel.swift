@@ -1,5 +1,6 @@
 import Foundation
 
+
 struct IPFSVersion: Codable {
     let version: String
     let repo: String
@@ -9,6 +10,22 @@ struct IPFSVersion: Codable {
         case version = "Version"
         case repo = "Repo"
         case system = "System"
+    }
+}
+
+struct IPFSRepoState: Codable {
+    let repoSize: Int64
+    let storageMax: Int64
+    let numObjects: Int64
+    let repoPath: String
+    let version: String
+    
+    enum CodingKeys: String, CodingKey {
+        case repoSize = "RepoSize"
+        case storageMax = "StorageMax"
+        case numObjects = "NumObjects"
+        case repoPath = "RepoPath"
+        case version = "Version"
     }
 }
 
@@ -23,6 +40,7 @@ struct IPFSID: Codable {
         case addresses = "Addresses"
     }
 }
+
 struct IPFSPeers: Codable {
     let peers: [IPFSPeer]?
 

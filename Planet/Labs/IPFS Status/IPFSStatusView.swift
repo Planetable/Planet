@@ -10,8 +10,6 @@ struct IPFSStatusView: View {
     @EnvironmentObject private var ipfsState: IPFSState
 
     @State private var isDaemonOnline: Bool = IPFSState.shared.online
-    @State private var isCalculatingRepoSize: Bool = false
-    @State private var repoSize: Int64?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -67,14 +65,12 @@ struct IPFSStatusView: View {
         }
         .padding(0)
         .frame(width: 280)
-        .onAppear {
+        .task {
             Task.detached(priority: .background) {
-                await MainActor.run {
-                    self.isCalculatingRepoSize = true
-                }
-                await self.calculateRepoSize()
-                await MainActor.run {
-                    self.isCalculatingRepoSize = false
+                do {
+                    try await self.ipfsState.calculateRepoSize()
+                } catch {
+                    debugPrint("failed to calculate repo size: \(error)")
                 }
             }
         }
@@ -93,12 +89,12 @@ struct IPFSStatusView: View {
             HStack {
                 Text("Repo Size")
                 Spacer(minLength: 1)
-                if isCalculatingRepoSize {
+                if ipfsState.isCalculatingRepoSize {
                     ProgressView()
                         .progressViewStyle(.circular)
                         .controlSize(.mini)
                 } else {
-                    if let repoSize {
+                    if let repoSize = ipfsState.repoSize {
                         let formatter = {
                             let byteCountFormatter = ByteCountFormatter()
                             byteCountFormatter.allowedUnits = .useAll
@@ -123,23 +119,5 @@ struct IPFSStatusView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    }
-    
-    private func calculateRepoSize() async {
-        let repoPath = IPFSCommand.IPFSRepositoryPath
-        guard FileManager.default.fileExists(atPath: repoPath.path) else { return }
-        var totalSize: Int64 = 0
-        let resourceKeys: Set<URLResourceKey> = [.fileSizeKey]
-        let enumerator = FileManager.default.enumerator(at: repoPath, includingPropertiesForKeys: Array(resourceKeys))!
-        for case let fileURL as URL in enumerator {
-            let resourceValues = try? fileURL.resourceValues(forKeys: resourceKeys)
-            if let fileSize = resourceValues?.fileSize {
-                totalSize += Int64(fileSize)
-            }
-        }
-        let updatedTotalSize = totalSize
-        await MainActor.run {
-            self.repoSize = updatedTotalSize
-        }
     }
 }

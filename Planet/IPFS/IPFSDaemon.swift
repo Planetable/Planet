@@ -253,6 +253,9 @@ actor IPFSDaemon {
                         Task { @MainActor in
                             IPFSState.shared.updateOperatingStatus(false)
                         }
+                        Task.detached(priority: .background) {
+                            try? await IPFSState.shared.calculateRepoSize()
+                        }
                     }
                 },
                 errHandler: { data in
