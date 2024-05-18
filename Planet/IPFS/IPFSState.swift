@@ -130,7 +130,7 @@ class IPFSState: ObservableObject {
         }
     }
     
-    func calculateRepoSize() async {
+    func calculateRepoSize() async throws {
         guard !isCalculatingRepoSize else { return }
         await MainActor.run {
             self.isCalculatingRepoSize = true
@@ -141,19 +141,14 @@ class IPFSState: ObservableObject {
             }
         }
         let repoPath = IPFSCommand.IPFSRepositoryPath
-        guard FileManager.default.fileExists(atPath: repoPath.path) else { return }
-        var totalSize: Int64 = 0
-        let resourceKeys: Set<URLResourceKey> = [.fileSizeKey]
-        let enumerator = FileManager.default.enumerator(at: repoPath, includingPropertiesForKeys: Array(resourceKeys))!
-        for case let fileURL as URL in enumerator {
-            let resourceValues = try? fileURL.resourceValues(forKeys: resourceKeys)
-            if let fileSize = resourceValues?.fileSize {
-                totalSize += Int64(fileSize)
-            }
-        }
-        let updatedTotalSize = totalSize
+        guard FileManager.default.fileExists(atPath: repoPath.path) else { throw PlanetError.DirectoryNotExistsError }
+        let data = try await IPFSDaemon.shared.api(path: "repo/stat")
+        let decoder = JSONDecoder()
+        let repoState: IPFSRepoState = try decoder.decode(IPFSRepoState.self, from: data)
+        let path = URL(fileURLWithPath: repoState.repoPath)
+        guard path == repoPath else { throw PlanetError.IPFSAPIError }
         await MainActor.run {
-            self.repoSize = updatedTotalSize
+            self.repoSize = repoState.repoSize
         }
     }
 

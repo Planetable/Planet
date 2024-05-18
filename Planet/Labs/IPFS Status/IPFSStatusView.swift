@@ -67,7 +67,11 @@ struct IPFSStatusView: View {
         .frame(width: 280)
         .task {
             Task.detached(priority: .background) {
-                await self.ipfsState.calculateRepoSize()
+                do {
+                    try await self.ipfsState.calculateRepoSize()
+                } catch {
+                    debugPrint("failed to calculate repo size: \(error)")
+                }
             }
         }
     }

@@ -21,6 +21,7 @@ enum PlanetError: Error {
     case ImportPlanetArticlePublishingError
     case ImportUnsupportedFileTypeError
     case FileExistsError
+    case DirectoryNotExistsError
     case FollowLocalPlanetError
     case FollowPlanetVerifyError
     case InvalidPlanetURLError
@@ -88,6 +89,8 @@ extension PlanetError: LocalizedError {
             return NSLocalizedString("Import Planet Article Error", comment: "")
         case .FileExistsError:
             return NSLocalizedString("File Exists Error", comment: "")
+        case .DirectoryNotExistsError:
+            return NSLocalizedString("Directory Not Exists Error", comment: "")
         case .FollowLocalPlanetError:
             return NSLocalizedString("Follow Local Planet Error", comment: "")
         case .FollowPlanetVerifyError:
