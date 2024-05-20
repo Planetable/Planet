@@ -11,7 +11,6 @@ struct PlanetSidebarView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @StateObject var ipfsState = IPFSState.shared
 
-    let timer5s = Timer.publish(every: 5, on: .current, in: .common).autoconnect()
     let timer1m = Timer.publish(every: 60, on: .current, in: .common).autoconnect()
     let timer3m = Timer.publish(every: 180, on: .current, in: .common).autoconnect()
 
@@ -195,11 +194,6 @@ struct PlanetSidebarView: View {
                         debugPrint("Failed to publish: \(planet.name) id=\(planet.id)")
                     }
                 }
-            }
-        }
-        .onReceive(timer5s) { _ in
-            Task {
-                await planetStore.collectIPFSBandwidthStats()
             }
         }
         .onReceive(timer1m) { _ in

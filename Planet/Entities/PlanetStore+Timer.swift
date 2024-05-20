@@ -22,16 +22,6 @@ extension PlanetStore {
         }
     }
 
-    /// Run every 5 seconds in Planet, collect bandwidth usage from IPFS
-    func collectIPFSBandwidthStats() async {
-        Task.detached(priority: .background) {
-            guard let stats = try? await IPFSDaemon.shared.getStatsBW() else { return }
-            await MainActor.run {
-                IPFSState.shared.updateBandwidths(data: stats)
-            }
-        }
-    }
-
     /// Run every 180 seconds in Planet, pin the Planet to Pinnable.xyz
     func pin() async {
         debugPrint("Pinning to Pinnable...")

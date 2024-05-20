@@ -5,6 +5,7 @@ class IPFSState: ObservableObject {
     static let shared = IPFSState()
 
     static let refreshRate: TimeInterval = 20
+    static let refreshTrafficRate: TimeInterval = 5
     static let lastUserLaunchState: String = "PlanetIPFSLastUserLaunchStateKey"
 
     @Published var isShowingStatus = false
@@ -34,6 +35,11 @@ class IPFSState: ObservableObject {
         RunLoop.main.add(Timer(timeInterval: Self.refreshRate, repeats: true) { _ in
             Task.detached(priority: .utility) {
                 await self.updateStatus()
+            }
+        }, forMode: .common)
+        RunLoop.main.add(Timer(timeInterval: Self.refreshTrafficRate, repeats: true) { _ in
+            Task.detached(priority: .utility) {
+                await self.updateTrafficStatus()
             }
         }, forMode: .common)
     }
@@ -146,6 +152,13 @@ class IPFSState: ObservableObject {
         // refresh key manager
         Task.detached(priority: .utility) { @MainActor in
             NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
+        }
+    }
+    
+    func updateTrafficStatus() async {
+        guard let stats = try? await IPFSDaemon.shared.getStatsBW() else { return }
+        await MainActor.run {
+            updateBandwidths(data: stats)
         }
     }
     
