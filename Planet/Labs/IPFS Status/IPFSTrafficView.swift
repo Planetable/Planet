@@ -4,21 +4,13 @@
 //
 
 import SwiftUI
-import Charts
 
 
 struct IPFSTrafficView: View {
     @EnvironmentObject private var ipfsState: IPFSState
 
-    static let formatter = {
-        let byteCountFormatter = ByteCountFormatter()
-        byteCountFormatter.allowedUnits = .useAll
-        byteCountFormatter.countStyle = .decimal
-        return byteCountFormatter
-    }()
-
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             if ipfsState.online {
                 titleView()
                 chartsView()
@@ -27,7 +19,7 @@ struct IPFSTrafficView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.secondary.opacity(0.1))
+        .background(Color.secondary.opacity(0.05))
         .clipped()
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
@@ -35,6 +27,7 @@ struct IPFSTrafficView: View {
     @ViewBuilder
     private func offlineView() -> some View {
         Text("IPFS Daemon Offline")
+            .font(.caption)
             .foregroundStyle(Color.secondary)
     }
     
@@ -45,28 +38,44 @@ struct IPFSTrafficView: View {
                 .font(.subheadline)
                 .fontWeight(.medium)
             Spacer(minLength: 1)
-            if let now = ipfsState.bandwidths.keys.first, let stats = ipfsState.bandwidths[now] {
-                let i = Self.formatter.string(fromByteCount: Int64(stats.totalIn))
-                let o = Self.formatter.string(fromByteCount: Int64(stats.totalOut))
+            if let now = ipfsState.bandwidths.keys.max(), let stats = ipfsState.bandwidths[now] {
+                let i = IPFSState.formatter.string(fromByteCount: Int64(stats.totalIn))
+                let o = IPFSState.formatter.string(fromByteCount: Int64(stats.totalOut))
                 Text("Total In: \(i) Out: \(o)")
                     .font(.caption)
             }
         }
         .padding(.horizontal, 8)
         .frame(height: 16)
-        .background(Color.secondary.opacity(0.125))
+        .background(Color.secondary.opacity(0.1))
     }
     
     @ViewBuilder
     private func chartsView() -> some View {
-        VStack(spacing: 0) {
-            if let now = ipfsState.bandwidths.keys.first, let latest = ipfsState.bandwidths[now] {
-                Text("Now in: \(Self.formatter.string(fromByteCount: Int64(latest.rateIn))), out: \(Self.formatter.string(fromByteCount: Int64(latest.rateOut)))")
-            } else {
+        let items = getChartItems()
+        if items.count > 0 {
+            IPFSTrafficChartView(items: items)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .environmentObject(ipfsState)
+        } else {
+            VStack {
                 Text("No data available.")
+                    .font(.caption)
+                    .foregroundStyle(Color.secondary)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private func getChartItems() -> [IPFSTrafficChartItem] {
+        var items: [IPFSTrafficChartItem] = []
+        let keys = ipfsState.bandwidths.keys.sorted(by: { $0 > $1 })
+        for k in keys {
+            guard let bandwidth = ipfsState.bandwidths[k] else { continue }
+            let item = IPFSTrafficChartItem(id: UUID(), created: k, rateIn: UInt64(bandwidth.rateIn), rateOut: UInt64(bandwidth.rateOut))
+            items.append(item)
+        }
+        return items
     }
 }
 

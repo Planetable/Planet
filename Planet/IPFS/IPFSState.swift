@@ -37,6 +37,15 @@ class IPFSState: ObservableObject {
             }
         }, forMode: .common)
     }
+    
+    // MARK: -
+    
+    static let formatter = {
+        let byteCountFormatter = ByteCountFormatter()
+        byteCountFormatter.allowedUnits = .useAll
+        byteCountFormatter.countStyle = .decimal
+        return byteCountFormatter
+    }()
 
     // MARK: -
 
