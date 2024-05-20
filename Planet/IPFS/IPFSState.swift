@@ -164,6 +164,7 @@ class IPFSState: ObservableObject {
     }
     
     func calculateRepoSize() async throws {
+        guard online else { return }
         guard !isCalculatingRepoSize else { return }
         await MainActor.run {
             self.isCalculatingRepoSize = true
