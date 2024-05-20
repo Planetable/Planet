@@ -156,6 +156,7 @@ class IPFSState: ObservableObject {
     }
     
     func updateTrafficStatus() async {
+        guard online else { return }
         guard let stats = try? await IPFSDaemon.shared.getStatsBW() else { return }
         await MainActor.run {
             updateBandwidths(data: stats)
