@@ -146,8 +146,8 @@ struct IPFSTrafficChartView: View {
             })
             return rates.max()!
         }()
-        let maxItemWidth = width / 120.0 - Self.itemSpacing
-        let itemWidth = {
+        let maxItemWidth: CGFloat = width / 120.0 - Self.itemSpacing
+        let itemWidth: CGFloat = {
             let w = width / CGFloat(items.count) - Self.itemSpacing
             if w <= 0 {
                 return maxItemWidth
