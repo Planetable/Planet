@@ -189,7 +189,7 @@ struct AccountBadgeView: View {
         })!
         switch currentActiveChain {
         case .mainnet:
-            web3 = Web3(rpcURL: "https://cloudflare-eth.com")
+            web3 = Web3(rpcURL: "https://eth.llamarpc.com")
         case .goerli:
             web3 = Web3(rpcURL: "https://eth-goerli.public.blastapi.io")
         case .sepolia:
