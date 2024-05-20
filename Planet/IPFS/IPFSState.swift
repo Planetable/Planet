@@ -5,6 +5,7 @@ class IPFSState: ObservableObject {
     static let shared = IPFSState()
 
     static let refreshRate: TimeInterval = 20
+    static let refreshTrafficRate: TimeInterval = 5
     static let lastUserLaunchState: String = "PlanetIPFSLastUserLaunchStateKey"
 
     @Published var isShowingStatus = false
@@ -17,6 +18,7 @@ class IPFSState: ObservableObject {
     @Published private(set) var isCalculatingRepoSize: Bool = false
     @Published private(set) var repoSize: Int64?
     @Published private(set) var serverInfo: ServerInfo?
+    @Published private(set) var bandwidths: [Int: IPFSBandwidth] = [:]
 
     init() {
         debugPrint("IPFS State Manager Init")
@@ -35,7 +37,21 @@ class IPFSState: ObservableObject {
                 await self.updateStatus()
             }
         }, forMode: .common)
+        RunLoop.main.add(Timer(timeInterval: Self.refreshTrafficRate, repeats: true) { _ in
+            Task.detached(priority: .utility) {
+                await self.updateTrafficStatus()
+            }
+        }, forMode: .common)
     }
+    
+    // MARK: -
+    
+    static let formatter = {
+        let byteCountFormatter = ByteCountFormatter()
+        byteCountFormatter.allowedUnits = .useAll
+        byteCountFormatter.countStyle = .decimal
+        return byteCountFormatter
+    }()
 
     // MARK: -
 
@@ -63,6 +79,15 @@ class IPFSState: ObservableObject {
     func updateServerInfo(_ info: ServerInfo) {
         self.serverInfo = info
         debugPrint("Updated ServerInfo: \(info)")
+    }
+    
+    @MainActor
+    func updateBandwidths(data: IPFSBandwidth) {
+        let now = Int(Date().timeIntervalSince1970)
+        bandwidths[now] = data
+        if bandwidths.count > 120 {
+            bandwidths = bandwidths.suffix(120).reduce(into: [:]) { $0[$1.key] = $1.value }
+        }
     }
 
     func getGateway() -> String {
@@ -127,6 +152,14 @@ class IPFSState: ObservableObject {
         // refresh key manager
         Task.detached(priority: .utility) { @MainActor in
             NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
+        }
+    }
+    
+    func updateTrafficStatus() async {
+        guard online else { return }
+        guard let stats = try? await IPFSDaemon.shared.getStatsBW() else { return }
+        await MainActor.run {
+            updateBandwidths(data: stats)
         }
     }
     

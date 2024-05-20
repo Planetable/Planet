@@ -9,6 +9,13 @@ import SwiftUI
 struct IPFSStatusView: View {
     @EnvironmentObject private var ipfsState: IPFSState
 
+    static let formatter = {
+        let byteCountFormatter = ByteCountFormatter()
+        byteCountFormatter.allowedUnits = .useAll
+        byteCountFormatter.countStyle = .file
+        return byteCountFormatter
+    }()
+
     @State private var isDaemonOnline: Bool = IPFSState.shared.online
 
     var body: some View {
@@ -19,7 +26,7 @@ struct IPFSStatusView: View {
 
             IPFSTrafficView()
                 .environmentObject(ipfsState)
-                .frame(height: 96)
+                .frame(height: 120)
                 .padding(.horizontal, 12)
                 .padding(.top, 12)
 
@@ -95,13 +102,7 @@ struct IPFSStatusView: View {
                         .controlSize(.mini)
                 } else {
                     if let repoSize = ipfsState.repoSize {
-                        let formatter = {
-                            let byteCountFormatter = ByteCountFormatter()
-                            byteCountFormatter.allowedUnits = .useAll
-                            byteCountFormatter.countStyle = .file
-                            return byteCountFormatter
-                        }()
-                        Text(formatter.string(fromByteCount: repoSize))
+                        Text(Self.formatter.string(fromByteCount: repoSize))
                     }
                 }
             }
