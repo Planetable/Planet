@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct MintSettings: View {
-    let CONTROL_CAPTION_WIDTH: CGFloat = 170
+    let CONTROL_CAPTION_WIDTH: CGFloat = 180
     let CONTROL_ROW_SPACING: CGFloat = 8
+    let LOGO_SIZE: CGFloat = 16
 
     @Environment(\.dismiss) var dismiss
 
@@ -20,15 +21,14 @@ struct MintSettings: View {
     @State private var userSettings: [String: String] = [:]
 
     @State private var settingKeys: [String] = [
-        "ethereumSepoliaCollectionID",
-        "ethereumSepoliaCollectionCategory",
-        "ethereumSepoliaRPC",
-        "ethereumSepoliaBeneficiaryAddress",
+        "collectionAddress",
+        "collectionCategory",
+        "curatorAddress",
         "separator1",
-        "optimismSepoliaCollectionID",
-        "optimismSepoliaCollectionCategory",
+        "ethereumMainnetRPC",
+        "ethereumSepoliaRPC",
+        "optimismMainnetRPC",
         "optimismSepoliaRPC",
-        "optimismSepoliaBeneficiaryAddress",
         // "separator2",
         // "highlightColor",
     ]
@@ -43,6 +43,7 @@ struct MintSettings: View {
                 HStack(spacing: 10) {
                     planet.smallAvatarAndNameView()
                     Spacer()
+                    HelpLinkButton(helpLink: URL(string: "https://croptop.eth.sucks/")!)
                 }
 
                 TabView {
@@ -57,6 +58,24 @@ struct MintSettings: View {
                                 else {
                                     HStack {
                                         HStack {
+                                            // You can get more logo images from:
+                                            // https://cryptologos.cc/ethereum
+                                            if key == "ethereumMainnetRPC"
+                                                || key == "ethereumSepoliaRPC"
+                                            {
+                                                Image("eth-logo")
+                                                    .interpolation(.high)
+                                                    .resizable()
+                                                    .frame(width: LOGO_SIZE, height: LOGO_SIZE)
+                                            }
+                                            if key == "optimismMainnetRPC"
+                                                || key == "optimismSepoliaRPC"
+                                            {
+                                                Image("op-logo")
+                                                    .interpolation(.high)
+                                                    .resizable()
+                                                    .frame(width: LOGO_SIZE, height: LOGO_SIZE)
+                                            }
                                             Text("\(settings[key]?.name ?? key)")
                                             Spacer()
                                         }
@@ -123,7 +142,7 @@ struct MintSettings: View {
             }.padding(PlanetUI.SHEET_PADDING)
         }
         .padding(0)
-        .frame(width: 520, alignment: .top)
+        .frame(width: 560, alignment: .top)
         .onAppear {
             currentSettings = planet.templateSettings()
             for (key, value) in currentSettings {

@@ -50,14 +50,26 @@ struct MyPlanetSidebarItem: View {
                 }
 
                 if let template = planet.template, template.hasSettings {
-                    Button {
-                        Task {
-                            PlanetStore.shared.selectedView = .myPlanet(planet)
-                            PlanetStore.shared.isConfiguringPlanetTemplate = true
+                    if template.name == "Croptop" {
+                        Button {
+                            Task {
+                                PlanetStore.shared.selectedView = .myPlanet(planet)
+                                PlanetStore.shared.isConfiguringMint = true
+                            }
+                        } label: {
+                            Text("Mint Settings")
                         }
-                    } label: {
-                        Text("Template Settings")
+                    } else {
+                        Button {
+                            Task {
+                                PlanetStore.shared.selectedView = .myPlanet(planet)
+                                PlanetStore.shared.isConfiguringPlanetTemplate = true
+                            }
+                        } label: {
+                            Text("Template Settings")
+                        }
                     }
+
                 }
 
                 Button {
