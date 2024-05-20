@@ -59,7 +59,7 @@ struct IPFSTrafficView: View {
                 .environmentObject(ipfsState)
         } else {
             VStack {
-                Text("No data available.")
+                Text("No data available")
                     .font(.caption)
                     .foregroundStyle(Color.secondary)
             }
