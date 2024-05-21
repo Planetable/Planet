@@ -70,53 +70,21 @@ struct IPFSTrafficChartView: View {
     
     @ViewBuilder
     private func trafficIn(size: CGSize) -> some View {
+        let width = size.width
         let height = size.height / 2.0
-        let rate: String = {
-            if let now = ipfsState.bandwidths.keys.max(), let stats = ipfsState.bandwidths[now] {
-                let o = IPFSState.formatter.string(fromByteCount: Int64(stats.rateIn))
-                return "In \(o)"
-            } else {
-                return "In"
-            }
-        }()
         ZStack {
-            timelineTraffic(width: size.width, height: height, isInTraffic: true)
-            VStack {
-                Text(rate)
-                    .font(.caption)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .foregroundStyle(Self.inLabelColor)
-                    .padding(.leading, 8)
-                    .padding(.top, 4)
-                Spacer()
-            }
-            .frame(width: size.width, height: height, alignment: .leading)
+            timelineTraffic(width: width, height: height, isInTraffic: true)
+            timelineTrafficLabel(width: width, height: height, isInTraffic: true)
         }
     }
     
     @ViewBuilder
     private func trafficOut(size: CGSize) -> some View {
+        let width = size.width
         let height = size.height / 2.0
-        let rate: String = {
-            if let now = ipfsState.bandwidths.keys.max(), let stats = ipfsState.bandwidths[now] {
-                let o = IPFSState.formatter.string(fromByteCount: Int64(stats.rateOut))
-                return "Out \(o)"
-            } else {
-                return "Out"
-            }
-        }()
         ZStack {
-            timelineTraffic(width: size.width, height: height, isInTraffic: false)
-            VStack {
-                Text(rate)
-                    .font(.caption)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .foregroundStyle(Self.outLabelColor)
-                    .padding(.leading, 8)
-                    .padding(.top, 4)
-                Spacer()
-            }
-            .frame(width: size.width, height: height, alignment: .leading)
+            timelineTraffic(width: width, height: height, isInTraffic: false)
+            timelineTrafficLabel(width: width, height: height, isInTraffic: false)
         }
     }
     
@@ -133,6 +101,39 @@ struct IPFSTrafficChartView: View {
         .font(.footnote)
         .padding(.horizontal, 4)
         .frame(height: 14)
+    }
+    
+    @ViewBuilder
+    private func timelineTrafficLabel(width: CGFloat, height: CGFloat, isInTraffic: Bool) -> some View {
+        let rate: String = {
+            let prefix = isInTraffic ? "In" : "Out"
+            if let now = ipfsState.bandwidths.keys.max(), let stats = ipfsState.bandwidths[now] {
+                let o = IPFSState.formatter.string(fromByteCount: Int64(isInTraffic ? stats.rateIn : stats.rateOut))
+                return prefix + " \(o)/s"
+            } else {
+                return prefix
+            }
+        }()
+        VStack {
+            if isInTraffic {
+                Spacer()
+                Text(rate)
+                    .font(.caption)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .foregroundStyle(Self.outLabelColor)
+                    .padding(.trailing, 12)
+                    .padding(.bottom, 4)
+            } else {
+                Text(rate)
+                    .font(.caption)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .foregroundStyle(Self.outLabelColor)
+                    .padding(.trailing, 12)
+                    .padding(.top, 4)
+                Spacer()
+            }
+        }
+        .frame(width: width, height: height, alignment: .trailing)
     }
     
     @ViewBuilder
