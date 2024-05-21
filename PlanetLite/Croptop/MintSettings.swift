@@ -25,10 +25,15 @@ struct MintSettings: View {
         "collectionCategory",
         "curatorAddress",
         "separator1",
+        "label:If you want to use a different RPC endpoint, please enter it below.",
         "ethereumMainnetRPC",
         "ethereumSepoliaRPC",
         "optimismMainnetRPC",
         "optimismSepoliaRPC",
+        "arbitrumMainnetRPC",
+        "arbitrumSepoliaRPC",
+        "baseMainnetRPC",
+        "baseSepoliaRPC",
         // "separator2",
         // "highlightColor",
     ]
@@ -55,27 +60,22 @@ struct MintSettings: View {
                                         .padding(.top, 6)
                                         .padding(.bottom, 6)
                                 }
+                                else if key.hasPrefix("label:") {
+                                    HStack {
+                                        Text(key.replacingOccurrences(of: "label:", with: ""))
+                                            .font(.body)
+                                            .foregroundColor(.secondary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        Spacer()
+                                    }
+                                    .padding(.bottom, 6)
+                                }
                                 else {
                                     HStack {
                                         HStack {
                                             // You can get more logo images from:
                                             // https://cryptologos.cc/ethereum
-                                            if key == "ethereumMainnetRPC"
-                                                || key == "ethereumSepoliaRPC"
-                                            {
-                                                Image("eth-logo")
-                                                    .interpolation(.high)
-                                                    .resizable()
-                                                    .frame(width: LOGO_SIZE, height: LOGO_SIZE)
-                                            }
-                                            if key == "optimismMainnetRPC"
-                                                || key == "optimismSepoliaRPC"
-                                            {
-                                                Image("op-logo")
-                                                    .interpolation(.high)
-                                                    .resizable()
-                                                    .frame(width: LOGO_SIZE, height: LOGO_SIZE)
-                                            }
+                                            cryptoLogo(key)
                                             Text("\(settings[key]?.name ?? key)")
                                             Spacer()
                                         }
@@ -160,5 +160,41 @@ struct MintSettings: View {
                 userSettings[key] = $0
             }
         )
+    }
+
+    @ViewBuilder
+    private func cryptoLogo(_ key: String) -> some View {
+        if key == "ethereumMainnetRPC"
+            || key == "ethereumSepoliaRPC"
+        {
+            Image("eth-logo")
+                .interpolation(.high)
+                .resizable()
+                .frame(width: LOGO_SIZE, height: LOGO_SIZE)
+        }
+        if key == "optimismMainnetRPC"
+            || key == "optimismSepoliaRPC"
+        {
+            Image("op-logo")
+                .interpolation(.high)
+                .resizable()
+                .frame(width: LOGO_SIZE, height: LOGO_SIZE)
+        }
+        if key == "arbitrumMainnetRPC"
+            || key == "arbitrumSepoliaRPC"
+        {
+            Image("arb-logo")
+                .interpolation(.high)
+                .resizable()
+                .frame(width: LOGO_SIZE, height: LOGO_SIZE)
+        }
+        if key == "baseMainnetRPC"
+            || key == "baseSepoliaRPC"
+        {
+            Image("base-logo")
+                .interpolation(.high)
+                .resizable()
+                .frame(width: LOGO_SIZE, height: LOGO_SIZE)
+        }
     }
 }
