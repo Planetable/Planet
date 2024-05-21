@@ -52,31 +52,11 @@ struct IPFSTrafficView: View {
     
     @ViewBuilder
     private func chartsView() -> some View {
-        let items = getChartItems()
-        if items.count > 0 {
-            IPFSTrafficChartView(items: items)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .environmentObject(ipfsState)
-        } else {
-            VStack {
-                Text("No data available")
-                    .font(.caption)
-                    .foregroundStyle(Color.secondary)
-            }
+        IPFSTrafficChartView()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
+            .environmentObject(ipfsState)
     }
     
-    private func getChartItems() -> [IPFSTrafficChartItem] {
-        var items: [IPFSTrafficChartItem] = []
-        let keys = ipfsState.bandwidths.keys.sorted(by: { $0 < $1 })
-        for k in keys {
-            guard let bandwidth = ipfsState.bandwidths[k] else { continue }
-            let item = IPFSTrafficChartItem(id: UUID(), created: k, rateIn: UInt64(bandwidth.rateIn), rateOut: UInt64(bandwidth.rateOut))
-            items.append(item)
-        }
-        return items
-    }
 }
 
 #Preview {
