@@ -69,7 +69,7 @@ struct IPFSTrafficView: View {
     
     private func getChartItems() -> [IPFSTrafficChartItem] {
         var items: [IPFSTrafficChartItem] = []
-        let keys = ipfsState.bandwidths.keys.sorted(by: { $0 > $1 })
+        let keys = ipfsState.bandwidths.keys.sorted(by: { $0 < $1 })
         for k in keys {
             guard let bandwidth = ipfsState.bandwidths[k] else { continue }
             let item = IPFSTrafficChartItem(id: UUID(), created: k, rateIn: UInt64(bandwidth.rateIn), rateOut: UInt64(bandwidth.rateOut))

@@ -91,11 +91,11 @@ struct IPFSTrafficChartView: View {
     @ViewBuilder
     private func timelineLabel() -> some View {
         HStack {
-            Text("Now")
+            Text("10m ago")
             Spacer()
             Text("5m ago")
             Spacer()
-            Text("10m ago")
+            Text("Now")
         }
         .foregroundStyle(Color.secondary)
         .font(.footnote)
@@ -115,20 +115,20 @@ struct IPFSTrafficChartView: View {
             }
         }()
         VStack {
-            if isInTraffic {
+            if !isInTraffic {
                 Spacer()
                 Text(rate)
                     .font(.caption)
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .foregroundStyle(Self.outLabelColor)
-                    .padding(.trailing, 12)
+                    .padding(.trailing, 8)
                     .padding(.bottom, 4)
             } else {
                 Text(rate)
                     .font(.caption)
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .foregroundStyle(Self.outLabelColor)
-                    .padding(.trailing, 12)
+                    .padding(.trailing, 8)
                     .padding(.top, 4)
                 Spacer()
             }
@@ -147,7 +147,13 @@ struct IPFSTrafficChartView: View {
             })
             return rates.max()!
         }()
-        let maxItemWidth: CGFloat = width / 120.0 - Self.itemSpacing
+        let maxItemWidth: CGFloat = {
+            let w = width / 120.0 - Self.itemSpacing
+            if w <= 1 {
+                return 1
+            }
+            return w
+        }()
         let itemWidth: CGFloat = {
             let w = width / CGFloat(items.count) - Self.itemSpacing
             if w <= 0 {
@@ -165,16 +171,23 @@ struct IPFSTrafficChartView: View {
         HStack(spacing: Self.itemSpacing) {
             ForEach(items, id: \.id) { item in
                 VStack(spacing: 0) {
+                    let itemHeight: CGFloat = {
+                        let h = CGFloat(isInTraffic ? item.rateIn : item.rateOut) / max * height
+                        if h < 1.0 {
+                            return 1.0
+                        }
+                        return h
+                    }()
                     if isInTraffic {
                         Spacer(minLength: 0)
                         Rectangle()
                             .frame(maxWidth: maxItemWidth)
-                            .frame(width: itemWidth, height: CGFloat(isInTraffic ? item.rateIn : item.rateOut) / max * height)
+                            .frame(width: itemWidth, height: itemHeight)
                             .foregroundStyle(bgColor)
                     } else {
                         Rectangle()
                             .frame(maxWidth: maxItemWidth)
-                            .frame(width: itemWidth, height: CGFloat(isInTraffic ? item.rateIn : item.rateOut) / max * height)
+                            .frame(width: itemWidth, height: itemHeight)
                             .foregroundStyle(bgColor)
                         Spacer(minLength: 0)
                     }
@@ -183,7 +196,7 @@ struct IPFSTrafficChartView: View {
                 .frame(height: height)
             }
         }
-        .frame(width: width, height: height, alignment: .leading)
+        .frame(width: width, height: height, alignment: .trailing)
     }
 }
 
