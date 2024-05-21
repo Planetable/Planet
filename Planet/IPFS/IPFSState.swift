@@ -19,6 +19,9 @@ class IPFSState: ObservableObject {
     @Published private(set) var repoSize: Int64?
     @Published private(set) var serverInfo: ServerInfo?
     @Published private(set) var bandwidths: [Int: IPFSBandwidth] = [:]
+    
+    private weak var refreshRateTimer: Timer?
+    private weak var refreshTrafficTimer: Timer?
 
     init() {
         debugPrint("IPFS State Manager Init")
@@ -32,16 +35,23 @@ class IPFSState: ObservableObject {
                 debugPrint("Failed to launch: \(error.localizedDescription), will try again shortly.")
             }
         }
-        RunLoop.main.add(Timer(timeInterval: Self.refreshRate, repeats: true) { _ in
+        refreshRateTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshRate, repeats: true, block: { _ in
             Task.detached(priority: .utility) {
                 await self.updateStatus()
             }
-        }, forMode: .common)
-        RunLoop.main.add(Timer(timeInterval: Self.refreshTrafficRate, repeats: true) { _ in
+        })
+        refreshTrafficTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshTrafficRate, repeats: true, block: { _ in
             Task.detached(priority: .utility) {
                 await self.updateTrafficStatus()
             }
-        }, forMode: .common)
+        })
+    }
+    
+    deinit {
+        refreshRateTimer?.invalidate()
+        refreshRateTimer = nil
+        refreshTrafficTimer?.invalidate()
+        refreshTrafficTimer = nil
     }
     
     // MARK: -
