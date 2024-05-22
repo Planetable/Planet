@@ -5,7 +5,6 @@
 
 import SwiftUI
 
-
 struct IPFSTrafficView: View {
     @EnvironmentObject private var ipfsState: IPFSState
 
@@ -14,23 +13,29 @@ struct IPFSTrafficView: View {
             if ipfsState.online {
                 titleView()
                 chartsView()
-            } else {
+            }
+            else {
                 offlineView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.secondary.opacity(0.05))
+        .background(Color(NSColor.textBackgroundColor))
         .clipped()
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(Color("BorderColor"), lineWidth: 1)
+        )
+
     }
-    
+
     @ViewBuilder
     private func offlineView() -> some View {
         Text("IPFS Daemon Offline")
             .font(.caption)
             .foregroundStyle(Color.secondary)
     }
-    
+
     @ViewBuilder
     private func titleView() -> some View {
         HStack {
@@ -49,16 +54,16 @@ struct IPFSTrafficView: View {
         .frame(height: 16)
         .background(Color.secondary.opacity(0.1))
     }
-    
+
     @ViewBuilder
     private func chartsView() -> some View {
         IPFSTrafficChartView()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .environmentObject(ipfsState)
     }
-    
+
 }
 
-#Preview {
+#Preview{
     IPFSTrafficView()
 }
