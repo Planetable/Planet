@@ -58,6 +58,24 @@
 		2A4AE87D2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */; };
 		2A4AE87E2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */; };
 		2A58329A2B27FB2600A478CA /* PlanetSettingsAPIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB6A93F29707980007186A7 /* PlanetSettingsAPIView.swift */; };
+		2A5DAE4B2BFEEBB0001ED527 /* fs-repo-12-to-13_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE442BFEEBB0001ED527 /* fs-repo-12-to-13_amd64 */; };
+		2A5DAE4C2BFEEBB0001ED527 /* fs-repo-12-to-13_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE442BFEEBB0001ED527 /* fs-repo-12-to-13_amd64 */; };
+		2A5DAE4D2BFEEBB0001ED527 /* fs-repo-12-to-13_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE452BFEEBB0001ED527 /* fs-repo-12-to-13_arm64 */; };
+		2A5DAE4E2BFEEBB0001ED527 /* fs-repo-12-to-13_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE452BFEEBB0001ED527 /* fs-repo-12-to-13_arm64 */; };
+		2A5DAE4F2BFEEBB0001ED527 /* fs-repo-13-to-14_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE462BFEEBB0001ED527 /* fs-repo-13-to-14_amd64 */; };
+		2A5DAE502BFEEBB0001ED527 /* fs-repo-13-to-14_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE462BFEEBB0001ED527 /* fs-repo-13-to-14_amd64 */; };
+		2A5DAE512BFEEBB0001ED527 /* fs-repo-13-to-14_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE472BFEEBB0001ED527 /* fs-repo-13-to-14_arm64 */; };
+		2A5DAE522BFEEBB0001ED527 /* fs-repo-13-to-14_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE472BFEEBB0001ED527 /* fs-repo-13-to-14_arm64 */; };
+		2A5DAE532BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE482BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 */; };
+		2A5DAE542BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE482BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 */; };
+		2A5DAE552BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE492BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 */; };
+		2A5DAE562BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE492BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 */; };
+		2A5DAE592BFEEBC4001ED527 /* ipfs-arm64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE572BFEEBC3001ED527 /* ipfs-arm64-0.28.bin */; };
+		2A5DAE5A2BFEEBC4001ED527 /* ipfs-arm64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE572BFEEBC3001ED527 /* ipfs-arm64-0.28.bin */; };
+		2A5DAE5B2BFEEBC4001ED527 /* ipfs-amd64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE582BFEEBC4001ED527 /* ipfs-amd64-0.28.bin */; };
+		2A5DAE5C2BFEEBC4001ED527 /* ipfs-amd64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE582BFEEBC4001ED527 /* ipfs-amd64-0.28.bin */; };
+		2A5DAE5E2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */; };
+		2A5DAE5F2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */; };
 		2A6247AE292CC5F400714BFA /* IndicatorLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */; };
 		2A68C6232A26F07A0079AD5F /* RebuildProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A18F2052A0F0FA700FC4050 /* RebuildProgressView.swift */; };
 		2A69F04727E1B53A00141DC0 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A69F04627E1B53A00141DC0 /* FeedKit */; };
@@ -566,6 +584,15 @@
 		2A466FD02A809E2C009FB646 /* IndicatorViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorViews.swift; sourceTree = "<group>"; };
 		2A4AE8792A89EF3600A27B5B /* GroupIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupIndicatorView.swift; sourceTree = "<group>"; };
 		2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SharedAssets.xcassets; sourceTree = "<group>"; };
+		2A5DAE442BFEEBB0001ED527 /* fs-repo-12-to-13_amd64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-12-to-13_amd64"; sourceTree = "<group>"; };
+		2A5DAE452BFEEBB0001ED527 /* fs-repo-12-to-13_arm64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-12-to-13_arm64"; sourceTree = "<group>"; };
+		2A5DAE462BFEEBB0001ED527 /* fs-repo-13-to-14_amd64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-13-to-14_amd64"; sourceTree = "<group>"; };
+		2A5DAE472BFEEBB0001ED527 /* fs-repo-13-to-14_arm64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-13-to-14_arm64"; sourceTree = "<group>"; };
+		2A5DAE482BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-14-to-15_amd64"; sourceTree = "<group>"; };
+		2A5DAE492BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-14-to-15_arm64"; sourceTree = "<group>"; };
+		2A5DAE572BFEEBC3001ED527 /* ipfs-arm64-0.28.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-arm64-0.28.bin"; sourceTree = "<group>"; };
+		2A5DAE582BFEEBC4001ED527 /* ipfs-amd64-0.28.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-amd64-0.28.bin"; sourceTree = "<group>"; };
+		2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSMigrationCommand.swift; sourceTree = "<group>"; };
 		2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorLabelView.swift; sourceTree = "<group>"; };
 		2A6DC6262AEB7F9D0025D6A7 /* PlanetStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetStatusManager.swift; sourceTree = "<group>"; };
 		2A6E16D52A18678E00704A08 /* AppSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSidebarView.swift; sourceTree = "<group>"; };
@@ -981,6 +1008,19 @@
 				2A441BB227C4DF110008A694 /* FollowPlanetView.swift */,
 			);
 			path = "Create & Follow Planet";
+			sourceTree = "<group>";
+		};
+		2A5DAE4A2BFEEBB0001ED527 /* fs-repo-migrations */ = {
+			isa = PBXGroup;
+			children = (
+				2A5DAE442BFEEBB0001ED527 /* fs-repo-12-to-13_amd64 */,
+				2A5DAE452BFEEBB0001ED527 /* fs-repo-12-to-13_arm64 */,
+				2A5DAE462BFEEBB0001ED527 /* fs-repo-13-to-14_amd64 */,
+				2A5DAE472BFEEBB0001ED527 /* fs-repo-13-to-14_arm64 */,
+				2A5DAE482BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 */,
+				2A5DAE492BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 */,
+			);
+			path = "fs-repo-migrations";
 			sourceTree = "<group>";
 		};
 		2A6DC6292AEB7FA30025D6A7 /* Status Manager */ = {
@@ -1425,6 +1465,8 @@
 		721141137EDE4A3E5706D234 /* go-ipfs-executables */ = {
 			isa = PBXGroup;
 			children = (
+				2A5DAE582BFEEBC4001ED527 /* ipfs-amd64-0.28.bin */,
+				2A5DAE572BFEEBC3001ED527 /* ipfs-arm64-0.28.bin */,
 				721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */,
 				72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */,
 			);
@@ -1465,7 +1507,9 @@
 				72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */,
 				2A0E918B2BE889B000F69578 /* IPFSGateway.swift */,
 				72114270D79DBC89703262B9 /* IPFSCommand.swift */,
+				2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */,
 				72114A5CE56CACB595CD70C6 /* IPFSAPIModel.swift */,
+				2A5DAE4A2BFEEBB0001ED527 /* fs-repo-migrations */,
 				721141137EDE4A3E5706D234 /* go-ipfs-executables */,
 			);
 			path = IPFS;
@@ -1716,19 +1760,27 @@
 				2A95E6702A19A3B8001288B8 /* NoSelection.html in Resources */,
 				2A95E6712A19A3B8001288B8 /* TemplatePlaceholder.html in Resources */,
 				2A95E66D2A19A3B8001288B8 /* WriterBasic.html in Resources */,
+				2A5DAE502BFEEBB0001ED527 /* fs-repo-13-to-14_amd64 in Resources */,
 				6A34BE372A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
 				6A34BE352A34B2A00031E5E4 /* Capsules-400.otf in Resources */,
 				6A34BE3F2A34B2A00031E5E4 /* Capsules-500.otf in Resources */,
+				2A5DAE562BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 in Resources */,
 				2A95E6F02A19A777001288B8 /* Credits.html in Resources */,
+				2A5DAE4E2BFEEBB0001ED527 /* fs-repo-12-to-13_arm64 in Resources */,
 				6A34BE332A34B2A00031E5E4 /* Capsules-200.otf in Resources */,
+				2A5DAE5C2BFEEBC4001ED527 /* ipfs-amd64-0.28.bin in Resources */,
 				2A95E6992A19A43D001288B8 /* ipfs-arm64-0.15.bin in Resources */,
 				2A4AE87E2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */,
 				6A34BE3B2A34B2A00031E5E4 /* Capsules-300.otf in Resources */,
 				6A34BE3D2A34B2A00031E5E4 /* Capsules-700.otf in Resources */,
+				2A5DAE5A2BFEEBC4001ED527 /* ipfs-arm64-0.28.bin in Resources */,
 				2A95E6982A19A43D001288B8 /* ipfs-amd64-0.15.bin in Resources */,
+				2A5DAE4C2BFEEBB0001ED527 /* fs-repo-12-to-13_amd64 in Resources */,
 				6A34BE392A34B2A00031E5E4 /* Capsules-100.otf in Resources */,
+				2A5DAE542BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 in Resources */,
 				2A95E66F2A19A3B8001288B8 /* RSS.xml in Resources */,
 				2ABD1CC82A1616DB0082D7EA /* Assets.xcassets in Resources */,
+				2A5DAE522BFEEBB0001ED527 /* fs-repo-13-to-14_arm64 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1736,10 +1788,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2A5DAE592BFEEBC4001ED527 /* ipfs-arm64-0.28.bin in Resources */,
 				2AF4006A27F37C27005DF1A9 /* WriterBasicPlaceholder.html in Resources */,
+				2A5DAE5B2BFEEBC4001ED527 /* ipfs-amd64-0.28.bin in Resources */,
 				2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */,
 				6A28FDA82838598A00036BA6 /* NoSelection.html in Resources */,
+				2A5DAE552BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 in Resources */,
 				2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */,
+				2A5DAE4B2BFEEBB0001ED527 /* fs-repo-12-to-13_amd64 in Resources */,
 				6A34BE362A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
 				2ADD6E722A9F2D2600AD763B /* tier3.zip in Resources */,
 				6A34BE342A34B2A00031E5E4 /* Capsules-400.otf in Resources */,
@@ -1747,6 +1803,7 @@
 				6A1FD5062A75A6A000391972 /* NSTG.json in Resources */,
 				2ADD6E712A9F2D2600AD763B /* vol1-1.zip in Resources */,
 				6A34BE3E2A34B2A00031E5E4 /* Capsules-500.otf in Resources */,
+				2A5DAE4F2BFEEBB0001ED527 /* fs-repo-13-to-14_amd64 in Resources */,
 				2ADD6E702A9F2D2600AD763B /* vol1-8.zip in Resources */,
 				6A1DF9CF28E8E4B6000499E3 /* RSS.xml in Resources */,
 				2ADD6E6F2A9F2D2600AD763B /* vol1-4.zip in Resources */,
@@ -1758,15 +1815,18 @@
 				2ADD6E6D2A9F2D2600AD763B /* tier1.zip in Resources */,
 				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
 				2ADD6E772A9F2D2600AD763B /* tier2.zip in Resources */,
+				2A5DAE532BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 in Resources */,
 				6A34BE322A34B2A00031E5E4 /* Capsules-200.otf in Resources */,
 				2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */,
 				6A34BE3A2A34B2A00031E5E4 /* Capsules-300.otf in Resources */,
 				6A34BE3C2A34B2A00031E5E4 /* Capsules-700.otf in Resources */,
 				2ADD6E742A9F2D2600AD763B /* vol1-2.zip in Resources */,
 				2A4AE87D2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */,
+				2A5DAE4D2BFEEBB0001ED527 /* fs-repo-12-to-13_arm64 in Resources */,
 				6A64D2DE284640A80013EABB /* Credits.html in Resources */,
 				6A34BE382A34B2A00031E5E4 /* Capsules-100.otf in Resources */,
 				72114AE8931655425CC6E5C1 /* ipfs-amd64-0.15.bin in Resources */,
+				2A5DAE512BFEEBB0001ED527 /* fs-repo-13-to-14_arm64 in Resources */,
 				72114B95CA15BC9EC180FC36 /* ipfs-arm64-0.15.bin in Resources */,
 				2ADD6E752A9F2D2600AD763B /* vol1-3.zip in Resources */,
 			);
@@ -1891,6 +1951,7 @@
 				2A95E6F12A19A781001288B8 /* CoreDataPersistence.swift in Sources */,
 				2A95E6E02A19A521001288B8 /* Filebase.swift in Sources */,
 				2A996AD32A1DA69600BEF898 /* PlanetDownloadsWindowController.swift in Sources */,
+				2A5DAE5F2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */,
 				2A95E7002A1BAEF9001288B8 /* AppContentItemView.swift in Sources */,
 				2A95E6942A19A3D0001288B8 /* PlanetKeyManagerWindow.swift in Sources */,
 				2A996AD42A1DA6C100BEF898 /* PlanetDownloadsView.swift in Sources */,
@@ -2092,6 +2153,7 @@
 				2AA7974629496F730031E873 /* PFDashboardView.swift in Sources */,
 				7211413A9B3CC77620629D22 /* ViewUtils.swift in Sources */,
 				72114A966288F7CDAF984E3C /* FollowingArticleModel.swift in Sources */,
+				2A5DAE5E2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */,
 				721148D471575905C624EEC7 /* ArticleModel.swift in Sources */,
 				72114265702BCDF356C98046 /* FollowingPlanetAvatarView.swift in Sources */,
 				2A2774562A95161F00A5DDC2 /* PlanetDockPlugIn.swift in Sources */,

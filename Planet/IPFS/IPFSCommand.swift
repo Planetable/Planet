@@ -4,13 +4,14 @@ import Foundation
 struct IPFSCommand {
     // executables are under <project_root>/Planet/IPFS/go-ipfs-executables
     // version: 0.16.0, last updated 2022-10-04
+    // version: 0.28.0, last updated 2024-05-20
     // NOTE: executables must have executable permission in source code
     static let IPFSExecutablePath: URL = {
         switch ProcessInfo.processInfo.machineHardwareName {
         case "arm64":
-            return Bundle.main.url(forResource: "ipfs-arm64-0.15", withExtension: "bin")!
+            return Bundle.main.url(forResource: "ipfs-arm64-0.28", withExtension: "bin")!
         case "x86_64":
-            return Bundle.main.url(forResource: "ipfs-amd64-0.15", withExtension: "bin")!
+            return Bundle.main.url(forResource: "ipfs-amd64-0.28", withExtension: "bin")!
         default:
             fatalError("Planet is not supported on your operating system.")
         }
@@ -118,6 +119,10 @@ struct IPFSCommand {
     static func IPFSInit() -> IPFSCommand {
         IPFSCommand(arguments: ["init"])
     }
+    
+    static func IPFSVersion() -> IPFSCommand {
+        IPFSCommand(arguments: ["version"])
+    }
 
     static func updateAPIPort(port: UInt16) -> IPFSCommand {
         IPFSCommand(arguments: ["config", "Addresses.API", "/ip4/127.0.0.1/tcp/\(port)"])
@@ -224,7 +229,7 @@ struct IPFSCommand {
 }
 
 
-// MARK: TODO: migration with offline patch files.
+/*
 struct IPFSMigrationCommand {
     static let repoVersion = 12
 
@@ -285,3 +290,4 @@ struct IPFSMigrationCommand {
         return (Int(process.terminationStatus), outputData, errorData)
     }
 }
+*/

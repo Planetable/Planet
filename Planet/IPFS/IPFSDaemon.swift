@@ -11,6 +11,7 @@ actor IPFSDaemon {
     private var apiPort: UInt16!
     private var gatewayPort: UInt16!
 
+    static let kuboVersion: String = "0.28.0"
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "IPFSDaemon")
 
     init() {
@@ -36,6 +37,22 @@ actor IPFSDaemon {
                 Self.logger.info("Error Initializing IPFS")
                 return
             }
+        }
+        
+        Self.logger.info("Verifying Kubo version")
+        do {
+            let result = try IPFSCommand.IPFSVersion().run()
+            let resultString = String(data: result.out, encoding: .utf8)
+            debugPrint("kubo version: \(resultString)")
+            let currentKuboVersion = try await IPFSMigrationCommand.currentKuboVersion()
+            Self.logger.info("Current kubo version: \(currentKuboVersion), bundle resource version: \(Self.kuboVersion).")
+            if Self.kuboVersion != currentKuboVersion {
+                Self.logger.info("Kubo version not match, preparing migration.")
+                return
+            }
+        } catch {
+            Self.logger.info("Error Verifying Kubo Version")
+            return
         }
 
         // scout open ports
