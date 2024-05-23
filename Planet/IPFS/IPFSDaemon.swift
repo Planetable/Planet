@@ -11,7 +11,6 @@ actor IPFSDaemon {
     private var apiPort: UInt16!
     private var gatewayPort: UInt16!
 
-    static let kuboVersion: String = "0.28.0"
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "IPFSDaemon")
 
     init() {
@@ -39,19 +38,25 @@ actor IPFSDaemon {
             }
         }
         
-        Self.logger.info("Verifying Kubo version")
+        Self.logger.info("Verifying IPFS repo version at \(IPFSCommand.IPFSRepositoryPath) via \(IPFSCommand.IPFSExecutablePath)")
         do {
-            let result = try IPFSCommand.IPFSVersion().run()
-            let resultString = String(data: result.out, encoding: .utf8)
-            debugPrint("kubo version: \(resultString)")
-            let currentKuboVersion = try await IPFSMigrationCommand.currentKuboVersion()
-            Self.logger.info("Current kubo version: \(currentKuboVersion), bundle resource version: \(Self.kuboVersion).")
-            if Self.kuboVersion != currentKuboVersion {
-                Self.logger.info("Kubo version not match, preparing migration.")
-                return
+            let repoVersion = try await IPFSMigrationCommand.currentRepoVersion()
+            let migrationRepoNames = IPFSMigrationCommand.migrationRepoNames(forRepoVersion: repoVersion)
+            if repoVersion < IPFSCommand.IPFSRepoVersion && migrationRepoNames.count > 0 {
+                Self.logger.info("Current repo version \(repoVersion) is lower than app runtime repo version \(IPFSCommand.IPFSRepoVersion), preparing migration")
+                for name in migrationRepoNames {
+                    let command = IPFSMigrationCommand(repoName: name)
+                    let data = try await command.run()
+                    if let result = String(data: data, encoding: .utf8) {
+                        Self.logger.info("Migration result: \(result)")
+                    }
+                    try await Task.sleep(nanoseconds: 500_000_000)
+                }
+            } else {
+                Self.logger.info("Repo version verified: \(repoVersion)")
             }
         } catch {
-            Self.logger.info("Error Verifying Kubo Version")
+            Self.logger.info("Error Verifying Repo Version: \(error)")
             return
         }
 
@@ -266,12 +271,10 @@ actor IPFSDaemon {
                         Task.detached(priority: .utility) {
                             await IPFSState.shared.updateStatus()
                             IPFSState.shared.updateAppSettings()
-                        }
-                        Task { @MainActor in
-                            IPFSState.shared.updateOperatingStatus(false)
-                        }
-                        Task.detached(priority: .background) {
                             try? await IPFSState.shared.calculateRepoSize()
+                            Task { @MainActor in
+                                IPFSState.shared.updateOperatingStatus(false)
+                            }
                         }
                     }
                 },

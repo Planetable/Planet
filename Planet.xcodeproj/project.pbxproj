@@ -36,6 +36,10 @@
 		2A2774562A95161F00A5DDC2 /* PlanetDockPlugIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2774552A95161F00A5DDC2 /* PlanetDockPlugIn.swift */; };
 		2A2774572A95161F00A5DDC2 /* PlanetDockPlugIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2774552A95161F00A5DDC2 /* PlanetDockPlugIn.swift */; };
 		2A2774592A95171F00A5DDC2 /* PlanetDockPlugIn.docktileplugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2A2774462A95159700A5DDC2 /* PlanetDockPlugIn.docktileplugin */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2A2A2F8B2BFF10400092AEA1 /* ipfs-arm64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A2A2F892BFF103F0092AEA1 /* ipfs-arm64-0.28.bin */; };
+		2A2A2F8C2BFF10400092AEA1 /* ipfs-arm64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A2A2F892BFF103F0092AEA1 /* ipfs-arm64-0.28.bin */; };
+		2A2A2F8D2BFF10400092AEA1 /* ipfs-amd64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A2A2F8A2BFF10400092AEA1 /* ipfs-amd64-0.28.bin */; };
+		2A2A2F8E2BFF10400092AEA1 /* ipfs-amd64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A2A2F8A2BFF10400092AEA1 /* ipfs-amd64-0.28.bin */; };
 		2A2E33F227F4A93B0093F405 /* AttachmentThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2E33F127F4A93B0093F405 /* AttachmentThumbnailView.swift */; };
 		2A2F70EC2967057100755931 /* WriterTitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70EB2967057100755931 /* WriterTitleView.swift */; };
 		2A2F70EE29670D1300755931 /* CLTextFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70ED29670D1300755931 /* CLTextFieldView.swift */; };
@@ -70,10 +74,6 @@
 		2A5DAE542BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE482BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 */; };
 		2A5DAE552BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE492BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 */; };
 		2A5DAE562BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE492BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 */; };
-		2A5DAE592BFEEBC4001ED527 /* ipfs-arm64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE572BFEEBC3001ED527 /* ipfs-arm64-0.28.bin */; };
-		2A5DAE5A2BFEEBC4001ED527 /* ipfs-arm64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE572BFEEBC3001ED527 /* ipfs-arm64-0.28.bin */; };
-		2A5DAE5B2BFEEBC4001ED527 /* ipfs-amd64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE582BFEEBC4001ED527 /* ipfs-amd64-0.28.bin */; };
-		2A5DAE5C2BFEEBC4001ED527 /* ipfs-amd64-0.28.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DAE582BFEEBC4001ED527 /* ipfs-amd64-0.28.bin */; };
 		2A5DAE5E2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */; };
 		2A5DAE5F2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */; };
 		2A6247AE292CC5F400714BFA /* IndicatorLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */; };
@@ -187,8 +187,6 @@
 		2A95E6952A19A437001288B8 /* IPFSDaemon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */; };
 		2A95E6962A19A437001288B8 /* IPFSCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114270D79DBC89703262B9 /* IPFSCommand.swift */; };
 		2A95E6972A19A437001288B8 /* IPFSState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721148C9E7BCB6F1BC539F57 /* IPFSState.swift */; };
-		2A95E6982A19A43D001288B8 /* ipfs-amd64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */; };
-		2A95E6992A19A43D001288B8 /* ipfs-arm64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */; };
 		2A95E69A2A19A441001288B8 /* IPFSAPIModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114A5CE56CACB595CD70C6 /* IPFSAPIModel.swift */; };
 		2A95E69B2A19A446001288B8 /* ArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114F5686F5902EE578B3CF /* ArticleModel.swift */; };
 		2A95E69C2A19A446001288B8 /* PlanetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721146E8B821AA2558D6DD3A /* PlanetStore.swift */; };
@@ -487,10 +485,8 @@
 		72114A84BE7EC3DA2AAF14F5 /* Planet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114E6940D60B7155DDD8BC /* Planet.swift */; };
 		72114A966288F7CDAF984E3C /* FollowingArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */; };
 		72114AE68D0DEDE11FC82E60 /* CoreDataPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114C0FA779C3B613771E53 /* CoreDataPersistence.swift */; };
-		72114AE8931655425CC6E5C1 /* ipfs-amd64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */; };
 		72114AFCB4EDB617C07192BB /* FollowingPlanetSidebarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211467DFBDA573F4B938B0C /* FollowingPlanetSidebarItem.swift */; };
 		72114B6486572E7F6AF5AC62 /* LoadingIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CF288467021C7E9BF40 /* LoadingIndicatorView.swift */; };
-		72114B95CA15BC9EC180FC36 /* ipfs-arm64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */; };
 		72114C03242147A247A8B317 /* Runner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114BFBBB1E6F4DB7B0D234 /* Runner.swift */; };
 		72114D4918DAC507F6E3AF7F /* MarkdownUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211412C05B18AC06A98BA74 /* MarkdownUtils.swift */; };
 		72114E3DCDF2B0618F4693D7 /* MyArticleItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211477C97CD9725E13B885E /* MyArticleItemView.swift */; };
@@ -567,6 +563,8 @@
 		2A27744D2A9515EB00A5DDC2 /* IconModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IconModel.swift; sourceTree = "<group>"; };
 		2A27744F2A9515F600A5DDC2 /* IconGalleryView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IconGalleryView.swift; sourceTree = "<group>"; };
 		2A2774552A95161F00A5DDC2 /* PlanetDockPlugIn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetDockPlugIn.swift; sourceTree = "<group>"; };
+		2A2A2F892BFF103F0092AEA1 /* ipfs-arm64-0.28.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-arm64-0.28.bin"; sourceTree = "<group>"; };
+		2A2A2F8A2BFF10400092AEA1 /* ipfs-amd64-0.28.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-amd64-0.28.bin"; sourceTree = "<group>"; };
 		2A2E33F127F4A93B0093F405 /* AttachmentThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentThumbnailView.swift; sourceTree = "<group>"; };
 		2A2F70EB2967057100755931 /* WriterTitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriterTitleView.swift; sourceTree = "<group>"; };
 		2A2F70ED29670D1300755931 /* CLTextFieldView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CLTextFieldView.swift; sourceTree = "<group>"; };
@@ -590,8 +588,6 @@
 		2A5DAE472BFEEBB0001ED527 /* fs-repo-13-to-14_arm64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-13-to-14_arm64"; sourceTree = "<group>"; };
 		2A5DAE482BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-14-to-15_amd64"; sourceTree = "<group>"; };
 		2A5DAE492BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-14-to-15_arm64"; sourceTree = "<group>"; };
-		2A5DAE572BFEEBC3001ED527 /* ipfs-arm64-0.28.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-arm64-0.28.bin"; sourceTree = "<group>"; };
-		2A5DAE582BFEEBC4001ED527 /* ipfs-amd64-0.28.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-amd64-0.28.bin"; sourceTree = "<group>"; };
 		2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSMigrationCommand.swift; sourceTree = "<group>"; };
 		2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorLabelView.swift; sourceTree = "<group>"; };
 		2A6DC6262AEB7F9D0025D6A7 /* PlanetStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetStatusManager.swift; sourceTree = "<group>"; };
@@ -782,7 +778,6 @@
 		721143EEE6936427A9BC9452 /* Lifetimes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Lifetimes.swift; sourceTree = "<group>"; };
 		721144D264DD084A74B49BF8 /* MyPlanetInfoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyPlanetInfoView.swift; sourceTree = "<group>"; };
 		721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowingArticleModel.swift; sourceTree = "<group>"; };
-		721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-amd64-0.15.bin"; sourceTree = "<group>"; };
 		7211459D5283D74D29C8F0DC /* PlanetArticle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetArticle.swift; sourceTree = "<group>"; };
 		7211467DFBDA573F4B938B0C /* FollowingPlanetSidebarItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowingPlanetSidebarItem.swift; sourceTree = "<group>"; };
 		721146E8B821AA2558D6DD3A /* PlanetStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetStore.swift; sourceTree = "<group>"; };
@@ -807,7 +802,6 @@
 		72114E45790363ADCC6F7673 /* DraftModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DraftModel.swift; sourceTree = "<group>"; };
 		72114E6940D60B7155DDD8BC /* Planet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Planet.swift; sourceTree = "<group>"; };
 		72114E6F20DEF821BA928CB2 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
-		72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-arm64-0.15.bin"; sourceTree = "<group>"; };
 		72114F3CBC160F54087E1537 /* JSONUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONUtils.swift; sourceTree = "<group>"; };
 		72114F5686F5902EE578B3CF /* ArticleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleModel.swift; sourceTree = "<group>"; };
 		BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v6.xcdatamodel"; sourceTree = "<group>"; };
@@ -988,6 +982,15 @@
 				2ADD6E562A9F2D0B00AD763B /* vol1-8.png */,
 			);
 			path = Icons;
+			sourceTree = "<group>";
+		};
+		2A2A2F7E2BFF0E520092AEA1 /* ipfs-executables */ = {
+			isa = PBXGroup;
+			children = (
+				2A2A2F8A2BFF10400092AEA1 /* ipfs-amd64-0.28.bin */,
+				2A2A2F892BFF103F0092AEA1 /* ipfs-arm64-0.28.bin */,
+			);
+			path = "ipfs-executables";
 			sourceTree = "<group>";
 		};
 		2A4164D529E6475E009BFC24 /* Quick Share */ = {
@@ -1462,17 +1465,6 @@
 			path = Wallet;
 			sourceTree = "<group>";
 		};
-		721141137EDE4A3E5706D234 /* go-ipfs-executables */ = {
-			isa = PBXGroup;
-			children = (
-				2A5DAE582BFEEBC4001ED527 /* ipfs-amd64-0.28.bin */,
-				2A5DAE572BFEEBC3001ED527 /* ipfs-arm64-0.28.bin */,
-				721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */,
-				72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */,
-			);
-			path = "go-ipfs-executables";
-			sourceTree = "<group>";
-		};
 		7211413CAA72A088BCD0D4F3 /* Plausible */ = {
 			isa = PBXGroup;
 			children = (
@@ -1509,8 +1501,8 @@
 				72114270D79DBC89703262B9 /* IPFSCommand.swift */,
 				2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */,
 				72114A5CE56CACB595CD70C6 /* IPFSAPIModel.swift */,
+				2A2A2F7E2BFF0E520092AEA1 /* ipfs-executables */,
 				2A5DAE4A2BFEEBB0001ED527 /* fs-repo-migrations */,
-				721141137EDE4A3E5706D234 /* go-ipfs-executables */,
 			);
 			path = IPFS;
 			sourceTree = "<group>";
@@ -1758,8 +1750,10 @@
 			files = (
 				2A95E66E2A19A3B8001288B8 /* WriterBasicPlaceholder.html in Resources */,
 				2A95E6702A19A3B8001288B8 /* NoSelection.html in Resources */,
+				2A2A2F8E2BFF10400092AEA1 /* ipfs-amd64-0.28.bin in Resources */,
 				2A95E6712A19A3B8001288B8 /* TemplatePlaceholder.html in Resources */,
 				2A95E66D2A19A3B8001288B8 /* WriterBasic.html in Resources */,
+				2A2A2F8C2BFF10400092AEA1 /* ipfs-arm64-0.28.bin in Resources */,
 				2A5DAE502BFEEBB0001ED527 /* fs-repo-13-to-14_amd64 in Resources */,
 				6A34BE372A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
 				6A34BE352A34B2A00031E5E4 /* Capsules-400.otf in Resources */,
@@ -1768,13 +1762,9 @@
 				2A95E6F02A19A777001288B8 /* Credits.html in Resources */,
 				2A5DAE4E2BFEEBB0001ED527 /* fs-repo-12-to-13_arm64 in Resources */,
 				6A34BE332A34B2A00031E5E4 /* Capsules-200.otf in Resources */,
-				2A5DAE5C2BFEEBC4001ED527 /* ipfs-amd64-0.28.bin in Resources */,
-				2A95E6992A19A43D001288B8 /* ipfs-arm64-0.15.bin in Resources */,
 				2A4AE87E2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */,
 				6A34BE3B2A34B2A00031E5E4 /* Capsules-300.otf in Resources */,
 				6A34BE3D2A34B2A00031E5E4 /* Capsules-700.otf in Resources */,
-				2A5DAE5A2BFEEBC4001ED527 /* ipfs-arm64-0.28.bin in Resources */,
-				2A95E6982A19A43D001288B8 /* ipfs-amd64-0.15.bin in Resources */,
 				2A5DAE4C2BFEEBB0001ED527 /* fs-repo-12-to-13_amd64 in Resources */,
 				6A34BE392A34B2A00031E5E4 /* Capsules-100.otf in Resources */,
 				2A5DAE542BFEEBB0001ED527 /* fs-repo-14-to-15_amd64 in Resources */,
@@ -1788,9 +1778,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2A5DAE592BFEEBC4001ED527 /* ipfs-arm64-0.28.bin in Resources */,
 				2AF4006A27F37C27005DF1A9 /* WriterBasicPlaceholder.html in Resources */,
-				2A5DAE5B2BFEEBC4001ED527 /* ipfs-amd64-0.28.bin in Resources */,
 				2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */,
 				6A28FDA82838598A00036BA6 /* NoSelection.html in Resources */,
 				2A5DAE552BFEEBB0001ED527 /* fs-repo-14-to-15_arm64 in Resources */,
@@ -1806,11 +1794,13 @@
 				2A5DAE4F2BFEEBB0001ED527 /* fs-repo-13-to-14_amd64 in Resources */,
 				2ADD6E702A9F2D2600AD763B /* vol1-8.zip in Resources */,
 				6A1DF9CF28E8E4B6000499E3 /* RSS.xml in Resources */,
+				2A2A2F8B2BFF10400092AEA1 /* ipfs-arm64-0.28.bin in Resources */,
 				2ADD6E6F2A9F2D2600AD763B /* vol1-4.zip in Resources */,
 				E8B4FE422A8D146100C01E94 /* InfoPlist.strings in Resources */,
 				6A1FD5032A75A64500391972 /* Avatars.xcassets in Resources */,
 				E8B4FE3D2A8D144E00C01E94 /* Localizable.strings in Resources */,
 				2ADD6E762A9F2D2600AD763B /* vol1-7.zip in Resources */,
+				2A2A2F8D2BFF10400092AEA1 /* ipfs-amd64-0.28.bin in Resources */,
 				2ADD6E792A9F2EA600AD763B /* vol1-5.zip in Resources */,
 				2ADD6E6D2A9F2D2600AD763B /* tier1.zip in Resources */,
 				2AF4006927F37C27005DF1A9 /* WriterBasic.html in Resources */,
@@ -1825,9 +1815,7 @@
 				2A5DAE4D2BFEEBB0001ED527 /* fs-repo-12-to-13_arm64 in Resources */,
 				6A64D2DE284640A80013EABB /* Credits.html in Resources */,
 				6A34BE382A34B2A00031E5E4 /* Capsules-100.otf in Resources */,
-				72114AE8931655425CC6E5C1 /* ipfs-amd64-0.15.bin in Resources */,
 				2A5DAE512BFEEBB0001ED527 /* fs-repo-13-to-14_arm64 in Resources */,
-				72114B95CA15BC9EC180FC36 /* ipfs-arm64-0.15.bin in Resources */,
 				2ADD6E752A9F2D2600AD763B /* vol1-3.zip in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

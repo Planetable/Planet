@@ -28,6 +28,7 @@ class IPFSState: ObservableObject {
         Task(priority: .userInitiated) {
             do {
                 await IPFSDaemon.shared.setupIPFS()
+                try await Task.sleep(nanoseconds: 500_000_000)
                 if self.shouldAutoLaunchDaemon() {
                     try await IPFSDaemon.shared.launch()
                 }

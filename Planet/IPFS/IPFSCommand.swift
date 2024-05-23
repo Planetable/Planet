@@ -23,6 +23,10 @@ struct IPFSCommand {
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
+    
+    static let IPFSRepoVersion: Int = {
+        return 15
+    }()
 
     let arguments: [String]
 
