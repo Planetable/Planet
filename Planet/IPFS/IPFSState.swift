@@ -37,17 +37,17 @@ class IPFSState: ObservableObject {
             } catch {
                 debugPrint("Failed to launch: \(error.localizedDescription), will try again shortly.")
             }
-            self.refreshRateTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshRate, repeats: true, block: { _ in
-                Task.detached(priority: .utility) {
-                    await self.updateStatus()
-                }
-            })
-            self.refreshTrafficTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshTrafficRate, repeats: true, block: { _ in
-                Task.detached(priority: .background) {
-                    await self.updateTrafficStatus()
-                }
-            })
         }
+        self.refreshRateTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshRate, repeats: true, block: { _ in
+            Task.detached(priority: .utility) {
+                await self.updateStatus()
+            }
+        })
+        self.refreshTrafficTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshTrafficRate, repeats: true, block: { _ in
+            Task.detached(priority: .background) {
+                await self.updateTrafficStatus()
+            }
+        })
     }
     
     deinit {

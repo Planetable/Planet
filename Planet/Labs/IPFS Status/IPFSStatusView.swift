@@ -17,7 +17,6 @@ struct IPFSStatusView: View {
     }()
 
     @State private var isDaemonOnline: Bool = IPFSState.shared.online
-    @State private var isDaemonFailedToLaunch: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -53,13 +52,7 @@ struct IPFSStatusView: View {
                             .onChange(of: isDaemonOnline) { newValue in
                                 Task.detached(priority: .userInitiated) {
                                     if newValue {
-                                        do {
-                                            try await IPFSDaemon.shared.launch()
-                                        } catch {
-                                            await MainActor.run {
-                                                self.isDaemonFailedToLaunch = true
-                                            }
-                                        }
+                                        try? await IPFSDaemon.shared.launch()
                                     } else {
                                         try? await IPFSDaemon.shared.shutdown()
                                     }
@@ -87,27 +80,6 @@ struct IPFSStatusView: View {
                     debugPrint("failed to calculate repo size: \(error)")
                 }
             }
-        }
-        .alert("Failed to Launch Daemon", isPresented: $isDaemonFailedToLaunch) {
-            Button(role: .destructive) {
-                Task.detached(priority: .userInitiated) {
-                    do {
-                        try await IPFSDaemon.shared.launch()
-                    } catch {
-                        await MainActor.run {
-                            self.isDaemonFailedToLaunch = true
-                        }
-                    }
-                }
-            } label: {
-                Text("Launch Daemon")
-            }
-            Button(role: .cancel) {
-            } label: {
-                Text("Dismiss")
-            }
-        } message: {
-            Text("Please wait for a few seconds then try again.")
         }
     }
     
