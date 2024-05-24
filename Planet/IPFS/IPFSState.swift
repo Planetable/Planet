@@ -32,20 +32,22 @@ class IPFSState: ObservableObject {
                 if self.shouldAutoLaunchDaemon() {
                     try await IPFSDaemon.shared.launch()
                 }
+                try await Task.sleep(nanoseconds: 500_000_000)
+                await self.updateStatus()
             } catch {
                 debugPrint("Failed to launch: \(error.localizedDescription), will try again shortly.")
             }
+            self.refreshRateTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshRate, repeats: true, block: { _ in
+                Task.detached(priority: .utility) {
+                    await self.updateStatus()
+                }
+            })
+            self.refreshTrafficTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshTrafficRate, repeats: true, block: { _ in
+                Task.detached(priority: .background) {
+                    await self.updateTrafficStatus()
+                }
+            })
         }
-        refreshRateTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshRate, repeats: true, block: { _ in
-            Task.detached(priority: .utility) {
-                await self.updateStatus()
-            }
-        })
-        refreshTrafficTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshTrafficRate, repeats: true, block: { _ in
-            Task.detached(priority: .utility) {
-                await self.updateTrafficStatus()
-            }
-        })
     }
     
     deinit {
@@ -128,16 +130,12 @@ class IPFSState: ObservableObject {
         catch {
             onlineStatus = false
         }
-
-        // update current peers
-        if onlineStatus {
-            Task.detached(priority: .background) {
-                await self.updateServerInfo()
-            }
-        }
-
         await MainActor.run {
             self.online = onlineStatus
+        }
+        // update current peers
+        if onlineStatus {
+            await self.updateServerInfo()
         }
     }
 

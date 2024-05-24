@@ -254,7 +254,10 @@ actor IPFSDaemon {
     func launch() throws {
         Self.logger.info("Launching daemon")
         if swarmPort == nil || apiPort == nil || gatewayPort == nil {
-            Self.logger.info("IPFS is not ready, abort launching process.")
+            Self.logger.info("IPFS is not ready, abort launching process, trying to setup again.")
+            Task.detached(priority: .utility) {
+                await self.setupIPFS()
+            }
             throw PlanetError.IPFSError
         }
         do {
