@@ -41,24 +41,24 @@ struct IPFSStatusView: View {
                     Text(ipfsState.online ? "Online" : "Offline")
                         .font(.body)
                     Spacer()
-                    if !ipfsState.isShowingStatusWindow {
-                        Button {
-                            IPFSStatusWindowManager.shared.activate()
-                        } label: {
-                            Image(systemName: "rectangle.inset.filled.on.rectangle")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(height: 15)
-                                .foregroundStyle(Color.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .help("Open status in separate window.")
-                    }
                     if ipfsState.isOperating {
                         ProgressView()
                             .progressViewStyle(.circular)
                             .controlSize(.small)
                     } else {
+                        if !ipfsState.isShowingStatusWindow {
+                            Button {
+                                IPFSStatusWindowManager.shared.activate()
+                            } label: {
+                                Image(systemName: "rectangle.inset.filled.on.rectangle")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(height: 15)
+                                    .foregroundStyle(Color.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Open status in separate window.")
+                        }
                         Toggle("", isOn: $isDaemonOnline)
                             .toggleStyle(SwitchToggleStyle())
                             .tint(.green)

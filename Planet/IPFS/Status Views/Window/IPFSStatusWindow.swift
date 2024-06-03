@@ -32,6 +32,9 @@ extension IPFSStatusWindow: NSWindowDelegate {
     }
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
+        Task { @MainActor in
+            IPFSState.shared.isShowingStatusWindow = false
+        }
         return true
     }
 }
