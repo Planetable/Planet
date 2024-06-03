@@ -8,7 +8,17 @@ class IPFSState: ObservableObject {
     static let refreshTrafficRate: TimeInterval = 5
     static let lastUserLaunchState: String = "PlanetIPFSLastUserLaunchStateKey"
 
-    @Published var isShowingStatus = false
+    @Published var isShowingStatus = false {
+        didSet {
+            Task { @MainActor in
+                if self.isShowingStatus && self.isShowingStatusWindow {
+                    self.isShowingStatusWindow = false
+                    IPFSStatusWindowManager.shared.deactivate()
+                }
+            }
+        }
+    }
+    @Published var isShowingStatusWindow = false
 
     @Published private(set) var isOperating = false
     @Published private(set) var online = false

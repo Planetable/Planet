@@ -12,12 +12,15 @@ class IPFSStatusWindow: NSWindow {
     static let minHeight: CGFloat = 280
 
     init() {
-        super.init(contentRect: NSRect(origin: .zero, size: .init(width: Self.minWidth, height: Self.minHeight)), styleMask: [.closable, .titled], backing: .buffered, defer: true)
+        super.init(contentRect: NSRect(origin: .zero, size: .init(width: Self.minWidth, height: Self.minHeight)), styleMask: [.closable, .titled, .fullSizeContentView], backing: .buffered, defer: true)
         self.minSize = CGSize(width: Self.minWidth, height: Self.minHeight)
         self.collectionBehavior = .fullScreenNone
         self.title = "IPFS Status"
         self.titlebarAppearsTransparent = true
-        self.titleVisibility = .hidden
+        self.titleVisibility = .visible
+        self.isMovableByWindowBackground = true
+        self.isOpaque = false
+        self.backgroundColor = .clear
         self.delegate = self
         self.setFrameAutosaveName("IPFSStatusWindow")
     }

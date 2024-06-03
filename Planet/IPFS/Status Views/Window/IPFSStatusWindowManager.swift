@@ -11,8 +11,25 @@ class IPFSStatusWindowManager: NSObject {
 
     private var windowController: IPFSStatusWindowController?
 
+    var windowOrigin: CGPoint = .zero
+    var windowSize: CGSize = .init(width: 280, height: 280)
+
     func activate() {
-        //MARK: TODO: show status window at the same position.
+        let rect = CGRect(origin: windowOrigin, size: windowSize)
+        if windowController == nil {
+            let wc = IPFSStatusWindowController()
+            let vc = IPFSStatusViewController()
+            wc.contentViewController = vc
+            windowController = wc
+        }
+        windowController?.showWindow(nil)
+        if rect.origin == .zero {
+            windowController?.window?.center()
+        }
+        Task { @MainActor in
+            IPFSState.shared.isShowingStatus = false
+            IPFSState.shared.isShowingStatusWindow = true
+        }
     }
 
     func close() {
