@@ -4,7 +4,7 @@ import Foundation
 class IPFSState: ObservableObject {
     static let shared = IPFSState()
 
-    static let refreshRate: TimeInterval = 20
+    static let refreshRate: TimeInterval = 30
     static let refreshTrafficRate: TimeInterval = 5
     static let lastUserLaunchState: String = "PlanetIPFSLastUserLaunchStateKey"
 
@@ -32,8 +32,6 @@ class IPFSState: ObservableObject {
                 if self.shouldAutoLaunchDaemon() {
                     try await IPFSDaemon.shared.launch()
                 }
-                try await Task.sleep(nanoseconds: 500_000_000)
-                await self.updateStatus()
             } catch {
                 debugPrint("Failed to launch: \(error.localizedDescription), will try again shortly.")
             }
@@ -115,7 +113,7 @@ class IPFSState: ObservableObject {
         let request = URLRequest(
             url: url,
             cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
-            timeoutInterval: 1
+            timeoutInterval: 5
         )
         let onlineStatus: Bool
         do {
