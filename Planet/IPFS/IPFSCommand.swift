@@ -23,7 +23,7 @@ struct IPFSCommand {
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
-    
+
     static let IPFSRepoVersion: Int = {
         return 15
     }()
@@ -64,7 +64,7 @@ struct IPFSCommand {
         process.standardError = errorPipe
 
         try process.run()
-        
+
         process.terminationHandler = { process in
             // Clean up code here
         }
@@ -123,7 +123,7 @@ struct IPFSCommand {
     static func IPFSInit() -> IPFSCommand {
         IPFSCommand(arguments: ["init"])
     }
-    
+
     static func IPFSVersion() -> IPFSCommand {
         IPFSCommand(arguments: ["version"])
     }
@@ -179,6 +179,49 @@ struct IPFSCommand {
             jsonString,
             "--json"
         ])
+    }
+
+    /// Set IPNS options for Kubo 0.28.0 or later
+    static func setIPNSOptions() {
+        if let resultIPNSTTL = try? IPFSCommand(arguments: [
+            "config",
+            "Ipns.MaxCacheTTL",
+            "\"30s\"",
+            "--json"
+        ]).run() {
+            if resultIPNSTTL.ret != 0 {
+                debugPrint("Failed to set Ipns.MaxCacheTTL: " + (String(data: resultIPNSTTL.err, encoding: .utf8) ?? ""))
+            } else {
+                debugPrint("Set Ipns.MaxCacheTTL: \"30s\"")
+            }
+        }
+        if let resultPubsub = try? IPFSCommand(arguments: [
+            "config",
+            "Ipns.UsePubsub",
+            "true",
+            "--json"
+        ]).run() {
+            if resultPubsub.ret != 0 {
+                debugPrint("Failed to set Ipns.UsePubsub: " + (String(data: resultPubsub.err, encoding: .utf8) ?? ""))
+            } else {
+                debugPrint("Set Ipns.UsePubsub: true")
+            }
+        }
+    }
+
+    static func setGatewayHeaders() {
+        if let result = try? IPFSCommand(arguments: [
+            "config",
+            "--json",
+            "Gateway.HTTPHeaders.Cache-Control",
+            "null"
+        ]).run() {
+            if result.ret != 0 {
+                debugPrint("Failed to set Gateway.HTTPHeaders.Cache-Control: " + (String(data: result.err, encoding: .utf8) ?? ""))
+            } else {
+                debugPrint("Set Gateway.HTTPHeaders.Cache-Control")
+            }
+        }
     }
 
     static func launchDaemon() -> IPFSCommand {

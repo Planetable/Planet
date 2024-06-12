@@ -23,9 +23,9 @@ actor IPFSDaemon {
         defer {
             settingUp = false
         }
-        
+
         Self.logger.info("Setting up IPFS")
-        
+
         let repoContents = try! FileManager.default.contentsOfDirectory(
             at: IPFSCommand.IPFSRepositoryPath,
             includingPropertiesForKeys: nil
@@ -40,9 +40,9 @@ actor IPFSDaemon {
                 return
             }
         }
-        
+
         Self.logger.info("Verifying IPFS repo version\nAt path: \(IPFSCommand.IPFSRepositoryPath)\nVia exe: \(IPFSCommand.IPFSExecutablePath)")
-        
+
         do {
             let repoVersion = try await IPFSMigrationCommand.currentRepoVersion()
             let migrationRepoNames = IPFSMigrationCommand.migrationRepoNames(forRepoVersion: repoVersion)
@@ -61,7 +61,7 @@ actor IPFSDaemon {
             Self.logger.info("Error Verifying Repo Version: \(error)")
             return
         }
-        
+
         Self.logger.info("Updating swarm port")
         if let port = IPFSDaemon.scoutPort(4001...4011),
            let result = try? IPFSCommand.updateSwarmPort(port: port).run(),
@@ -77,7 +77,7 @@ actor IPFSDaemon {
             Self.logger.info("Unable to find open swarm port for IPFS")
             return
         }
-        
+
         Self.logger.info("Updating API port")
         if let port = IPFSDaemon.scoutPort(5981...5991),
            let result = try? IPFSCommand.updateAPIPort(port: port).run(),
@@ -93,7 +93,7 @@ actor IPFSDaemon {
             Self.logger.info("Unable to find open API port for IPFS")
             return
         }
-        
+
         Self.logger.info("Updating gateway port")
         if let port = IPFSDaemon.scoutPort(18181...18191),
            let result = try? IPFSCommand.updateGatewayPort(port: port).run(),
@@ -109,7 +109,12 @@ actor IPFSDaemon {
             Self.logger.info("Unable to find open gateway port for IPFS")
             return
         }
-        
+
+        // Set IPNS options
+        Self.logger.info("Setting IPNS options")
+        try? IPFSCommand.setIPNSOptions()
+        try? IPFSCommand.setGatewayHeaders()
+
         Self.logger.info("Updating peers")
         if let result = try? IPFSCommand.setPeers(
             peersJSON: String(data: IPFSDaemon.peers.rawData(), encoding: .utf8)!
@@ -121,7 +126,7 @@ actor IPFSDaemon {
             Self.logger.info("Unable to set peers for IPFS")
             return
         }
-        
+
         let swarmConnMgr = JSON(
             [
                 "GracePeriod": "20s",
@@ -140,7 +145,7 @@ actor IPFSDaemon {
             Self.logger.info("Unable to set parameters for Swarm Connection Manager")
             return
         }
-        
+
         let accessControlAllowOrigin = JSON(
             ["https://webui.ipfs.io"]
         )
@@ -154,7 +159,7 @@ actor IPFSDaemon {
             Self.logger.info("Unable to set parameters for Access Control Allow Origin")
             return
         }
-        
+
         let accessControlAllowMethods = JSON(
             ["PUT", "POST"]
         )
@@ -168,14 +173,14 @@ actor IPFSDaemon {
         } else {
             Self.logger.info("Unable to set parameters for Access Control Allow Methods")
         }
-        
+
         Self.logger.info("IPFS Setup Completed")
-        
+
         if launch {
             try? self.launch()
         }
     }
-    
+
     func launch() throws {
         Self.logger.info("Launching daemon")
         if swarmPort == nil || apiPort == nil || gatewayPort == nil {
@@ -590,7 +595,7 @@ actor IPFSDaemon {
         )
         request.httpMethod = "POST"
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard 
+        guard
             let httpResponse = response as? HTTPURLResponse,
             httpResponse.ok
         else {
