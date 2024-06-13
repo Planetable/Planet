@@ -8,6 +8,9 @@ class IPFSState: ObservableObject {
     static let refreshTrafficRate: TimeInterval = 5
     static let lastUserLaunchState: String = "PlanetIPFSLastUserLaunchStateKey"
 
+    /// A string to be displayed when IPFS daemon is unable to start.
+    @Published var reasonIPFSNotRunning: String? = nil
+
     @Published var isShowingStatus = false
 
     @Published private(set) var isOperating = false
@@ -19,7 +22,7 @@ class IPFSState: ObservableObject {
     @Published private(set) var repoSize: Int64?
     @Published private(set) var serverInfo: ServerInfo?
     @Published private(set) var bandwidths: [Int: IPFSBandwidth] = [:]
-    
+
     private weak var refreshRateTimer: Timer?
     private weak var refreshTrafficTimer: Timer?
 
@@ -47,16 +50,16 @@ class IPFSState: ObservableObject {
             }
         })
     }
-    
+
     deinit {
         refreshRateTimer?.invalidate()
         refreshRateTimer = nil
         refreshTrafficTimer?.invalidate()
         refreshTrafficTimer = nil
     }
-    
+
     // MARK: -
-    
+
     static let formatter = {
         let byteCountFormatter = ByteCountFormatter()
         byteCountFormatter.allowedUnits = .useAll
@@ -85,13 +88,13 @@ class IPFSState: ObservableObject {
     func updateGatewayPort(_ port: UInt16) {
         self.gatewayPort = port
     }
-    
+
     @MainActor
     func updateServerInfo(_ info: ServerInfo) {
         self.serverInfo = info
         debugPrint("Updated ServerInfo: \(info)")
     }
-    
+
     @MainActor
     func updateBandwidths(data: IPFSBandwidth) {
         let now = Int(Date().timeIntervalSince1970)
@@ -161,7 +164,7 @@ class IPFSState: ObservableObject {
             NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
         }
     }
-    
+
     func updateTrafficStatus() async {
         guard online else { return }
         guard let stats = try? await IPFSDaemon.shared.getStatsBW() else { return }
@@ -169,7 +172,7 @@ class IPFSState: ObservableObject {
             updateBandwidths(data: stats)
         }
     }
-    
+
     func calculateRepoSize() async throws {
         guard !isCalculatingRepoSize else { return }
         await MainActor.run {
@@ -200,7 +203,7 @@ class IPFSState: ObservableObject {
         }
         return true
     }
-    
+
     private func updateServerInfo() async {
         var hostName: String = ""
         if let host = Host.current().localizedName {

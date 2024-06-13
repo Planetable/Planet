@@ -47,27 +47,43 @@ actor IPFSDaemon {
         )
 
         do {
+            // Read current repo version on disk
             let repoVersion = try await IPFSMigrationCommand.currentRepoVersion()
+            Self.logger.info("Current IPFS repo version on disk: \(repoVersion)")
+            let expectedVersion = IPFSCommand.IPFSRepoVersion
+            Self.logger.info("Expected IPFS repo version: \(expectedVersion)")
             let migrationRepoNames = IPFSMigrationCommand.migrationRepoNames(
                 forRepoVersion: repoVersion
             )
-            if repoVersion < IPFSCommand.IPFSRepoVersion && migrationRepoNames.count > 0 {
+            if repoVersion < expectedVersion && migrationRepoNames.count > 0 {
                 Self.logger.info(
-                    "Current repo version \(repoVersion) is lower than app runtime repo version \(IPFSCommand.IPFSRepoVersion), prepare migration..."
+                    "Current IPFS repo version \(repoVersion) is lower than app runtime repo version \(expectedVersion), prepare migration..."
                 )
                 for name in migrationRepoNames {
                     Self.logger.info("Migrating \(name)")
                     let command = IPFSMigrationCommand(repoName: name)
                     let data = try await command.run()
-                    Self.logger.info("\(data.logFormat())")
+                    Self.logger.info("Response from IPFS repo version migration \(name): \(data.logFormat())")
                 }
             }
+            else if repoVersion > expectedVersion {
+                Self.logger.info(
+                    "⚠️ Current IPFS repo version \(repoVersion) on disk is higher than app runtime repo version \(expectedVersion), IPFS will not start and will tell the user to update the app."
+                )
+                await MainActor.run {
+                    IPFSState.shared.reasonIPFSNotRunning = "IPFS repo version \(repoVersion) on disk is higher than app runtime repo version \(expectedVersion), please update the app."
+                }
+                return
+            }
             else {
-                Self.logger.info("Repo version verified: \(repoVersion), no need to migrate.")
+                Self.logger.info("✅ IPFS repo version verified: \(repoVersion), no need to migrate.")
             }
         }
         catch {
             Self.logger.info("Error Verifying Repo Version: \(error)")
+            await MainActor.run {
+                IPFSState.shared.reasonIPFSNotRunning = "An error occurred while verifying IPFS repo version. Please try again or update the app.\n\nError: \(error)"
+            }
             return
         }
 
@@ -122,7 +138,7 @@ actor IPFSDaemon {
         // Set IPNS options
         Self.logger.info("Setting IPNS options")
 
-        // Ipns.MaxCacheTTL
+        // Ipns.MaxCacheTTL (needed starting from 0.28.0)
         if let result = try? IPFSCommand.setIPNSMaxCacheTTL().run() {
             if result.ret == 0 {
                 Self.logger.info("Set Ipns.MaxCacheTTL")
@@ -142,7 +158,7 @@ actor IPFSDaemon {
             Self.logger.info("Unable to set Ipns.MaxCacheTTL")
         }
 
-        // Ipns.UsePubsub
+        // Ipns.UsePubsub (needed starting from 0.28.0)
         if let result = try? IPFSCommand.setIPNSUsePubsub().run() {
             if result.ret == 0 {
                 Self.logger.info("Set Ipns.UsePubsub")
@@ -162,6 +178,7 @@ actor IPFSDaemon {
             Self.logger.info("Unable to set Ipns.UsePubsub")
         }
 
+        // Gateway.HTTPHeaders (needed starting from 0.28.0)
         if let result = try? IPFSCommand.setGatewayHeaders().run() {
             if result.ret == 0 {
                 Self.logger.info("Set Gateway.HTTPHeaders")
@@ -191,7 +208,6 @@ actor IPFSDaemon {
         }
         else {
             Self.logger.info("Unable to set peers for IPFS")
-            return
         }
 
         let swarmConnMgr = JSON(

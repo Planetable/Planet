@@ -10,12 +10,18 @@ struct IPFSTrafficView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if ipfsState.online {
-                titleView()
-                chartsView()
+            if let reason = ipfsState.reasonIPFSNotRunning {
+                Text(reason)
+                    .font(.caption)
             }
             else {
-                offlineView()
+                if ipfsState.online {
+                    titleView()
+                    chartsView()
+                }
+                else {
+                    offlineView()
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
