@@ -1,6 +1,5 @@
 import Foundation
 
-
 struct IPFSCommand {
     // executables are under <project_root>/Planet/IPFS/go-ipfs-executables
     // version: 0.16.0, last updated 2022-10-04
@@ -141,7 +140,7 @@ struct IPFSCommand {
             "config",
             "Addresses.Swarm",
             "[\"/ip4/0.0.0.0/tcp/\(port)\", \"/ip6/::/tcp/\(port)\", \"/ip4/0.0.0.0/udp/\(port)/quic\", \"/ip6/::/udp/\(port)/quic\"]",
-            "--json"
+            "--json",
         ])
     }
 
@@ -150,7 +149,7 @@ struct IPFSCommand {
             "config",
             "Peering.Peers",
             peersJSON,
-            "--json"
+            "--json",
         ])
     }
 
@@ -159,7 +158,7 @@ struct IPFSCommand {
             "config",
             "Swarm.ConnMgr",
             jsonString,
-            "--json"
+            "--json",
         ])
     }
 
@@ -168,7 +167,7 @@ struct IPFSCommand {
             "config",
             "API.HTTPHeaders.Access-Control-Allow-Origin",
             jsonString,
-            "--json"
+            "--json",
         ])
     }
 
@@ -177,55 +176,42 @@ struct IPFSCommand {
             "config",
             "API.HTTPHeaders.Access-Control-Allow-Methods",
             jsonString,
-            "--json"
+            "--json",
         ])
     }
 
     /// Set IPNS options for Kubo 0.28.0 or later
-    static func setIPNSOptions() {
-        if let resultIPNSTTL = try? IPFSCommand(arguments: [
+    static func setIPNSMaxCacheTTL() -> IPFSCommand {
+        IPFSCommand(arguments: [
             "config",
             "Ipns.MaxCacheTTL",
             "\"30s\"",
-            "--json"
-        ]).run() {
-            if resultIPNSTTL.ret != 0 {
-                debugPrint("Failed to set Ipns.MaxCacheTTL: " + (String(data: resultIPNSTTL.err, encoding: .utf8) ?? ""))
-            } else {
-                debugPrint("Set Ipns.MaxCacheTTL: \"30s\"")
-            }
-        }
-        if let resultPubsub = try? IPFSCommand(arguments: [
+            "--json",
+        ])
+    }
+
+    static func setIPNSUsePubsub() -> IPFSCommand {
+        IPFSCommand(arguments: [
             "config",
             "Ipns.UsePubsub",
             "true",
-            "--json"
-        ]).run() {
-            if resultPubsub.ret != 0 {
-                debugPrint("Failed to set Ipns.UsePubsub: " + (String(data: resultPubsub.err, encoding: .utf8) ?? ""))
-            } else {
-                debugPrint("Set Ipns.UsePubsub: true")
-            }
-        }
+            "--json",
+        ])
     }
 
-    static func setGatewayHeaders() {
-        if let result = try? IPFSCommand(arguments: [
+    static func setGatewayHeaders() -> IPFSCommand {
+        IPFSCommand(arguments: [
             "config",
             "--json",
             "Gateway.HTTPHeaders.Cache-Control",
-            "null"
-        ]).run() {
-            if result.ret != 0 {
-                debugPrint("Failed to set Gateway.HTTPHeaders.Cache-Control: " + (String(data: result.err, encoding: .utf8) ?? ""))
-            } else {
-                debugPrint("Set Gateway.HTTPHeaders.Cache-Control")
-            }
-        }
+            "null",
+        ])
     }
 
     static func launchDaemon() -> IPFSCommand {
-        IPFSCommand(arguments: ["daemon", "--migrate", "--enable-namesys-pubsub", "--enable-pubsub-experiment"])
+        IPFSCommand(arguments: [
+            "daemon", "--migrate", "--enable-namesys-pubsub", "--enable-pubsub-experiment",
+        ])
     }
 
     static func shutdownDaemon() -> IPFSCommand {
@@ -274,7 +260,6 @@ struct IPFSCommand {
         IPFSCommand(arguments: ["key", "list"])
     }
 }
-
 
 /*
 struct IPFSMigrationCommand {

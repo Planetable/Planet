@@ -2,7 +2,6 @@ import Foundation
 import SwiftyJSON
 import os
 
-
 actor IPFSDaemon {
     static let shared = IPFSDaemon()
 
@@ -33,39 +32,49 @@ actor IPFSDaemon {
         if repoContents.isEmpty {
             Self.logger.info("Initializing IPFS config")
             if let result = try? IPFSCommand.IPFSInit().run(),
-               result.ret == 0 {
+                result.ret == 0
+            {
                 Self.logger.info("IPFS Initialized")
-            } else {
+            }
+            else {
                 Self.logger.info("Error Initializing IPFS")
                 return
             }
         }
 
-        Self.logger.info("Verifying IPFS repo version\nAt path: \(IPFSCommand.IPFSRepositoryPath)\nVia exe: \(IPFSCommand.IPFSExecutablePath)")
+        Self.logger.info(
+            "Verifying IPFS repo version\nAt path: \(IPFSCommand.IPFSRepositoryPath)\nVia exe: \(IPFSCommand.IPFSExecutablePath)"
+        )
 
         do {
             let repoVersion = try await IPFSMigrationCommand.currentRepoVersion()
-            let migrationRepoNames = IPFSMigrationCommand.migrationRepoNames(forRepoVersion: repoVersion)
+            let migrationRepoNames = IPFSMigrationCommand.migrationRepoNames(
+                forRepoVersion: repoVersion
+            )
             if repoVersion < IPFSCommand.IPFSRepoVersion && migrationRepoNames.count > 0 {
-                Self.logger.info("Current repo version \(repoVersion) is lower than app runtime repo version \(IPFSCommand.IPFSRepoVersion), prepare migration...")
+                Self.logger.info(
+                    "Current repo version \(repoVersion) is lower than app runtime repo version \(IPFSCommand.IPFSRepoVersion), prepare migration..."
+                )
                 for name in migrationRepoNames {
                     Self.logger.info("Migrating \(name)")
                     let command = IPFSMigrationCommand(repoName: name)
                     let data = try await command.run()
                     Self.logger.info("\(data.logFormat())")
                 }
-            } else {
+            }
+            else {
                 Self.logger.info("Repo version verified: \(repoVersion), no need to migrate.")
             }
-        } catch {
+        }
+        catch {
             Self.logger.info("Error Verifying Repo Version: \(error)")
             return
         }
 
         Self.logger.info("Updating swarm port")
         if let port = IPFSDaemon.scoutPort(4001...4011),
-           let result = try? IPFSCommand.updateSwarmPort(port: port).run(),
-           result.ret == 0
+            let result = try? IPFSCommand.updateSwarmPort(port: port).run(),
+            result.ret == 0
         {
             swarmPort = port
             await MainActor.run {
@@ -80,8 +89,8 @@ actor IPFSDaemon {
 
         Self.logger.info("Updating API port")
         if let port = IPFSDaemon.scoutPort(5981...5991),
-           let result = try? IPFSCommand.updateAPIPort(port: port).run(),
-           result.ret == 0
+            let result = try? IPFSCommand.updateAPIPort(port: port).run(),
+            result.ret == 0
         {
             apiPort = port
             await MainActor.run {
@@ -96,8 +105,8 @@ actor IPFSDaemon {
 
         Self.logger.info("Updating gateway port")
         if let port = IPFSDaemon.scoutPort(18181...18191),
-           let result = try? IPFSCommand.updateGatewayPort(port: port).run(),
-           result.ret == 0
+            let result = try? IPFSCommand.updateGatewayPort(port: port).run(),
+            result.ret == 0
         {
             gatewayPort = port
             await MainActor.run {
@@ -112,17 +121,75 @@ actor IPFSDaemon {
 
         // Set IPNS options
         Self.logger.info("Setting IPNS options")
-        try? IPFSCommand.setIPNSOptions()
-        try? IPFSCommand.setGatewayHeaders()
+
+        // Ipns.MaxCacheTTL
+        if let result = try? IPFSCommand.setIPNSMaxCacheTTL().run() {
+            if result.ret == 0 {
+                Self.logger.info("Set Ipns.MaxCacheTTL")
+            }
+            else {
+                if let errorString = String(data: result.err, encoding: .utf8) {
+                    Self.logger.info(
+                        "Failed to set Ipns.MaxCacheTTL: \(errorString, privacy: .public)"
+                    )
+                }
+                else {
+                    Self.logger.info("Failed to set Ipns.MaxCacheTTL: (unknown error)")
+                }
+            }
+        }
+        else {
+            Self.logger.info("Unable to set Ipns.MaxCacheTTL")
+        }
+
+        // Ipns.UsePubsub
+        if let result = try? IPFSCommand.setIPNSUsePubsub().run() {
+            if result.ret == 0 {
+                Self.logger.info("Set Ipns.UsePubsub")
+            }
+            else {
+                if let errorString = String(data: result.err, encoding: .utf8) {
+                    Self.logger.info(
+                        "Failed to set Ipns.UsePubsub: \(errorString, privacy: .public)"
+                    )
+                }
+                else {
+                    Self.logger.info("Failed to set Ipns.UsePubsub: (unknown error)")
+                }
+            }
+        }
+        else {
+            Self.logger.info("Unable to set Ipns.UsePubsub")
+        }
+
+        if let result = try? IPFSCommand.setGatewayHeaders().run() {
+            if result.ret == 0 {
+                Self.logger.info("Set Gateway.HTTPHeaders")
+            }
+            else {
+                if let errorString = String(data: result.err, encoding: .utf8) {
+                    Self.logger.info(
+                        "Failed to set Gateway.HTTPHeaders: \(errorString, privacy: .public)"
+                    )
+                }
+                else {
+                    Self.logger.info("Failed to set Gateway.HTTPHeaders: (unknown error)")
+                }
+            }
+        }
+        else {
+            Self.logger.info("Unable to set Gateway.HTTPHeaders")
+        }
 
         Self.logger.info("Updating peers")
         if let result = try? IPFSCommand.setPeers(
             peersJSON: String(data: IPFSDaemon.peers.rawData(), encoding: .utf8)!
         ).run(),
-           result.ret == 0
+            result.ret == 0
         {
             Self.logger.info("Updated peers")
-        } else {
+        }
+        else {
             Self.logger.info("Unable to set peers for IPFS")
             return
         }
@@ -139,9 +206,11 @@ actor IPFSDaemon {
         if let result = try? IPFSCommand.setSwarmConnMgr(
             String(data: swarmConnMgr.rawData(), encoding: .utf8)!
         ).run(),
-           result.ret == 0 {
+            result.ret == 0
+        {
             Self.logger.info("Updated parameters for Swarm Connection Manager")
-        } else {
+        }
+        else {
             Self.logger.info("Unable to set parameters for Swarm Connection Manager")
             return
         }
@@ -153,9 +222,11 @@ actor IPFSDaemon {
         if let result = try? IPFSCommand.setAccessControlAllowOrigin(
             String(data: accessControlAllowOrigin.rawData(), encoding: .utf8)!
         ).run(),
-           result.ret == 0 {
+            result.ret == 0
+        {
             Self.logger.info("Updated parameters for Access Control Allow Origin")
-        } else {
+        }
+        else {
             Self.logger.info("Unable to set parameters for Access Control Allow Origin")
             return
         }
@@ -164,13 +235,14 @@ actor IPFSDaemon {
             ["PUT", "POST"]
         )
         Self.logger.info("Updating parameters for Access Control Allow Methods")
-        if
-            let result = try? IPFSCommand.setAccessControlAllowMethods(
-                String(data: accessControlAllowMethods.rawData(), encoding: .utf8)!
-            ).run(),
-            result.ret == 0 {
+        if let result = try? IPFSCommand.setAccessControlAllowMethods(
+            String(data: accessControlAllowMethods.rawData(), encoding: .utf8)!
+        ).run(),
+            result.ret == 0
+        {
             Self.logger.info("Updated parameters for Access Control Allow Methods")
-        } else {
+        }
+        else {
             Self.logger.info("Unable to set parameters for Access Control Allow Methods")
         }
 
@@ -245,7 +317,8 @@ actor IPFSDaemon {
             let (ret, out, err) = try IPFSCommand.shutdownDaemon().run()
             if ret == 0 {
                 Self.logger.info("Daemon shut down")
-            } else {
+            }
+            else {
                 Self.logger.error(
                     """
                     Failed to shutdown daemon: process returned \(ret)
@@ -619,7 +692,6 @@ actor IPFSDaemon {
     }
 }
 
-
 extension IPFSDaemon {
     // IPFS peering
     // peers from https://docs.ipfs.io/how-to/peering-with-content-providers/#content-provider-list
@@ -680,8 +752,8 @@ extension IPFSDaemon {
             "ID": "12D3KooWHN5avE25zdCpsuu85kNcCSxYJx2njLNREKxowoDHa1xc",
             "Addrs": [
                 "/ip4/143.198.18.166/tcp/4001",
-                "/ip6/2604:a880:800:10::735:7001/tcp/4001"
-            ]
+                "/ip6/2604:a880:800:10::735:7001/tcp/4001",
+            ],
         ],  // eth.sucks
         [
             "ID": "12D3KooWLBMmT1dft1zcJvXNYkAfoUqj2RtRm7f9XkF17YmZsu4o",
