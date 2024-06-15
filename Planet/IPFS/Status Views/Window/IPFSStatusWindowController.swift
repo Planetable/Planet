@@ -8,8 +8,8 @@ import Cocoa
 
 
 class IPFSStatusWindowController: NSWindowController {
-    init() {
-        let w = IPFSStatusWindow()
+    init(withOrigin origin: NSPoint) {
+        let w = IPFSStatusWindow(withOrigin: origin)
         super.init(window: w)
     }
 

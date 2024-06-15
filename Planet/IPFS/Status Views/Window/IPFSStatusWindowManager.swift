@@ -8,38 +8,39 @@ import Foundation
 
 class IPFSStatusWindowManager: NSObject {
     static let shared = IPFSStatusWindowManager()
+    static let lastWindowOriginKey: String = "PlanetIPFSStatusWindowLastOriginKey"
 
     private var windowController: IPFSStatusWindowController?
 
-    var windowOrigin: CGPoint = .zero
-    var windowSize: CGSize = .init(width: 280, height: 280)
-
     func activate() {
-        let rect = CGRect(origin: windowOrigin, size: windowSize)
+        let origin: NSPoint = {
+            if let value = UserDefaults.standard.value(forKey: Self.lastWindowOriginKey) as? NSValue {
+                return value.pointValue
+            }
+            return .zero
+        }()
         if windowController == nil {
-            let wc = IPFSStatusWindowController()
+            let wc = IPFSStatusWindowController(withOrigin: origin)
             let vc = IPFSStatusViewController()
             wc.contentViewController = vc
             windowController = wc
         }
         windowController?.showWindow(nil)
-        if rect.origin == .zero {
-            windowController?.window?.center()
-        }
         Task { @MainActor in
             IPFSState.shared.isShowingStatus = false
             IPFSState.shared.isShowingStatusWindow = true
         }
     }
 
-    func close() {
-        windowController?.window?.close()
-    }
-
     func deactivate() {
+        let windowOrigin: NSPoint = windowController?.window?.frame.origin ?? .zero
+        UserDefaults.standard.set(NSValue(point: windowOrigin), forKey: Self.lastWindowOriginKey)
         windowController?.contentViewController = nil
         windowController?.window?.close()
         windowController?.window = nil
         windowController = nil
+        Task { @MainActor in
+            IPFSState.shared.isShowingStatusWindow = false
+        }
     }
 }
