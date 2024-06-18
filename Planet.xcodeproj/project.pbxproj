@@ -58,6 +58,8 @@
 		2A4AE87D2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */; };
 		2A4AE87E2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */; };
 		2A58329A2B27FB2600A478CA /* PlanetSettingsAPIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB6A93F29707980007186A7 /* PlanetSettingsAPIView.swift */; };
+		2A5DAE5E2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */; };
+		2A5DAE5F2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */; };
 		2A6247AE292CC5F400714BFA /* IndicatorLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */; };
 		2A68C6232A26F07A0079AD5F /* RebuildProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A18F2052A0F0FA700FC4050 /* RebuildProgressView.swift */; };
 		2A69F04727E1B53A00141DC0 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A69F04627E1B53A00141DC0 /* FeedKit */; };
@@ -169,8 +171,6 @@
 		2A95E6952A19A437001288B8 /* IPFSDaemon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */; };
 		2A95E6962A19A437001288B8 /* IPFSCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114270D79DBC89703262B9 /* IPFSCommand.swift */; };
 		2A95E6972A19A437001288B8 /* IPFSState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721148C9E7BCB6F1BC539F57 /* IPFSState.swift */; };
-		2A95E6982A19A43D001288B8 /* ipfs-amd64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */; };
-		2A95E6992A19A43D001288B8 /* ipfs-arm64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */; };
 		2A95E69A2A19A441001288B8 /* IPFSAPIModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114A5CE56CACB595CD70C6 /* IPFSAPIModel.swift */; };
 		2A95E69B2A19A446001288B8 /* ArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114F5686F5902EE578B3CF /* ArticleModel.swift */; };
 		2A95E69C2A19A446001288B8 /* PlanetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721146E8B821AA2558D6DD3A /* PlanetStore.swift */; };
@@ -264,6 +264,10 @@
 		2AC5A09D2BFAF7D700B9B172 /* IPFSTrafficChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC5A09C2BFAF7D700B9B172 /* IPFSTrafficChartView.swift */; };
 		2AC5A09E2BFAF7D700B9B172 /* IPFSTrafficChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC5A09C2BFAF7D700B9B172 /* IPFSTrafficChartView.swift */; };
 		2AC889422B71D4200090D355 /* TemplateMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC889412B71D4200090D355 /* TemplateMonitor.swift */; };
+		2AD45E6A2C1CA7080007F690 /* ipfs-amd64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AD45E692C1CA7080007F690 /* ipfs-amd64-0.15.bin */; };
+		2AD45E6B2C1CA7080007F690 /* ipfs-amd64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AD45E692C1CA7080007F690 /* ipfs-amd64-0.15.bin */; };
+		2AD45E6D2C1CA7160007F690 /* ipfs-arm64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AD45E6C2C1CA7160007F690 /* ipfs-arm64-0.15.bin */; };
+		2AD45E6E2C1CA7160007F690 /* ipfs-arm64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AD45E6C2C1CA7160007F690 /* ipfs-arm64-0.15.bin */; };
 		2ADD6E572A9F2D0B00AD763B /* vol1-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E4C2A9F2D0A00AD763B /* vol1-1.png */; };
 		2ADD6E582A9F2D0B00AD763B /* vol1-6.png in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E4D2A9F2D0A00AD763B /* vol1-6.png */; };
 		2ADD6E592A9F2D0B00AD763B /* vol1-7.png in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E4E2A9F2D0A00AD763B /* vol1-7.png */; };
@@ -469,10 +473,8 @@
 		72114A84BE7EC3DA2AAF14F5 /* Planet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114E6940D60B7155DDD8BC /* Planet.swift */; };
 		72114A966288F7CDAF984E3C /* FollowingArticleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */; };
 		72114AE68D0DEDE11FC82E60 /* CoreDataPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114C0FA779C3B613771E53 /* CoreDataPersistence.swift */; };
-		72114AE8931655425CC6E5C1 /* ipfs-amd64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */; };
 		72114AFCB4EDB617C07192BB /* FollowingPlanetSidebarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211467DFBDA573F4B938B0C /* FollowingPlanetSidebarItem.swift */; };
 		72114B6486572E7F6AF5AC62 /* LoadingIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114CF288467021C7E9BF40 /* LoadingIndicatorView.swift */; };
-		72114B95CA15BC9EC180FC36 /* ipfs-arm64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */; };
 		72114C03242147A247A8B317 /* Runner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114BFBBB1E6F4DB7B0D234 /* Runner.swift */; };
 		72114D4918DAC507F6E3AF7F /* MarkdownUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211412C05B18AC06A98BA74 /* MarkdownUtils.swift */; };
 		72114E3DCDF2B0618F4693D7 /* MyArticleItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211477C97CD9725E13B885E /* MyArticleItemView.swift */; };
@@ -566,6 +568,7 @@
 		2A466FD02A809E2C009FB646 /* IndicatorViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorViews.swift; sourceTree = "<group>"; };
 		2A4AE8792A89EF3600A27B5B /* GroupIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupIndicatorView.swift; sourceTree = "<group>"; };
 		2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SharedAssets.xcassets; sourceTree = "<group>"; };
+		2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSMigrationCommand.swift; sourceTree = "<group>"; };
 		2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorLabelView.swift; sourceTree = "<group>"; };
 		2A6DC6262AEB7F9D0025D6A7 /* PlanetStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetStatusManager.swift; sourceTree = "<group>"; };
 		2A6E16D52A18678E00704A08 /* AppSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSidebarView.swift; sourceTree = "<group>"; };
@@ -621,6 +624,8 @@
 		2AC4997327BC0EBA00F1C2D1 /* Planet.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Planet.xcdatamodel; sourceTree = "<group>"; };
 		2AC5A09C2BFAF7D700B9B172 /* IPFSTrafficChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSTrafficChartView.swift; sourceTree = "<group>"; };
 		2AC889412B71D4200090D355 /* TemplateMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateMonitor.swift; sourceTree = "<group>"; };
+		2AD45E692C1CA7080007F690 /* ipfs-amd64-0.15.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-amd64-0.15.bin"; sourceTree = "<group>"; };
+		2AD45E6C2C1CA7160007F690 /* ipfs-arm64-0.15.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-arm64-0.15.bin"; sourceTree = "<group>"; };
 		2ADD6E4C2A9F2D0A00AD763B /* vol1-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "vol1-1.png"; sourceTree = "<group>"; };
 		2ADD6E4D2A9F2D0A00AD763B /* vol1-6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "vol1-6.png"; sourceTree = "<group>"; };
 		2ADD6E4E2A9F2D0A00AD763B /* vol1-7.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "vol1-7.png"; sourceTree = "<group>"; };
@@ -755,7 +760,6 @@
 		721143EEE6936427A9BC9452 /* Lifetimes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Lifetimes.swift; sourceTree = "<group>"; };
 		721144D264DD084A74B49BF8 /* MyPlanetInfoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyPlanetInfoView.swift; sourceTree = "<group>"; };
 		721144D3065CCF151D0A28DF /* FollowingArticleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowingArticleModel.swift; sourceTree = "<group>"; };
-		721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-amd64-0.15.bin"; sourceTree = "<group>"; };
 		7211459D5283D74D29C8F0DC /* PlanetArticle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetArticle.swift; sourceTree = "<group>"; };
 		7211467DFBDA573F4B938B0C /* FollowingPlanetSidebarItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowingPlanetSidebarItem.swift; sourceTree = "<group>"; };
 		721146E8B821AA2558D6DD3A /* PlanetStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetStore.swift; sourceTree = "<group>"; };
@@ -780,7 +784,6 @@
 		72114E45790363ADCC6F7673 /* DraftModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DraftModel.swift; sourceTree = "<group>"; };
 		72114E6940D60B7155DDD8BC /* Planet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Planet.swift; sourceTree = "<group>"; };
 		72114E6F20DEF821BA928CB2 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
-		72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ipfs-arm64-0.15.bin"; sourceTree = "<group>"; };
 		72114F3CBC160F54087E1537 /* JSONUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONUtils.swift; sourceTree = "<group>"; };
 		72114F5686F5902EE578B3CF /* ArticleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleModel.swift; sourceTree = "<group>"; };
 		BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v6.xcdatamodel"; sourceTree = "<group>"; };
@@ -961,6 +964,15 @@
 				2ADD6E562A9F2D0B00AD763B /* vol1-8.png */,
 			);
 			path = Icons;
+			sourceTree = "<group>";
+		};
+		2A2A2F7E2BFF0E520092AEA1 /* ipfs-executables */ = {
+			isa = PBXGroup;
+			children = (
+				2AD45E692C1CA7080007F690 /* ipfs-amd64-0.15.bin */,
+				2AD45E6C2C1CA7160007F690 /* ipfs-arm64-0.15.bin */,
+			);
+			path = "ipfs-executables";
 			sourceTree = "<group>";
 		};
 		2A4164D529E6475E009BFC24 /* Quick Share */ = {
@@ -1422,15 +1434,6 @@
 			path = Wallet;
 			sourceTree = "<group>";
 		};
-		721141137EDE4A3E5706D234 /* go-ipfs-executables */ = {
-			isa = PBXGroup;
-			children = (
-				721144FC9503C6ED3975276D /* ipfs-amd64-0.15.bin */,
-				72114EBF002DDAF0CD8B63B3 /* ipfs-arm64-0.15.bin */,
-			);
-			path = "go-ipfs-executables";
-			sourceTree = "<group>";
-		};
 		7211413CAA72A088BCD0D4F3 /* Plausible */ = {
 			isa = PBXGroup;
 			children = (
@@ -1465,8 +1468,9 @@
 				72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */,
 				2A0E918B2BE889B000F69578 /* IPFSGateway.swift */,
 				72114270D79DBC89703262B9 /* IPFSCommand.swift */,
+				2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */,
 				72114A5CE56CACB595CD70C6 /* IPFSAPIModel.swift */,
-				721141137EDE4A3E5706D234 /* go-ipfs-executables */,
+				2A2A2F7E2BFF0E520092AEA1 /* ipfs-executables */,
 			);
 			path = IPFS;
 			sourceTree = "<group>";
@@ -1715,17 +1719,17 @@
 				2A95E66E2A19A3B8001288B8 /* WriterBasicPlaceholder.html in Resources */,
 				2A95E6702A19A3B8001288B8 /* NoSelection.html in Resources */,
 				2A95E6712A19A3B8001288B8 /* TemplatePlaceholder.html in Resources */,
+				2AD45E6B2C1CA7080007F690 /* ipfs-amd64-0.15.bin in Resources */,
 				2A95E66D2A19A3B8001288B8 /* WriterBasic.html in Resources */,
 				6A34BE372A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
 				6A34BE352A34B2A00031E5E4 /* Capsules-400.otf in Resources */,
 				6A34BE3F2A34B2A00031E5E4 /* Capsules-500.otf in Resources */,
+				2AD45E6E2C1CA7160007F690 /* ipfs-arm64-0.15.bin in Resources */,
 				2A95E6F02A19A777001288B8 /* Credits.html in Resources */,
 				6A34BE332A34B2A00031E5E4 /* Capsules-200.otf in Resources */,
-				2A95E6992A19A43D001288B8 /* ipfs-arm64-0.15.bin in Resources */,
 				2A4AE87E2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */,
 				6A34BE3B2A34B2A00031E5E4 /* Capsules-300.otf in Resources */,
 				6A34BE3D2A34B2A00031E5E4 /* Capsules-700.otf in Resources */,
-				2A95E6982A19A43D001288B8 /* ipfs-amd64-0.15.bin in Resources */,
 				6A34BE392A34B2A00031E5E4 /* Capsules-100.otf in Resources */,
 				2A95E66F2A19A3B8001288B8 /* RSS.xml in Resources */,
 				2ABD1CC82A1616DB0082D7EA /* Assets.xcassets in Resources */,
@@ -1736,8 +1740,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2AD45E6D2C1CA7160007F690 /* ipfs-arm64-0.15.bin in Resources */,
 				2AF4006A27F37C27005DF1A9 /* WriterBasicPlaceholder.html in Resources */,
 				2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */,
+				2AD45E6A2C1CA7080007F690 /* ipfs-amd64-0.15.bin in Resources */,
 				6A28FDA82838598A00036BA6 /* NoSelection.html in Resources */,
 				2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */,
 				6A34BE362A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
@@ -1766,8 +1772,6 @@
 				2A4AE87D2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */,
 				6A64D2DE284640A80013EABB /* Credits.html in Resources */,
 				6A34BE382A34B2A00031E5E4 /* Capsules-100.otf in Resources */,
-				72114AE8931655425CC6E5C1 /* ipfs-amd64-0.15.bin in Resources */,
-				72114B95CA15BC9EC180FC36 /* ipfs-arm64-0.15.bin in Resources */,
 				2ADD6E752A9F2D2600AD763B /* vol1-3.zip in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1891,6 +1895,7 @@
 				2A95E6F12A19A781001288B8 /* CoreDataPersistence.swift in Sources */,
 				2A95E6E02A19A521001288B8 /* Filebase.swift in Sources */,
 				2A996AD32A1DA69600BEF898 /* PlanetDownloadsWindowController.swift in Sources */,
+				2A5DAE5F2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */,
 				2A95E7002A1BAEF9001288B8 /* AppContentItemView.swift in Sources */,
 				2A95E6942A19A3D0001288B8 /* PlanetKeyManagerWindow.swift in Sources */,
 				2A996AD42A1DA6C100BEF898 /* PlanetDownloadsView.swift in Sources */,
@@ -2092,6 +2097,7 @@
 				2AA7974629496F730031E873 /* PFDashboardView.swift in Sources */,
 				7211413A9B3CC77620629D22 /* ViewUtils.swift in Sources */,
 				72114A966288F7CDAF984E3C /* FollowingArticleModel.swift in Sources */,
+				2A5DAE5E2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */,
 				721148D471575905C624EEC7 /* ArticleModel.swift in Sources */,
 				72114265702BCDF356C98046 /* FollowingPlanetAvatarView.swift in Sources */,
 				2A2774562A95161F00A5DDC2 /* PlanetDockPlugIn.swift in Sources */,

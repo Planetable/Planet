@@ -1,10 +1,12 @@
 import Foundation
 
-
 struct IPFSCommand {
     // executables are under <project_root>/Planet/IPFS/go-ipfs-executables
     // version: 0.16.0, last updated 2022-10-04
+    // version: 0.28.0, last updated 2024-05-20
+    // version: 0.15.0, last updated 2024-06-15
     // NOTE: executables must have executable permission in source code
+    // NOTE: skip migration process from IPFS 0.15.0 to 0.28.0.
     static let IPFSExecutablePath: URL = {
         switch ProcessInfo.processInfo.machineHardwareName {
         case "arm64":
@@ -21,6 +23,10 @@ struct IPFSCommand {
         let url = URLUtils.applicationSupportPath.appendingPathComponent("ipfs", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
+    }()
+
+    static let IPFSRepoVersion: Int = {
+        return 15
     }()
 
     let arguments: [String]
@@ -59,7 +65,7 @@ struct IPFSCommand {
         process.standardError = errorPipe
 
         try process.run()
-        
+
         process.terminationHandler = { process in
             // Clean up code here
         }
@@ -119,6 +125,10 @@ struct IPFSCommand {
         IPFSCommand(arguments: ["init"])
     }
 
+    static func IPFSVersion() -> IPFSCommand {
+        IPFSCommand(arguments: ["version"])
+    }
+
     static func updateAPIPort(port: UInt16) -> IPFSCommand {
         IPFSCommand(arguments: ["config", "Addresses.API", "/ip4/127.0.0.1/tcp/\(port)"])
     }
@@ -132,7 +142,7 @@ struct IPFSCommand {
             "config",
             "Addresses.Swarm",
             "[\"/ip4/0.0.0.0/tcp/\(port)\", \"/ip6/::/tcp/\(port)\", \"/ip4/0.0.0.0/udp/\(port)/quic\", \"/ip6/::/udp/\(port)/quic\"]",
-            "--json"
+            "--json",
         ])
     }
 
@@ -141,7 +151,7 @@ struct IPFSCommand {
             "config",
             "Peering.Peers",
             peersJSON,
-            "--json"
+            "--json",
         ])
     }
 
@@ -150,7 +160,7 @@ struct IPFSCommand {
             "config",
             "Swarm.ConnMgr",
             jsonString,
-            "--json"
+            "--json",
         ])
     }
 
@@ -159,7 +169,7 @@ struct IPFSCommand {
             "config",
             "API.HTTPHeaders.Access-Control-Allow-Origin",
             jsonString,
-            "--json"
+            "--json",
         ])
     }
 
@@ -168,12 +178,42 @@ struct IPFSCommand {
             "config",
             "API.HTTPHeaders.Access-Control-Allow-Methods",
             jsonString,
-            "--json"
+            "--json",
+        ])
+    }
+
+    /// Set IPNS options for Kubo 0.28.0 or later
+    static func setIPNSMaxCacheTTL() -> IPFSCommand {
+        IPFSCommand(arguments: [
+            "config",
+            "Ipns.MaxCacheTTL",
+            "\"30s\"",
+            "--json",
+        ])
+    }
+
+    static func setIPNSUsePubsub() -> IPFSCommand {
+        IPFSCommand(arguments: [
+            "config",
+            "Ipns.UsePubsub",
+            "true",
+            "--json",
+        ])
+    }
+
+    static func setGatewayHeaders() -> IPFSCommand {
+        IPFSCommand(arguments: [
+            "config",
+            "--json",
+            "Gateway.HTTPHeaders.Cache-Control",
+            "null",
         ])
     }
 
     static func launchDaemon() -> IPFSCommand {
-        IPFSCommand(arguments: ["daemon", "--migrate", "--enable-namesys-pubsub", "--enable-pubsub-experiment"])
+        IPFSCommand(arguments: [
+            "daemon", "--migrate", "--enable-namesys-pubsub", "--enable-pubsub-experiment",
+        ])
     }
 
     static func shutdownDaemon() -> IPFSCommand {
@@ -223,8 +263,7 @@ struct IPFSCommand {
     }
 }
 
-
-// MARK: TODO: migration with offline patch files.
+/*
 struct IPFSMigrationCommand {
     static let repoVersion = 12
 
@@ -285,3 +324,4 @@ struct IPFSMigrationCommand {
         return (Int(process.terminationStatus), outputData, errorData)
     }
 }
+*/

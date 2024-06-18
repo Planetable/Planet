@@ -4,9 +4,12 @@ import Foundation
 class IPFSState: ObservableObject {
     static let shared = IPFSState()
 
-    static let refreshRate: TimeInterval = 20
+    static let refreshRate: TimeInterval = 30
     static let refreshTrafficRate: TimeInterval = 5
     static let lastUserLaunchState: String = "PlanetIPFSLastUserLaunchStateKey"
+
+    /// A string to be displayed when IPFS daemon is unable to start.
+    @Published var reasonIPFSNotRunning: String? = nil
 
     @Published var isShowingStatus = false
 
@@ -19,7 +22,7 @@ class IPFSState: ObservableObject {
     @Published private(set) var repoSize: Int64?
     @Published private(set) var serverInfo: ServerInfo?
     @Published private(set) var bandwidths: [Int: IPFSBandwidth] = [:]
-    
+
     private weak var refreshRateTimer: Timer?
     private weak var refreshTrafficTimer: Timer?
 
@@ -28,6 +31,7 @@ class IPFSState: ObservableObject {
         Task(priority: .userInitiated) {
             do {
                 await IPFSDaemon.shared.setupIPFS()
+                try await Task.sleep(nanoseconds: 500_000_000)
                 if self.shouldAutoLaunchDaemon() {
                     try await IPFSDaemon.shared.launch()
                 }
@@ -35,27 +39,27 @@ class IPFSState: ObservableObject {
                 debugPrint("Failed to launch: \(error.localizedDescription), will try again shortly.")
             }
         }
-        refreshRateTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshRate, repeats: true, block: { _ in
+        self.refreshRateTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshRate, repeats: true, block: { _ in
             Task.detached(priority: .utility) {
                 await self.updateStatus()
             }
         })
-        refreshTrafficTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshTrafficRate, repeats: true, block: { _ in
-            Task.detached(priority: .utility) {
+        self.refreshTrafficTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshTrafficRate, repeats: true, block: { _ in
+            Task.detached(priority: .background) {
                 await self.updateTrafficStatus()
             }
         })
     }
-    
+
     deinit {
         refreshRateTimer?.invalidate()
         refreshRateTimer = nil
         refreshTrafficTimer?.invalidate()
         refreshTrafficTimer = nil
     }
-    
+
     // MARK: -
-    
+
     static let formatter = {
         let byteCountFormatter = ByteCountFormatter()
         byteCountFormatter.allowedUnits = .useAll
@@ -84,13 +88,13 @@ class IPFSState: ObservableObject {
     func updateGatewayPort(_ port: UInt16) {
         self.gatewayPort = port
     }
-    
+
     @MainActor
     func updateServerInfo(_ info: ServerInfo) {
         self.serverInfo = info
         debugPrint("Updated ServerInfo: \(info)")
     }
-    
+
     @MainActor
     func updateBandwidths(data: IPFSBandwidth) {
         let now = Int(Date().timeIntervalSince1970)
@@ -112,7 +116,7 @@ class IPFSState: ObservableObject {
         let request = URLRequest(
             url: url,
             cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
-            timeoutInterval: 1
+            timeoutInterval: 5
         )
         let onlineStatus: Bool
         do {
@@ -127,16 +131,12 @@ class IPFSState: ObservableObject {
         catch {
             onlineStatus = false
         }
-
-        // update current peers
-        if onlineStatus {
-            Task.detached(priority: .background) {
-                await self.updateServerInfo()
-            }
-        }
-
         await MainActor.run {
             self.online = onlineStatus
+        }
+        // update current peers
+        if onlineStatus {
+            await self.updateServerInfo()
         }
     }
 
@@ -164,7 +164,7 @@ class IPFSState: ObservableObject {
             NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
         }
     }
-    
+
     func updateTrafficStatus() async {
         guard online else { return }
         guard let stats = try? await IPFSDaemon.shared.getStatsBW() else { return }
@@ -172,7 +172,7 @@ class IPFSState: ObservableObject {
             updateBandwidths(data: stats)
         }
     }
-    
+
     func calculateRepoSize() async throws {
         guard !isCalculatingRepoSize else { return }
         await MainActor.run {
@@ -203,7 +203,7 @@ class IPFSState: ObservableObject {
         }
         return true
     }
-    
+
     private func updateServerInfo() async {
         var hostName: String = ""
         if let host = Host.current().localizedName {

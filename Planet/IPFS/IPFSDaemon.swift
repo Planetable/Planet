@@ -2,11 +2,10 @@ import Foundation
 import SwiftyJSON
 import os
 
-
 actor IPFSDaemon {
     static let shared = IPFSDaemon()
 
-    private var isPreparing: Bool = false
+    private var settingUp: Bool = false
     private var swarmPort: UInt16!
     private var apiPort: UInt16!
     private var gatewayPort: UInt16!
@@ -14,32 +13,83 @@ actor IPFSDaemon {
     static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "IPFSDaemon")
 
     init() {
-        debugPrint("IPFS Daemon Init.")
+        Self.logger.info("IPFS Daemon Init")
     }
 
-    func setupIPFS() async {
-        guard !isPreparing else { return }
+    func setupIPFS(andLaunch launch: Bool = false) async {
+        guard !settingUp else { return }
+        settingUp = true
         defer {
-            isPreparing = false
+            settingUp = false
         }
 
-        Self.logger.info("Preparing IPFS")
+        Self.logger.info("Setting up IPFS")
+
         let repoContents = try! FileManager.default.contentsOfDirectory(
             at: IPFSCommand.IPFSRepositoryPath,
             includingPropertiesForKeys: nil
         )
         if repoContents.isEmpty {
             Self.logger.info("Initializing IPFS config")
-            guard let result = try? IPFSCommand.IPFSInit().run(),
+            if let result = try? IPFSCommand.IPFSInit().run(),
                 result.ret == 0
+            {
+                Self.logger.info("IPFS Initialized")
+            }
             else {
                 Self.logger.info("Error Initializing IPFS")
                 return
             }
         }
 
-        // scout open ports
-        Self.logger.info("Scouting open ports")
+        Self.logger.info(
+            "Verifying IPFS repo version\nAt path: \(IPFSCommand.IPFSRepositoryPath)\nVia exe: \(IPFSCommand.IPFSExecutablePath)"
+        )
+
+        /*  Skip IPFS migration process
+        do {
+            // Read current repo version on disk
+            let repoVersion = try await IPFSMigrationCommand.currentRepoVersion()
+            Self.logger.info("Current IPFS repo version on disk: \(repoVersion)")
+            let expectedVersion = IPFSCommand.IPFSRepoVersion
+            Self.logger.info("Expected IPFS repo version: \(expectedVersion)")
+            let migrationRepoNames = IPFSMigrationCommand.migrationRepoNames(
+                forRepoVersion: repoVersion
+            )
+            if repoVersion < expectedVersion && migrationRepoNames.count > 0 {
+                Self.logger.info(
+                    "Current IPFS repo version \(repoVersion) is lower than app runtime repo version \(expectedVersion), prepare migration..."
+                )
+                for name in migrationRepoNames {
+                    Self.logger.info("Migrating \(name)")
+                    let command = IPFSMigrationCommand(repoName: name)
+                    let data = try await command.run()
+                    Self.logger.info("Response from IPFS repo version migration \(name): \(data.logFormat())")
+                }
+            }
+            else if repoVersion > expectedVersion {
+                Self.logger.info(
+                    "⚠️ Current IPFS repo version \(repoVersion) on disk is higher than app runtime repo version \(expectedVersion), IPFS will not start and will tell the user to update the app."
+                )
+                await MainActor.run {
+                    IPFSState.shared.reasonIPFSNotRunning = "IPFS repo version \(repoVersion) on disk is higher than app runtime repo version \(expectedVersion), please update the app."
+                }
+                return
+            }
+            else {
+                Self.logger.info("✅ IPFS repo version verified: \(repoVersion), no need to migrate.")
+            }
+        }
+        catch {
+            Self.logger.info("Error Verifying Repo Version: \(error)")
+            await MainActor.run {
+                IPFSState.shared.reasonIPFSNotRunning = "An error occurred while verifying IPFS repo version. Please try again or update the app.\n\nError: \(error)"
+            }
+            return
+        }
+         */
+
+        Self.logger.info("Updating swarm port")
         if let port = IPFSDaemon.scoutPort(4001...4011),
             let result = try? IPFSCommand.updateSwarmPort(port: port).run(),
             result.ret == 0
@@ -48,11 +98,14 @@ actor IPFSDaemon {
             await MainActor.run {
                 IPFSState.shared.updateSwarmPort(port)
             }
+            Self.logger.info("Updated swarm port: \(port)")
         }
         else {
             Self.logger.info("Unable to find open swarm port for IPFS")
             return
         }
+
+        Self.logger.info("Updating API port")
         if let port = IPFSDaemon.scoutPort(5981...5991),
             let result = try? IPFSCommand.updateAPIPort(port: port).run(),
             result.ret == 0
@@ -61,11 +114,14 @@ actor IPFSDaemon {
             await MainActor.run {
                 IPFSState.shared.updateAPIPort(port)
             }
+            Self.logger.info("Updated API port: \(port)")
         }
         else {
             Self.logger.info("Unable to find open API port for IPFS")
             return
         }
+
+        Self.logger.info("Updating gateway port")
         if let port = IPFSDaemon.scoutPort(18181...18191),
             let result = try? IPFSCommand.updateGatewayPort(port: port).run(),
             result.ret == 0
@@ -74,118 +130,90 @@ actor IPFSDaemon {
             await MainActor.run {
                 IPFSState.shared.updateGatewayPort(port)
             }
+            Self.logger.info("Updated gateway port: \(port)")
         }
         else {
             Self.logger.info("Unable to find open gateway port for IPFS")
             return
         }
 
-        // IPFS peering
-        // peers from https://docs.ipfs.io/how-to/peering-with-content-providers/#content-provider-list
-        Self.logger.info("Setting peers")
-        let peers = JSON([
-            [
-                "ID": "QmcFf2FH3CEgTNHeMRGhN7HNHU1EXAxoEk6EFuSyXCsvRE",
-                "Addrs": ["/dnsaddr/node-1.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "QmcFmLd5ySfk2WZuJ1mfSWLDjdmHZq7rSAua4GoeSQfs1z",
-                "Addrs": ["/dnsaddr/node-2.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "QmcfFmzSDVbwexQ9Au2pt5YEXHK5xajwgaU6PpkbLWerMa",
-                "Addrs": ["/dnsaddr/node-3.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "QmcfJeB3Js1FG7T8YaZATEiaHqNKVdQfybYYkbT1knUswx",
-                "Addrs": ["/dnsaddr/node-4.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "QmcfVvzK4tMdFmpJjEKDUoqRgP4W9FnmJoziYX5GXJJ8eZ",
-                "Addrs": ["/dnsaddr/node-5.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "QmcfZD3VKrUxyP9BbyUnZDpbqDnT7cQ4WjPP8TRLXaoE7G",
-                "Addrs": ["/dnsaddr/node-6.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "QmcfZP2LuW4jxviTeG8fi28qjnZScACb8PEgHAc17ZEri3",
-                "Addrs": ["/dnsaddr/node-7.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "QmcfgsJsMtx6qJb74akCw1M24X1zFwgGo11h1cuhwQjtJP",
-                "Addrs": ["/dnsaddr/node-8.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "Qmcfr2FC7pFzJbTSDfYaSy1J8Uuy8ccGLeLyqJCKJvTHMi",
-                "Addrs": ["/dnsaddr/node-9.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "QmcfR3V5YAtHBzxVACWCzXTt26SyEkxdwhGJ6875A8BuWx",
-                "Addrs": ["/dnsaddr/node-10.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "Qmcfuo1TM9uUiJp6dTbm915Rf1aTqm3a3dnmCdDQLHgvL5",
-                "Addrs": ["/dnsaddr/node-11.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "QmcfV2sg9zaq7UUHVCGuSvT2M2rnLBAPsiE79vVyK3Cuev",
-                "Addrs": ["/dnsaddr/node-12.ingress.cloudflare-ipfs.com"],
-            ],
-            [
-                "ID": "12D3KooWBJY6ZVV8Tk8UDDFMEqWoxn89Xc8wnpm8uBFSR3ijDkui",
-                "Addrs": ["/ip4/167.71.172.216/tcp/4001", "/ip6/2604:a880:800:10::826:1/tcp/4001"],
-            ],  // Pinnable
-            [
-                "ID": "12D3KooWHN5avE25zdCpsuu85kNcCSxYJx2njLNREKxowoDHa1xc",
-                "Addrs": [
-                    "/ip4/143.198.18.166/tcp/4001",
-                    "/ip6/2604:a880:800:10::735:7001/tcp/4001"
-                ]
-            ],  // eth.sucks
-            [
-                "ID": "12D3KooWLBMmT1dft1zcJvXNYkAfoUqj2RtRm7f9XkF17YmZsu4o",
-                "Addrs": [
-                    "/ip4/104.131.8.159/tcp/4001",
-                    "/ip6/2604:a880:800:10::bc4:e001/tcp/4001",
-                ],
-            ],  // eth.limo
-            [
-                "ID": "12D3KooWMHpq3mdygcbZWbjkuDdCsX5rjZHX31uRbCp9vAZXBxcD",
-                "Addrs": [
-                    "/ip4/104.131.8.143/tcp/4001",
-                    "/ip6/2604:a880:800:10::ac1:2001/tcp/4001",
-                ],
-            ],  // eth.limo
-            [
-                "ID": "12D3KooWQ1b2WBM1NM1a5jWS5Kny3y93zyK6iPBuVAA6uk95zdyJ",
-                "Addrs": [
-                    "/ip4/45.55.43.156/tcp/4001",
-                    "/ip6/2604:a880:800:10::c59:6001/tcp/4001",
-                ],
-            ],  // eth.limo
-            [
-                "ID": "12D3KooWJ6MTkNM8Bu8DzNiRm1GY3Wqh8U8Pp1zRWap6xY3MvsNw",
-                "Addrs": [
-                    "/dnsaddr/node-1.ipfs.bit.site"
-                ],
-            ],  // bit.site
-            [
-                "ID": "12D3KooWQ85aSCFwFkByr5e3pUCQeuheVhobVxGSSs1DrRQHGv1t",
-                "Addrs": [
-                    "/dnsaddr/node-1.ipfs.4everland.net"
-                ],
-            ],  // 4everland.io
-        ])
-        guard
-            let result = try? IPFSCommand.setPeers(
-                peersJSON: String(data: peers.rawData(), encoding: .utf8)!
-            ).run(),
+        /*  Skip IPFS migration process
+        // Set IPNS options
+        Self.logger.info("Setting IPNS options")
+
+        // Ipns.MaxCacheTTL (needed starting from 0.28.0)
+        if let result = try? IPFSCommand.setIPNSMaxCacheTTL().run() {
+            if result.ret == 0 {
+                Self.logger.info("Set Ipns.MaxCacheTTL")
+            }
+            else {
+                if let errorString = String(data: result.err, encoding: .utf8) {
+                    Self.logger.info(
+                        "Failed to set Ipns.MaxCacheTTL: \(errorString, privacy: .public)"
+                    )
+                }
+                else {
+                    Self.logger.info("Failed to set Ipns.MaxCacheTTL: (unknown error)")
+                }
+            }
+        }
+        else {
+            Self.logger.info("Unable to set Ipns.MaxCacheTTL")
+        }
+
+        // Ipns.UsePubsub (needed starting from 0.28.0)
+        if let result = try? IPFSCommand.setIPNSUsePubsub().run() {
+            if result.ret == 0 {
+                Self.logger.info("Set Ipns.UsePubsub")
+            }
+            else {
+                if let errorString = String(data: result.err, encoding: .utf8) {
+                    Self.logger.info(
+                        "Failed to set Ipns.UsePubsub: \(errorString, privacy: .public)"
+                    )
+                }
+                else {
+                    Self.logger.info("Failed to set Ipns.UsePubsub: (unknown error)")
+                }
+            }
+        }
+        else {
+            Self.logger.info("Unable to set Ipns.UsePubsub")
+        }
+
+        // Gateway.HTTPHeaders (needed starting from 0.28.0)
+        if let result = try? IPFSCommand.setGatewayHeaders().run() {
+            if result.ret == 0 {
+                Self.logger.info("Set Gateway.HTTPHeaders")
+            }
+            else {
+                if let errorString = String(data: result.err, encoding: .utf8) {
+                    Self.logger.info(
+                        "Failed to set Gateway.HTTPHeaders: \(errorString, privacy: .public)"
+                    )
+                }
+                else {
+                    Self.logger.info("Failed to set Gateway.HTTPHeaders: (unknown error)")
+                }
+            }
+        }
+        else {
+            Self.logger.info("Unable to set Gateway.HTTPHeaders")
+        }
+         */
+
+        Self.logger.info("Updating peers")
+        if let result = try? IPFSCommand.setPeers(
+            peersJSON: String(data: IPFSDaemon.peers.rawData(), encoding: .utf8)!
+        ).run(),
             result.ret == 0
+        {
+            Self.logger.info("Updated peers")
+        }
         else {
             Self.logger.info("Unable to set peers for IPFS")
-            return
         }
+
         let swarmConnMgr = JSON(
             [
                 "GracePeriod": "20s",
@@ -194,72 +222,91 @@ actor IPFSDaemon {
                 "Type": "basic",
             ] as [String: Any]
         )
-        guard
-            let result = try? IPFSCommand.setSwarmConnMgr(
-                String(data: swarmConnMgr.rawData(), encoding: .utf8)!
-            ).run(),
+        Self.logger.info("Updating parameters for Swarm Connection Manager")
+        if let result = try? IPFSCommand.setSwarmConnMgr(
+            String(data: swarmConnMgr.rawData(), encoding: .utf8)!
+        ).run(),
             result.ret == 0
+        {
+            Self.logger.info("Updated parameters for Swarm Connection Manager")
+        }
         else {
             Self.logger.info("Unable to set parameters for Swarm Connection Manager")
             return
         }
+
         let accessControlAllowOrigin = JSON(
             ["https://webui.ipfs.io"]
         )
-        guard
-            let result = try? IPFSCommand.setAccessControlAllowOrigin(
-                String(data: accessControlAllowOrigin.rawData(), encoding: .utf8)!
-            ).run(),
+        Self.logger.info("Updating parameters for Access Control Allow Origin")
+        if let result = try? IPFSCommand.setAccessControlAllowOrigin(
+            String(data: accessControlAllowOrigin.rawData(), encoding: .utf8)!
+        ).run(),
             result.ret == 0
+        {
+            Self.logger.info("Updated parameters for Access Control Allow Origin")
+        }
         else {
             Self.logger.info("Unable to set parameters for Access Control Allow Origin")
             return
         }
+
         let accessControlAllowMethods = JSON(
             ["PUT", "POST"]
         )
-        guard
-            let result = try? IPFSCommand.setAccessControlAllowMethods(
-                String(data: accessControlAllowMethods.rawData(), encoding: .utf8)!
-            ).run(),
+        Self.logger.info("Updating parameters for Access Control Allow Methods")
+        if let result = try? IPFSCommand.setAccessControlAllowMethods(
+            String(data: accessControlAllowMethods.rawData(), encoding: .utf8)!
+        ).run(),
             result.ret == 0
+        {
+            Self.logger.info("Updated parameters for Access Control Allow Methods")
+        }
         else {
             Self.logger.info("Unable to set parameters for Access Control Allow Methods")
-            return
+        }
+
+        Self.logger.info("IPFS Setup Completed")
+
+        if launch {
+            try? self.launch()
         }
     }
 
     func launch() throws {
         Self.logger.info("Launching daemon")
         if swarmPort == nil || apiPort == nil || gatewayPort == nil {
-            Self.logger.info("IPFS is not ready, abort launching process.")
+            Self.logger.info("IPFS is not ready, abort launching process, trying to setup again.")
+            Task.detached(priority: .utility) {
+                await self.setupIPFS(andLaunch: true)
+            }
             throw PlanetError.IPFSError
         }
+        _ = try? IPFSCommand.shutdownDaemon().run()
         do {
             Task { @MainActor in
                 IPFSState.shared.updateOperatingStatus(true)
             }
-            try IPFSCommand.shutdownDaemon().run()
             try IPFSCommand.launchDaemon().run(
                 outHandler: { data in
-                    if let output = String(data: data, encoding: .utf8),
-                       output.contains("Daemon is ready")
-                    {
-                        Self.logger.debug("[IPFS stdout]\n\(data.logFormat(), privacy: .public)")
+                    let log = data.logFormat()
+                    Self.logger.debug("[IPFS stdout]\n\(log, privacy: .public)")
+                    if log.contains("Daemon is ready") {
+                        Self.logger.info("Daemon launched")
                         Task.detached(priority: .utility) {
+                            try? await Task.sleep(nanoseconds: 500_000_000)
                             await IPFSState.shared.updateStatus()
                             IPFSState.shared.updateAppSettings()
-                        }
-                        Task { @MainActor in
-                            IPFSState.shared.updateOperatingStatus(false)
-                        }
-                        Task.detached(priority: .background) {
                             try? await IPFSState.shared.calculateRepoSize()
+                            Task { @MainActor in
+                                IPFSState.shared.updateOperatingStatus(false)
+                            }
                         }
                     }
                 },
                 errHandler: { data in
-                    Self.logger.debug("[IPFS error]\n\(data.logFormat(), privacy: .public)")
+                    let log = data.logFormat()
+                    Self.logger.debug("[IPFS error]\n\(log, privacy: .public)")
                     Task { @MainActor in
                         IPFSState.shared.updateOperatingStatus(false)
                     }
@@ -273,6 +320,7 @@ actor IPFSDaemon {
                 cause: \(String(describing: error))
                 """
             )
+            Self.logger.info("Failed to launch daemon: \(String(describing: error))")
             Task { @MainActor in
                 IPFSState.shared.updateOperatingStatus(false)
             }
@@ -288,8 +336,9 @@ actor IPFSDaemon {
         do {
             let (ret, out, err) = try IPFSCommand.shutdownDaemon().run()
             if ret == 0 {
-                Self.logger.info("Shutdown daemon returned 0")
-            } else {
+                Self.logger.info("Daemon shut down")
+            }
+            else {
                 Self.logger.error(
                     """
                     Failed to shutdown daemon: process returned \(ret)
@@ -639,7 +688,8 @@ actor IPFSDaemon {
         )
         request.httpMethod = "POST"
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse,
+        guard
+            let httpResponse = response as? HTTPURLResponse,
             httpResponse.ok
         else {
             throw PlanetError.IPFSAPIError
@@ -657,14 +707,109 @@ actor IPFSDaemon {
             else {
                 debugPrint("IPFS API Response for \(path) / \(args): \(responseString)")
             }
-
         }
         return data
     }
 }
 
-
 extension IPFSDaemon {
+    // IPFS peering
+    // peers from https://docs.ipfs.io/how-to/peering-with-content-providers/#content-provider-list
+    static let peers = JSON([
+        [
+            "ID": "QmcFf2FH3CEgTNHeMRGhN7HNHU1EXAxoEk6EFuSyXCsvRE",
+            "Addrs": ["/dnsaddr/node-1.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "QmcFmLd5ySfk2WZuJ1mfSWLDjdmHZq7rSAua4GoeSQfs1z",
+            "Addrs": ["/dnsaddr/node-2.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "QmcfFmzSDVbwexQ9Au2pt5YEXHK5xajwgaU6PpkbLWerMa",
+            "Addrs": ["/dnsaddr/node-3.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "QmcfJeB3Js1FG7T8YaZATEiaHqNKVdQfybYYkbT1knUswx",
+            "Addrs": ["/dnsaddr/node-4.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "QmcfVvzK4tMdFmpJjEKDUoqRgP4W9FnmJoziYX5GXJJ8eZ",
+            "Addrs": ["/dnsaddr/node-5.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "QmcfZD3VKrUxyP9BbyUnZDpbqDnT7cQ4WjPP8TRLXaoE7G",
+            "Addrs": ["/dnsaddr/node-6.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "QmcfZP2LuW4jxviTeG8fi28qjnZScACb8PEgHAc17ZEri3",
+            "Addrs": ["/dnsaddr/node-7.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "QmcfgsJsMtx6qJb74akCw1M24X1zFwgGo11h1cuhwQjtJP",
+            "Addrs": ["/dnsaddr/node-8.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "Qmcfr2FC7pFzJbTSDfYaSy1J8Uuy8ccGLeLyqJCKJvTHMi",
+            "Addrs": ["/dnsaddr/node-9.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "QmcfR3V5YAtHBzxVACWCzXTt26SyEkxdwhGJ6875A8BuWx",
+            "Addrs": ["/dnsaddr/node-10.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "Qmcfuo1TM9uUiJp6dTbm915Rf1aTqm3a3dnmCdDQLHgvL5",
+            "Addrs": ["/dnsaddr/node-11.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "QmcfV2sg9zaq7UUHVCGuSvT2M2rnLBAPsiE79vVyK3Cuev",
+            "Addrs": ["/dnsaddr/node-12.ingress.cloudflare-ipfs.com"],
+        ],
+        [
+            "ID": "12D3KooWBJY6ZVV8Tk8UDDFMEqWoxn89Xc8wnpm8uBFSR3ijDkui",
+            "Addrs": ["/ip4/167.71.172.216/tcp/4001", "/ip6/2604:a880:800:10::826:1/tcp/4001"],
+        ],  // Pinnable
+        [
+            "ID": "12D3KooWHN5avE25zdCpsuu85kNcCSxYJx2njLNREKxowoDHa1xc",
+            "Addrs": [
+                "/ip4/143.198.18.166/tcp/4001",
+                "/ip6/2604:a880:800:10::735:7001/tcp/4001",
+            ],
+        ],  // eth.sucks
+        [
+            "ID": "12D3KooWLBMmT1dft1zcJvXNYkAfoUqj2RtRm7f9XkF17YmZsu4o",
+            "Addrs": [
+                "/ip4/104.131.8.159/tcp/4001",
+                "/ip6/2604:a880:800:10::bc4:e001/tcp/4001",
+            ],
+        ],  // eth.limo
+        [
+            "ID": "12D3KooWMHpq3mdygcbZWbjkuDdCsX5rjZHX31uRbCp9vAZXBxcD",
+            "Addrs": [
+                "/ip4/104.131.8.143/tcp/4001",
+                "/ip6/2604:a880:800:10::ac1:2001/tcp/4001",
+            ],
+        ],  // eth.limo
+        [
+            "ID": "12D3KooWQ1b2WBM1NM1a5jWS5Kny3y93zyK6iPBuVAA6uk95zdyJ",
+            "Addrs": [
+                "/ip4/45.55.43.156/tcp/4001",
+                "/ip6/2604:a880:800:10::c59:6001/tcp/4001",
+            ],
+        ],  // eth.limo
+        [
+            "ID": "12D3KooWJ6MTkNM8Bu8DzNiRm1GY3Wqh8U8Pp1zRWap6xY3MvsNw",
+            "Addrs": [
+                "/dnsaddr/node-1.ipfs.bit.site"
+            ],
+        ],  // bit.site
+        [
+            "ID": "12D3KooWQ85aSCFwFkByr5e3pUCQeuheVhobVxGSSs1DrRQHGv1t",
+            "Addrs": [
+                "/dnsaddr/node-1.ipfs.4everland.net"
+            ],
+        ],  // 4everland.io
+    ])
+
     static func preferredGateway() -> String {
         let index: Int = UserDefaults.standard.integer(forKey: String.settingsPublicGatewayIndex)
         return IPFSGateway.publicGateways[index]
