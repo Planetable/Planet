@@ -901,14 +901,14 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		2A0E918E2BE8EFB500F69578 /* IPFS Status */ = {
+		2A0E918E2BE8EFB500F69578 /* Status Views */ = {
 			isa = PBXGroup;
 			children = (
 				2A0E918F2BE8EFC600F69578 /* IPFSStatusView.swift */,
 				2A391F042BF3137A006A3FD6 /* IPFSTrafficView.swift */,
 				2AC5A09C2BFAF7D700B9B172 /* IPFSTrafficChartView.swift */,
 			);
-			path = "IPFS Status";
+			path = "Status Views";
 			sourceTree = "<group>";
 		};
 		2A2556B6293E1EE4006462D8 /* Window Controller */ = {
@@ -1264,7 +1264,6 @@
 		6A1DA07A28B4273C00C6B5A9 /* Labs */ = {
 			isa = PBXGroup;
 			children = (
-				2A0E918E2BE8EFB500F69578 /* IPFS Status */,
 				6A2827D22BD88E6C006B4A84 /* Quick Post */,
 				2A27744C2A9515C300A5DDC2 /* Icon Gallery */,
 				6AB6E4F92915226400F17328 /* Wallet */,
@@ -1463,6 +1462,7 @@
 		72114ABE784F27251FE3A0BD /* IPFS */ = {
 			isa = PBXGroup;
 			children = (
+				2A0E918E2BE8EFB500F69578 /* Status Views */,
 				2A8E08512BF4B139002D0C03 /* Open Views */,
 				721148C9E7BCB6F1BC539F57 /* IPFSState.swift */,
 				72114CC4F1FBAAD946B9A376 /* IPFSDaemon.swift */,
