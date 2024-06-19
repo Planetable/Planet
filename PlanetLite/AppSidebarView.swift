@@ -69,7 +69,7 @@ struct AppSidebarView: View {
             .onTapGesture {
                 guard !ipfsState.isOperating else { return }
                 Task { @MainActor in
-                    self.ipfsState.isShowingStatus.toggle()
+                    self.ipfsState.isShowingStatus = true
                 }
             }
             .popover(
