@@ -207,6 +207,9 @@ struct IPFSTrafficChartView: View {
             ForEach(items, id: \.id) { item in
                 VStack(spacing: 0) {
                     let itemHeight: CGFloat = {
+                        if max <= 0 {
+                            return 1.0
+                        }
                         let h = CGFloat(isInTraffic ? item.rateIn : item.rateOut) / max * height
                         if h < 1.0 {
                             return 1.0

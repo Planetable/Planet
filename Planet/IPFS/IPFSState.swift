@@ -12,6 +12,7 @@ class IPFSState: ObservableObject {
     @Published var reasonIPFSNotRunning: String? = nil
 
     @Published var isShowingStatus = false
+    @Published var isShowingStatusWindow = false
 
     @Published private(set) var isOperating = false
     @Published private(set) var online = false
