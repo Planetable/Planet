@@ -769,7 +769,7 @@ extension IPFSDaemon {
             "Addrs": ["/ip4/167.71.172.216/tcp/4001", "/ip6/2604:a880:800:10::826:1/tcp/4001"],
         ],  // Pinnable
         [
-            "ID": "12D3KooWHN5avE25zdCpsuu85kNcCSxYJx2njLNREKxowoDHa1xc",
+            "ID": "12D3KooWDaGQ3Fu3iLgFxrrg5Vfef9z5L3DQZoyqFxQJbKKPnCc8",
             "Addrs": [
                 "/ip4/143.198.18.166/tcp/4001",
                 "/ip6/2604:a880:800:10::735:7001/tcp/4001",
