@@ -13,6 +13,8 @@ import WalletConnectRelay
 import WalletConnectSwift
 import Web3
 
+import Auth
+
 enum EthereumChainID: Int, Codable, CaseIterable {
     case mainnet = 1
     case goerli = 5
@@ -57,14 +59,6 @@ enum TipAmount: Int, Codable, CaseIterable {
         20: "0.2 Ξ",
         100: "1 Ξ",
     ]
-}
-
-extension WebSocket: WebSocketConnecting { }
-
-struct SocketFactory: WebSocketFactory {
-    func create(with url: URL) -> WebSocketConnecting {
-        return WebSocket(url: url)
-    }
 }
 
 class WalletManager: NSObject {
@@ -161,27 +155,30 @@ class WalletManager: NSObject {
     // MARK: - V2
 
     func setupV2() throws {
+        debugPrint("Setting up WalletConnect 2.0")
         let metadata = AppMetadata(
             name: "Planet",
             description: "Build decentralized websites on ENS",
             url: "https://planetable.xyz",
-            icons: ["https://github.com/Planetable.png"])
+            icons: ["https://github.com/Planetable.png"],
+            redirect: AppMetadata.Redirect(native: "planet://", universal: nil))
 
         if let projectId = Bundle.main.object(forInfoDictionaryKey: "WALLETCONNECTV2_PROJECT_ID") as? String {
-            Networking.configure(projectId: projectId, socketFactory: SocketFactory())
+            Networking.configure(projectId: projectId, socketFactory: DefaultSocketFactory())
             Pair.configure(metadata: metadata)
             Task { @MainActor in
+                debugPrint("WalletConnect 2.0 ready")
                 PlanetStore.shared.walletConnectV2Ready = true
             }
         } else {
             throw PlanetError.WalletConnectV2ProjectIDMissingError
         }
-
     }
 
     func connectV2() {
         Task {
-            let uri = try await Pair.instance.create()
+            debugPrint("Attempting to create WalletConnect 2.0 session")
+            let uri = try! await Pair.instance.create()
             debugPrint("WalletConnect 2.0 URI: \(uri)")
             debugPrint("WalletConnect 2.0 URI Absolute String: \(uri.absoluteString)")
             Task { @MainActor in
@@ -234,8 +231,19 @@ extension Int {
         var ethers: Float = Float(self) / 100
         return String(format: "%.2f Ξ", ethers)
     }
-    
+
     func stringValue() -> String {
         return String(self)
+    }
+}
+
+extension WebSocket: WebSocketConnecting { }
+
+struct DefaultSocketFactory: WebSocketFactory {
+    func create(with url: URL) -> WebSocketConnecting {
+        let socket = WebSocket(url: url)
+        let queue = DispatchQueue(label: "com.walletconnect.sdk.sockets", attributes: .concurrent)
+        socket.callbackQueue = queue
+        return socket
     }
 }

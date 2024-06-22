@@ -2632,7 +2632,7 @@
 			repositoryURL = "https://github.com/WalletConnect/WalletConnectSwiftV2";
 			requirement = {
 				kind = exactVersion;
-				version = 1.8.6;
+				version = 1.9.8;
 			};
 		};
 		6ADF40C229151407007A24E8 /* XCRemoteSwiftPackageReference "Starscream" */ = {
