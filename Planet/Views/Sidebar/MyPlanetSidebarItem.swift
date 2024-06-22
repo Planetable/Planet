@@ -49,6 +49,27 @@ struct MyPlanetSidebarItem: View {
                     Text("Edit Planet")
                 }
 
+                Divider()
+
+                Button {
+                    if let url = planet.browserURL {
+                        debugPrint("My Planet Browser URL: \(url.absoluteString)")
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Text("Open in Public Gateway")
+                }
+
+                Button {
+                    if let url = URL(string: "\(IPFSState.shared.getGateway())/ipns/\(planet.ipns)") {
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Text("Open in Local Gateway")
+                }
+
+                Divider()
+
                 if let template = planet.template, template.hasSettings {
                     if template.name == "Croptop" {
                         Button {
@@ -125,23 +146,6 @@ struct MyPlanetSidebarItem: View {
                     }
                 } label: {
                     Text("Show IPNS and CID")
-                }
-
-                Button {
-                    if let url = planet.browserURL {
-                        debugPrint("My Planet Browser URL: \(url.absoluteString)")
-                        NSWorkspace.shared.open(url)
-                    }
-                } label: {
-                    Text("Open in Public Gateway")
-                }
-
-                Button {
-                    if let url = URL(string: "\(IPFSState.shared.getGateway())/ipns/\(planet.ipns)") {
-                        NSWorkspace.shared.open(url)
-                    }
-                } label: {
-                    Text("Open in Local Gateway")
                 }
 
                 Divider()
