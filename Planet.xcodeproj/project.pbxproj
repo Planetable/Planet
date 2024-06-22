@@ -441,6 +441,8 @@
 		6AE1839B2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE1839A2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift */; };
 		6AE1839C2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE1839A2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift */; };
 		6AE93656290CB10700BAC092 /* PlanetSettingsPlanetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */; };
+		6AEE99DC2C26C2AD00736D0B /* MNCR.json in Resources */ = {isa = PBXBuildFile; fileRef = 6AEE99DB2C26C2AD00736D0B /* MNCR.json */; };
+		6AEE99DD2C26C2AD00736D0B /* MNCR.json in Resources */ = {isa = PBXBuildFile; fileRef = 6AEE99DB2C26C2AD00736D0B /* MNCR.json */; };
 		6AFCF7DC2B7353C6002299BA /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7DB2B7353C6002299BA /* Collections */; };
 		6AFCF7DE2B7353C6002299BA /* DequeModule in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7DD2B7353C6002299BA /* DequeModule */; };
 		6AFCF7E02B7353C6002299BA /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7DF2B7353C6002299BA /* OrderedCollections */; };
@@ -757,6 +759,7 @@
 		6ADF40B82914D88C007A24E8 /* MyPlanetIPNSView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetIPNSView.swift; sourceTree = "<group>"; };
 		6AE1839A2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MyPlanetModel+Aggregate.swift"; sourceTree = "<group>"; };
 		6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsPlanetsView.swift; sourceTree = "<group>"; };
+		6AEE99DB2C26C2AD00736D0B /* MNCR.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = MNCR.json; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 		7211403BD64F1D6E5B14D69E /* WriterVideoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WriterVideoView.swift; sourceTree = "<group>"; };
 		7211404DFC1B4D23F84EA279 /* PlanetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetError.swift; sourceTree = "<group>"; };
@@ -1345,6 +1348,7 @@
 		6A1FD5042A75A67C00391972 /* Art */ = {
 			isa = PBXGroup;
 			children = (
+				6AEE99DB2C26C2AD00736D0B /* MNCR.json */,
 				6A1FD5052A75A6A000391972 /* NSTG.json */,
 			);
 			path = Art;
@@ -1747,6 +1751,7 @@
 				2A95E66D2A19A3B8001288B8 /* WriterBasic.html in Resources */,
 				6A34BE372A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
 				6A34BE352A34B2A00031E5E4 /* Capsules-400.otf in Resources */,
+				6AEE99DD2C26C2AD00736D0B /* MNCR.json in Resources */,
 				6A34BE3F2A34B2A00031E5E4 /* Capsules-500.otf in Resources */,
 				2AD45E6E2C1CA7160007F690 /* ipfs-arm64-0.15.bin in Resources */,
 				2A95E6F02A19A777001288B8 /* Credits.html in Resources */,
@@ -1781,6 +1786,7 @@
 				6A1DF9CF28E8E4B6000499E3 /* RSS.xml in Resources */,
 				2ADD6E6F2A9F2D2600AD763B /* vol1-4.zip in Resources */,
 				E8B4FE422A8D146100C01E94 /* InfoPlist.strings in Resources */,
+				6AEE99DC2C26C2AD00736D0B /* MNCR.json in Resources */,
 				6A1FD5032A75A64500391972 /* Avatars.xcassets in Resources */,
 				E8B4FE3D2A8D144E00C01E94 /* Localizable.strings in Resources */,
 				2ADD6E762A9F2D2600AD763B /* vol1-7.zip in Resources */,

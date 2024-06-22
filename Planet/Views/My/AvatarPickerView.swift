@@ -9,6 +9,18 @@ import SwiftUI
 
 enum AvatarCategory: String, CaseIterable {
     case nostalgia = "Nostalgia"
+    case monochrom = "Monochrom"
+
+    var id: String { rawValue }
+
+    var jsonFile: String {
+        switch self {
+        case .nostalgia:
+            return "NSTG"
+        case .monochrom:
+            return "MNCR"
+        }
+    }
 }
 
 struct AvatarPickerView: View {
@@ -20,24 +32,22 @@ struct AvatarPickerView: View {
     @State var avatarChanged: Bool = false
 
     private func loadAvatars(category: AvatarCategory) -> [String: String]? {
-        switch category {
-        case .nostalgia:
-            debugPrint("Loading Avatar category: \(category)")
-            if let metadataFile = Bundle.main.url(forResource: "NSTG", withExtension: "json") {
-                do {
-                    let data = try Data(contentsOf: metadataFile)
-                    let decoder = JSONDecoder()
-                    let metadata = try decoder.decode([String: String].self, from: data)
-                    debugPrint("Loaded avatar metadata: \(metadata)")
-                    return metadata
-                }
-                catch {
-                    debugPrint("Failed to load avatar metadata: \(error)")
-                }
+        debugPrint("Loading Avatar category: \(category)")
+        if let metadataFile = Bundle.main.url(forResource: category.jsonFile, withExtension: "json")
+        {
+            do {
+                let data = try Data(contentsOf: metadataFile)
+                let decoder = JSONDecoder()
+                let metadata = try decoder.decode([String: String].self, from: data)
+                debugPrint("Loaded avatar metadata: \(metadata)")
+                return metadata
             }
-            else {
-                debugPrint("Avatar metadata NSTG.json not found")
+            catch {
+                debugPrint("Failed to load avatar metadata: \(error)")
             }
+        }
+        else {
+            debugPrint("Avatar metadata \(category.jsonFile).json not found")
         }
         return nil
     }
@@ -93,6 +103,7 @@ struct AvatarPickerView: View {
                             ForEach(keys.sorted(), id: \.self) { aKey in
                                 VStack {
                                     Image(aKey)
+                                        .interpolation(.high)
                                         .resizable()
                                         .frame(width: 64, height: 64)
                                         .cornerRadius(32)
@@ -196,8 +207,7 @@ struct AvatarPickerView: View {
             let randomKey = keys[randomIndex]
             debugPrint("Randomly picked avatar: \(randomKey)")
             let image = NSImage(named: randomKey)
-            if let image = image, let avatarURL = image.temporaryURL
-            {
+            if let image = image, let avatarURL = image.temporaryURL {
                 selectedAvatar = image
                 avatarChanged = true
                 debugPrint("Set planet avatar to \(randomKey)")
