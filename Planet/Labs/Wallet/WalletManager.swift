@@ -229,7 +229,19 @@ class WalletManager: NSObject, ObservableObject {
                 }
                 do {
                     let topic = try KeychainHelper.shared.loadValue(forKey: address)
-                    debugPrint("WalletConnect 2.0 previous active wallet address found: \(address), with topic: \(topic)")
+                    if topic.count > 0 {
+                        debugPrint("WalletConnect 2.0 previous active wallet address found: \(address), with topic: \(topic)")
+                        // Ping
+                        do {
+                            try await Pair.instance.ping(topic: topic)
+                            PlanetStore.shared.walletAddress = address
+                            debugPrint("WalletConnect 2.0 pinged previous active wallet address OK: \(address)")
+                        } catch {
+                            debugPrint("WalletConnect 2.0 failed to ping previous active wallet address: \(error)")
+                        }
+                    } else {
+                        debugPrint("WalletConnect 2.0 previous active wallet address found: \(address), but topic not found.")
+                    }
                 } catch {
                     debugPrint("WalletConnect 2.0 failed to restore previous active wallet address and topic: \(error)")
                 }
@@ -263,6 +275,32 @@ class WalletManager: NSObject, ObservableObject {
         try await Auth.instance.request(.stub(), topic: uri.topic)
         PlanetStore.shared.walletConnectV2ConnectionURL = uri.absoluteString
         PlanetStore.shared.isShowingWalletConnectV2QRCode = true
+    }
+
+    func disconnectV2() async {
+        guard let address: String = UserDefaults.standard.string(forKey: Self.lastWalletAddressKey), address != "" else {
+            debugPrint("WalletConnect 2.0 no previous active wallet found, ignore reconnect.")
+            Task { @MainActor in
+                PlanetStore.shared.walletAddress = ""
+            }
+            return
+        }
+        do {
+            let topic = try KeychainHelper.shared.loadValue(forKey: address)
+            try await Pair.instance.disconnect(topic: topic)
+            debugPrint("WalletConnect 2.0 disconnected previous active wallet address: \(address)")
+        } catch {
+            debugPrint("WalletConnect 2.0 failed to disconnect: \(error)")
+        }
+        Task { @MainActor in
+            PlanetStore.shared.walletAddress = ""
+        }
+        UserDefaults.standard.removeObject(forKey: Self.lastWalletAddressKey)
+        do {
+            try KeychainHelper.shared.delete(forKey: Self.lastWalletAddressKey)
+        } catch {
+            debugPrint("WalletConnect 2.0 failed to delete previous active wallet address: \(error)")
+        }
     }
 }
 
