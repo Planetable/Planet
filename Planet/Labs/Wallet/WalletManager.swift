@@ -7,6 +7,7 @@
 
 import Foundation
 import Starscream
+import WalletConnectSign
 import WalletConnectNetworking
 import WalletConnectPairing
 import WalletConnectRelay
@@ -68,7 +69,7 @@ enum TipAmount: Int, Codable, CaseIterable {
 
 class WalletManager: NSObject, ObservableObject {
     static let shared = WalletManager()
-    
+
     enum SigningState {
         case none
         case signed(Cacao)
@@ -76,7 +77,7 @@ class WalletManager: NSObject, ObservableObject {
     }
 
     var walletConnect: WalletConnect!
-    
+
     @Published private(set) var uriString: String?
     @Published private(set) var state: SigningState = .none
 
@@ -143,7 +144,8 @@ class WalletManager: NSObject, ObservableObject {
     }
 
     func getWalletAppName() -> String {
-        return self.walletConnect.session.walletInfo?.peerMeta.name ?? "Unknown Wallet"
+        return "TODO"
+        // return self.walletConnect.session.walletInfo?.peerMeta.name ?? "Unknown Wallet"
     }
 
     // MARK: - V1
@@ -188,7 +190,12 @@ class WalletManager: NSObject, ObservableObject {
                     switch result {
                     case .success(let cacao):
                         self?.state = .signed(cacao)
-                        debugPrint("WalletConnect 2.0 signed in.")
+                        debugPrint("WalletConnect 2.0 signed in: \(cacao)")
+                        let iss = cacao.p.iss
+                        debugPrint("iss: \(iss)")
+                        if iss.contains("eip155:1:"), let address = iss.split(separator: ":").last {
+                            PlanetStore.shared.walletAddress = String(address)
+                        }
 //                        PlanetStore.shared.walletAddress = self.walletConnect.session.walletInfo?.accounts[0] ?? ""
                     case .failure(let error):
                         debugPrint("WalletConnect 2.0 not signed, error: \(error)")
