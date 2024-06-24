@@ -76,6 +76,8 @@ class WalletManager: NSObject, ObservableObject {
         case error(Error)
     }
 
+    static let lastWalletAddressKey: String = "PlanetLastActiveWalletAddressKey"
+
     var walletConnect: WalletConnect!
 
     @Published private(set) var uriString: String?
@@ -194,11 +196,19 @@ class WalletManager: NSObject, ObservableObject {
                         let iss = cacao.p.iss
                         debugPrint("iss: \(iss)")
                         if iss.contains("eip155:1:"), let address = iss.split(separator: ":").last {
-                            PlanetStore.shared.walletAddress = String(address)
+                            let walletAddress: String = String(address)
+                            PlanetStore.shared.walletAddress = walletAddress
+                            UserDefaults.standard.set(walletAddress, forKey: Self.lastWalletAddressKey)
+                            // Save paring topic into keychain, with wallet address as key.
+                            if let paring = Pair.instance.getPairings().first {
+                                do {
+                                    try KeychainHelper.shared.saveValue(paring.topic, forKey: walletAddress)
+                                    debugPrint("WalletConnect 2.0 topic saved: \(paring.topic), key (wallet address): \(walletAddress)")
+                                } catch {
+                                    debugPrint("WalletConnect 2.0 topic not saved: \(error)")
+                                }
+                            }
                         }
-                        debugPrint("WalletConnect 2.0 Pair.instance: \(Pair.instance.getPairings().first)")
-                        // TODO: save topic to keychain
-//                        PlanetStore.shared.walletAddress = self.walletConnect.session.walletInfo?.accounts[0] ?? ""
                     case .failure(let error):
                         debugPrint("WalletConnect 2.0 not signed, error: \(error)")
                         self?.state = .error(error)
@@ -207,11 +217,22 @@ class WalletManager: NSObject, ObservableObject {
                     PlanetStore.shared.isShowingWalletConnectV2QRCode = false
                 }
             }.store(in: &disposeBag)
-            // TODO: try to get topic from keychain
-            // TODO: try to ping/verify topic
             Task { @MainActor in
                 debugPrint("WalletConnect 2.0 ready")
                 PlanetStore.shared.walletConnectV2Ready = true
+
+                // TODO: try to get topic from keychain
+                // TODO: try to ping/verify topic
+                guard let address: String = UserDefaults.standard.string(forKey: Self.lastWalletAddressKey), address != "" else {
+                    debugPrint("WalletConnect 2.0 no previous active wallet found, ignore reconnect.")
+                    return
+                }
+                do {
+                    let topic = try KeychainHelper.shared.loadValue(forKey: address)
+                    debugPrint("WalletConnect 2.0 previous active wallet address found: \(address), with topic: \(topic)")
+                } catch {
+                    debugPrint("WalletConnect 2.0 failed to restore previous active wallet address and topic: \(error)")
+                }
             }
         } else {
             debugPrint("WalletConnect 2.0 not ready, missing project id error.")
