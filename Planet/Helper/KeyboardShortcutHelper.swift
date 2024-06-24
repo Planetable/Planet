@@ -65,7 +65,13 @@ class KeyboardShortcutHelper: ObservableObject {
 
             if PlanetStore.shared.walletConnectV2Ready {
                 Button {
-                    WalletManager.shared.connectV2()
+                    Task { @MainActor in
+                        do {
+                            try await WalletManager.shared.connectV2()
+                        } catch {
+                            debugPrint("failed to connect wallet v2: \(error)")
+                        }
+                    }
                 } label: {
                     Text("Connect Wallet V2")
                 }

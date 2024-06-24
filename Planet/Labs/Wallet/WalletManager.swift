@@ -12,8 +12,12 @@ import WalletConnectPairing
 import WalletConnectRelay
 import WalletConnectSwift
 import Web3
-
+import Combine
+import CoreImage.CIFilterBuiltins
+import CryptoSwift
+import HDWalletKit
 import Auth
+
 
 enum EthereumChainID: Int, Codable, CaseIterable {
     case mainnet = 1
@@ -61,10 +65,22 @@ enum TipAmount: Int, Codable, CaseIterable {
     ]
 }
 
-class WalletManager: NSObject {
+
+class WalletManager: NSObject, ObservableObject {
     static let shared = WalletManager()
+    
+    enum SigningState {
+        case none
+        case signed(Cacao)
+        case error(Error)
+    }
 
     var walletConnect: WalletConnect!
+    
+    @Published private(set) var uriString: String?
+    @Published private(set) var state: SigningState = .none
+
+    private var disposeBag = Set<AnyCancellable>()
 
     // MARK: - Common
     func currentNetwork() -> EthereumChainID? {
@@ -156,29 +172,48 @@ class WalletManager: NSObject {
 
     func setupV2() throws {
         debugPrint("Setting up WalletConnect 2.0")
-        let metadata = AppMetadata(
-            name: "Planet",
-            description: "Build decentralized websites on ENS",
-            url: "https://planetable.xyz",
-            icons: ["https://github.com/Planetable.png"],
-            redirect: AppMetadata.Redirect(native: "planet://", universal: nil))
-
         if let projectId = Bundle.main.object(forInfoDictionaryKey: "WALLETCONNECTV2_PROJECT_ID") as? String {
-            Networking.configure(projectId: projectId, socketFactory: DefaultSocketFactory())
+            debugPrint("WalletConnect project id: \(projectId)")
+            let metadata = AppMetadata(
+                name: "Planet",
+                description: "Build decentralized websites on ENS",
+                url: "https://planetable.xyz",
+                icons: ["https://github.com/Planetable.png"],
+                redirect: AppMetadata.Redirect(native: "planet://", universal: nil))
             Pair.configure(metadata: metadata)
+            Networking.configure(projectId: projectId, socketFactory: DefaultSocketFactory())
+            Auth.configure(crypto: DefaultCryptoProvider())
+            Auth.instance.authResponsePublisher.sink { [weak self] (_, result) in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let cacao):
+                        self?.state = .signed(cacao)
+                        debugPrint("WalletConnect 2.0 signed in.")
+//                        PlanetStore.shared.walletAddress = self.walletConnect.session.walletInfo?.accounts[0] ?? ""
+                    case .failure(let error):
+                        debugPrint("WalletConnect 2.0 not signed, error: \(error)")
+                        self?.state = .error(error)
+                        PlanetStore.shared.walletAddress = ""
+                    }
+                    PlanetStore.shared.isShowingWalletConnectV2QRCode = false
+                }
+            }.store(in: &disposeBag)
             Task { @MainActor in
                 debugPrint("WalletConnect 2.0 ready")
                 PlanetStore.shared.walletConnectV2Ready = true
             }
         } else {
+            debugPrint("WalletConnect 2.0 not ready, missing project id error.")
             throw PlanetError.WalletConnectV2ProjectIDMissingError
         }
     }
 
-    func connectV2() {
+    @MainActor
+    func connectV2() async throws {
+        /*
         Task {
             debugPrint("Attempting to create WalletConnect 2.0 session")
-            let uri = try! await Pair.instance.create()
+            let uri = try await Pair.instance.create()
             debugPrint("WalletConnect 2.0 URI: \(uri)")
             debugPrint("WalletConnect 2.0 URI Absolute String: \(uri.absoluteString)")
             Task { @MainActor in
@@ -186,6 +221,16 @@ class WalletManager: NSObject {
                 PlanetStore.shared.isShowingWalletConnectV2QRCode = true
             }
         }
+         */
+        state = .none
+        uriString = nil
+        let uri = try await Pair.instance.create()
+        debugPrint("WalletConnect 2.0 URI: \(uri)")
+        debugPrint("WalletConnect 2.0 URI Absolute String: \(uri.absoluteString)")
+        uriString = uri.absoluteString
+        try await Auth.instance.request(.stub(), topic: uri.topic)
+        PlanetStore.shared.walletConnectV2ConnectionURL = uri.absoluteString
+        PlanetStore.shared.isShowingWalletConnectV2QRCode = true
     }
 }
 
@@ -237,6 +282,32 @@ extension Int {
     }
 }
 
+extension RequestParams {
+    static func stub(
+        domain: String = "service.invalid",
+        chainId: String = "eip155:1",
+        nonce: String = "32891756",
+        aud: String = "https://service.invalid/login",
+        nbf: String? = nil,
+        exp: String? = nil,
+        statement: String? = "I accept the ServiceOrg Terms of Service: https://service.invalid/tos",
+        requestId: String? = nil,
+        resources: [String]? = ["ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/", "https://example.com/my-web2-claim.json"]
+    ) -> RequestParams {
+        return RequestParams(
+            domain: domain,
+            chainId: chainId,
+            nonce: nonce,
+            aud: aud,
+            nbf: nbf,
+            exp: exp,
+            statement: statement,
+            requestId: requestId,
+            resources: resources
+        )
+    }
+}
+
 extension WebSocket: WebSocketConnecting { }
 
 struct DefaultSocketFactory: WebSocketFactory {
@@ -245,5 +316,23 @@ struct DefaultSocketFactory: WebSocketFactory {
         let queue = DispatchQueue(label: "com.walletconnect.sdk.sockets", attributes: .concurrent)
         socket.callbackQueue = queue
         return socket
+    }
+}
+
+struct DefaultCryptoProvider: CryptoProvider {
+    public func recoverPubKey(signature: EthereumSignature, message: Data) throws -> Data {
+        let publicKey = try EthereumPublicKey(
+            message: message.bytes,
+            v: EthereumQuantity(quantity: BigUInt(signature.v)),
+            r: EthereumQuantity(signature.r),
+            s: EthereumQuantity(signature.s)
+        )
+        return Data(publicKey.rawPublicKey)
+    }
+
+    public func keccak256(_ data: Data) -> Data {
+        let digest = SHA3(variant: .keccak256)
+        let hash = digest.calculate(for: [UInt8](data))
+        return Data(hash)
     }
 }
