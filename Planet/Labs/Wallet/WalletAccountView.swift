@@ -218,7 +218,7 @@ struct WalletAccountView: View {
 
     private func setBasicInfo() {
         self.displayName = walletAddress.shortWalletAddress()
-        if let walletAppName = WalletManager.shared.walletConnect.session.walletInfo?.peerMeta.name
+        if let walletAppName = WalletManager.shared.session?.peer.name
         {
             self.walletAppName = walletAppName
         }

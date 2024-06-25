@@ -136,11 +136,11 @@ class WalletManager: NSObject, ObservableObject {
     }
 
     func getWalletAppImageName() -> String? {
-        if let walletInfo = self.walletConnect.session.walletInfo {
-            if walletInfo.peerMeta.name.contains("MetaMask") {
+        if let session = self.session {
+            if session.peer.name.contains("MetaMask") {
                 return "WalletAppIconMetaMask"
             }
-            if walletInfo.peerMeta.name.contains("Rainbow") {
+            if session.peer.name.contains("Rainbow") {
                 return "WalletAppIconRainbow"
             }
         }
@@ -148,7 +148,10 @@ class WalletManager: NSObject, ObservableObject {
     }
 
     func getWalletAppName() -> String {
-        return "TODO"
+        if let session = self.session {
+            return session.peer.name
+        }
+        return "WalletConnect 2.0"
         // return self.walletConnect.session.walletInfo?.peerMeta.name ?? "Unknown Wallet"
     }
 
