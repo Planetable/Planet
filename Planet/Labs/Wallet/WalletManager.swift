@@ -85,6 +85,8 @@ class WalletManager: NSObject, ObservableObject {
 
     private var disposeBag = Set<AnyCancellable>()
 
+    @Published var session: WalletConnectSign.Session? = nil
+
     // MARK: - Common
     func currentNetwork() -> EthereumChainID? {
         let chainId = UserDefaults.standard.integer(forKey: String.settingsEthereumChainId)
@@ -186,6 +188,25 @@ class WalletManager: NSObject, ObservableObject {
                 redirect: AppMetadata.Redirect(native: "planet://", universal: nil))
             Pair.configure(metadata: metadata)
             Networking.configure(projectId: projectId, socketFactory: DefaultSocketFactory())
+
+            // Set up Sign
+            Sign.instance.sessionResponsePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [unowned self] response in
+                let record = Sign.instance.getSessionRequestRecord(id: response.id)!
+                switch response.result {
+                case  .response(let response):
+                    debugPrint("WalletConnect 2.0 Sign Response: \(response)")
+                    // responseView.nameLabel.text = "Received Response\n\(record.request.//method)"
+                    // responseView.descriptionLabel.text = try! response.get(String.self).description
+                case .error(let error):
+                    debugPrint("WalletConnect 2.0 Sign Error: \(error)")
+                    // responseView.nameLabel.text = "Received Error\n\(record.request.method)"
+                    // responseView.descriptionLabel.text = error.message
+                }
+            }.store(in: &disposeBag)
+
+            // Set up Auth
             Auth.configure(crypto: DefaultCryptoProvider())
             Auth.instance.authResponsePublisher.sink { [weak self] (_, result) in
                 DispatchQueue.main.async {
@@ -217,12 +238,13 @@ class WalletManager: NSObject, ObservableObject {
                     PlanetStore.shared.isShowingWalletConnectV2QRCode = false
                 }
             }.store(in: &disposeBag)
+
+            // Restore previous session
             Task { @MainActor in
                 debugPrint("WalletConnect 2.0 ready")
                 PlanetStore.shared.walletConnectV2Ready = true
 
-                // TODO: try to get topic from keychain
-                // TODO: try to ping/verify topic
+                /* Start: code for handling Auth */
                 guard let address: String = UserDefaults.standard.string(forKey: Self.lastWalletAddressKey), address != "" else {
                     debugPrint("WalletConnect 2.0 no previous active wallet found, ignore reconnect.")
                     return
@@ -244,6 +266,16 @@ class WalletManager: NSObject, ObservableObject {
                     }
                 } catch {
                     debugPrint("WalletConnect 2.0 failed to restore previous active wallet address and topic: \(error)")
+                }
+                /* End: code for handling Auth */
+
+                // TODO: code for handling Sign
+                // TODO: Since Sign can work with MetaMask, we'll remove Auth after Sign is fully working.
+
+                if let session = Sign.instance.getSessions().first {
+                    debugPrint("WalletConnect 2.0 session found: \(session)")
+                } else {
+                    debugPrint("WalletConnect 2.0 no session found")
                 }
             }
         } else {
@@ -272,7 +304,38 @@ class WalletManager: NSObject, ObservableObject {
         debugPrint("WalletConnect 2.0 URI: \(uri)")
         debugPrint("WalletConnect 2.0 URI Absolute String: \(uri.absoluteString)")
         uriString = uri.absoluteString
-        try await Auth.instance.request(.stub(), topic: uri.topic)
+        // Auth, new, but MetaMask doesn't support Auth yet.
+        // try await Auth.instance.request(.stub(), topic: uri.topic)
+
+        // Sign, simple old connect method that MetaMask supports too.
+
+        let pairingTopic = uri.topic
+        let requiredNamespaces: [String: ProposalNamespace] = [
+            "eip155": ProposalNamespace(
+                chains: [
+                    Blockchain("eip155:1")!
+                ],
+                methods: [
+                    "eth_sendTransaction",
+                    "personal_sign",
+                    "eth_signTypedData"
+                ], events: []
+            )
+        ]
+        let optionalNamespaces: [String: ProposalNamespace] = [
+            "eip155:42161": ProposalNamespace(
+                methods: [
+                    "eth_sendTransaction",
+                    "eth_signTransaction",
+                    "get_balance",
+                    "personal_sign"
+                ],
+                events: ["accountsChanged", "chainChanged"]
+            )
+        ]
+
+        try await Sign.instance.connect(requiredNamespaces: requiredNamespaces, optionalNamespaces: optionalNamespaces, topic: pairingTopic)
+
         PlanetStore.shared.walletConnectV2ConnectionURL = uri.absoluteString
         PlanetStore.shared.isShowingWalletConnectV2QRCode = true
     }
