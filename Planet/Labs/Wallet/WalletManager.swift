@@ -190,6 +190,32 @@ class WalletManager: NSObject, ObservableObject {
             Networking.configure(projectId: projectId, socketFactory: DefaultSocketFactory())
 
             // Set up Sign
+            Sign.instance.sessionsPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [unowned self] (sessions: [WalletConnectSign.Session]) in
+                debugPrint("WalletConnect 2.0 Sessions: \(sessions)")
+                if let session = sessions.first {
+                    self.session = session
+                    debugPrint("WalletConnect 2.0 session found: \(session)")
+                    if let account = session.accounts.first {
+                        Task { @MainActor in
+                            PlanetStore.shared.walletAddress = account.address
+                            UserDefaults.standard.set(account.address, forKey: Self.lastWalletAddressKey)
+                            PlanetStore.shared.isShowingWalletConnectV2QRCode = false
+                        }
+                    }
+                }
+            }.store(in: &disposeBag)
+
+            Sign.instance.sessionRejectionPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [unowned self] rejection in
+                debugPrint("WalletConnect 2.0 Session Rejection: \(rejection)")
+                Task { @MainActor in
+                    PlanetStore.shared.isShowingWalletConnectV2QRCode = false
+                }
+            }.store(in: &disposeBag)
+
             Sign.instance.sessionResponsePublisher
             .receive(on: DispatchQueue.main)
             .sink { [unowned self] response in
@@ -203,6 +229,9 @@ class WalletManager: NSObject, ObservableObject {
                     debugPrint("WalletConnect 2.0 Sign Error: \(error)")
                     // responseView.nameLabel.text = "Received Error\n\(record.request.method)"
                     // responseView.descriptionLabel.text = error.message
+                }
+                Task { @MainActor in
+                    PlanetStore.shared.isShowingWalletConnectV2QRCode = false
                 }
             }.store(in: &disposeBag)
 
@@ -244,6 +273,22 @@ class WalletManager: NSObject, ObservableObject {
                 debugPrint("WalletConnect 2.0 ready")
                 PlanetStore.shared.walletConnectV2Ready = true
 
+                // TODO: code for handling Sign
+                // TODO: Since Sign can work with MetaMask, we'll remove Auth after Sign is fully working.
+
+                if let session = Sign.instance.getSessions().first {
+                    self.session = session
+                    debugPrint("WalletConnect 2.0 session found: \(session)")
+                    if let account = session.accounts.first {
+                        let address = account.address
+                        PlanetStore.shared.walletAddress = address
+                        debugPrint("WalletConnect 2.0 account: \(account)")
+                        //debugPrint("WalletConnect 2.0 session wallet address: \(address)")
+                    }
+                } else {
+                    debugPrint("WalletConnect 2.0 no session found")
+                }
+
                 /* Start: code for handling Auth */
                 guard let address: String = UserDefaults.standard.string(forKey: Self.lastWalletAddressKey), address != "" else {
                     debugPrint("WalletConnect 2.0 no previous active wallet found, ignore reconnect.")
@@ -268,15 +313,6 @@ class WalletManager: NSObject, ObservableObject {
                     debugPrint("WalletConnect 2.0 failed to restore previous active wallet address and topic: \(error)")
                 }
                 /* End: code for handling Auth */
-
-                // TODO: code for handling Sign
-                // TODO: Since Sign can work with MetaMask, we'll remove Auth after Sign is fully working.
-
-                if let session = Sign.instance.getSessions().first {
-                    debugPrint("WalletConnect 2.0 session found: \(session)")
-                } else {
-                    debugPrint("WalletConnect 2.0 no session found")
-                }
             }
         } else {
             debugPrint("WalletConnect 2.0 not ready, missing project id error.")
@@ -356,6 +392,7 @@ class WalletManager: NSObject, ObservableObject {
             debugPrint("WalletConnect 2.0 failed to disconnect: \(error)")
         }
         Task { @MainActor in
+            self.session = nil
             PlanetStore.shared.walletAddress = ""
         }
         UserDefaults.standard.removeObject(forKey: Self.lastWalletAddressKey)
