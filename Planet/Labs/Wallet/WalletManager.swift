@@ -225,6 +225,13 @@ class WalletManager: NSObject, ObservableObject {
                 }
             }.store(in: &disposeBag)
 
+            // Sign: sessionEventPublisher
+            Sign.instance.sessionEventPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [unowned self] (event, topic, chain) in
+                debugPrint("WalletConnect 2.0 Session Event: event: \(event) topic: \(topic) blockchain: \(chain)")
+            }.store(in: &disposeBag)
+
             // Sign: sessionResponsePublisher
             Sign.instance.sessionResponsePublisher
             .receive(on: DispatchQueue.main)
@@ -233,6 +240,9 @@ class WalletManager: NSObject, ObservableObject {
                 switch response.result {
                 case  .response(let response):
                     debugPrint("WalletConnect 2.0 Sign Response: \(response)")
+                    debugPrint("WalletConnect 2.0 Sign Request Record: \(record)")
+                    debugPrint("WalletConnect 2.0 Sign Request: \(record.request)")
+                    // TODO: Save the transaction
                     // responseView.nameLabel.text = "Received Response\n\(record.request.//method)"
                     // responseView.descriptionLabel.text = try! response.get(String.self).description
                 case .error(let error):
@@ -259,11 +269,11 @@ class WalletManager: NSObject, ObservableObject {
                             let walletAddress: String = String(address)
                             PlanetStore.shared.walletAddress = walletAddress
                             UserDefaults.standard.set(walletAddress, forKey: Self.lastWalletAddressKey)
-                            // Save paring topic into keychain, with wallet address as key.
-                            if let paring = Pair.instance.getPairings().first {
+                            // Save pairing topic into keychain, with wallet address as key.
+                            if let pairing = Pair.instance.getPairings().first {
                                 do {
-                                    try KeychainHelper.shared.saveValue(paring.topic, forKey: walletAddress)
-                                    debugPrint("WalletConnect 2.0 topic saved: \(paring.topic), key (wallet address): \(walletAddress)")
+                                    try KeychainHelper.shared.saveValue(pairing.topic, forKey: walletAddress)
+                                    debugPrint("WalletConnect 2.0 topic saved: \(pairing.topic), key (wallet address): \(walletAddress)")
                                 } catch {
                                     debugPrint("WalletConnect 2.0 topic not saved: \(error)")
                                 }
