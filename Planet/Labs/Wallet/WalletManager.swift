@@ -352,14 +352,17 @@ class WalletManager: NSObject, ObservableObject {
             )
         ]
         let optionalNamespaces: [String: ProposalNamespace] = [
-            "eip155:42161": ProposalNamespace(
+            "eip155": ProposalNamespace(
+                chains: [
+                    Blockchain("eip155:11155111")!
+                ],
                 methods: [
                     "eth_sendTransaction",
                     "eth_signTransaction",
                     "get_balance",
                     "personal_sign"
                 ],
-                events: ["accountsChanged", "chainChanged"]
+                events: []
             )
         ]
 
@@ -432,7 +435,7 @@ class WalletManager: NSObject, ObservableObject {
             let requestParams = AnyCodable([
                 tx
             ])
-            let request = Request(topic: session.topic, method: method, params: requestParams, chainId: Blockchain("eip155:1")!)
+            let request = Request(topic: session.topic, method: method, params: requestParams, chainId: Blockchain("eip155:11155111")!)
             do {
                 try await Sign.instance.request(params: request)
             } catch {
@@ -452,7 +455,8 @@ class WalletManager: NSObject, ObservableObject {
             memoEncoded += memoData.toHexString()
         }
         */
-        let currentChainId = 1
+        // let currentChainId = 1
+        let currentChainId = 11155111
         return Client.Transaction(
             from: sender,
             to: receiver,
