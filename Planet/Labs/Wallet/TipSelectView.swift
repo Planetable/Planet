@@ -47,6 +47,18 @@ struct TipSelectView: View {
             HStack {
                 Text("Please select the amount")
                 Spacer()
+                Picker(selection: $ethereumChainId, label: Text("")) {
+                    ForEach(EthereumChainID.allCases, id: \.id) { value in
+                        Text(
+                            "\(EthereumChainID.names[value.rawValue] ?? "Unknown Chain ID \(value.rawValue)")"
+                        )
+                        .tag(value)
+                        .frame(width: 120)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(width: 120)
+                /* TODO: Remove this V1 logic
                 if WalletManager.shared.canSwitchNetwork() {
                     Picker(selection: $ethereumChainId, label: Text("")) {
                         ForEach(EthereumChainID.allCases, id: \.id) { value in
@@ -70,6 +82,7 @@ struct TipSelectView: View {
                         .help("This transaction will be sent to \(name) network")
                     }
                 }
+                */
             }.padding(10)
 
             GroupBox {
@@ -154,11 +167,8 @@ struct TipSelectView: View {
         }
         let ethereumChainName = WalletManager.shared.currentNetworkName()
         var walletAppString: String = ""
-        if let walletAppName = WalletManager.shared.walletConnect.session.walletInfo?.peerMeta.name {
-            walletAppString = walletAppName + " on"
-        } else {
-            walletAppString = "the wallet app on"
-        }
+        let walletAppName = WalletManager.shared.getWalletAppName()
+        walletAppString = walletAppName + " on"
         let message: String
         if let ens = ens {
             message = "Sending \(tipAmountLabel) to **\(ens)** on \(ethereumChainName), please confirm from \(walletAppString) your phone"
@@ -170,7 +180,10 @@ struct TipSelectView: View {
             PlanetStore.shared.walletTransactionProgressMessage = message
             PlanetStore.shared.isShowingWalletTransactionProgress = true
         }
-        WalletManager.shared.walletConnect.sendTransaction(receiver: receiver, amount: tipAmount, memo: memo, ens: ens)
+        // WalletManager.shared.walletConnect.sendTransaction(receiver: receiver, amount: tipAmount, memo: memo, ens: ens)
+        Task {
+            await WalletManager.shared.sendTransactionV2(receiver: receiver, amount: tipAmount, memo: memo, ens: ens)
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
             PlanetStore.shared.isShowingWalletTransactionProgress = false
         }

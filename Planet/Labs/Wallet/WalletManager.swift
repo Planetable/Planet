@@ -99,14 +99,6 @@ class WalletManager: NSObject, ObservableObject {
         return EthereumChainID.names[chainId.id] ?? "Mainnet"
     }
 
-    func connectedWalletChainId() -> Int? {
-        return self.walletConnect.session.walletInfo?.chainId
-    }
-
-    func canSwitchNetwork() -> Bool {
-        return self.walletConnect.session.walletInfo?.peerMeta.name.contains("MetaMask") ?? false
-    }
-
     func etherscanURLString(tx: String, chain: EthereumChainID? = nil) -> String {
         let chain = chain ?? WalletManager.shared.currentNetwork()
         switch (chain) {
@@ -193,19 +185,17 @@ class WalletManager: NSObject, ObservableObject {
             Networking.configure(projectId: projectId, socketFactory: DefaultSocketFactory())
 
             // Set up Sign
-            Sign.instance.sessionsPublisher
+            Sign.instance.sessionSettlePublisher
             .receive(on: DispatchQueue.main)
-            .sink { [unowned self] (sessions: [WalletConnectSign.Session]) in
-                debugPrint("WalletConnect 2.0 Sessions: \(sessions)")
-                if let session = sessions.first {
-                    self.session = session
-                    debugPrint("WalletConnect 2.0 session found: \(session)")
-                    if let account = session.accounts.first {
-                        Task { @MainActor in
-                            PlanetStore.shared.walletAddress = account.address
-                            UserDefaults.standard.set(account.address, forKey: Self.lastWalletAddressKey)
-                            PlanetStore.shared.isShowingWalletConnectV2QRCode = false
-                        }
+            .sink { [unowned self] (session: WalletConnectSign.Session) in
+                debugPrint("WalletConnect 2.0 Session Settled: \(session)")
+                self.session = session
+                debugPrint("WalletConnect 2.0 session found: \(session)")
+                if let account = session.accounts.first {
+                    Task { @MainActor in
+                        PlanetStore.shared.walletAddress = account.address
+                        UserDefaults.standard.set(account.address, forKey: Self.lastWalletAddressKey)
+                        PlanetStore.shared.isShowingWalletConnectV2QRCode = false
                     }
                 }
             }.store(in: &disposeBag)
@@ -380,11 +370,34 @@ class WalletManager: NSObject, ObservableObject {
     }
 
     func disconnectV2() async {
-        guard let address: String = UserDefaults.standard.string(forKey: Self.lastWalletAddressKey), address != "" else {
-            debugPrint("WalletConnect 2.0 no previous active wallet found, ignore reconnect.")
+        // Clean up all sessions
+        let sessions = Sign.instance.getSessions()
+        debugPrint("WalletConnect 2.0 sessions: \(sessions.count) found")
+        do {
+            try await Sign.instance.cleanup()
+            self.session = nil
             Task { @MainActor in
                 PlanetStore.shared.walletAddress = ""
             }
+        } catch {
+            debugPrint("WalletConnect 2.0 failed to perform Sign.instance.cleanup(): \(error)")
+        }
+
+        // Disconnect all pairings if any
+        let pairings = Pair.instance.getPairings()
+        debugPrint("WalletConnect 2.0 pairings: \(pairings.count) found")
+        for pairing in pairings {
+            debugPrint("WalletConnect 2.0 about to disconnect pairing: \(pairing)")
+            do {
+                try await Pair.instance.disconnect(topic: pairing.topic)
+                debugPrint("WalletConnect 2.0 disconnected pairing: \(pairing)")
+            } catch {
+                debugPrint("WalletConnect 2.0 failed to disconnect pairing: \(error)")
+            }
+        }
+
+        guard let address: String = UserDefaults.standard.string(forKey: Self.lastWalletAddressKey), address != "" else {
+            debugPrint("WalletConnect 2.0 no previous active wallet found")
             return
         }
         do {
@@ -392,7 +405,7 @@ class WalletManager: NSObject, ObservableObject {
             try await Pair.instance.disconnect(topic: topic)
             debugPrint("WalletConnect 2.0 disconnected previous active wallet address: \(address)")
         } catch {
-            debugPrint("WalletConnect 2.0 failed to disconnect: \(error)")
+            debugPrint("WalletConnect 2.0 failed to disconnect Auth pairing: \(error)")
         }
         Task { @MainActor in
             self.session = nil
@@ -400,10 +413,60 @@ class WalletManager: NSObject, ObservableObject {
         }
         UserDefaults.standard.removeObject(forKey: Self.lastWalletAddressKey)
         do {
-            try KeychainHelper.shared.delete(forKey: Self.lastWalletAddressKey)
+            try KeychainHelper.shared.delete(forKey: address)
         } catch {
-            debugPrint("WalletConnect 2.0 failed to delete previous active wallet address: \(error)")
+            debugPrint("WalletConnect 2.0 failed to delete topic in Keychain for previous active wallet address: \(error)")
         }
+    }
+
+    func sendTransactionV2(receiver: String, amount: Int, memo: String, ens: String? = nil) async {
+        if let session = self.session {
+            /* example code to sign a message
+            let method = "personal_sign"
+            let walletAddress = session.accounts[0].address
+            let requestParams = AnyCodable(["0x4d7920656d61696c206973206a6f686e40646f652e636f6d202d2031363533333933373535313531", walletAddress])
+            */
+            let method = "eth_sendTransaction"
+            let walletAddress = session.accounts[0].address
+            let tx = self.tipTransaction(from: walletAddress, to: receiver, amount: amount, memo: memo)
+            let requestParams = AnyCodable([
+                tx
+            ])
+            let request = Request(topic: session.topic, method: method, params: requestParams, chainId: Blockchain("eip155:1")!)
+            do {
+                try await Sign.instance.request(params: request)
+            } catch {
+                debugPrint("WalletConnect 2.0 sendTransactionV2 error: \(error)")
+            }
+        }
+    }
+
+    func tipTransaction(from sender: String, to receiver: String, amount: Int, memo: String)
+        -> Client.Transaction
+    {
+        let tipAmount = amount * 10_000_000_000_000_000  // Tip Amount: X * 0.01 ETH
+        let value = String(tipAmount, radix: 16)
+        var memoEncoded: String = "0x"
+        /*
+        if let memoData: Data = memo.data(using: .utf8) {
+            memoEncoded += memoData.toHexString()
+        }
+        */
+        let currentChainId = 1
+        return Client.Transaction(
+            from: sender,
+            to: receiver,
+            data: memoEncoded,
+            gas: nil,
+            gasPrice: nil,
+            value: "0x\(value)",
+            nonce: nil,
+            type: nil,
+            accessList: nil,
+            chainId: String(format: "0x%x", currentChainId),
+            maxPriorityFeePerGas: nil,
+            maxFeePerGas: nil
+        )
     }
 }
 

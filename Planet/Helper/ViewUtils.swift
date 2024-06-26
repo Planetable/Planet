@@ -131,7 +131,7 @@ extension Color {
         )
     }
 
-    func toHexString() -> String {
+    func toHexValue() -> String {
         var components: (CGFloat, CGFloat, CGFloat, CGFloat) {
            let c = NSColor(self).usingColorSpace(.deviceRGB)!
 
