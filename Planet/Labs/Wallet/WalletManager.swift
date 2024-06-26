@@ -373,6 +373,17 @@ class WalletManager: NSObject, ObservableObject {
     }
 
     func disconnectV2() async {
+        // Disconnect from current session
+        // This action is verified with OKX wallet
+        if let session = session {
+            let topic = session.topic
+            do {
+                try await Sign.instance.disconnect(topic: topic)
+                debugPrint("WalletConnect 2.0 disconnected session: \(topic)")
+            } catch {
+                debugPrint("WalletConnect 2.0 failed to disconnect session: \(error)")
+            }
+        }
         // Clean up all sessions
         let sessions = Sign.instance.getSessions()
         debugPrint("WalletConnect 2.0 sessions: \(sessions.count) found")
