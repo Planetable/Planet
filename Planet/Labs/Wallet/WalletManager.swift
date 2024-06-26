@@ -185,6 +185,8 @@ class WalletManager: NSObject, ObservableObject {
             Networking.configure(projectId: projectId, socketFactory: DefaultSocketFactory())
 
             // Set up Sign
+
+            // Sign: sessionSettlePublisher
             Sign.instance.sessionSettlePublisher
             .receive(on: DispatchQueue.main)
             .sink { [unowned self] (session: WalletConnectSign.Session) in
@@ -200,6 +202,20 @@ class WalletManager: NSObject, ObservableObject {
                 }
             }.store(in: &disposeBag)
 
+            // Sign: sessionDeletePublisher
+            Sign.instance.sessionDeletePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [unowned self] _ in
+                debugPrint("WalletConnect 2.0 Session Deleted")
+                self.session = nil
+                Task { @MainActor in
+                    PlanetStore.shared.walletAddress = ""
+                    UserDefaults.standard.removeObject(forKey: Self.lastWalletAddressKey)
+                    PlanetStore.shared.isShowingWalletConnectV2QRCode = false
+                }
+            }.store(in: &disposeBag)
+
+            // Sign: sessionRejectionPublisher
             Sign.instance.sessionRejectionPublisher
             .receive(on: DispatchQueue.main)
             .sink { [unowned self] rejection in
@@ -209,6 +225,7 @@ class WalletManager: NSObject, ObservableObject {
                 }
             }.store(in: &disposeBag)
 
+            // Sign: sessionResponsePublisher
             Sign.instance.sessionResponsePublisher
             .receive(on: DispatchQueue.main)
             .sink { [unowned self] response in
