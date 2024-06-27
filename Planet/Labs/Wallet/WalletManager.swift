@@ -473,7 +473,13 @@ class WalletManager: NSObject, ObservableObject {
             let requestParams = AnyCodable([
                 tx
             ])
+            #if DEBUG
+            // Send transaction on Sepolia testnet
             let request = Request(topic: session.topic, method: method, params: requestParams, chainId: Blockchain("eip155:11155111")!)
+            #else
+            // Send transaction on Ethereum mainnet
+            let request = Request(topic: session.topic, method: method, params: requestParams, chainId: Blockchain("eip155:1")!)
+            #endif
             do {
                 try await Sign.instance.request(params: request)
             } catch {
@@ -487,14 +493,12 @@ class WalletManager: NSObject, ObservableObject {
     {
         let tipAmount = amount * 10_000_000_000_000_000  // Tip Amount: X * 0.01 ETH
         let value = String(tipAmount, radix: 16)
-        var memoEncoded: String = "0x"
-        /*
-        if let memoData: Data = memo.data(using: .utf8) {
-            memoEncoded += memoData.toHexString()
-        }
-        */
-        // let currentChainId = 1
-        let currentChainId = 11155111
+        var memoEncoded: String = memo.asTransactionData()
+        #if DEBUG
+        let chainId = 11155111
+        #else
+        let chainId = 1
+        #endif
         return Client.Transaction(
             from: sender,
             to: receiver,
@@ -505,7 +509,7 @@ class WalletManager: NSObject, ObservableObject {
             nonce: nil,
             type: nil,
             accessList: nil,
-            chainId: String(format: "0x%x", currentChainId),
+            chainId: String(format: "0x%x", chainId),
             maxPriorityFeePerGas: nil,
             maxFeePerGas: nil
         )
@@ -612,5 +616,18 @@ struct DefaultCryptoProvider: CryptoProvider {
         let digest = SHA3(variant: .keccak256)
         let hash = digest.calculate(for: [UInt8](data))
         return Data(hash)
+    }
+}
+
+extension Data {
+    public func toHexString() -> String {
+        return map({ String(format: "%02x", $0) }).joined()
+    }
+}
+
+extension String {
+    public func asTransactionData() -> String {
+        let data = self.data(using: .utf8)!
+        return "0x" + data.toHexString()
     }
 }
