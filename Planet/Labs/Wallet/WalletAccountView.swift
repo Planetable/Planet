@@ -143,7 +143,9 @@ struct WalletAccountView: View {
 //                    }
 //                    try? WalletManager.shared.walletConnect.client.disconnect(from: session)
 //                    dismiss()
-                    planetStore.isShowingWalletDisconnectConfirmation.toggle()
+                    Task { @MainActor in
+                        self.planetStore.isShowingWalletDisconnectConfirmation.toggle()
+                    }
                 } label: {
                     Text("Disconnect")
                 }.help("Connected with \(walletAppName)")
