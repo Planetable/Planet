@@ -187,14 +187,7 @@ struct AccountBadgeView: View {
         let currentActiveChain = EthereumChainID.allCases.first(where: {
             $0.id == currentActiveChainID
         })!
-        switch currentActiveChain {
-        case .mainnet:
-            web3 = Web3(rpcURL: "https://eth.llamarpc.com")
-        case .goerli:
-            web3 = Web3(rpcURL: "https://eth-goerli.public.blastapi.io")
-        case .sepolia:
-            web3 = Web3(rpcURL: "https://eth-sepolia.public.blastapi.io")
-        }
+        web3 = Web3(rpcURL: currentActiveChain.rpcURL)
         web3.eth.blockNumber { response in
             if response.status.isSuccess, let blockNumber = response.result {
                 print("Block number: \(blockNumber)")

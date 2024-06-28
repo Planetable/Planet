@@ -22,28 +22,33 @@ import Auth
 
 enum EthereumChainID: Int, Codable, CaseIterable {
     case mainnet = 1
-    case goerli = 5
     case sepolia = 11155111
 
     var id: Int { return self.rawValue }
 
     static let names: [Int: String] = [
         1: "Mainnet",
-        5: "Goerli",
         11155111: "Sepolia",
     ]
 
     static let coinNames: [Int: String] = [
         1: "ETH",
-        5: "GoerliETH",
-        11155111: "SEP",
+        11155111: "SepoliaETH",
     ]
 
     static let etherscanURL: [Int: String] = [
         1: "https://etherscan.io",
-        5: "https://goerli.etherscan.io",
         11155111: "https://sepolia.otterscan.io",
     ]
+
+    var rpcURL: String {
+        switch (self) {
+            case .mainnet:
+                return "https://eth.llamarpc.com"
+            case .sepolia:
+                return "https://eth-sepolia.public.blastapi.io"
+        }
+    }
 }
 
 enum TipAmount: Int, Codable, CaseIterable {
@@ -104,8 +109,6 @@ class WalletManager: NSObject, ObservableObject {
         switch (chain) {
         case .mainnet:
             return "https://etherscan.io/tx/" + tx
-        case .goerli:
-            return "https://goerli.etherscan.io/tx/" + tx
         case .sepolia:
             return "https://sepolia.otterscan.io/tx/" + tx
         default:
@@ -118,8 +121,6 @@ class WalletManager: NSObject, ObservableObject {
         switch (chain) {
         case .mainnet:
             return "https://etherscan.io/address/" + address
-        case .goerli:
-            return "https://goerli.etherscan.io/address/" + address
         case .sepolia:
             return "https://sepolia.otterscan.io/address/" + address
         default:

@@ -260,14 +260,7 @@ struct WalletAccountView: View {
         // Get balance with Web3.swift
         let web3: Web3
         let currentActiveChain = WalletManager.shared.currentNetwork() ?? .mainnet
-        switch currentActiveChain {
-            case .mainnet:
-                web3 = Web3(rpcURL: "https://cloudflare-eth.com")
-            case .goerli:
-                web3 = Web3(rpcURL: "https://eth-goerli.public.blastapi.io")
-            case .sepolia:
-                web3 = Web3(rpcURL: "https://eth-sepolia.public.blastapi.io")
-        }
+        web3 = Web3(rpcURL: currentActiveChain.rpcURL)
         web3.eth.blockNumber() { response in
             if response.status.isSuccess, let blockNumber = response.result {
                 print("Block number: \(blockNumber)")
