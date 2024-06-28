@@ -9,6 +9,8 @@ import SwiftUI
 import Web3
 
 struct WalletAccountView: View {
+    @EnvironmentObject private var planetStore: PlanetStore
+
     var walletAddress: String
     @State private var avatarImage: NSImage?
     @State private var ensName: String?
@@ -135,12 +137,13 @@ struct WalletAccountView: View {
 
             HStack(spacing: 8) {
                 Button {
-                    guard let session = WalletManager.shared.walletConnect.session else {
-                        dismiss()
-                        return
-                    }
-                    try? WalletManager.shared.walletConnect.client.disconnect(from: session)
-                    dismiss()
+//                    guard let session = WalletManager.shared.walletConnect.session else {
+//                        dismiss()
+//                        return
+//                    }
+//                    try? WalletManager.shared.walletConnect.client.disconnect(from: session)
+//                    dismiss()
+                    planetStore.isShowingWalletDisconnectConfirmation.toggle()
                 } label: {
                     Text("Disconnect")
                 }.help("Connected with \(walletAppName)")
@@ -186,6 +189,19 @@ struct WalletAccountView: View {
         }
         .onChange(of: currentActiveChainID) { _ in
             self.loadBalance()
+        }
+        .confirmationDialog(
+            Text("Are you sure you want to disconnect?"),
+            isPresented: $planetStore.isShowingWalletDisconnectConfirmation
+        ) {
+            Button {
+                dismiss()
+                Task {
+                    await WalletManager.shared.disconnectV2()
+                }
+            } label: {
+                Text("Disconnect")
+            }
         }
     }
 

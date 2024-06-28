@@ -109,6 +109,7 @@ struct PlanetMainView: View {
         }
         .sheet(isPresented: $planetStore.isShowingWalletAccount) {
             WalletAccountView(walletAddress: planetStore.walletAddress)
+                .environmentObject(planetStore)
         }
         .sheet(isPresented: $planetStore.isQuickSharing) {
             PlanetQuickShareView()
