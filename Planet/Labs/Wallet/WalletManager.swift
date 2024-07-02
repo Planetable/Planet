@@ -48,6 +48,15 @@ enum EthereumChainID: Int, Codable, CaseIterable {
             return "https://eth-sepolia.public.blastapi.io"
         }
     }
+
+    var etherscanAPI: String {
+        switch self {
+        case .mainnet:
+            return "https://api.etherscan.io/api"
+        case .sepolia:
+            return "https://api-sepolia.etherscan.io/api"
+        }
+    }
 }
 
 enum TipAmount: Int, Codable, CaseIterable {
@@ -662,6 +671,94 @@ class WalletManager: NSObject, ObservableObject {
             debugPrint("Failed to save transaction on \(chain): \(tx)")
         }
     }
+
+    func getTransactions(for address: String) async {
+        if let apiToken = Bundle.main.object(forInfoDictionaryKey: "ETHERSCAN_API_TOKEN") as? String {
+            for chain in EthereumChainID.allCases {
+                debugPrint("Fetching transactions for \(address) on \(chain)")
+                var etherscanAPIPrefix = chain.etherscanAPI
+                var apiCall = etherscanAPIPrefix + "?module=account&action=txlist&address=\(address)&startblock=0&endblock=99999999&page=1&offset=0&sort=asc&apikey=\(apiToken)"
+                if let url = URL(string: apiCall) {
+                    do {
+                        let (data, _) = try await URLSession.shared.data(from: url)
+                        let decoder = JSONDecoder()
+                        let response = try decoder.decode(EtherscanResponse.self, from: data)
+                        debugPrint("Transactions: \(response.result.count)")
+                        for tx in response.result {
+                            debugPrint("Transaction on \(chain): \(tx)")
+                            saveEtherscanTransaction(tx, on: chain)
+                        }
+                    } catch {
+                        debugPrint("Error: \(error)")
+                    }
+                }
+            }
+        }
+    }
+
+    func saveEtherscanTransaction(_ tx: EtherscanTransaction, on chain: EthereumChainID) {
+        do {
+            debugPrint("About to save etherscan transaction on \(chain): \(tx.hash) \(tx)")
+            let memo = tx.input.hexToString() ?? tx.input
+            var ens: String? = nil
+            if memo.contains(".eth") {
+                ens = memo.split(separator: ":").last?.split(separator: "/").first?.description
+            }
+            let amount: Int
+            if let value = Int(tx.value) {
+                amount = value / 10_000_000_000_000_000
+            } else {
+                amount = 0
+            }
+            let created = Date(timeIntervalSince1970: Double(tx.timeStamp) ?? Date().timeIntervalSince1970)
+            let record = EthereumTransaction(
+                id: tx.hash,
+                chainID: chain.id,
+                from: tx.from,
+                to: tx.to,
+                toENS: ens,
+                amount: amount,
+                memo: memo,
+                created: created
+            )
+            if record.exists() {
+                debugPrint("Transaction already exists: \(record)")
+            } else {
+                try record.save()
+            }
+        } catch {
+            debugPrint("Failed to save transaction on \(chain): \(tx)")
+        }
+    }
+}
+
+struct EtherscanResponse: Codable {
+    let status: String
+    let message: String
+    let result: [EtherscanTransaction]
+}
+
+struct EtherscanTransaction: Codable {
+    let blockNumber: String
+    let timeStamp: String
+    let hash: String
+    let nonce: String
+    let blockHash: String
+    let transactionIndex: String
+    let from: String
+    let to: String
+    let value: String
+    let gas: String
+    let gasPrice: String
+    let isError: String
+    let txreceipt_status: String
+    let input: String
+    let contractAddress: String
+    let cumulativeGasUsed: String
+    let gasUsed: String
+    let confirmations: String
+    let methodId: String
+    let functionName: String
 }
 
 // MARK: - WalletConnectDelegate

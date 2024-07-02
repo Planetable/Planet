@@ -44,8 +44,8 @@ struct WalletAccountView: View {
                         .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 2)
                 }
                 else {
-                    Text(" ")
-                        .font(Font.custom("Arial Rounded MT Bold", size: 24))
+                    Text(ViewUtils.getEmoji(from: walletAddress))
+                        .font(Font.custom("Arial Rounded MT Bold", size: (AVATAR_SIZE - 20)))
                         .foregroundColor(Color.white)
                         .contentShape(Rectangle())
                         .frame(width: AVATAR_SIZE, height: AVATAR_SIZE, alignment: .center)

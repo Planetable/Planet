@@ -182,6 +182,21 @@ struct AccountBadgeView: View {
             }
 
         }
+        /* Test transaction
+        Task {
+            let hash = "0xd514f7f145cb8dc8d8b015b6125b28645ceacede00b260cf4967f060c32fa73a"
+            do {
+                if let tx = try await WalletManager.shared.getTransaction(by: hash, on: .sepolia) {
+                    WalletManager.shared.saveTransaction(tx, on: .sepolia)
+                }
+            } catch {
+                debugPrint("Failed to get test transaction \(hash): \(error)")
+            }
+        }
+        */
+        Task {
+            await WalletManager.shared.getTransactions(for: walletAddress)
+        }
         // Get balance with Web3.swift
         let web3: Web3
         let currentActiveChain = EthereumChainID.allCases.first(where: {

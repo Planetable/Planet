@@ -51,7 +51,8 @@ class EthereumTransaction: Codable, Identifiable {
         to: String,
         toENS: String? = nil,
         amount: Int,
-        memo: String
+        memo: String,
+        created: Date? = nil
     ) {
         self.id = id
         self.chainID = chainID
@@ -60,7 +61,11 @@ class EthereumTransaction: Codable, Identifiable {
         self.toENS = toENS
         self.amount = amount
         self.memo = memo
-        self.created = Date()
+        if let created = created {
+            self.created = created
+        } else {
+            self.created = Date()
+        }
     }
 
     static func from(path: URL) -> EthereumTransaction? {
@@ -96,6 +101,15 @@ class EthereumTransaction: Codable, Identifiable {
         try JSONEncoder.shared.encode(self).write(to: txPath)
     }
 
+    func exists() -> Bool {
+        let walletPath = Self.walletsInfoPath().appendingPathComponent(
+            from,
+            isDirectory: true
+        )
+        let txPath = walletPath.appendingPathComponent(id + ".json", isDirectory: false)
+        return FileManager.default.fileExists(atPath: txPath.path)
+    }
+
     @ViewBuilder
     func recipientView() -> some View {
         if let ens = toENS {
@@ -103,7 +117,7 @@ class EthereumTransaction: Codable, Identifiable {
                 .font(.body)
         }
         else {
-            Text(to)
+            Text(to.shortWalletAddress())
                 .font(.footnote)
         }
     }
