@@ -144,7 +144,8 @@ struct TipSelectView: View {
     }
 
     private func updateCurrentGasPrice() {
-        let web3 = Web3(rpcURL: "https://cloudflare-eth.com")
+        let chain = EthereumChainID(rawValue: ethereumChainId) ?? .mainnet
+        let web3 = Web3(rpcURL: chain.rpcURL)
         web3.eth.gasPrice() { response in
             if response.status.isSuccess, let gasPrice = response.result {
                 print("Gas price: \(gasPrice)")
