@@ -536,7 +536,7 @@ class WalletManager: NSObject, ObservableObject {
         }
     }
 
-    func sendTransactionV2(receiver: String, amount: Int, memo: String, ens: String? = nil) async {
+    func sendTransactionV2(receiver: String, amount: Int, memo: String, ens: String? = nil, gas: Int? = nil) async {
         if let session = self.session {
             /* example code to sign a message
             let method = "personal_sign"
@@ -549,7 +549,8 @@ class WalletManager: NSObject, ObservableObject {
                 from: walletAddress,
                 to: receiver,
                 amount: amount,
-                memo: memo
+                memo: memo,
+                gas: gas
             )
             let requestParams = AnyCodable([
                 tx
@@ -580,7 +581,7 @@ class WalletManager: NSObject, ObservableObject {
         }
     }
 
-    func tipTransaction(from sender: String, to receiver: String, amount: Int, memo: String)
+    func tipTransaction(from sender: String, to receiver: String, amount: Int, memo: String, gas: Int? = nil)
         -> Client.Transaction
     {
         let tipAmount = amount * 10_000_000_000_000_000  // Tip Amount: X * 0.01 ETH
@@ -591,12 +592,13 @@ class WalletManager: NSObject, ObservableObject {
         #else
             let chainId = 1
         #endif
+        let gasPrice: String? = gas?.gweiToHex()
         return Client.Transaction(
             from: sender,
             to: receiver,
             data: memoEncoded,
             gas: nil,
-            gasPrice: nil,
+            gasPrice: gasPrice,
             value: "0x\(value)",
             nonce: nil,
             type: nil,
@@ -819,5 +821,15 @@ extension Data {
             }
         }
         self = data
+    }
+}
+
+extension Int {
+    func gweiToHex() -> String {
+        // Convert Gwei to Wei (1 Gwei = 10^9 Wei)
+        let wei = self * 1_000_000_000
+        // Convert Wei to a hexadecimal string
+        let hexString = String(wei, radix: 16)
+        return "0x\(hexString)"
     }
 }
