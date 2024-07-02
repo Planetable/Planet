@@ -5,48 +5,47 @@
 //  Created by Xin Liu on 11/4/22.
 //
 
-import Foundation
-import Starscream
-import WalletConnectSign
-import WalletConnectNetworking
-import WalletConnectPairing
-import WalletConnectRelay
-import WalletConnectSwift
-import Web3
+import Auth
 import Combine
 import CoreImage.CIFilterBuiltins
 import CryptoSwift
+import Foundation
 import HDWalletKit
-import Auth
-
+import Starscream
+import WalletConnectNetworking
+import WalletConnectPairing
+import WalletConnectRelay
+import WalletConnectSign
+import WalletConnectSwift
+import Web3
 
 enum EthereumChainID: Int, Codable, CaseIterable {
     case mainnet = 1
-    case sepolia = 11155111
+    case sepolia = 11_155_111
 
     var id: Int { return self.rawValue }
 
     static let names: [Int: String] = [
         1: "Mainnet",
-        11155111: "Sepolia",
+        11_155_111: "Sepolia",
     ]
 
     static let coinNames: [Int: String] = [
         1: "ETH",
-        11155111: "SepoliaETH",
+        11_155_111: "SepoliaETH",
     ]
 
     static let etherscanURL: [Int: String] = [
         1: "https://etherscan.io",
-        11155111: "https://sepolia.otterscan.io",
+        11_155_111: "https://sepolia.otterscan.io",
     ]
 
     var rpcURL: String {
-        switch (self) {
-            case .mainnet:
-                return "https://eth.llamarpc.com"
-            case .sepolia:
-                return "https://eth-sepolia.public.blastapi.io"
+        switch self {
+        case .mainnet:
+            return "https://eth.llamarpc.com"
+        case .sepolia:
+            return "https://eth-sepolia.public.blastapi.io"
         }
     }
 }
@@ -70,7 +69,6 @@ enum TipAmount: Int, Codable, CaseIterable {
         100: "1 Ξ",
     ]
 }
-
 
 class WalletManager: NSObject, ObservableObject {
     static let shared = WalletManager()
@@ -106,7 +104,7 @@ class WalletManager: NSObject, ObservableObject {
 
     func etherscanURLString(tx: String, chain: EthereumChainID? = nil) -> String {
         let chain = chain ?? WalletManager.shared.currentNetwork()
-        switch (chain) {
+        switch chain {
         case .mainnet:
             return "https://etherscan.io/tx/" + tx
         case .sepolia:
@@ -118,7 +116,7 @@ class WalletManager: NSObject, ObservableObject {
 
     func etherscanURLString(address: String, chain: EthereumChainID? = nil) -> String {
         let chain = chain ?? WalletManager.shared.currentNetwork()
-        switch (chain) {
+        switch chain {
         case .mainnet:
             return "https://etherscan.io/address/" + address
         case .sepolia:
@@ -174,14 +172,17 @@ class WalletManager: NSObject, ObservableObject {
 
     func setupV2() throws {
         debugPrint("Setting up WalletConnect 2.0")
-        if let projectId = Bundle.main.object(forInfoDictionaryKey: "WALLETCONNECTV2_PROJECT_ID") as? String {
+        if let projectId = Bundle.main.object(forInfoDictionaryKey: "WALLETCONNECTV2_PROJECT_ID")
+            as? String
+        {
             debugPrint("WalletConnect project id: \(projectId)")
             let metadata = AppMetadata(
                 name: "Planet",
                 description: "Build decentralized websites on ENS",
                 url: "https://planetable.xyz",
                 icons: ["https://github.com/Planetable.png"],
-                redirect: AppMetadata.Redirect(native: "planet://", universal: nil))
+                redirect: AppMetadata.Redirect(native: "planet://", universal: nil)
+            )
             Pair.configure(metadata: metadata)
             Networking.configure(projectId: projectId, socketFactory: DefaultSocketFactory())
 
@@ -189,72 +190,102 @@ class WalletManager: NSObject, ObservableObject {
 
             // Sign: sessionSettlePublisher
             Sign.instance.sessionSettlePublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [unowned self] (session: WalletConnectSign.Session) in
-                debugPrint("WalletConnect 2.0 Session Settled: \(session)")
-                self.session = session
-                debugPrint("WalletConnect 2.0 session found: \(session)")
-                if let account = session.accounts.first {
-                    Task { @MainActor in
-                        PlanetStore.shared.walletAddress = account.address
-                        UserDefaults.standard.set(account.address, forKey: Self.lastWalletAddressKey)
-                        PlanetStore.shared.isShowingWalletConnectV2QRCode = false
+                .receive(on: DispatchQueue.main)
+                .sink { [unowned self] (session: WalletConnectSign.Session) in
+                    debugPrint("WalletConnect 2.0 Session Settled: \(session)")
+                    self.session = session
+                    debugPrint("WalletConnect 2.0 session found: \(session)")
+                    if let account = session.accounts.first {
+                        Task { @MainActor in
+                            PlanetStore.shared.walletAddress = account.address
+                            UserDefaults.standard.set(
+                                account.address,
+                                forKey: Self.lastWalletAddressKey
+                            )
+                            PlanetStore.shared.isShowingWalletConnectV2QRCode = false
+                        }
                     }
-                }
-            }.store(in: &disposeBag)
+                }.store(in: &disposeBag)
 
             // Sign: sessionDeletePublisher
             Sign.instance.sessionDeletePublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [unowned self] _ in
-                debugPrint("WalletConnect 2.0 Session Deleted")
-                self.session = nil
-                Task { @MainActor in
-                    PlanetStore.shared.walletAddress = ""
-                    UserDefaults.standard.removeObject(forKey: Self.lastWalletAddressKey)
-                    PlanetStore.shared.isShowingWalletConnectV2QRCode = false
-                }
-            }.store(in: &disposeBag)
+                .receive(on: DispatchQueue.main)
+                .sink { [unowned self] _ in
+                    debugPrint("WalletConnect 2.0 Session Deleted")
+                    self.session = nil
+                    Task { @MainActor in
+                        PlanetStore.shared.walletAddress = ""
+                        UserDefaults.standard.removeObject(forKey: Self.lastWalletAddressKey)
+                        PlanetStore.shared.isShowingWalletConnectV2QRCode = false
+                    }
+                }.store(in: &disposeBag)
 
             // Sign: sessionRejectionPublisher
             Sign.instance.sessionRejectionPublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [unowned self] rejection in
-                debugPrint("WalletConnect 2.0 Session Rejection: \(rejection)")
-                Task { @MainActor in
-                    PlanetStore.shared.isShowingWalletConnectV2QRCode = false
-                }
-            }.store(in: &disposeBag)
+                .receive(on: DispatchQueue.main)
+                .sink { [unowned self] rejection in
+                    debugPrint("WalletConnect 2.0 Session Rejection: \(rejection)")
+                    Task { @MainActor in
+                        PlanetStore.shared.isShowingWalletConnectV2QRCode = false
+                    }
+                }.store(in: &disposeBag)
 
             // Sign: sessionEventPublisher
             Sign.instance.sessionEventPublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [unowned self] (event, topic, chain) in
-                debugPrint("WalletConnect 2.0 Session Event: event: \(event) topic: \(topic) blockchain: \(chain)")
-            }.store(in: &disposeBag)
+                .receive(on: DispatchQueue.main)
+                .sink { [unowned self] (event, topic, chain) in
+                    debugPrint(
+                        "WalletConnect 2.0 Session Event: event: \(event) topic: \(topic) blockchain: \(chain)"
+                    )
+                }.store(in: &disposeBag)
 
             // Sign: sessionResponsePublisher
             Sign.instance.sessionResponsePublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [unowned self] response in
-                let record = Sign.instance.getSessionRequestRecord(id: response.id)!
-                switch response.result {
-                case  .response(let response):
-                    debugPrint("WalletConnect 2.0 Sign Response: \(response)")
-                    debugPrint("WalletConnect 2.0 Sign Request Record: \(record)")
-                    debugPrint("WalletConnect 2.0 Sign Request: \(record.request)")
+                .receive(on: DispatchQueue.main)
+                .sink { [unowned self] response in
+                    let record = Sign.instance.getSessionRequestRecord(id: response.id)!
+                    switch response.result {
+                    case .response(let response):
+                        Task {
+                            #if DEBUG
+                            let chain = EthereumChainID.sepolia
+                            #else
+                            let chain = EthereumChainID.mainnet
+                            #endif
+                            do {
+                                if let hash = response.value as? String {
+                                    debugPrint("Response value: \(hash)")
+                                    // Wait for 10 seconds for the transaction
+                                    try await Task.sleep(seconds: 10)
+                                    debugPrint("Try to get transaction by response value: \(hash) on \(chain)")
+                                    if let transaction = try await self.getTransaction(by: hash, on: chain) {
+                                        debugPrint("WalletConnect 2.0 Transaction: \(transaction)")
+                                        self.saveTransaction(transaction, on: chain)
+                                    } else {
+                                        debugPrint("Failed to extract transaction from response value \(hash)")
+                                    }
+                                } else {
+                                    debugPrint("Failed to extract response value from \(response)")
+                                }
+                            } catch {
+                                debugPrint("Failed to get transaction for response value \(response): \(error)")
+                            }
+                        }
+                        debugPrint("WalletConnect 2.0 Sign Response: \(response)")
+                        debugPrint("WalletConnect 2.0 Sign Request Record: \(record)")
+                        debugPrint("WalletConnect 2.0 Sign Request: \(record.request)")
                     // TODO: Save the transaction
                     // responseView.nameLabel.text = "Received Response\n\(record.request.//method)"
                     // responseView.descriptionLabel.text = try! response.get(String.self).description
-                case .error(let error):
-                    debugPrint("WalletConnect 2.0 Sign Error: \(error)")
+                    case .error(let error):
+                        debugPrint("WalletConnect 2.0 Sign Error: \(error)")
                     // responseView.nameLabel.text = "Received Error\n\(record.request.method)"
                     // responseView.descriptionLabel.text = error.message
-                }
-                Task { @MainActor in
-                    PlanetStore.shared.isShowingWalletConnectV2QRCode = false
-                }
-            }.store(in: &disposeBag)
+                    }
+                    Task { @MainActor in
+                        PlanetStore.shared.isShowingWalletConnectV2QRCode = false
+                    }
+                }.store(in: &disposeBag)
 
             // Set up Auth
             Auth.configure(crypto: DefaultCryptoProvider())
@@ -269,13 +300,22 @@ class WalletManager: NSObject, ObservableObject {
                         if iss.contains("eip155:1:"), let address = iss.split(separator: ":").last {
                             let walletAddress: String = String(address)
                             PlanetStore.shared.walletAddress = walletAddress
-                            UserDefaults.standard.set(walletAddress, forKey: Self.lastWalletAddressKey)
+                            UserDefaults.standard.set(
+                                walletAddress,
+                                forKey: Self.lastWalletAddressKey
+                            )
                             // Save pairing topic into keychain, with wallet address as key.
                             if let pairing = Pair.instance.getPairings().first {
                                 do {
-                                    try KeychainHelper.shared.saveValue(pairing.topic, forKey: walletAddress)
-                                    debugPrint("WalletConnect 2.0 topic saved: \(pairing.topic), key (wallet address): \(walletAddress)")
-                                } catch {
+                                    try KeychainHelper.shared.saveValue(
+                                        pairing.topic,
+                                        forKey: walletAddress
+                                    )
+                                    debugPrint(
+                                        "WalletConnect 2.0 topic saved: \(pairing.topic), key (wallet address): \(walletAddress)"
+                                    )
+                                }
+                                catch {
                                     debugPrint("WalletConnect 2.0 topic not saved: \(error)")
                                 }
                             }
@@ -306,36 +346,57 @@ class WalletManager: NSObject, ObservableObject {
                         debugPrint("WalletConnect 2.0 account: \(account)")
                         //debugPrint("WalletConnect 2.0 session wallet address: \(address)")
                     }
-                } else {
+                }
+                else {
                     debugPrint("WalletConnect 2.0 no session found")
                 }
 
                 /* Start: code for handling Auth */
-                guard let address: String = UserDefaults.standard.string(forKey: Self.lastWalletAddressKey), address != "" else {
-                    debugPrint("WalletConnect 2.0 no previous active wallet found, ignore reconnect.")
+                guard
+                    let address: String = UserDefaults.standard.string(
+                        forKey: Self.lastWalletAddressKey
+                    ), address != ""
+                else {
+                    debugPrint(
+                        "WalletConnect 2.0 no previous active wallet found, ignore reconnect."
+                    )
                     return
                 }
                 do {
                     let topic = try KeychainHelper.shared.loadValue(forKey: address)
                     if topic.count > 0 {
-                        debugPrint("WalletConnect 2.0 previous active wallet address found: \(address), with topic: \(topic)")
+                        debugPrint(
+                            "WalletConnect 2.0 previous active wallet address found: \(address), with topic: \(topic)"
+                        )
                         // Ping
                         do {
                             try await Pair.instance.ping(topic: topic)
                             PlanetStore.shared.walletAddress = address
-                            debugPrint("WalletConnect 2.0 pinged previous active wallet address OK: \(address)")
-                        } catch {
-                            debugPrint("WalletConnect 2.0 failed to ping previous active wallet address: \(error)")
+                            debugPrint(
+                                "WalletConnect 2.0 pinged previous active wallet address OK: \(address)"
+                            )
                         }
-                    } else {
-                        debugPrint("WalletConnect 2.0 previous active wallet address found: \(address), but topic not found.")
+                        catch {
+                            debugPrint(
+                                "WalletConnect 2.0 failed to ping previous active wallet address: \(error)"
+                            )
+                        }
                     }
-                } catch {
-                    debugPrint("WalletConnect 2.0 failed to restore previous active wallet address and topic: \(error)")
+                    else {
+                        debugPrint(
+                            "WalletConnect 2.0 previous active wallet address found: \(address), but topic not found."
+                        )
+                    }
+                }
+                catch {
+                    debugPrint(
+                        "WalletConnect 2.0 failed to restore previous active wallet address and topic: \(error)"
+                    )
                 }
                 /* End: code for handling Auth */
             }
-        } else {
+        }
+        else {
             debugPrint("WalletConnect 2.0 not ready, missing project id error.")
             throw PlanetError.WalletConnectV2ProjectIDMissingError
         }
@@ -375,8 +436,9 @@ class WalletManager: NSObject, ObservableObject {
                 methods: [
                     "eth_sendTransaction",
                     "personal_sign",
-                    "eth_signTypedData"
-                ], events: []
+                    "eth_signTypedData",
+                ],
+                events: []
             )
         ]
         let optionalNamespaces: [String: ProposalNamespace] = [
@@ -388,13 +450,17 @@ class WalletManager: NSObject, ObservableObject {
                     "eth_sendTransaction",
                     "eth_signTransaction",
                     "get_balance",
-                    "personal_sign"
+                    "personal_sign",
                 ],
                 events: []
             )
         ]
 
-        try await Sign.instance.connect(requiredNamespaces: requiredNamespaces, optionalNamespaces: optionalNamespaces, topic: pairingTopic)
+        try await Sign.instance.connect(
+            requiredNamespaces: requiredNamespaces,
+            optionalNamespaces: optionalNamespaces,
+            topic: pairingTopic
+        )
 
         PlanetStore.shared.walletConnectV2ConnectionURL = uri.absoluteString
         PlanetStore.shared.isShowingWalletConnectV2QRCode = true
@@ -408,7 +474,8 @@ class WalletManager: NSObject, ObservableObject {
             do {
                 try await Sign.instance.disconnect(topic: topic)
                 debugPrint("WalletConnect 2.0 disconnected session: \(topic)")
-            } catch {
+            }
+            catch {
                 debugPrint("WalletConnect 2.0 failed to disconnect session: \(error)")
             }
         }
@@ -421,7 +488,8 @@ class WalletManager: NSObject, ObservableObject {
             Task { @MainActor in
                 PlanetStore.shared.walletAddress = ""
             }
-        } catch {
+        }
+        catch {
             debugPrint("WalletConnect 2.0 failed to perform Sign.instance.cleanup(): \(error)")
         }
 
@@ -433,12 +501,15 @@ class WalletManager: NSObject, ObservableObject {
             do {
                 try await Pair.instance.disconnect(topic: pairing.topic)
                 debugPrint("WalletConnect 2.0 disconnected pairing: \(pairing)")
-            } catch {
+            }
+            catch {
                 debugPrint("WalletConnect 2.0 failed to disconnect pairing: \(error)")
             }
         }
 
-        guard let address: String = UserDefaults.standard.string(forKey: Self.lastWalletAddressKey), address != "" else {
+        guard let address: String = UserDefaults.standard.string(forKey: Self.lastWalletAddressKey),
+            address != ""
+        else {
             debugPrint("WalletConnect 2.0 no previous active wallet found")
             return
         }
@@ -446,7 +517,8 @@ class WalletManager: NSObject, ObservableObject {
             let topic = try KeychainHelper.shared.loadValue(forKey: address)
             try await Pair.instance.disconnect(topic: topic)
             debugPrint("WalletConnect 2.0 disconnected previous active wallet address: \(address)")
-        } catch {
+        }
+        catch {
             debugPrint("WalletConnect 2.0 failed to disconnect Auth pairing: \(error)")
         }
         Task { @MainActor in
@@ -456,8 +528,11 @@ class WalletManager: NSObject, ObservableObject {
         UserDefaults.standard.removeObject(forKey: Self.lastWalletAddressKey)
         do {
             try KeychainHelper.shared.delete(forKey: address)
-        } catch {
-            debugPrint("WalletConnect 2.0 failed to delete topic in Keychain for previous active wallet address: \(error)")
+        }
+        catch {
+            debugPrint(
+                "WalletConnect 2.0 failed to delete topic in Keychain for previous active wallet address: \(error)"
+            )
         }
     }
 
@@ -470,20 +545,36 @@ class WalletManager: NSObject, ObservableObject {
             */
             let method = "eth_sendTransaction"
             let walletAddress = session.accounts[0].address
-            let tx = self.tipTransaction(from: walletAddress, to: receiver, amount: amount, memo: memo)
+            let tx = self.tipTransaction(
+                from: walletAddress,
+                to: receiver,
+                amount: amount,
+                memo: memo
+            )
             let requestParams = AnyCodable([
                 tx
             ])
             #if DEBUG
-            // Send transaction on Sepolia testnet
-            let request = Request(topic: session.topic, method: method, params: requestParams, chainId: Blockchain("eip155:11155111")!)
+                // Send transaction on Sepolia testnet
+                let request = Request(
+                    topic: session.topic,
+                    method: method,
+                    params: requestParams,
+                    chainId: Blockchain("eip155:11155111")!
+                )
             #else
-            // Send transaction on Ethereum mainnet
-            let request = Request(topic: session.topic, method: method, params: requestParams, chainId: Blockchain("eip155:1")!)
+                // Send transaction on Ethereum mainnet
+                let request = Request(
+                    topic: session.topic,
+                    method: method,
+                    params: requestParams,
+                    chainId: Blockchain("eip155:1")!
+                )
             #endif
             do {
                 try await Sign.instance.request(params: request)
-            } catch {
+            }
+            catch {
                 debugPrint("WalletConnect 2.0 sendTransactionV2 error: \(error)")
             }
         }
@@ -496,9 +587,9 @@ class WalletManager: NSObject, ObservableObject {
         let value = String(tipAmount, radix: 16)
         var memoEncoded: String = memo.asTransactionData()
         #if DEBUG
-        let chainId = 11155111
+            let chainId = 11_155_111
         #else
-        let chainId = 1
+            let chainId = 1
         #endif
         return Client.Transaction(
             from: sender,
@@ -515,6 +606,60 @@ class WalletManager: NSObject, ObservableObject {
             maxFeePerGas: nil
         )
     }
+
+    func getTransaction(by hash: String, on chain: EthereumChainID = .mainnet) async throws
+        -> EthereumTransactionObject?
+    {
+        let web3 = Web3(rpcURL: chain.rpcURL)
+        do {
+            let transactionHash = try EthereumData(ethereumValue: hash)
+            return try await withCheckedThrowingContinuation { continuation in
+                web3.eth.getTransactionByHash(blockHash: transactionHash) { response in
+                    if response.status.isSuccess, let transaction = response.result {
+                        debugPrint(
+                            "Transaction on \(chain): \(transaction?.from.hex(eip55: true)) -> \(transaction?.to?.hex(eip55: true) ?? "") \(transaction?.value)"
+                        )
+                        continuation.resume(returning: transaction)
+                    }
+                    else if let error = response.error {
+                        debugPrint("Error: \(error)")
+                        continuation.resume(throwing: error)
+                    }
+                    else {
+                        debugPrint("Transaction not found")
+                        continuation.resume(returning: nil)
+                    }
+                }
+            }
+        }
+        catch {
+            debugPrint("Error: \(error)")
+            throw error
+        }
+    }
+
+    func saveTransaction(_ tx: EthereumTransactionObject, on chain: EthereumChainID) {
+        do {
+            debugPrint("About to save transaction on \(chain): \(tx.hash.hex()) \(tx)")
+            let memo = tx.input.hex().hexToString() ?? tx.input.hex()
+            var ens: String? = nil
+            if memo.contains(".eth") {
+                ens = memo.split(separator: ":").last?.split(separator: "/").first?.description
+            }
+            let record = EthereumTransaction(
+                id: tx.hash.hex(),
+                chainID: chain.id,
+                from: tx.from.hex(eip55: true),
+                to: tx.to?.hex(eip55: true) ?? "",
+                toENS: ens,
+                amount: Int(tx.value.quantity / 10_000_000_000_000_000),
+                memo: memo
+            )
+            try record.save()
+        } catch {
+            debugPrint("Failed to save transaction on \(chain): \(tx)")
+        }
+    }
 }
 
 // MARK: - WalletConnectDelegate
@@ -529,7 +674,8 @@ extension WalletManager: WalletConnectDelegate {
     func didConnect() {
         Task { @MainActor in
             PlanetStore.shared.isShowingWalletConnectV1QRCode = false
-            PlanetStore.shared.walletAddress = self.walletConnect.session.walletInfo?.accounts[0] ?? ""
+            PlanetStore.shared.walletAddress =
+                self.walletConnect.session.walletInfo?.accounts[0] ?? ""
             debugPrint("Wallet Address: \(PlanetStore.shared.walletAddress)")
             debugPrint("Session: \(self.walletConnect.session)")
         }
@@ -546,7 +692,8 @@ extension PlanetStore {
     func hasWalletAddress() -> Bool {
         if walletAddress.count > 0 {
             return true
-        } else {
+        }
+        else {
             return false
         }
     }
@@ -573,9 +720,13 @@ extension RequestParams {
         aud: String = "https://service.invalid/login",
         nbf: String? = nil,
         exp: String? = nil,
-        statement: String? = "I accept the ServiceOrg Terms of Service: https://service.invalid/tos",
+        statement: String? =
+            "I accept the ServiceOrg Terms of Service: https://service.invalid/tos",
         requestId: String? = nil,
-        resources: [String]? = ["ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/", "https://example.com/my-web2-claim.json"]
+        resources: [String]? = [
+            "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
+            "https://example.com/my-web2-claim.json",
+        ]
     ) -> RequestParams {
         return RequestParams(
             domain: domain,
@@ -591,7 +742,7 @@ extension RequestParams {
     }
 }
 
-extension WebSocket: WebSocketConnecting { }
+extension WebSocket: WebSocketConnecting {}
 
 struct DefaultSocketFactory: WebSocketFactory {
     func create(with url: URL) -> WebSocketConnecting {
@@ -630,5 +781,43 @@ extension String {
     public func asTransactionData() -> String {
         let data = self.data(using: .utf8)!
         return "0x" + data.toHexString()
+    }
+}
+
+extension String {
+    func hexToString() -> String? {
+        var hex = self
+        // Remove the "0x" prefix if it exists
+        if hex.hasPrefix("0x") {
+            hex = String(hex.dropFirst(2))
+        }
+
+        // Convert hex string to Data
+        guard let data = Data(hexString: hex) else {
+            return nil
+        }
+
+        // Convert Data to String
+        return String(data: data, encoding: .utf8)
+    }
+}
+
+extension Data {
+    init?(hexString: String) {
+        let length = hexString.count / 2
+        var data = Data(capacity: length)
+        var hex = hexString
+
+        for _ in 0..<length {
+            let c = hex.index(hex.startIndex, offsetBy: 2)
+            let byteString = hex[..<c]
+            hex = String(hex[c...])
+            if var num = UInt8(byteString, radix: 16) {
+                data.append(&num, count: 1)
+            } else {
+                return nil
+            }
+        }
+        self = data
     }
 }
