@@ -180,7 +180,6 @@ struct AccountBadgeView: View {
             catch {
                 debugPrint("Error occurred when verifying NFT ownership: \(error)")
             }
-
         }
         /* Test transaction
         Task {
@@ -194,7 +193,7 @@ struct AccountBadgeView: View {
             }
         }
         */
-        Task {
+        Task(priority: .background) {
             await WalletManager.shared.getTransactions(for: walletAddress)
         }
         // Get balance with Web3.swift

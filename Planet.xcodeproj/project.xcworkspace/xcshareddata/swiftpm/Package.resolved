@@ -1,13 +1,13 @@
 {
-  "originHash" : "04f5ec2c370ad854d1601a3ffab8475cd1d8774bd8d70858486dcfe0847a1e8e",
+  "originHash" : "b5b52da383ac1bb60728bb7b92a9188cf8ad9116ebf35a3eecaeadafe04a6236",
   "pins" : [
     {
       "identity" : "bigint",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/attaswift/BigInt.git",
       "state" : {
-        "revision" : "0ed110f7555c34ff468e72e1686e59721f2b0da6",
-        "version" : "5.3.0"
+        "revision" : "88071df9f27361b52d92f9acea85e8b658af8183",
+        "version" : "5.4.0"
       }
     },
     {
@@ -123,8 +123,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sparkle-project/Sparkle",
       "state" : {
-        "revision" : "b456fd404954a9e13f55aa0c88cd5a40b8399638",
-        "version" : "2.6.3"
+        "revision" : "0ef1ee0220239b3776f433314515fd849025673f",
+        "version" : "2.6.4"
       }
     },
     {
