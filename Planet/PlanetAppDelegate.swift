@@ -120,14 +120,14 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
 
         // Connect Wallet V1
 
-        WalletManager.shared.setupV1()
+//        WalletManager.shared.setupV1()
 
         // Connect Wallet V2
         if let wc2Enabled: Bool = Bundle.main.object(forInfoDictionaryKey: "WALLETCONNECTV2_ENABLED") as? Bool, wc2Enabled == true {
             do {
                 try WalletManager.shared.setupV2()
             } catch {
-                debugPrint("WalletConnectV2: Failed to prepare the connection: \(error)")
+                debugPrint("WalletConnect 2.0 Failed to prepare the connection: \(error)")
             }
         }
     }

@@ -612,7 +612,7 @@ struct MyPlanetEditView: View {
 
                                 ColorPicker("", selection: $selectedColor)
                                     .onChange(of: selectedColor) { color in
-                                        let hex = color.toHexString()
+                                        let hex = color.toHexValue()
                                         userSettings["highlightColor"] = hex
                                     }
 

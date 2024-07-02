@@ -41,12 +41,12 @@ class IPFSState: ObservableObject {
             }
         }
         self.refreshRateTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshRate, repeats: true, block: { _ in
-            Task.detached(priority: .utility) {
+            Task.detached(priority: .userInitiated) {
                 await self.updateStatus()
             }
         })
         self.refreshTrafficTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshTrafficRate, repeats: true, block: { _ in
-            Task.detached(priority: .background) {
+            Task.detached(priority: .userInitiated) {
                 await self.updateTrafficStatus()
             }
         })

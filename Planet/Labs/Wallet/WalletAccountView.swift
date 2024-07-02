@@ -9,6 +9,8 @@ import SwiftUI
 import Web3
 
 struct WalletAccountView: View {
+    @EnvironmentObject private var planetStore: PlanetStore
+
     var walletAddress: String
     @State private var avatarImage: NSImage?
     @State private var ensName: String?
@@ -42,8 +44,8 @@ struct WalletAccountView: View {
                         .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 2)
                 }
                 else {
-                    Text(" ")
-                        .font(Font.custom("Arial Rounded MT Bold", size: 24))
+                    Text(ViewUtils.getEmoji(from: walletAddress))
+                        .font(Font.custom("Arial Rounded MT Bold", size: (AVATAR_SIZE - 20)))
                         .foregroundColor(Color.white)
                         .contentShape(Rectangle())
                         .frame(width: AVATAR_SIZE, height: AVATAR_SIZE, alignment: .center)
@@ -135,12 +137,15 @@ struct WalletAccountView: View {
 
             HStack(spacing: 8) {
                 Button {
-                    guard let session = WalletManager.shared.walletConnect.session else {
-                        dismiss()
-                        return
+//                    guard let session = WalletManager.shared.walletConnect.session else {
+//                        dismiss()
+//                        return
+//                    }
+//                    try? WalletManager.shared.walletConnect.client.disconnect(from: session)
+//                    dismiss()
+                    Task { @MainActor in
+                        self.planetStore.isShowingWalletDisconnectConfirmation.toggle()
                     }
-                    try? WalletManager.shared.walletConnect.client.disconnect(from: session)
-                    dismiss()
                 } label: {
                     Text("Disconnect")
                 }.help("Connected with \(walletAppName)")
@@ -187,6 +192,19 @@ struct WalletAccountView: View {
         .onChange(of: currentActiveChainID) { _ in
             self.loadBalance()
         }
+        .confirmationDialog(
+            Text("Are you sure you want to disconnect?"),
+            isPresented: $planetStore.isShowingWalletDisconnectConfirmation
+        ) {
+            Button {
+                dismiss()
+                Task {
+                    await WalletManager.shared.disconnectV2()
+                }
+            } label: {
+                Text("Disconnect")
+            }
+        }
     }
 
     private func loadTransactions() {
@@ -218,7 +236,7 @@ struct WalletAccountView: View {
 
     private func setBasicInfo() {
         self.displayName = walletAddress.shortWalletAddress()
-        if let walletAppName = WalletManager.shared.walletConnect.session.walletInfo?.peerMeta.name
+        if let walletAppName = WalletManager.shared.session?.peer.name
         {
             self.walletAppName = walletAppName
         }
@@ -260,14 +278,7 @@ struct WalletAccountView: View {
         // Get balance with Web3.swift
         let web3: Web3
         let currentActiveChain = WalletManager.shared.currentNetwork() ?? .mainnet
-        switch currentActiveChain {
-            case .mainnet:
-                web3 = Web3(rpcURL: "https://cloudflare-eth.com")
-            case .goerli:
-                web3 = Web3(rpcURL: "https://eth-goerli.public.blastapi.io")
-            case .sepolia:
-                web3 = Web3(rpcURL: "https://eth-sepolia.public.blastapi.io")
-        }
+        web3 = Web3(rpcURL: currentActiveChain.rpcURL)
         web3.eth.blockNumber() { response in
             if response.status.isSuccess, let blockNumber = response.result {
                 print("Block number: \(blockNumber)")

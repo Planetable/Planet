@@ -182,19 +182,27 @@ struct AccountBadgeView: View {
             }
 
         }
+        /* Test transaction
+        Task {
+            let hash = "0xd514f7f145cb8dc8d8b015b6125b28645ceacede00b260cf4967f060c32fa73a"
+            do {
+                if let tx = try await WalletManager.shared.getTransaction(by: hash, on: .sepolia) {
+                    WalletManager.shared.saveTransaction(tx, on: .sepolia)
+                }
+            } catch {
+                debugPrint("Failed to get test transaction \(hash): \(error)")
+            }
+        }
+        */
+        Task {
+            await WalletManager.shared.getTransactions(for: walletAddress)
+        }
         // Get balance with Web3.swift
         let web3: Web3
         let currentActiveChain = EthereumChainID.allCases.first(where: {
             $0.id == currentActiveChainID
         })!
-        switch currentActiveChain {
-        case .mainnet:
-            web3 = Web3(rpcURL: "https://eth.llamarpc.com")
-        case .goerli:
-            web3 = Web3(rpcURL: "https://eth-goerli.public.blastapi.io")
-        case .sepolia:
-            web3 = Web3(rpcURL: "https://eth-sepolia.public.blastapi.io")
-        }
+        web3 = Web3(rpcURL: currentActiveChain.rpcURL)
         web3.eth.blockNumber { response in
             if response.status.isSuccess, let blockNumber = response.result {
                 print("Block number: \(blockNumber)")

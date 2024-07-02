@@ -56,18 +56,26 @@ class KeyboardShortcutHelper: ObservableObject {
                 }
             }
             else {
+                /* TODO: Remove this button for V1
                 Button {
                     WalletManager.shared.connectV1()
                 } label: {
                     Text("Connect Wallet")
                 }
-            }
+                */
 
-            if PlanetStore.shared.walletConnectV2Ready {
-                Button {
-                    WalletManager.shared.connectV2()
-                } label: {
-                    Text("Connect Wallet V2")
+                if PlanetStore.shared.walletConnectV2Ready {
+                    Button {
+                        Task { @MainActor in
+                            do {
+                                try await WalletManager.shared.connectV2()
+                            } catch {
+                                debugPrint("failed to connect wallet v2: \(error)")
+                            }
+                        }
+                    } label: {
+                        Text("Connect Wallet V2")
+                    }
                 }
             }
 
