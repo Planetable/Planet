@@ -516,7 +516,7 @@ extension PlanetAPI {
         let info: [String: Any] = processPlanetArticleRequest(r)
 //        debugPrint("Planet API: createPlanetArticle: info: \(info)")
         let articleTitle = info["title"] as? String ?? ""
-        let articleDateString = info["date"] as? String ?? Date().dateDescription()
+        let articleDateString = info["date"] as? String ?? ""
         let articleContent = info["content"] as? String ?? ""
         if articleTitle == "" || articleTitle == " " {
             return .error("'title' is empty.")
@@ -528,7 +528,7 @@ extension PlanetAPI {
                 if articleDateString == "" {
                     draft.date = Date()
                 } else {
-                    draft.date = DateFormatter().date(from: articleDateString) ?? Date()
+                    draft.date = ISO8601DateFormatter().date(from: articleDateString) ?? Date()
                 }
                 draft.content = articleContent
                 for key in info.keys {
@@ -584,7 +584,7 @@ extension PlanetAPI {
         }
         let info: [String: Any] = processPlanetArticleRequest(r)
         let articleTitle = info["title"] as? String ?? ""
-        let articleDateString = info["date"] as? String ?? Date().dateDescription()
+        let articleDateString = info["date"] as? String ?? ""
         let articleContent = info["content"] as? String ?? ""
         Task { @MainActor in
             do {
@@ -593,7 +593,7 @@ extension PlanetAPI {
                 if articleDateString == "" || articleDateString == " " {
                     draft.date = Date()
                 } else {
-                    draft.date = DateFormatter().date(from: articleDateString) ?? Date()
+                    draft.date = ISO8601DateFormatter().date(from: articleDateString) ?? Date()
                 }
                 draft.content = articleContent
                 for existingAttachment in draft.attachments {
