@@ -267,7 +267,7 @@ extension PlanetAPI {
     func getServerInfo(forRequest r: HttpRequest) -> HttpResponse {
         var info: ServerInfo?
         DispatchQueue.main.sync {
-            info = PlanetStore.shared.serverInfo
+            info = IPFSState.shared.serverInfo
         }
         if let info = info {
             let encoder = JSONEncoder()
