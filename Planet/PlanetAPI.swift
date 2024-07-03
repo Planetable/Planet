@@ -177,6 +177,11 @@ class PlanetAPI: NSObject {
 
     private(set) var myPlanets: [MyPlanetModel] = []
     private(set) var myArticles: [MyArticleModel] = []
+    
+    static func dateFormatter() -> ISO8601DateFormatter {
+        let formatter = ISO8601DateFormatter()
+        return formatter
+    }
 
     func updateMyPlanets(_ planets: [MyPlanetModel]) {
         myPlanets = planets
@@ -528,7 +533,7 @@ extension PlanetAPI {
                 if articleDateString == "" {
                     draft.date = Date()
                 } else {
-                    draft.date = ISO8601DateFormatter().date(from: articleDateString) ?? Date()
+                    draft.date = PlanetAPI.dateFormatter().date(from: articleDateString) ?? Date()
                 }
                 draft.content = articleContent
                 for key in info.keys {
@@ -589,15 +594,29 @@ extension PlanetAPI {
         Task { @MainActor in
             do {
                 let draft = try DraftModel.create(from: article)
-                draft.title = articleTitle
+                if articleTitle != "" {
+                    draft.title = articleTitle
+                }
                 if articleDateString == "" || articleDateString == " " {
                     draft.date = Date()
                 } else {
-                    draft.date = ISO8601DateFormatter().date(from: articleDateString) ?? Date()
+                    draft.date = PlanetAPI.dateFormatter().date(from: articleDateString) ?? Date()
                 }
-                draft.content = articleContent
-                for existingAttachment in draft.attachments {
-                    draft.deleteAttachment(name: existingAttachment.name)
+                if articleContent != "" {
+                    draft.content = articleContent
+                }
+                let shouldDeleteAttachments: Bool = {
+                    for key in info.keys {
+                        if key.hasPrefix("attachment"), (info[key] as? [String : Any]) != nil {
+                            return true
+                        }
+                    }
+                    return false
+                }()
+                if shouldDeleteAttachments {
+                    for existingAttachment in draft.attachments {
+                        draft.deleteAttachment(name: existingAttachment.name)
+                    }
                 }
                 for key in info.keys {
                     guard key.hasPrefix("attachment") else { continue }
