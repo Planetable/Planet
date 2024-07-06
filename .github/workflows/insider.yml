@@ -85,42 +85,42 @@ jobs:
       - name: Prepare for Codesign
         run: |
           mkdir to-be-signed
-          ditto archive/Planet.xcarchive/Products/Applications/Planet.app to-be-signed/Planet.app
+          ditto archive/Planet.xcarchive/Products/Applications/Planet.app to-be-signed/Planet-Insider.app
 
       - name: Codesign with Developer ID
         run: |
-          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Installer.xpc
-          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate
-          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app
-          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Installer.xpc
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/Sparkle.framework
 
       - name: Prepare for Notarization
         run: |
-          ditto -c -k --keepParent to-be-signed/Planet.app Planet.zip
+          ditto -c -k --keepParent to-be-signed/Planet-Insider.app Planet-Insider.zip
 
       - name: Submit for Notarization
         run: |
-          xcrun notarytool submit Planet.zip --apple-id ${{ secrets.NOTARIZE_USERNAME }} --password ${{ secrets.NOTARIZE_PASSWORD }} --team-id ${{ secrets.TEAM_ID }} --wait --timeout 10m --verbose
+          xcrun notarytool submit Planet-Insider.zip --apple-id ${{ secrets.NOTARIZE_USERNAME }} --password ${{ secrets.NOTARIZE_PASSWORD }} --team-id ${{ secrets.TEAM_ID }} --wait --timeout 10m --verbose
 
       - name: Staple
         run: |
-          xcrun stapler staple -v to-be-signed/Planet.app
+          xcrun stapler staple -v to-be-signed/Planet-Insider.app
 
-      - name: Generate Planet.zip
+      - name: Generate Planet-Insider.zip
         run: |
-          ditto -c -k --keepParent to-be-signed/Planet.app Planet.zip
+          ditto -c -k --keepParent to-be-signed/Planet-Insider.app Planet-Insider.zip
 
-      - name: Generate Planet.zip.dSYM.zip
+      - name: Generate Planet-Insider.zip.dSYM.zip
         run: |
-          ditto -c -k --keepParent archive/Planet.xcarchive/dSYMs/Planet.app.dSYM Planet.app.dSYM.zip
+          ditto -c -k --keepParent archive/Planet.xcarchive/dSYMs/Planet.app.dSYM Planet-Insider.app.dSYM.zip
 
       - name: Release App
         uses: softprops/action-gh-release@v1
         with:
           prerelease: true
           files: |
-            Planet.zip
-            Planet.app.dSYM.zip
+            Planet-Insider.zip
+            Planet-Insider.app.dSYM.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -131,7 +131,7 @@ jobs:
           secret_key: ${{ secrets.DO_SECRET_KEY }}
           space_name: ${{ secrets.DO_SPACE_NAME }}
           space_region: ${{ secrets.DO_SPACE_REGION }}
-          source: Planet.zip
+          source: Planet-Insider.zip
           out_dir: planet-insider/${{ env.RELEASE_VERSION }}
 
       - name: Prepare for Sparkle Appcast
@@ -139,7 +139,7 @@ jobs:
           WORKPLACE: ${{ github.workspace }}
         run: |
           mkdir -p Release
-          cp Planet.zip Release/
+          cp Planet-Insider.zip Release/
           ${{ secrets.SPARKLE_GENERATE_INSIDER }} $WORKPLACE/Release ${{ env.RELEASE_VERSION }}
 
       - name: Upload Sparkle Appcast
