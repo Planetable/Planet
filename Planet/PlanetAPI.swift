@@ -177,6 +177,11 @@ class PlanetAPI: NSObject {
 
     private(set) var myPlanets: [MyPlanetModel] = []
     private(set) var myArticles: [MyArticleModel] = []
+    
+    static func dateFormatter() -> ISO8601DateFormatter {
+        let formatter = ISO8601DateFormatter()
+        return formatter
+    }
 
     func updateMyPlanets(_ planets: [MyPlanetModel]) {
         myPlanets = planets
@@ -262,7 +267,7 @@ extension PlanetAPI {
     func getServerInfo(forRequest r: HttpRequest) -> HttpResponse {
         var info: ServerInfo?
         DispatchQueue.main.sync {
-            info = PlanetStore.shared.serverInfo
+            info = IPFSState.shared.serverInfo
         }
         if let info = info {
             let encoder = JSONEncoder()
@@ -516,7 +521,7 @@ extension PlanetAPI {
         let info: [String: Any] = processPlanetArticleRequest(r)
 //        debugPrint("Planet API: createPlanetArticle: info: \(info)")
         let articleTitle = info["title"] as? String ?? ""
-        let articleDateString = info["date"] as? String ?? Date().dateDescription()
+        let articleDateString = info["date"] as? String ?? ""
         let articleContent = info["content"] as? String ?? ""
         if articleTitle == "" || articleTitle == " " {
             return .error("'title' is empty.")
@@ -528,7 +533,7 @@ extension PlanetAPI {
                 if articleDateString == "" {
                     draft.date = Date()
                 } else {
-                    draft.date = DateFormatter().date(from: articleDateString) ?? Date()
+                    draft.date = PlanetAPI.dateFormatter().date(from: articleDateString) ?? Date()
                 }
                 draft.content = articleContent
                 for key in info.keys {
@@ -584,20 +589,34 @@ extension PlanetAPI {
         }
         let info: [String: Any] = processPlanetArticleRequest(r)
         let articleTitle = info["title"] as? String ?? ""
-        let articleDateString = info["date"] as? String ?? Date().dateDescription()
+        let articleDateString = info["date"] as? String ?? ""
         let articleContent = info["content"] as? String ?? ""
         Task { @MainActor in
             do {
                 let draft = try DraftModel.create(from: article)
-                draft.title = articleTitle
+                if articleTitle != "" {
+                    draft.title = articleTitle
+                }
                 if articleDateString == "" || articleDateString == " " {
                     draft.date = Date()
                 } else {
-                    draft.date = DateFormatter().date(from: articleDateString) ?? Date()
+                    draft.date = PlanetAPI.dateFormatter().date(from: articleDateString) ?? Date()
                 }
-                draft.content = articleContent
-                for existingAttachment in draft.attachments {
-                    draft.deleteAttachment(name: existingAttachment.name)
+                if articleContent != "" {
+                    draft.content = articleContent
+                }
+                let shouldDeleteAttachments: Bool = {
+                    for key in info.keys {
+                        if key.hasPrefix("attachment"), (info[key] as? [String : Any]) != nil {
+                            return true
+                        }
+                    }
+                    return false
+                }()
+                if shouldDeleteAttachments {
+                    for existingAttachment in draft.attachments {
+                        draft.deleteAttachment(name: existingAttachment.name)
+                    }
                 }
                 for key in info.keys {
                     guard key.hasPrefix("attachment") else { continue }
