@@ -11,8 +11,15 @@ import Web3
 
 struct TipSelectView: View {
     @Environment(\.dismiss) var dismiss
+    /*
     @AppStorage(String.settingsEthereumChainId) private var ethereumChainId: Int = UserDefaults
         .standard.integer(forKey: String.settingsEthereumChainId)
+    */
+    #if DEBUG
+    @State private var ethereumChainId: Int = EthereumChainID.sepolia.rawValue
+    #else
+    @State private var ethereumChainId: Int = EthereumChainID.mainnet.rawValue
+    #endif
     @AppStorage(String.settingsEthereumTipAmount) private var tipAmount: Int = UserDefaults
         .standard.integer(forKey: String.settingsEthereumTipAmount)
 
@@ -46,7 +53,12 @@ struct TipSelectView: View {
             Divider()
             HStack {
                 Text("Please select the amount")
+
                 Spacer()
+
+                Text("\(EthereumChainID.names[ethereumChainId] ?? "Unknown Chain ID \(ethereumChainId)")")
+
+                /*
                 Picker(selection: $ethereumChainId, label: Text("")) {
                     ForEach(EthereumChainID.allCases, id: \.id) { value in
                         Text(
@@ -58,6 +70,8 @@ struct TipSelectView: View {
                 }
                 .pickerStyle(.menu)
                 .frame(width: 120)
+                */
+
                 /* TODO: Remove this V1 logic
                 if WalletManager.shared.canSwitchNetwork() {
                     Picker(selection: $ethereumChainId, label: Text("")) {

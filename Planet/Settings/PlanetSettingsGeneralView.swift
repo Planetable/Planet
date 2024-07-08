@@ -21,7 +21,8 @@ struct PlanetSettingsGeneralView: View {
                         PlanetStore.shared.selectedView = nil
                         PlanetStore.shared.selectedArticleList = nil
                         PlanetStore.shared.refreshSelectedArticles()
-                    } catch {
+                    }
+                    catch {
                         debugPrint("failed to reload: \(error)")
                     }
                 }
@@ -29,8 +30,10 @@ struct PlanetSettingsGeneralView: View {
         }
     }
 
-    @AppStorage(String.settingsPreferredIPFSPublicGateway) private var preferredIPFSPublicGateway: String =
-        UserDefaults.standard.string(forKey: String.settingsPreferredIPFSPublicGateway) ?? IPFSGateway.defaultGateway.rawValue
+    @AppStorage(String.settingsPreferredIPFSPublicGateway) private var preferredIPFSPublicGateway:
+        String =
+            UserDefaults.standard.string(forKey: String.settingsPreferredIPFSPublicGateway)
+            ?? IPFSGateway.defaultGateway.rawValue
 
     @AppStorage(String.settingsEthereumChainId) private var ethereumChainId: Int = UserDefaults
         .standard.integer(forKey: String.settingsEthereumChainId)
@@ -57,7 +60,8 @@ struct PlanetSettingsGeneralView: View {
                             Button {
                                 do {
                                     try updateLibraryLocation()
-                                } catch {
+                                }
+                                catch {
                                     resetLibraryLocation()
                                     let alert = NSAlert()
                                     alert.messageText = "Failed to Change Library Location"
@@ -111,36 +115,42 @@ struct PlanetSettingsGeneralView: View {
                         .pickerStyle(.menu)
                         .onChange(of: preferredIPFSPublicGateway) { newValue in
                             // Refresh Published Folders Dashboard Toolbar
-                            NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
+                            NotificationCenter.default.post(
+                                name: .dashboardRefreshToolbar,
+                                object: nil
+                            )
                         }
                     }
 
-                    if PlanetStore.app == .planet {
-                        VStack {
-                            HStack(spacing: 4) {
-                                Text("Ethereum Network")
-                                    .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)
-                                Picker(selection: $ethereumChainId, label: Text("")) {
-                                    ForEach(EthereumChainID.allCases, id: \.id) { value in
-                                        Text(
-                                            "\(EthereumChainID.names[value.rawValue] ?? "Unknown Chain ID \(value.rawValue)")"
+                    #if DEBUG
+                        if PlanetStore.app == .planet {
+                            VStack(spacing: 4) {
+                                HStack(spacing: 4) {
+                                    Text("Ethereum Network")
+                                        .frame(
+                                            width: PlanetUI.SETTINGS_CAPTION_WIDTH,
+                                            alignment: .trailing
                                         )
-                                        .tag(value)
+                                    Picker(selection: $ethereumChainId, label: Text("")) {
+                                        ForEach(EthereumChainID.allCases, id: \.id) { value in
+                                            Text(
+                                                "\(EthereumChainID.names[value.rawValue] ?? "Unknown Chain ID \(value.rawValue)")"
+                                            )
+                                            .tag(value)
+                                        }
                                     }
+                                    .pickerStyle(.segmented)
                                 }
-                                .pickerStyle(.segmented)
-                            }
-                            HStack {
-                                Text("")
-                                    .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH)
                                 Text(
                                     "When you tip a creator, transactions will be sent to the selected Ethereum network."
                                 )
+                                .frame(minHeight: 40)
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
+                                .padding(.leading, PlanetUI.SETTINGS_CAPTION_WIDTH + 10)
                             }
                         }
-                    }
+                    #endif
                 }
             }
 
@@ -180,7 +190,8 @@ struct PlanetSettingsGeneralView: View {
             let alert = NSAlert()
             alert.messageText = "Existing Planet Library Found"
             alert.alertStyle = .warning
-            alert.informativeText = "Would you like to use new library location at: \(url.path), current database including following planets will be replaced with contents at this location."
+            alert.informativeText =
+                "Would you like to use new library location at: \(url.path), current database including following planets will be replaced with contents at this location."
             alert.addButton(withTitle: "Cancel")
             alert.addButton(withTitle: "Continue & Update")
             let result = alert.runModal()
@@ -189,7 +200,11 @@ struct PlanetSettingsGeneralView: View {
             }
         }
         let bookmarkKey = url.path.md5()
-        let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+        let bookmarkData = try url.bookmarkData(
+            options: .withSecurityScope,
+            includingResourceValuesForKeys: nil,
+            relativeTo: nil
+        )
         UserDefaults.standard.set(bookmarkData, forKey: bookmarkKey)
         if !useAsExistingLibraryLocation {
             try FileManager.default.copyItem(at: URLUtils.repoPath(), to: planetURL)

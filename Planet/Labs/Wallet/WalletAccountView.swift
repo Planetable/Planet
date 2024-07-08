@@ -153,7 +153,11 @@ struct WalletAccountView: View {
                 Spacer()
 
                 Button {
+                    #if DEBUG
+                    let etherscanURL = URL(string: "https://sepolia.etherscan.io/address/\(walletAddress)")!
+                    #else
                     let etherscanURL = URL(string: "https://etherscan.io/address/\(walletAddress)")!
+                    #endif
                     NSWorkspace.shared.open(etherscanURL)
                 } label: {
                     Text("Etherscan")
