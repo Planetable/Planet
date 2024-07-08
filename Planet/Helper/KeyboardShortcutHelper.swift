@@ -74,7 +74,7 @@ class KeyboardShortcutHelper: ObservableObject {
                             }
                         }
                     } label: {
-                        Text("Connect Wallet V2")
+                        Text("Connect Wallet")
                     }
                 }
             }
