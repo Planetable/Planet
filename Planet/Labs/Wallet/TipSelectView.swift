@@ -58,6 +58,7 @@ struct TipSelectView: View {
 
                 Text("\(EthereumChainID.names[ethereumChainId] ?? "Unknown Chain ID \(ethereumChainId)")")
 
+                // TODO: If we want to allow users to switch network, we need to add this back, and pass the chain ID to the send function
                 /*
                 Picker(selection: $ethereumChainId, label: Text("")) {
                     ForEach(EthereumChainID.allCases, id: \.id) { value in
