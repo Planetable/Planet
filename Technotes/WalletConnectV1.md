@@ -1,8 +1,8 @@
-# WalletConnect
+# WalletConnectV1
 
 Notes about our integration with WalletConnect.
 
-## Wallet Apps Tested
+## WalletConnect V1 Apps Tested
 
 - [x] **MetaMask iOS**: Can connect, send transaction is not working now, can switch network
 - [x] **Rainbow**: Can connect, can send transaction, cannot switch network
