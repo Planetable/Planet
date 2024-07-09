@@ -27,6 +27,7 @@ class PlanetQuickShareViewModel: ObservableObject {
     @Published var title: String = ""
     @Published var content: String = ""
     @Published var tags: [String: String] = [:]
+    @Published var availableTags: [String: Int] = [:]
     @Published var newTag: String = ""
     @Published var externalLink: String = ""
     @Published var fileURLs: [URL] = []
@@ -44,6 +45,12 @@ class PlanetQuickShareViewModel: ObservableObject {
 
     func getTargetPlanet() -> MyPlanetModel? {
         return myPlanets.filter({ $0.id == selectedPlanetID }).first
+    }
+
+    func loadAvailableTags() {
+        if let targetPlanet = getTargetPlanet() {
+            availableTags = targetPlanet.getAllAvailableTags()
+        }
     }
 
     @MainActor

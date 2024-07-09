@@ -39,6 +39,7 @@ struct WriterView: View {
             }
 
             WriterTitleView(
+                availableTags: draft.planet.getAllAvailableTags(),
                 tags: $draft.tags,
                 date: $draft.date,
                 title: $draft.title,

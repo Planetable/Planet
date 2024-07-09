@@ -10,7 +10,6 @@ import Combine
 import CoreImage.CIFilterBuiltins
 import CryptoSwift
 import Foundation
-import HDWalletKit
 import Starscream
 import WalletConnectNetworking
 import WalletConnectPairing

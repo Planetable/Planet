@@ -424,6 +424,29 @@ struct TagView: View {
     }
 }
 
+struct TagCountView: View {
+    let tag: String
+    let count: Int
+
+    var body: some View {
+        HStack {
+            Text(tag)
+                .font(.footnote)
+                .foregroundColor(.secondary)
+            Text("\(count)")
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .background(Circle().fill(Color("BorderColor")).frame(width: 12, height: 12))
+        }
+        .padding(.top, 4)
+        .padding(.bottom, 4)
+        .padding(.leading, 8)
+        .padding(.trailing, 8)
+        .background(Color("BorderColor"))
+        .cornerRadius(8)
+    }
+}
+
 struct MyArticleSettingsView_Previews: PreviewProvider {
     static var previews: some View {
         MyArticleSettingsView(article: MyArticleModel.placeholder)

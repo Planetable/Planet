@@ -1990,6 +1990,25 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
+    /// Return all available tags and their counts
+    func getAllAvailableTags() -> [String : Int] {
+        var tags: [String : Int] = [:]
+        for article in articles {
+            if let articleTags = article.tags {
+                for (key, value) in articleTags {
+                    if MyPlanetModel.isReservedTag(key) {
+                        continue
+                    }
+                    if tags[value] == nil {
+                        tags[value] = 0
+                    }
+                    tags[value]! += 1
+                }
+            }
+        }
+        return tags
+    }
+
     func rebuild() async throws {
         let started = Date()
         await MainActor.run {

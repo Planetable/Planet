@@ -42,6 +42,9 @@ struct PlanetQuickShareView: View {
                 .padding(.horizontal, 16)
                 .frame(height: 42)
         }
+        .task {
+            viewModel.loadAvailableTags()
+        }
     }
 
     // TODO: move this func to MyPlanetModel
@@ -412,6 +415,35 @@ struct PlanetQuickShareView: View {
                 }
             }
             .padding(10)
+
+            if viewModel.availableTags.count > 0 {
+                Divider()
+
+                VStack(spacing: 10) {
+                    HStack {
+                        Text("Previously Used Tags")
+                            .font(.system(size: 11, weight: .regular, design: .default))
+                        .foregroundColor(.secondary)
+                    }
+
+                    // Tag capsules
+                    WrappingHStack(
+                        viewModel.availableTags.keys.sorted(),
+                        id: \.self,
+                        alignment: .leading,
+                        spacing: .constant(2),
+                        lineSpacing: 4
+                    ) { tag in
+                        TagCountView(tag: tag, count: viewModel.availableTags[tag] ?? 0)
+                            .onTapGesture {
+                                let normalizedTag = tag.normalizedTag()
+                                viewModel.tags[normalizedTag] = tag
+                            }
+                    }
+                }
+                .padding(10)
+                .background(Color(NSColor.textBackgroundColor))
+            }
         }
         .frame(width: 280)
     }

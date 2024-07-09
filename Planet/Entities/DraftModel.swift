@@ -49,6 +49,15 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         }
     }()
 
+    lazy var planet: MyPlanetModel = {
+        switch target! {
+        case .myPlanet(let wrapper):
+            return wrapper.value
+        case .article(let wrapper):
+            return wrapper.value.planet
+        }
+    }()
+
     lazy var basePath: URL = {
         switch target! {
         case .article(let wrapper):

@@ -15,6 +15,7 @@ struct WriterTitleView: View {
     @State private var initDate: Date = Date()
     @State private var newTag: String = ""
 
+    var availableTags: [String: Int] = [:]
     @Binding var tags: [String: String]
     @Binding var date: Date
     @Binding var title: String
@@ -202,6 +203,35 @@ struct WriterTitleView: View {
                 }
             }
             .padding(10)
+
+            if availableTags.count > 0 {
+                Divider()
+
+                VStack(spacing: 10) {
+                    HStack {
+                        Text("Previously Used Tags")
+                            .font(.system(size: 11, weight: .regular, design: .default))
+                        .foregroundColor(.secondary)
+                    }
+
+                    // Tag capsules
+                    WrappingHStack(
+                        availableTags.keys.sorted(),
+                        id: \.self,
+                        alignment: .leading,
+                        spacing: .constant(2),
+                        lineSpacing: 4
+                    ) { tag in
+                        TagCountView(tag: tag, count: availableTags[tag] ?? 0)
+                            .onTapGesture {
+                                let normalizedTag = tag.normalizedTag()
+                                tags[normalizedTag] = tag
+                            }
+                    }
+                }
+                .padding(10)
+                .background(Color(NSColor.textBackgroundColor))
+            }
         }
         .frame(width: 280)
     }
@@ -209,6 +239,6 @@ struct WriterTitleView: View {
 
 struct WriterTitleView_Previews: PreviewProvider {
     static var previews: some View {
-        WriterTitleView(tags: .constant([:]), date: .constant(Date()), title: .constant(""))
+        WriterTitleView(availableTags: [:], tags: .constant([:]), date: .constant(Date()), title: .constant(""))
     }
 }
