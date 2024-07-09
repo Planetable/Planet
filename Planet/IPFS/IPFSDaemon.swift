@@ -776,27 +776,6 @@ extension IPFSDaemon {
             ],
         ],  // eth.sucks
         [
-            "ID": "12D3KooWLBMmT1dft1zcJvXNYkAfoUqj2RtRm7f9XkF17YmZsu4o",
-            "Addrs": [
-                "/ip4/104.131.8.159/tcp/4001",
-                "/ip6/2604:a880:800:10::bc4:e001/tcp/4001",
-            ],
-        ],  // eth.limo
-        [
-            "ID": "12D3KooWMHpq3mdygcbZWbjkuDdCsX5rjZHX31uRbCp9vAZXBxcD",
-            "Addrs": [
-                "/ip4/104.131.8.143/tcp/4001",
-                "/ip6/2604:a880:800:10::ac1:2001/tcp/4001",
-            ],
-        ],  // eth.limo
-        [
-            "ID": "12D3KooWQ1b2WBM1NM1a5jWS5Kny3y93zyK6iPBuVAA6uk95zdyJ",
-            "Addrs": [
-                "/ip4/45.55.43.156/tcp/4001",
-                "/ip6/2604:a880:800:10::c59:6001/tcp/4001",
-            ],
-        ],  // eth.limo
-        [
             "ID": "12D3KooWJ6MTkNM8Bu8DzNiRm1GY3Wqh8U8Pp1zRWap6xY3MvsNw",
             "Addrs": [
                 "/dnsaddr/node-1.ipfs.bit.site"
