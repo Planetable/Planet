@@ -189,6 +189,7 @@ class PlanetQuickShareViewModel: ObservableObject {
         content = ""
         externalLink = ""
         fileURLs = []
+        tags = [:]
         sending = false
     }
 }
