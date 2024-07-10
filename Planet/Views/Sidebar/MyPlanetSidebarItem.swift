@@ -243,6 +243,10 @@ struct MyPlanetSidebarItem: View {
         }
     }
 
+    private func hasiTerm() -> Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.googlecode.iterm2") != nil
+    }
+
     private func hasWorldWideWeb() -> Bool {
         NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.iconfactory.WorldWideWeb")
             != nil
@@ -326,6 +330,15 @@ struct MyPlanetSidebarItem: View {
             configuration: self.openConfiguration(),
             completionHandler: nil
         )
+    }
+
+    private func openiTerm(_ template: Template) {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.googlecode.iterm2")
+        else { return }
+
+        let url = URL(fileURLWithPath: template.path.path)
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
     }
 
     @ViewBuilder
@@ -412,6 +425,15 @@ struct MyPlanetSidebarItem: View {
                 } label: {
                     Image(systemName: "chevron.left.slash.chevron.right")
                     Text("Edit Template")
+                }
+            }
+
+            if hasiTerm(), let template = planet.template {
+                Button {
+                    openiTerm(template)
+                } label: {
+                    Image(systemName: "apple.terminal")
+                    Text("Open in iTerm")
                 }
             }
 
