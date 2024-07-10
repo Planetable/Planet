@@ -6,12 +6,6 @@ import ENSKit
 import SwiftSoup
 
 
-enum PublicGateway: String {
-    case cloudflare = "www.cloudflare-ipfs.com"
-    case ipfs = "ipfs.io"
-    case dweb = "dweb.link"
-}
-
 class CoreDataPersistence: NSObject {
     static let shared = CoreDataPersistence()
 
