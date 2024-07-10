@@ -10,14 +10,12 @@ enum IPFSGateway: String, Codable, CaseIterable {
     case limo
     case sucks
     case croptop
-    case cloudflare
     case dweblink
 
     static let names: [String: String] = [
         "limo": "eth.limo",
         "sucks": "eth.sucks",
         "croptop": "Croptop",
-        "cloudflare": "Cloudflare",
         "dweblink": "DWeb.link",
     ]
 
@@ -29,7 +27,6 @@ enum IPFSGateway: String, Codable, CaseIterable {
         "limo": "https://eth.limo",
         "sucks": "https://eth.sucks",
         "croptop": "https://crop.top",
-        "cloudflare": "https://cf-ipfs.com",
         "dweblink": "https://dweb.link",
     ]
 
@@ -48,9 +45,7 @@ enum IPFSGateway: String, Codable, CaseIterable {
     static let publicGateways: [String] = [
         "https://ipfs.io",
         "https://dweb.link",
-        "https://cloudflare-ipfs.com",
         "https://gateway.pinata.cloud",
-        "https://ipfs.fleek.co",
-        "https://cf-ipfs.com",
+        "https://ipfs.fleek.co"
     ]
 }

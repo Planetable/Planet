@@ -144,8 +144,6 @@ class MyArticleModel: ArticleModel, Codable {
                 case .croptop:
                     let name = domain.replacingOccurrences(of: ".eth", with: "")
                     return URL(string: "https://\(name).crop.top\(urlPath)")
-                case .cloudflare:
-                    return URL(string: "https://cf-ipfs.com/ipns/\(domain)\(urlPath)")
                 case .dweblink:
                     return URL(string: "https://dweb.link/ipns/\(domain)\(urlPath)")
                 }
@@ -164,8 +162,6 @@ class MyArticleModel: ArticleModel, Codable {
             return URL(string: "https://\(planet.ipns).eth.sucks\(urlPath)")
         case .croptop:
             return URL(string: "https://\(planet.ipns).crop.top\(urlPath)")
-        case .cloudflare:
-            return URL(string: "https://cf-ipfs.com/ipns/\(planet.ipns)\(urlPath)")
         case .dweblink:
             return URL(string: "https://dweb.link/ipns/\(planet.ipns)\(urlPath)")
         }

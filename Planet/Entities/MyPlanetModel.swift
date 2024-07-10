@@ -314,9 +314,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 case .croptop:
                     let processed = domain.replacingOccurrences(of: ".eth", with: "")
                     return "\(processed).crop.top"
-                case .cloudflare:
-                    let processed = domain.replacingOccurrences(of: ".", with: "-")
-                    return "\(processed).ipns.cf-ipfs.com"
                 case .dweblink:
                     let processed = domain.replacingOccurrences(of: ".", with: "-")
                     return "\(processed).ipns.dweb.link"
@@ -357,8 +354,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             return URL(string: "https://\(ipns).eth.sucks/")
         case .croptop:
             return URL(string: "https://\(ipns).crop.top/")
-        case .cloudflare:
-            return URL(string: "https://\(ipns).ipns.cf-ipfs.com/")
         case .dweblink:
             return URL(string: "https://\(ipns).ipns.dweb.link/")
         default:
