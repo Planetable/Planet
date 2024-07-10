@@ -84,14 +84,35 @@ class FollowingArticleModel: ArticleModel, Codable {
         switch planet.planetType {
         case .planet:
             // planet article link: /12345678-90AB-CDEF-1234-567890ABCDEF/
-            // return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.link)\(link)")
-            return URL(string: "https://\(planet.link).ipfs2.eth.limo\(link)")
+            switch IPFSGateway.selectedGateway() {
+            case .limo:
+                return URL(string: "https://\(planet.link).ipfs2.eth.limo\(link)")
+            case .sucks:
+                return URL(string: "https://\(planet.link).eth.sucks\(link)")
+            case .croptop:
+                return URL(string: "https://\(planet.link).crop.top\(link)")
+            case .dweblink:
+                return URL(string: "https://dweb.link/ipns/\(planet.link)\(link)")
+            }
         case .ens:
             if let linkURL = URL(string: link),
                linkURL.isHTTP {
                 // article from a feed with an absolute HTTP URL: https://vitalik.ca/general/2022/05/25/stable.html
                 // transform URL to load with limo
                 return URL(string: "https://\(planet.link).limo\(linkURL.pathQueryFragment)")
+            }
+            if planet.link.hasSuffix(".eth") && link.hasPrefix("/") {
+                switch IPFSGateway.selectedGateway() {
+                case .limo:
+                    return URL(string: "https://\(planet.link).limo\(link)")
+                case .sucks:
+                    return URL(string: "https://\(planet.link).sucks\(link)")
+                case .croptop:
+                    let name = planet.link.dropLast(4)
+                    return URL(string: "https://\(name).crop.top\(link)")
+                case .dweblink:
+                    return URL(string: "https://dweb.link/ipns/\(planet.link)\(link)")
+                }
             }
             if let limo = URL(string: "https://\(planet.link).limo") {
                 // relative URL: /general/2022/05/25/stable.html, index.html, ./index.html, etc.
@@ -115,10 +136,18 @@ class FollowingArticleModel: ArticleModel, Codable {
             // FIXME: This issue still exists as of 2024-Feb-21
             if planet.link.count == 62, planet.link.starts(with: "k51"), link.starts(with: "/") {
                 if link.hasPrefix("/ipfs/Q") || link.hasPrefix("/ipfs/b") || link.hasPrefix("/ipns/") {
-                    return URL(string: "\(IPFSDaemon.preferredGateway())\(link)")
+                    return URL(string: "https://eth.sucks\(link)")
                 }
-                // return URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(planet.link)\(link)")
-                return URL(string: "https://\(planet.link).ipfs2.eth.limo\(link)")
+                switch IPFSGateway.selectedGateway() {
+                case .limo:
+                    return URL(string: "https://\(planet.link).ipfs2.eth.limo\(link)")
+                case .sucks:
+                    return URL(string: "https://\(planet.link).eth.sucks\(link)")
+                case .croptop:
+                    return URL(string: "https://\(planet.link).crop.top\(link)")
+                case .dweblink:
+                    return URL(string: "https://dweb.link/ipns/\(planet.link)\(link)")
+                }
             }
             if link.starts(with: "/"), !planet.link.contains("://") {
                 return URL(string: "https://\(planet.link)\(link)")?.absoluteURL

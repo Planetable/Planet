@@ -96,21 +96,49 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     /// URL that can be viewed or shared in a regular browser.
     var browserURL: URL? {
         if planetType == .ens {
-            return URL(string: "https://\(link).limo")
+            switch IPFSGateway.selectedGateway() {
+            case .limo:
+                return URL(string: "https://\(link).limo")
+            case .sucks:
+                return URL(string: "https://\(link).sucks")
+            case .croptop:
+                let name = link.replacingOccurrences(of: ".eth", with: "")
+                return URL(string: "https://\(name).crop.top")
+            case .dweblink:
+                return URL(string: "https://dweb.link/ipns/\(link)")
+            }
         }
         // IPNS
         if link.hasPrefix("k51qaz") {
-            return URL(string: "https://\(link).ipfs2.eth.limo/")
+            switch IPFSGateway.selectedGateway() {
+            case .limo:
+                return URL(string: "https://\(link).ipfs2.eth.limo/")
+            case .sucks:
+                return URL(string: "https://\(link).eth.sucks/")
+            case .croptop:
+                return URL(string: "https://\(link).crop.top/")
+            case .dweblink:
+                return URL(string: "https://dweb.link/ipns/\(link)")
+            }
         }
         if let cid = cid {
             debugPrint("Following Planet CID: \(cid)")
             // CIDv0
             if cid.hasPrefix("Qm") {
-                return URL(string: "\(IPFSDaemon.preferredGateway())/ipfs/\(cid)/")
+                return URL(string: "https://eth.sucks/ipfs/\(cid)/")
             }
             // CIDv1
             if cid.hasPrefix("bafy") {
-                return URL(string: "https://\(cid).ipfs2.eth.limo/")
+                switch IPFSGateway.selectedGateway() {
+                case .limo:
+                    return URL(string: "https://\(cid).ipfs2.eth.limo/")
+                case .sucks:
+                    return URL(string: "https://\(cid).eth.sucks/")
+                case .croptop:
+                    return URL(string: "https://\(cid).crop.top/")
+                case .dweblink:
+                    return URL(string: "https://dweb.link/ipfs/\(cid)/")
+                }
             }
         }
         return URL(string: link)
