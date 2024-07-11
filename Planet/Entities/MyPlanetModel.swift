@@ -1452,7 +1452,50 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let allArticles = articles.map { item in
             return item.publicArticle
         }
-        let publicArticles = articles.filter { $0.articleType == .blog }.map { $0.publicArticle }
+        var publicArticles = articles.filter { $0.articleType == .blog }.map { $0.publicArticle }
+        // Check if all public articles have complete attachments
+        debugPrint("About to check all attachments for planet \(name)")
+        for article in articles {
+            var shouldRemoveArticle = false
+            if let attachments = article.attachments {
+                debugPrint("Attachments check: \(article.id) should have \(attachments.count) attachments")
+                for attachment in attachments {
+                    var shouldRemove = false
+                    let attachmentPath = article.publicBasePath.appendingPathComponent(attachment)
+                    if !FileManager.default.fileExists(atPath: attachmentPath.path) {
+                        shouldRemoveArticle = true
+                        debugPrint("Attachments check: \(attachmentPath) not found")
+                    } else {
+                        let fileSize = try FileManager.default.attributesOfItem(atPath: attachmentPath.path)[.size] as? Int ?? 0
+                        if fileSize == 0 {
+                            debugPrint("Attachments check: \(attachmentPath) is empty")
+                            shouldRemove = true
+                        } else {
+                            if fileSize < 1000 {
+                                let fileDataString = try String(contentsOf: attachmentPath)
+                                if fileDataString.contains("no link named") && fileDataString.contains("under") {
+                                    debugPrint("Attachments check: \(attachmentPath) is a broken link")
+                                    shouldRemove = true
+                                } else {
+                                    debugPrint("Attachments check: \(attachmentPath) is OK")
+                                }
+                            } else {
+                                debugPrint("Attachments check: \(attachmentPath) is OK")
+                            }
+                        }
+                    }
+                    if shouldRemove {
+                        shouldRemoveArticle = true
+                        debugPrint("Attachments check: \(attachmentPath) is broken, removing")
+                        try FileManager.default.removeItem(at: attachmentPath)
+                    }
+                }
+            }
+            if shouldRemoveArticle {
+                debugPrint("Attachments check: \(article.id) has broken attachments, removing article from public site")
+                publicArticles.removeAll { $0.id == article.id }
+            }
+        }
         let publicPlanet = PublicPlanetModel(
             id: id,
             name: name,
