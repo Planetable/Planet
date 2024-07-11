@@ -113,12 +113,13 @@ class IPFSState: ObservableObject {
 
     func updateStatus() async {
         // verify webui online status
-        let url = URL(string: "http://127.0.0.1:\(self.apiPort)/webui")!
-        let request = URLRequest(
+        let url = URL(string: "http://127.0.0.1:\(self.apiPort)/api/v0/id")!
+        var request = URLRequest(
             url: url,
             cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
             timeoutInterval: 5
         )
+        request.httpMethod = "POST"
         let onlineStatus: Bool
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
