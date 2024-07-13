@@ -422,6 +422,17 @@ extension MyArticleModel {
         return nil
     }
 
+    var heroImageObject: NSImage? {
+        if let heroImageFilename = self.getHeroImage() {
+            let heroImagePath = publicBasePath.appendingPathComponent(
+                heroImageFilename,
+                isDirectory: false
+            )
+            return NSImage(contentsOf: heroImagePath)
+        }
+        return nil
+    }
+
     // MARK: - Cover Image
 
     /// Prepare the text string to be used in _cover.png

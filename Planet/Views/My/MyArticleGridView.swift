@@ -17,6 +17,7 @@ struct MyArticleGridView: View {
         ZStack {
             if article.hasHeroGrid == true {
                 if let image = article.heroGridImage {
+                    // If image is from `heroImageObject`, then it would show with its original aspect ratio
                     imageView(image)
                 }
                 else {
@@ -232,10 +233,9 @@ struct MyArticleGridView: View {
             .interpolation(.high)
             .resizable()
             .aspectRatio(
-                1,
                 contentMode: .fit
             )
-            .frame(minWidth: 128, maxWidth: 256, minHeight: 128, maxHeight: 256)
+            //.frame(minWidth: 128, maxWidth: 256, minHeight: 128, maxHeight: 256)
             .cornerRadius(8)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
