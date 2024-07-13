@@ -97,15 +97,24 @@ class ArticleListDropDelegate: DropDelegate {
     }
 }
 
+
+class ArticleListViewModel: ObservableObject {
+    static let shared = ArticleListViewModel()
+
+    @Published var articles: [ArticleModel] = []
+    @Published var filter: ListViewFilter = .all
+}
+
+
 struct ArticleListView: View {
     @EnvironmentObject var planetStore: PlanetStore
-    @State var filter: ListViewFilter = .all
+    @StateObject private var viewModel = ArticleListViewModel()
     @State var articles: [ArticleModel]? = []
 
     let articleDropDelegate = ArticleListDropDelegate()
 
     private func filterArticles(_ articles: [ArticleModel]) -> [ArticleModel]? {
-        switch filter {
+        switch viewModel.filter {
         case .all:
             return articles
         case .pages:
@@ -160,74 +169,66 @@ struct ArticleListView: View {
             .frame(width: 20, height: 20, alignment: .center)
     }
 
+    init() {
+        _viewModel = StateObject(wrappedValue: ArticleListViewModel.shared)
+    }
+
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                if let articles = articles {
-                    if articles.isEmpty {
-                        /*
-                        Text(ListViewFilter.emptyLabels[filter.rawValue] ?? "No Articles")
-                            .foregroundColor(.secondary)
-                            .font(.system(size: 14, weight: .regular))
-                        */
-                        // It seems an empty List here gives us the expected Safe Area behavior
-                        List {
-                        }
-                    }
-                    else {
-                        ScrollViewReader { proxy in
-                            List(articles, id: \.self, selection: $planetStore.selectedArticle) {
-                                article in
-                                if let myArticle = article as? MyArticleModel {
-                                    if #available(macOS 13.0, *) {
-                                        MyArticleItemView(article: myArticle)
-                                            .id(myArticle.id.uuidString)
-                                            .listRowSeparator(.visible)
-                                    }
-                                    else {
-                                        MyArticleItemView(article: myArticle)
-                                        .id(myArticle.id.uuidString)
-                                    }
-                                }
-                                else if let followingArticle = article as? FollowingArticleModel {
-                                    if #available(macOS 13.0, *) {
-                                        FollowingArticleItemView(article: followingArticle)
-                                            .id(followingArticle.id.uuidString)
-                                            .listRowSeparator(.visible)
-                                    }
-                                    else {
-                                        FollowingArticleItemView(article: followingArticle)
-                                        .id(followingArticle.id.uuidString)
-                                    }
-                                }
-                            }
-                            .onReceive(NotificationCenter.default.publisher(for: .scrollToTopArticleList)) { n in
-                                if let article = articles.first {
-                                    debugPrint("Scrolling to top of Article List: \(article)")
-                                    withAnimation {
-                                        proxy.scrollTo(article.id.uuidString, anchor: .top)
-                                    }
-                                }
-                            }
-                            .onReceive(NotificationCenter.default.publisher(for: .scrollToArticle)) { n in
-                                if let article = n.object as? ArticleModel {
-                                    debugPrint("Scrolling to Article: \(article)")
-                                    withAnimation {
-                                        proxy.scrollTo(article.id.uuidString, anchor: .center)
-                                    }
-                                }
-                            }
-                        }
+                if viewModel.articles.isEmpty {
+                    /*
+                    Text(ListViewFilter.emptyLabels[filter.rawValue] ?? "No Articles")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 14, weight: .regular))
+                    */
+                    // It seems an empty List here gives us the expected Safe Area behavior
+                    List {
                     }
                 }
                 else {
-                    /*
-                Text("No Planet Selected")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 14, weight: .regular))
-                */
-                    List {
-
+                    ScrollViewReader { proxy in
+                        List(viewModel.articles, id: \.self, selection: $planetStore.selectedArticle) {
+                            article in
+                            if let myArticle = article as? MyArticleModel {
+                                if #available(macOS 13.0, *) {
+                                    MyArticleItemView(article: myArticle)
+                                        .id(myArticle.id)
+                                        .listRowSeparator(.visible)
+                                }
+                                else {
+                                    MyArticleItemView(article: myArticle)
+                                    .id(myArticle.id)
+                                }
+                            }
+                            else if let followingArticle = article as? FollowingArticleModel {
+                                if #available(macOS 13.0, *) {
+                                    FollowingArticleItemView(article: followingArticle)
+                                        .id(followingArticle.id)
+                                        .listRowSeparator(.visible)
+                                }
+                                else {
+                                    FollowingArticleItemView(article: followingArticle)
+                                    .id(followingArticle.id)
+                                }
+                            }
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: .scrollToTopArticleList)) { n in
+                            if let article = viewModel.articles.first {
+                                debugPrint("Scrolling to top of Article List: \(article)")
+                                withAnimation {
+                                    proxy.scrollTo(article.id, anchor: .top)
+                                }
+                            }
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: .scrollToArticle)) { n in
+                            if let article = n.object as? ArticleModel {
+                                debugPrint("Scrolling to Article: \(article)")
+                                withAnimation {
+                                    proxy.scrollTo(article.id, anchor: .center)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -249,10 +250,10 @@ struct ArticleListView: View {
             Menu {
                 ForEach(ListViewFilter.allCases, id: \.self) { aFilter in
                     Button {
-                        filter = aFilter
+                        viewModel.filter = aFilter
                     } label: {
                         HStack {
-                            if filter == aFilter {
+                            if viewModel.filter == aFilter {
                                 Image(systemName: "checkmark")
                             }
                             else {
@@ -269,21 +270,21 @@ struct ArticleListView: View {
                     }
                 }
             } label: {
-                FilterIndicatorView(filter: filter)
+                FilterIndicatorView(filter: viewModel.filter)
             }
             .padding(EdgeInsets(top: 0, leading: 10, bottom: 1, trailing: 0))
             .frame(width: 40, height: 20, alignment: .leading)
             .menuIndicator(.hidden)
-            .help(filter.rawValue)
+            .help(viewModel.filter.rawValue)
         }
         .onAppear {
-            articles = filterArticles(planetStore.selectedArticleList ?? [])
+            viewModel.articles = filterArticles(planetStore.selectedArticleList ?? []) ?? []
         }
-        .onChange(of: planetStore.selectedArticleList) { newValue in
-            articles = filterArticles(planetStore.selectedArticleList ?? [])
+        .onChange(of: planetStore.selectedArticleList) { _ in
+            viewModel.articles = filterArticles(planetStore.selectedArticleList ?? []) ?? []
         }
-        .onChange(of: filter) { newValue in
-            articles = filterArticles(planetStore.selectedArticleList ?? [])
+        .onChange(of: viewModel.filter) { _ in
+            viewModel.articles = filterArticles(planetStore.selectedArticleList ?? []) ?? []
         }
         .onReceive(NotificationCenter.default.publisher(for: .followingArticleReadChanged)) {
             aNotification in

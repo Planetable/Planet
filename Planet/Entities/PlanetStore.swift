@@ -71,8 +71,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var selectedView: PlanetDetailViewType? {
         didSet {
             if selectedView != oldValue {
-                refreshSelectedArticles()
                 selectedArticle = nil
+                refreshSelectedArticles()
                 UserDefaults.standard.set(selectedView?.stringValue, forKey: "lastSelectedView")
 
                 Task { @MainActor in
@@ -390,6 +390,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
             selectedArticleList = nil
             navigationTitle = PlanetStore.app == .lite ? "Croptop" : "Planet"
             navigationSubtitle = ""
+        }
+        if let articles = selectedArticleList {
+            ArticleListViewModel.shared.articles = articles
+        } else {
+            ArticleListViewModel.shared.articles = []
         }
     }
 
