@@ -746,6 +746,12 @@ extension IPFSDaemon {
                 "/dnsaddr/node-1.ipfs.4everland.net"
             ],
         ],  // 4everland.io
+        [
+            "ID": "12D3KooWGtYkBAaqJMJEmywMxaCiNP7LCEFUAFiLEBASe232c2VH",
+            "Addrs": [
+                "/dns4/bitswap.filebase.io/tcp/443/wss"
+            ],
+        ]   // Filebase
     ])
 
     static func preferredGateway() -> String {
