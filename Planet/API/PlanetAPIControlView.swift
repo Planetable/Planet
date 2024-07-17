@@ -6,15 +6,24 @@
 import SwiftUI
 
 
+enum PlanetAPIControlError: Error {
+    case invalidAPIPortError
+    case invalidAPIUsernameError
+    case invalidAPIPasscodeError
+}
+
+
 struct PlanetAPIControlView: View {
     @ObservedObject private var control: PlanetAPIController
     
-    @State private var apiUsesPasscode: Bool = UserDefaults.standard.bool(forKey: String.settingsAPIUsesPasscode)
-    @State private var apiUsername: String = UserDefaults.standard.string(forKey: String.settingsAPIUsername) ?? "Planet"
-    @State private var apiPort: String = UserDefaults
-        .standard.string(forKey: String.settingsAPIPort) ?? "8086"
+    @State private var apiUsesPasscode: Bool = UserDefaults.standard.bool(forKey: .settingsAPIUsesPasscode)
+    @State private var apiUsername: String = UserDefaults.standard.string(forKey: .settingsAPIUsername) ?? "Planet"
+    @State private var apiPort: String = UserDefaults.standard.string(forKey: .settingsAPIPort) ?? "8086"
     @State private var apiPasscode: String = ""
     @State private var isShowingPasscode: Bool = false
+    @State private var isAlert: Bool = false
+    @State private var alertTitle: String = ""
+    @State private var alertMessage: String = ""
     
     init() {
         _control = ObservedObject(wrappedValue: PlanetAPIController.shared)
@@ -33,6 +42,9 @@ struct PlanetAPIControlView: View {
                     HStack(spacing: 4) {
                         Toggle("Require Authentication", isOn: $apiUsesPasscode)
                             .disabled(control.serverIsRunning)
+                            .onChange(of: apiUsesPasscode) { newValue in
+                                UserDefaults.standard.set(newValue, forKey: .settingsAPIUsesPasscode)
+                            }
                         Spacer()
                         HelpLinkButton(helpLink: URL(string: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization#basic_authentication")!)
                     }
@@ -99,7 +111,26 @@ struct PlanetAPIControlView: View {
                     if control.serverIsRunning {
                         control.stopServer()
                     } else {
-                        control.startServer()
+                        do {
+                            try applyServerInformation()
+                            control.startServer()
+                        } catch PlanetAPIControlError.invalidAPIPortError {
+                            isAlert = true
+                            alertTitle = "Failed to Start Server"
+                            alertMessage = "Invalid API port, please double check and try again."
+                        } catch PlanetAPIControlError.invalidAPIUsernameError {
+                            isAlert = true
+                            alertTitle = "Failed to Start Server"
+                            alertMessage = "Invalid username, please double check and try again."
+                        } catch PlanetAPIControlError.invalidAPIPasscodeError {
+                            isAlert = true
+                            alertTitle = "Failed to Start Server"
+                            alertMessage = "Invalid passcode, please double check and try again."
+                        } catch {
+                            isAlert = true
+                            alertTitle = "Failed to Start Server"
+                            alertMessage = "Please double check server informations and try again."
+                        }
                     }
                 } label: {
                     HStack {
@@ -115,6 +146,28 @@ struct PlanetAPIControlView: View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .background(Color.secondary.opacity(0.1))
+        }
+        .alert(isPresented: $isAlert) {
+            Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .cancel(Text("OK")))
+        }
+    }
+    
+    private func applyServerInformation() throws {
+        if let port = Int(apiPort), port > 1024, port < 60000 {
+            UserDefaults.standard.set(apiPort, forKey: .settingsAPIPort)
+        } else {
+            throw PlanetAPIControlError.invalidAPIPortError
+        }
+        guard apiUsesPasscode else { return }
+        if apiUsername != "" {
+            UserDefaults.standard.set(apiUsername, forKey: .settingsAPIUsername)
+        } else {
+            throw PlanetAPIControlError.invalidAPIUsernameError
+        }
+        if apiPasscode == "" {
+            throw PlanetAPIControlError.invalidAPIPasscodeError
+        } else {
+            try KeychainHelper.shared.saveValue(apiPasscode, forKey: .settingsAPIPasscode)
         }
     }
 }

@@ -14,11 +14,13 @@ struct PlanetApp: App {
     @StateObject var planetStore: PlanetStore
     @StateObject var iconManager: IconManager
     @ObservedObject var keyboardHelper: KeyboardShortcutHelper
+    @ObservedObject var apiController: PlanetAPIController
 
     init() {
         _planetStore = StateObject(wrappedValue: PlanetStore.shared)
         _iconManager = StateObject(wrappedValue: IconManager.shared)
         _keyboardHelper = ObservedObject(wrappedValue: KeyboardShortcutHelper.shared)
+        _apiController = ObservedObject(wrappedValue: PlanetAPIController.shared)
     }
 
     var body: some Scene {

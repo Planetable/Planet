@@ -57,6 +57,7 @@ actor PlanetAPIHelper {
     }
 
     private func launch() throws {
+        return
         guard UserDefaults.standard.bool(forKey: .settingsAPIEnabled) else { return }
         server["/v0/id"] = { r in
             return PlanetAPI.shared.getNodeID(forRequest: r)

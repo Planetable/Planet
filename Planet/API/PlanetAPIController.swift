@@ -13,14 +13,14 @@ class PlanetAPIController: NSObject, ObservableObject {
     
     var globalApp: Application?
     
-    @Published var serverIsRunning: Bool = false
-    
-    private(set) var apiPort: String
-    private(set) var apiEnabled: Bool
-    private(set) var apiUsername: String
-    private(set) var apiUsesPasscode: Bool
+    @Published var serverIsRunning: Bool = false {
+        didSet {
+            UserDefaults.standard.set(serverIsRunning, forKey: .settingsAPIEnabled)
+        }
+    }
 
     override init() {
+        super.init()
         debugPrint("Planet API Controller Init.")
         let defaults = UserDefaults.standard
         if defaults.value(forKey: .settingsAPIPort) == nil {
@@ -32,6 +32,9 @@ class PlanetAPIController: NSObject, ObservableObject {
         if defaults.value(forKey: .settingsAPIUsername) == nil {
             defaults.set("Planet", forKey: .settingsAPIUsername)
         }
+        if defaults.value(forKey: .settingsAPIUsesPasscode) == nil {
+            defaults.set(false, forKey: .settingsAPIUsesPasscode)
+        }
         // Disable api authentication if no passcode found.
         do {
             let passcode = try KeychainHelper.shared.loadValue(forKey: .settingsAPIPasscode)
@@ -41,10 +44,12 @@ class PlanetAPIController: NSObject, ObservableObject {
         } catch {
             defaults.set(false, forKey: .settingsAPIUsesPasscode)
         }
-        apiPort = defaults.string(forKey: .settingsAPIPort) ?? "8086"
-        apiEnabled = defaults.bool(forKey: .settingsAPIEnabled)
-        apiUsername = defaults.string(forKey: .settingsAPIUsername) ?? "Planet"
-        apiUsesPasscode = defaults.bool(forKey: .settingsAPIUsesPasscode)
+        if defaults.bool(forKey: .settingsAPIEnabled) {
+            Task.detached(priority: .background) {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                self.startServer()
+            }
+        }
     }
     
     func startServer() {
@@ -99,10 +104,11 @@ class PlanetAPIController: NSObject, ObservableObject {
     
     private func configure(_ app: Application) throws {
         let port: Int = {
-            if let p = Int(apiPort) {
+            if let portString = UserDefaults.standard.string(forKey: .settingsAPIPort), let p = Int(portString) {
                 return p
             }
-            return 9191
+            UserDefaults.standard.set("8086", forKey: .settingsAPIPort)
+            return 8086
         }()
         app.http.server.configuration.port = port
         
