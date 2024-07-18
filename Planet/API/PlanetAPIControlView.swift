@@ -73,6 +73,18 @@ struct PlanetAPIControlView: View {
                     }
                     .disabled(control.serverIsRunning)
                     .textFieldStyle(.roundedBorder)
+                    .onChange(of: apiPasscode) { newValue in
+                        Task { @MainActor in
+                            if newValue == "" {
+                                self.apiUsesPasscode = false
+                            }
+                            do {
+                                try self.updatePasscode(newValue)
+                            } catch {
+                                debugPrint("failed to update password: \(error)")
+                            }
+                        }
+                    }
                 }
                 Spacer()
             }
@@ -104,7 +116,7 @@ struct PlanetAPIControlView: View {
                     .frame(width: 12, height: 12)
                     .foregroundStyle(control.serverIsRunning ? Color.green : Color.gray)
                 let status: String = control.serverIsRunning ? "Running" : "Stopped"
-                Text("Server Status: **\(status)**")
+                Text("API Server Status: **\(status)**")
                     .padding(.leading, -2)
                 Spacer()
                 Button {
@@ -130,6 +142,11 @@ struct PlanetAPIControlView: View {
                             isAlert = true
                             alertTitle = "Failed to Start Server"
                             alertMessage = "Please double check server informations and try again."
+                        }
+                        if self.isShowingPasscode {
+                            Task { @MainActor in
+                                self.isShowingPasscode = false
+                            }
                         }
                     }
                 } label: {
@@ -168,6 +185,14 @@ struct PlanetAPIControlView: View {
             throw PlanetAPIControlError.invalidAPIPasscodeError
         } else {
             try KeychainHelper.shared.saveValue(apiPasscode, forKey: .settingsAPIPasscode)
+        }
+    }
+    
+    private func updatePasscode(_ passcode: String) throws {
+        if passcode == "" {
+            try KeychainHelper.shared.delete(forKey: .settingsAPIPasscode)
+        } else {
+            try KeychainHelper.shared.saveValue(passcode, forKey: .settingsAPIPasscode)
         }
     }
 }

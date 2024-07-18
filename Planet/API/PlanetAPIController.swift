@@ -69,9 +69,6 @@ class PlanetAPIController: NSObject, ObservableObject {
             DispatchQueue.main.async {
                 self.serverIsRunning = true
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.saveServerSettings()
-            }
         } catch {
             stopServer()
         }
@@ -87,31 +84,40 @@ class PlanetAPIController: NSObject, ObservableObject {
 
     // MARK: -
     
-    private func saveServerSettings() {
-        guard serverIsRunning else { return }
-        // update server info
-    }
-    
     private func routes(_ app: Application) throws {
         // GET route
-        app.get("v0", "info") { req async throws -> [String: String] in
-            let dateFormatter = ISO8601DateFormatter()
-            let timestamp = dateFormatter.string(from: Date())
-            try await Task.sleep(nanoseconds: 1_000_000_000)
-            return ["timestamp": timestamp]
+        if let auth = authMiddleware() {
+            app.grouped(auth).get("v0", "info") { req async throws -> [String: String] in
+                let dateFormatter = ISO8601DateFormatter()
+                let timestamp = dateFormatter.string(from: Date())
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                return ["timestamp": timestamp]
+            }
+        } else {
+            app.get("v0", "info") { req async throws -> [String: String] in
+                let dateFormatter = ISO8601DateFormatter()
+                let timestamp = dateFormatter.string(from: Date())
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                return ["timestamp": timestamp]
+            }
         }
     }
     
     private func configure(_ app: Application) throws {
+        let defaults = UserDefaults.standard
         let port: Int = {
-            if let portString = UserDefaults.standard.string(forKey: .settingsAPIPort), let p = Int(portString) {
+            if let portString = defaults.string(forKey: .settingsAPIPort), let p = Int(portString) {
                 return p
             }
-            UserDefaults.standard.set("8086", forKey: .settingsAPIPort)
+            defaults.set("8086", forKey: .settingsAPIPort)
             return 8086
         }()
         app.http.server.configuration.port = port
         
+        if let authMiddleware = authMiddleware() {
+            app.middleware.use(authMiddleware)
+        }
+
         let repoPath: String = {
             if #available(macOS 13.0, *) {
                 return URLUtils.repoPath().appendingPathComponent("Public", conformingTo: .folder).path()
@@ -123,5 +129,14 @@ class PlanetAPIController: NSObject, ObservableObject {
         app.middleware.use(fileMiddleware)
 
         try routes(app)
+    }
+    
+    private func authMiddleware() -> PlanetAPIAuthMiddleware? {
+        if UserDefaults.standard.bool(forKey: .settingsAPIUsesPasscode) {
+            if let username = UserDefaults.standard.string(forKey: .settingsAPIUsername), username != "", let password = try? KeychainHelper.shared.loadValue(forKey: .settingsAPIPasscode) {
+                return PlanetAPIAuthMiddleware(username: username, password: password)
+            }
+        }
+        return nil
     }
 }
