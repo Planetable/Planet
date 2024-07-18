@@ -21,6 +21,12 @@ class PlanetAPIService: NSObject, NetServiceDelegate {
         setupService(port)
     }
 
+    func stopService() {
+        netService?.stop()
+        netService?.delegate = nil
+        netService = nil
+    }
+
     private func getHostname() -> String? {
         var name = [CChar](repeating: 0, count: Int(NI_MAXHOST))
         if gethostname(&name, name.count) == 0 {
@@ -66,5 +72,9 @@ class PlanetAPIService: NSObject, NetServiceDelegate {
 
     func netService(_ sender: NetService, didNotPublish errorDict: [String: NSNumber]) {
         debugPrint("Failed to publish Bonjour service: \(errorDict)")
+    }
+    
+    func netServiceDidStop(_ sender: NetService) {
+        debugPrint("Bonjour service stopped.")
     }
 }

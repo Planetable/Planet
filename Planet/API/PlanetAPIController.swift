@@ -12,7 +12,9 @@ class PlanetAPIController: NSObject, ObservableObject {
     static let shared = PlanetAPIController()
     
     var globalApp: Application?
-    
+
+    private var bonjourService: PlanetAPIService?
+
     @Published var serverIsRunning: Bool = false {
         didSet {
             UserDefaults.standard.set(serverIsRunning, forKey: .settingsAPIEnabled)
@@ -47,7 +49,9 @@ class PlanetAPIController: NSObject, ObservableObject {
         if defaults.bool(forKey: .settingsAPIEnabled) {
             Task.detached(priority: .background) {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
-                self.startServer()
+                Task { @MainActor in
+                    self.startServer()
+                }
             }
         }
     }
@@ -72,6 +76,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         } catch {
             stopServer()
         }
+        startBonjourService()
     }
 
     func stopServer() {
@@ -80,6 +85,20 @@ class PlanetAPIController: NSObject, ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             self.serverIsRunning = false
         }
+        stopBonjourService()
+    }
+    
+    func startBonjourService() {
+        if bonjourService == nil {
+            if let portString = UserDefaults.standard.string(forKey: .settingsAPIPort), let p = Int(portString) {
+                bonjourService = PlanetAPIService(p)
+            }
+        }
+    }
+    
+    func stopBonjourService() {
+        bonjourService?.stopService()
+        bonjourService = nil
     }
 
     // MARK: -
@@ -101,6 +120,22 @@ class PlanetAPIController: NSObject, ObservableObject {
                 return ["timestamp": timestamp]
             }
         }
+        
+        // GET /v0/id
+        
+        // GET /v0/info
+        
+        // GET /v0/ping
+        
+        // GET,POST /v0/planets/my
+        
+        // GET,POST,DELETE /v0/planets/my/:a
+        
+        // POST /v0/planets/my/:a/publish
+        
+        // GET,POST /v0/planets/my/:a/articles
+        
+        // GET,POST,DELETE /v0/planets/my/:a/articles/:b
     }
     
     private func configure(_ app: Application) throws {

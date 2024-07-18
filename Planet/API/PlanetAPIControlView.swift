@@ -170,7 +170,7 @@ struct PlanetAPIControlView: View {
     }
     
     private func applyServerInformation() throws {
-        if let port = Int(apiPort), port > 1024, port < 60000 {
+        if let port = Int(apiPort), port >= 1024, port <= 32767 {
             UserDefaults.standard.set(apiPort, forKey: .settingsAPIPort)
         } else {
             throw PlanetAPIControlError.invalidAPIPortError
