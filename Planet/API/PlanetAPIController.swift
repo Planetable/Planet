@@ -140,6 +140,12 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
 
         // GET,POST /v0/planets/my
+        builder.get("v0", "planets", "my") { req async throws -> Response in
+            return try await self.routeGetPlanets(fromRequest: req)
+        }
+        builder.post("v0") { req async throws -> Response in
+            return try await self.routePostCreatePlanet(fromRequest: req)
+        }
         
         // GET,POST,DELETE /v0/planets/my/:a
         
@@ -217,5 +223,18 @@ class PlanetAPIController: NSObject, ObservableObject {
             return response
         }
         throw Abort(.notFound)
+    }
+    
+    private func routeGetPlanets(fromRequest req: Request) async throws -> Response {
+        let planets = PlanetAPI.shared.myPlanets
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(planets)
+        let response = Response(status: .ok, body: .init(data: data))
+        response.headers.contentType = .json
+        return response
+    }
+    
+    private func routePostCreatePlanet(fromRequest req: Request) async throws -> Response {
+        throw Abort(.internalServerError)
     }
 }
