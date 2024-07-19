@@ -104,29 +104,41 @@ class PlanetAPIController: NSObject, ObservableObject {
     // MARK: -
     
     private func routes(_ app: Application) throws {
-        // GET route
-        if let auth = authMiddleware() {
-            app.grouped(auth).get("v0", "info") { req async throws -> [String: String] in
-                let dateFormatter = ISO8601DateFormatter()
-                let timestamp = dateFormatter.string(from: Date())
-                try await Task.sleep(nanoseconds: 1_000_000_000)
-                return ["timestamp": timestamp]
+        let builder: RoutesBuilder = {
+            let auth = authMiddleware()
+            if let auth {
+                return app.grouped(auth)
+            } else {
+                return app
             }
-        } else {
-            app.get("v0", "info") { req async throws -> [String: String] in
-                let dateFormatter = ISO8601DateFormatter()
-                let timestamp = dateFormatter.string(from: Date())
-                try await Task.sleep(nanoseconds: 1_000_000_000)
-                return ["timestamp": timestamp]
-            }
+        }()
+
+        //MARK: GET /v0/id
+        /// Return IPFS ID
+        builder.get("v0", "id") { req async throws -> String in
+            return try await self.routeGetID(fromRequest: req)
         }
         
-        // GET /v0/id
+        //MARK: GET /v0/ping
+        /// Simple ping/pong test for authenticated user.
+        builder.get("v0", "ping") { req async throws -> String in
+            return try await self.routeGetPing(fromRequest: req)
+        }
         
-        // GET /v0/info
-        
-        // GET /v0/ping
-        
+        //MARK: GET /v0/info
+        /// Return ServerInfo
+        ///
+        /// ### Contents of ServerInfo
+        ///
+        /// - ``hostName``: String
+        /// - ``version``: String
+        /// - ``ipfsPeerID``: String
+        /// - ``ipfsPeerCount``: Int
+        /// - ``ipfsVersion``: String
+        builder.get("v0", "info") { req async throws -> Response in
+            return try await self.routeGetServerInfo(fromRequest: req)
+        }
+
         // GET,POST /v0/planets/my
         
         // GET,POST,DELETE /v0/planets/my/:a
@@ -173,5 +185,37 @@ class PlanetAPIController: NSObject, ObservableObject {
             }
         }
         return nil
+    }
+    
+    // MARK: -
+    
+    private func routeGetID(fromRequest req: Request) async throws -> String {
+        let data = try await IPFSDaemon.shared.api(path: "id")
+        let json = try JSONSerialization.jsonObject(with: data, options: [])
+        var id: String?
+        if let dict = json as? [String: Any] {
+            id = dict["ID"] as? String
+        } else if let dict = json as? [String: String] {
+            id = dict["ID"]
+        }
+        if let id {
+            return id
+        }
+        throw Abort(.notFound)
+    }
+    
+    private func routeGetPing(fromRequest req: Request) async throws -> String {
+        return "pong"
+    }
+    
+    private func routeGetServerInfo(fromRequest req: Request) async throws -> Response {
+        if let info = IPFSState.shared.serverInfo {
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(info)
+            let response = Response(status: .ok, body: .init(data: data))
+            response.headers.contentType = .json
+            return response
+        }
+        throw Abort(.notFound)
     }
 }
