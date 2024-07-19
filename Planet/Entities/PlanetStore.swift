@@ -98,6 +98,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 if let followingArticle = selectedArticle as? FollowingArticleModel {
                     followingArticle.read = Date()
                     try? followingArticle.save()
+                    PlanetStore.shared.updateTotalUnreadCount()
                 }
             }
         }
@@ -165,6 +166,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isShowingAlert = false
     @Published var alertTitle: String = ""
     @Published var alertMessage: String = ""
+
+    @Published var totalUnreadCount: Int = 0
 
     nonisolated static let app: PlanetAppShell = (Bundle.main.executableURL?.lastPathComponent == "Croptop") ? .lite : .planet
 
@@ -249,6 +252,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         followingPlanets = Array(followingAllPlanets[followingPlanetPartition...])
         loadFollowingPlanetsOrder()
         logger.info("Loaded \(self.followingPlanets.count) following planets")
+        updateTotalUnreadCount()
     }
 
     func publishMyPlanets() {
@@ -264,6 +268,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 }
             }
         }
+    }
+
+    func updateTotalUnreadCount() {
+        totalUnreadCount = followingPlanets.reduce(0) { $0 + $1.articles.filter { $0.read == nil }.count }
     }
 
     private let myPlanetsOrderKey = "myPlanetsOrder"

@@ -45,6 +45,7 @@ struct PlanetSidebarView: View {
                             .font(.body)
                             .foregroundColor(.primary)
                     }
+                    .badge(planetStore.totalUnreadCount)
                     .tag(PlanetDetailViewType.unread)
 
                     HStack(spacing: 4) {
