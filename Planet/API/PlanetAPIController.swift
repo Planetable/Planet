@@ -143,17 +143,23 @@ class PlanetAPIController: NSObject, ObservableObject {
         builder.get("v0", "planets", "my") { req async throws -> Response in
             return try await self.routeGetPlanets(fromRequest: req)
         }
-        builder.post("v0", "planets", "my") { req async throws -> Response in
+        builder.on(.POST, "v0", "planets", "my", body: .collect(maxSize: "5mb")) { req async throws -> Response in
             return try await self.routePostCreatePlanet(fromRequest: req)
         }
         
         // GET,POST,DELETE /v0/planets/my/:a
-        
+
+
         // POST /v0/planets/my/:a/publish
-        
+
+
         // GET,POST /v0/planets/my/:a/articles
-        
+
+
         // GET,POST,DELETE /v0/planets/my/:a/articles/:b
+
+
+        // MARK: TODO: use body steam to handle large size payloads
     }
     
     private func configure(_ app: Application) throws {
@@ -181,8 +187,6 @@ class PlanetAPIController: NSObject, ObservableObject {
         let fileMiddleware = FileMiddleware(publicDirectory: repoPath, defaultFile: "index.html")
         app.middleware.use(fileMiddleware)
 
-        app.routes.defaultMaxBodySize = "50mb"
-        
         try routes(app)
     }
     
