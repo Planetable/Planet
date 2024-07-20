@@ -57,7 +57,7 @@ actor PlanetAPIHelper {
     }
 
     private func launch() throws {
-        // MARK: old server will be removed soon when vapor server tested.
+        // MARK: old server will be removed soon when vapor server was tested.
         return
 
         guard UserDefaults.standard.bool(forKey: .settingsAPIEnabled) else { return }

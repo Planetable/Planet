@@ -143,7 +143,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         builder.get("v0", "planets", "my") { req async throws -> Response in
             return try await self.routeGetPlanets(fromRequest: req)
         }
-        builder.post("v0") { req async throws -> Response in
+        builder.post("v0", "planets", "my") { req async throws -> Response in
             return try await self.routePostCreatePlanet(fromRequest: req)
         }
         
@@ -181,6 +181,8 @@ class PlanetAPIController: NSObject, ObservableObject {
         let fileMiddleware = FileMiddleware(publicDirectory: repoPath, defaultFile: "index.html")
         app.middleware.use(fileMiddleware)
 
+        app.routes.defaultMaxBodySize = "50mb"
+        
         try routes(app)
     }
     
@@ -235,6 +237,38 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routePostCreatePlanet(fromRequest req: Request) async throws -> Response {
-        throw Abort(.internalServerError)
+        let p: APIPlanet = try req.content.decode(APIPlanet.self)
+        guard p.name != "" else {
+            throw Abort(.badRequest, reason: "Parameter 'name' is empty.")
+        }
+        let planetTemplateName: String = {
+            if !TemplateStore.shared.templates.contains(where: { t in
+                return t.name.lowercased() == p.template.lowercased()
+            }) {
+                return TemplateStore.shared.templates.first!.name
+            }
+            return p.template
+        }()
+        let planet = try await MyPlanetModel.create(
+            name: p.name,
+            about: p.about,
+            templateName: planetTemplateName
+        )
+        if let avatarData = p.avatar, let avatarImage = NSImage(data: avatarData) {
+            try planet.uploadAvatar(image: avatarImage)
+        }
+        try planet.save()
+        try await planet.savePublic()
+        let encoder = JSONEncoder()
+        let responsePayload = try encoder.encode(planet)
+        let response = Response(status: .created, body: .init(data: responsePayload))
+        response.headers.contentType = .json
+        defer {
+            Task { @MainActor in
+                PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                PlanetStore.shared.selectedView = .myPlanet(planet)
+            }
+        }
+        return response
     }
 }
