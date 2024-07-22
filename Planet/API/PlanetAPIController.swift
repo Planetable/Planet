@@ -208,6 +208,17 @@ class PlanetAPIController: NSObject, ObservableObject {
         return nil
     }
     
+    private func getPlanetByUUID(fromRequest req: Request) throws -> MyPlanetModel {
+        guard let uuidString = req.parameters.get("uuid"),
+              let uuid = UUID(uuidString: uuidString) else {
+            throw Abort(.badRequest, reason: "Invalid UUID format.")
+        }
+        guard let planet = PlanetAPI.shared.myPlanets.first(where: { $0.id == uuid }) else {
+            throw Abort(.notFound, reason: "Planet not found.")
+        }
+        return planet
+    }
+    
     // MARK: -
     
     private func routeGetID(fromRequest req: Request) async throws -> String {
@@ -294,13 +305,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routeGetPlanetInfo(fromRequest req: Request) async throws -> Response {
-        guard let uuidString = req.parameters.get("uuid"),
-              let uuid = UUID(uuidString: uuidString) else {
-            throw Abort(.badRequest, reason: "Invalid UUID format.")
-        }
-        guard let planet = PlanetAPI.shared.myPlanets.first(where: { $0.id == uuid }) else {
-            throw Abort(.notFound, reason: "Planet not found.")
-        }
+        let planet = try getPlanetByUUID(fromRequest: req)
         let encoder = JSONEncoder()
         let responsePayload = try encoder.encode(planet)
         let response = Response(status: .created, body: .init(data: responsePayload))
@@ -309,13 +314,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routePostModifyPlanetInfo(fromRequest req: Request) async throws -> Response {
-        guard let uuidString = req.parameters.get("uuid"),
-              let uuid = UUID(uuidString: uuidString) else {
-            throw Abort(.badRequest, reason: "Invalid UUID format.")
-        }
-        guard let planet = PlanetAPI.shared.myPlanets.first(where: { $0.id == uuid }) else {
-            throw Abort(.notFound, reason: "Planet not found.")
-        }
+        let planet = try getPlanetByUUID(fromRequest: req)
         let p: APIModifyPlanet = try req.content.decode(APIModifyPlanet.self)
         let planetName = p.name ?? ""
         let planetAbout = p.about ?? ""
@@ -358,13 +357,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routeDeleteDeletePlanet(fromRequest req: Request) async throws -> Response {
-        guard let uuidString = req.parameters.get("uuid"),
-              let uuid = UUID(uuidString: uuidString) else {
-            throw Abort(.badRequest, reason: "Invalid UUID format.")
-        }
-        guard let planet = PlanetAPI.shared.myPlanets.first(where: { $0.id == uuid }) else {
-            throw Abort(.notFound, reason: "Planet not found.")
-        }
+        let planet = try getPlanetByUUID(fromRequest: req)
         try planet.delete()
         defer {
             Task.detached(priority: .utility) {
