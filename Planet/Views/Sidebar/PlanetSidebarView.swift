@@ -33,6 +33,7 @@ struct PlanetSidebarView: View {
                             .font(.body)
                             .foregroundColor(.primary)
                     }
+                    .badge(planetStore.totalTodayCount)
                     .tag(PlanetDetailViewType.today)
 
                     HStack(spacing: 4) {
@@ -58,6 +59,7 @@ struct PlanetSidebarView: View {
                             .font(.body)
                             .foregroundColor(.primary)
                     }
+                    .badge(planetStore.totalStarredCount)
                     .tag(PlanetDetailViewType.starred)
                 }
                 .padding(.top, planetStore.walletAddress.count > 0 ? 6 : 0)

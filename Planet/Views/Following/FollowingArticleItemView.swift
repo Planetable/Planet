@@ -69,6 +69,10 @@ struct FollowingArticleItemView: View {
                         article.read = nil
                     }
                     try? article.save()
+                    Task.detached {
+                        await PlanetStore.shared.updateTotalUnreadCount()
+                        await PlanetStore.shared.updateTotalTodayCount()
+                    }
                 } label: {
                     Text(article.read == nil ? "Mark as Read" : "Mark as Unread")
                 }
@@ -84,6 +88,9 @@ struct FollowingArticleItemView: View {
                     Button {
                         article.starred = nil
                         try? article.save()
+                        Task.detached {
+                            await PlanetStore.shared.updateTotalStarredCount()
+                        }
                     } label: {
                         Text("Remove Star")
                     }

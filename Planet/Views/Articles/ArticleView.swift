@@ -43,6 +43,9 @@ struct ArticleSetStarView: View {
             article.starred = Date()
             article.starType = .star
             try? article.saveArticle()
+            Task.detached {
+                await PlanetStore.shared.updateTotalStarredCount()
+            }
         } label: {
             HStack {
                 Image(systemName: "star.fill")
@@ -54,6 +57,9 @@ struct ArticleSetStarView: View {
             Button {
                 article.starred = nil
                 try? article.saveArticle()
+                Task.detached {
+                    await PlanetStore.shared.updateTotalStarredCount()
+                }
             } label: {
                 HStack {
                     Spacer()
@@ -68,6 +74,9 @@ struct ArticleSetStarView: View {
             article.starred = Date()
             article.starType = .sparkles
             try? article.saveArticle()
+            Task.detached {
+                await PlanetStore.shared.updateTotalStarredCount()
+            }
         } label: {
             HStack {
                 Image(systemName: "sparkles")
@@ -78,6 +87,9 @@ struct ArticleSetStarView: View {
             article.starred = Date()
             article.starType = .heart
             try? article.saveArticle()
+            Task.detached {
+                await PlanetStore.shared.updateTotalStarredCount()
+            }
         } label: {
             HStack {
                 Image(systemName: "heart.fill")
@@ -88,6 +100,9 @@ struct ArticleSetStarView: View {
             article.starred = Date()
             article.starType = .question
             try? article.saveArticle()
+            Task.detached {
+                await PlanetStore.shared.updateTotalStarredCount()
+            }
         } label: {
             HStack {
                 Image(systemName: "questionmark.circle.fill")
@@ -98,6 +113,9 @@ struct ArticleSetStarView: View {
             article.starred = Date()
             article.starType = .paperplane
             try? article.saveArticle()
+            Task.detached {
+                await PlanetStore.shared.updateTotalStarredCount()
+            }
         } label: {
             HStack {
                 Image(systemName: "paperplane.circle.fill")
@@ -112,6 +130,9 @@ struct ArticleSetStarView: View {
             article.starred = Date()
             article.starType = .plan
             try? article.saveArticle()
+            Task.detached {
+                await PlanetStore.shared.updateTotalStarredCount()
+            }
         } label: {
             HStack {
                 Image(systemName: "circle.dotted")
@@ -122,6 +143,9 @@ struct ArticleSetStarView: View {
             article.starred = Date()
             article.starType = .todo
             try? article.saveArticle()
+            Task.detached {
+                await PlanetStore.shared.updateTotalStarredCount()
+            }
         } label: {
             HStack {
                 Image(systemName: "circle")
@@ -132,6 +156,9 @@ struct ArticleSetStarView: View {
             article.starred = Date()
             article.starType = .done
             try? article.saveArticle()
+            Task.detached {
+                await PlanetStore.shared.updateTotalStarredCount()
+            }
         } label: {
             HStack {
                 Image(systemName: "checkmark.circle.fill")
