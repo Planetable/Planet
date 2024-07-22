@@ -168,6 +168,9 @@ class PlanetAPIController: NSObject, ObservableObject {
         // GET,POST,DELETE /v0/planets/my/:a/articles/:b
 
 
+        // GET /v0/planets/my/:uuid/public
+        // expose public directory, no authentication required.
+
         // MARK: TODO: use body steam to handle large size payloads
     }
     
