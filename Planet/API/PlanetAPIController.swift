@@ -147,10 +147,19 @@ class PlanetAPIController: NSObject, ObservableObject {
             return try await self.routePostCreatePlanet(fromRequest: req)
         }
         
-        // GET,POST,DELETE /v0/planets/my/:a
+        // GET,POST,DELETE /v0/planets/my/:uuid
+        builder.get("v0", "planets", "my", ":uuid") { req async throws -> Response in
+            return try await self.routeGetPlanetInfo(fromRequest: req)
+        }
+        builder.on(.POST, "v0", "planets", "my", ":uuid", body: .collect(maxSize: "5mb")) { req async throws -> Response in
+            return try await self.routePostModifyPlanetInfo(fromRequest: req)
+        }
+        builder.delete("v0", "planets", "my", ":uuid") { req async throws -> Response in
+            return try await self.routeDeleteDeletePlanet(fromRequest: req)
+        }
 
 
-        // POST /v0/planets/my/:a/publish
+        // POST /v0/planets/my/:uuid/publish
 
 
         // GET,POST /v0/planets/my/:a/articles
@@ -258,8 +267,14 @@ class PlanetAPIController: NSObject, ObservableObject {
             about: p.about,
             templateName: planetTemplateName
         )
-        if let avatarData = p.avatar, let avatarImage = NSImage(data: avatarData) {
-            try planet.uploadAvatar(image: avatarImage)
+        try await MainActor.run {
+            if let avatarData = p.avatar, let avatarImage = NSImage(data: avatarData) {
+                do {
+                    try planet.uploadAvatar(image: avatarImage)
+                } catch {
+                    throw error
+                }
+            }
         }
         try planet.save()
         try await planet.savePublic()
@@ -268,11 +283,105 @@ class PlanetAPIController: NSObject, ObservableObject {
         let response = Response(status: .created, body: .init(data: responsePayload))
         response.headers.contentType = .json
         defer {
-            Task { @MainActor in
-                PlanetStore.shared.myPlanets.insert(planet, at: 0)
-                PlanetStore.shared.selectedView = .myPlanet(planet)
+            Task.detached(priority: .utility) {
+                Task { @MainActor in
+                    PlanetStore.shared.myPlanets.insert(planet, at: 0)
+                    PlanetStore.shared.selectedView = .myPlanet(planet)
+                }
             }
         }
+        return response
+    }
+    
+    private func routeGetPlanetInfo(fromRequest req: Request) async throws -> Response {
+        guard let uuidString = req.parameters.get("uuid"),
+              let uuid = UUID(uuidString: uuidString) else {
+            throw Abort(.badRequest, reason: "Invalid UUID format.")
+        }
+        guard let planet = PlanetAPI.shared.myPlanets.first(where: { $0.id == uuid }) else {
+            throw Abort(.notFound, reason: "Planet not found.")
+        }
+        let encoder = JSONEncoder()
+        let responsePayload = try encoder.encode(planet)
+        let response = Response(status: .created, body: .init(data: responsePayload))
+        response.headers.contentType = .json
+        return response
+    }
+    
+    private func routePostModifyPlanetInfo(fromRequest req: Request) async throws -> Response {
+        guard let uuidString = req.parameters.get("uuid"),
+              let uuid = UUID(uuidString: uuidString) else {
+            throw Abort(.badRequest, reason: "Invalid UUID format.")
+        }
+        guard let planet = PlanetAPI.shared.myPlanets.first(where: { $0.id == uuid }) else {
+            throw Abort(.notFound, reason: "Planet not found.")
+        }
+        let p: APIModifyPlanet = try req.content.decode(APIModifyPlanet.self)
+        let planetName = p.name ?? ""
+        let planetAbout = p.about ?? ""
+        let planetTemplateName = p.template ?? ""
+        try await MainActor.run {
+            if planetName != "" {
+                planet.name = planetName
+            }
+            if planetAbout != "" {
+                planet.about = planetAbout
+            }
+            if planetTemplateName != "" {
+                planet.templateName = planetTemplateName
+            }
+            if let avatarData = p.avatar, let avatarImage = NSImage(data: avatarData) {
+                do {
+                    try planet.uploadAvatar(image: avatarImage)
+                } catch {
+                    throw error
+                }
+            }
+        }
+        try planet.save()
+        try planet.copyTemplateAssets()
+        try planet.articles.forEach { try $0.savePublic() }
+        try await planet.savePublic()
+        defer {
+            Task.detached(priority: .utility) {
+                Task { @MainActor in
+                    NotificationCenter.default.post(name: .loadArticle, object: nil)
+                }
+                try? await planet.publish()
+            }
+        }
+        let encoder = JSONEncoder()
+        let responsePayload = try encoder.encode(planet)
+        let response = Response(status: .ok, body: .init(data: responsePayload))
+        response.headers.contentType = .json
+        return response
+    }
+    
+    private func routeDeleteDeletePlanet(fromRequest req: Request) async throws -> Response {
+        guard let uuidString = req.parameters.get("uuid"),
+              let uuid = UUID(uuidString: uuidString) else {
+            throw Abort(.badRequest, reason: "Invalid UUID format.")
+        }
+        guard let planet = PlanetAPI.shared.myPlanets.first(where: { $0.id == uuid }) else {
+            throw Abort(.notFound, reason: "Planet not found.")
+        }
+        try planet.delete()
+        defer {
+            Task.detached(priority: .utility) {
+                Task { @MainActor in
+                    if case .myPlanet(let selectedPlanet) = PlanetStore.shared.selectedView,
+                        planet == selectedPlanet
+                    {
+                        PlanetStore.shared.selectedView = nil
+                    }
+                    PlanetStore.shared.myPlanets.removeAll { $0.id == planet.id }
+                }
+            }
+        }
+        let encoder = JSONEncoder()
+        let responsePayload = try encoder.encode(planet)
+        let response = Response(status: .ok, body: .init(data: responsePayload))
+        response.headers.contentType = .json
         return response
     }
 }
