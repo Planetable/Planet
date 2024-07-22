@@ -158,8 +158,10 @@ class PlanetAPIController: NSObject, ObservableObject {
             return try await self.routeDeleteDeletePlanet(fromRequest: req)
         }
 
-
         // POST /v0/planets/my/:uuid/publish
+        builder.post("v0", "planets", "my", ":uuid", "publish") { req async throws -> Response in
+            return try await self.routePostPublishPlanet(fromRequest: req)
+        }
 
 
         // GET,POST /v0/planets/my/:a/articles
@@ -377,6 +379,20 @@ class PlanetAPIController: NSObject, ObservableObject {
         let encoder = JSONEncoder()
         let responsePayload = try encoder.encode(planet)
         let response = Response(status: .ok, body: .init(data: responsePayload))
+        response.headers.contentType = .json
+        return response
+    }
+
+    private func routePostPublishPlanet(fromRequest req: Request) async throws -> Response {
+        let planet = try getPlanetByUUID(fromRequest: req)
+        defer {
+            Task.detached(priority: .utility) {
+                try? await planet.publish()
+            }
+        }
+        let encoder = JSONEncoder()
+        let responsePayload = try encoder.encode(planet)
+        let response = Response(status: .accepted, body: .init(data: responsePayload))
         response.headers.contentType = .json
         return response
     }
