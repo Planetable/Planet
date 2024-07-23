@@ -113,19 +113,19 @@ class PlanetAPIController: NSObject, ObservableObject {
             }
         }()
         
-        //MARK: GET /v0/id
+        //MARK: - GET /v0/id
         /// Return IPFS ID
         builder.get("v0", "id") { req async throws -> String in
             return try await self.routeGetID(fromRequest: req)
         }
         
-        //MARK: GET /v0/ping
+        //MARK: - GET /v0/ping
         /// Simple ping/pong test for authenticated user.
         builder.get("v0", "ping") { req async throws -> String in
-            return try await self.routeGetPing(fromRequest: req)
+            return try await self.routePing(fromRequest: req)
         }
         
-        //MARK: GET /v0/info
+        //MARK: - GET /v0/info
         /// Return ServerInfo
         ///
         /// ### Contents of ServerInfo
@@ -139,37 +139,44 @@ class PlanetAPIController: NSObject, ObservableObject {
             return try await self.routeGetServerInfo(fromRequest: req)
         }
         
-        //MARK: GET /v0/planets/my
+        //MARK: - GET /v0/planets/my
         builder.get("v0", "planets", "my") { req async throws -> Response in
             return try await self.routeGetPlanets(fromRequest: req)
         }
 
-        //MARK: POST /v0/planets/my
+        //MARK: - POST /v0/planets/my
         builder.on(.POST, "v0", "planets", "my", body: .collect(maxSize: "5mb")) { req async throws -> Response in
-            return try await self.routePostCreatePlanet(fromRequest: req)
+            return try await self.routeCreatePlanet(fromRequest: req)
         }
         
-        //MARK: GET /v0/planets/my/:uuid
+        //MARK: - GET /v0/planets/my/:uuid
         builder.get("v0", "planets", "my", ":uuid") { req async throws -> Response in
             return try await self.routeGetPlanetInfo(fromRequest: req)
         }
         //MARK: POST /v0/planets/my/:uuid
         builder.on(.POST, "v0", "planets", "my", ":uuid", body: .collect(maxSize: "5mb")) { req async throws -> Response in
-            return try await self.routePostModifyPlanetInfo(fromRequest: req)
+            return try await self.routeModifyPlanetInfo(fromRequest: req)
         }
         //MARK: DELETE /v0/planets/my/:uuid
         builder.delete("v0", "planets", "my", ":uuid") { req async throws -> Response in
-            return try await self.routeDeleteDeletePlanet(fromRequest: req)
+            return try await self.routeDeletePlanet(fromRequest: req)
         }
         
-        //MARK: POST /v0/planets/my/:uuid/publish
+        //MARK: - POST /v0/planets/my/:uuid/publish
         builder.post("v0", "planets", "my", ":uuid", "publish") { req async throws -> Response in
-            return try await self.routePostPublishPlanet(fromRequest: req)
+            return try await self.routePublishPlanet(fromRequest: req)
         }
         
         
-        //MARK: GET,POST /v0/planets/my/:uuid/articles
-        
+        //MARK: - GET /v0/planets/my/:uuid/articles
+        builder.get("v0", "planets", "my", ":uuid", "articles") { req async throws -> Response in
+            return try await self.routeGetPlanetArticles(fromRequest: req)
+        }
+        //MARK: POST /v0/planets/my/:uuid/articles
+        builder.on(.POST, "v0", "planets", "my", ":uuid", "articles", body: .collect(maxSize: "50mb")) { req async throws -> Response in
+            return try await self.routeCreatePlanetArticle(fromRequest: req)
+        }
+
         
         //MARK: GET,POST,DELETE /v0/planets/my/:a/articles/:b
         
@@ -243,7 +250,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         throw Abort(.notFound)
     }
     
-    private func routeGetPing(fromRequest req: Request) async throws -> String {
+    private func routePing(fromRequest req: Request) async throws -> String {
         return "pong"
     }
     
@@ -267,7 +274,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         return response
     }
     
-    private func routePostCreatePlanet(fromRequest req: Request) async throws -> Response {
+    private func routeCreatePlanet(fromRequest req: Request) async throws -> Response {
         let p: APIPlanet = try req.content.decode(APIPlanet.self)
         guard p.name != "" else {
             throw Abort(.badRequest, reason: "Parameter 'name' is empty.")
@@ -320,7 +327,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         return response
     }
     
-    private func routePostModifyPlanetInfo(fromRequest req: Request) async throws -> Response {
+    private func routeModifyPlanetInfo(fromRequest req: Request) async throws -> Response {
         let planet = try getPlanetByUUID(fromRequest: req)
         let p: APIModifyPlanet = try req.content.decode(APIModifyPlanet.self)
         let planetName = p.name ?? ""
@@ -363,7 +370,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         return response
     }
     
-    private func routeDeleteDeletePlanet(fromRequest req: Request) async throws -> Response {
+    private func routeDeletePlanet(fromRequest req: Request) async throws -> Response {
         let planet = try getPlanetByUUID(fromRequest: req)
         try planet.delete()
         defer {
@@ -385,7 +392,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         return response
     }
     
-    private func routePostPublishPlanet(fromRequest req: Request) async throws -> Response {
+    private func routePublishPlanet(fromRequest req: Request) async throws -> Response {
         let planet = try getPlanetByUUID(fromRequest: req)
         defer {
             Task.detached(priority: .utility) {
@@ -397,5 +404,19 @@ class PlanetAPIController: NSObject, ObservableObject {
         let response = Response(status: .accepted, body: .init(data: responsePayload))
         response.headers.contentType = .json
         return response
+    }
+    
+    private func routeGetPlanetArticles(fromRequest req: Request) async throws -> Response {
+        let planet = try getPlanetByUUID(fromRequest: req)
+        let articles = planet.articles ?? []
+        let encoder = JSONEncoder()
+        let responsePayload = try encoder.encode(articles)
+        let response = Response(status: .ok, body: .init(data: responsePayload))
+        response.headers.contentType = .json
+        return response
+    }
+    
+    private func routeCreatePlanetArticle(fromRequest req: Request) async throws -> Response {
+        throw Abort(.badRequest)
     }
 }
