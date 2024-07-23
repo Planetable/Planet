@@ -233,6 +233,14 @@ class PlanetAPIController: NSObject, ObservableObject {
         return planet
     }
     
+    private func createResponse<T: Encodable>(from value: T, status: HTTPResponseStatus) throws -> Response {
+        let encoder = JSONEncoder()
+        let responsePayload = try encoder.encode(value)
+        let response = Response(status: status, body: .init(data: responsePayload))
+        response.headers.contentType = .json
+        return response
+    }
+    
     // MARK: -
     
     private func routeGetID(fromRequest req: Request) async throws -> String {
@@ -256,22 +264,14 @@ class PlanetAPIController: NSObject, ObservableObject {
     
     private func routeGetServerInfo(fromRequest req: Request) async throws -> Response {
         if let info = IPFSState.shared.serverInfo {
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(info)
-            let response = Response(status: .ok, body: .init(data: data))
-            response.headers.contentType = .json
-            return response
+            return try self.createResponse(from: info, status: .ok)
         }
         throw Abort(.notFound)
     }
     
     private func routeGetPlanets(fromRequest req: Request) async throws -> Response {
         let planets = PlanetAPI.shared.myPlanets
-        let encoder = JSONEncoder()
-        let data = try encoder.encode(planets)
-        let response = Response(status: .ok, body: .init(data: data))
-        response.headers.contentType = .json
-        return response
+        return try self.createResponse(from: planets, status: .ok)
     }
     
     private func routeCreatePlanet(fromRequest req: Request) async throws -> Response {
@@ -303,10 +303,6 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
         try planet.save()
         try await planet.savePublic()
-        let encoder = JSONEncoder()
-        let responsePayload = try encoder.encode(planet)
-        let response = Response(status: .created, body: .init(data: responsePayload))
-        response.headers.contentType = .json
         defer {
             Task.detached(priority: .utility) {
                 Task { @MainActor in
@@ -315,16 +311,12 @@ class PlanetAPIController: NSObject, ObservableObject {
                 }
             }
         }
-        return response
+        return try self.createResponse(from: planet, status: .created)
     }
     
     private func routeGetPlanetInfo(fromRequest req: Request) async throws -> Response {
         let planet = try getPlanetByUUID(fromRequest: req)
-        let encoder = JSONEncoder()
-        let responsePayload = try encoder.encode(planet)
-        let response = Response(status: .created, body: .init(data: responsePayload))
-        response.headers.contentType = .json
-        return response
+        return try self.createResponse(from: planet, status: .created)
     }
     
     private func routeModifyPlanetInfo(fromRequest req: Request) async throws -> Response {
@@ -363,11 +355,7 @@ class PlanetAPIController: NSObject, ObservableObject {
                 try? await planet.publish()
             }
         }
-        let encoder = JSONEncoder()
-        let responsePayload = try encoder.encode(planet)
-        let response = Response(status: .ok, body: .init(data: responsePayload))
-        response.headers.contentType = .json
-        return response
+        return try self.createResponse(from: planet, status: .ok)
     }
     
     private func routeDeletePlanet(fromRequest req: Request) async throws -> Response {
@@ -385,11 +373,7 @@ class PlanetAPIController: NSObject, ObservableObject {
                 }
             }
         }
-        let encoder = JSONEncoder()
-        let responsePayload = try encoder.encode(planet)
-        let response = Response(status: .ok, body: .init(data: responsePayload))
-        response.headers.contentType = .json
-        return response
+        return try self.createResponse(from: planet, status: .ok)
     }
     
     private func routePublishPlanet(fromRequest req: Request) async throws -> Response {
@@ -399,24 +383,43 @@ class PlanetAPIController: NSObject, ObservableObject {
                 try? await planet.publish()
             }
         }
-        let encoder = JSONEncoder()
-        let responsePayload = try encoder.encode(planet)
-        let response = Response(status: .accepted, body: .init(data: responsePayload))
-        response.headers.contentType = .json
-        return response
+        return try self.createResponse(from: planet, status: .accepted)
     }
     
     private func routeGetPlanetArticles(fromRequest req: Request) async throws -> Response {
         let planet = try getPlanetByUUID(fromRequest: req)
-        let articles = planet.articles ?? []
-        let encoder = JSONEncoder()
-        let responsePayload = try encoder.encode(articles)
-        let response = Response(status: .ok, body: .init(data: responsePayload))
-        response.headers.contentType = .json
-        return response
+        guard let articles = planet.articles, articles.count > 0 else {
+            throw Abort(.notFound)
+        }
+        return try self.createResponse(from: articles, status: .ok)
     }
     
     private func routeCreatePlanetArticle(fromRequest req: Request) async throws -> Response {
-        throw Abort(.badRequest)
+        let planet = try getPlanetByUUID(fromRequest: req)
+        let article: APIPlanetArticle = try req.content.decode(APIPlanetArticle.self)
+        let articleTitle = article.title ?? ""
+        let articleContent = article.content ?? ""
+        let articleDateString = article.date ?? ""
+        if articleTitle == "" && articleContent == "" {
+            throw Abort(.badRequest, reason: "Planet article title and content are empty.")
+        }
+        let draft = try DraftModel.create(for: planet)
+        draft.title = articleTitle
+        if articleDateString == "" {
+            draft.date = Date()
+        } else {
+            draft.date = PlanetAPI.dateFormatter().date(from: articleDateString) ?? Date()
+        }
+        draft.content = articleContent
+        for attachment in article.attachments ?? [] {
+            guard let attachmentData = attachment.data else { continue }
+            guard let attachmentFileName = attachment.filename else { continue }
+            guard let attachmentContentType = attachment.contentType else { continue }
+            try draft.addAttachmentFromData(data: attachmentData, fileName: attachmentFileName, forContentType: attachmentContentType)
+        }
+        try await MainActor.run {
+            try draft.saveToArticle()
+        }
+        return try self.createResponse(from: draft, status: .created)
     }
 }

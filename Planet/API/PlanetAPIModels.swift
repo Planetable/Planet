@@ -20,3 +20,20 @@ struct APIModifyPlanet: Content {
     var template: String?
     var avatar: Data?
 }
+
+
+struct APIPlanetArticle: Content {
+    var title: String?
+    var date: String?
+    var content: String?
+    var attachments: [Attachment]?
+    
+    struct Attachment: Codable {
+        var name: String
+        var filename: String?
+        var contentType: String?
+        var data: Data?
+    }
+}
+
+
