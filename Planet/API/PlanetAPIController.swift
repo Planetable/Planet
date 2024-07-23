@@ -12,15 +12,15 @@ class PlanetAPIController: NSObject, ObservableObject {
     static let shared = PlanetAPIController()
     
     var globalApp: Application?
-
+    
     private var bonjourService: PlanetAPIService?
-
+    
     @Published var serverIsRunning: Bool = false {
         didSet {
             UserDefaults.standard.set(serverIsRunning, forKey: .settingsAPIEnabled)
         }
     }
-
+    
     override init() {
         super.init()
         debugPrint("Planet API Controller Init.")
@@ -78,7 +78,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
         startBonjourService()
     }
-
+    
     func stopServer() {
         globalApp?.shutdown()
         globalApp = nil
@@ -100,7 +100,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         bonjourService?.stopService()
         bonjourService = nil
     }
-
+    
     // MARK: -
     
     private func routes(_ app: Application) throws {
@@ -112,7 +112,7 @@ class PlanetAPIController: NSObject, ObservableObject {
                 return app
             }
         }()
-
+        
         //MARK: GET /v0/id
         /// Return IPFS ID
         builder.get("v0", "id") { req async throws -> String in
@@ -138,42 +138,48 @@ class PlanetAPIController: NSObject, ObservableObject {
         builder.get("v0", "info") { req async throws -> Response in
             return try await self.routeGetServerInfo(fromRequest: req)
         }
-
-        // GET,POST /v0/planets/my
+        
+        //MARK: GET /v0/planets/my
         builder.get("v0", "planets", "my") { req async throws -> Response in
             return try await self.routeGetPlanets(fromRequest: req)
         }
+
+        //MARK: POST /v0/planets/my
         builder.on(.POST, "v0", "planets", "my", body: .collect(maxSize: "5mb")) { req async throws -> Response in
             return try await self.routePostCreatePlanet(fromRequest: req)
         }
         
-        // GET,POST,DELETE /v0/planets/my/:uuid
+        //MARK: GET /v0/planets/my/:uuid
         builder.get("v0", "planets", "my", ":uuid") { req async throws -> Response in
             return try await self.routeGetPlanetInfo(fromRequest: req)
         }
+        //MARK: POST /v0/planets/my/:uuid
         builder.on(.POST, "v0", "planets", "my", ":uuid", body: .collect(maxSize: "5mb")) { req async throws -> Response in
             return try await self.routePostModifyPlanetInfo(fromRequest: req)
         }
+        //MARK: DELETE /v0/planets/my/:uuid
         builder.delete("v0", "planets", "my", ":uuid") { req async throws -> Response in
             return try await self.routeDeleteDeletePlanet(fromRequest: req)
         }
-
-        // POST /v0/planets/my/:uuid/publish
+        
+        //MARK: POST /v0/planets/my/:uuid/publish
         builder.post("v0", "planets", "my", ":uuid", "publish") { req async throws -> Response in
             return try await self.routePostPublishPlanet(fromRequest: req)
         }
-
-
-        // GET,POST /v0/planets/my/:a/articles
-
-
-        // GET,POST,DELETE /v0/planets/my/:a/articles/:b
-
-
-        // GET /v0/planets/my/:uuid/public
-        // expose public directory, no authentication required.
-
-        // MARK: TODO: use body steam to handle large size payloads
+        
+        
+        //MARK: GET,POST /v0/planets/my/:uuid/articles
+        
+        
+        //MARK: GET,POST,DELETE /v0/planets/my/:a/articles/:b
+        
+        
+        //MARK: GET /v0/planets/my/:uuid/public
+        app.get("v0", "planets", "my", ":uuid", "public") { req async throws -> Response in
+            let planet = try self.getPlanetByUUID(fromRequest: req)
+            let redirectURL = URI(string: "/\(planet.id.uuidString)/")
+            return req.redirect(to: redirectURL.string, redirectType: .temporary)
+        }
     }
     
     private func configure(_ app: Application) throws {
@@ -187,10 +193,6 @@ class PlanetAPIController: NSObject, ObservableObject {
         }()
         app.http.server.configuration.port = port
         
-        if let authMiddleware = authMiddleware() {
-            app.middleware.use(authMiddleware)
-        }
-
         let repoPath: String = {
             if #available(macOS 13.0, *) {
                 return URLUtils.repoPath().appendingPathComponent("Public", conformingTo: .folder).path()
@@ -200,7 +202,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         }()
         let fileMiddleware = FileMiddleware(publicDirectory: repoPath, defaultFile: "index.html")
         app.middleware.use(fileMiddleware)
-
+        
         try routes(app)
     }
     
@@ -368,7 +370,7 @@ class PlanetAPIController: NSObject, ObservableObject {
             Task.detached(priority: .utility) {
                 Task { @MainActor in
                     if case .myPlanet(let selectedPlanet) = PlanetStore.shared.selectedView,
-                        planet == selectedPlanet
+                       planet == selectedPlanet
                     {
                         PlanetStore.shared.selectedView = nil
                     }
@@ -382,7 +384,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         response.headers.contentType = .json
         return response
     }
-
+    
     private func routePostPublishPlanet(fromRequest req: Request) async throws -> Response {
         let planet = try getPlanetByUUID(fromRequest: req)
         defer {
