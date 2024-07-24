@@ -178,7 +178,18 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
 
         
-        //MARK: GET,POST,DELETE /v0/planets/my/:a/articles/:b
+        //MARK: GET /v0/planets/articles/:my
+        builder.get("v0", "planets", "articles", ":my") { req async throws -> Response in
+            return try await self.routeGetPlanetArticle(fromRequest: req)
+        }
+        //MARK: POST /v0/planets/articles/:my
+        builder.on(.POST, "v0", "planets", "articles", ":my") { req async throws -> Response in
+            return try await self.routeModifyPlanetArticle(fromRequest: req)
+        }
+        //MARK: DELETE /v0/planets/articles/:my
+        builder.delete("v0", "planets", "articles", ":my") { req async throws -> Response in
+            return try await self.routeDeletePlanetArticle(fromRequest: req)
+        }
         
         
         //MARK: GET /v0/planets/my/:uuid/public
@@ -231,6 +242,26 @@ class PlanetAPIController: NSObject, ObservableObject {
             throw Abort(.notFound, reason: "Planet not found.")
         }
         return planet
+    }
+    
+    private func getPlanetAndArticleByUUID(fromRequest req: Request) throws -> (planet: MyPlanetModel, article: MyArticleModel) {
+        guard
+            let planetUUIDString = req.parameters.get("my")?.components(separatedBy: ":").first,
+            let planetUUID = UUID(uuidString: planetUUIDString) else {
+            throw Abort(.badRequest, reason: "Invalid planet UUID format.")
+        }
+        guard let planet = PlanetAPI.shared.myPlanets.first(where: { $0.id == planetUUID }) else {
+            throw Abort(.notFound, reason: "Planet not found.")
+        }
+        guard 
+            let articleUUIDString = req.parameters.get("my")?.components(separatedBy: ":").last,
+            let articleUUID = UUID(uuidString: articleUUIDString) else {
+            throw Abort(.badRequest, reason: "Invalid article UUID format.")
+        }
+        guard let article = planet.articles.first(where: { $0.id == articleUUID }) else {
+            throw Abort(.badRequest, reason: "Article not found.")
+        }
+        return (planet, article)
     }
     
     private func createResponse<T: Encodable>(from value: T, status: HTTPResponseStatus) throws -> Response {
@@ -421,5 +452,43 @@ class PlanetAPIController: NSObject, ObservableObject {
             try draft.saveToArticle()
         }
         return try self.createResponse(from: draft, status: .created)
+    }
+    
+    private func routeGetPlanetArticle(fromRequest req: Request) async throws -> Response {
+        let result = try getPlanetAndArticleByUUID(fromRequest: req)
+        let article = result.article
+        return try self.createResponse(from: article, status: .ok)
+    }
+    
+    private func routeModifyPlanetArticle(fromRequest req: Request) async throws -> Response {
+        throw Abort(.badRequest)
+    }
+    
+    private func routeDeletePlanetArticle(fromRequest req: Request) async throws -> Response {
+        let result = try getPlanetAndArticleByUUID(fromRequest: req)
+        let planet = result.planet
+        let article = result.article
+        await MainActor.run {
+            article.delete()
+            planet.updated = Date()
+        }
+        try await MainActor.run {
+            try planet.save()
+        }
+        try await planet.savePublic()
+        defer {
+            Task.detached(priority: .utility) {
+                await MainActor.run {
+                    if PlanetStore.shared.selectedArticle == article {
+                        PlanetStore.shared.selectedArticle = nil
+                    }
+                    if let selectedArticles = PlanetStore.shared.selectedArticleList,
+                       selectedArticles.contains(article) {
+                        PlanetStore.shared.refreshSelectedArticles()
+                    }
+                }
+            }
+        }
+        return try self.createResponse(from: article, status: .accepted)
     }
 }
