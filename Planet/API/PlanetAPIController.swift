@@ -179,15 +179,15 @@ class PlanetAPIController: NSObject, ObservableObject {
 
         
         //MARK: GET /v0/planets/articles/:my
-        builder.get("v0", "planets", "articles", ":my") { req async throws -> Response in
+        builder.get("v0", "planets", "my", "articles", ":my") { req async throws -> Response in
             return try await self.routeGetPlanetArticle(fromRequest: req)
         }
         //MARK: POST /v0/planets/articles/:my
-        builder.on(.POST, "v0", "planets", "articles", ":my") { req async throws -> Response in
+        builder.on(.POST, "v0", "planets", "my", "articles", ":my") { req async throws -> Response in
             return try await self.routeModifyPlanetArticle(fromRequest: req)
         }
         //MARK: DELETE /v0/planets/articles/:my
-        builder.delete("v0", "planets", "articles", ":my") { req async throws -> Response in
+        builder.delete("v0", "planets", "my", "articles", ":my") { req async throws -> Response in
             return try await self.routeDeletePlanetArticle(fromRequest: req)
         }
         
@@ -307,20 +307,32 @@ class PlanetAPIController: NSObject, ObservableObject {
     
     private func routeCreatePlanet(fromRequest req: Request) async throws -> Response {
         let p: APIPlanet = try req.content.decode(APIPlanet.self)
-        guard p.name != "" else {
-            throw Abort(.badRequest, reason: "Parameter 'name' is empty.")
-        }
-        let planetTemplateName: String = {
-            if !TemplateStore.shared.templates.contains(where: { t in
-                return t.name.lowercased() == p.template.lowercased()
-            }) {
-                return TemplateStore.shared.templates.first!.name
+        let planetName: String = {
+            if let name = p.name, name != "" {
+                return name
+            } else {
+                return ""
             }
-            return p.template
+        }()
+        if planetName == "" {
+            throw Abort(.badRequest, reason: "Planet name is empty.")
+        }
+        let planetAbout: String = {
+            if let about = p.about {
+                return about
+            }
+            return ""
+        }()
+        let planetTemplateName: String = {
+            let template: String = p.template?.lowercased() ?? ""
+            if TemplateStore.shared.hasTemplate(named: template) {
+                return template
+            }
+            return TemplateStore.shared.templates.first!.name
         }()
         let planet = try await MyPlanetModel.create(
-            name: p.name,
-            about: p.about,
+            name: planetName,
+            about: planetAbout,
             templateName: planetTemplateName
         )
         try await MainActor.run {
@@ -352,7 +364,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     
     private func routeModifyPlanetInfo(fromRequest req: Request) async throws -> Response {
         let planet = try getPlanetByUUID(fromRequest: req)
-        let p: APIModifyPlanet = try req.content.decode(APIModifyPlanet.self)
+        let p: APIPlanet = try req.content.decode(APIPlanet.self)
         let planetName = p.name ?? ""
         let planetAbout = p.about ?? ""
         let planetTemplateName = p.template ?? ""
@@ -363,7 +375,7 @@ class PlanetAPIController: NSObject, ObservableObject {
             if planetAbout != "" {
                 planet.about = planetAbout
             }
-            if planetTemplateName != "" {
+            if planetTemplateName != "", TemplateStore.shared.hasTemplate(named: planetTemplateName) {
                 planet.templateName = planetTemplateName
             }
             if let avatarData = p.avatar, let avatarImage = NSImage(data: avatarData) {
