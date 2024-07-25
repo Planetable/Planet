@@ -102,6 +102,13 @@ extension MyPlanetModel {
     ///
     /// Currently discovering feeds from domains is not supported.
     func aggregate() async {
+        if isAggregating {
+            debugPrint("Planet \(name) is already aggregating, skipping")
+            return
+        }
+        await MainActor.run {
+            self.isAggregating = true
+        }
         DispatchQueue.main.async {
             debugPrint("Aggregation: Started for \(self.name)")
             PlanetStore.shared.currentTaskMessage = "Fetching posts from other sites..."
@@ -116,6 +123,9 @@ extension MyPlanetModel {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
                     PlanetStore.shared.isAggregating = false
                 }
+            }
+            Task { @MainActor in
+                self.isAggregating = false
             }
         }
         guard let aggregation = aggregation, aggregation.count > 0 else {

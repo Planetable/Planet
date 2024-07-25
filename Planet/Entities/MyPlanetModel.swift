@@ -72,6 +72,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     @Published var isPublishing = false
     @Published var isRebuilding = false
+    @Published var isAggregating: Bool = false
 
     // populated when initializing
 
@@ -380,6 +381,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(lastPublishedCID)
         hasher.combine(isPublishing)
         hasher.combine(isRebuilding)
+        hasher.combine(isAggregating)
         hasher.combine(archived)
         hasher.combine(archivedAt)
         hasher.combine(plausibleEnabled)
@@ -458,6 +460,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.plausibleAPIServer == rhs.plausibleAPIServer
             && lhs.isPublishing == rhs.isPublishing
             && lhs.isRebuilding == rhs.isRebuilding
+            && lhs.isAggregating == rhs.isAggregating
             && lhs.twitterUsername == rhs.twitterUsername
             && lhs.githubUsername == rhs.githubUsername
             && lhs.telegramUsername == rhs.telegramUsername
