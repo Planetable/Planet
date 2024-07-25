@@ -479,6 +479,9 @@ class PlanetAPIController: NSObject, ObservableObject {
         try await MainActor.run {
             try draft.saveToArticle()
         }
+        if let a = planet.articles.first {
+            return try self.createResponse(from: a, status: .created)
+        }
         return try self.createResponse(from: draft, status: .created)
     }
     
@@ -489,7 +492,39 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routeModifyPlanetArticle(fromRequest req: Request) async throws -> Response {
-        throw Abort(.badRequest)
+        let result = try getPlanetAndArticleByUUID(fromRequest: req)
+        let planet = result.planet
+        let article = result.article
+        let draft = try DraftModel.create(from: article)
+        let updateArticle: APIPlanetArticle = try req.content.decode(APIPlanetArticle.self)
+        if let articleTitle = updateArticle.title, articleTitle != "" {
+            draft.title = articleTitle
+        }
+        if let articleDateString = updateArticle.date, articleDateString != "" {
+            draft.date = PlanetAPI.dateFormatter().date(from: articleDateString) ?? Date()
+        } else {
+            draft.date = Date()
+        }
+        if let articleContent = updateArticle.content, articleContent != "" {
+            draft.content = articleContent
+        }
+        if let attachments = updateArticle.attachments, attachments.count > 0 {
+            for existingAttachment in draft.attachments {
+                draft.deleteAttachment(name: existingAttachment.name)
+            }
+            for attachment in attachments {
+                let savedURL = try saveAttachment(attachment, forPlanet: planet.id)
+                let attachmentType = AttachmentType.from(savedURL)
+                try draft.addAttachment(path: savedURL, type: attachmentType)
+                Task.detached(priority: .background) {
+                    try? FileManager.default.removeItem(at: savedURL)
+                }
+            }
+        }
+        try await MainActor.run {
+            try draft.saveToArticle()
+        }
+        return try self.createResponse(from: article, status: .accepted)
     }
     
     private func routeDeletePlanetArticle(fromRequest req: Request) async throws -> Response {
