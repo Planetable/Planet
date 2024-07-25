@@ -18,14 +18,5 @@ struct APIPlanetArticle: Content {
     var title: String?
     var date: String?
     var content: String?
-    var attachments: [Attachment]?
-    
-    struct Attachment: Codable {
-        var name: String
-        var filename: String?
-        var contentType: String?
-        var data: Data?
-    }
+    var attachments: [File]?
 }
-
-

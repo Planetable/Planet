@@ -178,15 +178,15 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
 
         
-        //MARK: GET /v0/planets/articles/:my
+        //MARK: GET /v0/planets/my/articles/:my
         builder.get("v0", "planets", "my", "articles", ":my") { req async throws -> Response in
             return try await self.routeGetPlanetArticle(fromRequest: req)
         }
-        //MARK: POST /v0/planets/articles/:my
-        builder.on(.POST, "v0", "planets", "my", "articles", ":my") { req async throws -> Response in
+        //MARK: POST /v0/planets/my/articles/:my
+        builder.on(.POST, "v0", "planets", "my", "articles", ":my", body: .collect(maxSize: "50mb")) { req async throws -> Response in
             return try await self.routeModifyPlanetArticle(fromRequest: req)
         }
-        //MARK: DELETE /v0/planets/articles/:my
+        //MARK: DELETE /v0/planets/my/articles/:my
         builder.delete("v0", "planets", "my", "articles", ":my") { req async throws -> Response in
             return try await self.routeDeletePlanetArticle(fromRequest: req)
         }
@@ -264,6 +264,20 @@ class PlanetAPIController: NSObject, ObservableObject {
         return (planet, article)
     }
     
+    private func saveAttachment(_ file: File, forPlanet planetID: UUID) throws -> URL {
+        let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
+        let planetURL = tmp.appendingPathComponent(planetID.uuidString)
+        try? FileManager.default.createDirectory(at: planetURL, withIntermediateDirectories: true)
+        let targetURL = planetURL.appendingPathComponent(file.filename)
+        try? FileManager.default.removeItem(at: targetURL)
+        do {
+            try Data(buffer: file.data).write(to: targetURL)
+        } catch {
+            throw Abort(.internalServerError)
+        }
+        return targetURL
+    }
+    
     private func createResponse<T: Encodable>(from value: T, status: HTTPResponseStatus) throws -> Response {
         let encoder = JSONEncoder()
         let responsePayload = try encoder.encode(value)
@@ -271,7 +285,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         response.headers.contentType = .json
         return response
     }
-    
+
     // MARK: -
     
     private func routeGetID(fromRequest req: Request) async throws -> String {
@@ -455,10 +469,12 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
         draft.content = articleContent
         for attachment in article.attachments ?? [] {
-            guard let attachmentData = attachment.data else { continue }
-            guard let attachmentFileName = attachment.filename else { continue }
-            guard let attachmentContentType = attachment.contentType else { continue }
-            try draft.addAttachmentFromData(data: attachmentData, fileName: attachmentFileName, forContentType: attachmentContentType)
+            let savedURL = try saveAttachment(attachment, forPlanet: planet.id)
+            let attachmentType = AttachmentType.from(savedURL)
+            try draft.addAttachment(path: savedURL, type: attachmentType)
+            Task.detached(priority: .background) {
+                try? FileManager.default.removeItem(at: savedURL)
+            }
         }
         try await MainActor.run {
             try draft.saveToArticle()
