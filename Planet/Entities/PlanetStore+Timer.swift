@@ -11,6 +11,7 @@ import Foundation
 extension PlanetStore {
     /// Run every 300 seconds in Lite, fetch posts from other sites
     func aggregate() async {
+        debugPrint("Aggregating...")
         Task {
             await withTaskGroup(of: Void.self) { taskGroup in
                 for myPlanet in myPlanets {
