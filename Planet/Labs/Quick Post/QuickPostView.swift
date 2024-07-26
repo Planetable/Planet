@@ -37,6 +37,7 @@ struct QuickPostView: View {
                     .padding(.trailing, 10)
                     .frame(height: 160)
             }
+            .background(Color(NSColor.textBackgroundColor))
 
             Divider()
 
