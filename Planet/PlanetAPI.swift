@@ -57,6 +57,9 @@ actor PlanetAPIHelper {
     }
 
     private func launch() throws {
+        // MARK: old server will be removed soon when vapor server was tested.
+        return
+
         guard UserDefaults.standard.bool(forKey: .settingsAPIEnabled) else { return }
         server["/v0/id"] = { r in
             return PlanetAPI.shared.getNodeID(forRequest: r)
@@ -142,6 +145,10 @@ actor PlanetAPIHelper {
             shutdown()
             return
         }
+
+        // MARK: old server will be removed soon when vapor server tested.
+        return
+        
         let planets = PlanetAPI.shared.myPlanets
         let repoPath = URLUtils.repoPath().appendingPathComponent("Public", conformingTo: .folder)
         for planet in planets {

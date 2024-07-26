@@ -10,6 +10,8 @@
 		2A04DADD28EAD2250040D8E0 /* PlanetPublishedServiceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A04DADC28EAD2250040D8E0 /* PlanetPublishedServiceStore.swift */; };
 		2A04DADF28EAD2610040D8E0 /* PlanetPublishedFolderModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A04DADE28EAD2610040D8E0 /* PlanetPublishedFolderModel.swift */; };
 		2A052AC1290971E80028E88F /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A052AC0290971E80028E88F /* ArtworkView.swift */; };
+		2A06A7792C48E49E00187CFD /* PlanetAPIAuthMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A06A7782C48E49E00187CFD /* PlanetAPIAuthMiddleware.swift */; };
+		2A06A77A2C48E49E00187CFD /* PlanetAPIAuthMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A06A7782C48E49E00187CFD /* PlanetAPIAuthMiddleware.swift */; };
 		2A09A35C27C257D60003A0B5 /* PlanetMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */; };
 		2A09A35F27C2581F0003A0B5 /* PlanetSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */; };
 		2A09A36127C2582B0003A0B5 /* ArticleListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A09A36027C2582B0003A0B5 /* ArticleListView.swift */; };
@@ -273,6 +275,12 @@
 		2AC5A09D2BFAF7D700B9B172 /* IPFSTrafficChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC5A09C2BFAF7D700B9B172 /* IPFSTrafficChartView.swift */; };
 		2AC5A09E2BFAF7D700B9B172 /* IPFSTrafficChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC5A09C2BFAF7D700B9B172 /* IPFSTrafficChartView.swift */; };
 		2AC889422B71D4200090D355 /* TemplateMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC889412B71D4200090D355 /* TemplateMonitor.swift */; };
+		2AD0613C2C47A5AC00E288DB /* PlanetAPIController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD0613B2C47A5AC00E288DB /* PlanetAPIController.swift */; };
+		2AD0613D2C47A5AC00E288DB /* PlanetAPIController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD0613B2C47A5AC00E288DB /* PlanetAPIController.swift */; };
+		2AD0613F2C47A6E000E288DB /* PlanetAPIControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD0613E2C47A6E000E288DB /* PlanetAPIControlView.swift */; };
+		2AD061402C47A6E000E288DB /* PlanetAPIControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD0613E2C47A6E000E288DB /* PlanetAPIControlView.swift */; };
+		2AD061432C47A7B000E288DB /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = 2AD061422C47A7B000E288DB /* Vapor */; };
+		2AD061452C47A7C000E288DB /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = 2AD061442C47A7C000E288DB /* Vapor */; };
 		2AD45E6A2C1CA7080007F690 /* ipfs-amd64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AD45E692C1CA7080007F690 /* ipfs-amd64-0.15.bin */; };
 		2AD45E6B2C1CA7080007F690 /* ipfs-amd64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AD45E692C1CA7080007F690 /* ipfs-amd64-0.15.bin */; };
 		2AD45E6D2C1CA7160007F690 /* ipfs-arm64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AD45E6C2C1CA7160007F690 /* ipfs-arm64-0.15.bin */; };
@@ -309,6 +317,8 @@
 		2AED38AC2B4EF4B600E0B9BA /* PlanetSettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */; };
 		2AED38AE2B50D51C00E0B9BA /* AppMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AED38AD2B50D51C00E0B9BA /* AppMainView.swift */; };
 		2AEEBF5428C0758000A0A092 /* ArticleWebViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */; };
+		2AEFEE962C4BA4E700EEB958 /* PlanetAPIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEFEE952C4BA4E700EEB958 /* PlanetAPIModels.swift */; };
+		2AEFEE972C4BA4E700EEB958 /* PlanetAPIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEFEE952C4BA4E700EEB958 /* PlanetAPIModels.swift */; };
 		2AF1318727C7CDAF007792FE /* ArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF1318627C7CDAF007792FE /* ArticleView.swift */; };
 		2AF1318927C7CE8A007792FE /* TemplatePlaceholder.html in Resources */ = {isa = PBXBuildFile; fileRef = 2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */; };
 		2AF3F0422AD2C9BE001A97E1 /* PlanetQuickShareDropDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF3F0412AD2C9BE001A97E1 /* PlanetQuickShareDropDelegate.swift */; };
@@ -544,6 +554,7 @@
 		2A04DADC28EAD2250040D8E0 /* PlanetPublishedServiceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetPublishedServiceStore.swift; sourceTree = "<group>"; };
 		2A04DADE28EAD2610040D8E0 /* PlanetPublishedFolderModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetPublishedFolderModel.swift; sourceTree = "<group>"; };
 		2A052AC0290971E80028E88F /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
+		2A06A7782C48E49E00187CFD /* PlanetAPIAuthMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIAuthMiddleware.swift; sourceTree = "<group>"; };
 		2A09A35B27C257D60003A0B5 /* PlanetMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetMainView.swift; sourceTree = "<group>"; };
 		2A09A35E27C2581F0003A0B5 /* PlanetSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSidebarView.swift; sourceTree = "<group>"; };
 		2A09A36027C2582B0003A0B5 /* ArticleListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleListView.swift; sourceTree = "<group>"; };
@@ -643,6 +654,8 @@
 		2AC4997327BC0EBA00F1C2D1 /* Planet.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Planet.xcdatamodel; sourceTree = "<group>"; };
 		2AC5A09C2BFAF7D700B9B172 /* IPFSTrafficChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSTrafficChartView.swift; sourceTree = "<group>"; };
 		2AC889412B71D4200090D355 /* TemplateMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateMonitor.swift; sourceTree = "<group>"; };
+		2AD0613B2C47A5AC00E288DB /* PlanetAPIController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIController.swift; sourceTree = "<group>"; };
+		2AD0613E2C47A6E000E288DB /* PlanetAPIControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIControlView.swift; sourceTree = "<group>"; };
 		2AD45E692C1CA7080007F690 /* ipfs-amd64-0.15.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-amd64-0.15.bin"; sourceTree = "<group>"; };
 		2AD45E6C2C1CA7160007F690 /* ipfs-arm64-0.15.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-arm64-0.15.bin"; sourceTree = "<group>"; };
 		2ADD6E4C2A9F2D0A00AD763B /* vol1-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "vol1-1.png"; sourceTree = "<group>"; };
@@ -676,6 +689,7 @@
 		2AED38AA2B4EF48C00E0B9BA /* AppSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsView.swift; sourceTree = "<group>"; };
 		2AED38AD2B50D51C00E0B9BA /* AppMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMainView.swift; sourceTree = "<group>"; };
 		2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleWebViewModel.swift; sourceTree = "<group>"; };
+		2AEFEE952C4BA4E700EEB958 /* PlanetAPIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIModels.swift; sourceTree = "<group>"; };
 		2AF1318627C7CDAF007792FE /* ArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleView.swift; sourceTree = "<group>"; };
 		2AF1318827C7CE8A007792FE /* TemplatePlaceholder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = TemplatePlaceholder.html; sourceTree = "<group>"; };
 		2AF3F0412AD2C9BE001A97E1 /* PlanetQuickShareDropDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetQuickShareDropDelegate.swift; sourceTree = "<group>"; };
@@ -848,6 +862,7 @@
 				2A95E6AE2A19A48C001288B8 /* Sparkle in Frameworks */,
 				6AFCF7E22B7353FE002299BA /* Collections in Frameworks */,
 				2A95E6AA2A19A48C001288B8 /* PlanetSiteTemplates in Frameworks */,
+				2AD061452C47A7C000E288DB /* Vapor in Frameworks */,
 				2A95E6AC2A19A48C001288B8 /* SwiftSoup in Frameworks */,
 				2A95E6C52A19A48C001288B8 /* WalletConnectPush in Frameworks */,
 				2A95E6C12A19A48C001288B8 /* WalletConnectNetworking in Frameworks */,
@@ -860,6 +875,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2AD061432C47A7B000E288DB /* Vapor in Frameworks */,
 				6AB6E515291527B800F17328 /* WalletConnectPairing in Frameworks */,
 				BB7FC8752898C70A00359802 /* libcmark_gfm in Frameworks */,
 				2A466FD42A809F65009FB646 /* ASMediaView in Frameworks */,
@@ -1322,6 +1338,10 @@
 			isa = PBXGroup;
 			children = (
 				6A1F97A52ADDDE0100C75625 /* PlanetAPIService.swift */,
+				2AD0613B2C47A5AC00E288DB /* PlanetAPIController.swift */,
+				2AEFEE952C4BA4E700EEB958 /* PlanetAPIModels.swift */,
+				2A06A7782C48E49E00187CFD /* PlanetAPIAuthMiddleware.swift */,
+				2AD0613E2C47A6E000E288DB /* PlanetAPIControlView.swift */,
 			);
 			path = API;
 			sourceTree = "<group>";
@@ -1616,6 +1636,7 @@
 				6AFCF7E12B7353FE002299BA /* Collections */,
 				6AFCF7E32B7353FE002299BA /* DequeModule */,
 				6AFCF7E52B7353FE002299BA /* OrderedCollections */,
+				2AD061442C47A7C000E288DB /* Vapor */,
 			);
 			productName = Croptop;
 			productReference = 2ABD1CC12A1616DA0082D7EA /* Croptop.app */;
@@ -1664,6 +1685,7 @@
 				6AFCF7DD2B7353C6002299BA /* DequeModule */,
 				6AFCF7DF2B7353C6002299BA /* OrderedCollections */,
 				2AAF51092C293DE100C0B7AA /* HDWalletKit */,
+				2AD061422C47A7B000E288DB /* Vapor */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -1721,6 +1743,7 @@
 				2A27743F2A9514EE00A5DDC2 /* XCRemoteSwiftPackageReference "Zip" */,
 				6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */,
 				2AAF51082C293DE100C0B7AA /* XCRemoteSwiftPackageReference "HDWallet" */,
+				2AD061412C47A7B000E288DB /* XCRemoteSwiftPackageReference "vapor" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -1841,6 +1864,7 @@
 				2A58329A2B27FB2600A478CA /* PlanetSettingsAPIView.swift in Sources */,
 				2A95E67F2A19A3C4001288B8 /* MarkdownUtils.swift in Sources */,
 				6A7F606A2B21ACE500475731 /* PlanetStore+Search.swift in Sources */,
+				2AD0613D2C47A5AC00E288DB /* PlanetAPIController.swift in Sources */,
 				2A95E6A22A19A446001288B8 /* DraftModel.swift in Sources */,
 				2A95E6662A19A3AF001288B8 /* TBInspectorViewController.swift in Sources */,
 				2A8E08542BF4B173002D0C03 /* IPFSOpenViewController.swift in Sources */,
@@ -1854,6 +1878,7 @@
 				2A95E68B2A19A3CA001288B8 /* WriterAudioView.swift in Sources */,
 				2A95E6832A19A3CA001288B8 /* WriterWindow.swift in Sources */,
 				2A95E66B2A19A3AF001288B8 /* TBContainerViewController.swift in Sources */,
+				2AEFEE972C4BA4E700EEB958 /* PlanetAPIModels.swift in Sources */,
 				2AED38A92B4E431800E0B9BA /* CroptopApp.swift in Sources */,
 				2A95E6862A19A3CA001288B8 /* WriterView.swift in Sources */,
 				2A6DC6282AEB7F9D0025D6A7 /* PlanetStatusManager.swift in Sources */,
@@ -1949,6 +1974,7 @@
 				6AE1839C2B08BB3E00FC9DC4 /* MyPlanetModel+Aggregate.swift in Sources */,
 				2A95E6E42A19A64F001288B8 /* CLTextFieldView.swift in Sources */,
 				2A95E6882A19A3CA001288B8 /* AttachmentThumbnailView.swift in Sources */,
+				2A06A77A2C48E49E00187CFD /* PlanetAPIAuthMiddleware.swift in Sources */,
 				2A95E6FC2A1B0011001288B8 /* MyPlanetInfoView.swift in Sources */,
 				2A95E6FB2A1AFC23001288B8 /* AppSidebarItemView.swift in Sources */,
 				2A95E6842A19A3CA001288B8 /* WriterDragAndDrop.swift in Sources */,
@@ -1999,6 +2025,7 @@
 				2A95E6762A19A3C4001288B8 /* Extensions.swift in Sources */,
 				2A6E16D62A18678E00704A08 /* AppSidebarView.swift in Sources */,
 				2A95E65B2A19A3A2001288B8 /* WalletManager.swift in Sources */,
+				2AD061402C47A6E000E288DB /* PlanetAPIControlView.swift in Sources */,
 				2A95E6DD2A19A4E6001288B8 /* ArticleWebViewModel.swift in Sources */,
 				2A996AD82A1DA6CD00BEF898 /* PlanetDownloadsViewController.swift in Sources */,
 				2A95E70E2A1C5F3F001288B8 /* AppContentDropDelegate.swift in Sources */,
@@ -2104,6 +2131,7 @@
 				7211431A5867D4CF2960EC39 /* IPFSCommand.swift in Sources */,
 				7211453BC07C2E4A588D1618 /* URLUtils.swift in Sources */,
 				6A900193296C9F3800BC088E /* MyArticleSettingsView.swift in Sources */,
+				2AD0613F2C47A6E000E288DB /* PlanetAPIControlView.swift in Sources */,
 				72114A84BE7EC3DA2AAF14F5 /* Planet.swift in Sources */,
 				6A52FAEC2A889577000E85F0 /* BackupArticleModel.swift in Sources */,
 				7211466B9B1D3BAF1FC23CA1 /* PlanetArticle.swift in Sources */,
@@ -2126,6 +2154,7 @@
 				721146EC85B1251B2669195C /* ENSUtils.swift in Sources */,
 				721145EEDE381A8BDED43E93 /* FeedUtils.swift in Sources */,
 				721144331A990EB4451F1C1F /* MyPlanetModel.swift in Sources */,
+				2AEFEE962C4BA4E700EEB958 /* PlanetAPIModels.swift in Sources */,
 				72114A3B2AA58EA6B139AEB8 /* FollowingPlanetModel.swift in Sources */,
 				72114C03242147A247A8B317 /* Runner.swift in Sources */,
 				6ADD7D882A51B616003D2E54 /* MyArticleModel+Save.swift in Sources */,
@@ -2135,6 +2164,7 @@
 				6A2C0BBC2A729DC2009E53DE /* AvatarPickerView.swift in Sources */,
 				2A2556B8293E1F13006462D8 /* TBContainerViewController.swift in Sources */,
 				6A7F60662B21A37100475731 /* SearchView.swift in Sources */,
+				2A06A7792C48E49E00187CFD /* PlanetAPIAuthMiddleware.swift in Sources */,
 				721146E58D1D1E45CF92E17A /* IPFSAPIModel.swift in Sources */,
 				2A8E08532BF4B173002D0C03 /* IPFSOpenViewController.swift in Sources */,
 				6AA2C2022AFF538B00F6C633 /* MyArticleGridView.swift in Sources */,
@@ -2208,6 +2238,7 @@
 				2AA797312948A1B50031E873 /* WKScriptHelper.swift in Sources */,
 				2AFB897029BA17CB003D893E /* PlanetKeyManagerWindowController.swift in Sources */,
 				2AE44EB028CD223C00944786 /* PlanetSettingsViewModel.swift in Sources */,
+				2AD0613C2C47A5AC00E288DB /* PlanetAPIController.swift in Sources */,
 				2A052AC1290971E80028E88F /* ArtworkView.swift in Sources */,
 				6A86AC1B2AAA71770028BD1C /* AggregationSettings.swift in Sources */,
 				2A2556AF293E1E7D006462D8 /* TBWindowController.swift in Sources */,
@@ -2611,6 +2642,14 @@
 				kind = branch;
 			};
 		};
+		2AD061412C47A7B000E288DB /* XCRemoteSwiftPackageReference "vapor" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/vapor";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.102.1;
+			};
+		};
 		2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airwolfspace/mediaview";
@@ -2855,6 +2894,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */;
 			productName = Stencil;
+		};
+		2AD061422C47A7B000E288DB /* Vapor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2AD061412C47A7B000E288DB /* XCRemoteSwiftPackageReference "vapor" */;
+			productName = Vapor;
+		};
+		2AD061442C47A7C000E288DB /* Vapor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2AD061412C47A7B000E288DB /* XCRemoteSwiftPackageReference "vapor" */;
+			productName = Vapor;
 		};
 		2AFDF8A92A3A1E8500386B9A /* ASMediaView */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -11,12 +11,13 @@ Here are some initial ideas.
 
 * GET /v0/planets/my/:uuid - Info of a specific My Planet
 * POST /v0/planets/my/:uuid - Modify my Planet
+* DELETE /v0/planets/my/:uuid - Delete my Planet
 * POST /v0/planets/my/:uuid/publish - Publish My Planet
 * GET /v0/planets/my/:uuid/public - Expose the content built
 
 * GET /v0/planets/my/:uuid/articles - List articles under My Planet
 * POST /v0/planets/my/:uuid/articles - Create a new Article
   
-* GET /v0/planets/my/:uuid/articles/:uuid - Get an article by UUID
-* POST /v0/planets/my/:uuid/articles/:uuid - Modify an article
-* DELETE /v0/planets/my/:uuid/articles/:uuid - Delete an article
+* GET /v0/articles/my/:my - Get an article by planet and article UUID
+* POST /v0/articles/my/:my - Modify an article by planet and article UUID
+* DELETE /v0/articles/my/:my - Delete an article
