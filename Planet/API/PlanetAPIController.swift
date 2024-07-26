@@ -113,21 +113,23 @@ class PlanetAPIController: NSObject, ObservableObject {
             }
         }()
         
-        //MARK: - GET /v0/id
-        /// Return IPFS ID
+        //MARK: - Planet Public API -
+        //MARK: GET /v0/id
+        //MARK: Get IPFS ID -
+        /// Return IPFS ID, String
         builder.get("v0", "id") { req async throws -> String in
             return try await self.routeGetID(fromRequest: req)
         }
         
-        //MARK: - GET /v0/ping
-        /// Simple ping/pong test for authenticated user.
+        //MARK: GET /v0/ping
+        //MARK: Simple ping/pong test for authenticated user -
         builder.get("v0", "ping") { req async throws -> String in
             return try await self.routePing(fromRequest: req)
         }
         
-        //MARK: - GET /v0/info
-        /// Return ServerInfo
-        ///
+        //MARK: GET /v0/info
+        //MARK: Get ServerInfo -
+        /// Return ServerInfo, Struct
         /// ### Contents of ServerInfo
         ///
         /// - ``hostName``: String
@@ -139,64 +141,89 @@ class PlanetAPIController: NSObject, ObservableObject {
             return try await self.routeGetServerInfo(fromRequest: req)
         }
         
-        //MARK: - GET /v0/planets/my
+        //MARK: GET /v0/planets/my
+        //MARK: List all my Planets -
+        /// Return Array<MyPlanetModel>
         builder.get("v0", "planets", "my") { req async throws -> Response in
             return try await self.routeGetPlanets(fromRequest: req)
         }
 
-        //MARK: - POST /v0/planets/my
+        //MARK: POST /v0/planets/my
+        //MARK: Create a new Planet -
+        /// Return MyPlanetModel, Struct
         builder.on(.POST, "v0", "planets", "my", body: .collect(maxSize: "5mb")) { req async throws -> Response in
             return try await self.routeCreatePlanet(fromRequest: req)
         }
         
-        //MARK: - GET /v0/planets/my/:uuid
+        //MARK: GET /v0/planets/my/:uuid
+        //MARK: Info of a specific My Planet -
+        /// Return MyPlanetModel, Struct
         builder.get("v0", "planets", "my", ":uuid") { req async throws -> Response in
             return try await self.routeGetPlanetInfo(fromRequest: req)
         }
+        
         //MARK: POST /v0/planets/my/:uuid
+        //MARK: Modify my Planet -
+        /// Return MyPlanetModel, Struct
         builder.on(.POST, "v0", "planets", "my", ":uuid", body: .collect(maxSize: "5mb")) { req async throws -> Response in
             return try await self.routeModifyPlanetInfo(fromRequest: req)
         }
         //MARK: DELETE /v0/planets/my/:uuid
+        //MARK: Delete my Planet -
+        /// Return MyPlanetModel, Struct
         builder.delete("v0", "planets", "my", ":uuid") { req async throws -> Response in
             return try await self.routeDeletePlanet(fromRequest: req)
         }
         
-        //MARK: - POST /v0/planets/my/:uuid/publish
+        //MARK: POST /v0/planets/my/:uuid/publish
+        //MARK: Publish My Planet -
+        /// Return MyPlanetModel, Struct
         builder.post("v0", "planets", "my", ":uuid", "publish") { req async throws -> Response in
             return try await self.routePublishPlanet(fromRequest: req)
         }
         
-        
-        //MARK: - GET /v0/planets/my/:uuid/articles
-        builder.get("v0", "planets", "my", ":uuid", "articles") { req async throws -> Response in
-            return try await self.routeGetPlanetArticles(fromRequest: req)
-        }
-        //MARK: POST /v0/planets/my/:uuid/articles
-        builder.on(.POST, "v0", "planets", "my", ":uuid", "articles", body: .collect(maxSize: "50mb")) { req async throws -> Response in
-            return try await self.routeCreatePlanetArticle(fromRequest: req)
-        }
-
-        
-        //MARK: GET /v0/planets/my/articles/:my
-        builder.get("v0", "planets", "my", "articles", ":my") { req async throws -> Response in
-            return try await self.routeGetPlanetArticle(fromRequest: req)
-        }
-        //MARK: POST /v0/planets/my/articles/:my
-        builder.on(.POST, "v0", "planets", "my", "articles", ":my", body: .collect(maxSize: "50mb")) { req async throws -> Response in
-            return try await self.routeModifyPlanetArticle(fromRequest: req)
-        }
-        //MARK: DELETE /v0/planets/my/articles/:my
-        builder.delete("v0", "planets", "my", "articles", ":my") { req async throws -> Response in
-            return try await self.routeDeletePlanetArticle(fromRequest: req)
-        }
-        
-        
         //MARK: GET /v0/planets/my/:uuid/public
+        //MARK: Expose the content built -
+        /// Return index.html
         app.get("v0", "planets", "my", ":uuid", "public") { req async throws -> Response in
             let planet = try self.getPlanetByUUID(fromRequest: req)
             let redirectURL = URI(string: "/\(planet.id.uuidString)/")
             return req.redirect(to: redirectURL.string, redirectType: .temporary)
+        }
+
+        //MARK: GET /v0/planets/my/:uuid/articles
+        //MARK: List articles under My Planet -
+        /// Return Array<MyArticleModel>
+        builder.get("v0", "planets", "my", ":uuid", "articles") { req async throws -> Response in
+            return try await self.routeGetPlanetArticles(fromRequest: req)
+        }
+        
+        //MARK: POST /v0/planets/my/:uuid/articles
+        //MARK: Create a new Article -
+        /// Return MyArticleModel, Struct
+        builder.on(.POST, "v0", "planets", "my", ":uuid", "articles", body: .collect(maxSize: "50mb")) { req async throws -> Response in
+            return try await self.routeCreatePlanetArticle(fromRequest: req)
+        }
+
+        //MARK: GET /v0/articles/my/:my
+        //MARK: Get an article by planet and article UUID -
+        /// Return MyArticleModel, Struct
+        builder.get("v0", "articles", "my", ":my") { req async throws -> Response in
+            return try await self.routeGetPlanetArticle(fromRequest: req)
+        }
+        
+        //MARK: POST /v0/articles/my/:my
+        //MARK: Modify an article by planet and article UUID -
+        /// Return MyArticleModel, Struct
+        builder.on(.POST, "v0", "articles", "my", ":my", body: .collect(maxSize: "50mb")) { req async throws -> Response in
+            return try await self.routeModifyPlanetArticle(fromRequest: req)
+        }
+        
+        //MARK: DELETE /v0/planets/my/articles/:my
+        //MARK: Delete an article by planet and article UUID -
+        /// Return MyArticleModel, Struct
+        builder.delete("v0", "articles", "my", ":my") { req async throws -> Response in
+            return try await self.routeDeletePlanetArticle(fromRequest: req)
         }
     }
     
