@@ -186,7 +186,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         //MARK: Expose the content built -
         /// Return index.html
         app.get("v0", "planets", "my", ":uuid", "public") { req async throws -> Response in
-            let planet = try self.getPlanetByUUID(fromRequest: req)
+            let planet = try await self.getPlanetByUUID(fromRequest: req)
             let redirectURL = URI(string: "/\(planet.id.uuidString)/")
             return req.redirect(to: redirectURL.string, redirectType: .temporary)
         }
@@ -260,35 +260,48 @@ class PlanetAPIController: NSObject, ObservableObject {
         return nil
     }
     
-    private func getPlanetByUUID(fromRequest req: Request) throws -> MyPlanetModel {
+    private func getPlanetByUUID(fromRequest req: Request) async throws -> MyPlanetModel {
         guard let uuidString = req.parameters.get("uuid"),
               let uuid = UUID(uuidString: uuidString) else {
             throw Abort(.badRequest, reason: "Invalid UUID format.")
         }
-        guard let planet = PlanetAPI.shared.myPlanets.first(where: { $0.id == uuid }) else {
-            throw Abort(.notFound, reason: "Planet not found.")
+        return try await MainActor.run {
+            let myPlanets = PlanetStore.shared.myPlanets
+            guard let planet = myPlanets.first(where: { $0.id == uuid }) else {
+                throw Abort(.notFound, reason: "Planet not found.")
+            }
+            return planet
         }
-        return planet
     }
     
-    private func getPlanetAndArticleByUUID(fromRequest req: Request) throws -> (planet: MyPlanetModel, article: MyArticleModel) {
+    private func getPlanetAndArticleByUUID(fromRequest req: Request) async throws -> (planet: MyPlanetModel, article: MyArticleModel) {
         guard
             let planetUUIDString = req.parameters.get("my")?.components(separatedBy: ":").first,
             let planetUUID = UUID(uuidString: planetUUIDString) else {
             throw Abort(.badRequest, reason: "Invalid planet UUID format.")
         }
-        guard let planet = PlanetAPI.shared.myPlanets.first(where: { $0.id == planetUUID }) else {
-            throw Abort(.notFound, reason: "Planet not found.")
+        return try await MainActor.run {
+            guard let planet = PlanetStore.shared.myPlanets.first(where: { $0.id == planetUUID }) else {
+                throw Abort(.notFound, reason: "Planet not found.")
+            }
+            guard
+                let articleUUIDString = req.parameters.get("my")?.components(separatedBy: ":").last,
+                let articleUUID = UUID(uuidString: articleUUIDString) else {
+                throw Abort(.badRequest, reason: "Invalid article UUID format.")
+            }
+            guard let article = planet.articles.first(where: { $0.id == articleUUID }) else {
+                throw Abort(.badRequest, reason: "Article not found.")
+            }
+            return (planet, article)
         }
-        guard 
-            let articleUUIDString = req.parameters.get("my")?.components(separatedBy: ":").last,
-            let articleUUID = UUID(uuidString: articleUUIDString) else {
-            throw Abort(.badRequest, reason: "Invalid article UUID format.")
+    }
+    
+    private func getDateFromString(_ dateString: String) -> Date {
+        let formatter = ISO8601DateFormatter()
+        if let date = formatter.date(from: dateString) {
+            return date
         }
-        guard let article = planet.articles.first(where: { $0.id == articleUUID }) else {
-            throw Abort(.badRequest, reason: "Article not found.")
-        }
-        return (planet, article)
+        return Date()
     }
     
     private func saveAttachment(_ file: File, forPlanet planetID: UUID) throws -> URL {
@@ -342,8 +355,10 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routeGetPlanets(fromRequest req: Request) async throws -> Response {
-        let planets = PlanetAPI.shared.myPlanets
-        return try self.createResponse(from: planets, status: .ok)
+        return try await MainActor.run {
+            let planets = PlanetStore.shared.myPlanets
+            return try self.createResponse(from: planets, status: .ok)
+        }
     }
     
     private func routeCreatePlanet(fromRequest req: Request) async throws -> Response {
@@ -399,12 +414,12 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routeGetPlanetInfo(fromRequest req: Request) async throws -> Response {
-        let planet = try getPlanetByUUID(fromRequest: req)
+        let planet = try await getPlanetByUUID(fromRequest: req)
         return try self.createResponse(from: planet, status: .created)
     }
     
     private func routeModifyPlanetInfo(fromRequest req: Request) async throws -> Response {
-        let planet = try getPlanetByUUID(fromRequest: req)
+        let planet = try await getPlanetByUUID(fromRequest: req)
         let p: APIPlanet = try req.content.decode(APIPlanet.self)
         let planetName = p.name ?? ""
         let planetAbout = p.about ?? ""
@@ -443,7 +458,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routeDeletePlanet(fromRequest req: Request) async throws -> Response {
-        let planet = try getPlanetByUUID(fromRequest: req)
+        let planet = try await getPlanetByUUID(fromRequest: req)
         try planet.delete()
         defer {
             Task.detached(priority: .utility) {
@@ -461,7 +476,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routePublishPlanet(fromRequest req: Request) async throws -> Response {
-        let planet = try getPlanetByUUID(fromRequest: req)
+        let planet = try await getPlanetByUUID(fromRequest: req)
         defer {
             Task.detached(priority: .utility) {
                 try? await planet.publish()
@@ -471,7 +486,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routeGetPlanetArticles(fromRequest req: Request) async throws -> Response {
-        let planet = try getPlanetByUUID(fromRequest: req)
+        let planet = try await getPlanetByUUID(fromRequest: req)
         guard let articles = planet.articles, articles.count > 0 else {
             throw Abort(.notFound)
         }
@@ -479,7 +494,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routeCreatePlanetArticle(fromRequest req: Request) async throws -> Response {
-        let planet = try getPlanetByUUID(fromRequest: req)
+        let planet = try await getPlanetByUUID(fromRequest: req)
         let article: APIPlanetArticle = try req.content.decode(APIPlanetArticle.self)
         let articleTitle = article.title ?? ""
         let articleContent = article.content ?? ""
@@ -492,7 +507,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         if articleDateString == "" {
             draft.date = Date()
         } else {
-            draft.date = PlanetAPI.dateFormatter().date(from: articleDateString) ?? Date()
+            draft.date = getDateFromString(articleDateString)
         }
         draft.content = articleContent
         for attachment in article.attachments ?? [] {
@@ -513,13 +528,13 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routeGetPlanetArticle(fromRequest req: Request) async throws -> Response {
-        let result = try getPlanetAndArticleByUUID(fromRequest: req)
+        let result = try await getPlanetAndArticleByUUID(fromRequest: req)
         let article = result.article
         return try self.createResponse(from: article, status: .ok)
     }
     
     private func routeModifyPlanetArticle(fromRequest req: Request) async throws -> Response {
-        let result = try getPlanetAndArticleByUUID(fromRequest: req)
+        let result = try await getPlanetAndArticleByUUID(fromRequest: req)
         let planet = result.planet
         let article = result.article
         let draft = try DraftModel.create(from: article)
@@ -528,7 +543,7 @@ class PlanetAPIController: NSObject, ObservableObject {
             draft.title = articleTitle
         }
         if let articleDateString = updateArticle.date, articleDateString != "" {
-            draft.date = PlanetAPI.dateFormatter().date(from: articleDateString) ?? Date()
+            draft.date = getDateFromString(articleDateString)
         } else {
             draft.date = Date()
         }
@@ -555,7 +570,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func routeDeletePlanetArticle(fromRequest req: Request) async throws -> Response {
-        let result = try getPlanetAndArticleByUUID(fromRequest: req)
+        let result = try await getPlanetAndArticleByUUID(fromRequest: req)
         let planet = result.planet
         let article = result.article
         await MainActor.run {
