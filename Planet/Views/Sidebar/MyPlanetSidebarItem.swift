@@ -432,7 +432,7 @@ struct MyPlanetSidebarItem: View {
                 Button {
                     openiTerm(template)
                 } label: {
-                    Image(systemName: "apple.terminal")
+                    Image(systemName: "apple.terminal.fill")
                     Text("Open in iTerm")
                 }
             }

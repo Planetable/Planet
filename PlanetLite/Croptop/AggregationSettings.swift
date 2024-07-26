@@ -134,7 +134,7 @@ struct AggregationSettings: View {
                         let aggregation: [String] = newSites.split(
                             separator: "\n",
                             omittingEmptySubsequences: true
-                        ).map(String.init).sorted()
+                        ).map(String.init)
 
                         planet.aggregation = aggregation
                         planet.reuseOriginalID = reuseOriginalID

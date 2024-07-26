@@ -24,6 +24,12 @@ jobs:
 
       - name: Set release SUFeedURL
         run: /usr/libexec/PlistBuddy -c "Set :SUFeedURL https://opensource.planetable.xyz/planet/appcast.xml" Planet/Info.plist
+      
+      - name: Set WalletConnectV2 Project ID
+        run: /usr/libexec/PlistBuddy -c "Set :WALLETCONNECTV2_PROJECT_ID ${{ secrets.WALLETCONNECTV2_PROJECT_ID }}" Planet/Info.plist
+      
+      - name: Set Etherscan API token
+        run: /usr/libexec/PlistBuddy -c "Set :ETHERSCAN_API_TOKEN ${{ secrets.ETHERSCAN_API_TOKEN }}" Planet/Info.plist
 
       - name: Fix Package Dependencies
         run: xcodebuild -resolvePackageDependencies -onlyUsePackageVersionsFromResolvedFile

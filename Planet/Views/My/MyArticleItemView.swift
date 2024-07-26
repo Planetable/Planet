@@ -165,6 +165,9 @@ struct MyArticleItemView: View {
                     Button {
                         article.starred = nil
                         try? article.save()
+                        Task.detached {
+                            await PlanetStore.shared.updateTotalStarredCount()
+                        }
                     } label: {
                         Text("Remove Star")
                     }

@@ -98,6 +98,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 if let followingArticle = selectedArticle as? FollowingArticleModel {
                     followingArticle.read = Date()
                     try? followingArticle.save()
+                    Task.detached {
+                        await PlanetStore.shared.updateTotalUnreadCount()
+                        await PlanetStore.shared.updateTotalTodayCount()
+                    }
                 }
             }
         }
@@ -165,6 +169,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isShowingAlert = false
     @Published var alertTitle: String = ""
     @Published var alertMessage: String = ""
+
+    @Published var totalTodayCount: Int = 0
+    @Published var totalUnreadCount: Int = 0
+    @Published var totalStarredCount: Int = 0
 
     nonisolated static let app: PlanetAppShell = (Bundle.main.executableURL?.lastPathComponent == "Croptop") ? .lite : .planet
 
@@ -249,6 +257,9 @@ enum PlanetDetailViewType: Hashable, Equatable {
         followingPlanets = Array(followingAllPlanets[followingPlanetPartition...])
         loadFollowingPlanetsOrder()
         logger.info("Loaded \(self.followingPlanets.count) following planets")
+        updateTotalUnreadCount()
+        updateTotalStarredCount()
+        updateTotalTodayCount()
     }
 
     func publishMyPlanets() {
@@ -264,6 +275,21 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 }
             }
         }
+    }
+
+    func updateTotalTodayCount() {
+        let b = followingPlanets.reduce(0) { $0 + $1.articles.filter { $0.read == nil && $0.created.timeIntervalSinceNow > -86400 }.count }
+        totalTodayCount = b
+    }
+
+    func updateTotalUnreadCount() {
+        totalUnreadCount = followingPlanets.reduce(0) { $0 + $1.articles.filter { $0.read == nil }.count }
+    }
+
+    func updateTotalStarredCount() {
+        let a = myPlanets.reduce(0) { $0 + $1.articles.filter { $0.starred != nil }.count }
+        let b = followingPlanets.reduce(0) { $0 + $1.articles.filter { $0.starred != nil }.count }
+        totalStarredCount = a + b
     }
 
     private let myPlanetsOrderKey = "myPlanetsOrder"

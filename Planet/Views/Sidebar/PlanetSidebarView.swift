@@ -13,6 +13,7 @@ struct PlanetSidebarView: View {
 
     let timer1m = Timer.publish(every: 60, on: .current, in: .common).autoconnect()
     let timer3m = Timer.publish(every: 180, on: .current, in: .common).autoconnect()
+    let timer5m = Timer.publish(every: 300, on: .current, in: .common).autoconnect()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -33,6 +34,7 @@ struct PlanetSidebarView: View {
                             .font(.body)
                             .foregroundColor(.primary)
                     }
+                    .badge(planetStore.totalTodayCount)
                     .tag(PlanetDetailViewType.today)
 
                     HStack(spacing: 4) {
@@ -45,6 +47,7 @@ struct PlanetSidebarView: View {
                             .font(.body)
                             .foregroundColor(.primary)
                     }
+                    .badge(planetStore.totalUnreadCount)
                     .tag(PlanetDetailViewType.unread)
 
                     HStack(spacing: 4) {
@@ -57,6 +60,7 @@ struct PlanetSidebarView: View {
                             .font(.body)
                             .foregroundColor(.primary)
                     }
+                    .badge(planetStore.totalStarredCount)
                     .tag(PlanetDetailViewType.starred)
                 }
                 .padding(.top, planetStore.walletAddress.count > 0 ? 6 : 0)
@@ -197,13 +201,21 @@ struct PlanetSidebarView: View {
             }
         }
         .onReceive(timer1m) { _ in
+            // Run every 60 seconds (1 minute)
             Task {
                 await planetStore.checkPinnable()
             }
         }
         .onReceive(timer3m) { _ in
+            // Run every 180 seconds (3 minutes)
             Task {
                 await planetStore.pin()
+            }
+        }
+        .onReceive(timer5m) { _ in
+            // Run every 300 seconds (5 minutes)
+            Task {
+                await planetStore.aggregate()
             }
         }
     }

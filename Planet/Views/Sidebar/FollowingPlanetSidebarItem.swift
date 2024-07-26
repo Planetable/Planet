@@ -35,6 +35,10 @@ struct FollowingPlanetSidebarItem: View {
                         $0.read = Date()
                         try? $0.save()
                     }
+                    Task.detached {
+                        await planetStore.updateTotalUnreadCount()
+                        await planetStore.updateTotalTodayCount()
+                    }
                 } label: {
                     Text("Mark All as Read")
                 }

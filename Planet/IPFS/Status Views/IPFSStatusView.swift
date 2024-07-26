@@ -96,14 +96,14 @@ struct IPFSStatusView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private func statusView() -> some View {
         VStack(spacing: 4) {
             HStack {
                 Text("Local Gateway")
                 Spacer(minLength: 1)
-                Link(self.ipfsState.getGateway(), destination: URL(string: self.ipfsState.getGateway())!)
+                Link(self.ipfsState.getGateway(), destination: URL(string: self.ipfsState.getGateway() + "/ipns/k51qzi5uqu5dibstm2yxidly22jx94embd7j3xjstfk65ulictn2ajnjvpiac7")!)
                     .focusable(false)
                     .disabled(!self.ipfsState.online)
             }
