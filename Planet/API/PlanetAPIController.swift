@@ -237,7 +237,8 @@ class PlanetAPIController: NSObject, ObservableObject {
             return 8086
         }()
         app.http.server.configuration.port = port
-        
+        app.http.server.configuration.hostname = "0.0.0.0"
+
         let repoPath: String = {
             if #available(macOS 13.0, *) {
                 return URLUtils.repoPath().appendingPathComponent("Public", conformingTo: .folder).path()
