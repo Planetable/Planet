@@ -445,22 +445,50 @@ class MyArticleModel: ArticleModel, Codable {
         catch {
             debugPrint("Failed to prewarm \(planet.name) post metadata \(articleJSONURL): \(error)")
         }
-        Task(priority: .background) {
+        // tags
+        if let tags = tags, tags.count > 0, let planetRootURL = planet.browserURL {
+            let tagsURL = planetRootURL.appendingPathComponent("tags.html")
+            Task.detached(priority: .background) {
+                do {
+                    debugPrint("About to prewarm \(self.planet.name) tags: \(tagsURL)")
+                    let (tagsData, _) = try await URLSession.shared.data(from: tagsURL)
+                    debugPrint("Prewarmed \(self.planet.name) tags: \(tagsData.count) bytes")
+                }
+                catch {
+                    debugPrint("Failed to prewarm \(self.planet.name) tags \(tagsURL): \(error)")
+                }
+            }
+        }
+        // archive
+        if let archiveURL = planet.browserURL?.appendingPathComponent("archive.html") {
+            Task.detached(priority: .background) {
+                do {
+                    debugPrint("About to prewarm \(self.planet.name) archive: \(archiveURL)")
+                    let (archiveData, _) = try await URLSession.shared.data(from: archiveURL)
+                    debugPrint("Prewarmed \(self.planet.name) archive: \(archiveData.count) bytes")
+                }
+                catch {
+                    debugPrint("Failed to prewarm \(self.planet.name) archive \(archiveURL): \(error)")
+                }
+            }
+        }
+        // attachments
+        Task.detached(priority: .background) {
             if let attachments = self.attachments {
                 for attachment in attachments {
                     let attachmentURL = postURL.appendingPathComponent(attachment)
                     do {
-                        debugPrint("About to prewarm \(planet.name) attachment: \(attachmentURL)")
+                        debugPrint("About to prewarm \(self.planet.name) attachment: \(attachmentURL)")
                         let (attachmentData, _) = try await URLSession.shared.data(
                             from: attachmentURL
                         )
                         debugPrint(
-                            "Prewarmed \(planet.name) attachment: \(attachmentData.count) bytes"
+                            "Prewarmed \(self.planet.name) attachment: \(attachmentData.count) bytes"
                         )
                     }
                     catch {
                         debugPrint(
-                            "Failed to prewarm \(planet.name) attachment \(attachmentURL): \(error)"
+                            "Failed to prewarm \(self.planet.name) attachment \(attachmentURL): \(error)"
                         )
                     }
                 }
@@ -469,31 +497,31 @@ class MyArticleModel: ArticleModel, Codable {
                 let videoThumbnailURL = postURL.appendingPathComponent("_videoThumbnail.png")
                 do {
                     debugPrint(
-                        "About to prewarm \(planet.name) video thumbnail: \(videoThumbnailURL)"
+                        "About to prewarm \(self.planet.name) video thumbnail: \(videoThumbnailURL)"
                     )
                     let (videoThumbnailData, _) = try await URLSession.shared.data(
                         from: videoThumbnailURL
                     )
                     debugPrint(
-                        "Prewarmed \(planet.name) video thumbnail: \(videoThumbnailData.count) bytes"
+                        "Prewarmed \(self.planet.name) video thumbnail: \(videoThumbnailData.count) bytes"
                     )
                 }
                 catch {
                     debugPrint(
-                        "Failed to prewarm \(planet.name) video thumbnail \(videoThumbnailURL): \(error)"
+                        "Failed to prewarm \(self.planet.name) video thumbnail \(videoThumbnailURL): \(error)"
                     )
                 }
             }
             if self.hasHeroGrid {
                 let heroGridURL = postURL.appendingPathComponent("_grid.png")
                 do {
-                    debugPrint("About to prewarm \(planet.name) hero grid: \(heroGridURL)")
+                    debugPrint("About to prewarm \(self.planet.name) hero grid: \(heroGridURL)")
                     let (heroGridData, _) = try await URLSession.shared.data(from: heroGridURL)
-                    debugPrint("Prewarmed \(planet.name) hero grid: \(heroGridData.count) bytes")
+                    debugPrint("Prewarmed \(self.planet.name) hero grid: \(heroGridData.count) bytes")
                 }
                 catch {
                     debugPrint(
-                        "Failed to prewarm \(planet.name) hero grid \(heroGridURL): \(error)"
+                        "Failed to prewarm \(self.planet.name) hero grid \(heroGridURL): \(error)"
                     )
                 }
             }
