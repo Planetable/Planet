@@ -18,6 +18,6 @@ Here are some initial ideas.
 * GET /v0/planets/my/:uuid/articles - List articles under My Planet
 * POST /v0/planets/my/:uuid/articles - Create a new Article
   
-* GET /v0/articles/my/:my - Get an article by planet and article UUID
-* POST /v0/articles/my/:my - Modify an article by planet and article UUID
-* DELETE /v0/articles/my/:my - Delete an article
+* GET /v0/planets/my/:planet_uuid/articles/:article_uuid - Get an article by planet and article UUID
+* POST /v0/planets/my/:planet_uuid/articles/:article_uuid - Modify an article by planet and article UUID
+* DELETE /v0/planets/my/:planet_uuid/articles/:article_uuid - Delete an article

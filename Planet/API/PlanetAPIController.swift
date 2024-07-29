@@ -205,24 +205,24 @@ class PlanetAPIController: NSObject, ObservableObject {
             return try await self.routeCreatePlanetArticle(fromRequest: req)
         }
 
-        //MARK: GET /v0/articles/my/:my
+        //MARK: GET /v0/planets/my/:planet_uuid/articles/:article_uuid
         //MARK: Get an article by planet and article UUID -
         /// Return MyArticleModel, Struct
-        builder.get("v0", "articles", "my", ":my") { req async throws -> Response in
+        builder.get("v0", "planets", "my", "**") { req async throws -> Response in
             return try await self.routeGetPlanetArticle(fromRequest: req)
         }
         
-        //MARK: POST /v0/articles/my/:my
+        //MARK: POST /v0/planets/my/:planet_uuid/articles/:article_uuid
         //MARK: Modify an article by planet and article UUID -
         /// Return MyArticleModel, Struct
-        builder.on(.POST, "v0", "articles", "my", ":my", body: .collect(maxSize: "50mb")) { req async throws -> Response in
+        builder.on(.POST, "v0", "planets", "my", "**", body: .collect(maxSize: "50mb")) { req async throws -> Response in
             return try await self.routeModifyPlanetArticle(fromRequest: req)
         }
         
-        //MARK: DELETE /v0/planets/my/articles/:my
+        //MARK: DELETE /v0/planets/my/:planet_uuid/articles/:article_uuid
         //MARK: Delete an article by planet and article UUID -
         /// Return MyArticleModel, Struct
-        builder.delete("v0", "articles", "my", ":my") { req async throws -> Response in
+        builder.delete("v0", "planets", "my", "**") { req async throws -> Response in
             return try await self.routeDeletePlanetArticle(fromRequest: req)
         }
     }
@@ -249,6 +249,8 @@ class PlanetAPIController: NSObject, ObservableObject {
         let fileMiddleware = FileMiddleware(publicDirectory: repoPath, defaultFile: "index.html")
         app.middleware.use(fileMiddleware)
         
+        app.routes.caseInsensitive = true
+
         try routes(app)
     }
     
@@ -276,8 +278,12 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
     
     private func getPlanetAndArticleByUUID(fromRequest req: Request) async throws -> (planet: MyPlanetModel, article: MyArticleModel) {
-        guard
-            let planetUUIDString = req.parameters.get("my")?.components(separatedBy: ":").first,
+        let parameters = req.parameters.getCatchall()
+        guard parameters.count == 3 && parameters.contains("articles") else {
+            throw Abort(.badRequest, reason: "Invalid request parameters.")
+        }
+        guard 
+            let planetUUIDString = parameters.first,
             let planetUUID = UUID(uuidString: planetUUIDString) else {
             throw Abort(.badRequest, reason: "Invalid planet UUID format.")
         }
@@ -286,7 +292,7 @@ class PlanetAPIController: NSObject, ObservableObject {
                 throw Abort(.notFound, reason: "Planet not found.")
             }
             guard
-                let articleUUIDString = req.parameters.get("my")?.components(separatedBy: ":").last,
+                let articleUUIDString = parameters.last,
                 let articleUUID = UUID(uuidString: articleUUIDString) else {
                 throw Abort(.badRequest, reason: "Invalid article UUID format.")
             }
