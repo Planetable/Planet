@@ -387,7 +387,7 @@ class PlanetAPIController: NSObject, ObservableObject {
             return ""
         }()
         let planetTemplateName: String = {
-            let template: String = p.template?.lowercased() ?? ""
+            let template: String = p.template ?? ""
             if TemplateStore.shared.hasTemplate(named: template) {
                 return template
             }
