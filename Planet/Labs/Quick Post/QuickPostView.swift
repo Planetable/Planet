@@ -38,6 +38,8 @@ struct QuickPostView: View {
                     .frame(height: 160)
             }
             .background(Color(NSColor.textBackgroundColor))
+            .focusable()
+            .onPasteCommand(of: [.fileURL, .image, .movie], perform: QuickPostViewModel.shared.processPasteItems(_:))
 
             Divider()
 
