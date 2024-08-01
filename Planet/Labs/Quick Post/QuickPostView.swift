@@ -8,8 +8,13 @@
 import SwiftUI
 
 struct QuickPostView: View {
+    @StateObject private var viewModel: QuickPostViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var content = ""
+
+    init() {
+        _viewModel = StateObject(wrappedValue: QuickPostViewModel.shared)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Upper: Avatar | Text Entry
@@ -27,7 +32,7 @@ struct QuickPostView: View {
                 .padding(.leading, 10)
                 .padding(.trailing, 0)
 
-                TextEditor(text: $content)
+                TextEditor(text: $viewModel.content)
                     .font(.system(size: 14, weight: .regular, design: .default))
                     .lineSpacing(7)
                     .disableAutocorrection(true)
@@ -38,15 +43,22 @@ struct QuickPostView: View {
                     .frame(height: 160)
             }
             .background(Color(NSColor.textBackgroundColor))
-            .focusable()
-            .onPasteCommand(of: [.fileURL, .image, .movie], perform: QuickPostViewModel.shared.processPasteItems(_:))
+
+            if viewModel.fileURLs.count > 0 {
+                Divider()
+                mediaTray()
+                    .focusable()
+                    .onPasteCommand(of: [.fileURL, .image, .movie], perform: QuickPostViewModel.shared.processPasteItems(_:))
+
+            }
 
             Divider()
 
             HStack {
                 Spacer()
                 Button("Cancel", role: .cancel) {
-                    content = ""
+                    viewModel.fileURLs = []
+                    viewModel.content = ""
                     dismiss()
                 }
                 .keyboardShortcut(.cancelAction)
@@ -61,7 +73,7 @@ struct QuickPostView: View {
                     catch {
                         debugPrint("Failed to save quick post")
                     }
-                    content = ""
+                    viewModel.content = ""
                     dismiss()
                 } label: {
                     Text("Post")
@@ -72,6 +84,39 @@ struct QuickPostView: View {
             }.padding(10)
                 .background(Color(NSColor.windowBackgroundColor))
         }.frame(width: 500)
+    }
+
+    @ViewBuilder
+    private func mediaTray() -> some View {
+        ScrollView(.horizontal) {
+                HStack(spacing: 0) {
+                    ForEach(viewModel.fileURLs, id: \.self) { url in
+                        mediaItem(for: url)
+                    }
+                }
+            }
+            .frame(height: 110)
+            .frame(maxWidth: .infinity)
+            .background(Color.secondary.opacity(0.03))
+    }
+
+    @ViewBuilder
+    private func mediaItem(for url: URL) -> some View {
+        VStack(spacing: 0) {
+            Image(nsImage: NSImage(contentsOf: url) ?? NSImage())
+                .interpolation(.high)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                .frame(width: 100, height: 80)
+            Text(url.lastPathComponent)
+                .font(.caption)
+                .lineLimit(1)
+                .frame(width: 100, height: 20)
+                .truncationMode(.tail)
+        }
+        .padding(5)
+        .background(Color.secondary.opacity(0.05))
     }
 
     private func extractTitle(from content: String) -> String {
@@ -110,6 +155,7 @@ struct QuickPostView: View {
         // Save content as a new MyArticleModel
         guard let planet = KeyboardShortcutHelper.shared.activeMyPlanet else { return }
         let date = Date()
+        let content = viewModel.content.trim()
         let article: MyArticleModel = try MyArticleModel.compose(
             link: nil,
             date: date,

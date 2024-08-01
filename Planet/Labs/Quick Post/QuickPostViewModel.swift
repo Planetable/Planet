@@ -12,11 +12,14 @@ import UniformTypeIdentifiers
 class QuickPostViewModel: ObservableObject {
     static let shared = QuickPostViewModel()
 
+    @Published var content: String = ""
+
+    @Published var heroImage: String? = nil
     @Published var fileURLs: [URL] = []
 
     @MainActor
     func prepareFiles(_ files: [URL]) throws {
-        fileURLs = files
+        fileURLs += files
         debugPrint("Pasted files: \(fileURLs)")
     }
 
