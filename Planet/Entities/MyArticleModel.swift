@@ -121,7 +121,7 @@ class MyArticleModel: ArticleModel, Codable {
                 .standard.string(forKey: String.settingsAPIPort) ?? "8086"
             return URL(
                 string:
-                    "http://127.0.0.1:\(apiPort)/v0/planets/my/\(planet.id.uuidString)/public/\(id.uuidString)/index.html"
+                    "http://127.0.0.1:\(apiPort)/\(planet.id.uuidString)/\(id.uuidString)/index.html"
             )
         }
         else {
