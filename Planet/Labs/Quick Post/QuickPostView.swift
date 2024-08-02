@@ -192,6 +192,10 @@ struct QuickPostView: View {
     }
 
     private func saveContent() throws {
+        defer {
+            viewModel.fileURLs = []
+            viewModel.content = ""
+        }
         // Save content as a new MyArticleModel
         guard let planet = KeyboardShortcutHelper.shared.activeMyPlanet else { return }
         let date = Date()
