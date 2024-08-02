@@ -48,13 +48,28 @@ struct QuickPostView: View {
                 Divider()
                 mediaTray()
                     .focusable()
-                    .onPasteCommand(of: [.fileURL, .image, .movie], perform: QuickPostViewModel.shared.processPasteItems(_:))
+                    .onPasteCommand(
+                        of: [.fileURL, .image, .movie],
+                        perform: QuickPostViewModel.shared.processPasteItems(_:)
+                    )
 
             }
 
             Divider()
 
             HStack {
+                Button {
+                    do {
+                        viewModel.allowedContentTypes = [.image]
+                        viewModel.allowMultipleSelection = true
+                        try attach()
+                    }
+                    catch {
+                        debugPrint("failed to add attachment to Quick Post: \(error)")
+                    }
+                } label: {
+                    Label("Add Image", systemImage: "photo.on.rectangle.angled")
+                }
                 Spacer()
                 Button("Cancel", role: .cancel) {
                     viewModel.fileURLs = []
@@ -83,21 +98,21 @@ struct QuickPostView: View {
                 .buttonBorderShape(.roundedRectangle)
             }.padding(10)
                 .background(Color(NSColor.windowBackgroundColor))
-        }.frame(width: 500)
+        }.frame(width: 500, height: viewModel.fileURLs.count > 0 ? 310 : 200)
     }
 
     @ViewBuilder
     private func mediaTray() -> some View {
         ScrollView(.horizontal) {
-                HStack(spacing: 0) {
-                    ForEach(viewModel.fileURLs, id: \.self) { url in
-                        mediaItem(for: url)
-                    }
+            HStack(spacing: 0) {
+                ForEach(viewModel.fileURLs, id: \.self) { url in
+                    mediaItem(for: url)
                 }
             }
-            .frame(height: 110)
-            .frame(maxWidth: .infinity)
-            .background(Color.secondary.opacity(0.03))
+        }
+        .frame(height: 110)
+        .frame(maxWidth: .infinity)
+        .background(Color.secondary.opacity(0.03))
     }
 
     @ViewBuilder
@@ -117,6 +132,13 @@ struct QuickPostView: View {
         }
         .padding(5)
         .background(Color.secondary.opacity(0.05))
+        .contextMenu {
+            Button {
+                viewModel.fileURLs.removeAll { $0 == url }
+            } label: {
+                Label("Remove", systemImage: "trash")
+            }
+        }
     }
 
     private func extractTitle(from content: String) -> String {
@@ -140,15 +162,33 @@ struct QuickPostView: View {
                 if line.hasPrefix("# ") {
                     i += 1
                     continue
-                } else {
+                }
+                else {
                     result += "\(line)\n"
                 }
-            } else {
+            }
+            else {
                 result += "\(line)\n"
             }
             i += 1
         }
         return result.trim()
+    }
+
+    private func attach() throws {
+        let panel = NSOpenPanel()
+        panel.message = "Add Attachments"
+        panel.prompt = "Add"
+        panel.allowedContentTypes = viewModel.allowedContentTypes
+        panel.allowsMultipleSelection = viewModel.allowMultipleSelection
+        panel.canChooseDirectories = false
+        panel.showsHiddenFiles = false
+        let response = panel.runModal()
+        guard response == .OK, panel.urls.count > 0 else { return }
+        let urls = panel.urls
+        try urls.forEach { url in
+            viewModel.fileURLs.append(url)
+        }
     }
 
     private func saveContent() throws {
@@ -164,7 +204,20 @@ struct QuickPostView: View {
             summary: nil,
             planet: planet
         )
-        article.attachments = []
+        if viewModel.fileURLs.count > 0 {
+            var attachments: [String] = []
+            for url in viewModel.fileURLs {
+                // Copy the file to MyArticleModel's publicBasePath
+                let fileName = url.lastPathComponent
+                let targetURL = article.publicBasePath.appendingPathComponent(fileName)
+                try FileManager.default.copyItem(at: url, to: targetURL)
+                attachments.append(fileName)
+            }
+            article.attachments = attachments
+        } else {
+            // No attachments
+            article.attachments = []
+        }
         // TODO: Support tags in Quick Post
         article.tags = [:]
         var articles = planet.articles

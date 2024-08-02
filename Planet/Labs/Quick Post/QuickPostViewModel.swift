@@ -12,6 +12,9 @@ import UniformTypeIdentifiers
 class QuickPostViewModel: ObservableObject {
     static let shared = QuickPostViewModel()
 
+    @Published var allowedContentTypes: [UTType] = []
+    @Published var allowMultipleSelection = false
+
     @Published var content: String = ""
 
     @Published var heroImage: String? = nil
