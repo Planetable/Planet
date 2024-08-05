@@ -6,13 +6,6 @@
 import SwiftUI
 
 
-enum PlanetAPIControlError: Error {
-    case invalidAPIPortError
-    case invalidAPIUsernameError
-    case invalidAPIPasscodeError
-}
-
-
 struct PlanetAPIControlView: View {
     @ObservedObject private var control: PlanetAPIController
     
@@ -126,15 +119,15 @@ struct PlanetAPIControlView: View {
                         do {
                             try applyServerInformation()
                             control.startServer()
-                        } catch PlanetAPIControlError.invalidAPIPortError {
+                        } catch PlanetError.InvalidAPIPortError {
                             isAlert = true
                             alertTitle = "Failed to Start Server"
                             alertMessage = "Invalid API port, please double check and try again."
-                        } catch PlanetAPIControlError.invalidAPIUsernameError {
+                        } catch PlanetError.InvalidAPIUsernameError {
                             isAlert = true
                             alertTitle = "Failed to Start Server"
                             alertMessage = "Invalid username, please double check and try again."
-                        } catch PlanetAPIControlError.invalidAPIPasscodeError {
+                        } catch PlanetError.InvalidAPIPasscodeError {
                             isAlert = true
                             alertTitle = "Failed to Start Server"
                             alertMessage = "Invalid passcode, please double check and try again."
@@ -173,16 +166,16 @@ struct PlanetAPIControlView: View {
         if let port = Int(apiPort), port >= 1024, port <= 32767 {
             UserDefaults.standard.set(apiPort, forKey: .settingsAPIPort)
         } else {
-            throw PlanetAPIControlError.invalidAPIPortError
+            throw PlanetError.InvalidAPIPortError
         }
         guard apiUsesPasscode else { return }
         if apiUsername != "" {
             UserDefaults.standard.set(apiUsername, forKey: .settingsAPIUsername)
         } else {
-            throw PlanetAPIControlError.invalidAPIUsernameError
+            throw PlanetError.InvalidAPIUsernameError
         }
         if apiPasscode == "" {
-            throw PlanetAPIControlError.invalidAPIPasscodeError
+            throw PlanetError.InvalidAPIPasscodeError
         } else {
             try KeychainHelper.shared.saveValue(apiPasscode, forKey: .settingsAPIPasscode)
         }

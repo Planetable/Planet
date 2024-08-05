@@ -34,7 +34,6 @@ struct PlanetSettingsView: View {
                 .frame(width: 420, height: 490)
                 .environmentObject(store)
             
-//            PlanetSettingsAPIView()
             PlanetAPIControlView()
                 .tabItem {
                     Label("API", systemImage: "puzzlepiece.extension")
