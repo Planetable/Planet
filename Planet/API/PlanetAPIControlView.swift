@@ -196,7 +196,3 @@ struct PlanetAPIControlView: View {
         }
     }
 }
-
-#Preview {
-    PlanetAPIControlView()
-}
