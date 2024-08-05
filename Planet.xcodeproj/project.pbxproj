@@ -209,7 +209,6 @@
 		2A95E6D32A19A48C001288B8 /* Web3 in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6D22A19A48C001288B8 /* Web3 */; };
 		2A95E6D52A19A48C001288B8 /* Web3ContractABI in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6D42A19A48C001288B8 /* Web3ContractABI */; };
 		2A95E6D72A19A48C001288B8 /* Web3PromiseKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6D62A19A48C001288B8 /* Web3PromiseKit */; };
-		2A95E6D92A19A48C001288B8 /* Swifter in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6D82A19A48C001288B8 /* Swifter */; };
 		2A95E6DD2A19A4E6001288B8 /* ArticleWebViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */; };
 		2A95E6DE2A19A521001288B8 /* Pinnable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8776D32A01B78800C6003B /* Pinnable.swift */; };
 		2A95E6DF2A19A521001288B8 /* Plausible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1228DB75F700034D55 /* Plausible.swift */; };
@@ -259,7 +258,6 @@
 		2AA7974829496F730031E873 /* PlanetPublishedFolders+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973C29496F730031E873 /* PlanetPublishedFolders+Extension.swift */; };
 		2AA7974929496F730031E873 /* PFDashboardInspectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973D29496F730031E873 /* PFDashboardInspectorViewController.swift */; };
 		2AAF510A2C293DE100C0B7AA /* HDWalletKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2AAF51092C293DE100C0B7AA /* HDWalletKit */; };
-		2AB6A93E29703825007186A7 /* Swifter in Frameworks */ = {isa = PBXBuildFile; productRef = 2AB6A93D29703825007186A7 /* Swifter */; };
 		2ABD1CC42A1616DA0082D7EA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */; };
 		2ABD1CC82A1616DB0082D7EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2ABD1CC72A1616DB0082D7EA /* Assets.xcassets */; };
 		2AC4994927BB6E7500F1C2D1 /* PlanetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */; };
@@ -838,7 +836,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2A95E6D92A19A48C001288B8 /* Swifter in Frameworks */,
 				2A95E6A82A19A48C001288B8 /* ENSKit in Frameworks */,
 				6AFCF7E42B7353FE002299BA /* DequeModule in Frameworks */,
 				2AFDF8AA2A3A1E8500386B9A /* ASMediaView in Frameworks */,
@@ -882,7 +879,6 @@
 				BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */,
 				2A2774412A9514EE00A5DDC2 /* Zip in Frameworks */,
 				6AFCF7DE2B7353C6002299BA /* DequeModule in Frameworks */,
-				2AB6A93E29703825007186A7 /* Swifter in Frameworks */,
 				BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */,
 				6A373A4428E8263800750256 /* CodeMirror-SwiftUI in Frameworks */,
 				6AB6E511291527B800F17328 /* WalletConnectAuth in Frameworks */,
@@ -1626,7 +1622,6 @@
 				2A95E6D22A19A48C001288B8 /* Web3 */,
 				2A95E6D42A19A48C001288B8 /* Web3ContractABI */,
 				2A95E6D62A19A48C001288B8 /* Web3PromiseKit */,
-				2A95E6D82A19A48C001288B8 /* Swifter */,
 				2AFDF8A92A3A1E8500386B9A /* ASMediaView */,
 				6A4A25692A865DFB00B18C36 /* WrappingHStack */,
 				6AFCF7E12B7353FE002299BA /* Collections */,
@@ -1673,7 +1668,6 @@
 				6A7189682947FD0500279D77 /* Web3 */,
 				6A71896A2947FD0500279D77 /* Web3ContractABI */,
 				6A71896C2947FD0500279D77 /* Web3PromiseKit */,
-				2AB6A93D29703825007186A7 /* Swifter */,
 				2A466FD32A809F65009FB646 /* ASMediaView */,
 				6A2A4D2B2A86422700F4491A /* WrappingHStack */,
 				2A2774402A9514EE00A5DDC2 /* Zip */,
@@ -1733,7 +1727,6 @@
 				6AB6E50D291527B800F17328 /* XCRemoteSwiftPackageReference "WalletConnectSwiftV2" */,
 				6AABC6A8291A62A9009FD13F /* XCRemoteSwiftPackageReference "WalletConnectSwift" */,
 				6A7189672947FD0500279D77 /* XCRemoteSwiftPackageReference "Web3" */,
-				2AB6A93C29703825007186A7 /* XCRemoteSwiftPackageReference "swifter" */,
 				2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */,
 				6A2A4D2A2A86422700F4491A /* XCRemoteSwiftPackageReference "WrappingHStack" */,
 				2A27743F2A9514EE00A5DDC2 /* XCRemoteSwiftPackageReference "Zip" */,
@@ -2620,14 +2613,6 @@
 				kind = branch;
 			};
 		};
-		2AB6A93C29703825007186A7 /* XCRemoteSwiftPackageReference "swifter" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/httpswift/swifter";
-			requirement = {
-				branch = stable;
-				kind = branch;
-			};
-		};
 		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
@@ -2869,20 +2854,10 @@
 			package = 6A7189672947FD0500279D77 /* XCRemoteSwiftPackageReference "Web3" */;
 			productName = Web3PromiseKit;
 		};
-		2A95E6D82A19A48C001288B8 /* Swifter */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2AB6A93C29703825007186A7 /* XCRemoteSwiftPackageReference "swifter" */;
-			productName = Swifter;
-		};
 		2AAF51092C293DE100C0B7AA /* HDWalletKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2AAF51082C293DE100C0B7AA /* XCRemoteSwiftPackageReference "HDWallet" */;
 			productName = HDWalletKit;
-		};
-		2AB6A93D29703825007186A7 /* Swifter */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2AB6A93C29703825007186A7 /* XCRemoteSwiftPackageReference "swifter" */;
-			productName = Swifter;
 		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;
