@@ -2,6 +2,9 @@ import Foundation
 
 
 enum PlanetError: Error {
+    case InvalidAPIPortError
+    case InvalidAPIUsernameError
+    case InvalidAPIPasscodeError
     case PersistenceError
     case NetworkError
     case IPFSError
@@ -51,6 +54,12 @@ enum PlanetError: Error {
 extension PlanetError: LocalizedError {
     public var localizedDescription: String? {
         switch self {
+        case .InvalidAPIPortError:
+            return NSLocalizedString("Invalid API Port Error", comment: "")
+        case .InvalidAPIUsernameError:
+            return NSLocalizedString("Invalid API Username Error", comment: "")
+        case .InvalidAPIPasscodeError:
+            return NSLocalizedString("Invalid API Passcode Error", comment: "")
         case .PersistenceError:
             return NSLocalizedString("Persistence Error", comment: "")
         case .NetworkError:

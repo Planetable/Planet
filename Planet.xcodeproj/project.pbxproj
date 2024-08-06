@@ -67,7 +67,6 @@
 		2A4AE87B2A89EF3600A27B5B /* GroupIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4AE8792A89EF3600A27B5B /* GroupIndicatorView.swift */; };
 		2A4AE87D2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */; };
 		2A4AE87E2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */; };
-		2A58329A2B27FB2600A478CA /* PlanetSettingsAPIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB6A93F29707980007186A7 /* PlanetSettingsAPIView.swift */; };
 		2A5DAE5E2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */; };
 		2A5DAE5F2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */; };
 		2A6247AE292CC5F400714BFA /* IndicatorLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */; };
@@ -210,13 +209,11 @@
 		2A95E6D32A19A48C001288B8 /* Web3 in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6D22A19A48C001288B8 /* Web3 */; };
 		2A95E6D52A19A48C001288B8 /* Web3ContractABI in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6D42A19A48C001288B8 /* Web3ContractABI */; };
 		2A95E6D72A19A48C001288B8 /* Web3PromiseKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6D62A19A48C001288B8 /* Web3PromiseKit */; };
-		2A95E6D92A19A48C001288B8 /* Swifter in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6D82A19A48C001288B8 /* Swifter */; };
 		2A95E6DD2A19A4E6001288B8 /* ArticleWebViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */; };
 		2A95E6DE2A19A521001288B8 /* Pinnable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8776D32A01B78800C6003B /* Pinnable.swift */; };
 		2A95E6DF2A19A521001288B8 /* Plausible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1228DB75F700034D55 /* Plausible.swift */; };
 		2A95E6E02A19A521001288B8 /* Filebase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1028DB74C500034D55 /* Filebase.swift */; };
 		2A95E6E12A19A521001288B8 /* dWebServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1428DB767A00034D55 /* dWebServices.swift */; };
-		2A95E6E22A19A554001288B8 /* PlanetAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB6A93A29703757007186A7 /* PlanetAPI.swift */; };
 		2A95E6E32A19A5D1001288B8 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A9C210F29792464005A815E /* AVKit.framework */; };
 		2A95E6E42A19A64F001288B8 /* CLTextFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70ED29670D1300755931 /* CLTextFieldView.swift */; };
 		2A95E6E52A19A64F001288B8 /* HelpLinkButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */; };
@@ -261,9 +258,6 @@
 		2AA7974829496F730031E873 /* PlanetPublishedFolders+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973C29496F730031E873 /* PlanetPublishedFolders+Extension.swift */; };
 		2AA7974929496F730031E873 /* PFDashboardInspectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973D29496F730031E873 /* PFDashboardInspectorViewController.swift */; };
 		2AAF510A2C293DE100C0B7AA /* HDWalletKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2AAF51092C293DE100C0B7AA /* HDWalletKit */; };
-		2AB6A93B29703757007186A7 /* PlanetAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB6A93A29703757007186A7 /* PlanetAPI.swift */; };
-		2AB6A93E29703825007186A7 /* Swifter in Frameworks */ = {isa = PBXBuildFile; productRef = 2AB6A93D29703825007186A7 /* Swifter */; };
-		2AB6A94029707980007186A7 /* PlanetSettingsAPIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB6A93F29707980007186A7 /* PlanetSettingsAPIView.swift */; };
 		2ABD1CC42A1616DA0082D7EA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */; };
 		2ABD1CC82A1616DB0082D7EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2ABD1CC72A1616DB0082D7EA /* Assets.xcassets */; };
 		2AC4994927BB6E7500F1C2D1 /* PlanetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */; };
@@ -639,8 +633,6 @@
 		2AA7973B29496F730031E873 /* PFDashboardWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PFDashboardWindowController.swift; sourceTree = "<group>"; };
 		2AA7973C29496F730031E873 /* PlanetPublishedFolders+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "PlanetPublishedFolders+Extension.swift"; sourceTree = "<group>"; };
 		2AA7973D29496F730031E873 /* PFDashboardInspectorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PFDashboardInspectorViewController.swift; sourceTree = "<group>"; };
-		2AB6A93A29703757007186A7 /* PlanetAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPI.swift; sourceTree = "<group>"; };
-		2AB6A93F29707980007186A7 /* PlanetSettingsAPIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsAPIView.swift; sourceTree = "<group>"; };
 		2ABD1CC12A1616DA0082D7EA /* Croptop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Croptop.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2ABD1CC72A1616DB0082D7EA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -844,7 +836,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2A95E6D92A19A48C001288B8 /* Swifter in Frameworks */,
 				2A95E6A82A19A48C001288B8 /* ENSKit in Frameworks */,
 				6AFCF7E42B7353FE002299BA /* DequeModule in Frameworks */,
 				2AFDF8AA2A3A1E8500386B9A /* ASMediaView in Frameworks */,
@@ -888,7 +879,6 @@
 				BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */,
 				2A2774412A9514EE00A5DDC2 /* Zip in Frameworks */,
 				6AFCF7DE2B7353C6002299BA /* DequeModule in Frameworks */,
-				2AB6A93E29703825007186A7 /* Swifter in Frameworks */,
 				BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */,
 				6A373A4428E8263800750256 /* CodeMirror-SwiftUI in Frameworks */,
 				6AB6E511291527B800F17328 /* WalletConnectAuth in Frameworks */,
@@ -1164,7 +1154,6 @@
 				2A996AD02A1DA64800BEF898 /* PlanetAppDelegate.swift */,
 				7211404DFC1B4D23F84EA279 /* PlanetError.swift */,
 				6ACF1666292570AF00AE318B /* PlanetUI.swift */,
-				2AB6A93A29703757007186A7 /* PlanetAPI.swift */,
 				72114FF395DAE2370157978E /* Entities */,
 				2A4164D529E6475E009BFC24 /* Quick Share */,
 				6A1DA07A28B4273C00C6B5A9 /* Labs */,
@@ -1242,7 +1231,6 @@
 			isa = PBXGroup;
 			children = (
 				2AE44EA828CD214800944786 /* PlanetSettingsView.swift */,
-				2AB6A93F29707980007186A7 /* PlanetSettingsAPIView.swift */,
 				2AE44EAB28CD218200944786 /* PlanetSettingsGeneralView.swift */,
 				6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */,
 				2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */,
@@ -1634,7 +1622,6 @@
 				2A95E6D22A19A48C001288B8 /* Web3 */,
 				2A95E6D42A19A48C001288B8 /* Web3ContractABI */,
 				2A95E6D62A19A48C001288B8 /* Web3PromiseKit */,
-				2A95E6D82A19A48C001288B8 /* Swifter */,
 				2AFDF8A92A3A1E8500386B9A /* ASMediaView */,
 				6A4A25692A865DFB00B18C36 /* WrappingHStack */,
 				6AFCF7E12B7353FE002299BA /* Collections */,
@@ -1681,7 +1668,6 @@
 				6A7189682947FD0500279D77 /* Web3 */,
 				6A71896A2947FD0500279D77 /* Web3ContractABI */,
 				6A71896C2947FD0500279D77 /* Web3PromiseKit */,
-				2AB6A93D29703825007186A7 /* Swifter */,
 				2A466FD32A809F65009FB646 /* ASMediaView */,
 				6A2A4D2B2A86422700F4491A /* WrappingHStack */,
 				2A2774402A9514EE00A5DDC2 /* Zip */,
@@ -1741,7 +1727,6 @@
 				6AB6E50D291527B800F17328 /* XCRemoteSwiftPackageReference "WalletConnectSwiftV2" */,
 				6AABC6A8291A62A9009FD13F /* XCRemoteSwiftPackageReference "WalletConnectSwift" */,
 				6A7189672947FD0500279D77 /* XCRemoteSwiftPackageReference "Web3" */,
-				2AB6A93C29703825007186A7 /* XCRemoteSwiftPackageReference "swifter" */,
 				2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */,
 				6A2A4D2A2A86422700F4491A /* XCRemoteSwiftPackageReference "WrappingHStack" */,
 				2A27743F2A9514EE00A5DDC2 /* XCRemoteSwiftPackageReference "Zip" */,
@@ -1865,7 +1850,6 @@
 				2A95E6472A19A398001288B8 /* PFDashboardSidebarViewController.swift in Sources */,
 				2A95E6592A19A3A2001288B8 /* WalletTransactionProgressView.swift in Sources */,
 				2A95E6922A19A3D0001288B8 /* PlanetKeyManager+Extension.swift in Sources */,
-				2A58329A2B27FB2600A478CA /* PlanetSettingsAPIView.swift in Sources */,
 				2A95E67F2A19A3C4001288B8 /* MarkdownUtils.swift in Sources */,
 				6A7F606A2B21ACE500475731 /* PlanetStore+Search.swift in Sources */,
 				2AD0613D2C47A5AC00E288DB /* PlanetAPIController.swift in Sources */,
@@ -2008,7 +1992,6 @@
 				6AD447712B0DCAF0007E92A2 /* MyPlanetCustomCodeView.swift in Sources */,
 				2A95E69E2A19A446001288B8 /* FollowingPlanetModel.swift in Sources */,
 				2A95E68D2A19A3CA001288B8 /* WriterWebView.swift in Sources */,
-				2A95E6E22A19A554001288B8 /* PlanetAPI.swift in Sources */,
 				2A23C2072B8F3B06000138DA /* PlanetDirectoryMonitor.swift in Sources */,
 				2A95E6962A19A437001288B8 /* IPFSCommand.swift in Sources */,
 				2A95E6F92A1AF9D4001288B8 /* CreatePlanetView.swift in Sources */,
@@ -2099,7 +2082,6 @@
 				2A2556BC293E1F53006462D8 /* TemplateBrowserInspectorView.swift in Sources */,
 				2A441BAE27C40BD30008A694 /* WriterView.swift in Sources */,
 				2A2556BE293E1F92006462D8 /* TBInspectorViewController.swift in Sources */,
-				2AB6A93B29703757007186A7 /* PlanetAPI.swift in Sources */,
 				2AF4006627F379BF005DF1A9 /* WriterWebView.swift in Sources */,
 				2A441BAA27C34FCC0008A694 /* FollowingPlanetInfoView.swift in Sources */,
 				6A52FAF22A88A2C2000E85F0 /* PublicPlanetModel.swift in Sources */,
@@ -2191,7 +2173,6 @@
 				2A2774562A95161F00A5DDC2 /* PlanetDockPlugIn.swift in Sources */,
 				72114E3DCDF2B0618F4693D7 /* MyArticleItemView.swift in Sources */,
 				72114971F1770E3DAB910F99 /* WriterStore.swift in Sources */,
-				2AB6A94029707980007186A7 /* PlanetSettingsAPIView.swift in Sources */,
 				2A4164D429E64755009BFC24 /* PlanetQuickShareView.swift in Sources */,
 				2A996AD12A1DA64800BEF898 /* PlanetAppDelegate.swift in Sources */,
 				6A2F5F1528DB767A00034D55 /* dWebServices.swift in Sources */,
@@ -2632,14 +2613,6 @@
 				kind = branch;
 			};
 		};
-		2AB6A93C29703825007186A7 /* XCRemoteSwiftPackageReference "swifter" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/httpswift/swifter";
-			requirement = {
-				branch = stable;
-				kind = branch;
-			};
-		};
 		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
@@ -2881,20 +2854,10 @@
 			package = 6A7189672947FD0500279D77 /* XCRemoteSwiftPackageReference "Web3" */;
 			productName = Web3PromiseKit;
 		};
-		2A95E6D82A19A48C001288B8 /* Swifter */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2AB6A93C29703825007186A7 /* XCRemoteSwiftPackageReference "swifter" */;
-			productName = Swifter;
-		};
 		2AAF51092C293DE100C0B7AA /* HDWalletKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2AAF51082C293DE100C0B7AA /* XCRemoteSwiftPackageReference "HDWallet" */;
 			productName = HDWalletKit;
-		};
-		2AB6A93D29703825007186A7 /* Swifter */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2AB6A93C29703825007186A7 /* XCRemoteSwiftPackageReference "swifter" */;
-			productName = Swifter;
 		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -49,7 +49,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
             Task.detached {
                 await MainActor.run {
                     ArticleWebViewModel.shared.updateMyPlanets(planets)
-                    PlanetAPI.shared.updateMyPlanets(planets)
                     NotificationCenter.default.post(name: .keyManagerReloadUI, object: nil)
                 }
             }
