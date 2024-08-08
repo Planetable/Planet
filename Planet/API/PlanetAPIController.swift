@@ -517,13 +517,134 @@ class PlanetAPIController: NSObject, ObservableObject {
             draft.date = getDateFromString(articleDateString)
         }
         draft.content = articleContent
-        for attachment in article.attachments ?? [] {
-            let savedURL = try saveAttachment(attachment, forPlanet: planet.id)
-            let attachmentType = AttachmentType.from(savedURL)
-            try draft.addAttachment(path: savedURL, type: attachmentType)
-            Task.detached(priority: .background) {
-                try? FileManager.default.removeItem(at: savedURL)
+        if let attachments = article.attachments {
+            for attachment in attachments {
+                let savedURL = try saveAttachment(attachment, forPlanet: planet.id)
+                let attachmentType = AttachmentType.from(savedURL)
+                try draft.addAttachment(path: savedURL, type: attachmentType)
+                Task.detached(priority: .background) {
+                    try? FileManager.default.removeItem(at: savedURL)
+                }
             }
+        } else {
+            /*
+            if let contentType = req.headers.contentType,
+               let boundary = contentType.parameters["boundary"],
+               let bodyData = req.body.data {
+                
+                print("Content-Type: \(contentType)")
+                print("Boundary: \(boundary)")
+                print("Body size: \(bodyData.readableBytes) bytes")
+                
+                let bodyString = String(buffer: bodyData)
+                let parts = bodyString.components(separatedBy: "\(boundary)")
+                
+                print("Number of parts: \(parts.count)")
+                
+                for (index, part) in parts.enumerated() {
+                    if part.contains("name=\"attachment\"") {
+                        print("Processing attachment part \(index)")
+                        
+                        // Extract the filename
+                        let filenameRegex = try NSRegularExpression(pattern: "filename=\"([^\"]+)\"")
+                        let filenameMatch = filenameRegex.firstMatch(in: part, range: NSRange(location: 0, length: part.utf16.count))
+                        guard let filenameRange = filenameMatch?.range(at: 1),
+                              let attachmentFilename = Range(filenameRange, in: part) else {
+                            print("Failed to extract filename")
+                            continue
+                        }
+                        let name = String(part[attachmentFilename])
+                        print("Filename: \(name)")
+                        
+                        // Extract the content type
+                        let contentTypeRegex = try NSRegularExpression(pattern: "Content-Type: ([^\r\n]+)")
+                        let contentTypeMatch = contentTypeRegex.firstMatch(in: part, range: NSRange(location: 0, length: part.utf16.count))
+                        guard let contentTypeRange = contentTypeMatch?.range(at: 1),
+                              let attachmentContentType = Range(contentTypeRange, in: part) else {
+                            print("Failed to extract content type")
+                            continue
+                        }
+                        let type = String(part[attachmentContentType])
+                        print("Content-Type: \(type)")
+                        
+                        // Extract the file data
+                        guard let headerEndIndex = part.range(of: "\r\n\r\n")?.upperBound else {
+                            print("Failed to find end of headers")
+                            continue
+                        }
+                        
+                        let fileDataString = part[headerEndIndex...]
+                        print("File data length: \(fileDataString.count) bytes")
+                        
+                        // Convert string back to Data, preserving all bytes
+                        guard let fileData = fileDataString.data(using: .utf8) else {
+                            continue
+                        }
+                        
+                        let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
+                        let planetURL = tmp.appendingPathComponent(planet.id.uuidString)
+                        try FileManager.default.createDirectory(at: planetURL, withIntermediateDirectories: true, attributes: nil)
+                        let targetURL = planetURL.appendingPathComponent(name)
+                        try? FileManager.default.removeItem(at: targetURL)
+                        try fileData.write(to: targetURL)
+                        
+                        print("Saved attachment: \(targetURL)")
+                        print("Saved file size: \(try FileManager.default.attributesOfItem(atPath: targetURL.path)[.size] ?? 0) bytes")
+                        
+                        // Create the File object
+                        let attachmentType = AttachmentType.from(targetURL)
+                        try draft.addAttachment(path: targetURL, type: attachmentType)
+                    }
+                }
+            }
+             */
+            
+            /*
+            if let contentType = req.headers.contentType, let boundary = contentType.parameters["boundary"], let parts = req.body.string?.components(separatedBy: boundary) {
+                for part in parts where part.contains("name=\"attachment\"") {
+                    
+                    // Extract the filename
+                    let filenameRegex = try! NSRegularExpression(pattern: "filename=\"([^\"]+)\"")
+                    let filenameMatch = filenameRegex.firstMatch(in: part, range: NSRange(location: 0, length: part.utf16.count))
+                    guard let filenameRange = filenameMatch?.range(at: 1), let attachmentFilename = Range(filenameRange, in: part) else {
+                        continue
+                    }
+                    let name = String(part[attachmentFilename])
+                    
+                    // Extract the content type
+                    let contentTypeRegex = try! NSRegularExpression(pattern: "Content-Type: ([^\r\n]+)")
+                    let contentTypeMatch = contentTypeRegex.firstMatch(in: part, range: NSRange(location: 0, length: part.utf16.count))
+                    guard let contentTypeRange = contentTypeMatch?.range(at: 1), let attachmentContentType = Range(contentTypeRange, in: part) else {
+                        continue
+                    }
+                    let type = String(part[attachmentContentType])
+                    
+                    // Extract the file data
+                    let dataStartIndex = part.range(of: "\r\n\r\n")?.upperBound ?? part.endIndex
+                    let dataEndIndex = part.range(of: "\r\n--" + boundary)?.lowerBound ?? part.endIndex
+                    let fileDataString = part[dataStartIndex..<dataEndIndex]
+                    func stringToByteBuffer(_ string: String, using allocator: ByteBufferAllocator = ByteBufferAllocator()) -> ByteBuffer {
+                        var buffer = allocator.buffer(capacity: string.utf8.count)
+                        buffer.writeString(string)
+                        return buffer
+                    }
+                    let dataBuffer = stringToByteBuffer(String(fileDataString))
+                    let data = Data(buffer: dataBuffer)
+                    let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
+                    let planetURL = tmp.appendingPathComponent(planet.id.uuidString)
+                    try? FileManager.default.createDirectory(at: planetURL, withIntermediateDirectories: true)
+                    let targetURL = planetURL.appendingPathComponent(name)
+                    try? FileManager.default.removeItem(at: targetURL)
+                    try data.write(to: targetURL)
+                    
+                    debugPrint("saved attachment: \(targetURL)")
+
+                    // Create the File object
+                    let attachmentType = AttachmentType.from(targetURL)
+                    try draft.addAttachment(path: targetURL, type: attachmentType)
+                }
+            }
+             */
         }
         try await MainActor.run {
             try draft.saveToArticle()
