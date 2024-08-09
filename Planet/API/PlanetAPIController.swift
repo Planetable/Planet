@@ -618,7 +618,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         if let articleContent = updateArticle.content, articleContent != "" {
             draft.content = articleContent
         }
-        if let attachments = updateArticle.attachments, attachments.count > 0 {
+        if let attachments = updateArticle.attachments {
             for existingAttachment in draft.attachments {
                 draft.deleteAttachment(name: existingAttachment.name)
             }
@@ -628,6 +628,36 @@ class PlanetAPIController: NSObject, ObservableObject {
                 try draft.addAttachment(path: savedURL, type: attachmentType)
                 Task.detached(priority: .background) {
                     try? FileManager.default.removeItem(at: savedURL)
+                }
+            }
+        } else {
+            let r: HttpRequest = createRequest(from: req)
+            let multipartDatas = r.parseMultiPartFormData()
+            if multipartDatas.count > 0 {
+                for existingAttachment in draft.attachments {
+                    draft.deleteAttachment(name: existingAttachment.name)
+                }
+                for multipartData in multipartDatas {
+                    guard let propertyName = multipartData.name else { continue }
+                    switch propertyName {
+                        case "attachment":
+                            let fileData = Data(bytes: multipartData.body, count: multipartData.body.count)
+                            if let fileName = multipartData.fileName, fileData.count > 0 {
+                                let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
+                                let planetURL = tmp.appendingPathComponent(planet.id.uuidString)
+                                try FileManager.default.createDirectory(at: planetURL, withIntermediateDirectories: true, attributes: nil)
+                                let targetURL = planetURL.appendingPathComponent(fileName)
+                                try? FileManager.default.removeItem(at: targetURL)
+                                try fileData.write(to: targetURL)
+                                let attachmentType = AttachmentType.from(targetURL)
+                                try draft.addAttachment(path: targetURL, type: attachmentType)
+                                Task.detached(priority: .background) {
+                                    try? FileManager.default.removeItem(at: targetURL)
+                                }
+                            }
+                        default:
+                            break
+                    }
                 }
             }
         }
