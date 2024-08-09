@@ -1402,15 +1402,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     tags: tags
                 )
                 let environment = Environment(extensions: [StencilExtension.common])
-                let domain_prefix: String
                 let root_prefix: String
                 if let domainWithGateway = domainWithGateway {
-                    domain_prefix = "https://" + domainWithGateway
                     root_prefix = "https://" + domainWithGateway
                 }
                 else {
-                    domain_prefix = IPFSDaemon.preferredGateway()
-                    root_prefix = IPFSDaemon.preferredGateway() + "/ipns/" + ipns
+                    root_prefix = "https://eth.sucks/ipns/" + ipns
                 }
                 var hasDomain: Bool = false
                 if let planetDomain = domain, planetDomain.count > 0, !planetDomain.contains(":") {
@@ -1420,9 +1417,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "planet": publicPlanet,
                     "has_domain": hasDomain,
                     "domain": domainWithGateway ?? "",
-                    "domain_prefix": domain_prefix,
                     "root_prefix": root_prefix,
-                    "ipfs_gateway": IPFSDaemon.preferredGateway(),
                     "podcast": podcastOnly,
                     "has_podcast_cover_art": FileManager.default.fileExists(
                         atPath: publicPodcastCoverArtPath.path

@@ -368,7 +368,7 @@ class KeyboardShortcutHelper: ObservableObject {
                                 Button {
                                     if let url = URL(
                                         string:
-                                            "\(IPFSDaemon.preferredGateway())/ipns/\(publishedLink)"
+                                            "https://eth.sucks/ipns/\(publishedLink)"
                                     ) {
                                         self.openURL(url)
                                     }

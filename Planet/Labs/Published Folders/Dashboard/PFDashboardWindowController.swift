@@ -285,7 +285,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             if let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }) {
                 let menu = NSMenu()
                 if let _ = folder.published, let publishedLink = folder.publishedLink {
-                    if let gatewayURL = URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(publishedLink)") {
+                    if let gatewayURL = URL(string: "https://eth.sucks/ipns/\(publishedLink)") {
                         let publicGatewayActionItem = NSMenuItem()
                         publicGatewayActionItem.representedObject = gatewayURL
                         publicGatewayActionItem.title = "Open in Public Gateway"
@@ -432,7 +432,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
 extension PFDashboardWindowController: NSSharingServicePickerToolbarItemDelegate {
     func items(for pickerToolbarItem: NSSharingServicePickerToolbarItem) -> [Any] {
         let serviceStore = PlanetPublishedServiceStore.shared
-        guard let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "\(IPFSDaemon.preferredGateway())/ipns/\(publishedLink)") else { return [] }
+        guard let selectedID = serviceStore.selectedFolderID, let folder = serviceStore.publishedFolders.first(where: { $0.id == selectedID }), let _ = folder.published, let publishedLink = folder.publishedLink, let url = URL(string: "https://eth.sucks/ipns/\(publishedLink)") else { return [] }
         let sharableItems = [url]
         return sharableItems
     }

@@ -337,8 +337,11 @@ extension MyPlanetModel {
                             Task(priority: .utility) {
                                 try existingArticle.savePublic()
                             }
-                            DispatchQueue.main.async {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                                 PlanetStore.shared.refreshSelectedArticles()
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                    NotificationCenter.default.post(name: .loadArticle, object: nil)
+                                }
                             }
                         }
                     }
