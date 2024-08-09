@@ -310,14 +310,18 @@ extension MyPlanetModel {
                             debugPrint(
                                 "Aggregation: updating \(article.id) title from \(existingArticle.title) to \(article.title)"
                             )
-                            existingArticle.title = article.title
+                            await MainActor.run {
+                                existingArticle.title = article.title
+                            }
                             changed = true
                         }
                         if existingArticle.content != article.content {
                             debugPrint(
                                 "Aggregation: updating \(article.id) content from \(existingArticle.content) to \(article.content)"
                             )
-                            existingArticle.content = article.content
+                            await MainActor.run {
+                                existingArticle.content = article.content
+                            }
                             changed = true
                         }
                         let savedAttachments = await fetchArticleAttachments(
