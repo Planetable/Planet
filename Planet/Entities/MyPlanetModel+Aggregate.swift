@@ -306,6 +306,15 @@ extension MyPlanetModel {
                     {
                         // TODO: Update existing article
                         var changed = false
+                        if existingArticle.link != "/\(existingArticle.id.uuidString)/" {
+                            debugPrint(
+                                "Aggregation: updating \(article.id) link from \(existingArticle.link) to /\(existingArticle.id.uuidString)/"
+                            )
+                            await MainActor.run {
+                                existingArticle.link = "/\(existingArticle.id.uuidString)/"
+                            }
+                            changed = true
+                        }
                         if existingArticle.title != article.title {
                             debugPrint(
                                 "Aggregation: updating \(article.id) title from \(existingArticle.title) to \(article.title)"
@@ -376,7 +385,7 @@ extension MyPlanetModel {
                         }
                         let newArticle = MyArticleModel(
                             id: postID,
-                            link: article.link,
+                            link: "/\(postID.uuidString)/",
                             slug: nil,
                             heroImage: heroImageName,
                             externalLink: article.externalLink,
