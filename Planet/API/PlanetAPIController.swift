@@ -6,6 +6,7 @@
 import Foundation
 import SwiftUI
 import Vapor
+import Swifter
 
 
 class PlanetAPIController: NSObject, ObservableObject {
@@ -332,6 +333,39 @@ class PlanetAPIController: NSObject, ObservableObject {
         response.headers.contentType = .json
         return response
     }
+    
+    private func createRequest(from vaporRequest: Vapor.Request) -> HttpRequest {
+        let httpRequest = HttpRequest()
+        
+        // Set the path
+        httpRequest.path = vaporRequest.url.path
+        
+        // Set the query parameters
+        httpRequest.queryParams = vaporRequest.url.query?.split(separator: "&").compactMap { param in
+            let components = param.split(separator: "=")
+            guard components.count == 2 else { return nil }
+            return (String(components[0]), String(components[1]))
+        } ?? []
+        
+        // Set the method
+        httpRequest.method = vaporRequest.method.string
+        
+        // Set the headers
+        for (name, values) in vaporRequest.headers {
+            httpRequest.headers[name.lowercased()] = values
+        }
+
+        // Set the body (as [UInt8])
+        if let bodyBuffer = vaporRequest.body.data {
+            httpRequest.body = [UInt8](bodyBuffer.readableBytesView)
+        }
+        
+        // Set the address (remote peer address)
+        httpRequest.address = vaporRequest.remoteAddress?.description
+
+        return httpRequest
+    }
+
 
     // MARK: -
     
@@ -527,124 +561,27 @@ class PlanetAPIController: NSObject, ObservableObject {
                 }
             }
         } else {
-            /*
-            if let contentType = req.headers.contentType,
-               let boundary = contentType.parameters["boundary"],
-               let bodyData = req.body.data {
-                
-                print("Content-Type: \(contentType)")
-                print("Boundary: \(boundary)")
-                print("Body size: \(bodyData.readableBytes) bytes")
-                
-                let bodyString = String(buffer: bodyData)
-                let parts = bodyString.components(separatedBy: "\(boundary)")
-                
-                print("Number of parts: \(parts.count)")
-                
-                for (index, part) in parts.enumerated() {
-                    if part.contains("name=\"attachment\"") {
-                        print("Processing attachment part \(index)")
-                        
-                        // Extract the filename
-                        let filenameRegex = try NSRegularExpression(pattern: "filename=\"([^\"]+)\"")
-                        let filenameMatch = filenameRegex.firstMatch(in: part, range: NSRange(location: 0, length: part.utf16.count))
-                        guard let filenameRange = filenameMatch?.range(at: 1),
-                              let attachmentFilename = Range(filenameRange, in: part) else {
-                            print("Failed to extract filename")
-                            continue
+            let r: HttpRequest = createRequest(from: req)
+            let multipartDatas = r.parseMultiPartFormData()
+            for multipartData in multipartDatas {
+                guard let propertyName = multipartData.name else { continue }
+                switch propertyName {
+                    case "attachment":
+                        let fileData = Data(bytes: multipartData.body, count: multipartData.body.count)
+                        if let fileName = multipartData.fileName, fileData.count > 0 {
+                            let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
+                            let planetURL = tmp.appendingPathComponent(planet.id.uuidString)
+                            try FileManager.default.createDirectory(at: planetURL, withIntermediateDirectories: true, attributes: nil)
+                            let targetURL = planetURL.appendingPathComponent(fileName)
+                            try? FileManager.default.removeItem(at: targetURL)
+                            try fileData.write(to: targetURL)
+                            let attachmentType = AttachmentType.from(targetURL)
+                            try draft.addAttachment(path: targetURL, type: attachmentType)
                         }
-                        let name = String(part[attachmentFilename])
-                        print("Filename: \(name)")
-                        
-                        // Extract the content type
-                        let contentTypeRegex = try NSRegularExpression(pattern: "Content-Type: ([^\r\n]+)")
-                        let contentTypeMatch = contentTypeRegex.firstMatch(in: part, range: NSRange(location: 0, length: part.utf16.count))
-                        guard let contentTypeRange = contentTypeMatch?.range(at: 1),
-                              let attachmentContentType = Range(contentTypeRange, in: part) else {
-                            print("Failed to extract content type")
-                            continue
-                        }
-                        let type = String(part[attachmentContentType])
-                        print("Content-Type: \(type)")
-                        
-                        // Extract the file data
-                        guard let headerEndIndex = part.range(of: "\r\n\r\n")?.upperBound else {
-                            print("Failed to find end of headers")
-                            continue
-                        }
-                        
-                        let fileDataString = part[headerEndIndex...]
-                        print("File data length: \(fileDataString.count) bytes")
-                        
-                        // Convert string back to Data, preserving all bytes
-                        guard let fileData = fileDataString.data(using: .utf8) else {
-                            continue
-                        }
-                        
-                        let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
-                        let planetURL = tmp.appendingPathComponent(planet.id.uuidString)
-                        try FileManager.default.createDirectory(at: planetURL, withIntermediateDirectories: true, attributes: nil)
-                        let targetURL = planetURL.appendingPathComponent(name)
-                        try? FileManager.default.removeItem(at: targetURL)
-                        try fileData.write(to: targetURL)
-                        
-                        print("Saved attachment: \(targetURL)")
-                        print("Saved file size: \(try FileManager.default.attributesOfItem(atPath: targetURL.path)[.size] ?? 0) bytes")
-                        
-                        // Create the File object
-                        let attachmentType = AttachmentType.from(targetURL)
-                        try draft.addAttachment(path: targetURL, type: attachmentType)
-                    }
+                    default:
+                        break
                 }
             }
-             */
-            
-            /*
-            if let contentType = req.headers.contentType, let boundary = contentType.parameters["boundary"], let parts = req.body.string?.components(separatedBy: boundary) {
-                for part in parts where part.contains("name=\"attachment\"") {
-                    
-                    // Extract the filename
-                    let filenameRegex = try! NSRegularExpression(pattern: "filename=\"([^\"]+)\"")
-                    let filenameMatch = filenameRegex.firstMatch(in: part, range: NSRange(location: 0, length: part.utf16.count))
-                    guard let filenameRange = filenameMatch?.range(at: 1), let attachmentFilename = Range(filenameRange, in: part) else {
-                        continue
-                    }
-                    let name = String(part[attachmentFilename])
-                    
-                    // Extract the content type
-                    let contentTypeRegex = try! NSRegularExpression(pattern: "Content-Type: ([^\r\n]+)")
-                    let contentTypeMatch = contentTypeRegex.firstMatch(in: part, range: NSRange(location: 0, length: part.utf16.count))
-                    guard let contentTypeRange = contentTypeMatch?.range(at: 1), let attachmentContentType = Range(contentTypeRange, in: part) else {
-                        continue
-                    }
-                    let type = String(part[attachmentContentType])
-                    
-                    // Extract the file data
-                    let dataStartIndex = part.range(of: "\r\n\r\n")?.upperBound ?? part.endIndex
-                    let dataEndIndex = part.range(of: "\r\n--" + boundary)?.lowerBound ?? part.endIndex
-                    let fileDataString = part[dataStartIndex..<dataEndIndex]
-                    func stringToByteBuffer(_ string: String, using allocator: ByteBufferAllocator = ByteBufferAllocator()) -> ByteBuffer {
-                        var buffer = allocator.buffer(capacity: string.utf8.count)
-                        buffer.writeString(string)
-                        return buffer
-                    }
-                    let dataBuffer = stringToByteBuffer(String(fileDataString))
-                    let data = Data(buffer: dataBuffer)
-                    let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
-                    let planetURL = tmp.appendingPathComponent(planet.id.uuidString)
-                    try? FileManager.default.createDirectory(at: planetURL, withIntermediateDirectories: true)
-                    let targetURL = planetURL.appendingPathComponent(name)
-                    try? FileManager.default.removeItem(at: targetURL)
-                    try data.write(to: targetURL)
-                    
-                    debugPrint("saved attachment: \(targetURL)")
-
-                    // Create the File object
-                    let attachmentType = AttachmentType.from(targetURL)
-                    try draft.addAttachment(path: targetURL, type: attachmentType)
-                }
-            }
-             */
         }
         try await MainActor.run {
             try draft.saveToArticle()
