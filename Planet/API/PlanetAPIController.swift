@@ -577,6 +577,9 @@ class PlanetAPIController: NSObject, ObservableObject {
                             try fileData.write(to: targetURL)
                             let attachmentType = AttachmentType.from(targetURL)
                             try draft.addAttachment(path: targetURL, type: attachmentType)
+                            Task.detached(priority: .background) {
+                                try? FileManager.default.removeItem(at: targetURL)
+                            }
                         }
                     default:
                         break
