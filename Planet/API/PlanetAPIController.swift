@@ -148,7 +148,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         builder.get("v0", "planets", "my") { req async throws -> Response in
             return try await self.routeGetPlanets(fromRequest: req)
         }
-
+        
         //MARK: POST /v0/planets/my
         //MARK: Create a new Planet -
         /// Return MyPlanetModel, Struct
@@ -191,7 +191,7 @@ class PlanetAPIController: NSObject, ObservableObject {
             let redirectURL = URI(string: "/\(planet.id.uuidString)/")
             return req.redirect(to: redirectURL.string, redirectType: .temporary)
         }
-
+        
         //MARK: GET /v0/planets/my/:uuid/articles
         //MARK: List articles under My Planet -
         /// Return Array<MyArticleModel>
@@ -205,7 +205,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         builder.on(.POST, "v0", "planets", "my", ":uuid", "articles", body: .collect(maxSize: "50mb")) { req async throws -> Response in
             return try await self.routeCreatePlanetArticle(fromRequest: req)
         }
-
+        
         //MARK: GET /v0/planets/my/:planet_uuid/articles/:article_uuid
         //MARK: Get an article by planet and article UUID -
         /// Return MyArticleModel, Struct
@@ -239,7 +239,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         }()
         app.http.server.configuration.port = port
         app.http.server.configuration.hostname = "0.0.0.0"
-
+        
         let repoPath: String = {
             if #available(macOS 13.0, *) {
                 return URLUtils.repoPath().appendingPathComponent("Public", conformingTo: .folder).path()
@@ -251,7 +251,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         app.middleware.use(fileMiddleware)
         
         app.routes.caseInsensitive = true
-
+        
         try routes(app)
     }
     
@@ -326,6 +326,18 @@ class PlanetAPIController: NSObject, ObservableObject {
         return targetURL
     }
     
+    private func saveAttachment(_ data: Data, filename: String, forPlanet planetID: UUID) throws -> URL {
+        let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
+        let planetURL = tmp.appendingPathComponent(planetID.uuidString)
+        try FileManager.default.createDirectory(at: planetURL, withIntermediateDirectories: true, attributes: nil)
+        let targetURL = planetURL.appendingPathComponent(filename)
+        if FileManager.default.fileExists(atPath: targetURL.path) {
+            try FileManager.default.removeItem(at: targetURL)
+        }
+        try data.write(to: targetURL)
+        return targetURL
+    }
+    
     private func createResponse<T: Encodable>(from value: T, status: HTTPResponseStatus) throws -> Response {
         let encoder = JSONEncoder()
         let responsePayload = try encoder.encode(value)
@@ -354,7 +366,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         for (name, values) in vaporRequest.headers {
             httpRequest.headers[name.lowercased()] = values
         }
-
+        
         // Set the body (as [UInt8])
         if let bodyBuffer = vaporRequest.body.data {
             httpRequest.body = [UInt8](bodyBuffer.readableBytesView)
@@ -362,11 +374,11 @@ class PlanetAPIController: NSObject, ObservableObject {
         
         // Set the address (remote peer address)
         httpRequest.address = vaporRequest.remoteAddress?.description
-
+        
         return httpRequest
     }
-
-
+    
+    
     // MARK: -
     
     private func routeGetID(fromRequest req: Request) async throws -> String {
@@ -569,16 +581,11 @@ class PlanetAPIController: NSObject, ObservableObject {
                     case "attachment":
                         let fileData = Data(bytes: multipartData.body, count: multipartData.body.count)
                         if let fileName = multipartData.fileName, fileData.count > 0 {
-                            let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
-                            let planetURL = tmp.appendingPathComponent(planet.id.uuidString)
-                            try FileManager.default.createDirectory(at: planetURL, withIntermediateDirectories: true, attributes: nil)
-                            let targetURL = planetURL.appendingPathComponent(fileName)
-                            try? FileManager.default.removeItem(at: targetURL)
-                            try fileData.write(to: targetURL)
-                            let attachmentType = AttachmentType.from(targetURL)
-                            try draft.addAttachment(path: targetURL, type: attachmentType)
+                            let savedURL =  try self.saveAttachment(fileData, filename: fileName, forPlanet: planet.id)
+                            let attachmentType = AttachmentType.from(savedURL)
+                            try draft.addAttachment(path: savedURL, type: attachmentType)
                             Task.detached(priority: .background) {
-                                try? FileManager.default.removeItem(at: targetURL)
+                                try? FileManager.default.removeItem(at: savedURL)
                             }
                         }
                     default:
@@ -643,16 +650,11 @@ class PlanetAPIController: NSObject, ObservableObject {
                         case "attachment":
                             let fileData = Data(bytes: multipartData.body, count: multipartData.body.count)
                             if let fileName = multipartData.fileName, fileData.count > 0 {
-                                let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
-                                let planetURL = tmp.appendingPathComponent(planet.id.uuidString)
-                                try FileManager.default.createDirectory(at: planetURL, withIntermediateDirectories: true, attributes: nil)
-                                let targetURL = planetURL.appendingPathComponent(fileName)
-                                try? FileManager.default.removeItem(at: targetURL)
-                                try fileData.write(to: targetURL)
-                                let attachmentType = AttachmentType.from(targetURL)
-                                try draft.addAttachment(path: targetURL, type: attachmentType)
+                                let savedURL = try self.saveAttachment(fileData, filename: fileName, forPlanet: planet.id)
+                                let attachmentType = AttachmentType.from(savedURL)
+                                try draft.addAttachment(path: savedURL, type: attachmentType)
                                 Task.detached(priority: .background) {
-                                    try? FileManager.default.removeItem(at: targetURL)
+                                    try? FileManager.default.removeItem(at: savedURL)
                                 }
                             }
                         default:
