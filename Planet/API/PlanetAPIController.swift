@@ -553,7 +553,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         draft.content = articleContent
         if let attachments = article.attachments {
             for attachment in attachments {
-                let savedURL = try saveAttachment(attachment, forPlanet: planet.id)
+                let savedURL = try self.saveAttachment(attachment, forPlanet: planet.id)
                 let attachmentType = AttachmentType.from(savedURL)
                 try draft.addAttachment(path: savedURL, type: attachmentType)
                 Task.detached(priority: .background) {
@@ -561,7 +561,7 @@ class PlanetAPIController: NSObject, ObservableObject {
                 }
             }
         } else {
-            let r: HttpRequest = createRequest(from: req)
+            let r: HttpRequest = self.createRequest(from: req)
             let multipartDatas = r.parseMultiPartFormData()
             for multipartData in multipartDatas {
                 guard let propertyName = multipartData.name else { continue }
@@ -623,7 +623,7 @@ class PlanetAPIController: NSObject, ObservableObject {
                 draft.deleteAttachment(name: existingAttachment.name)
             }
             for attachment in attachments {
-                let savedURL = try saveAttachment(attachment, forPlanet: planet.id)
+                let savedURL = try self.saveAttachment(attachment, forPlanet: planet.id)
                 let attachmentType = AttachmentType.from(savedURL)
                 try draft.addAttachment(path: savedURL, type: attachmentType)
                 Task.detached(priority: .background) {
@@ -631,7 +631,7 @@ class PlanetAPIController: NSObject, ObservableObject {
                 }
             }
         } else {
-            let r: HttpRequest = createRequest(from: req)
+            let r: HttpRequest = self.createRequest(from: req)
             let multipartDatas = r.parseMultiPartFormData()
             if multipartDatas.count > 0 {
                 for existingAttachment in draft.attachments {
