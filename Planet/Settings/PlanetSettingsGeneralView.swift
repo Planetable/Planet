@@ -84,25 +84,6 @@ struct PlanetSettingsGeneralView: View {
                         .padding(.top, -10)
                     }
 
-                    // Obsoleted by ipfs2.eth.limo
-                    /*
-                    HStack(spacing: 4) {
-                        Text("Public Gateway")
-                            .frame(width: CAPTION_WIDTH, alignment: .trailing)
-                        Picker(selection: $publicGatewayIndex, label: Text("")) {
-                            ForEach(0..<IPFSDaemon.publicGateways.count, id: \.self) { index in
-                                Text(IPFSDaemon.publicGateways[index])
-                                    .tag(index)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .onChange(of: publicGatewayIndex) { newValue in
-                            // Refresh Published Folders Dashboard Toolbar
-                            NotificationCenter.default.post(name: .dashboardRefreshToolbar, object: nil)
-                        }
-                    }
-                    */
-
                     HStack(spacing: 4) {
                         Text("IPFS Public Gateway")
                             .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH, alignment: .trailing)

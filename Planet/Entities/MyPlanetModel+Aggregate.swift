@@ -306,18 +306,31 @@ extension MyPlanetModel {
                     {
                         // TODO: Update existing article
                         var changed = false
+                        if existingArticle.link != "/\(existingArticle.id.uuidString)/" {
+                            debugPrint(
+                                "Aggregation: updating \(article.id) link from \(existingArticle.link) to /\(existingArticle.id.uuidString)/"
+                            )
+                            await MainActor.run {
+                                existingArticle.link = "/\(existingArticle.id.uuidString)/"
+                            }
+                            changed = true
+                        }
                         if existingArticle.title != article.title {
                             debugPrint(
                                 "Aggregation: updating \(article.id) title from \(existingArticle.title) to \(article.title)"
                             )
-                            existingArticle.title = article.title
+                            await MainActor.run {
+                                existingArticle.title = article.title
+                            }
                             changed = true
                         }
                         if existingArticle.content != article.content {
                             debugPrint(
                                 "Aggregation: updating \(article.id) content from \(existingArticle.content) to \(article.content)"
                             )
-                            existingArticle.content = article.content
+                            await MainActor.run {
+                                existingArticle.content = article.content
+                            }
                             changed = true
                         }
                         let savedAttachments = await fetchArticleAttachments(
@@ -333,8 +346,11 @@ extension MyPlanetModel {
                             Task(priority: .utility) {
                                 try existingArticle.savePublic()
                             }
-                            DispatchQueue.main.async {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                                 PlanetStore.shared.refreshSelectedArticles()
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                    NotificationCenter.default.post(name: .loadArticle, object: nil)
+                                }
                             }
                         }
                     }
@@ -369,7 +385,7 @@ extension MyPlanetModel {
                         }
                         let newArticle = MyArticleModel(
                             id: postID,
-                            link: article.link,
+                            link: "/\(postID.uuidString)/",
                             slug: nil,
                             heroImage: heroImageName,
                             externalLink: article.externalLink,

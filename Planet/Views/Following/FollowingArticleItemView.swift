@@ -110,6 +110,24 @@ struct FollowingArticleItemView: View {
                 } label: {
                     Text("Open in Browser")
                 }
+                if let planet = article.planet, let cid = planet.cid, cid.hasPrefix("bafy") {
+                    Divider()
+                    Button {
+                        let permalink: String = "https://\(cid).eth.sucks\(article.link)"
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(permalink, forType: .string)
+                    } label: {
+                        Text("Copy Permalink")
+                    }
+                    Button {
+                        let permalink: String = "https://\(cid).eth.sucks\(article.link)"
+                        if let url = URL(string: permalink) {
+                            NSWorkspace.shared.open(url)
+                        }
+                    } label: {
+                        Text("Open Permalink in Browser")
+                    }
+                }
             }
         }
         .confirmationDialog(

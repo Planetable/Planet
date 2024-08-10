@@ -41,11 +41,4 @@ enum IPFSGateway: String, Codable, CaseIterable {
         let gateway = UserDefaults.standard.string(forKey: String.settingsPreferredIPFSPublicGateway)
         return IPFSGateway(rawValue: gateway ?? IPFSGateway.defaultGateway.rawValue) ?? IPFSGateway.defaultGateway
     }
-
-    static let publicGateways: [String] = [
-        "https://ipfs.io",
-        "https://dweb.link",
-        "https://gateway.pinata.cloud",
-        "https://ipfs.fleek.co"
-    ]
 }
