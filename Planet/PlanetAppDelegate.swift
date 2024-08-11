@@ -118,10 +118,6 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
 
         PlanetUpdater.shared.checkForUpdatesInBackground()
 
-        // Connect Wallet V1
-
-//        WalletManager.shared.setupV1()
-
         // Connect Wallet V2
         if let wc2Enabled: Bool = Bundle.main.object(forInfoDictionaryKey: "WALLETCONNECTV2_ENABLED") as? Bool, wc2Enabled == true {
             do {
