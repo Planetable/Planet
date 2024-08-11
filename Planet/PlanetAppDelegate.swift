@@ -126,6 +126,13 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                 debugPrint("WalletConnect 2.0 Failed to prepare the connection: \(error)")
             }
         }
+
+        // Aggregate after app started for 15 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
+            Task.detached(priority: .background) {
+                await PlanetStore.shared.aggregate()
+            }
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
