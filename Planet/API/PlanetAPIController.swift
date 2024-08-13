@@ -249,7 +249,10 @@ class PlanetAPIController: NSObject, ObservableObject {
         }()
         let fileMiddleware = FileMiddleware(publicDirectory: repoPath, defaultFile: "index.html")
         app.middleware.use(fileMiddleware)
-        
+
+        let logMiddleware = PlanetAPILogMiddleware()
+        app.middleware.use(logMiddleware)
+
         app.routes.caseInsensitive = true
         
         try routes(app)

@@ -17,7 +17,8 @@ struct PlanetAPIControlView: View {
     @State private var isAlert: Bool = false
     @State private var alertTitle: String = ""
     @State private var alertMessage: String = ""
-    
+    @State private var isLog: Bool = false
+
     init() {
         _control = ObservedObject(wrappedValue: PlanetAPIController.shared)
     }
@@ -113,6 +114,15 @@ struct PlanetAPIControlView: View {
                     .padding(.leading, -2)
                 Spacer()
                 Button {
+                    isLog.toggle()
+                } label: {
+                    Image(systemName: "tv")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 16)
+                }
+                .buttonStyle(.plain)
+                Button {
                     if control.serverIsRunning {
                         control.stopServer()
                     } else {
@@ -159,6 +169,9 @@ struct PlanetAPIControlView: View {
         }
         .alert(isPresented: $isAlert) {
             Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .cancel(Text("OK")))
+        }
+        .sheet(isPresented: $isLog) {
+            PlanetAPILogView()
         }
     }
     
