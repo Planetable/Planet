@@ -7,28 +7,20 @@ import Foundation
 import Vapor
 
 
-struct PlanetAPILogMiddleware: Middleware {
+struct PlanetAPILogMiddleware: AsyncMiddleware {
     var viewModel: PlanetAPILogViewModel
 
     init() {
         self.viewModel = PlanetAPILogViewModel.shared
     }
 
-    func respond(to request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
-        let requestLog = "Received request: \(request.method.string) \(request.url.path)"
+    func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
+        let response = try await next.respond(to: request)
         Task.detached(priority: .background) {
             await MainActor.run {
-                self.viewModel.addLog(requestLog)
+                self.viewModel.addLog(statusCode: response.status.code, requestURL: request.method.string + " " + request.url.path)
             }
         }
-        return next.respond(to: request).map { response in
-            let responseLog = "Response status: \(response.status.code)"
-            Task.detached(priority: .background) {
-                await MainActor.run {
-                    self.viewModel.addLog(responseLog)
-                }
-            }
-            return response
-        }
+        return response
     }
 }
