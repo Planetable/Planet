@@ -171,7 +171,7 @@ struct PlanetAPIControlView: View {
             Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .cancel(Text("OK")))
         }
         .sheet(isPresented: $isLog) {
-            PlanetAPILogView()
+            PlanetAPIConsoleView()
         }
     }
     

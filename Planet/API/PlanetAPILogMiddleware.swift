@@ -8,19 +8,35 @@ import Vapor
 
 
 struct PlanetAPILogMiddleware: AsyncMiddleware {
-    var viewModel: PlanetAPILogViewModel
+    var viewModel: PlanetAPIConsoleViewModel
 
     init() {
-        self.viewModel = PlanetAPILogViewModel.shared
+        self.viewModel = PlanetAPIConsoleViewModel.shared
     }
-
+    
     func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
-        let response = try await next.respond(to: request)
-        Task.detached(priority: .background) {
-            await MainActor.run {
-                self.viewModel.addLog(statusCode: response.status.code, requestURL: request.method.string + " " + request.url.path)
+        do {
+            let response = try await next.respond(to: request)
+            Task.detached(priority: .background) {
+                await MainActor.run {
+                    self.viewModel.addLog(statusCode: response.status.code, requestURL: request.method.string + " " + request.url.path)
+                }
             }
+            return response
+        } catch let error as AbortError {
+            Task.detached(priority: .background) {
+                await MainActor.run {
+                    self.viewModel.addLog(statusCode: error.status.code, requestURL: "\(request.method.string) \(request.url.path)")
+                }
+            }
+            throw error
+        } catch {
+            Task.detached(priority: .background) {
+                await MainActor.run {
+                    self.viewModel.addLog(statusCode: 500, requestURL: "\(request.method.string) \(request.url.path)")
+                }
+            }
+            throw error
         }
-        return response
     }
 }
