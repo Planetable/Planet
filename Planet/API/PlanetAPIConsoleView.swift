@@ -16,20 +16,27 @@ private struct AttributedConsoleView: NSViewRepresentable {
     
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
-        scrollView.hasVerticalScroller = true
-        scrollView.hasHorizontalScroller = false
-        scrollView.autohidesScrollers = true
+        scrollView.drawsBackground = true
         scrollView.borderType = .noBorder
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalRuler = false
+        scrollView.autoresizingMask = [.width, .height]
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
         
         let textView = NSTextView()
+        textView.autoresizingMask = .width
+        textView.backgroundColor = NSColor.textBackgroundColor
+        textView.drawsBackground = true
+        textView.isHorizontallyResizable = false
+        textView.isVerticallyResizable = true
+        textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        textView.minSize = NSSize(width: 480, height: 320)
+        textView.textColor = NSColor.labelColor
+        textView.allowsUndo = false
         textView.isEditable = false
         textView.isSelectable = true
-        textView.backgroundColor = .textBackgroundColor
-        textView.textContainerInset = NSSize(width: 16, height: 16)
+        textView.textContainerInset = NSSize(width: 16, height: 10)
         textView.textContainer?.widthTracksTextView = true
-        textView.isHorizontallyResizable = false
-        textView.textContainer?.lineBreakMode = .byWordWrapping
-        
         
         scrollView.documentView = textView
         return scrollView
@@ -90,13 +97,13 @@ private struct AttributedConsoleView: NSViewRepresentable {
             attributedText.append(attributedLog)
         }
         textView.textStorage?.setAttributedString(attributedText)
-        textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
+        textView.scrollToEndOfDocument(nil)
     }
 }
 
 struct PlanetAPIConsoleView: View {
     var body: some View {
         AttributedConsoleView()
-            .frame(width: 480, height: 320)
+            .frame(minWidth: 480, idealWidth: 480, maxWidth: .infinity, minHeight: 320, idealHeight: 320, maxHeight: .infinity)
     }
 }
