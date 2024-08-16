@@ -17,7 +17,7 @@ struct PlanetAPIControlView: View {
     @State private var isAlert: Bool = false
     @State private var alertTitle: String = ""
     @State private var alertMessage: String = ""
-    
+
     init() {
         _control = ObservedObject(wrappedValue: PlanetAPIController.shared)
     }
@@ -112,6 +112,17 @@ struct PlanetAPIControlView: View {
                 Text("API Server Status: **\(status)**")
                     .padding(.leading, -2)
                 Spacer()
+                Button {
+                    PlanetAPIConsoleWindowManager.shared.activate()
+                } label: {
+                    Image(systemName: "display")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 15)
+                }
+                .buttonStyle(.plain)
+                .help("Open API Console")
+                .padding(.trailing, 8)
                 Button {
                     if control.serverIsRunning {
                         control.stopServer()

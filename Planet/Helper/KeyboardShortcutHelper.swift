@@ -180,6 +180,12 @@ class KeyboardShortcutHelper: ObservableObject {
                 }
 
                 publishedFoldersMenus()
+                
+                Button {
+                    PlanetAPIConsoleWindowManager.shared.activate()
+                } label: {
+                    Text("API Console")
+                }
 
                 Divider()
             }
