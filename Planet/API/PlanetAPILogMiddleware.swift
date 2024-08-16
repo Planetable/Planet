@@ -24,16 +24,23 @@ struct PlanetAPILogMiddleware: AsyncMiddleware {
             }
             return response
         } catch let error as AbortError {
-            Task.detached(priority: .background) {
+            Task.detached(priority: .utility) {
                 await MainActor.run {
-                    self.viewModel.addLog(statusCode: error.status.code, requestURL: "\(request.method.string) \(request.url.path)")
+                    self.viewModel.addLog(statusCode: error.status.code, requestURL: "\(request.method.string) \(request.url.path)", errorDescription: error.reason)
+                }
+            }
+            throw error
+        } catch let error as DecodingError {
+            Task.detached(priority: .utility) {
+                await MainActor.run {
+                    self.viewModel.addLog(statusCode: error.status.code, requestURL: "\(request.method.string) \(request.url.path)", errorDescription: error.reason)
                 }
             }
             throw error
         } catch {
-            Task.detached(priority: .background) {
+            Task.detached(priority: .utility) {
                 await MainActor.run {
-                    self.viewModel.addLog(statusCode: 500, requestURL: "\(request.method.string) \(request.url.path)")
+                    self.viewModel.addLog(statusCode: 500, requestURL: "\(request.method.string) \(request.url.path)", errorDescription: error.localizedDescription)
                 }
             }
             throw error

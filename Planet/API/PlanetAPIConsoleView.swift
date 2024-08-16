@@ -95,6 +95,16 @@ private struct AttributedConsoleView: NSViewRepresentable {
             }
 
             attributedText.append(attributedLog)
+            
+            // Add error description if available
+            if log.errorDescription != "" {
+                let errorDescription = log.errorDescription + "\n"
+                let attributedErrorDescription = NSMutableAttributedString(string: errorDescription)
+                let errorRange = NSRange(location: 0, length: attributedErrorDescription.length)
+                attributedErrorDescription.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: 12, weight: .medium), range: errorRange)
+                attributedErrorDescription.addAttribute(.foregroundColor, value: NSColor.secondaryLabelColor, range: errorRange)
+                attributedText.append(attributedErrorDescription)
+            }
         }
         textView.textStorage?.setAttributedString(attributedText)
         textView.scrollToEndOfDocument(nil)

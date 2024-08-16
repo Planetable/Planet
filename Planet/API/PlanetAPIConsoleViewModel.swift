@@ -11,15 +11,22 @@ class PlanetAPIConsoleViewModel: ObservableObject {
     static let shared = PlanetAPIConsoleViewModel()
     static let maxLength: Int = 2000
 
-    @Published private(set) var logs: [(timestamp: Date, statusCode: UInt, requestURL: String)] = []
+    @Published private(set) var logs: [
+        (
+            timestamp: Date,
+            statusCode: UInt,
+            requestURL: String,
+            errorDescription: String
+        )
+    ] = []
 
     init() {
     }
 
     @MainActor
-    func addLog(statusCode: UInt, requestURL: String) {
+    func addLog(statusCode: UInt, requestURL: String, errorDescription: String = "") {
         let now = Date()
-        let logEntry = (timestamp: now, statusCode: statusCode, requestURL: requestURL)
+        let logEntry = (timestamp: now, statusCode: statusCode, requestURL: requestURL, errorDescription: errorDescription)
         logs.append(logEntry)
         if logs.count > Self.maxLength {
             logs = Array(logs.suffix(Self.maxLength))
