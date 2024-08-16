@@ -17,7 +17,6 @@ struct PlanetAPIControlView: View {
     @State private var isAlert: Bool = false
     @State private var alertTitle: String = ""
     @State private var alertMessage: String = ""
-    @State private var isLog: Bool = false
 
     init() {
         _control = ObservedObject(wrappedValue: PlanetAPIController.shared)
@@ -114,14 +113,16 @@ struct PlanetAPIControlView: View {
                     .padding(.leading, -2)
                 Spacer()
                 Button {
-                    isLog.toggle()
+                    PlanetAPIConsoleWindowManager.shared.activate()
                 } label: {
-                    Image(systemName: "tv")
+                    Image(systemName: "display")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(height: 16)
+                        .frame(height: 15)
                 }
                 .buttonStyle(.plain)
+                .help("Open API Console")
+                .padding(.trailing, 8)
                 Button {
                     if control.serverIsRunning {
                         control.stopServer()
@@ -169,9 +170,6 @@ struct PlanetAPIControlView: View {
         }
         .alert(isPresented: $isAlert) {
             Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .cancel(Text("OK")))
-        }
-        .sheet(isPresented: $isLog) {
-            PlanetAPIConsoleView()
         }
     }
     

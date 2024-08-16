@@ -11,6 +11,8 @@ class PlanetAPIConsoleViewModel: ObservableObject {
     static let shared = PlanetAPIConsoleViewModel()
     static let maxLength: Int = 2000
 
+    @Published var isShowingConsoleWindow = false
+
     @Published private(set) var logs: [
         (
             timestamp: Date,
