@@ -12,10 +12,12 @@ struct CroptopApp: App {
     @Environment(\.openURL) private var openURL
     @ObservedObject private var updater: PlanetUpdater
     @ObservedObject private var keyboardHelper: KeyboardShortcutHelper
+    @ObservedObject var apiController: PlanetAPIController
 
     init() {
         _updater = ObservedObject(wrappedValue: PlanetUpdater.shared)
         _keyboardHelper = ObservedObject(wrappedValue: KeyboardShortcutHelper.shared)
+        _apiController = ObservedObject(wrappedValue: PlanetAPIController.shared)
     }
 
     var body: some Scene {
