@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Cocoa
 
 struct URLUtils {
     static let applicationSupportPath = try! FileManager.default.url(
@@ -66,7 +67,7 @@ struct URLUtils {
         }
         return Self.defaultRepoPath
     }
-    
+
     static let defaultRepoPath: URL = {
         let url = Self.documentsPath.appendingPathComponent("Planet", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
@@ -111,5 +112,20 @@ extension URL {
     var isPlanetWindowGroupLink: Bool {
         let windowGroups: [String] = ["planet://Template"]
         return windowGroups.contains(self.absoluteString)
+    }
+
+    var asNSImage: NSImage {
+        let ext = pathExtension.lowercased()
+        if ["jpg", "jpeg", "png", "gif", "tiff", "bmp"].contains(ext),
+           let image = NSImage(contentsOf: self) {
+            return image
+        }
+        if let rep = NSWorkspace.shared.icon(forFile: self.path)
+            .bestRepresentation(for: NSRect(x: 0, y: 0, width: 128, height: 128), context: nil, hints: nil) {
+            let image = NSImage(size: rep.size)
+            image.addRepresentation(rep)
+            return image
+        }
+        return NSImage()
     }
 }

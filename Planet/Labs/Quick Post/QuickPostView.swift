@@ -55,6 +55,11 @@ struct QuickPostView: View {
 
             }
 
+            if let audioURL = viewModel.audioURL {
+                Divider()
+                AudioPlayer(url: audioURL, title: audioURL.lastPathComponent)
+            }
+
             Divider()
 
             HStack {
@@ -62,13 +67,37 @@ struct QuickPostView: View {
                     do {
                         viewModel.allowedContentTypes = [.image]
                         viewModel.allowMultipleSelection = true
-                        try attach()
+                        try attach(.image)
                     }
                     catch {
-                        debugPrint("failed to add attachment to Quick Post: \(error)")
+                        debugPrint("failed to add image to Quick Post: \(error)")
                     }
                 } label: {
-                    Label("Add Image", systemImage: "photo.on.rectangle.angled")
+                    Image(systemName: "photo")
+                }
+                Button {
+                    do {
+                        viewModel.allowedContentTypes = [.movie]
+                        viewModel.allowMultipleSelection = false
+                        try attach(.video)
+                    }
+                    catch {
+                        debugPrint("failed to add movie to Quick Post: \(error)")
+                    }
+                } label: {
+                    Image(systemName: "movieclapper")
+                }
+                Button {
+                    do {
+                        viewModel.allowedContentTypes = [.mp3, .mpeg4Audio, .wav]
+                        viewModel.allowMultipleSelection = false
+                        try attach(.audio)
+                    }
+                    catch {
+                        debugPrint("failed to add audio to Quick Post: \(error)")
+                    }
+                } label: {
+                    Image(systemName: "waveform")
                 }
                 Spacer()
                 Button("Cancel", role: .cancel) {
@@ -88,7 +117,6 @@ struct QuickPostView: View {
                     catch {
                         debugPrint("Failed to save quick post")
                     }
-                    viewModel.content = ""
                     dismiss()
                 } label: {
                     Text("Post")
@@ -98,7 +126,17 @@ struct QuickPostView: View {
                 .buttonBorderShape(.roundedRectangle)
             }.padding(10)
                 .background(Color(NSColor.windowBackgroundColor))
-        }.frame(width: 500, height: viewModel.fileURLs.count > 0 ? 310 : 200)
+        }.frame(width: 500, height: sheetHeight())
+    }
+
+    private func sheetHeight() -> CGFloat {
+        if viewModel.fileURLs.count > 0 {
+            if let audioURL = viewModel.audioURL {
+                return 310 + 25
+            }
+            return 310
+        }
+        return 200
     }
 
     @ViewBuilder
@@ -118,7 +156,7 @@ struct QuickPostView: View {
     @ViewBuilder
     private func mediaItem(for url: URL) -> some View {
         VStack(spacing: 0) {
-            Image(nsImage: NSImage(contentsOf: url) ?? NSImage())
+            Image(nsImage: url.asNSImage)
                 .interpolation(.high)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -135,6 +173,9 @@ struct QuickPostView: View {
         .contextMenu {
             Button {
                 viewModel.fileURLs.removeAll { $0 == url }
+                if let audioURL = viewModel.audioURL, audioURL == url {
+                    viewModel.audioURL = nil
+                }
             } label: {
                 Label("Remove", systemImage: "trash")
             }
@@ -175,7 +216,7 @@ struct QuickPostView: View {
         return result.trim()
     }
 
-    private func attach() throws {
+    private func attach(_ type: AttachmentType = .file) throws {
         let panel = NSOpenPanel()
         panel.message = "Add Attachments"
         panel.prompt = "Add"
@@ -188,6 +229,15 @@ struct QuickPostView: View {
         let urls = panel.urls
         try urls.forEach { url in
             viewModel.fileURLs.append(url)
+            if type == .audio {
+                if let existingAudioURL = viewModel.audioURL {
+                    viewModel.fileURLs.removeAll { $0 == existingAudioURL }
+                }
+                viewModel.audioURL = url
+            }
+            if type == .video {
+                viewModel.videoURL = url
+            }
         }
     }
 
@@ -195,6 +245,8 @@ struct QuickPostView: View {
         defer {
             viewModel.fileURLs = []
             viewModel.content = ""
+            viewModel.audioURL = nil
+            viewModel.audioURL = nil
         }
         // Save content as a new MyArticleModel
         guard let planet = KeyboardShortcutHelper.shared.activeMyPlanet else { return }

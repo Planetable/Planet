@@ -20,6 +20,9 @@ class QuickPostViewModel: ObservableObject {
     @Published var heroImage: String? = nil
     @Published var fileURLs: [URL] = []
 
+    @Published var audioURL: URL? = nil
+    @Published var videoURL: URL? = nil
+
     @MainActor
     func prepareFiles(_ files: [URL]) throws {
         fileURLs += files
