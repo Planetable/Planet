@@ -56,7 +56,7 @@ private struct AttributedConsoleView: NSViewRepresentable {
             attributedLog.addAttribute(.foregroundColor, value: NSColor.textColor, range: NSRange(location: 0, length: attributedLog.length))
             
             // Set base font
-            attributedLog.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: 12, weight: .regular), range: NSRange(location: 0, length: attributedLog.length))
+            attributedLog.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: self.viewModel.baseFontSize, weight: .regular), range: NSRange(location: 0, length: attributedLog.length))
             
             // Match timestamp
             let timestampRange = NSRange(location: 0, length: timestampString.count)
@@ -83,7 +83,7 @@ private struct AttributedConsoleView: NSViewRepresentable {
                                 color = .textColor
                         }
                         attributedLog.addAttribute(.foregroundColor, value: color, range: statusCodeRange)
-                        attributedLog.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: 12, weight: .bold), range: statusCodeRange)
+                        attributedLog.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: self.viewModel.baseFontSize, weight: .bold), range: statusCodeRange)
                     }
                 }
             }
@@ -91,7 +91,7 @@ private struct AttributedConsoleView: NSViewRepresentable {
             // Match request method
             if let methodRange = logText.range(of: log.requestURL.split(separator: " ").first ?? "") {
                 let nsRange = NSRange(methodRange, in: logText)
-                attributedLog.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: 12, weight: .semibold), range: nsRange)
+                attributedLog.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: self.viewModel.baseFontSize, weight: .semibold), range: nsRange)
             }
 
             attributedText.append(attributedLog)
@@ -101,7 +101,7 @@ private struct AttributedConsoleView: NSViewRepresentable {
                 let errorDescription = log.errorDescription + "\n"
                 let attributedErrorDescription = NSMutableAttributedString(string: errorDescription)
                 let errorRange = NSRange(location: 0, length: attributedErrorDescription.length)
-                attributedErrorDescription.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: 12, weight: .medium), range: errorRange)
+                attributedErrorDescription.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: self.viewModel.baseFontSize, weight: .medium), range: errorRange)
                 attributedErrorDescription.addAttribute(.foregroundColor, value: NSColor.secondaryLabelColor, range: errorRange)
                 attributedText.append(attributedErrorDescription)
             }
