@@ -472,47 +472,6 @@ class KeyboardShortcutHelper: ObservableObject {
     
     @ViewBuilder
     private func apiConsoleMenus() -> some View {
-        Menu("API Console") {
-            Button {
-                Task { @MainActor in
-                    PlanetAPIConsoleViewModel.shared.increaseFontSize()
-                }
-            } label: {
-                Text("Increase Font Size")
-            }
-            .keyboardShortcut("+", modifiers: [.command])
-            Button {
-                Task { @MainActor in
-                    PlanetAPIConsoleViewModel.shared.decreaseFontSize()
-                }
-            } label: {
-                Text("Decrease Font Size")
-            }
-            .keyboardShortcut("-", modifiers: [.command])
-            Button {
-                Task { @MainActor in
-                    PlanetAPIConsoleViewModel.shared.resetFontSize()
-                }
-            } label: {
-                Text("Reset to Default Size")
-            }
-            .keyboardShortcut("0", modifiers: [.command])
-            Divider()
-            Button {
-                Task { @MainActor in
-                    PlanetAPIConsoleViewModel.shared.clearLogs()
-                }
-            } label: {
-                Text("Clear Console Output")
-            }
-            .keyboardShortcut("c", modifiers: [.command, .shift, .option])
-            Divider()
-            Button {
-                PlanetAPIConsoleWindowManager.shared.activate()
-            } label: {
-                Text("Open Console")
-            }
-            .keyboardShortcut("a", modifiers: [.command, .shift, .option])
-        }
+        PlanetAPIConsoleWindowManager.shared.consoleCommandMenu()
     }
 }

@@ -33,6 +33,7 @@ struct CroptopApp: App {
                 keyboardHelper.writerCommands()
                 fileCommands()
                 infoCommands()
+                consoleToolsCommands()
                 helperCommands()
                 SidebarCommands()
             }
@@ -136,6 +137,13 @@ struct CroptopApp: App {
                 Text("Check for Updates")
             }
             .disabled(!updater.canCheckForUpdates)
+        }
+    }
+    
+    @CommandsBuilder
+    func consoleToolsCommands() -> some Commands {
+        CommandMenu("Tools") {
+            PlanetAPIConsoleWindowManager.shared.consoleCommandMenu()
         }
     }
 
