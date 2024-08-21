@@ -181,11 +181,7 @@ class KeyboardShortcutHelper: ObservableObject {
 
                 publishedFoldersMenus()
                 
-                Button {
-                    PlanetAPIConsoleWindowManager.shared.activate()
-                } label: {
-                    Text("API Console")
-                }
+                apiConsoleMenus()
 
                 Divider()
             }
@@ -472,5 +468,10 @@ class KeyboardShortcutHelper: ObservableObject {
             self.serviceStore.timestamp = Int(Date().timeIntervalSince1970)
             self.serviceStore.updatePendingPublishings()
         }
+    }
+    
+    @ViewBuilder
+    private func apiConsoleMenus() -> some View {
+        PlanetAPIConsoleWindowManager.shared.consoleCommandMenu()
     }
 }
