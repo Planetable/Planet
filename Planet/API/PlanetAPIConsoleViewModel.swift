@@ -23,6 +23,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         (
             timestamp: Date,
             statusCode: UInt,
+            originIP: String,
             requestURL: String,
             errorDescription: String
         )
@@ -37,9 +38,9 @@ class PlanetAPIConsoleViewModel: ObservableObject {
     }
 
     @MainActor
-    func addLog(statusCode: UInt, requestURL: String, errorDescription: String = "") {
+    func addLog(statusCode: UInt, originIP: String, requestURL: String, errorDescription: String = "") {
         let now = Date()
-        let logEntry = (timestamp: now, statusCode: statusCode, requestURL: requestURL, errorDescription: errorDescription)
+        let logEntry = (timestamp: now, statusCode: statusCode, originIP: originIP, requestURL: requestURL, errorDescription: errorDescription)
         logs.append(logEntry)
         if logs.count > Self.maxLength {
             logs = Array(logs.suffix(Self.maxLength))
