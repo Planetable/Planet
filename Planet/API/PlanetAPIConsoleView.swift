@@ -49,7 +49,12 @@ private struct AttributedConsoleView: NSViewRepresentable {
         dateFormatter.dateFormat = "HH:mm:ss.SSS"
         for log in viewModel.logs {
             let timestampString = dateFormatter.string(from: log.timestamp)
-            let logText = "\(timestampString) \(log.statusCode) \(log.requestURL)\n"
+            let logText: String = {
+                if log.originIP != "" {
+                    return "\(timestampString) \(log.originIP) \(log.statusCode) \(log.requestURL)\n"
+                }
+                return "\(timestampString) \(log.statusCode) \(log.requestURL)\n"
+            }()
             let attributedLog = NSMutableAttributedString(string: logText)
             
             // Set base color for both light and dark theme
@@ -61,11 +66,23 @@ private struct AttributedConsoleView: NSViewRepresentable {
             // Match timestamp
             let timestampRange = NSRange(location: 0, length: timestampString.count)
             attributedLog.addAttribute(.foregroundColor, value: NSColor.placeholderTextColor, range: timestampRange)
+
+            // Match IP address
+            let ipAddressPattern = "\\b((?:\\d{1,3}\\.){3}\\d{1,3}|(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4})\\b"
+            let ipRegex = try! NSRegularExpression(pattern: ipAddressPattern, options: [])
+            let ipMatches = ipRegex.matches(in: logText, options: [], range: NSRange(location: timestampString.count + 1, length: logText.utf16.count - timestampString.count - 1))
+            var ipRange: NSRange?
+            if let ipMatch = ipMatches.first {
+                ipRange = ipMatch.range
+                attributedLog.addAttribute(.foregroundColor, value: NSColor.textColor, range: ipRange!)
+            }
             
             // Match status code
             let regexPattern = "\\b(\\d{3})\\b"
             let regex = try! NSRegularExpression(pattern: regexPattern, options: [])
-            let matches = regex.matches(in: logText, options: [], range: NSRange(location: timestampString.count + 1, length: logText.utf16.count - timestampString.count - 1))
+            let searchStart = (ipRange?.location ?? timestampString.count) + (ipRange?.length ?? 0) + 1
+            let searchRange = NSRange(location: searchStart, length: logText.utf16.count - searchStart)
+            let matches = regex.matches(in: logText, options: [], range: searchRange)
             for match in matches {
                 if match.numberOfRanges > 0 {
                     let statusCodeRange = match.range(at: 1)
@@ -93,7 +110,7 @@ private struct AttributedConsoleView: NSViewRepresentable {
                 let nsRange = NSRange(methodRange, in: logText)
                 attributedLog.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: self.viewModel.baseFontSize, weight: .semibold), range: nsRange)
             }
-
+            
             attributedText.append(attributedLog)
             
             // Add error description if available

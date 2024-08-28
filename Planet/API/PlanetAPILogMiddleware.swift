@@ -15,32 +15,45 @@ struct PlanetAPILogMiddleware: AsyncMiddleware {
     }
     
     func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
+        let originIP: String = {
+            let ipv4Pattern = #"(\d{1,3}\.){3}\d{1,3}"#
+            let ipv6Pattern = #"([a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}"#
+            let headerIP = request.headers.first(name: "X-Forwarded-For") ?? ""
+            let remoteIP = request.remoteAddress?.description ?? ""
+            let combinedIP = headerIP.isEmpty ? remoteIP : headerIP
+            if let match = combinedIP.range(of: ipv4Pattern, options: .regularExpression) {
+                return String(combinedIP[match])
+            } else if let match = combinedIP.range(of: ipv6Pattern, options: .regularExpression) {
+                return String(combinedIP[match])
+            }
+            return ""
+        }()
         do {
             let response = try await next.respond(to: request)
             Task.detached(priority: .background) {
                 await MainActor.run {
-                    self.viewModel.addLog(statusCode: response.status.code, requestURL: request.method.string + " " + request.url.path)
+                    self.viewModel.addLog(statusCode: response.status.code, originIP: originIP, requestURL: request.method.string + " " + request.url.path)
                 }
             }
             return response
         } catch let error as AbortError {
             Task.detached(priority: .utility) {
                 await MainActor.run {
-                    self.viewModel.addLog(statusCode: error.status.code, requestURL: "\(request.method.string) \(request.url.path)", errorDescription: error.reason)
+                    self.viewModel.addLog(statusCode: error.status.code, originIP: originIP, requestURL: "\(request.method.string) \(request.url.path)", errorDescription: error.reason)
                 }
             }
             throw error
         } catch let error as DecodingError {
             Task.detached(priority: .utility) {
                 await MainActor.run {
-                    self.viewModel.addLog(statusCode: error.status.code, requestURL: "\(request.method.string) \(request.url.path)", errorDescription: error.reason)
+                    self.viewModel.addLog(statusCode: error.status.code, originIP: originIP, requestURL: "\(request.method.string) \(request.url.path)", errorDescription: error.reason)
                 }
             }
             throw error
         } catch {
             Task.detached(priority: .utility) {
                 await MainActor.run {
-                    self.viewModel.addLog(statusCode: 500, requestURL: "\(request.method.string) \(request.url.path)", errorDescription: error.localizedDescription)
+                    self.viewModel.addLog(statusCode: 500, originIP: originIP, requestURL: "\(request.method.string) \(request.url.path)", errorDescription: error.localizedDescription)
                 }
             }
             throw error
