@@ -421,6 +421,10 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             let targetPath = article.publicBasePath.appendingPathComponent(name, isDirectory: false)
             // copy attachment to article folder, in case file operation fails, the draft still maintains its integrity
             // if we found storage is a problem, we can move attachment instead
+            // Remove any GPS info
+            if (attachment.path.isJPEG) {
+                attachment.path.removeGPSInfo()
+            }
             try FileManager.default.copyItem(at: attachment.path, to: targetPath)
         }
         article.attachments = currentAttachments
