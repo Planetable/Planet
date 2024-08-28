@@ -134,64 +134,26 @@ extension URL {
     }
 
     func removeGPSInfo() {
-        // Check if the URL is a file URL and the file exists
-        guard self.isFileURL, FileManager.default.fileExists(atPath: self.path) else {
-            print("Invalid file URL or file does not exist.")
-            return
-        }
-
-        // Create a CGImageSource from the input JPEG file
-        guard let imageSource = CGImageSourceCreateWithURL(self as CFURL, nil) else {
-            print("Failed to create image source.")
-            return
-        }
-
-        // Get image properties
-        guard let imageProperties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any] else {
-            print("Failed to get image properties.")
-            return
-        }
-
-        // Check if GPS data is present
-        if let gpsData = imageProperties[kCGImagePropertyGPSDictionary] as? [CFString: Any] {
-            print("GPS data found: \(gpsData)")
-        } else {
-            print("No GPS data found.")
-            return
-        }
-
-        // Create a mutable copy of the image properties
-        let mutableProperties = NSMutableDictionary(dictionary: imageProperties)
-
-        // Remove GPS data
-        mutableProperties.removeObject(forKey: kCGImagePropertyGPSDictionary)
-
-        // Generate a unique temporary file name using UUID
-        let uuid = UUID().uuidString
-        let tempURL = self.deletingLastPathComponent().appendingPathComponent("\(uuid)_image_without_gps.jpg")
-
-        // Create an image destination to save the modified image
-        guard let imageDestination = CGImageDestinationCreateWithURL(tempURL as CFURL, CGImageSourceGetType(imageSource)!, 1, nil) else {
-            print("Failed to create image destination.")
-            return
-        }
-
-        // Add the image with modified properties (without GPS data) to the destination
-        CGImageDestinationAddImageFromSource(imageDestination, imageSource, 0, mutableProperties)
-
-        // Finalize the image destination to write the data to disk
-        if !CGImageDestinationFinalize(imageDestination) {
-            print("Failed to finalize the image destination.")
-            return
-        }
-
-        // Replace the original file with the modified file
         do {
-            try FileManager.default.removeItem(at: self)
-            try FileManager.default.moveItem(at: tempURL, to: self)
-            print("GPS data removed successfully.")
+            let data = try Data(contentsOf: self)
+            let source = CGImageSourceCreateWithData(data as CFData, nil)!
+            let count = CGImageSourceGetCount(source)
+            let mutableData = NSMutableData()
+            let destination = CGImageDestinationCreateWithData(mutableData, CGImageSourceGetType(source)!, count, nil)!
+            for i in 0..<count {
+                let image = CGImageSourceCreateImageAtIndex(source, i, nil)!
+                let properties = CGImageSourceCopyPropertiesAtIndex(source, i, nil) as! [CFString: Any]
+                var newProperties = properties
+                newProperties.removeValue(forKey: kCGImagePropertyGPSDictionary)
+                // newProperties.removeValue(forKey: kCGImagePropertyExifDictionary)
+                // newProperties.removeValue(forKey: kCGImagePropertyTIFFDictionary)
+                CGImageDestinationAddImage(destination, image, newProperties as CFDictionary)
+            }
+            CGImageDestinationFinalize(destination)
+            try mutableData.write(to: self)
         } catch {
-            print("Error replacing original file: \(error)")
+            // Handle the error here
+            print("Remove GPS Error: \(error)")
         }
     }
 }
