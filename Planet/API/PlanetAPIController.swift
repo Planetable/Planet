@@ -16,6 +16,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     
     private var bonjourService: PlanetAPIService?
     
+    @Published private(set) var isOperating: Bool = false
     @Published var serverIsRunning: Bool = false {
         didSet {
             UserDefaults.standard.set(serverIsRunning, forKey: .settingsAPIEnabled)
@@ -59,6 +60,11 @@ class PlanetAPIController: NSObject, ObservableObject {
     
     func startServer() {
         guard globalApp == nil else { return }
+        Task.detached(priority: .utility) {
+            await MainActor.run {
+                self.isOperating = true
+            }
+        }
         do {
             let env = try Environment.detect()
             let app = Application(env)
@@ -78,15 +84,32 @@ class PlanetAPIController: NSObject, ObservableObject {
             stopServer()
         }
         startBonjourService()
+        Task.detached(priority: .utility) {
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            await MainActor.run {
+                self.isOperating = false
+            }
+        }
     }
     
     func stopServer() {
+        Task.detached(priority: .utility) {
+            await MainActor.run {
+                self.isOperating = true
+            }
+        }
         globalApp?.shutdown()
         globalApp = nil
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             self.serverIsRunning = false
         }
         stopBonjourService()
+        Task.detached(priority: .utility) {
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            await MainActor.run {
+                self.isOperating = false
+            }
+        }
     }
     
     func startBonjourService() {
