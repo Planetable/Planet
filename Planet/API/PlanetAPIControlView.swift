@@ -105,63 +105,23 @@ struct PlanetAPIControlView: View {
             Spacer(minLength: 12)
 
             HStack {
-                Circle()
-                    .frame(width: 12, height: 12)
-                    .foregroundStyle(control.serverIsRunning ? Color.green : Color.gray)
+                if control.isOperating {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .controlSize(.small)
+                        .frame(width: 12)
+                } else {
+                    Circle()
+                        .frame(width: 12, height: 12)
+                        .foregroundStyle(control.serverIsRunning ? Color.green : Color.gray)
+                }
                 let status: String = control.serverIsRunning ? "Running" : "Stopped"
                 Text("API Server Status: **\(status)**")
                     .padding(.leading, -2)
+
                 Spacer()
-                Button {
-                    PlanetAPIConsoleWindowManager.shared.activate()
-                } label: {
-                    Image(systemName: "display")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 15)
-                }
-                .buttonStyle(.plain)
-                .help("Open API Console")
-                .padding(.trailing, 8)
-                Button {
-                    if control.serverIsRunning {
-                        control.stopServer()
-                    } else {
-                        do {
-                            try applyServerInformation()
-                            control.startServer()
-                        } catch PlanetError.InvalidAPIPortError {
-                            isAlert = true
-                            alertTitle = "Failed to Start Server"
-                            alertMessage = "Invalid API port, please double check and try again."
-                        } catch PlanetError.InvalidAPIUsernameError {
-                            isAlert = true
-                            alertTitle = "Failed to Start Server"
-                            alertMessage = "Invalid username, please double check and try again."
-                        } catch PlanetError.InvalidAPIPasscodeError {
-                            isAlert = true
-                            alertTitle = "Failed to Start Server"
-                            alertMessage = "Invalid passcode, please double check and try again."
-                        } catch {
-                            isAlert = true
-                            alertTitle = "Failed to Start Server"
-                            alertMessage = "Please double check server informations and try again."
-                        }
-                        if self.isShowingPasscode {
-                            Task { @MainActor in
-                                self.isShowingPasscode = false
-                            }
-                        }
-                    }
-                } label: {
-                    HStack {
-                        if control.serverIsRunning {
-                            Text("Stop Server")
-                        } else {
-                            Text("Start Server")
-                        }
-                    }
-                }
+
+                controlView()
             }
             .frame(height: 54)
             .frame(maxWidth: .infinity)
@@ -171,6 +131,65 @@ struct PlanetAPIControlView: View {
         .alert(isPresented: $isAlert) {
             Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .cancel(Text("OK")))
         }
+    }
+    
+    @ViewBuilder
+    private func controlView() -> some View {
+        Button {
+            PlanetAPIConsoleWindowManager.shared.activate()
+        } label: {
+            Image(systemName: "display")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 15)
+        }
+        .buttonStyle(.plain)
+        .help("Open API Console")
+        .padding(.trailing, 8)
+
+        Button {
+            if control.serverIsRunning {
+                control.stopServer()
+            } else {
+                do {
+                    try applyServerInformation()
+                    control.startServer()
+                } catch PlanetError.InvalidAPIPortError {
+                    isAlert = true
+                    alertTitle = "Failed to Start Server"
+                    alertMessage = "Invalid API port, please double check and try again."
+                } catch PlanetError.InvalidAPIUsernameError {
+                    isAlert = true
+                    alertTitle = "Failed to Start Server"
+                    alertMessage = "Invalid username, please double check and try again."
+                } catch PlanetError.InvalidAPIPasscodeError {
+                    isAlert = true
+                    alertTitle = "Failed to Start Server"
+                    alertMessage = "Invalid passcode, please double check and try again."
+                } catch {
+                    isAlert = true
+                    alertTitle = "Failed to Start Server"
+                    alertMessage = "Please double check server informations and try again."
+                }
+                if self.isShowingPasscode {
+                    Task { @MainActor in
+                        self.isShowingPasscode = false
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 0) {
+                Spacer(minLength: 1)
+                if control.serverIsRunning {
+                    Text("Stop Server")
+                } else {
+                    Text("Start Server")
+                }
+                Spacer(minLength: 1)
+            }
+            .frame(maxWidth: 90)
+        }
+        .disabled(control.isOperating)
     }
     
     private func applyServerInformation() throws {
