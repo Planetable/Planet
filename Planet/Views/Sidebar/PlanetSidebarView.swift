@@ -63,7 +63,6 @@ struct PlanetSidebarView: View {
                     .badge(planetStore.totalStarredCount)
                     .tag(PlanetDetailViewType.starred)
                 }
-                .padding(.top, planetStore.walletAddress.count > 0 ? 6 : 0)
 
                 Section(header: Text("My Planets")) {
                     ForEach(planetStore.myPlanets) { planet in
