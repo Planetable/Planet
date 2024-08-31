@@ -68,6 +68,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var juiceboxProjectID: Int?
     @Published var juiceboxProjectIDGoerli: Int?
 
+    @Published var acceptsDonation: Bool? = false
+    @Published var acceptsDonationMessage: String?
+    @Published var acceptsDonationETHAddress: String?
+
     @Published var metrics: Metrics?
 
     @Published var isPublishing = false
@@ -417,9 +421,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(podcastCategories)
         hasher.combine(podcastLanguage)
         hasher.combine(podcastExplicit)
+
         hasher.combine(juiceboxEnabled)
         hasher.combine(juiceboxProjectID)
         hasher.combine(juiceboxProjectIDGoerli)
+
+        hasher.combine(acceptsDonation)
+        hasher.combine(acceptsDonationMessage)
+        hasher.combine(acceptsDonationETHAddress)
+
         hasher.combine(avatar)
         hasher.combine(podcastCoverArt)
         hasher.combine(drafts)
@@ -489,6 +499,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.juiceboxEnabled == rhs.juiceboxEnabled
             && lhs.juiceboxProjectID == rhs.juiceboxProjectID
             && lhs.juiceboxProjectIDGoerli == rhs.juiceboxProjectIDGoerli
+            && lhs.acceptsDonation == rhs.acceptsDonation
+            && lhs.acceptsDonationMessage == rhs.acceptsDonationMessage
+            && lhs.acceptsDonationETHAddress == rhs.acceptsDonationETHAddress
             && lhs.avatar == rhs.avatar
             && lhs.podcastCoverArt == rhs.podcastCoverArt
             && lhs.drafts == rhs.drafts
@@ -516,6 +529,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             customCodeBodyEndEnabled, customCodeBodyEnd,
             podcastCategories, podcastLanguage, podcastExplicit,
             juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli,
+            acceptsDonation, acceptsDonationMessage, acceptsDonationETHAddress,
             tags,
             aggregation, reuseOriginalID,
             saveRoundAvatar,
@@ -593,6 +607,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Int.self,
             forKey: .juiceboxProjectIDGoerli
         )
+        acceptsDonation = try container.decodeIfPresent(Bool.self, forKey: .acceptsDonation)
+        acceptsDonationMessage = try container.decodeIfPresent(
+            String.self,
+            forKey: .acceptsDonationMessage
+        )
+        acceptsDonationETHAddress = try container.decodeIfPresent(
+            String.self,
+            forKey: .acceptsDonationETHAddress
+        )
         tags = try? container.decodeIfPresent([String: String].self, forKey: .tags) ?? [:]
         aggregation = try? container.decodeIfPresent([String].self, forKey: .aggregation) ?? []
         reuseOriginalID = try container.decodeIfPresent(
@@ -663,6 +686,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(juiceboxEnabled, forKey: .juiceboxEnabled)
         try container.encodeIfPresent(juiceboxProjectID, forKey: .juiceboxProjectID)
         try container.encodeIfPresent(juiceboxProjectIDGoerli, forKey: .juiceboxProjectIDGoerli)
+        try container.encodeIfPresent(acceptsDonation, forKey: .acceptsDonation)
+        try container.encodeIfPresent(acceptsDonationMessage, forKey: .acceptsDonationMessage)
+        try container.encodeIfPresent(acceptsDonationETHAddress, forKey: .acceptsDonationETHAddress)
         try container.encodeIfPresent(tags, forKey: .tags)
         try container.encodeIfPresent(aggregation, forKey: .aggregation)
         try container.encodeIfPresent(reuseOriginalID, forKey: .reuseOriginalID)
@@ -980,6 +1006,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         if backupPlanet.juiceboxProjectIDGoerli != nil {
             planet.juiceboxProjectIDGoerli = backupPlanet.juiceboxProjectIDGoerli
+        }
+
+        // Restore Donation settings
+        if backupPlanet.acceptsDonation != nil {
+            planet.acceptsDonation = backupPlanet.acceptsDonation
+        }
+        if backupPlanet.acceptsDonationMessage != nil {
+            planet.acceptsDonationMessage = backupPlanet.acceptsDonationMessage
+        }
+        if backupPlanet.acceptsDonationETHAddress != nil {
+            planet.acceptsDonationETHAddress = backupPlanet.acceptsDonationETHAddress
         }
 
         // Restore tags
@@ -1391,6 +1428,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     juiceboxEnabled: juiceboxEnabled,
                     juiceboxProjectID: juiceboxProjectID,
                     juiceboxProjectIDGoerli: juiceboxProjectIDGoerli,
+                    acceptsDonation: acceptsDonation,
+                    acceptsDonationMessage: acceptsDonationMessage,
+                    acceptsDonationETHAddress: acceptsDonationETHAddress,
                     twitterUsername: twitterUsername,
                     githubUsername: githubUsername,
                     telegramUsername: telegramUsername,
@@ -1508,6 +1548,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             juiceboxEnabled: juiceboxEnabled,
             juiceboxProjectID: juiceboxProjectID,
             juiceboxProjectIDGoerli: juiceboxProjectIDGoerli,
+            acceptsDonation: acceptsDonation,
+            acceptsDonationMessage: acceptsDonationMessage,
+            acceptsDonationETHAddress: acceptsDonationETHAddress,
             twitterUsername: twitterUsername,
             githubUsername: githubUsername,
             telegramUsername: telegramUsername,
@@ -1914,6 +1957,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             juiceboxEnabled: juiceboxEnabled,
             juiceboxProjectID: juiceboxProjectID,
             juiceboxProjectIDGoerli: juiceboxProjectIDGoerli,
+            acceptsDonation: acceptsDonation,
+            acceptsDonationMessage: acceptsDonationMessage,
+            acceptsDonationETHAddress: acceptsDonationETHAddress,
             articles: articles.map {
                 BackupArticleModel(
                     id: $0.id,

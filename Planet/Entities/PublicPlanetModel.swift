@@ -24,6 +24,10 @@ struct PublicPlanetModel: Codable {
     let juiceboxProjectID: Int?
     let juiceboxProjectIDGoerli: Int?
 
+    let acceptsDonation: Bool?
+    let acceptsDonationMessage: String?
+    let acceptsDonationETHAddress: String?
+
     let twitterUsername: String?
     let githubUsername: String?
     let telegramUsername: String?

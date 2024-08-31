@@ -105,6 +105,15 @@ struct MyPlanetSidebarItem: View {
                 Button {
                     Task {
                         PlanetStore.shared.selectedView = .myPlanet(planet)
+                        PlanetStore.shared.isEditingPlanetDonationSettings = true
+                    }
+                } label: {
+                    Text("Accepts Donation")
+                }
+
+                Button {
+                    Task {
+                        PlanetStore.shared.selectedView = .myPlanet(planet)
                         PlanetStore.shared.isEditingPlanetPodcastSettings = true
                     }
                 } label: {

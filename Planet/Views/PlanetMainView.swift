@@ -77,6 +77,11 @@ struct PlanetMainView: View {
                 MyPlanetIPNSView(planet: planet)
             }
         }
+        .sheet(isPresented: $planetStore.isEditingPlanetDonationSettings) {
+            if case .myPlanet(let planet) = planetStore.selectedView {
+                MyPlanetDonationSettingsView(planet: planet)
+            }
+        }
         .sheet(isPresented: $planetStore.isEditingPlanetPodcastSettings) {
             if case .myPlanet(let planet) = planetStore.selectedView {
                 MyPlanetPodcastSettingsView(planet: planet)

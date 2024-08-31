@@ -116,6 +116,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isConfiguringAggregation = false
     @Published var isShowingMyArticleSettings = false
     @Published var isEditingPlanetCustomCode = false
+    @Published var isEditingPlanetDonationSettings = false
     @Published var isEditingPlanetPodcastSettings = false
     @Published var isShowingPlanetIPNS = false
     @Published var isFollowingPlanet = false
