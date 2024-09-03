@@ -57,8 +57,17 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
                 let imageRep = im.representations.first as? NSBitmapImageRep
                 let width = imageRep?.pixelsWide ?? 0
                 let height = imageRep?.pixelsHigh ?? 0
-                if Int(width) > 0 {
-                    return "<img width=\"\(Int(width))\" alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
+                let pointSize = im.size
+                let pointWidth = pointSize.width
+                let pointHeight = pointSize.height
+                var widthToUse = 0
+                if (CGFloat(width) / pointWidth) > 1 {
+                    widthToUse = Int(pointWidth)
+                } else {
+                    widthToUse = width
+                }
+                if Int(widthToUse) > 0 {
+                    return "<img width=\"\(Int(widthToUse))\" alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
                 } else {
                     return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
                 }
