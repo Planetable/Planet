@@ -185,11 +185,14 @@ struct MyPlanetTemplateSettingsView: View {
                     .keyboardShortcut(.escape, modifiers: [])
 
                     Button {
-                        debugPrint("Template-level user settings: \(userSettings)")
-                        Task {
-                            planet.updateTemplateSettings(settings: userSettings)
-                            try? planet.copyTemplateSettings()
-                            try await planet.publish()
+                        Task.detached(priority: .userInitiated) {
+                            await planet.updateTemplateSettings(settings: userSettings)
+                            try? await planet.copyTemplateSettings()
+                            try await planet.save()
+                            Task(priority: .background) {
+                                try await planet.rebuild()
+                            }
+                            NotificationCenter.default.post(name: .loadArticle, object: nil)
                         }
                         dismiss()
                     } label: {
