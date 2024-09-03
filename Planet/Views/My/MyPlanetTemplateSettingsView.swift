@@ -16,6 +16,7 @@ struct MyPlanetTemplateSettingsView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var planet: MyPlanetModel
 
+    @State private var isShowingResetConfirmation = false
     @State private var currentSettings: [String: String] = [:]
     @State private var userSettings: [String: String] = [:]
     @State private var colors: [String: Color] = [:]
@@ -146,7 +147,32 @@ struct MyPlanetTemplateSettingsView: View {
                         }
                     } label: {
                         Text("Import")
-                            .frame(width: 50)
+                            .frame(minWidth: 50)
+                    }
+                    Button {
+                        isShowingResetConfirmation = true
+                    } label: {
+                        Text("Defaults")
+                            .frame(minWidth: 50)
+                    }
+                    .confirmationDialog(
+                        Text("Are you sure you want to reset all settings to the default values?"),
+                        isPresented: $isShowingResetConfirmation
+                    ) {
+                        Button {
+                            let defaultSettings = planet.template?.settings?.reduce(into: [:]) {
+                                    (result, setting) in
+                                    result[setting.key] = setting.value.defaultValue
+                                } ?? [:]
+                                for (key, value) in defaultSettings {
+                                    userSettings[key] = value
+                                    if key.hasSuffix("Color") {
+                                        colors[key] = Color(hex: value)
+                                    }
+                                }
+                        } label: {
+                            Text("Reset")
+                        }
                     }
                     Spacer()
 
