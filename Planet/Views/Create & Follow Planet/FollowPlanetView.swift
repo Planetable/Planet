@@ -82,6 +82,9 @@ struct FollowPlanetView: View {
                     if host.hasSuffix(".eth.limo") {
                         return String(host.dropLast(5))
                     }
+                    if host.hasSuffix(".bit.site") {
+                        return String(host.dropLast(5))
+                    }
                 }
             }
         }
