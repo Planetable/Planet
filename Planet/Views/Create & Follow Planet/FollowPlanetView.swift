@@ -71,6 +71,23 @@ struct FollowPlanetView: View {
         }
     }
 
+    private func processInput() -> String {
+        let link = self.link.trimmingCharacters(in: .whitespacesAndNewlines)
+        if link.hasPrefix("https://") || link.hasPrefix("http://") {
+            if let url = URL(string: link) {
+                if let host: String = url.host {
+                    if host.hasSuffix(".eth.sucks") {
+                        return String(host.dropLast(6))
+                    }
+                    if host.hasSuffix(".eth.limo") {
+                        return String(host.dropLast(5))
+                    }
+                }
+            }
+        }
+        return link
+    }
+
     private func cancelAction() {
         isCancelled = true
         isFollowing = false
@@ -82,6 +99,8 @@ struct FollowPlanetView: View {
 
     private func followAction() {
         isFollowing = true
+        let link = processInput()
+        debugPrint("Follow Planet: Target \(link)")
         Task {
             do {
                 let planet = try await FollowingPlanetModel.follow(link: link)
