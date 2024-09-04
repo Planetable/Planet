@@ -75,6 +75,7 @@ struct FollowPlanetView: View {
         let link = self.link.trimmingCharacters(in: .whitespacesAndNewlines)
         if link.hasPrefix("https://") || link.hasPrefix("http://") {
             if let url = URL(string: link) {
+                // If a user pastes a URL like `https://ohlife.eth.sucks/`, we should extract only the ENS part from it: `ohlife.eth`.
                 if let host: String = url.host {
                     if host.hasSuffix(".eth.sucks") {
                         return String(host.dropLast(6))
