@@ -271,6 +271,25 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         return [:]
     }
+    func templateSettingsAndFilters() -> [String: String] {
+        if let data = try? Data(contentsOf: templateSettingsPath) {
+            if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
+                if var dict = json as? [String: String] {
+                    for (key, value) in dict {
+                        if key.hasSuffix("Color") {
+                            let targetColor = CustomColor(hex: value)
+                            let baseColor = CustomColor(hex: "#000000")
+                            let solver = Solver(target: targetColor, baseColor: baseColor)
+                            let result = solver.solve()
+                            dict[key + "Filter"] = result.filter
+                        }
+                    }
+                    return dict
+                }
+            }
+        }
+        return [:]
+    }
     func updateTemplateSettings(settings: [String: String]) {
         do {
             // Read current settings

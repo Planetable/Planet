@@ -14,6 +14,22 @@ class CustomColor {
     var g: Double
     var b: Double
 
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        if hex.count == 6 {
+            var rgb: UInt64 = 0
+            Scanner(string: hex).scanHexInt64(&rgb)
+            self.r = Double((rgb & 0xFF0000) >> 16)
+            self.g = Double((rgb & 0x00FF00) >> 8)
+            self.b = Double(rgb & 0x0000FF)
+        }
+        else {
+            self.r = 0
+            self.g = 0
+            self.b = 0
+        }
+    }
+
     init(r: Double, g: Double, b: Double) {
         self.r = 0
         self.g = 0
@@ -282,6 +298,6 @@ class Solver {
             return "\(round(filters[idx] * multiplier))"
         }
         return
-            "filter: invert(\(fmt(idx: 0))%) sepia(\(fmt(idx: 1))%) saturate(\(fmt(idx: 2))%) hue-rotate(\(fmt(idx: 3, multiplier: 3.6))deg) brightness(\(fmt(idx: 4))%) contrast(\(fmt(idx: 5))%);"
+            "invert(\(fmt(idx: 0))%) sepia(\(fmt(idx: 1))%) saturate(\(fmt(idx: 2))%) hue-rotate(\(fmt(idx: 3, multiplier: 3.6))deg) brightness(\(fmt(idx: 4))%) contrast(\(fmt(idx: 5))%)"
     }
 }
