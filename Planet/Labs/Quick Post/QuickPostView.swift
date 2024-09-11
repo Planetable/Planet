@@ -288,7 +288,7 @@ struct QuickPostView: View {
             planet.updated = Date()
             try planet.save()
 
-            Task {
+            Task(priority: .userInitiated) {
                 try await planet.savePublic()
                 try await planet.publish()
                 Task(priority: .background) {

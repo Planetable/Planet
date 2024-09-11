@@ -460,11 +460,17 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         planet.updated = Date()
         try planet.save()
 
-        Task {
+        Task(priority: .userInitiated) {
             try await planet.savePublic()
-            try await planet.publish()
-            Task(priority: .background) {
-                await article.prewarm()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                Task(priority: .userInitiated) {
+                    try await planet.publish()
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                Task(priority: .background) {
+                    await article.prewarm()
+                }
             }
         }
 
