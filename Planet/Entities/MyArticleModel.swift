@@ -166,6 +166,12 @@ class MyArticleModel: ArticleModel, Codable {
             return URL(string: "https://dweb.link/ipns/\(planet.ipns)\(urlPath)")
         }
     }
+    var permalinkURL: URL? {
+        if let cid = planet.lastPublishedCID, cid.hasPrefix("bafy") {
+            return URL(string: "https://\(cid).eth.sucks\(link)")
+        }
+        return nil
+    }
     var socialImageURL: URL? {
         if let heroImage = getHeroImage(), let baseURL = browserURL {
             return baseURL.appendingPathComponent(heroImage)

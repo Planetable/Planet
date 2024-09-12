@@ -229,15 +229,16 @@ struct MyArticleItemView: View {
                 if let planet = article.planet, let cid = planet.lastPublishedCID, cid.hasPrefix("bafy") {
                     Divider()
                     Button {
-                        let permalink: String = "https://\(cid).eth.sucks\(article.link)"
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(permalink, forType: .string)
+                        if let url = article.permalinkURL {
+                            let permalink: String = url.absoluteString
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(permalink, forType: .string)
+                        }
                     } label: {
                         Text("Copy Permalink")
                     }
                     Button {
-                        let permalink: String = "https://\(cid).eth.sucks\(article.link)"
-                        if let url = URL(string: permalink) {
+                        if let url = article.permalinkURL {
                             NSWorkspace.shared.open(url)
                         }
                     } label: {

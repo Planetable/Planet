@@ -108,7 +108,7 @@ struct MyPlanetSidebarItem: View {
                         PlanetStore.shared.isEditingPlanetDonationSettings = true
                     }
                 } label: {
-                    Text("Accepts Donation")
+                    Text("Accept Donation")
                 }
 
                 Button {
@@ -442,7 +442,7 @@ struct MyPlanetSidebarItem: View {
                     openiTerm(template)
                 } label: {
                     Image(systemName: "apple.terminal.fill")
-                    Text("Open in iTerm")
+                    Text("Open Template Folder in iTerm")
                 }
             }
 
