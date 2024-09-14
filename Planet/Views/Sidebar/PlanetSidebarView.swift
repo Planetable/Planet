@@ -194,7 +194,7 @@ struct PlanetSidebarView: View {
                         try await planet.publish()
                     }
                     catch {
-                        debugPrint("Failed to publish: \(planet.name) id=\(planet.id)")
+                        debugPrint("Failed to publish: \(planet.name) id=\(planet.id) error=\(error)")
                     }
                 }
             }

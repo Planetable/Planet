@@ -692,6 +692,10 @@ actor IPFSDaemon {
             let httpResponse = response as? HTTPURLResponse,
             httpResponse.ok
         else {
+            if let errorDetails = String(data: data, encoding: .utf8) {
+                debugPrint("Failed to access IPFS API \(path): \(errorDetails)")
+            }
+            debugPrint("IPFS API Error: \(response)")
             throw PlanetError.IPFSAPIError
         }
         // debugPrint the response

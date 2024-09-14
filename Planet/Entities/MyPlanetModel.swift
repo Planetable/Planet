@@ -1792,6 +1792,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: id.uuidString)
         }
         let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
+        debugPrint("Publishing the latest CID for \(name): \(cid)")
         // Send the latest CID to dWebServices.xyz if enabled
         if let dWebServicesEnabled = dWebServicesEnabled, dWebServicesEnabled,
             let dWebServicesDomain = dWebServicesDomain, let dWebServicesAPIKey = dWebServicesAPIKey
