@@ -190,7 +190,8 @@ struct AppSidebarItemView: View {
                             PlanetStore.shared.isConfiguringMint = true
                         }
                     } label: {
-                        Text("Mint Settings")
+                        Image(systemName: "dollarsign")
+                        Text("Monetization")
                     }
                 }
 

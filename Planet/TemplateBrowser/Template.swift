@@ -15,6 +15,7 @@ struct TemplateSetting: Codable, Hashable, Identifiable {
     let type: String
     let defaultValue: String
     let description: String
+    let advanced: Bool? = false
 
     var id: String { name }
 }
