@@ -308,6 +308,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     touched = true
                 }
             }
+            // Remove settings not in default
+            for (key, value) in currentSettings {
+                if defaultSettings[key] == nil {
+                    currentSettings.removeValue(forKey: key)
+                    touched = true
+                }
+            }
             if touched {
                 let data = try JSONSerialization.data(withJSONObject: currentSettings, options: [.prettyPrinted, .sortedKeys])
                 try data.write(to: templateSettingsPath)
@@ -323,6 +330,18 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         do {
             // Read current settings
             var currentSettings: [String: String] = templateSettings()
+            // Default settings
+            let defaultSettings: [String: String] = self.template?.defaultSettings() ?? [:]
+            // Remove settings not in default
+            for (key, value) in currentSettings {
+                debugPrint("Template Settings: Checking setting \(key)")
+                if defaultSettings[key] == nil {
+                    currentSettings.removeValue(forKey: key)
+                    debugPrint("Template Settings: Removing setting \(key)")
+                } else {
+                    debugPrint("Template Settings: Keeping setting \(key)")
+                }
+            }
             // Update settings
             for (key, value) in settings {
                 currentSettings[key] = value
@@ -330,6 +349,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             // Write settings
             let data = try JSONSerialization.data(withJSONObject: currentSettings, options: [.prettyPrinted, .sortedKeys])
             try data.write(to: templateSettingsPath)
+
+            try self.copyTemplateSettings()
         }
         catch {
             debugPrint("Error updating template settings: \(error) \(settings)")

@@ -800,7 +800,6 @@ struct MyPlanetEditView: View {
                         planet.filebaseAPIToken = filebaseAPIToken
                         Task {
                             planet.updateTemplateSettings(settings: userSettings)
-                            try? planet.copyTemplateSettings()
                             try planet.save()
                             Task(priority: .background) {
                                 try await planet.rebuild()

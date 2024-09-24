@@ -187,7 +187,6 @@ struct MyPlanetTemplateSettingsView: View {
                     Button {
                         Task.detached(priority: .userInitiated) {
                             await planet.updateTemplateSettings(settings: userSettings)
-                            try? await planet.copyTemplateSettings()
                             try await planet.save()
                             Task(priority: .background) {
                                 try await planet.rebuild()

@@ -102,7 +102,6 @@ struct MintSettings: View {
                         debugPrint("Template-level user settings: \(userSettings)")
                         Task {
                             planet.updateTemplateSettings(settings: userSettings)
-                            try? planet.copyTemplateSettings()
                             try await planet.publish()
                         }
                         dismiss()
