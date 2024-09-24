@@ -170,7 +170,9 @@ struct AvatarPickerView: View {
                             case .myPlanet(let planet) = store.selectedView
                         {
                             try? planet.updateAvatar(path: avatarURL)
-                            NotificationCenter.default.post(name: .publishMyPlanet, object: planet)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                NotificationCenter.default.post(name: .publishMyPlanet, object: planet)
+                            }
                             dismiss()
                         }
                     } label: {
