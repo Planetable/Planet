@@ -759,11 +759,11 @@ extension IPFSDaemon {
     ])
 
     static func urlForCID(_ cid: String) -> URL? {
-        return URL(string: "https://\(cid).ipfs2.eth.limo/")
+        return URL(string: "https://\(cid).eth.sucks/")
     }
 
     static func urlForIPNS(_ ipns: String) -> URL? {
-        return URL(string: "https://\(ipns).ipfs2.eth.limo/")
+        return URL(string: "https://\(ipns).eth.sucks/")
     }
 
     // Reference: https://stackoverflow.com/a/65162953
