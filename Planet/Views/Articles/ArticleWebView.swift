@@ -28,6 +28,7 @@ struct ArticleWebView: NSViewRepresentable {
             wv.load(URLRequest(url: url))
         }
 
+        // TODO: How to ensure it's refreshed?
         NotificationCenter.default.addObserver(forName: .loadArticle, object: nil, queue: .main) {
             _ in
             Self.logger.log("Loading \(url), user agent: \(wv.customUserAgent ?? "")")

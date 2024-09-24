@@ -1900,9 +1900,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 self.lastPublished = Date()
                 self.lastPublishedCID = cid
                 try self.save()
+                /* TODO: This is broken on macOS 15.0 Sonoma
                 Task.detached(priority: .utility) {
                     await self.sendNotificationForNewCID(cid: cid)
                 }
+                */
             }
         }
         Task.detached(priority: .background) {
