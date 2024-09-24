@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Stencil
 import PathKit
+import Stencil
 import os
 
 struct TemplateSetting: Codable, Hashable, Identifiable {
@@ -39,34 +39,40 @@ class Template: Codable, Identifiable {
 
     var hasSettings: Bool { settings?.count ?? 0 > 0 }
 
-    lazy var blogPath = path
+    lazy var blogPath =
+        path
         .appendingPathComponent("templates", isDirectory: true)
         .appendingPathComponent("blog.html", isDirectory: false)
 
     // simple.html holds the basic minimal HTML structure for a quick preview.
     // It is not required for a template to have this file
     // TODO: A more detailed documentation about the template structure
-    lazy var blogSimplePath = path
+    lazy var blogSimplePath =
+        path
         .appendingPathComponent("templates", isDirectory: true)
         .appendingPathComponent("simple.html", isDirectory: false)
 
     // tags.html for tag cloud, not all templates have this file
-    lazy var tagsPath = path
+    lazy var tagsPath =
+        path
         .appendingPathComponent("templates", isDirectory: true)
         .appendingPathComponent("tags.html", isDirectory: false)
 
     // archive.html for a list of all items
-    lazy var archivePath = path
+    lazy var archivePath =
+        path
         .appendingPathComponent("templates", isDirectory: true)
         .appendingPathComponent("archive.html", isDirectory: false)
 
-    lazy var indexPath = path
+    lazy var indexPath =
+        path
         .appendingPathComponent("templates", isDirectory: true)
         .appendingPathComponent("index.html", isDirectory: false)
 
     lazy var assetsPath = path.appendingPathComponent("assets", isDirectory: true)
 
-    lazy var styleCSSPath = path
+    lazy var styleCSSPath =
+        path
         .appendingPathComponent("assets", isDirectory: true)
         .appendingPathComponent("style.css", isDirectory: false)
 
@@ -117,7 +123,10 @@ class Template: Codable, Identifiable {
         author = try container.decode(String.self, forKey: .author)
         version = try container.decode(String.self, forKey: .version)
         idealItemsPerPage = try container.decodeIfPresent(Int.self, forKey: .idealItemsPerPage)
-        generateIndexPagination = try container.decodeIfPresent(Bool.self, forKey: .generateIndexPagination)
+        generateIndexPagination = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .generateIndexPagination
+        )
         generateTagPages = try container.decodeIfPresent(Bool.self, forKey: .generateTagPages)
         generateArchive = try container.decodeIfPresent(Bool.self, forKey: .generateArchive)
         buildNumber = try container.decodeIfPresent(Int.self, forKey: .buildNumber)
@@ -154,7 +163,8 @@ class Template: Codable, Identifiable {
             let data = try Data(contentsOf: templateInfoPath)
             template = try JSONDecoder.shared.decode(Template.self, from: data)
             template.path = path
-        } catch {
+        }
+        catch {
             logger.error("Unable to load template.json at \(directoryName)")
             return nil
         }
@@ -173,17 +183,23 @@ class Template: Codable, Identifiable {
         var output: [String: Any] = [
             "custom_code_head": "",
             "custom_code_body_start": "",
-            "custom_code_body_end": ""
+            "custom_code_body_end": "",
         ]
-        if let customCodeHeadEnabled = planet.customCodeHeadEnabled, customCodeHeadEnabled, let customCodeHead: String = planet.customCodeHead {
+        if let customCodeHeadEnabled = planet.customCodeHeadEnabled, customCodeHeadEnabled,
+            let customCodeHead: String = planet.customCodeHead
+        {
             let template = Stencil.Template(templateString: customCodeHead)
             output["custom_code_head"] = try? template.render(context)
         }
-        if let customCodeBodyStartEnabled = planet.customCodeBodyStartEnabled, customCodeBodyStartEnabled, let customCodeBodyStart: String = planet.customCodeBodyStart {
+        if let customCodeBodyStartEnabled = planet.customCodeBodyStartEnabled,
+            customCodeBodyStartEnabled, let customCodeBodyStart: String = planet.customCodeBodyStart
+        {
             let template = Stencil.Template(templateString: customCodeBodyStart)
             output["custom_code_body_start"] = try? template.render(context)
         }
-        if let customCodeBodyEndEnabled = planet.customCodeBodyEndEnabled, customCodeBodyEndEnabled, let customCodeBodyEnd: String = planet.customCodeBodyEnd {
+        if let customCodeBodyEndEnabled = planet.customCodeBodyEndEnabled, customCodeBodyEndEnabled,
+            let customCodeBodyEnd: String = planet.customCodeBodyEnd
+        {
             let template = Stencil.Template(templateString: customCodeBodyEnd)
             output["custom_code_body_end"] = try? template.render(context)
         }
@@ -201,7 +217,13 @@ class Template: Codable, Identifiable {
         }
         let hasPodcast = planet.articles.contains(where: { $0.hasAudioContent() })
         let publicPlanet = PublicPlanetModel(
-            id: planet.id, name: planet.name, about: planet.about, ipns: planet.ipns, created: planet.created, updated: planet.updated, articles: [],
+            id: planet.id,
+            name: planet.name,
+            about: planet.about,
+            ipns: planet.ipns,
+            created: planet.created,
+            updated: planet.updated,
+            articles: [],
             plausibleEnabled: planet.plausibleEnabled ?? false,
             plausibleDomain: planet.plausibleDomain ?? nil,
             plausibleAPIServer: planet.plausibleAPIServer ?? "plausible.io",
@@ -244,15 +266,19 @@ class Template: Codable, Identifiable {
             "build_timestamp": Int(Date().timeIntervalSince1970),
             "style_css_sha256": styleCSSHash ?? "",
             "current_item_type": "blog",
-            "social_image_url": article.socialImageURL?.absoluteString ?? article.planet.ogImageURLString,
+            "social_image_url": article.socialImageURL?.absoluteString
+                ?? article.planet.ogImageURLString,
         ]
         context.merge(renderCustomCode(planet: planet, context: context)) { (_, new) in new }
-        if (forSimpleHTML) {
-            let loader = FileSystemLoader(paths: [Path(blogSimplePath.deletingLastPathComponent().path)])
+        if forSimpleHTML {
+            let loader = FileSystemLoader(paths: [
+                Path(blogSimplePath.deletingLastPathComponent().path)
+            ])
             let environment = Environment(loader: loader, extensions: [StencilExtension.common])
             let stencilTemplateName = blogSimplePath.lastPathComponent
             return try environment.renderTemplate(name: stencilTemplateName, context: context)
-        } else {
+        }
+        else {
             let loader = FileSystemLoader(paths: [Path(blogPath.deletingLastPathComponent().path)])
             let environment = Environment(loader: loader, extensions: [StencilExtension.common])
             let stencilTemplateName = blogPath.lastPathComponent
@@ -295,18 +321,28 @@ class Template: Codable, Identifiable {
             "current_item_type": context["current_item_type"] ?? "index",
             "current_page": context["page"] ?? 1,
             "total_pages": context["pages"] ?? 1,
-            "next_page": getNextPage(page: context["page"] as? Int ?? 1, pages: context["pages"] as? Int ?? 1) ?? nil,
-            "previous_page": getPreviousPage(page: context["page"] as? Int ?? 1, pages: context["pages"] as? Int ?? 1) ?? nil,
+            "next_page": getNextPage(
+                page: context["page"] as? Int ?? 1,
+                pages: context["pages"] as? Int ?? 1
+            ) ?? nil,
+            "previous_page": getPreviousPage(
+                page: context["page"] as? Int ?? 1,
+                pages: context["pages"] as? Int ?? 1
+            ) ?? nil,
         ]
         // items in context would override items in contextForRendering
         for (key, value) in context {
             contextForRendering[key] = value
         }
-        contextForRendering.merge(renderCustomCode(planet: myPlanet, context: contextForRendering)) { (_, new) in new }
+        contextForRendering.merge(renderCustomCode(planet: myPlanet, context: contextForRendering))
+        { (_, new) in new }
         let loader = FileSystemLoader(paths: [Path(indexPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.common])
         let stencilTemplateName = indexPath.lastPathComponent
-        return try environment.renderTemplate(name: stencilTemplateName, context: contextForRendering)
+        return try environment.renderTemplate(
+            name: stencilTemplateName,
+            context: contextForRendering
+        )
     }
 
     func renderTags(context: [String: Any]) throws -> String {
@@ -332,11 +368,15 @@ class Template: Codable, Identifiable {
         for (key, value) in context {
             contextForRendering[key] = value
         }
-        contextForRendering.merge(renderCustomCode(planet: myPlanet, context: contextForRendering)) { (_, new) in new }
+        contextForRendering.merge(renderCustomCode(planet: myPlanet, context: contextForRendering))
+        { (_, new) in new }
         let loader = FileSystemLoader(paths: [Path(tagsPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.common])
         let stencilTemplateName = tagsPath.lastPathComponent
-        return try environment.renderTemplate(name: stencilTemplateName, context: contextForRendering)
+        return try environment.renderTemplate(
+            name: stencilTemplateName,
+            context: contextForRendering
+        )
     }
 
     func renderArchive(context: [String: Any]) throws -> String {
@@ -362,15 +402,20 @@ class Template: Codable, Identifiable {
         for (key, value) in context {
             contextForRendering[key] = value
         }
-        contextForRendering.merge(renderCustomCode(planet: myPlanet, context: contextForRendering)) { (_, new) in new }
+        contextForRendering.merge(renderCustomCode(planet: myPlanet, context: contextForRendering))
+        { (_, new) in new }
         let loader = FileSystemLoader(paths: [Path(archivePath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.common])
         let stencilTemplateName = archivePath.lastPathComponent
-        return try environment.renderTemplate(name: stencilTemplateName, context: contextForRendering)
+        return try environment.renderTemplate(
+            name: stencilTemplateName,
+            context: contextForRendering
+        )
     }
 
     func prepareTemporaryAssetsForPreview() {
-        let templatePreviewDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(name)
+        let templatePreviewDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(name)
         if !FileManager.default.fileExists(atPath: templatePreviewDirectory.path) {
             do {
                 try FileManager.default.createDirectory(
@@ -378,30 +423,43 @@ class Template: Codable, Identifiable {
                     withIntermediateDirectories: true,
                     attributes: nil
                 )
-            } catch {
+            }
+            catch {
                 debugPrint("Failed to create template preview directory: \(error)")
             }
         }
-        let assetsPreviewPath = templatePreviewDirectory.appendingPathComponent("assets", isDirectory: true)
+        let assetsPreviewPath = templatePreviewDirectory.appendingPathComponent(
+            "assets",
+            isDirectory: true
+        )
         do {
             try? FileManager.default.removeItem(at: assetsPreviewPath)
             try FileManager.default.copyItem(at: assetsPath, to: assetsPreviewPath)
-        } catch {
+        }
+        catch {
             debugPrint("Failed to prepare template preview assets: \(error)")
         }
     }
 
     func renderPreview(withPreviewIndex index: Int = 0) -> URL? {
-        let templatePreviewDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(name)
-        let assetsPreviewPath = templatePreviewDirectory.appendingPathComponent("assets", isDirectory: true)
+        let templatePreviewDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(name)
+        let assetsPreviewPath = templatePreviewDirectory.appendingPathComponent(
+            "assets",
+            isDirectory: true
+        )
         do {
             try? FileManager.default.removeItem(at: assetsPreviewPath)
             try FileManager.default.copyItem(at: assetsPath, to: assetsPreviewPath)
-        } catch {
+        }
+        catch {
             debugPrint("Cannot copy template preview assets: \(error)")
         }
 
-        let articleFolderPath = templatePreviewDirectory.appendingPathComponent("preview", isDirectory: true)
+        let articleFolderPath = templatePreviewDirectory.appendingPathComponent(
+            "preview",
+            isDirectory: true
+        )
         if !FileManager.default.fileExists(atPath: articleFolderPath.path) {
             do {
                 try FileManager.default.createDirectory(
@@ -409,59 +467,62 @@ class Template: Codable, Identifiable {
                     withIntermediateDirectories: true,
                     attributes: nil
                 )
-            } catch {
+            }
+            catch {
                 debugPrint("Cannot create template preview directory: \(error)")
             }
         }
 
-        let articlePath = articleFolderPath.appendingPathComponent(index == 1 ? "index.html" : "blog.html")
+        let articlePath = articleFolderPath.appendingPathComponent(
+            index == 1 ? "index.html" : "blog.html"
+        )
         let id = UUID()
         let content = """
-                Demo Article Content
+            Demo Article Content
 
-                ### List
+            ### List
 
-                - Item A
-                - Item B
-                - Item C
+            - Item A
+            - Item B
+            - Item C
 
-                ### Code Block
+            ### Code Block
 
-                ```python
-                from flask import Flask
+            ```python
+            from flask import Flask
 
-                app = Flask(__name__)
+            app = Flask(__name__)
 
-                @app.route("/")
-                def hello_world():
-                    return "<p>Hello, World!</p>"
-                ```
+            @app.route("/")
+            def hello_world():
+                return "<p>Hello, World!</p>"
+            ```
 
-                ### Blockquote
+            ### Blockquote
 
-                > A dream you dream alone is only a dream. A dream you dream together is reality.
+            > A dream you dream alone is only a dream. A dream you dream together is reality.
 
-                ---
+            ---
 
-                | Header 1 | Header 2 |
-                | --- | --- |
-                | Row 1 Col 1 | Row 1 Col 2 |
-                | Row 2 Col 1 | Row 2 Col 2 |
+            | Header 1 | Header 2 |
+            | --- | --- |
+            | Row 1 Col 1 | Row 1 Col 2 |
+            | Row 2 Col 1 | Row 2 Col 2 |
 
-                ---
+            ---
 
-                # Heading 1
+            # Heading 1
 
-                ## Heading 2
+            ## Heading 2
 
-                ### Heading 3
+            ### Heading 3
 
-                #### Heading 4
+            #### Heading 4
 
-                ##### Heading 5
+            ##### Heading 5
 
-                ###### Heading 6
-                """
+            ###### Heading 6
+            """
         let contentRendered = CMarkRenderer.renderMarkdownHTML(markdown: content)
         let article = PublicArticleModel(
             id: id,
@@ -529,20 +590,31 @@ class Template: Codable, Identifiable {
             "page_description": "Template preview for \(self.name)",
             "page_description_html": "Template preview for <strong>\(self.name)</strong>",
             "planet": publicPlanet,
-            "planet_ipns": "k51qzi"
+            "planet_ipns": "k51qzi",
         ]
         let targetPath = index == 1 ? indexPath : blogPath
         let loader = FileSystemLoader(paths: [Path(targetPath.deletingLastPathComponent().path)])
         let environment = Environment(loader: loader, extensions: [StencilExtension.common])
         let stencilTemplateName = targetPath.lastPathComponent
         do {
-            let output: String = try environment.renderTemplate(name: stencilTemplateName, context: context)
+            let output: String = try environment.renderTemplate(
+                name: stencilTemplateName,
+                context: context
+            )
             try output.data(using: .utf8)?.write(to: articlePath)
             debugPrint("Preview article path: \(articlePath)")
             return articlePath
-        } catch {
+        }
+        catch {
             debugPrint("Failed to render preview: \(error)")
             return nil
         }
+    }
+
+    func defaultSettings() -> [String: String] {
+        return self.settings?.reduce(into: [:]) {
+            (result, setting) in
+            result[setting.key] = setting.value.defaultValue
+        } ?? [:]
     }
 }

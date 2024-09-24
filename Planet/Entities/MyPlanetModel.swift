@@ -290,6 +290,35 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         return [:]
     }
+
+    func writeTemplateSettings() {
+        do {
+            // Read current settings
+            var currentSettings: [String: String] = templateSettings()
+            // Read default settings
+            let defaultSettings: [String: String] = self.template?.defaultSettings() ?? [:]
+            if defaultSettings.count == 0 {
+                return
+            }
+            var touched = false
+            // Iterate default settings, write if not already set
+            for (key, value) in defaultSettings {
+                if currentSettings[key] == nil {
+                    currentSettings[key] = value
+                    touched = true
+                }
+            }
+            if touched {
+                let data = try JSONSerialization.data(withJSONObject: currentSettings, options: [.prettyPrinted, .sortedKeys])
+                try data.write(to: templateSettingsPath)
+                debugPrint("Wrote full template settings for \(name)")
+            }
+            try self.copyTemplateSettings()
+        } catch {
+            debugPrint("Error writing template settings: \(error)")
+        }
+    }
+
     func updateTemplateSettings(settings: [String: String]) {
         do {
             // Read current settings
@@ -299,11 +328,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 currentSettings[key] = value
             }
             // Write settings
-            let data = try JSONSerialization.data(withJSONObject: currentSettings, options: [])
+            let data = try JSONSerialization.data(withJSONObject: currentSettings, options: [.prettyPrinted, .sortedKeys])
             try data.write(to: templateSettingsPath)
         }
         catch {
-            debugPrint("Error writing template settings: \(error)")
+            debugPrint("Error updating template settings: \(error) \(settings)")
         }
     }
 
@@ -1759,6 +1788,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         // MARK: - Save robots.txt
         saveRobotsTxt()
+
+        // MARK: - Save template settings
+        try writeTemplateSettings()
     }
 
     func saveRobotsTxt() {
