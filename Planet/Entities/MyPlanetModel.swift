@@ -410,13 +410,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         case .dweblink:
             return URL(string: "https://\(ipns).ipns.dweb.link/")
         default:
-            return URL(string: "https://\(ipns).ipfs2.eth.limo/")
+            return URL(string: "https://\(ipns).eth.sucks/")
         }
     }
 
     var cidURL: URL? {
         guard let cid = self.lastPublishedCID else { return nil }
-        return URL(string: "https://\(cid).ipfs2.eth.limo/")
+        return URL(string: "https://\(cid).eth.sucks/")
     }
 
     func hash(into hasher: inout Hasher) {
