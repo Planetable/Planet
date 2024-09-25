@@ -1834,12 +1834,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             self.isPublishing = true
             PlanetStatusManager.shared.updateStatus()
         }
-        defer {
-            Task { @MainActor in
-                self.isPublishing = false
-                PlanetStatusManager.shared.updateStatus()
-            }
-        }
         // Make sure planet key is available in keystore or in keychain, abort publishing if not.
         if try await !IPFSDaemon.shared.checkKeyExists(name: id.uuidString) {
             try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: id.uuidString)
@@ -1882,6 +1876,16 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 debugPrint("Filebase: no need to pin for \(filebasePinName)")
             }
         }
+        Task.detached(priority: .background) { @MainActor in
+            if cid != self.lastPublishedCID {
+                self.lastPublished = Date()
+                self.lastPublishedCID = cid
+                try self.save()
+                Task.detached(priority: .utility) {
+                    await self.sendNotificationForNewCID(cid: cid)
+                }
+            }
+        }
         let result = try await IPFSDaemon.shared.api(
             path: "name/publish",
             args: [
@@ -1891,21 +1895,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 "quieter": "1",
                 "lifetime": "7200h",
             ],
-            timeout: 600
+            timeout: 180
         )
         let published = try JSONDecoder.shared.decode(IPFSPublished.self, from: result)
         Self.logger.info("Published planet \(published.name): \(cid)")
-        Task.detached(priority: .background) { @MainActor in
-            if cid != self.lastPublishedCID {
-                self.lastPublished = Date()
-                self.lastPublishedCID = cid
-                try self.save()
-                /* TODO: This is broken on macOS 15.0 Sequoia
-                Task.detached(priority: .utility) {
-                    await self.sendNotificationForNewCID(cid: cid)
-                }
-                */
-            }
+        await MainActor.run {
+            self.isPublishing = false
+            PlanetStatusManager.shared.updateStatus()
         }
         Task.detached(priority: .background) {
             await self.prewarm()
@@ -2343,8 +2339,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         notification.title = self.name + ": Planet Published"
         notification.subtitle = "CID: " + cid
 
-        if let attachment = try? UNNotificationAttachment(identifier: "image", url: publicAvatarPath.absoluteURL, options: nil) {
-            notification.attachments = [attachment]
+        if FileManager.default.fileExists(atPath: publicAvatarPath.path) {
+            // Copy the avatar to the temporary directory
+            let temporaryAvatarPath = FileManager.default.temporaryDirectory.appendingPathComponent(
+                "avatar-\(self.id.uuidString).png",
+                isDirectory: false
+            )
+            try? FileManager.default.copyItem(at: publicAvatarPath, to: temporaryAvatarPath)
+            if let attachment = try? UNNotificationAttachment(
+                identifier: "image",
+                url: temporaryAvatarPath,
+                options: nil
+            ) {
+                notification.attachments = [attachment]
+            }
         }
 
         notification.interruptionLevel = .active
