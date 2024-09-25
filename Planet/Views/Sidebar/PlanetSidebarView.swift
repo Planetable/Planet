@@ -159,7 +159,7 @@ struct PlanetSidebarView: View {
         .sheet(isPresented: $planetStore.isCreatingPlanet) {
             CreatePlanetView()
         }
-        .frame(minWidth: 200)
+        .frame(minWidth: 220)
         .toolbar {
             Button(action: toggleSidebar) {
                 Image(systemName: "sidebar.left")
