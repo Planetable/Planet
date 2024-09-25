@@ -18,6 +18,7 @@ enum PlanetError: Error {
     case MissingPlanetKeyError
     case AvatarError
     case PodcastCoverArtError
+    case PublishPlanetError
     case ImportPlanetError
     case ExportPlanetError
     case ImportPlanetArticleError
@@ -86,6 +87,8 @@ extension PlanetError: LocalizedError {
             return NSLocalizedString("Avatar Error", comment: "")
         case .PodcastCoverArtError:
             return NSLocalizedString("Podcast Cover Art Error", comment: "")
+        case .PublishPlanetError:
+            return NSLocalizedString("Publish Planet Error", comment: "")
         case .ImportPlanetError:
             return NSLocalizedString("Import Planet Error", comment: "")
         case .ExportPlanetError:

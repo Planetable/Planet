@@ -1842,6 +1842,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: id.uuidString)
         }
         let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
+        if cid.count == 0 {
+            throw PlanetError.PublishPlanetError
+        }
         debugPrint("Publishing the latest CID for \(name): \(cid)")
         // Send the latest CID to dWebServices.xyz if enabled
         if let dWebServicesEnabled = dWebServicesEnabled, dWebServicesEnabled,
@@ -1879,12 +1882,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 debugPrint("Filebase: no need to pin for \(filebasePinName)")
             }
         }
-        Task.detached(priority: .background) { @MainActor in
+        Task { @MainActor in
             if cid != self.lastPublishedCID {
                 self.lastPublished = Date()
                 self.lastPublishedCID = cid
                 try self.save()
-                Task.detached(priority: .utility) {
+                Task {
                     await self.sendNotificationForNewCID(cid: cid)
                 }
             }
