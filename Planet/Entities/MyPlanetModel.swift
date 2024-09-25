@@ -1462,6 +1462,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             try FileManager.default.removeItem(at: publicAssetsPath)
         }
         try FileManager.default.copyItem(at: template.assetsPath, to: publicAssetsPath)
+        if FileManager.default.fileExists(atPath: avatarPath.path), !FileManager.default.fileExists(atPath: publicAvatarPath.path) {
+            try FileManager.default.copyItem(at: avatarPath, to: publicAvatarPath)
+        }
     }
 
     func renderRSS(podcastOnly: Bool = false) {
