@@ -88,13 +88,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                 }
                 i = i + 1
             }
-            // NOTE: This is a workaround for Sequoia, please review this code for better solution
             // See also: https://github.com/tact/public/issues/31
-            if (i == 0) {
-                if let mainWindow = NSApplication.shared.mainWindow {
-                    mainWindow.makeKeyAndOrderFront(self)
-                }
-            }
         }
     }
 
