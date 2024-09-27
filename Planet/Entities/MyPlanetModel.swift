@@ -75,6 +75,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var metrics: Metrics?
 
     @Published var isPublishing = false
+    @Published var publishStartedAt: Date? = nil
     @Published var isRebuilding = false
     @Published var isAggregating: Bool = false
 
@@ -453,6 +454,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(lastPublished)
         hasher.combine(lastPublishedCID)
         hasher.combine(isPublishing)
+        hasher.combine(publishStartedAt)
         hasher.combine(isRebuilding)
         hasher.combine(isAggregating)
         hasher.combine(archived)
@@ -538,6 +540,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.plausibleAPIKey == rhs.plausibleAPIKey
             && lhs.plausibleAPIServer == rhs.plausibleAPIServer
             && lhs.isPublishing == rhs.isPublishing
+            && lhs.publishStartedAt == rhs.publishStartedAt
             && lhs.isRebuilding == rhs.isRebuilding
             && lhs.isAggregating == rhs.isAggregating
             && lhs.twitterUsername == rhs.twitterUsername
@@ -1835,6 +1838,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         await MainActor.run {
             self.isPublishing = true
+            self.publishStartedAt = Date()
             PlanetStatusManager.shared.updateStatus()
         }
         // Make sure planet key is available in keystore or in keychain, abort publishing if not.
@@ -1892,6 +1896,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
             }
         }
+        Task.detached {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                if self.isPublishing {
+                    debugPrint("Planet publish is still running")
+                    self.isPublishing = false
+                    PlanetStatusManager.shared.updateStatus()
+                } else {
+                    debugPrint("Planet publish is done")
+                }
+            }
+        }
         let result = try await IPFSDaemon.shared.api(
             path: "name/publish",
             args: [
@@ -1907,6 +1922,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Self.logger.info("Published planet \(published.name): \(cid)")
         await MainActor.run {
             self.isPublishing = false
+            self.publishStartedAt = nil
             PlanetStatusManager.shared.updateStatus()
         }
         Task.detached(priority: .background) {
