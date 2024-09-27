@@ -432,7 +432,10 @@ class MyArticleModel: ArticleModel, Codable {
 
     func prewarm() async {
         guard let postURL = browserURL else { return }
+        let planetName = self.planet.name
         let articleJSONURL = postURL.appendingPathComponent("article.json")
+        let nftJSONURL = postURL.appendingPathComponent("nft.json")
+        let nftJSONCIDURL = postURL.appendingPathComponent("nft.json.cid.txt")
         // post page: /UUID/ or /slug/
         do {
             debugPrint("About to prewarm \(planet.name) post: \(postURL)")
@@ -450,6 +453,22 @@ class MyArticleModel: ArticleModel, Codable {
         }
         catch {
             debugPrint("Failed to prewarm \(planet.name) post metadata \(articleJSONURL): \(error)")
+        }
+        // nft metadata
+        if FileManager.default.fileExists(atPath: publicNFTMetadataPath.path) {
+            Task.detached(priority: .background) {
+                do {
+                    debugPrint("About to prewarm \(planetName) NFT metadata: \(self.publicNFTMetadataPath)")
+                    let (nftJSONData, _) = try await URLSession.shared.data(from: nftJSONURL)
+                    debugPrint("Prewarmed \(planetName) NFT metadata: \(nftJSONData.count) bytes")
+                    let (nftCIDData, _) = try await URLSession.shared.data(from: nftJSONCIDURL)
+                    let nftCID = String(data: nftCIDData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    debugPrint("Prewarmed \(planetName) NFT metadata CID: \(nftCID)")
+                }
+                catch {
+                    debugPrint("Failed to prewarm \(planetName) NFT metadata \(self.publicNFTMetadataPath): \(error)")
+                }
+            }
         }
         // tags
         if let tags = tags, tags.count > 0, let planetRootURL = planet.browserURL {
