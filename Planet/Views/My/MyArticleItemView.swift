@@ -3,8 +3,6 @@ import SwiftUI
 struct MyArticleItemView: View {
     @ObservedObject var article: MyArticleModel
 
-    @State private var isShowingDeleteConfirmation = false
-
     var body: some View {
         HStack {
             VStack {
@@ -154,7 +152,8 @@ struct MyArticleItemView: View {
                 Divider()
 
                 Button {
-                    isShowingDeleteConfirmation = true
+                    PlanetStore.shared.isShowingDeleteMyArticleConfirmation = true
+                    PlanetStore.shared.deletingMyArticle = article
                 } label: {
                     Text("Delete Article")
                 }
@@ -245,31 +244,6 @@ struct MyArticleItemView: View {
                         Text("Open Permalink in Browser")
                     }
                 }
-            }
-        }
-        .confirmationDialog(
-            Text("Are you sure you want to delete this article?"),
-            isPresented: $isShowingDeleteConfirmation
-        ) {
-            Button(role: .destructive) {
-                if let planet = article.planet {
-                    article.delete()
-                    planet.updated = Date()
-                    Task {
-                        try planet.save()
-                        try await planet.savePublic()
-                    }
-                    if PlanetStore.shared.selectedArticle == article {
-                        PlanetStore.shared.selectedArticle = nil
-                    }
-                    if let selectedArticles = PlanetStore.shared.selectedArticleList,
-                        selectedArticles.contains(article)
-                    {
-                        PlanetStore.shared.refreshSelectedArticles()
-                    }
-                }
-            } label: {
-                Text("Delete")
             }
         }
     }

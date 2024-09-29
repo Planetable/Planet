@@ -115,6 +115,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isConfiguringMint = false
     @Published var isConfiguringAggregation = false
     @Published var isShowingMyArticleSettings = false
+
+    @Published var isShowingDeleteMyArticleConfirmation = false
+    @Published var deletingMyArticle: MyArticleModel?
+
     @Published var isEditingPlanetCustomCode = false
     @Published var isEditingPlanetDonationSettings = false
     @Published var isEditingPlanetPodcastSettings = false

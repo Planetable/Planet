@@ -250,6 +250,33 @@ struct MyPlanetSidebarItem: View {
                 Text("Delete")
             }
         }
+        .confirmationDialog(
+            Text("Are you sure you want to delete this article?"),
+            isPresented: $planetStore.isShowingDeleteMyArticleConfirmation
+        ) {
+            Button(role: .destructive) {
+                if let article = planetStore.deletingMyArticle, let planet = article.planet {
+                    article.delete()
+                    planet.updated = Date()
+                    Task {
+                        try planet.save()
+                        try await planet.savePublic()
+                    }
+                    if PlanetStore.shared.selectedArticle == article {
+                        PlanetStore.shared.selectedArticle = nil
+                    }
+                    if let selectedArticles = PlanetStore.shared.selectedArticleList,
+                        selectedArticles.contains(article)
+                    {
+                        PlanetStore.shared.refreshSelectedArticles()
+                    }
+                    planetStore.isShowingDeleteMyArticleConfirmation = false
+                    planetStore.deletingMyArticle = nil
+                }
+            } label: {
+                Text("Delete")
+            }
+        }
     }
 
     private func hasiTerm() -> Bool {

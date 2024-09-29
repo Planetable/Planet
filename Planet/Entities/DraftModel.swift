@@ -467,9 +467,11 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                     try await planet.publish()
                 }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                Task(priority: .background) {
-                    await article.prewarm()
+            Task.detached {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    Task(priority: .background) {
+                        await article.prewarm()
+                    }
                 }
             }
         }
