@@ -32,9 +32,11 @@ struct MyPlanetEditView: View {
     @State private var mastodonUsername: String
     @State private var discordLink: String
 
+    /*
     @State private var dWebServicesEnabled: Bool = false
     @State private var dWebServicesDomain: String
     @State private var dWebServicesAPIKey: String
+    */
 
     @State private var juiceboxEnabled: Bool = false
     @State private var juiceboxProjectID: String
@@ -79,9 +81,11 @@ struct MyPlanetEditView: View {
         _telegramUsername = State(wrappedValue: planet.telegramUsername ?? "")
         _mastodonUsername = State(wrappedValue: planet.mastodonUsername ?? "")
         _discordLink = State(wrappedValue: planet.discordLink ?? "")
+        /*
         _dWebServicesEnabled = State(wrappedValue: planet.dWebServicesEnabled ?? false)
         _dWebServicesDomain = State(wrappedValue: planet.dWebServicesDomain ?? "")
         _dWebServicesAPIKey = State(wrappedValue: planet.dWebServicesAPIKey ?? "")
+        */
         _juiceboxEnabled = State(wrappedValue: planet.juiceboxEnabled ?? false)
         _juiceboxProjectID = State(wrappedValue: planet.juiceboxProjectID?.stringValue() ?? "")
         _juiceboxProjectIDGoerli = State(
@@ -703,6 +707,7 @@ struct MyPlanetEditView: View {
                                 .padding(.bottom, 6)
                         }
 
+                        /*
                         HStack {
                             HStack {
                                 Spacer()
@@ -739,6 +744,7 @@ struct MyPlanetEditView: View {
                             SecureField("", text: $dWebServicesAPIKey)
                                 .textFieldStyle(.roundedBorder)
                         }
+                        */
                     }
                     .padding(16)
                     .tabItem {
@@ -787,9 +793,11 @@ struct MyPlanetEditView: View {
                         planet.telegramUsername = telegramUsername.sanitized().trim()
                         planet.mastodonUsername = mastodonUsername.sanitized().trim()
                         planet.discordLink = discordLink.trim()
+                        /*
                         planet.dWebServicesEnabled = dWebServicesEnabled
                         planet.dWebServicesDomain = dWebServicesDomain
                         planet.dWebServicesAPIKey = dWebServicesAPIKey
+                        */
                         planet.juiceboxEnabled = juiceboxEnabled
                         planet.juiceboxProjectID = Int(juiceboxProjectID)
                         planet.juiceboxProjectIDGoerli = Int(juiceboxProjectIDGoerli)
