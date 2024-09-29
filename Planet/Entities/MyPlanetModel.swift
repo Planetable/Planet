@@ -1851,6 +1851,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         debugPrint("Publishing the latest CID for \(name): \(cid)")
         // Send the latest CID to dWebServices.xyz if enabled
+        /*
         if let dWebServicesEnabled = dWebServicesEnabled, dWebServicesEnabled,
             let dWebServicesDomain = dWebServicesDomain, let dWebServicesAPIKey = dWebServicesAPIKey
         {
@@ -1858,6 +1859,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             let dWebRecord = dWebServices(domain: dWebServicesDomain, apiKey: dWebServicesAPIKey)
             await dWebRecord.publish(cid: cid)
         }
+        */
         // Send the latest CID to Filebase if enabled
         if let filebaseEnabled = filebaseEnabled, filebaseEnabled,
             let filebasePinName = filebasePinName, let filebaseAPIToken = filebaseAPIToken
