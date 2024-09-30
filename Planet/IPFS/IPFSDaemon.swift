@@ -214,6 +214,18 @@ actor IPFSDaemon {
             Self.logger.info("Unable to set peers for IPFS")
         }
 
+        Self.logger.info("Set DNS resolvers")
+        if let result = try? IPFSCommand.setResolvers(
+            resolversJSON: String(data: IPFSDaemon.resolvers.rawData(), encoding: .utf8)!
+        ).run(),
+            result.ret == 0
+        {
+            Self.logger.info("Set DNS resolvers")
+        }
+        else {
+            Self.logger.info("Unable to set DNS resolvers")
+        }
+
         let swarmConnMgr = JSON(
             [
                 "GracePeriod": "20s",
@@ -756,6 +768,12 @@ extension IPFSDaemon {
                 "/dns4/bitswap.filebase.io/tcp/443/wss"
             ],
         ]   // Filebase
+    ])
+    // DoH resolvers
+    static let resolvers = JSON([
+        "bit.": "https://dweb-dns.v2ex.pro/dns-query",
+        "sol.": "https://dweb-dns.v2ex.pro/dns-query",
+        "eth.": "https://dns.eth.limo/dns-query"
     ])
 
     static func urlForCID(_ cid: String) -> URL? {

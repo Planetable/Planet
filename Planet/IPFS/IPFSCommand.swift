@@ -155,6 +155,15 @@ struct IPFSCommand {
         ])
     }
 
+    static func setResolvers(resolversJSON: String) -> IPFSCommand {
+        IPFSCommand(arguments: [
+            "config",
+            "DNS.Resolvers",
+            resolversJSON,
+            "--json",
+        ])
+    }
+
     static func setSwarmConnMgr(_ jsonString: String) -> IPFSCommand {
         IPFSCommand(arguments: [
             "config",
