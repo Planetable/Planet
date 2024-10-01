@@ -33,8 +33,9 @@ struct QuickPostView: View {
                 .padding(.trailing, 0)
 
                 TextEditor(text: $viewModel.content)
-                    .font(.system(size: 14, weight: .regular, design: .default))
-                    .lineSpacing(4)
+                    //.font(.system(size: 14, weight: .regular, design: .default))
+                    .font(.custom("Menlo", size: 14.0))
+                    .lineSpacing(4.0)
                     .disableAutocorrection(true)
                     .padding(.top, 10)
                     .padding(.bottom, 10)

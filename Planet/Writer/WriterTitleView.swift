@@ -26,7 +26,8 @@ struct WriterTitleView: View {
             Group {
                 if #available(macOS 13.0, *) {
                     TextField("Title", text: $title)
-                        .font(.system(size: 15, weight: .regular, design: .default))
+                        // .font(.system(size: 15, weight: .regular, design: .default))
+                        .font(.custom("Menlo", size: 15.0))
                         .background(Color(NSColor.textBackgroundColor))
                         .textFieldStyle(PlainTextFieldStyle())
                         .focused($focusTitle, equals: titleIsFocused)

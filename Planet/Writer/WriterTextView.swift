@@ -5,7 +5,9 @@ struct WriterTextView: NSViewRepresentable {
     @Binding var text: String
     @State var selectedRanges: [NSValue] = []
 
-    var font: NSFont? = .monospacedSystemFont(ofSize: 14, weight: .regular)
+    // var font: NSFont? = .monospacedSystemFont(ofSize: 14, weight: .regular)
+    // Use 14pt Menlo font as default font
+    var font: NSFont? = NSFont(name: "Menlo", size: 14)
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -139,7 +141,7 @@ class WriterCustomTextView: NSView {
             }
         }
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
