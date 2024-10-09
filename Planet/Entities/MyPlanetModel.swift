@@ -1665,7 +1665,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "planet_ipns": self.ipns,
                     "my_planet": self,
                     "site_navigation": siteNavigation,
-                    "has_avatar": hasAvatar,
+                    "has_avatar": self.hasAvatar(),
                     "og_image_url": ogImageURLString,
                     "has_podcast": publicPlanet.hasAudioContent(),
                     "has_podcast_cover_art": hasPodcastCoverArt,
