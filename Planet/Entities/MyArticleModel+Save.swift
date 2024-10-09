@@ -54,6 +54,11 @@ extension MyArticleModel {
         var marks: OrderedDictionary<String, Date> = ["Started": started]
 
         removeDSStore()
+
+        if !FileManager.default.fileExists(atPath: publicBasePath.path) {
+            try FileManager.default.createDirectory(at: publicBasePath, withIntermediateDirectories: true)
+        }
+
         saveMarkdownInBackground()
 
         try processContent()

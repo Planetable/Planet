@@ -1461,6 +1461,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         guard let template = template else {
             throw PlanetError.MissingTemplateError
         }
+        if !FileManager.default.fileExists(atPath: publicBasePath.path) {
+            try FileManager.default.createDirectory(at: publicBasePath, withIntermediateDirectories: true)
+        }
         if FileManager.default.fileExists(atPath: publicAssetsPath.path) {
             try FileManager.default.removeItem(at: publicAssetsPath)
         }
