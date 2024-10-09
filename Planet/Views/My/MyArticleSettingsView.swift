@@ -199,7 +199,7 @@ struct MyArticleSettingsView: View {
                         article.tags = tags
                         Task {
                             try article.save()
-                            if let previousSlug = previousSlug, slugChanged {
+                            if let previousSlug = previousSlug, slugChanged, previousSlug.count > 0 {
                                 article.removeSlug(previousSlug)
                             }
                             try article.savePublic()
