@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/async-http-client.git",
       "state" : {
-        "revision" : "6df8e1c17e68f0f93de2443b8c8cafca9ddcc89a",
-        "version" : "1.22.2"
+        "revision" : "64abc77edf1ef81e69bd90a2ac386de615c8e8ea",
+        "version" : "1.23.0"
       }
     },
     {
@@ -124,7 +124,7 @@
       "location" : "https://github.com/Planetable/PlanetSiteTemplates.git",
       "state" : {
         "branch" : "main",
-        "revision" : "a73b528fbd22816b5aa73d0d4540f11df26a657d"
+        "revision" : "95b006a59f838024650cf2400b55d221a41e4fa9"
       }
     },
     {
@@ -231,8 +231,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
       "state" : {
-        "revision" : "81bee98e706aee68d39ed5996db069ef2b313d62",
-        "version" : "3.7.1"
+        "revision" : "ffca28be3c9c6a86a579949d23f68818a4b9b5d8",
+        "version" : "3.8.0"
       }
     },
     {
@@ -276,8 +276,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio.git",
       "state" : {
-        "revision" : "1b33db2dea6a64d5b619b9e888175133c6d7f410",
-        "version" : "2.73.0"
+        "revision" : "665206000b8307cab5ac51203d29b0f232d7e31b",
+        "version" : "2.74.0"
       }
     },
     {
@@ -294,8 +294,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-http2.git",
       "state" : {
-        "revision" : "b5f7062b60e4add1e8c343ba4eb8da2e324b3a94",
-        "version" : "1.34.0"
+        "revision" : "eaa71bb6ae082eee5a07407b1ad0cbd8f48f9dca",
+        "version" : "1.34.1"
       }
     },
     {
@@ -312,8 +312,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-transport-services.git",
       "state" : {
-        "revision" : "38ac8221dd20674682148d6451367f89c2652980",
-        "version" : "1.21.0"
+        "revision" : "dbace16f126fdcd80d58dc54526c561ca17327d7",
+        "version" : "1.22.0"
       }
     },
     {
@@ -393,8 +393,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/vapor",
       "state" : {
-        "revision" : "a4d7d4d32ef4a21dd10bc6375f4d20da3c5594e4",
-        "version" : "4.105.2"
+        "revision" : "1466c50e4ad39072143e2fcdf13b4ba11be375a0",
+        "version" : "4.106.0"
       }
     },
     {
