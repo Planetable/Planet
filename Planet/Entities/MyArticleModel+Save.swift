@@ -33,6 +33,10 @@ extension MyArticleModel {
 
     /// Remove the slug copy
     func removeSlug(_ slugToRemove: String) {
+        let slug = slugToRemove.trim()
+        if slugToRemove.count == 0 || slug.count == 0 {
+            return
+        }
         let slugPath = planet.publicBasePath.appendingPathComponent(
             slugToRemove,
             isDirectory: true
