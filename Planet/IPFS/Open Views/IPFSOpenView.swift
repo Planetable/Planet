@@ -58,6 +58,9 @@ struct IPFSOpenView: View {
         else if destination.hasSuffix(".eth") {
             detectedType = "ENS"
         }
+        else if destination.hasSuffix(".sol") {
+            detectedType = "Solana Name"
+        }
         else {
             detectedType = " "
         }
@@ -84,6 +87,12 @@ struct IPFSOpenView: View {
             }
         }
         else if destination.hasSuffix(".eth") {
+            // ENS
+            if let url = URL(string: "\(localGateway)/ipns/\(destination)") {
+                NSWorkspace.shared.open(url)
+            }
+        }
+        else if destination.hasSuffix(".sol") {
             // ENS
             if let url = URL(string: "\(localGateway)/ipns/\(destination)") {
                 NSWorkspace.shared.open(url)

@@ -148,6 +148,9 @@ class MyArticleModel: ArticleModel, Codable {
                     return URL(string: "https://dweb.link/ipns/\(domain)\(urlPath)")
                 }
             }
+            if domain.hasSuffix(".sol") {
+                return URL(string: "https://\(domain).build\(urlPath)")
+            }
             if domain.hasSuffix(".bit") {
                 return URL(string: "https://\(domain).site\(urlPath)")
             }

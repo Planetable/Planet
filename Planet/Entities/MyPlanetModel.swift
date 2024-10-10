@@ -394,6 +394,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     return "\(processed).ipns.dweb.link"
                 }
             }
+            if domain.hasSuffix(".sol") {
+                return "\(domain).build"
+            }
             if domain.hasSuffix(".bit") {
                 return "\(domain).site"
             }
