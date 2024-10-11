@@ -1944,6 +1944,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     func prewarm() async {
         guard let rootURL = browserURL else { return }
         let planetJSONURL = rootURL.appendingPathComponent("planet.json")
+        let avatarURL = rootURL.appendingPathComponent("avatar.png")
+        let faviconURL = rootURL.appendingPathComponent("favicon.ico")
         do {
             debugPrint("About to prewarm \(name): \(rootURL)")
             let (rootData, _) = try await URLSession.shared.data(from: rootURL)
@@ -1951,6 +1953,22 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         catch {
             debugPrint("Failed to prewarm \(name) \(rootURL): \(error)")
+        }
+        do {
+            debugPrint("About to prewarm \(name): \(avatarURL)")
+            let (avatarData, _) = try await URLSession.shared.data(from: avatarURL)
+            debugPrint("Prewarmed \(name): \(avatarData.count) bytes")
+        }
+        catch {
+            debugPrint("Failed to prewarm \(name) \(avatarURL): \(error)")
+        }
+        do {
+            debugPrint("About to prewarm \(name): \(faviconURL)")
+            let (faviconData, _) = try await URLSession.shared.data(from: faviconURL)
+            debugPrint("Prewarmed \(name): \(faviconData.count) bytes")
+        }
+        catch {
+            debugPrint("Failed to prewarm \(name) \(faviconURL): \(error)")
         }
         do {
             debugPrint("About to prewarm \(name): \(planetJSONURL)")
