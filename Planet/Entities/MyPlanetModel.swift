@@ -2365,6 +2365,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             let info = ["title": self.name, "subtitle": liteSubtitle]
             NotificationCenter.default.post(name: .updatePlanetLiteWindowTitles, object: info)
         }
+        Task.detached(priority: .background) {
+            await self.prewarm()
+        }
         await sendNotificationForRebuild()
     }
 
