@@ -111,6 +111,12 @@ class PlanetAPIController: NSObject, ObservableObject {
             }
         }
     }
+
+    func pauseServerForSleep() {
+        globalApp?.shutdown()
+        globalApp = nil
+        stopBonjourService()
+    }
     
     func startBonjourService() {
         if bonjourService == nil {
