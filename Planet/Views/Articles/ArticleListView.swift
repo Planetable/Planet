@@ -56,6 +56,26 @@ struct ArticleListView: View {
                 }
                 return false
             }
+        case .videos:
+            return articles.filter {
+                if let myArticle = $0 as? MyArticleModel {
+                    return myArticle.videoFilename != nil
+                }
+                if let followingArticle = $0 as? FollowingArticleModel {
+                    return followingArticle.videoFilename != nil
+                }
+                return false
+            }
+        case .audios:
+            return articles.filter {
+                if let myArticle = $0 as? MyArticleModel {
+                    return myArticle.audioFilename != nil
+                }
+                if let followingArticle = $0 as? FollowingArticleModel {
+                    return followingArticle.audioFilename != nil
+                }
+                return false
+            }
         case .nav:
             return articles.filter {
                 if let myArticle = $0 as? MyArticleModel,

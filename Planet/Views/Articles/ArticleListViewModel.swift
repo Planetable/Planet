@@ -11,6 +11,8 @@ import Foundation
 enum ListViewFilter: String, CaseIterable {
     case all = "All"
     case pages = "Pages"
+    case videos = "Videos"
+    case audios = "Audios"
     case nav = "Navigation Items"
     case unread = "Unread"
     case starred = "Starred"
@@ -29,6 +31,8 @@ enum ListViewFilter: String, CaseIterable {
     static let buttonLabels: [String: String] = [
         "All": "Show All",
         "Pages": "Show Pages",
+        "Videos": "Show Videos",
+        "Audios": "Show Audios",
         "Navigation Items": "Show Navigation Items",
         "Unread": "Show Unread",
         "Starred": "Show All Starred",
@@ -37,6 +41,8 @@ enum ListViewFilter: String, CaseIterable {
     static let emptyLabels: [String: String] = [
         "All": "No Articles",
         "Pages": "No Pages",
+        "Videos": "No Videos",
+        "Audios": "No Audios",
         "Navigation Items": "No Navigation Items",
         "Unread": "No Unread Articles",
         "Starred": "No Starred Articles",
@@ -53,6 +59,8 @@ enum ListViewFilter: String, CaseIterable {
     static let imageNames: [String: String] = [
         "All": "line.3.horizontal.circle",
         "Pages": "doc.text",
+        "Videos": "film",
+        "Audios": "waveform",
         "Navigation Items": "link.circle",
         "Unread": "line.3.horizontal.circle.fill",
         "Starred": "star.fill",
