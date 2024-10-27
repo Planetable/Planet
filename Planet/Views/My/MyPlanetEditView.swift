@@ -771,6 +771,7 @@ struct MyPlanetEditView: View {
                         if !name.trim().isEmpty {
                             planet.name = name.trim()
                         }
+                        var resaveAvatar = false
                         planet.about = about.trim()
                         planet.domain = domain.trim()
                         if planet.authorName != authorName {
@@ -782,7 +783,15 @@ struct MyPlanetEditView: View {
                             }
                         }
                         planet.templateName = templateName
-                        planet.saveRoundAvatar = saveRoundAvatar
+                        if planet.saveRoundAvatar != saveRoundAvatar {
+                            planet.saveRoundAvatar = saveRoundAvatar
+                            if saveRoundAvatar {
+                                // Read the avatar file on disk and resave it
+                                if let avatar = planet.avatar {
+                                    resaveAvatar = true
+                                }
+                            }
+                        }
                         planet.doNotIndex = doNotIndex
                         planet.plausibleEnabled = plausibleEnabled
                         planet.plausibleDomain = plausibleDomain.trim()
@@ -809,6 +818,16 @@ struct MyPlanetEditView: View {
                         Task {
                             planet.updateTemplateSettings(settings: userSettings)
                             try planet.save()
+                            if resaveAvatar {
+                                Task.detached {
+                                    do {
+                                        try planet.updateAvatar(path: planet.publicAvatarPath)
+                                    }
+                                    catch {
+                                        debugPrint("failed to save circularized avatar image: \(error)")
+                                    }
+                                }
+                            }
                             Task(priority: .background) {
                                 try await planet.rebuild()
                             }
