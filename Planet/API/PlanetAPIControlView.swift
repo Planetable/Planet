@@ -169,7 +169,7 @@ struct PlanetAPIControlView: View {
                 } catch {
                     isAlert = true
                     alertTitle = "Failed to Start Server"
-                    alertMessage = "Please double check server informations and try again."
+                    alertMessage = "Please double check server information and try again."
                 }
                 if self.isShowingPasscode {
                     Task { @MainActor in
