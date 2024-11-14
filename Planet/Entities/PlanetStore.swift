@@ -70,7 +70,9 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var selectedView: PlanetDetailViewType? {
         didSet {
             if selectedView != oldValue {
-                selectedArticle = nil
+                Task { @MainActor in
+                    self.selectedArticle = nil
+                }
                 refreshSelectedArticles()
                 UserDefaults.standard.set(selectedView?.stringValue, forKey: "lastSelectedView")
 

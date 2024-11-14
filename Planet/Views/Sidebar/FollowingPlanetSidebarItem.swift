@@ -125,6 +125,11 @@ struct FollowingPlanetSidebarItem: View {
                 planetStore.followingPlanets.removeAll { $0.id == planet.id }
                 planet.unpin()
                 planet.delete()
+                Task.detached {
+                    await planetStore.updateTotalUnreadCount()
+                    await planetStore.updateTotalStarredCount()
+                    await planetStore.updateTotalTodayCount()
+                }
                 if case .followingPlanet(let selectedPlanet) = planetStore.selectedView,
                     planet == selectedPlanet
                 {
