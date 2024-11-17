@@ -62,6 +62,8 @@ struct AudioPlayer: View {
 
             Text(title)
                 .frame(maxWidth: .infinity, alignment: .leading)
+        }.onDisappear {
+            player.pause()
         }
     }
 }
