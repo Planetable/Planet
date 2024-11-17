@@ -27,7 +27,7 @@ class AppContentDropDelegate: DropDelegate {
         Task { @MainActor in
             if #available(macOS 13.0, *) {
                 var urls: [URL] = []
-                for provider in info.itemProviders(for: [.image, .pdf, .movie]) {
+                for provider in info.itemProviders(for: [.image, .pdf, .movie, .mp3]) {
                     if let url = try? await provider.loadItem(forTypeIdentifier: UTType.image.identifier) as? URL {
                         urls.append(url)
                     }
@@ -36,7 +36,11 @@ class AppContentDropDelegate: DropDelegate {
                     }
                     if let url = try? await provider.loadItem(forTypeIdentifier: UTType.movie.identifier) as? URL {
                         urls.append(url)
-                        debugPrint("Drop file accepted: \(url)")
+                        debugPrint("Drop file (video) accepted: \(url)")
+                    }
+                    if let url = try? await provider.loadItem(forTypeIdentifier: UTType.mp3.identifier) as? URL {
+                        urls.append(url)
+                        debugPrint("Drop file (mp3 audio) accepted: \(url)")
                     }
                 }
                 if urls.count > 0 {

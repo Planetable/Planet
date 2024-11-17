@@ -14,18 +14,22 @@ class PlanetQuickShareDropDelegate: DropDelegate {
     static func processDropInfo(_ info: DropInfo) async -> [URL] {
         var urls: [URL] = []
         if #available(macOS 13.0, *) {
-            for provider in info.itemProviders(for: [.image, .movie, .pdf]) {
+            for provider in info.itemProviders(for: [.image, .movie, .pdf, .mp3]) {
                 if let url = try? await provider.loadItem(forTypeIdentifier: UTType.image.identifier) as? URL {
                     urls.append(url)
-                    debugPrint("Drop file accepted: \(url)")
+                    debugPrint("Drop file (image) accepted: \(url)")
                 }
                 if let url = try? await provider.loadItem(forTypeIdentifier: UTType.pdf.identifier) as? URL {
                     urls.append(url)
-                    debugPrint("Drop file accepted: \(url)")
+                    debugPrint("Drop file (pdf) accepted: \(url)")
                 }
                 if let url = try? await provider.loadItem(forTypeIdentifier: UTType.movie.identifier) as? URL {
                     urls.append(url)
-                    debugPrint("Drop file accepted: \(url)")
+                    debugPrint("Drop file (video) accepted: \(url)")
+                }
+                if let url = try? await provider.loadItem(forTypeIdentifier: UTType.mp3.identifier) as? URL {
+                    urls.append(url)
+                    debugPrint("Drop file (mp3 audio) accepted: \(url)")
                 }
             }
         } else {

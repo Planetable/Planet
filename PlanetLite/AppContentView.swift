@@ -113,7 +113,7 @@ struct AppContentView: View {
                 }
             }
         }
-        .onDrop(of: [.image, .pdf, .movie], delegate: dropDelegate)  // TODO: Audio support
+        .onDrop(of: [.image, .pdf, .movie, .mp3], delegate: dropDelegate)  // TODO: Audio support
         .onReceive(timer) { _ in
             Task {
                 await planetStore.aggregate()

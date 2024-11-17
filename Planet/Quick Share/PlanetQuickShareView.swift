@@ -168,9 +168,9 @@ struct PlanetQuickShareView: View {
                     attachmentSectionPlaceholder()
                         .focusable()
                         .onDrop(of: [.image, .movie], delegate: dropDelegate)
-                        .onPasteCommand(of: [.fileURL, .image, .movie], perform: PlanetQuickShareViewModel.shared.processPasteItems(_:))
+                        .onPasteCommand(of: [.fileURL, .image, .movie, .mp3], perform: PlanetQuickShareViewModel.shared.processPasteItems(_:))
                         .contextMenu {
-                            PasteButton(supportedContentTypes: [.fileURL, .image, .movie], payloadAction: PlanetQuickShareViewModel.shared.processPasteItems(_:))
+                            PasteButton(supportedContentTypes: [.fileURL, .image, .movie, .mp3], payloadAction: PlanetQuickShareViewModel.shared.processPasteItems(_:))
                         }
                 }
             }
@@ -180,6 +180,10 @@ struct PlanetQuickShareView: View {
         }
         else if viewModel.fileURLs.count == 1, let url = viewModel.fileURLs.first, AttachmentType.from(url) == .video {
             videoView(url: url)
+        }
+        else if viewModel.fileURLs.count == 1, let url = viewModel.fileURLs.first, AttachmentType.from(url) == .audio {
+            audioView(url: url)
+            .padding(.horizontal, 16)
         }
         else if viewModel.fileURLs.count == 1, let url = viewModel.fileURLs.first,
             let img = NSImage(contentsOf: url)
@@ -281,6 +285,33 @@ struct PlanetQuickShareView: View {
                 Text("Remove Video")
             }
         }
+    }
+
+    @ViewBuilder
+    private func audioView(url: URL) -> some View {
+        HStack(spacing: 10) {
+            AudioPlayer(url: url, title: url.lastPathComponent)
+                .frame(minHeight: 180)
+            Button {
+                removeAudio(url)
+            } label: {
+                Image(systemName: "trash")
+            }
+        }
+        .contextMenu {
+            Button {
+                removeAudio(url)
+            } label: {
+                Text("Remove Audio")
+            }
+        }
+    }
+
+    private func removeAudio(_ url: URL) {
+        if viewModel.title == url.lastPathComponent {
+            viewModel.title = ""
+        }
+        viewModel.fileURLs.removeAll(where: { $0 == url })
     }
 
     @ViewBuilder

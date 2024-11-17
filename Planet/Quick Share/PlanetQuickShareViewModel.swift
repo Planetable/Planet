@@ -99,11 +99,15 @@ class PlanetQuickShareViewModel: ObservableObject {
                     forTypeIdentifier: UTType.fileURL.identifier
                 )
                 if let urlData = urlData as? Data {
+                    debugPrint("About to process pasted item: \(provider)")
                     let imageURL =
                         NSURL(absoluteURLWithDataRepresentation: urlData, relativeTo: nil) as URL
                     if isImageFile(url: imageURL) {
+                        debugPrint("Pasted item is an image: \(imageURL)")
                         urls.append(imageURL)
                         handled.append(provider)
+                    } else {
+                        debugPrint("Pasted item is not an image: \(imageURL)")
                     }
                 }
                 // handle .image
@@ -131,6 +135,9 @@ class PlanetQuickShareViewModel: ObservableObject {
                             debugPrint("Failed to write image to temporary directory: \(error)")
                         }
                     }
+                } else {
+                    debugPrint("Failed to find any image data from pasted provider: \(provider)")
+                    // TODO: handle mp3
                 }
             }
             guard urls.count > 0 else { return }
