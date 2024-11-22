@@ -460,6 +460,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         planet.updated = Date()
         try planet.save()
 
+        /*
         Task(priority: .userInitiated) {
             try await planet.savePublic()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -473,6 +474,27 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                         await article.prewarm()
                     }
                 }
+            }
+        }
+        */
+
+        // Code above is too nasty, let's try a new approach below
+        Task(priority: .userInitiated) {
+            do {
+                try await planet.savePublic()
+
+                // Publish after a delay
+                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                try await planet.publish()
+
+                // Prewarm article after a delay
+                Task.detached {
+                    try await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
+                    await article.prewarm()
+                }
+            } catch {
+                // Handle errors appropriately
+                print("During saving and publishing planet \(planet.name), an error occurred: \(error)")
             }
         }
 
