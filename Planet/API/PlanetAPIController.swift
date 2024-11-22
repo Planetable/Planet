@@ -392,7 +392,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         } ?? []
         
         // Set the method
-        httpRequest.method = vaporRequest.method.string
+        httpRequest.method = vaporRequest.method.rawValue
         
         // Set the headers
         for (name, values) in vaporRequest.headers {
