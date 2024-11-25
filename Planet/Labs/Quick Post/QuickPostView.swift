@@ -176,7 +176,7 @@ struct QuickPostView: View {
         .onTapGesture {
             // Insert media reference at cursor position
             let fileName = url.lastPathComponent
-            let mediaReference = url.imageCode
+            let mediaReference = url.htmlCode
             
             // Get current cursor position
             let currentContent = viewModel.content
@@ -195,7 +195,7 @@ struct QuickPostView: View {
                 }
                 // Also remove the media reference from the content
                 let currentContent = viewModel.content
-                let mediaReference = url.imageCode
+                let mediaReference = url.htmlCode
                 viewModel.content = currentContent.replacingOccurrences(of: mediaReference, with: "")
             } label: {
                 Label("Remove", systemImage: "trash")
