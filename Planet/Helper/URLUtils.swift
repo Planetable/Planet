@@ -156,4 +156,28 @@ extension URL {
             print("Remove GPS Error: \(error)")
         }
     }
+
+    var imageCode: String {
+        let name = self.lastPathComponent
+        if let im = NSImage(contentsOf: self) {
+            let imageRep = im.representations.first as? NSBitmapImageRep
+            let width = imageRep?.pixelsWide ?? 0
+            let height = imageRep?.pixelsHigh ?? 0
+            let pointSize = im.size
+            let pointWidth = pointSize.width
+            let pointHeight = pointSize.height
+            var widthToUse = 0
+            if (CGFloat(width) / pointWidth) > 1 {
+                widthToUse = Int(pointWidth)
+            } else {
+                widthToUse = width
+            }
+            if Int(widthToUse) > 0 {
+                return "<img width=\"\(Int(widthToUse))\" alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
+            } else {
+                return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
+            }
+        }
+        return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
+    }
 }

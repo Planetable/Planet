@@ -48,12 +48,14 @@ struct QuickPostView: View {
             if viewModel.fileURLs.count > 0 {
                 Divider()
                 mediaTray()
+                    /* TODO: this part conflicts with clickable media items */
+                    /*
                     .focusable()
                     .onPasteCommand(
                         of: [.fileURL, .image, .movie],
                         perform: QuickPostViewModel.shared.processPasteItems(_:)
                     )
-
+                    */
             }
 
             if let audioURL = viewModel.audioURL {
@@ -171,12 +173,30 @@ struct QuickPostView: View {
         }
         .padding(5)
         .background(Color.secondary.opacity(0.05))
+        .onTapGesture {
+            // Insert media reference at cursor position
+            let fileName = url.lastPathComponent
+            let mediaReference = url.imageCode
+            
+            // Get current cursor position
+            let currentContent = viewModel.content
+            if let textView = NSApp.keyWindow?.firstResponder as? NSTextView {
+                let selectedRange = textView.selectedRange()
+                let prefix = String(currentContent.prefix(selectedRange.location))
+                let suffix = String(currentContent.suffix(from: currentContent.index(currentContent.startIndex, offsetBy: selectedRange.location)))
+                viewModel.content = prefix + mediaReference + suffix
+            }
+        }
         .contextMenu {
             Button {
                 viewModel.fileURLs.removeAll { $0 == url }
                 if let audioURL = viewModel.audioURL, audioURL == url {
                     viewModel.audioURL = nil
                 }
+                // Also remove the media reference from the content
+                let currentContent = viewModel.content
+                let mediaReference = url.imageCode
+                viewModel.content = currentContent.replacingOccurrences(of: mediaReference, with: "")
             } label: {
                 Label("Remove", systemImage: "trash")
             }
