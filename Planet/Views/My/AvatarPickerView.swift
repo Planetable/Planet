@@ -10,6 +10,7 @@ import SwiftUI
 enum AvatarCategory: String, CaseIterable {
     case nostalgia = "Nostalgia"
     case monochrom = "Monochrom"
+    case pixelPlanet = "Pixel Planet"
 
     var id: String { rawValue }
 
@@ -19,6 +20,8 @@ enum AvatarCategory: String, CaseIterable {
             return "NSTG"
         case .monochrom:
             return "MNCR"
+        case .pixelPlanet:
+            return "PP"
         }
     }
 }

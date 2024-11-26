@@ -21,6 +21,7 @@
 		2A0E91912BE8EFC600F69578 /* IPFSStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0E918F2BE8EFC600F69578 /* IPFSStatusView.swift */; };
 		2A23C2062B8ED4E2000138DA /* PlanetDirectoryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */; };
 		2A23C2072B8F3B06000138DA /* PlanetDirectoryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */; };
+		2A250A092CF4D81E00AE9A4A /* PP.json in Resources */ = {isa = PBXBuildFile; fileRef = 2A250A082CF4D81E00AE9A4A /* PP.json */; };
 		2A2556AF293E1E7D006462D8 /* TBWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556AE293E1E7D006462D8 /* TBWindowController.swift */; };
 		2A2556B1293E1E98006462D8 /* TB+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556B0293E1E98006462D8 /* TB+Extension.swift */; };
 		2A2556B3293E1EB4006462D8 /* TBWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556B2293E1EB4006462D8 /* TBWindow.swift */; };
@@ -579,6 +580,7 @@
 		2A0E918B2BE889B000F69578 /* IPFSGateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSGateway.swift; sourceTree = "<group>"; };
 		2A0E918F2BE8EFC600F69578 /* IPFSStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSStatusView.swift; sourceTree = "<group>"; };
 		2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDirectoryMonitor.swift; sourceTree = "<group>"; };
+		2A250A082CF4D81E00AE9A4A /* PP.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PP.json; sourceTree = "<group>"; };
 		2A2556AE293E1E7D006462D8 /* TBWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBWindowController.swift; sourceTree = "<group>"; };
 		2A2556B0293E1E98006462D8 /* TB+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TB+Extension.swift"; sourceTree = "<group>"; };
 		2A2556B2293E1EB4006462D8 /* TBWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBWindow.swift; sourceTree = "<group>"; };
@@ -1420,6 +1422,7 @@
 			children = (
 				6AEE99DB2C26C2AD00736D0B /* MNCR.json */,
 				6A1FD5052A75A6A000391972 /* NSTG.json */,
+				2A250A082CF4D81E00AE9A4A /* PP.json */,
 			);
 			path = Art;
 			sourceTree = "<group>";
@@ -1857,6 +1860,7 @@
 				6A34BE362A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
 				2ADD6E722A9F2D2600AD763B /* tier3.zip in Resources */,
 				6A34BE342A34B2A00031E5E4 /* Capsules-400.otf in Resources */,
+				2A250A092CF4D81E00AE9A4A /* PP.json in Resources */,
 				2ADD6E732A9F2D2600AD763B /* vol1-6.zip in Resources */,
 				6A1FD5062A75A6A000391972 /* NSTG.json in Resources */,
 				2ADD6E712A9F2D2600AD763B /* vol1-1.zip in Resources */,
