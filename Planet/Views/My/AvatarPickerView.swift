@@ -144,12 +144,6 @@ struct AvatarPickerView: View {
                                 withAnimation(.linear(duration: 0.25)) {
                                     proxy.scrollTo(newValue)
                                 }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    self.highlightedItems.insert(newValue)
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        self.highlightedItems.remove(newValue)
-                                    }
-                                }
                             }
                         }
                     }
@@ -223,6 +217,10 @@ struct AvatarPickerView: View {
                 debugPrint("Set planet avatar to \(randomKey), at: \(avatarURL)")
                 Task { @MainActor in
                     self.randomSelectedAvatarKey = randomKey
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    self.highlightedItems.insert(randomKey)
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    self.highlightedItems.remove(randomKey)
                 }
             }
         }
