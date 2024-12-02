@@ -33,6 +33,8 @@ struct AvatarPickerView: View {
     @State var avatars: [String: String]?
     @State var selectedAvatar: NSImage?
     @State var avatarChanged: Bool = false
+    @State private var randomSelectedAvatarKey: String?
+    @State private var highlightedItems: Set<String> = []
 
     private func loadAvatars(category: AvatarCategory) -> [String: String]? {
         debugPrint("Loading Avatar category: \(category)")
@@ -98,53 +100,71 @@ struct AvatarPickerView: View {
 
             VStack(spacing: 0) {
                 if let avatars = avatars, let keys = Array(avatars.keys) as? [String] {
-                    ScrollView {
-                        LazyVGrid(
-                            columns: [GridItem(), GridItem(), GridItem()],
-                            alignment: .center
-                        ) {
-                            ForEach(keys.sorted(), id: \.self) { aKey in
-                                VStack {
-                                    Image(aKey)
-                                        .interpolation(.high)
-                                        .resizable()
-                                        .frame(width: 64, height: 64)
-                                        .cornerRadius(32)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 32)
-                                                .stroke(Color("BorderColor"), lineWidth: 1)
-                                        )
-                                        .padding(.top, 16)
-                                        .padding(.horizontal, 16)
-                                        .padding(.bottom, 8)
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVGrid(
+                                columns: [GridItem(), GridItem(), GridItem()],
+                                alignment: .center
+                            ) {
+                                ForEach(keys.sorted(), id: \.self) { aKey in
+                                    VStack {
+                                        let isAnimation: Bool = highlightedItems.contains(aKey)
+                                        Image(aKey)
+                                            .interpolation(.high)
+                                            .resizable()
+                                            .frame(width: 64, height: 64)
+                                            .cornerRadius(32)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 32)
+                                                    .stroke(isAnimation ? Color.accentColor : Color("BorderColor"), lineWidth: isAnimation ? 4 : 1)
+                                            )
+                                            .padding(.top, 16)
+                                            .padding(.horizontal, 16)
+                                            .padding(.bottom, 8)
+                                            .scaleEffect(isAnimation ? 1.05 : 1.0)
+                                            .animation(.linear(duration: 0.3), value: highlightedItems)
 
-                                    Text(avatars[aKey] ?? "")
-                                        .font(.caption)
-                                        .foregroundColor(.primary)
-                                }
-                                .onTapGesture {
-                                    debugPrint("Tapped on avatar: \(aKey)")
-                                    if case .myPlanet(let planet) = store.selectedView {
-                                        debugPrint("About to set planet avatar to \(aKey)")
-                                        do {
-                                            let image = NSImage(named: aKey)
-                                            if let image = image, let avatarURL = image.temporaryURL
-                                            {
-                                                selectedAvatar = image
-                                                avatarChanged = true
-                                                debugPrint("Set planet avatar to \(aKey)")
+                                        Text(avatars[aKey] ?? "")
+                                            .font(.caption)
+                                            .foregroundColor(.primary)
+                                    }
+                                    .id(aKey)
+                                    .onTapGesture {
+                                        debugPrint("Tapped on avatar: \(aKey)")
+                                        if case .myPlanet(let planet) = store.selectedView {
+                                            debugPrint("About to set planet avatar to \(aKey)")
+                                            do {
+                                                let image = NSImage(named: aKey)
+                                                if let image = image, let avatarURL = image.temporaryURL
+                                                {
+                                                    selectedAvatar = image
+                                                    avatarChanged = true
+                                                    debugPrint("Set planet avatar to \(aKey)")
+                                                }
+                                            }
+                                            catch {
+                                                debugPrint("failed to update planet avatar: \(error)")
                                             }
                                         }
-                                        catch {
-                                            debugPrint("failed to update planet avatar: \(error)")
+                                        else {
+                                            debugPrint("Cannot set planet avatar")
                                         }
                                     }
-                                    else {
-                                        debugPrint("Cannot set planet avatar")
-                                    }
-
                                 }
-
+                            }
+                        }
+                        .onChange(of: randomSelectedAvatarKey) { newValue in
+                            guard let newValue else { return }
+                            Task { @MainActor in
+                                withAnimation(.linear(duration: 0.25)) {
+                                    proxy.scrollTo(newValue)
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    self.highlightedItems.insert(newValue)
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                        self.highlightedItems.remove(newValue)
+                                    }
+                                }
                             }
                         }
                     }
@@ -216,6 +236,9 @@ struct AvatarPickerView: View {
                 selectedAvatar = image
                 avatarChanged = true
                 debugPrint("Set planet avatar to \(randomKey)")
+                Task { @MainActor in
+                    self.randomSelectedAvatarKey = randomKey
+                }
             }
         }
     }
