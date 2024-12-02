@@ -122,13 +122,13 @@ struct AvatarPickerView: View {
                                     .onTapGesture {
                                         debugPrint("Tapped on avatar: \(aKey)")
                                         if case .myPlanet(let planet) = store.selectedView {
-                                            debugPrint("About to set planet avatar to \(aKey)")
+                                            debugPrint("About to set planet \(planet.name) avatar to \(aKey)")
                                             let image = NSImage(named: aKey)
                                             if let image = image, let avatarURL = image.temporaryURL
                                             {
                                                 selectedAvatar = image
                                                 avatarChanged = true
-                                                debugPrint("Set planet avatar to \(aKey)")
+                                                debugPrint("Set planet avatar to \(aKey), at: \(avatarURL)")
                                             }
                                         }
                                         else {
@@ -220,7 +220,7 @@ struct AvatarPickerView: View {
             if let image = image, let avatarURL = image.temporaryURL {
                 selectedAvatar = image
                 avatarChanged = true
-                debugPrint("Set planet avatar to \(randomKey)")
+                debugPrint("Set planet avatar to \(randomKey), at: \(avatarURL)")
                 Task { @MainActor in
                     self.randomSelectedAvatarKey = randomKey
                 }
