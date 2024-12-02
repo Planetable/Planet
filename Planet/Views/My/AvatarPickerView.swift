@@ -76,21 +76,11 @@ struct AvatarPickerView: View {
                         cornerRadius: 72,
                         size: CGSize(width: 144, height: 144),
                         uploadAction: { url in
-                            do {
-                                selectedAvatar = NSImage(contentsOf: url)
-                                avatarChanged = true
-                            }
-                            catch {
-                                debugPrint("failed to upload planet avatar: \(error)")
-                            }
+                            self.selectedAvatar = NSImage(contentsOf: url)
+                            self.avatarChanged = true
                         },
                         deleteAction: {
-                            do {
-                                selectedAvatar = nil
-                            }
-                            catch {
-                                debugPrint("failed to remove planet avatar: \(error)")
-                            }
+                            self.selectedAvatar = nil
                         }
                     )
                     .padding(.bottom, 20)
@@ -133,17 +123,12 @@ struct AvatarPickerView: View {
                                         debugPrint("Tapped on avatar: \(aKey)")
                                         if case .myPlanet(let planet) = store.selectedView {
                                             debugPrint("About to set planet avatar to \(aKey)")
-                                            do {
-                                                let image = NSImage(named: aKey)
-                                                if let image = image, let avatarURL = image.temporaryURL
-                                                {
-                                                    selectedAvatar = image
-                                                    avatarChanged = true
-                                                    debugPrint("Set planet avatar to \(aKey)")
-                                                }
-                                            }
-                                            catch {
-                                                debugPrint("failed to update planet avatar: \(error)")
+                                            let image = NSImage(named: aKey)
+                                            if let image = image, let avatarURL = image.temporaryURL
+                                            {
+                                                selectedAvatar = image
+                                                avatarChanged = true
+                                                debugPrint("Set planet avatar to \(aKey)")
                                             }
                                         }
                                         else {
