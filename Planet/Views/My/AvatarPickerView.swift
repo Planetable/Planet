@@ -112,7 +112,6 @@ struct AvatarPickerView: View {
                                             .padding(.horizontal, 16)
                                             .padding(.bottom, 8)
                                             .scaleEffect(isAnimation ? 1.05 : 1.0)
-                                            .animation(.linear(duration: 0.3), value: highlightedItems)
 
                                         Text(avatars[aKey] ?? "")
                                             .font(.caption)
@@ -142,7 +141,7 @@ struct AvatarPickerView: View {
                             guard let newValue else { return }
                             Task { @MainActor in
                                 withAnimation(.linear(duration: 0.25)) {
-                                    proxy.scrollTo(newValue)
+                                    proxy.scrollTo(newValue, anchor: .top)
                                 }
                             }
                         }
@@ -217,10 +216,14 @@ struct AvatarPickerView: View {
                 debugPrint("Set planet avatar to \(randomKey), at: \(avatarURL)")
                 Task { @MainActor in
                     self.randomSelectedAvatarKey = randomKey
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                    self.highlightedItems.insert(randomKey)
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                    self.highlightedItems.remove(randomKey)
+                    try? await Task.sleep(nanoseconds: 300_000_000)
+                    let _ = withAnimation(.linear(duration: 0.25)) {
+                        self.highlightedItems.insert(randomKey)
+                    }
+                    try? await Task.sleep(nanoseconds: 300_000_000)
+                    let _ = withAnimation(.easeOut(duration: 0.4)) {
+                        self.highlightedItems.removeAll()
+                    }
                 }
             }
         }
