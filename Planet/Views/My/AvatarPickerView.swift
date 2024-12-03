@@ -33,6 +33,8 @@ struct AvatarPickerView: View {
     @State var avatars: [String: String]?
     @State var selectedAvatar: NSImage?
     @State var avatarChanged: Bool = false
+    @State private var randomSelectedAvatarKey: String?
+    @State private var highlightedItems: Set<String> = []
 
     private func loadAvatars(category: AvatarCategory) -> [String: String]? {
         debugPrint("Loading Avatar category: \(category)")
@@ -74,21 +76,11 @@ struct AvatarPickerView: View {
                         cornerRadius: 72,
                         size: CGSize(width: 144, height: 144),
                         uploadAction: { url in
-                            do {
-                                selectedAvatar = NSImage(contentsOf: url)
-                                avatarChanged = true
-                            }
-                            catch {
-                                debugPrint("failed to upload planet avatar: \(error)")
-                            }
+                            self.selectedAvatar = NSImage(contentsOf: url)
+                            self.avatarChanged = true
                         },
                         deleteAction: {
-                            do {
-                                selectedAvatar = nil
-                            }
-                            catch {
-                                debugPrint("failed to remove planet avatar: \(error)")
-                            }
+                            self.selectedAvatar = nil
                         }
                     )
                     .padding(.bottom, 20)
@@ -98,53 +90,59 @@ struct AvatarPickerView: View {
 
             VStack(spacing: 0) {
                 if let avatars = avatars, let keys = Array(avatars.keys) as? [String] {
-                    ScrollView {
-                        LazyVGrid(
-                            columns: [GridItem(), GridItem(), GridItem()],
-                            alignment: .center
-                        ) {
-                            ForEach(keys.sorted(), id: \.self) { aKey in
-                                VStack {
-                                    Image(aKey)
-                                        .interpolation(.high)
-                                        .resizable()
-                                        .frame(width: 64, height: 64)
-                                        .cornerRadius(32)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 32)
-                                                .stroke(Color("BorderColor"), lineWidth: 1)
-                                        )
-                                        .padding(.top, 16)
-                                        .padding(.horizontal, 16)
-                                        .padding(.bottom, 8)
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVGrid(
+                                columns: [GridItem(), GridItem(), GridItem()],
+                                alignment: .center
+                            ) {
+                                ForEach(keys.sorted(), id: \.self) { aKey in
+                                    VStack {
+                                        let isAnimation: Bool = highlightedItems.contains(aKey)
+                                        Image(aKey)
+                                            .interpolation(.high)
+                                            .resizable()
+                                            .frame(width: 64, height: 64)
+                                            .cornerRadius(32)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 32)
+                                                    .stroke(isAnimation ? Color.accentColor : Color("BorderColor"), lineWidth: isAnimation ? 4 : 1)
+                                            )
+                                            .padding(.top, 16)
+                                            .padding(.horizontal, 16)
+                                            .padding(.bottom, 8)
+                                            .scaleEffect(isAnimation ? 1.05 : 1.0)
 
-                                    Text(avatars[aKey] ?? "")
-                                        .font(.caption)
-                                        .foregroundColor(.primary)
-                                }
-                                .onTapGesture {
-                                    debugPrint("Tapped on avatar: \(aKey)")
-                                    if case .myPlanet(let planet) = store.selectedView {
-                                        debugPrint("About to set planet avatar to \(aKey)")
-                                        do {
+                                        Text(avatars[aKey] ?? "")
+                                            .font(.caption)
+                                            .foregroundColor(.primary)
+                                    }
+                                    .id(aKey)
+                                    .onTapGesture {
+                                        debugPrint("Tapped on avatar: \(aKey)")
+                                        if case .myPlanet(let planet) = store.selectedView {
+                                            debugPrint("About to set planet \(planet.name) avatar to \(aKey)")
                                             let image = NSImage(named: aKey)
                                             if let image = image, let avatarURL = image.temporaryURL
                                             {
                                                 selectedAvatar = image
                                                 avatarChanged = true
-                                                debugPrint("Set planet avatar to \(aKey)")
+                                                debugPrint("Set planet avatar to \(aKey), at: \(avatarURL)")
                                             }
                                         }
-                                        catch {
-                                            debugPrint("failed to update planet avatar: \(error)")
+                                        else {
+                                            debugPrint("Cannot set planet avatar")
                                         }
                                     }
-                                    else {
-                                        debugPrint("Cannot set planet avatar")
-                                    }
-
                                 }
-
+                            }
+                        }
+                        .onChange(of: randomSelectedAvatarKey) { newValue in
+                            guard let newValue else { return }
+                            Task { @MainActor in
+                                withAnimation(.easeOut(duration: 0.3)) {
+                                    proxy.scrollTo(newValue, anchor: .top)
+                                }
                             }
                         }
                     }
@@ -215,7 +213,23 @@ struct AvatarPickerView: View {
             if let image = image, let avatarURL = image.temporaryURL {
                 selectedAvatar = image
                 avatarChanged = true
-                debugPrint("Set planet avatar to \(randomKey)")
+                debugPrint("Set planet avatar to \(randomKey), at: \(avatarURL)")
+                Task { @MainActor in
+                    highlightedItems.removeAll()
+                    randomSelectedAvatarKey = randomKey
+                    Task.detached(priority: .utility) {
+                        try? await Task.sleep(nanoseconds: 300_000_000)
+                        let _ = await MainActor.run {
+                            self.highlightedItems.insert(randomKey)
+                        }
+                        try? await Task.sleep(nanoseconds: 600_000_000)
+                        await MainActor.run {
+                            let _ = withAnimation(.easeOut(duration: 0.4)) {
+                                highlightedItems.removeAll()
+                            }
+                        }
+                    }
+                }
             }
         }
     }
