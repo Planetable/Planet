@@ -140,7 +140,7 @@ struct AvatarPickerView: View {
                         .onChange(of: randomSelectedAvatarKey) { newValue in
                             guard let newValue else { return }
                             Task { @MainActor in
-                                withAnimation(.linear(duration: 0.25)) {
+                                withAnimation(.easeOut(duration: 0.3)) {
                                     proxy.scrollTo(newValue, anchor: .top)
                                 }
                             }
@@ -215,14 +215,19 @@ struct AvatarPickerView: View {
                 avatarChanged = true
                 debugPrint("Set planet avatar to \(randomKey), at: \(avatarURL)")
                 Task { @MainActor in
-                    self.randomSelectedAvatarKey = randomKey
-                    try? await Task.sleep(nanoseconds: 300_000_000)
-                    let _ = withAnimation(.linear(duration: 0.25)) {
-                        self.highlightedItems.insert(randomKey)
-                    }
-                    try? await Task.sleep(nanoseconds: 300_000_000)
-                    let _ = withAnimation(.easeOut(duration: 0.4)) {
-                        self.highlightedItems.removeAll()
+                    highlightedItems.removeAll()
+                    randomSelectedAvatarKey = randomKey
+                    Task.detached(priority: .utility) {
+                        try? await Task.sleep(nanoseconds: 300_000_000)
+                        let _ = await MainActor.run {
+                            self.highlightedItems.insert(randomKey)
+                        }
+                        try? await Task.sleep(nanoseconds: 600_000_000)
+                        await MainActor.run {
+                            let _ = withAnimation(.easeOut(duration: 0.4)) {
+                                highlightedItems.removeAll()
+                            }
+                        }
                     }
                 }
             }
