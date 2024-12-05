@@ -99,12 +99,14 @@ struct MyArticleItemView: View {
                             PlanetStore.shared.alert(title: "Failed to launch writer")
                         }
                     } label: {
+                        Image(systemName: "pencil.line")
                         Text("Edit Article")
                     }
                     Button {
                         PlanetStore.shared.selectedArticle = article
                         PlanetStore.shared.isShowingMyArticleSettings = true
                     } label: {
+                        Image(systemName: "gear")
                         Text("Settings")
                     }
 
