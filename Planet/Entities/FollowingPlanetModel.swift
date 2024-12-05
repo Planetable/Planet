@@ -541,6 +541,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
             try planet.save()
             try planet.articles.forEach { try $0.save() }
+
+            Task.detached { @MainActor in
+                PlanetStore.shared.updateTotalUnreadCount()
+                PlanetStore.shared.updateTotalTodayCount()
+            }
+
             return planet
         }
         debugPrint("Follow \(ens): did not find native planet.json")
@@ -672,6 +678,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
         else {
             debugPrint("Tipping: no wallet address for \(planet.link)")
+        }
+
+        Task.detached { @MainActor in
+            PlanetStore.shared.updateTotalUnreadCount()
+            PlanetStore.shared.updateTotalTodayCount()
         }
 
         return planet
@@ -996,6 +1007,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             try planet.articles.forEach {
                 try $0.save()
             }
+
+            Task.detached { @MainActor in
+                PlanetStore.shared.updateTotalUnreadCount()
+                PlanetStore.shared.updateTotalTodayCount()
+            }
+
             return planet
         }
         // did not get published planet file, try to get feed
@@ -1092,6 +1109,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
         try planet.save()
         try planet.articles.forEach { try $0.save() }
+
+        Task.detached { @MainActor in
+            PlanetStore.shared.updateTotalUnreadCount()
+            PlanetStore.shared.updateTotalTodayCount()
+        }
+
         return planet
     }
 

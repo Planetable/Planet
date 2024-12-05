@@ -97,11 +97,13 @@ enum PlanetDetailViewType: Hashable, Equatable {
         didSet {
             if selectedArticle != oldValue {
                 if let followingArticle = selectedArticle as? FollowingArticleModel {
-                    followingArticle.read = Date()
-                    try? followingArticle.save()
-                    Task.detached {
-                        await PlanetStore.shared.updateTotalUnreadCount()
-                        await PlanetStore.shared.updateTotalTodayCount()
+                    Task { @MainActor in
+                        followingArticle.read = Date()
+                        try? followingArticle.save()
+                    }
+                    Task.detached { @MainActor in
+                        PlanetStore.shared.updateTotalUnreadCount()
+                        PlanetStore.shared.updateTotalTodayCount()
                     }
                 }
             }
