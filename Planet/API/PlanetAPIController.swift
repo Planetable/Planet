@@ -652,7 +652,8 @@ class PlanetAPIController: NSObject, ObservableObject {
         if let articleDateString = updateArticle.date, articleDateString != "" {
             draft.date = getDateFromString(articleDateString)
         } else {
-            draft.date = Date()
+            // TODO: Probably need a new modified date field in the ArticleModel
+            draft.date = article.created
         }
         if let articleContent = updateArticle.content, articleContent != "" {
             draft.content = articleContent
