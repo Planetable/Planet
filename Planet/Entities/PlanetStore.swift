@@ -395,10 +395,12 @@ enum PlanetDetailViewType: Hashable, Equatable {
     func refreshSelectedArticles() {
         switch selectedView {
         case .today:
-            selectedArticleList = getTodayArticles()
-            navigationTitle = "Today"
-            if let articles = selectedArticleList {
-                navigationSubtitle = "\(articles.count) fetched today"
+            Task { @MainActor in
+                selectedArticleList = getTodayArticles()
+                navigationTitle = "Today"
+                if let articles = selectedArticleList {
+                    navigationSubtitle = "\(articles.count) fetched today"
+                }
             }
         case .unread:
             selectedArticleList = getUnreadArticles()
@@ -413,9 +415,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 navigationSubtitle = "\(articles.count) starred"
             }
         case .myPlanet(let planet):
-            selectedArticleList = planet.articles
-            navigationTitle = planet.name
-            navigationSubtitle = planet.navigationSubtitle()
+            Task { @MainActor in
+                self.selectedArticleList = planet.articles
+                self.navigationTitle = planet.name
+                self.navigationSubtitle = planet.navigationSubtitle()
+            }
         case .followingPlanet(let planet):
             selectedArticleList = planet.articles
             navigationTitle = planet.name
@@ -426,9 +430,13 @@ enum PlanetDetailViewType: Hashable, Equatable {
             navigationSubtitle = ""
         }
         if let articles = selectedArticleList {
-            ArticleListViewModel.shared.articles = articles
+            Task { @MainActor in
+                ArticleListViewModel.shared.articles = articles
+            }
         } else {
-            ArticleListViewModel.shared.articles = []
+            Task { @MainActor in
+                ArticleListViewModel.shared.articles = []
+            }
         }
     }
 
