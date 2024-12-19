@@ -23,7 +23,7 @@ struct PlanetSettingsView: View {
                     Label("General", systemImage: "gearshape")
                 }
                 .tag(PlanetSettingsTab.general)
-                .frame(width: 420, height: 240)
+                .frame(width: 420, height: 320)
                 .environmentObject(store)
 
             PlanetSettingsPlanetsView()
@@ -33,7 +33,7 @@ struct PlanetSettingsView: View {
                 .tag(PlanetSettingsTab.planets)
                 .frame(width: 420, height: 490)
                 .environmentObject(store)
-            
+
             PlanetAPIControlView()
                 .tabItem {
                     Label("API", systemImage: "puzzlepiece.extension")

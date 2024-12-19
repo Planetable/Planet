@@ -20,6 +20,7 @@ extension String {
     static let settingsLibraryLocation: String = "PlanetSettingsLibraryLocationKey"
     static let settingsPublicGatewayIndex: String = "PlanetSettingsPublicGatewayIndexKey"
     static let settingsPreferredIPFSPublicGateway: String = "PlanetSettingsPreferredIPFSPublicGatewayKey"
+    static let settingsWarnBeforeQuitIfPublishing: String = "PlanetSettingsWarnBeforeQuitIfPublishingKey"
     static let settingsEthereumChainId: String = "PlanetSettingsEthereumChainId"
     static let settingsEthereumTipAmount: String = "PlanetSettingsEthereumTipAmount"
     static let settingsAPIEnabled: String = "PlanetSettingsAPIEnabledKey"

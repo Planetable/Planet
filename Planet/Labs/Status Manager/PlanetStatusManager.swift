@@ -11,7 +11,7 @@ class PlanetStatusManager: ObservableObject {
     static let shared = PlanetStatusManager()
 
     @Published private(set) var isClear: Bool = true
-    
+
     @MainActor
     func updateStatus() {
         let ongoingPlanets = PlanetStore.shared.myPlanets.filter({ $0.isPublishing || $0.isRebuilding })
@@ -24,18 +24,24 @@ class PlanetStatusManager: ObservableObject {
         }
         isClear = processesCount == 0
     }
-    
+
     // PlanetStatusManager controls current app termination status, if there're ongoing processes, notify user (with options) before termination.
     func reply() -> NSApplication.TerminateReply {
         if isClear {
             terminate()
             return .terminateNow
         } else {
-            wait()
-            return .terminateLater
+            // Read @AppStorage(String.settingsWarnBeforeQuitIfPublishing) to determine whether to show alert or not
+            if let warnBeforeQuitIfPublishing = UserDefaults.standard.object(forKey: String.settingsWarnBeforeQuitIfPublishing) as? Bool, warnBeforeQuitIfPublishing {
+                wait()
+                return .terminateLater
+            } else {
+                terminate()
+                return .terminateNow
+            }
         }
     }
-    
+
     private func wait() {
         DispatchQueue.main.async {
             NSApp.requestUserAttention(.criticalRequest)
@@ -53,7 +59,7 @@ class PlanetStatusManager: ObservableObject {
             terminate()
         }
     }
-    
+
     private func terminate() {
         Task.detached(priority: .utility) {
             try? await IPFSDaemon.shared.shutdown()

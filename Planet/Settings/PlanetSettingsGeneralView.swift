@@ -38,6 +38,8 @@ struct PlanetSettingsGeneralView: View {
     @AppStorage(String.settingsEthereumChainId) private var ethereumChainId: Int = UserDefaults
         .standard.integer(forKey: String.settingsEthereumChainId)
 
+    @AppStorage(String.settingsWarnBeforeQuitIfPublishing) private var warnBeforeQuitIfPublishing = false
+
     var body: some View {
         Form {
             Section {
@@ -101,6 +103,23 @@ struct PlanetSettingsGeneralView: View {
                                 object: nil
                             )
                         }
+                    }
+
+                    VStack(spacing: 4) {
+                        HStack(spacing: 4) {
+                            Spacer()
+                                .frame(width: PlanetUI.SETTINGS_CAPTION_WIDTH + 10, alignment: .trailing)
+                            Toggle("Warn before quit", isOn: $warnBeforeQuitIfPublishing)
+                            Spacer()
+                        }
+
+                        Text(
+                            "Warn before quitting Planet when there are publishing tasks in progress."
+                        )
+                        .frame(minHeight: 40)
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .padding(.leading, PlanetUI.SETTINGS_CAPTION_WIDTH - 10)
                     }
 
                     #if DEBUG
