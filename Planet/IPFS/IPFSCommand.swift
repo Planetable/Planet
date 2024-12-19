@@ -221,7 +221,7 @@ struct IPFSCommand {
 
     static func launchDaemon() -> IPFSCommand {
         IPFSCommand(arguments: [
-            "daemon", "--migrate", "--enable-namesys-pubsub", "--enable-pubsub-experiment", "--enable-gc",
+            "daemon", "--migrate", "--enable-namesys-pubsub", "--enable-pubsub-experiment",
         ])
     }
 

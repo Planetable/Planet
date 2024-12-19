@@ -1,5 +1,6 @@
 import Foundation
 import SwiftyJSON
+import UserNotifications
 import os
 
 actor IPFSDaemon {
@@ -657,6 +658,36 @@ actor IPFSDaemon {
     func unpin(cid: String) async throws {
         Self.logger.info("Unpinning \(cid)")
         try await IPFSDaemon.shared.api(path: "pin/rm", args: ["arg": cid], timeout: 120)
+    }
+
+    func gc() async throws {
+        Self.logger.info("Running garbage collection")
+        let result = try await IPFSDaemon.shared.api(path: "repo/gc", timeout: 120)
+        // Parse JSON result array
+        let count = String(data: result, encoding: .utf8)?
+            .components(separatedBy: .newlines)
+            .filter { $0.contains("Key") }
+            .count ?? 0
+
+        if count > 0 {
+            // Create and schedule notification
+            let content = UNMutableNotificationContent()
+            content.title = "IPFS Garbage Collection Complete"
+            content.body = "Removed \(count) unused objects"
+            content.sound = .default
+            content.interruptionLevel = .timeSensitive
+
+            let request = UNNotificationRequest(
+                identifier: UUID().uuidString,
+                content: content,
+                trigger: nil
+            )
+
+            try? await UNUserNotificationCenter.current().add(request)
+            Self.logger.info("Garbage collection removed \(count) objects")
+        } else {
+            Self.logger.info("Garbage collection did not remove any objects")
+        }
     }
 
     func getFile(ipns: String, path: String = "") async throws -> Data {

@@ -5,9 +5,9 @@
 
 import SwiftUI
 
-
 struct IPFSStatusView: View {
     @EnvironmentObject private var ipfsState: IPFSState
+    @State private var showingGCAlert = false
 
     static let formatter = {
         let byteCountFormatter = ByteCountFormatter()
@@ -45,7 +45,21 @@ struct IPFSStatusView: View {
                         ProgressView()
                             .progressViewStyle(.circular)
                             .controlSize(.small)
-                    } else {
+                    }
+                    else {
+                        Button {
+                            showingGCAlert = true
+                        } label: {
+                            Image(systemName: "arrow.3.trianglepath")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(height: 15)
+                                .foregroundStyle(Color.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Run IPFS garbage collection.")
+                        .disabled(!ipfsState.online)
+
                         if !ipfsState.isShowingStatusWindow {
                             Button {
                                 IPFSStatusWindowManager.shared.activate()
@@ -66,14 +80,18 @@ struct IPFSStatusView: View {
                                 Task.detached(priority: .userInitiated) {
                                     if newValue {
                                         try? await IPFSDaemon.shared.launch()
-                                    } else {
+                                    }
+                                    else {
                                         try? await IPFSDaemon.shared.shutdown()
                                     }
                                     await IPFSState.shared.updateStatus()
                                     await MainActor.run {
                                         self.isDaemonOnline = newValue
                                     }
-                                    UserDefaults.standard.setValue(newValue, forKey: IPFSState.lastUserLaunchState)
+                                    UserDefaults.standard.setValue(
+                                        newValue,
+                                        forKey: IPFSState.lastUserLaunchState
+                                    )
                                 }
                             }
                     }
@@ -83,14 +101,32 @@ struct IPFSStatusView: View {
             .padding(.vertical, 12)
             .frame(height: 44)
         }
-        .padding(0)
+        .background(.regularMaterial)
+        .alert(isPresented: $showingGCAlert) {
+            Alert(
+                title: Text("Are you sure you want to manually run garbage collection?"),
+                message: Text("This will free up disk space by removing unused data."),
+                primaryButton: .destructive(Text("Run GC")) {
+                    Task {
+                        do {
+                            try await IPFSDaemon.shared.gc()
+                        }
+                        catch {
+                            debugPrint("failed to run gc: \(error)")
+                        }
+                    }
+                },
+                secondaryButton: .cancel()
+            )
+        }
         .frame(width: 280)
         .background(.regularMaterial)
         .task {
             Task.detached(priority: .background) {
                 do {
                     try await self.ipfsState.calculateRepoSize()
-                } catch {
+                }
+                catch {
                     debugPrint("failed to calculate repo size: \(error)")
                 }
             }
@@ -103,9 +139,15 @@ struct IPFSStatusView: View {
             HStack {
                 Text("Local Gateway")
                 Spacer(minLength: 1)
-                Link(self.ipfsState.getGateway(), destination: URL(string: self.ipfsState.getGateway() + "/ipns/k51qzi5uqu5dibstm2yxidly22jx94embd7j3xjstfk65ulictn2ajnjvpiac7")!)
-                    .focusable(false)
-                    .disabled(!self.ipfsState.online)
+                Link(
+                    self.ipfsState.getGateway(),
+                    destination: URL(
+                        string: self.ipfsState.getGateway()
+                            + "/ipns/k51qzi5uqu5dibstm2yxidly22jx94embd7j3xjstfk65ulictn2ajnjvpiac7"
+                    )!
+                )
+                .focusable(false)
+                .disabled(!self.ipfsState.online)
             }
             HStack {
                 Text("Repo Size")
@@ -114,7 +156,8 @@ struct IPFSStatusView: View {
                     ProgressView()
                         .progressViewStyle(.circular)
                         .controlSize(.mini)
-                } else {
+                }
+                else {
                     if let repoSize = ipfsState.repoSize {
                         Text(Self.formatter.string(fromByteCount: repoSize))
                     }
