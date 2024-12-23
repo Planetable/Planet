@@ -418,6 +418,8 @@
 		6A71896D2947FD0500279D77 /* Web3PromiseKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6A71896C2947FD0500279D77 /* Web3PromiseKit */; };
 		6A74E49C2A5929BB00FF2F2A /* MintSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A74E49B2A5929BB00FF2F2A /* MintSettings.swift */; };
 		6A74E49D2A5929BB00FF2F2A /* MintSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A74E49B2A5929BB00FF2F2A /* MintSettings.swift */; };
+		6A75FA5C2D1A0F5100B76AE8 /* WebAppUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A75FA5B2D1A0F4A00B76AE8 /* WebAppUpdater.swift */; };
+		6A75FA5D2D1A0F5100B76AE8 /* WebAppUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A75FA5B2D1A0F4A00B76AE8 /* WebAppUpdater.swift */; };
 		6A7F60662B21A37100475731 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A7F60652B21A37100475731 /* SearchView.swift */; };
 		6A7F60672B21A37100475731 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A7F60652B21A37100475731 /* SearchView.swift */; };
 		6A7F60692B21ACE500475731 /* PlanetStore+Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A7F60682B21ACE500475731 /* PlanetStore+Search.swift */; };
@@ -775,6 +777,7 @@
 		6A6A1467282159DC009644B6 /* TemplateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateStore.swift; sourceTree = "<group>"; };
 		6A7189652947FA2D00279D77 /* WalletConnectV2QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectV2QRCodeView.swift; sourceTree = "<group>"; };
 		6A74E49B2A5929BB00FF2F2A /* MintSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MintSettings.swift; sourceTree = "<group>"; };
+		6A75FA5B2D1A0F4A00B76AE8 /* WebAppUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebAppUpdater.swift; sourceTree = "<group>"; };
 		6A7F60652B21A37100475731 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		6A7F60682B21ACE500475731 /* PlanetStore+Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlanetStore+Search.swift"; sourceTree = "<group>"; };
 		6A86AC1A2AAA71770028BD1C /* AggregationSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AggregationSettings.swift; sourceTree = "<group>"; };
@@ -1375,6 +1378,7 @@
 		6A1F97A42ADDDDE500C75625 /* API */ = {
 			isa = PBXGroup;
 			children = (
+				6A75FA5B2D1A0F4A00B76AE8 /* WebAppUpdater.swift */,
 				6A1F97A52ADDDE0100C75625 /* PlanetAPIService.swift */,
 				2AD0613B2C47A5AC00E288DB /* PlanetAPIController.swift */,
 				2AEFEE952C4BA4E700EEB958 /* PlanetAPIModels.swift */,
@@ -2034,6 +2038,7 @@
 				2A95E6FB2A1AFC23001288B8 /* AppSidebarItemView.swift in Sources */,
 				6A96B22B2C594F9A00EA3F2A /* QuickPostViewModel.swift in Sources */,
 				2A95E6842A19A3CA001288B8 /* WriterDragAndDrop.swift in Sources */,
+				6A75FA5C2D1A0F5100B76AE8 /* WebAppUpdater.swift in Sources */,
 				2A996AD22A1DA64800BEF898 /* PlanetAppDelegate.swift in Sources */,
 				2AF3F0432AD2C9BE001A97E1 /* PlanetQuickShareDropDelegate.swift in Sources */,
 				2A95E6A12A19A446001288B8 /* FollowingArticleModel.swift in Sources */,
@@ -2132,6 +2137,7 @@
 				2AFB896E29BA167D003D893E /* PlanetKeyManagerWindow.swift in Sources */,
 				2A7022F02897DF3100022F13 /* PlanetDownloadsWindowController.swift in Sources */,
 				2AFB897429BA35D6003D893E /* PlanetKeyManager+Extension.swift in Sources */,
+				6A75FA5D2D1A0F5100B76AE8 /* WebAppUpdater.swift in Sources */,
 				2AC4994927BB6E7500F1C2D1 /* PlanetApp.swift in Sources */,
 				2A7022ED2897DF1700022F13 /* PlanetDownloadsView.swift in Sources */,
 				6AABC6A7291A6216009FD13F /* WalletConnectV1.swift in Sources */,

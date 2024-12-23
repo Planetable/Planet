@@ -134,7 +134,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                 await PlanetStore.shared.aggregate()
             }
         }
-        
+
         // Notify API server if system is going to sleep / awake
         let center = NSWorkspace.shared.notificationCenter
         center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: nil) { _ in
@@ -153,6 +153,11 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
             }
+        }
+
+        // Web app updater
+        Task.detached(priority: .background) {
+            await WebAppUpdater.shared.updateWebApp()
         }
     }
 
