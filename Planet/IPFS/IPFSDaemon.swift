@@ -804,6 +804,7 @@ extension IPFSDaemon {
     static let resolvers = JSON([
         "bit.": "https://dweb-dns.v2ex.pro/dns-query",
         "sol.": "https://dweb-dns.v2ex.pro/dns-query",
+        "fc.": "https://dweb-dns.v2ex.pro/dns-query",
         "eth.": "https://dns.eth.limo/dns-query"
     ])
 
