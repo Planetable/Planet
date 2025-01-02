@@ -1235,9 +1235,17 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             return
         case .ens:
-            guard let resolver = try await ENSUtils.shared.resolver(name: link) else {
+            debugPrint("Updating planet (ENS type) \(name): link: \(link)")
+            var enskit = ENSKit(jsonrpcClient: EthereumAPI.OneRPC, ipfsClient: GoIPFSGateway())
+            var resolver = try await enskit.resolver(name: link)
+            if resolver == nil {
+                enskit = ENSKit(jsonrpcClient: EthereumAPI.Cloudflare, ipfsClient: GoIPFSGateway())
+                resolver = try await enskit.resolver(name: link)
+            }
+            guard let resolver = resolver else {
                 throw PlanetError.InvalidPlanetURLError
             }
+            debugPrint("Updating planet (ENS type) \(name): resolver: \(resolver)")
             if let walletAddress = try? await resolver.addr() {
                 debugPrint("Tipping: got wallet address for \(self.link): \(walletAddress)")
                 var saveNow: Bool = false
@@ -1255,8 +1263,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }
             }
             else {
-                debugPrint("Tipping: no wallet address for \(self.link)")
+                debugPrint("Updating planet (ENS type) \(name): Tipping: no wallet address for \(self.link)")
             }
+            debugPrint("Updating planet (ENS type) \(name): about to get contenthash")
             let result: URL?
             do {
                 result = try await resolver.contenthash()
@@ -1264,7 +1273,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             catch {
                 throw PlanetError.EthereumError
             }
-            Self.logger.info("Get contenthash from \(self.link): \(String(describing: result))")
+            Self.logger.info("Updating planet (ENS type) \(self.name): Get contenthash from \(self.link): \(String(describing: result))")
             guard let contenthash = result,
                 let newCID = try await ENSUtils.getCID(from: contenthash)
             else {

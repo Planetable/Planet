@@ -361,7 +361,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
             await withTaskGroup(of: Void.self) { taskGroup in
                 for (i, followingPlanet) in followingPlanets.enumerated() {
                     taskGroup.addTask {
-                        try? await followingPlanet.update()
+                        do {
+                            try await followingPlanet.update()
+                        } catch {
+                            debugPrint("Error updating planet \(followingPlanet.name): \(error)")
+                        }
                     }
                     if i >= 3 {
                         await taskGroup.next()
