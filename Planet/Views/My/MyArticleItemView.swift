@@ -48,7 +48,7 @@ struct MyArticleItemView: View {
                         Spacer()
                     }
                 }
-                .frame(height: 56)
+                .frame(height: 60)
                 HStack(spacing: 6) {
                     article.mediaLabels(includeSpacers: false)
                     if article.articleType == .page {
@@ -87,6 +87,7 @@ struct MyArticleItemView: View {
             }
         }
         .padding(5)
+        .frame(height: 90)
         .contentShape(Rectangle())
         .contextMenu {
             VStack {
