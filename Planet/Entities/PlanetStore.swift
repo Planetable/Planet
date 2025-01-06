@@ -81,8 +81,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
                     case .myPlanet(let planet):
                         KeyboardShortcutHelper.shared.activeMyPlanet = planet
                         // Update Planet Lite Window Titles
-                        let liteSubtitle = "ipns://\(planet.ipns.shortIPNS())"
-                        navigationSubtitle = liteSubtitle
+                        // let liteSubtitle = "ipns://\(planet.ipns.shortIPNS())"
+                        // navigationSubtitle = liteSubtitle
                     default:
                         KeyboardShortcutHelper.shared.activeMyPlanet = nil
                         // Reset Planet Lite Window Titles
@@ -425,9 +425,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 self.navigationSubtitle = planet.navigationSubtitle()
             }
         case .followingPlanet(let planet):
-            selectedArticleList = planet.articles
-            navigationTitle = planet.name
-            navigationSubtitle = planet.navigationSubtitle()
+            Task { @MainActor in
+                self.selectedArticleList = planet.articles
+                self.navigationTitle = planet.name
+                self.navigationSubtitle = planet.navigationSubtitle()
+            }
         case .none:
             selectedArticleList = nil
             navigationTitle = PlanetStore.app == .lite ? "Croptop" : "Planet"
