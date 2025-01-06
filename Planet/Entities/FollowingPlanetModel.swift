@@ -441,7 +441,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     static func followENS(ens: String) async throws -> FollowingPlanetModel {
-        var enskit = ENSKit(jsonrpcClient: EthereumAPI.OneRPC, ipfsClient: GoIPFSGateway())
+        var enskit = ENSKit(jsonrpcClient: EthereumAPI.Flashbots, ipfsClient: GoIPFSGateway())
         var resolver = try await enskit.resolver(name: ens)
         if resolver == nil {
             enskit = ENSKit(jsonrpcClient: EthereumAPI.Cloudflare, ipfsClient: GoIPFSGateway())
@@ -1236,7 +1236,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             return
         case .ens:
             debugPrint("Updating planet (ENS type) \(name): link: \(link)")
-            var enskit = ENSKit(jsonrpcClient: EthereumAPI.OneRPC, ipfsClient: GoIPFSGateway())
+            var enskit = ENSKit(jsonrpcClient: EthereumAPI.Flashbots, ipfsClient: GoIPFSGateway())
             var resolver = try await enskit.resolver(name: link)
             if resolver == nil {
                 enskit = ENSKit(jsonrpcClient: EthereumAPI.Cloudflare, ipfsClient: GoIPFSGateway())
