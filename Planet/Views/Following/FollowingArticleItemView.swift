@@ -25,24 +25,24 @@ struct FollowingArticleItemView: View {
                     HStack(spacing: 0) {
                         Text(article.title)
                             .font(.headline)
-                            .foregroundColor(.primary)
+//                            .foregroundColor(.primary)
 
                         Spacer()
 
                         Text(article.humanizeCreated())
                             .font(.body)
-                            .foregroundColor(.secondary)
+//                            .foregroundColor(.secondary)
                     }
                     if let summary = article.summary, summary.count > 0 {
                         Text(summary)
-                            .foregroundColor(.secondary)
+//                            .foregroundColor(.secondary)
                         if summary.count < 40 {
                             Spacer()
                         }
                     }
                     else if article.content.count > 0 {
                         Text(article.content.prefix(280))
-                            .foregroundColor(.secondary)
+//                            .foregroundColor(.secondary)
                         if article.content.count < 40 {
                             Spacer()
                         }

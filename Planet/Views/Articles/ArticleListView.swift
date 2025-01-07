@@ -140,28 +140,78 @@ struct ArticleListView: View {
                 }
                 else {
                     ScrollViewReader { proxy in
-                        List(viewModel.articles, id: \.self, selection: $planetStore.selectedArticle) {
-                            article in
-                            if let myArticle = article as? MyArticleModel {
-                                if #available(macOS 13.0, *) {
-                                    MyArticleItemView(article: myArticle)
-                                        .id(myArticle.id)
-                                        .listRowSeparator(.visible)
-                                }
-                                else {
-                                    MyArticleItemView(article: myArticle)
-                                    .id(myArticle.id)
-                                }
-                            }
-                            else if let followingArticle = article as? FollowingArticleModel {
-                                if #available(macOS 13.0, *) {
-                                    FollowingArticleItemView(article: followingArticle)
-                                        .id(followingArticle.id)
-                                        .listRowSeparator(.visible)
-                                }
-                                else {
-                                    FollowingArticleItemView(article: followingArticle)
-                                    .id(followingArticle.id)
+//                        List(viewModel.articles, id: \.self, selection: $planetStore.selectedArticle) {
+//                            article in
+//                            if let myArticle = article as? MyArticleModel {
+//                                if #available(macOS 13.0, *) {
+//                                    MyArticleItemView(article: myArticle)
+//                                        .id(myArticle.id)
+//                                        .listRowSeparator(.visible)
+//                                }
+//                                else {
+//                                    MyArticleItemView(article: myArticle)
+//                                    .id(myArticle.id)
+//                                }
+//                            }
+//                            else if let followingArticle = article as? FollowingArticleModel {
+//                                if #available(macOS 13.0, *) {
+//                                    FollowingArticleItemView(article: followingArticle)
+//                                        .id(followingArticle.id)
+//                                        .listRowSeparator(.visible)
+//                                }
+//                                else {
+//                                    FollowingArticleItemView(article: followingArticle)
+//                                    .id(followingArticle.id)
+//                                }
+//                            }
+//                        }
+                        ScrollView {
+                            LazyVStack {
+                                ForEach(viewModel.articles, id: \.self) { article in
+//                                    VStack {
+//                                        if let myArticle = article as? MyArticleModel {
+//                                            if #available(macOS 13.0, *) {
+//                                                MyArticleItemView(article: myArticle)
+//                                                    .id(myArticle.id)
+//                                                    .listRowSeparator(.visible)
+//                                            }
+//                                            else {
+//                                                MyArticleItemView(article: myArticle)
+//                                                    .id(myArticle.id)
+//                                            }
+//                                        }
+//                                        else if let followingArticle = article as? FollowingArticleModel {
+//                                            if #available(macOS 13.0, *) {
+//                                                FollowingArticleItemView(article: followingArticle)
+//                                                    .id(followingArticle.id)
+//                                                    .listRowSeparator(.visible)
+//                                            }
+//                                            else {
+//                                                FollowingArticleItemView(article: followingArticle)
+//                                                    .id(followingArticle.id)
+//                                            }
+//                                        }
+//                                    }
+//                                    .onTapGesture {
+//                                        Task { @MainActor in
+//                                            self.planetStore.selectedArticle = article
+//                                        }
+//                                    }
+
+                                    PlanetArticleInsideListItem(isSelected: planetStore.selectedArticle == article, isLast: article == viewModel.articles.last) {
+                                        Task { @MainActor in
+                                            self.planetStore.selectedArticle = article
+                                        }
+                                    } content: {
+                                        if let myArticle = article as? MyArticleModel {
+                                            MyArticleItemView(article: myArticle)
+                                                .id(myArticle.id)
+                                        }
+                                        else if let followingArticle = article as? FollowingArticleModel {
+                                            FollowingArticleItemView(article: followingArticle)
+                                                .id(followingArticle.id)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -265,5 +315,41 @@ struct ArticleListView: View {
             }
         }
         .onDrop(of: [.fileURL], delegate: articleDropDelegate)
+    }
+}
+
+
+struct PlanetArticleInsideListItem<Content: View>: View {
+    let isSelected: Bool
+    let isLast: Bool
+    let action: () -> Void
+    let content: Content
+
+    init(isSelected: Bool, isLast: Bool, action: @escaping () -> Void, @ViewBuilder content: () -> Content) {
+        self.isSelected = isSelected
+        self.isLast = isLast
+        self.action = action
+        self.content = content()
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                VStack(spacing: 0) {
+                    content
+                        .padding(8)
+                        .background(isSelected ? Color.accentColor : Color.clear)
+                        .foregroundStyle(isSelected ? Color.white : Color.primary, isSelected ? Color.white : Color.secondary)
+                        .contentShape(Rectangle())
+                    if !isLast {
+                        Divider()
+                            .foregroundStyle(Color.secondary.opacity(0.5))
+                            .padding(.leading, 32)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .buttonStyle(.link)
     }
 }

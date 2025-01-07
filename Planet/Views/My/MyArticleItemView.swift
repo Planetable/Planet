@@ -21,25 +21,25 @@ struct MyArticleItemView: View {
                         }
                         Text(article.title)
                             .font(.headline)
-                            .foregroundColor(.primary)
+//                            .foregroundColor(.primary)
                             .lineLimit(1)
 
                         Spacer()
 
                         Text(article.humanizeCreated())
                             .font(.body)
-                            .foregroundColor(.secondary)
+//                            .foregroundColor(.secondary)
                     }
                     if let summary = article.summary, summary.count > 0 {
                         Text(summary.prefix(280))
-                            .foregroundColor(.secondary)
+//                            .foregroundColor(.secondary)
                         if String(summary.prefix(280)).width(usingFont: .body) < 160 {
                             Spacer()
                         }
                     }
                     else if article.content.count > 0 {
                         Text(article.content.prefix(280))
-                            .foregroundColor(.secondary)
+//                            .foregroundColor(.secondary)
                         if String(article.content.prefix(280)).width(usingFont: .body) < 160 {
                             Spacer()
                         }
@@ -55,7 +55,7 @@ struct MyArticleItemView: View {
                         Text("Page")
                             .lineLimit(1)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+//                            .foregroundColor(.secondary)
                             .padding(.init(top: 3, leading: 4, bottom: 3, trailing: 4))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 4)
@@ -66,7 +66,7 @@ struct MyArticleItemView: View {
                         Text("Navigation \(article.navigationWeight ?? 1)")
                             .lineLimit(1)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+//                            .foregroundColor(.secondary)
                             .padding(.init(top: 3, leading: 4, bottom: 3, trailing: 4))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 4)
