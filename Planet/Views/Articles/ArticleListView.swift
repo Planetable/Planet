@@ -337,18 +337,22 @@ struct PlanetArticleInsideListItem<Content: View>: View {
             HStack {
                 VStack(spacing: 0) {
                     content
-                        .padding(8)
-                        .background(isSelected ? Color.accentColor : Color.clear)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(isSelected ? Color.accentColor : Color.clear)
+                        )
                         .foregroundStyle(isSelected ? Color.white : Color.primary, isSelected ? Color.white : Color.secondary)
                         .contentShape(Rectangle())
                     if !isLast {
                         Divider()
                             .foregroundStyle(Color.secondary.opacity(0.5))
                             .padding(.leading, 32)
+                            .padding(.top, 8)
                     }
                 }
                 Spacer(minLength: 0)
             }
+            .padding(.horizontal, 8)
         }
         .buttonStyle(.link)
     }
