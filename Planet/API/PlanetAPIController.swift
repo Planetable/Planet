@@ -674,12 +674,15 @@ class PlanetAPIController: NSObject, ObservableObject {
             let multipartDatas = r.parseMultiPartFormData()
             if multipartDatas.count > 0 {
                 for multipartData in multipartDatas {
-                    guard let propertyName = multipartData.name else { continue }
-                    if propertyName == "attachment" {
+                    if let propertyName = multipartData.name, propertyName == "attachment" {
                         for existingAttachment in draft.attachments {
                             draft.deleteAttachment(name: existingAttachment.name)
                         }
+                        break
                     }
+                }
+                for multipartData in multipartDatas {
+                    guard let propertyName = multipartData.name else { continue }
                     switch propertyName {
                         case "attachment":
                             let fileData = Data(bytes: multipartData.body, count: multipartData.body.count)
