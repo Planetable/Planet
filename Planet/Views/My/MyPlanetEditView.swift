@@ -821,7 +821,7 @@ struct MyPlanetEditView: View {
                             if resaveAvatar {
                                 Task.detached {
                                     do {
-                                        try planet.updateAvatar(path: planet.publicAvatarPath)
+                                        try await planet.updateAvatar(path: planet.publicAvatarPath)
                                     }
                                     catch {
                                         debugPrint("failed to save circularized avatar image: \(error)")

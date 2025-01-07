@@ -142,28 +142,26 @@ struct ArticleListView: View {
                     ScrollViewReader { proxy in
                         List(viewModel.articles, id: \.self, selection: $planetStore.selectedArticle) {
                             article in
-                            if let myArticle = article as? MyArticleModel {
-                                if #available(macOS 13.0, *) {
-                                    MyArticleItemView(article: myArticle)
-                                        .id(myArticle.id)
-                                        .listRowSeparator(.visible)
+                            HStack {
+                                if let myArticle = article as? MyArticleModel {
+                                    if #available(macOS 13.0, *) {
+                                        MyArticleItemView(article: myArticle)
+                                            .listRowSeparator(.visible)
+                                    }
+                                    else {
+                                        MyArticleItemView(article: myArticle)
+                                    }
                                 }
-                                else {
-                                    MyArticleItemView(article: myArticle)
-                                    .id(myArticle.id)
+                                else if let followingArticle = article as? FollowingArticleModel {
+                                    if #available(macOS 13.0, *) {
+                                        FollowingArticleItemView(article: followingArticle)
+                                            .listRowSeparator(.visible)
+                                    }
+                                    else {
+                                        FollowingArticleItemView(article: followingArticle)
+                                    }
                                 }
-                            }
-                            else if let followingArticle = article as? FollowingArticleModel {
-                                if #available(macOS 13.0, *) {
-                                    FollowingArticleItemView(article: followingArticle)
-                                        .id(followingArticle.id)
-                                        .listRowSeparator(.visible)
-                                }
-                                else {
-                                    FollowingArticleItemView(article: followingArticle)
-                                    .id(followingArticle.id)
-                                }
-                            }
+                            }.id(article.id)
                         }
                         .onReceive(NotificationCenter.default.publisher(for: .scrollToTopArticleList)) { n in
                             if let article = viewModel.articles.first {

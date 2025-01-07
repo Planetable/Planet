@@ -66,8 +66,9 @@ struct PlanetSidebarView: View {
 
                 Section(header: Text("My Planets")) {
                     ForEach(planetStore.myPlanets) { planet in
-                        MyPlanetSidebarItem(planet: planet)
-                            .tag(PlanetDetailViewType.myPlanet(planet))
+                        HStack {
+                            MyPlanetSidebarItem(planet: planet)
+                        }.tag(PlanetDetailViewType.myPlanet(planet))
                     }
                     .onMove { (indexes, dest) in
                         withAnimation {
@@ -78,8 +79,9 @@ struct PlanetSidebarView: View {
 
                 Section(header: Text("Following Planets")) {
                     ForEach(planetStore.followingPlanets) { planet in
-                        FollowingPlanetSidebarItem(planet: planet)
-                            .tag(PlanetDetailViewType.followingPlanet(planet))
+                        HStack {
+                            FollowingPlanetSidebarItem(planet: planet)
+                        }.tag(PlanetDetailViewType.followingPlanet(planet))
                     }
                     .onMove { (indexes, dest) in
                         withAnimation {
