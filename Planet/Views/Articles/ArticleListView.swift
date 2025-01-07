@@ -343,6 +343,8 @@ struct PlanetArticleInsideListItem<Content: View>: View {
                         )
                         .foregroundStyle(isSelected ? Color.white : Color.primary, isSelected ? Color.white : Color.secondary)
                         .contentShape(Rectangle())
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     if !isLast {
                         Divider()
                             .foregroundStyle(Color.secondary.opacity(0.5))
