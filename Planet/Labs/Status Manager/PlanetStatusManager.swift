@@ -29,17 +29,15 @@ class PlanetStatusManager: ObservableObject {
     func reply() -> NSApplication.TerminateReply {
         if isClear {
             terminate()
-            return .terminateNow
         } else {
             // Read @AppStorage(String.settingsWarnBeforeQuitIfPublishing) to determine whether to show alert or not
             if let warnBeforeQuitIfPublishing = UserDefaults.standard.object(forKey: String.settingsWarnBeforeQuitIfPublishing) as? Bool, warnBeforeQuitIfPublishing {
                 wait()
-                return .terminateLater
             } else {
                 terminate()
-                return .terminateNow
             }
         }
+        return .terminateLater
     }
 
     private func wait() {
@@ -61,8 +59,12 @@ class PlanetStatusManager: ObservableObject {
     }
 
     private func terminate() {
-        Task.detached(priority: .utility) {
-            try? await IPFSDaemon.shared.shutdown()
+        Task.detached(priority: .userInitiated) {
+            do {
+                try await IPFSDaemon.shared.shutdown()
+            } catch {
+                debugPrint("failed to shundown IPFS daemon: \(error)")
+            }
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
     }
