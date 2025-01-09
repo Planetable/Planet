@@ -652,7 +652,6 @@ class PlanetAPIController: NSObject, ObservableObject {
         if let articleDateString = updateArticle.date, articleDateString != "" {
             draft.date = getDateFromString(articleDateString)
         } else {
-            // TODO: Probably need a new modified date field in the ArticleModel
             draft.date = article.created
         }
         if let articleContent = updateArticle.content, articleContent != "" {
@@ -674,8 +673,13 @@ class PlanetAPIController: NSObject, ObservableObject {
             let r: HttpRequest = self.createRequest(from: req)
             let multipartDatas = r.parseMultiPartFormData()
             if multipartDatas.count > 0 {
-                for existingAttachment in draft.attachments {
-                    draft.deleteAttachment(name: existingAttachment.name)
+                for multipartData in multipartDatas {
+                    if let propertyName = multipartData.name, propertyName == "attachment" {
+                        for existingAttachment in draft.attachments {
+                            draft.deleteAttachment(name: existingAttachment.name)
+                        }
+                        break
+                    }
                 }
                 for multipartData in multipartDatas {
                     guard let propertyName = multipartData.name else { continue }
