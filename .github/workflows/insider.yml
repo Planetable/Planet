@@ -101,7 +101,7 @@ jobs:
 
       - name: Submit for Notarization
         run: |
-          xcrun notarytool submit Planet-Insider.zip --apple-id ${{ secrets.NOTARIZE_USERNAME }} --password ${{ secrets.NOTARIZE_PASSWORD }} --team-id ${{ secrets.TEAM_ID }} --wait --timeout 10m --verbose
+          xcrun notarytool submit Planet-Insider.zip --apple-id ${{ secrets.NOTARIZE_USERNAME }} --password ${{ secrets.NOTARIZE_PASSWORD }} --team-id ${{ secrets.TEAM_ID }} --wait --timeout 30m --verbose
 
       - name: Staple
         run: |
