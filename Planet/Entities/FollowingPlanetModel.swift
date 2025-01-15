@@ -1166,7 +1166,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         juiceboxProjectIDGoerli = publicPlanet.juiceboxProjectIDGoerli
                     }
 
-                    try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
+                    try await updateArticles(publicArticles: publicPlanet.articles, delete: false)
 
                     if let planetAvatarURL = URL(
                         string: "\(gateway)/ipfs/\(newCID)/avatar.png"
@@ -1316,7 +1316,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         juiceboxProjectIDGoerli = publicPlanet.juiceboxProjectIDGoerli
                     }
 
-                    try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
+                    try await updateArticles(publicArticles: publicPlanet.articles, delete: false)
 
                     if let data = try? await resolver.avatar(),
                         let image = NSImage(data: data),
@@ -1459,7 +1459,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         mastodonUsername = publicPlanet.mastodonUsername
                     }
 
-                    try await updateArticles(publicArticles: publicPlanet.articles, delete: true)
+                    try await updateArticles(publicArticles: publicPlanet.articles, delete: false)
 
                     if let planetAvatarURL = URL(
                         string: "\(gateway)/ipfs/\(newCID)/avatar.png"
