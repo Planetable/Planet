@@ -5,7 +5,7 @@ extension NSTextField {
     // Reference: https://developer.apple.com/forums/thread/124617
     open override var focusRingType: NSFocusRingType {
         get { .none }
-        set { }
+        set {}
     }
 }
 
@@ -23,7 +23,14 @@ extension NSImage {
     func circleCropped() -> NSImage {
         let imageSize = self.size
         let radius = min(imageSize.width, imageSize.height) / 2
-        let circlePath = NSBezierPath(ovalIn: CGRect(x: (imageSize.width - 2 * radius) / 2, y: (imageSize.height - 2 * radius) / 2, width: 2 * radius, height: 2 * radius))
+        let circlePath = NSBezierPath(
+            ovalIn: CGRect(
+                x: (imageSize.width - 2 * radius) / 2,
+                y: (imageSize.height - 2 * radius) / 2,
+                width: 2 * radius,
+                height: 2 * radius
+            )
+        )
 
         let imageRect = CGRect(origin: .zero, size: imageSize)
         let newImage = NSImage(size: imageSize)
@@ -75,8 +82,9 @@ extension NSImage {
 
     var PNGData: Data? {
         if let tiff = tiffRepresentation,
-           let bitmap = NSBitmapImageRep(data: tiff),
-           let png = bitmap.representation(using: .png, properties: [:]) {
+            let bitmap = NSBitmapImageRep(data: tiff),
+            let png = bitmap.representation(using: .png, properties: [:])
+        {
             return png
         }
         return nil
@@ -84,8 +92,9 @@ extension NSImage {
 
     var JPEGData: Data? {
         if let tiff = tiffRepresentation,
-           let bitmap = NSBitmapImageRep(data: tiff),
-           let jpeg = bitmap.representation(using: .jpeg, properties: [:]) {
+            let bitmap = NSBitmapImageRep(data: tiff),
+            let jpeg = bitmap.representation(using: .jpeg, properties: [:])
+        {
             return jpeg
         }
         return nil
@@ -133,9 +142,9 @@ extension Color {
 
     func toHexValue() -> String {
         var components: (CGFloat, CGFloat, CGFloat, CGFloat) {
-           let c = NSColor(self).usingColorSpace(.deviceRGB)!
+            let c = NSColor(self).usingColorSpace(.deviceRGB)!
 
-           return (c.redComponent, c.greenComponent, c.blueComponent, c.alphaComponent)
+            return (c.redComponent, c.greenComponent, c.blueComponent, c.alphaComponent)
         }
         return String(
             format: "#%02X%02X%02X",
@@ -147,9 +156,9 @@ extension Color {
 }
 
 enum ViewVisibility: CaseIterable {
-    case visible    // view is fully visible
+    case visible  // view is fully visible
     case invisible  // view is hidden but takes up space
-    case gone       // view is fully removed from the view hierarchy
+    case gone  // view is fully removed from the view hierarchy
 }
 
 extension View {
@@ -157,22 +166,35 @@ extension View {
         if visibility != .gone {
             if visibility == .visible {
                 self
-            } else {
+            }
+            else {
                 hidden()
             }
         }
+    }
+
+    @ViewBuilder func onWidthChange(_ action: @escaping (CGFloat) -> Void) -> some View {
+        self
+            .background(
+                GeometryReader { reader in
+                    Color.clear
+                        .onChange(of: reader.frame(in: .global).width) { newValue in
+                            action(newValue)
+                        }
+                }
+            )
     }
 }
 
 struct ViewUtils {
     static let presetGradients = [
-        Gradient(colors: [Color(hex: 0x88D3FA), Color(hex: 0x4C9FED)]), // Sky Blue
-        Gradient(colors: [Color(hex: 0xFACE76), Color(hex: 0xF5AD67)]), // Orange
-        Gradient(colors: [Color(hex: 0xD8A9F0), Color(hex: 0xCA77E9)]), // Pink
-        Gradient(colors: [Color(hex: 0xF39066), Color(hex: 0xF0636E)]), // Red
-        Gradient(colors: [Color(hex: 0xACDB86), Color(hex: 0x74C771)]), // Green
-        Gradient(colors: [Color(hex: 0x8AB2FB), Color(hex: 0x6469FA)]), // Violet
-        Gradient(colors: [Color(hex: 0x7FE9D7), Color(hex: 0x5DC6B8)]), // Cyan
+        Gradient(colors: [Color(hex: 0x88D3FA), Color(hex: 0x4C9FED)]),  // Sky Blue
+        Gradient(colors: [Color(hex: 0xFACE76), Color(hex: 0xF5AD67)]),  // Orange
+        Gradient(colors: [Color(hex: 0xD8A9F0), Color(hex: 0xCA77E9)]),  // Pink
+        Gradient(colors: [Color(hex: 0xF39066), Color(hex: 0xF0636E)]),  // Red
+        Gradient(colors: [Color(hex: 0xACDB86), Color(hex: 0x74C771)]),  // Green
+        Gradient(colors: [Color(hex: 0x8AB2FB), Color(hex: 0x6469FA)]),  // Violet
+        Gradient(colors: [Color(hex: 0x7FE9D7), Color(hex: 0x5DC6B8)]),  // Cyan
     ]
 
     static let emojiList: [String] = [
@@ -249,7 +271,7 @@ struct ViewUtils {
         "🐪",
         "🐫",
         "🦒",
-        "🦘"
+        "🦘",
     ]
 
     static func getPresetGradient(from uuid: UUID) -> Gradient {
