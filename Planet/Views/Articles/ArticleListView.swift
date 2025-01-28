@@ -194,7 +194,7 @@ struct ArticleListView: View {
         .navigationSubtitle(
             Text(planetStore.navigationSubtitle)
         )
-        .frame(minWidth: 240, maxWidth: .infinity, maxHeight: .infinity)
+        .frame(minWidth: 240, idealWidth: UserDefaults.standard.double(forKey: "articleListWidth") > 0 ? UserDefaults.standard.double(forKey: "articleListWidth") : 240) // See https://github.com/Planetable/Planet/issues/393
         .background(Color(NSColor.textBackgroundColor))
         .toolbar {
             Menu {
@@ -263,5 +263,9 @@ struct ArticleListView: View {
             }
         }
         .onDrop(of: [.fileURL], delegate: articleDropDelegate)
+        .onWidthChange { newWidth in
+            @AppStorage("articleListWidth") var articleListWidth = 240.0
+            articleListWidth = newWidth
+        }
     }
 }
