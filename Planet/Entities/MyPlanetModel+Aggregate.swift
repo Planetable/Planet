@@ -333,6 +333,15 @@ extension MyPlanetModel {
                             }
                             changed = true
                         }
+                        if existingArticle.tags != article.tags {
+                            debugPrint(
+                                "Aggregation: updating \(article.id) tags from \(existingArticle.tags) to \(article.tags)"
+                            )
+                            await MainActor.run {
+                                existingArticle.tags = article.tags
+                            }
+                            changed = true
+                        }
                         let savedAttachments = await fetchArticleAttachments(
                             in: site,
                             from: article,
