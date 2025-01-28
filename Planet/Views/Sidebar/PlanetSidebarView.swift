@@ -161,7 +161,7 @@ struct PlanetSidebarView: View {
         .sheet(isPresented: $planetStore.isCreatingPlanet) {
             CreatePlanetView()
         }
-        .frame(minWidth: 220)
+        .frame(minWidth: 220, idealWidth: UserDefaults.standard.double(forKey: "sidebarWidth") > 0 ? UserDefaults.standard.double(forKey: "sidebarWidth") : 220) // See https://github.com/Planetable/Planet/issues/393
         .toolbar {
             Button(action: toggleSidebar) {
                 Image(systemName: "sidebar.left")
@@ -218,6 +218,10 @@ struct PlanetSidebarView: View {
             Task {
                 await planetStore.aggregate()
             }
+        }
+        .onWidthChange { newWidth in
+            @AppStorage("sidebarWidth") var sidebarWidth = 220.0
+            sidebarWidth = newWidth
         }
     }
 
