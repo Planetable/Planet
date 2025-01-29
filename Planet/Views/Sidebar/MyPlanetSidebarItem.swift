@@ -265,9 +265,7 @@ struct MyPlanetSidebarItem: View {
                     if PlanetStore.shared.selectedArticle == article {
                         PlanetStore.shared.selectedArticle = nil
                     }
-                    if let selectedArticles = PlanetStore.shared.selectedArticleList,
-                        selectedArticles.contains(article)
-                    {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         PlanetStore.shared.refreshSelectedArticles()
                     }
                     planetStore.isShowingDeleteMyArticleConfirmation = false
