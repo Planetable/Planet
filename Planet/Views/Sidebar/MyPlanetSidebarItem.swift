@@ -258,18 +258,24 @@ struct MyPlanetSidebarItem: View {
                 if let article = planetStore.deletingMyArticle, let planet = article.planet {
                     article.delete()
                     planet.updated = Date()
-                    Task {
+                    Task { @MainActor in
                         try planet.save()
-                        try await planet.savePublic()
+                        Task.detached {
+                            try await planet.savePublic()
+                        }
                     }
                     if PlanetStore.shared.selectedArticle == article {
-                        PlanetStore.shared.selectedArticle = nil
+                        Task { @MainActor in
+                            PlanetStore.shared.selectedArticle = nil
+                        }
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         PlanetStore.shared.refreshSelectedArticles()
                     }
-                    planetStore.isShowingDeleteMyArticleConfirmation = false
-                    planetStore.deletingMyArticle = nil
+                    Task { @MainActor in
+                        PlanetStore.shared.isShowingDeleteMyArticleConfirmation = false
+                        PlanetStore.shared.deletingMyArticle = nil
+                    }
                 }
             } label: {
                 Text("Delete")
