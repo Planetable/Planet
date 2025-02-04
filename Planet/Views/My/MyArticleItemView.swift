@@ -120,6 +120,23 @@ struct MyArticleItemView: View {
                         }
                     }
                 }
+                
+                Menu("Star") {
+                    ArticleSetStarView(article: article)
+                }
+                if article.starred != nil {
+                    Button {
+                        article.starred = nil
+                        try? article.save()
+                        Task.detached {
+                            await PlanetStore.shared.updateTotalStarredCount()
+                        }
+                    } label: {
+                        Text("Remove Star")
+                    }
+                }
+                
+                Divider()
 
                 moveArticleItem()
 
@@ -158,21 +175,8 @@ struct MyArticleItemView: View {
                     PlanetStore.shared.isShowingDeleteMyArticleConfirmation = true
                     PlanetStore.shared.deletingMyArticle = article
                 } label: {
+                    Image(systemName: "minus.circle")
                     Text("Delete Article")
-                }
-                Menu("Star") {
-                    ArticleSetStarView(article: article)
-                }
-                if article.starred != nil {
-                    Button {
-                        article.starred = nil
-                        try? article.save()
-                        Task.detached {
-                            await PlanetStore.shared.updateTotalStarredCount()
-                        }
-                    } label: {
-                        Text("Remove Star")
-                    }
                 }
                 if article.pinned == nil {
                     Button {
@@ -184,6 +188,7 @@ struct MyArticleItemView: View {
                             }
                         }
                     } label: {
+                        Image(systemName: "arrow.up.to.line")
                         Text("Pin Article")
                     }
                 }

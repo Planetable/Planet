@@ -407,10 +407,12 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 }
             }
         case .unread:
-            selectedArticleList = getUnreadArticles()
-            navigationTitle = "Unread"
-            if let articles = selectedArticleList {
-                navigationSubtitle = "\(articles.count) unread"
+            Task { @MainActor in
+                selectedArticleList = getUnreadArticles()
+                navigationTitle = "Unread"
+                if let articles = selectedArticleList {
+                    navigationSubtitle = "\(articles.count) unread"
+                }
             }
         case .starred:
             selectedArticleList = getStarredArticles()
