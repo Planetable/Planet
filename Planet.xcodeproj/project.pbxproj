@@ -269,6 +269,26 @@
 		2AAF510A2C293DE100C0B7AA /* HDWalletKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2AAF51092C293DE100C0B7AA /* HDWalletKit */; };
 		2ABD1CC42A1616DA0082D7EA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */; };
 		2ABD1CC82A1616DB0082D7EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2ABD1CC72A1616DB0082D7EA /* Assets.xcassets */; };
+		2AC1A1BE2D54F4770017FED3 /* ipfs-amd64-0.33.1.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1BC2D54F4770017FED3 /* ipfs-amd64-0.33.1.bin */; };
+		2AC1A1BF2D54F4770017FED3 /* ipfs-arm64-0.33.1.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1BD2D54F4770017FED3 /* ipfs-arm64-0.33.1.bin */; };
+		2AC1A1C02D54F4770017FED3 /* ipfs-amd64-0.33.1.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1BC2D54F4770017FED3 /* ipfs-amd64-0.33.1.bin */; };
+		2AC1A1C12D54F4770017FED3 /* ipfs-arm64-0.33.1.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1BD2D54F4770017FED3 /* ipfs-arm64-0.33.1.bin */; };
+		2AC1A1C62D54F4D80017FED3 /* fs-repo-12-to-13_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1C22D54F4D80017FED3 /* fs-repo-12-to-13_arm64 */; };
+		2AC1A1C72D54F4D80017FED3 /* fs-repo-13-to-14_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1C32D54F4D80017FED3 /* fs-repo-13-to-14_arm64 */; };
+		2AC1A1C82D54F4D80017FED3 /* fs-repo-15-to-16_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1C52D54F4D80017FED3 /* fs-repo-15-to-16_arm64 */; };
+		2AC1A1C92D54F4D80017FED3 /* fs-repo-14-to-15_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1C42D54F4D80017FED3 /* fs-repo-14-to-15_arm64 */; };
+		2AC1A1CA2D54F4D80017FED3 /* fs-repo-12-to-13_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1C22D54F4D80017FED3 /* fs-repo-12-to-13_arm64 */; };
+		2AC1A1CB2D54F4D80017FED3 /* fs-repo-13-to-14_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1C32D54F4D80017FED3 /* fs-repo-13-to-14_arm64 */; };
+		2AC1A1CC2D54F4D80017FED3 /* fs-repo-15-to-16_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1C52D54F4D80017FED3 /* fs-repo-15-to-16_arm64 */; };
+		2AC1A1CD2D54F4D80017FED3 /* fs-repo-14-to-15_arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1C42D54F4D80017FED3 /* fs-repo-14-to-15_arm64 */; };
+		2AC1A1D32D55013C0017FED3 /* fs-repo-13-to-14_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1D02D55013C0017FED3 /* fs-repo-13-to-14_amd64 */; };
+		2AC1A1D42D55013C0017FED3 /* fs-repo-15-to-16_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1D22D55013C0017FED3 /* fs-repo-15-to-16_amd64 */; };
+		2AC1A1D52D55013C0017FED3 /* fs-repo-14-to-15_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1D12D55013C0017FED3 /* fs-repo-14-to-15_amd64 */; };
+		2AC1A1D62D55013C0017FED3 /* fs-repo-12-to-13_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1CF2D55013C0017FED3 /* fs-repo-12-to-13_amd64 */; };
+		2AC1A1D72D55013C0017FED3 /* fs-repo-13-to-14_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1D02D55013C0017FED3 /* fs-repo-13-to-14_amd64 */; };
+		2AC1A1D82D55013C0017FED3 /* fs-repo-15-to-16_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1D22D55013C0017FED3 /* fs-repo-15-to-16_amd64 */; };
+		2AC1A1D92D55013C0017FED3 /* fs-repo-14-to-15_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1D12D55013C0017FED3 /* fs-repo-14-to-15_amd64 */; };
+		2AC1A1DA2D55013C0017FED3 /* fs-repo-12-to-13_amd64 in Resources */ = {isa = PBXBuildFile; fileRef = 2AC1A1CF2D55013C0017FED3 /* fs-repo-12-to-13_amd64 */; };
 		2AC4994927BB6E7500F1C2D1 /* PlanetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */; };
 		2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2AC4994C27BB6E7600F1C2D1 /* Assets.xcassets */; };
 		2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2AC4994F27BB6E7600F1C2D1 /* Preview Assets.xcassets */; };
@@ -284,10 +304,6 @@
 		2AD061402C47A6E000E288DB /* PlanetAPIControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD0613E2C47A6E000E288DB /* PlanetAPIControlView.swift */; };
 		2AD061432C47A7B000E288DB /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = 2AD061422C47A7B000E288DB /* Vapor */; };
 		2AD061452C47A7C000E288DB /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = 2AD061442C47A7C000E288DB /* Vapor */; };
-		2AD45E6A2C1CA7080007F690 /* ipfs-amd64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AD45E692C1CA7080007F690 /* ipfs-amd64-0.15.bin */; };
-		2AD45E6B2C1CA7080007F690 /* ipfs-amd64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AD45E692C1CA7080007F690 /* ipfs-amd64-0.15.bin */; };
-		2AD45E6D2C1CA7160007F690 /* ipfs-arm64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AD45E6C2C1CA7160007F690 /* ipfs-arm64-0.15.bin */; };
-		2AD45E6E2C1CA7160007F690 /* ipfs-arm64-0.15.bin in Resources */ = {isa = PBXBuildFile; fileRef = 2AD45E6C2C1CA7160007F690 /* ipfs-arm64-0.15.bin */; };
 		2ADD6E572A9F2D0B00AD763B /* vol1-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E4C2A9F2D0A00AD763B /* vol1-1.png */; };
 		2ADD6E582A9F2D0B00AD763B /* vol1-6.png in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E4D2A9F2D0A00AD763B /* vol1-6.png */; };
 		2ADD6E592A9F2D0B00AD763B /* vol1-7.png in Resources */ = {isa = PBXBuildFile; fileRef = 2ADD6E4E2A9F2D0A00AD763B /* vol1-7.png */; };
@@ -666,6 +682,16 @@
 		2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2ABD1CC72A1616DB0082D7EA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2ABD1CCC2A1616DB0082D7EA /* PlanetLite.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PlanetLite.entitlements; sourceTree = "<group>"; };
+		2AC1A1BC2D54F4770017FED3 /* ipfs-amd64-0.33.1.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-amd64-0.33.1.bin"; sourceTree = "<group>"; };
+		2AC1A1BD2D54F4770017FED3 /* ipfs-arm64-0.33.1.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-arm64-0.33.1.bin"; sourceTree = "<group>"; };
+		2AC1A1C22D54F4D80017FED3 /* fs-repo-12-to-13_arm64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-12-to-13_arm64"; sourceTree = "<group>"; };
+		2AC1A1C32D54F4D80017FED3 /* fs-repo-13-to-14_arm64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-13-to-14_arm64"; sourceTree = "<group>"; };
+		2AC1A1C42D54F4D80017FED3 /* fs-repo-14-to-15_arm64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-14-to-15_arm64"; sourceTree = "<group>"; };
+		2AC1A1C52D54F4D80017FED3 /* fs-repo-15-to-16_arm64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-15-to-16_arm64"; sourceTree = "<group>"; };
+		2AC1A1CF2D55013C0017FED3 /* fs-repo-12-to-13_amd64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-12-to-13_amd64"; sourceTree = "<group>"; };
+		2AC1A1D02D55013C0017FED3 /* fs-repo-13-to-14_amd64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-13-to-14_amd64"; sourceTree = "<group>"; };
+		2AC1A1D12D55013C0017FED3 /* fs-repo-14-to-15_amd64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-14-to-15_amd64"; sourceTree = "<group>"; };
+		2AC1A1D22D55013C0017FED3 /* fs-repo-15-to-16_amd64 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "fs-repo-15-to-16_amd64"; sourceTree = "<group>"; };
 		2AC4994527BB6E7500F1C2D1 /* Planet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Planet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetApp.swift; sourceTree = "<group>"; };
 		2AC4994C27BB6E7600F1C2D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -679,8 +705,6 @@
 		2AC889412B71D4200090D355 /* TemplateMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateMonitor.swift; sourceTree = "<group>"; };
 		2AD0613B2C47A5AC00E288DB /* PlanetAPIController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIController.swift; sourceTree = "<group>"; };
 		2AD0613E2C47A6E000E288DB /* PlanetAPIControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIControlView.swift; sourceTree = "<group>"; };
-		2AD45E692C1CA7080007F690 /* ipfs-amd64-0.15.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-amd64-0.15.bin"; sourceTree = "<group>"; };
-		2AD45E6C2C1CA7160007F690 /* ipfs-arm64-0.15.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "ipfs-arm64-0.15.bin"; sourceTree = "<group>"; };
 		2ADD6E4C2A9F2D0A00AD763B /* vol1-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "vol1-1.png"; sourceTree = "<group>"; };
 		2ADD6E4D2A9F2D0A00AD763B /* vol1-6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "vol1-6.png"; sourceTree = "<group>"; };
 		2ADD6E4E2A9F2D0A00AD763B /* vol1-7.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "vol1-7.png"; sourceTree = "<group>"; };
@@ -1041,8 +1065,8 @@
 		2A2A2F7E2BFF0E520092AEA1 /* ipfs-executables */ = {
 			isa = PBXGroup;
 			children = (
-				2AD45E692C1CA7080007F690 /* ipfs-amd64-0.15.bin */,
-				2AD45E6C2C1CA7160007F690 /* ipfs-arm64-0.15.bin */,
+				2AC1A1BC2D54F4770017FED3 /* ipfs-amd64-0.33.1.bin */,
+				2AC1A1BD2D54F4770017FED3 /* ipfs-arm64-0.33.1.bin */,
 			);
 			path = "ipfs-executables";
 			sourceTree = "<group>";
@@ -1158,6 +1182,21 @@
 				2ABD1CCC2A1616DB0082D7EA /* PlanetLite.entitlements */,
 			);
 			path = PlanetLite;
+			sourceTree = "<group>";
+		};
+		2AC1A1CE2D54F5440017FED3 /* fs-repo-migrations */ = {
+			isa = PBXGroup;
+			children = (
+				2AC1A1CF2D55013C0017FED3 /* fs-repo-12-to-13_amd64 */,
+				2AC1A1D02D55013C0017FED3 /* fs-repo-13-to-14_amd64 */,
+				2AC1A1D12D55013C0017FED3 /* fs-repo-14-to-15_amd64 */,
+				2AC1A1D22D55013C0017FED3 /* fs-repo-15-to-16_amd64 */,
+				2AC1A1C22D54F4D80017FED3 /* fs-repo-12-to-13_arm64 */,
+				2AC1A1C32D54F4D80017FED3 /* fs-repo-13-to-14_arm64 */,
+				2AC1A1C42D54F4D80017FED3 /* fs-repo-14-to-15_arm64 */,
+				2AC1A1C52D54F4D80017FED3 /* fs-repo-15-to-16_arm64 */,
+			);
+			path = "fs-repo-migrations";
 			sourceTree = "<group>";
 		};
 		2AC4993C27BB6E7500F1C2D1 = {
@@ -1579,6 +1618,7 @@
 				72114270D79DBC89703262B9 /* IPFSCommand.swift */,
 				2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */,
 				72114A5CE56CACB595CD70C6 /* IPFSAPIModel.swift */,
+				2AC1A1CE2D54F5440017FED3 /* fs-repo-migrations */,
 				2A2A2F7E2BFF0E520092AEA1 /* ipfs-executables */,
 			);
 			path = IPFS;
@@ -1831,22 +1871,30 @@
 			buildActionMask = 2147483647;
 			files = (
 				2A95E66E2A19A3B8001288B8 /* WriterBasicPlaceholder.html in Resources */,
+				2AC1A1BE2D54F4770017FED3 /* ipfs-amd64-0.33.1.bin in Resources */,
+				2AC1A1BF2D54F4770017FED3 /* ipfs-arm64-0.33.1.bin in Resources */,
 				2A95E6702A19A3B8001288B8 /* NoSelection.html in Resources */,
 				2A95E6712A19A3B8001288B8 /* TemplatePlaceholder.html in Resources */,
-				2AD45E6B2C1CA7080007F690 /* ipfs-amd64-0.15.bin in Resources */,
 				2A95E66D2A19A3B8001288B8 /* WriterBasic.html in Resources */,
 				6A34BE372A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
 				6A34BE352A34B2A00031E5E4 /* Capsules-400.otf in Resources */,
 				6AEE99DD2C26C2AD00736D0B /* MNCR.json in Resources */,
 				6A34BE3F2A34B2A00031E5E4 /* Capsules-500.otf in Resources */,
-				2AD45E6E2C1CA7160007F690 /* ipfs-arm64-0.15.bin in Resources */,
 				2A95E6F02A19A777001288B8 /* Credits.html in Resources */,
+				2AC1A1D32D55013C0017FED3 /* fs-repo-13-to-14_amd64 in Resources */,
+				2AC1A1D42D55013C0017FED3 /* fs-repo-15-to-16_amd64 in Resources */,
+				2AC1A1D52D55013C0017FED3 /* fs-repo-14-to-15_amd64 in Resources */,
+				2AC1A1D62D55013C0017FED3 /* fs-repo-12-to-13_amd64 in Resources */,
 				6A34BE332A34B2A00031E5E4 /* Capsules-200.otf in Resources */,
 				2A4AE87E2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */,
 				6A34BE3B2A34B2A00031E5E4 /* Capsules-300.otf in Resources */,
 				6A34BE3D2A34B2A00031E5E4 /* Capsules-700.otf in Resources */,
 				6A34BE392A34B2A00031E5E4 /* Capsules-100.otf in Resources */,
 				2A95E66F2A19A3B8001288B8 /* RSS.xml in Resources */,
+				2AC1A1C62D54F4D80017FED3 /* fs-repo-12-to-13_arm64 in Resources */,
+				2AC1A1C72D54F4D80017FED3 /* fs-repo-13-to-14_arm64 in Resources */,
+				2AC1A1C82D54F4D80017FED3 /* fs-repo-15-to-16_arm64 in Resources */,
+				2AC1A1C92D54F4D80017FED3 /* fs-repo-14-to-15_arm64 in Resources */,
 				2ABD1CC82A1616DB0082D7EA /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1855,10 +1903,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2AD45E6D2C1CA7160007F690 /* ipfs-arm64-0.15.bin in Resources */,
 				2AF4006A27F37C27005DF1A9 /* WriterBasicPlaceholder.html in Resources */,
 				2AC4995027BB6E7600F1C2D1 /* Preview Assets.xcassets in Resources */,
-				2AD45E6A2C1CA7080007F690 /* ipfs-amd64-0.15.bin in Resources */,
 				6A28FDA82838598A00036BA6 /* NoSelection.html in Resources */,
 				2AC4994D27BB6E7600F1C2D1 /* Assets.xcassets in Resources */,
 				6A34BE362A34B2A00031E5E4 /* Capsules-600.otf in Resources */,
@@ -1871,6 +1917,8 @@
 				6A34BE3E2A34B2A00031E5E4 /* Capsules-500.otf in Resources */,
 				2ADD6E702A9F2D2600AD763B /* vol1-8.zip in Resources */,
 				6A1DF9CF28E8E4B6000499E3 /* RSS.xml in Resources */,
+				2AC1A1C02D54F4770017FED3 /* ipfs-amd64-0.33.1.bin in Resources */,
+				2AC1A1C12D54F4770017FED3 /* ipfs-arm64-0.33.1.bin in Resources */,
 				2ADD6E6F2A9F2D2600AD763B /* vol1-4.zip in Resources */,
 				E8B4FE422A8D146100C01E94 /* InfoPlist.strings in Resources */,
 				6AEE99DC2C26C2AD00736D0B /* MNCR.json in Resources */,
@@ -1887,8 +1935,16 @@
 				6A34BE3C2A34B2A00031E5E4 /* Capsules-700.otf in Resources */,
 				2ADD6E742A9F2D2600AD763B /* vol1-2.zip in Resources */,
 				2A4AE87D2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */,
+				2AC1A1CA2D54F4D80017FED3 /* fs-repo-12-to-13_arm64 in Resources */,
+				2AC1A1CB2D54F4D80017FED3 /* fs-repo-13-to-14_arm64 in Resources */,
+				2AC1A1CC2D54F4D80017FED3 /* fs-repo-15-to-16_arm64 in Resources */,
+				2AC1A1CD2D54F4D80017FED3 /* fs-repo-14-to-15_arm64 in Resources */,
 				6A64D2DE284640A80013EABB /* Credits.html in Resources */,
 				6A34BE382A34B2A00031E5E4 /* Capsules-100.otf in Resources */,
+				2AC1A1D72D55013C0017FED3 /* fs-repo-13-to-14_amd64 in Resources */,
+				2AC1A1D82D55013C0017FED3 /* fs-repo-15-to-16_amd64 in Resources */,
+				2AC1A1D92D55013C0017FED3 /* fs-repo-14-to-15_amd64 in Resources */,
+				2AC1A1DA2D55013C0017FED3 /* fs-repo-12-to-13_amd64 in Resources */,
 				2ADD6E752A9F2D2600AD763B /* vol1-3.zip in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

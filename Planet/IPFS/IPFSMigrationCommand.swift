@@ -21,7 +21,8 @@ struct IPFSMigrationCommand {
          12 -> 0.12.0 - 0.17.0
          13 -> 0.18.0 - 0.20.0
          14 -> 0.21.0 - 0.22.0
-         15 -> 0.23.0 - 0.28 (current)
+         15 -> 0.23.0 - 0.29.0
+         16 -> 0.30.0 - 0.33.1 (current)
          */
         let repoPath = IPFSCommand.IPFSRepositoryPath
         let versionPath = repoPath.appendingPathComponent("version")
@@ -41,16 +42,23 @@ struct IPFSMigrationCommand {
             return [
                 "fs-repo-12-to-13",
                 "fs-repo-13-to-14",
-                "fs-repo-14-to-15"
+                "fs-repo-14-to-15",
+                "fs-repo-15-to-16"
             ]
         case 13:
             return [
                 "fs-repo-13-to-14",
-                "fs-repo-14-to-15"
+                "fs-repo-14-to-15",
+                "fs-repo-15-to-16"
             ]
         case 14:
             return [
-                "fs-repo-14-to-15"
+                "fs-repo-14-to-15",
+                "fs-repo-15-to-16"
+            ]
+        case 15:
+            return [
+                "fs-repo-15-to-16"
             ]
         default:
             return []

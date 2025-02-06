@@ -47,7 +47,6 @@ actor IPFSDaemon {
             "Verifying IPFS repo version\nAt path: \(IPFSCommand.IPFSRepositoryPath)\nVia exe: \(IPFSCommand.IPFSExecutablePath)"
         )
 
-        /*  Skip IPFS migration process
         do {
             // Read current repo version on disk
             let repoVersion = try await IPFSMigrationCommand.currentRepoVersion()
@@ -88,7 +87,6 @@ actor IPFSDaemon {
             }
             return
         }
-         */
 
         Self.logger.info("Updating swarm port")
         if let port = IPFSDaemon.scoutPort(4001...4011),
@@ -138,7 +136,6 @@ actor IPFSDaemon {
             return
         }
 
-        /*  Skip IPFS migration process
         // Set IPNS options
         Self.logger.info("Setting IPNS options")
 
@@ -201,7 +198,6 @@ actor IPFSDaemon {
         else {
             Self.logger.info("Unable to set Gateway.HTTPHeaders")
         }
-         */
 
         Self.logger.info("Updating peers")
         if let result = try? IPFSCommand.setPeers(

@@ -5,14 +5,16 @@ struct IPFSCommand {
     // version: 0.16.0, last updated 2022-10-04
     // version: 0.28.0, last updated 2024-05-20
     // version: 0.15.0, last updated 2024-06-15
+    // version: 0.33.1, last updated 2025-02-06
     // NOTE: executables must have executable permission in source code
     // NOTE: skip migration process from IPFS 0.15.0 to 0.28.0.
+    // NOTE: test migration process from IPFS 0.15.0 to 0.33.1.
     static let IPFSExecutablePath: URL = {
         switch ProcessInfo.processInfo.machineHardwareName {
         case "arm64":
-            return Bundle.main.url(forResource: "ipfs-arm64-0.15", withExtension: "bin")!
+            return Bundle.main.url(forResource: "ipfs-arm64-0.33.1", withExtension: "bin")!
         case "x86_64":
-            return Bundle.main.url(forResource: "ipfs-amd64-0.15", withExtension: "bin")!
+            return Bundle.main.url(forResource: "ipfs-amd64-0.33.1", withExtension: "bin")!
         default:
             fatalError("Planet is not supported on your operating system.")
         }
@@ -26,7 +28,7 @@ struct IPFSCommand {
     }()
 
     static let IPFSRepoVersion: Int = {
-        return 15
+        return 16
     }()
 
     let arguments: [String]
