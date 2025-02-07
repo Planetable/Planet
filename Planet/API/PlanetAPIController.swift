@@ -625,6 +625,7 @@ class PlanetAPIController: NSObject, ObservableObject {
                 }
             }
         }
+        // TODO: What if the saveToArticle operation is a Task.detached?
         try await MainActor.run {
             try draft.saveToArticle()
         }
