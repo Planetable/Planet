@@ -88,7 +88,11 @@ struct QuickPostView: View {
                         debugPrint("failed to add movie to Quick Post: \(error)")
                     }
                 } label: {
-                    Image(systemName: "movieclapper")
+                    if #available(macOS 14.0, *) {
+                        Image(systemName: "movieclapper")
+                    } else {
+                        Image(systemName: "film")
+                    }
                 }
                 Button {
                     do {
