@@ -54,7 +54,14 @@ struct PFDashboardSidebarItemView: View {
                     }
                     Divider()
                 }
-                
+
+                Button {
+                    serviceStore.fixFolderAccessPermissions(folder)
+                } label: {
+                    Text("Refresh Folder Access")
+                }
+                .help("Re-authorize folder access permissions, especially if you moved the folder to a different location.")
+
                 Button {
                     guard !self.serviceStore.publishingFolders.contains(folder.id) else {
                         let alert = NSAlert()

@@ -413,6 +413,14 @@ class KeyboardShortcutHelper: ObservableObject {
                             }
                             Divider()
                         }
+
+                        Button {
+                            self.serviceStore.fixFolderAccessPermissions(folder)
+                        } label: {
+                            Text("Refresh Folder Access")
+                        }
+                        .help("Re-authorize folder access permissions, especially if you moved the folder to a different location.")
+
                         Button {
                             self.serviceStore.addToRemovingPublishedFolderQueue(folder)
                             let updatedFolders = self.serviceStore.publishedFolders.filter { f in

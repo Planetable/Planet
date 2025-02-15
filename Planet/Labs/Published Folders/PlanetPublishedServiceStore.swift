@@ -602,7 +602,25 @@ extension PlanetPublishedServiceStore {
             alert.runModal()
         }
     }
-    
+
+    func fixFolderAccessPermissions(_ folder: PlanetPublishedFolder) {
+        let panel = NSOpenPanel()
+        panel.message = "Re-authorize Access to Folder"
+        panel.prompt = "Authorize"
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.folder]
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.directoryURL = folder.url
+
+        let response = panel.runModal()
+        guard response == .OK, let selectedURL = panel.url else { return }
+
+        if selectedURL.absoluteString.md5() == folder.url.absoluteString.md5() {
+            try? self.saveBookmarkData(forFolder: folder)
+        }
+    }
+
     func exportFolderKey(_ folder: PlanetPublishedFolder) {
         guard let _ = folder.published else {
             let alert = NSAlert()
