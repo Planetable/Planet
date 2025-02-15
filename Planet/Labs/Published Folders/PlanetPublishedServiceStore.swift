@@ -531,8 +531,12 @@ extension PlanetPublishedServiceStore {
             guard url.startAccessingSecurityScopedResource() else {
                 throw PlanetError.PublishedServiceFolderPermissionError
             }
-            NSWorkspace.shared.open(url)
-            url.stopAccessingSecurityScopedResource()
+            DispatchQueue.main.async {
+                NSWorkspace.shared.open(url)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                url.stopAccessingSecurityScopedResource()
+            }
         } catch {
             debugPrint("failed to request access to folder: \(folder), error: \(error)")
             let alert = NSAlert()
