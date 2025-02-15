@@ -53,7 +53,7 @@ enum PlanetError: Error {
 
 
 extension PlanetError: LocalizedError {
-    public var localizedDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .InvalidAPIPortError:
             return NSLocalizedString("Invalid API Port Error", comment: "")
