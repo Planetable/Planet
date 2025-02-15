@@ -459,15 +459,7 @@ extension PlanetPublishedServiceStore {
             return []
         }
         let data = try Data(contentsOf: folderHistoryURL)
-        let folders: [PlanetPublishedFolder] = try decoder.decode([PlanetPublishedFolder].self, from: data)
-        var updatedFolders: [PlanetPublishedFolder] = []
-        for folder in folders {
-            let keyName = folder.id.uuidString
-            if let keyExists = try? await IPFSDaemon.shared.checkKeyExists(name: keyName), keyExists {
-                updatedFolders.append(folder)
-            }
-        }
-        return updatedFolders
+        return try decoder.decode([PlanetPublishedFolder].self, from: data)
     }
 
     func savePublishedFolders() throws {
@@ -583,6 +575,13 @@ extension PlanetPublishedServiceStore {
         do {
             try self.saveBookmarkData(forFolder: folder)
             folders.insert(folder, at: 0)
+            Task.detached(priority: .utility) {
+                let keyName = folder.id.uuidString
+                let keyExists: Bool = (try? await IPFSDaemon.shared.checkKeyExists(name: keyName)) != nil
+                if !keyExists {
+                    let _ = try await IPFSDaemon.shared.generateKey(name: keyName)
+                }
+            }
             let updatedFolders = folders
             Task { @MainActor in
                 self.updatePublishedFolders(updatedFolders)
