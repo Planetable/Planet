@@ -1690,13 +1690,28 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
         sendNotification(for: newArticles)
 
+//        if delete {
+//            let deletedArticles = existingArticleMap.values
+//            await MainActor.run {
+//                articles.removeAll { deletedArticles.contains($0) }
+//            }
+//            deletedArticles.forEach { $0.delete() }
+//        }
+
         if delete {
             let deletedArticles = existingArticleMap.values
             await MainActor.run {
-                articles.removeAll { deletedArticles.contains($0) }
+                for article in deletedArticles {
+                    debugPrint("[deleted existing article] \(article.link), \(article.title), \(article.content), \(article.path)")
+                    if let index = articles.firstIndex(where: { $0 == article }) {
+                        debugPrint("[deleted existing article] deleted at index \(index), \(article.link), \(article.title), \(article.content), \(article.path)")
+                        articles.remove(at: index)
+                    }
+                }
             }
             deletedArticles.forEach { $0.delete() }
         }
+
         await MainActor.run {
             articles.sort { $0.created > $1.created }
         }
