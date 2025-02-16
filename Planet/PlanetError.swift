@@ -144,7 +144,7 @@ extension PlanetError: LocalizedError {
         case .ServiceAirDropNotExistsError:
             return NSLocalizedString("Service AirDrop Not Exists Error", comment: "")
         case .InternalError:
-            return NSLocalizedString("Internal Error", comment: "")
+            return NSLocalizedString("Planet Internal Error", comment: "")
         case .WriterUnsupportedAttachmentTypeError:
             return NSLocalizedString("Writer Unsupported Attachment Type Error", comment: "")
         case .UnknownError(let error):

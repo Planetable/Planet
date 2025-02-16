@@ -389,27 +389,7 @@ class KeyboardShortcutHelper: ObservableObject {
                                 }
                             }
                             Button {
-                                do {
-                                    let url = try self.serviceStore.restoreFolderAccess(
-                                        forFolder: folder
-                                    )
-                                    guard url.startAccessingSecurityScopedResource() else {
-                                        throw PlanetError.PublishedServiceFolderPermissionError
-                                    }
-                                    NSWorkspace.shared.open(url)
-                                    url.stopAccessingSecurityScopedResource()
-                                }
-                                catch {
-                                    debugPrint(
-                                        "failed to request access to folder: \(folder), error: \(error)"
-                                    )
-                                    let alert = NSAlert()
-                                    alert.messageText = "Failed to Access to Folder"
-                                    alert.informativeText = error.localizedDescription
-                                    alert.alertStyle = .informational
-                                    alert.addButton(withTitle: "OK")
-                                    alert.runModal()
-                                }
+                                self.serviceStore.revealFolderInFinder(folder)
                             } label: {
                                 Text("Reveal in Finder")
                             }
@@ -433,6 +413,14 @@ class KeyboardShortcutHelper: ObservableObject {
                             }
                             Divider()
                         }
+
+                        Button {
+                            self.serviceStore.fixFolderAccessPermissions(folder)
+                        } label: {
+                            Text("Refresh Folder Access")
+                        }
+                        .help("Re-authorize folder access permissions, especially if you moved the folder to a different location.")
+
                         Button {
                             self.serviceStore.addToRemovingPublishedFolderQueue(folder)
                             let updatedFolders = self.serviceStore.publishedFolders.filter { f in

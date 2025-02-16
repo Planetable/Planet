@@ -531,8 +531,12 @@ extension PlanetPublishedServiceStore {
             guard url.startAccessingSecurityScopedResource() else {
                 throw PlanetError.PublishedServiceFolderPermissionError
             }
-            NSWorkspace.shared.open(url)
-            url.stopAccessingSecurityScopedResource()
+            DispatchQueue.main.async {
+                NSWorkspace.shared.open(url)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                url.stopAccessingSecurityScopedResource()
+            }
         } catch {
             debugPrint("failed to request access to folder: \(folder), error: \(error)")
             let alert = NSAlert()
@@ -598,7 +602,25 @@ extension PlanetPublishedServiceStore {
             alert.runModal()
         }
     }
-    
+
+    func fixFolderAccessPermissions(_ folder: PlanetPublishedFolder) {
+        let panel = NSOpenPanel()
+        panel.message = "Re-authorize Access to Folder"
+        panel.prompt = "Authorize"
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.folder]
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.directoryURL = folder.url
+
+        let response = panel.runModal()
+        guard response == .OK, let selectedURL = panel.url else { return }
+
+        if selectedURL.absoluteString.md5() == folder.url.absoluteString.md5() {
+            try? self.saveBookmarkData(forFolder: folder)
+        }
+    }
+
     func exportFolderKey(_ folder: PlanetPublishedFolder) {
         guard let _ = folder.published else {
             let alert = NSAlert()
