@@ -1923,6 +1923,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 "key": id.uuidString,
                 "quieter": "1",
                 "lifetime": "7200h",
+                "ttl": "60s",
             ],
             timeout: 180
         )
