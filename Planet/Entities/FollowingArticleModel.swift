@@ -287,7 +287,8 @@ class FollowingArticleModel: ArticleModel, Codable {
             articleLink = publicArticle.link
         }
         let article = FollowingArticleModel(
-            id: UUID(),
+//            id: UUID(),
+            id: publicArticle.id,
             link: articleLink,
             title: publicArticle.title,
             content: publicArticle.content,
