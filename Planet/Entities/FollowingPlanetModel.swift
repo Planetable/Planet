@@ -1136,7 +1136,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 Self.logger.info("Planet \(self.name, privacy: .public) has no update")
                 return
             }
-            Task {
+            Task.detached(priority: .background) {
                 try await IPFSDaemon.shared.pin(cid: newCID)
             }
             do {
@@ -1151,6 +1151,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         PublicPlanetModel.self,
                         from: planetData
                     )
+                    if publicPlanet.updated <= updated {
+                        Self.logger.info("Planet \(self.name, privacy: .public) has no update")
+                        return
+                    }
                     await MainActor.run {
                         name = publicPlanet.name
                         about = publicPlanet.about
@@ -1286,7 +1290,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             else {
                 Self.logger.info("Planet \(self.name) has update")
             }
-            Task {
+            Task.detached(priority: .background) {
                 try await IPFSDaemon.shared.pin(cid: newCID)
             }
             do {
@@ -1301,6 +1305,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         PublicPlanetModel.self,
                         from: planetData
                     )
+                    if publicPlanet.updated <= updated {
+                        Self.logger.info("Planet \(self.name, privacy: .public) has no update")
+                        return
+                    }
                     await MainActor.run {
                         name = publicPlanet.name
                         about = publicPlanet.about
