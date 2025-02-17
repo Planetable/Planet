@@ -464,7 +464,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             throw PlanetError.ENSNoContentHashError
         }
         Self.logger.info("Follow \(ens): CID \(cid)")
-        Task {
+        Task.detached(priority: .background) {
             try await IPFSDaemon.shared.pin(cid: cid)
         }
         let gateway = IPFSState.shared.getGateway()
@@ -706,7 +706,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             cid = resolved
         }
         Self.logger.info("Follow \(dotbit): CID \(cid)")
-        Task {
+        Task.detached(priority: .background) {
             try await IPFSDaemon.shared.pin(cid: cid)
         }
         // update a native planet if a public planet is found
@@ -948,7 +948,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         let cid = try await IPFSDaemon.shared.resolveIPNSorDNSLink(name: name)
         let gateway = IPFSState.shared.getGateway()
         Self.logger.info("Follow \(name): CID \(cid)")
-        Task {
+        Task.detached(priority: .background) {
             try await IPFSDaemon.shared.pin(cid: cid)
         }
         if let planetURL = URL(string: "\(gateway)/ipfs/\(cid)/planet.json"),
@@ -1441,7 +1441,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             else {
                 Self.logger.info("Planet \(self.name, privacy: .public) has update")
             }
-            Task {
+            Task.detached(priority: .background) {
                 try await IPFSDaemon.shared.pin(cid: newCID)
             }
             do {
@@ -1456,6 +1456,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         PublicPlanetModel.self,
                         from: planetData
                     )
+                    if publicPlanet.updated <= updated {
+                        Self.logger.info("Planet \(self.name, privacy: .public) has no update")
+                        return
+                    }
                     await MainActor.run {
                         name = publicPlanet.name
                         about = publicPlanet.about
