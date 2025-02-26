@@ -257,10 +257,10 @@ struct MyPlanetSidebarItem: View {
             Button(role: .destructive) {
                 if let article = planetStore.deletingMyArticle, let planet = article.planet {
                     article.delete()
-                    planet.updated = Date()
                     Task { @MainActor in
+                        planet.updated = Date()
                         try planet.save()
-                        Task.detached {
+                        Task.detached(priority: .userInitiated) {
                             try await planet.savePublic()
                         }
                     }
