@@ -256,25 +256,31 @@ struct MyPlanetSidebarItem: View {
         ) {
             Button(role: .destructive) {
                 if let article = planetStore.deletingMyArticle, let planet = article.planet {
-                    article.delete()
-                    Task { @MainActor in
-                        planet.updated = Date()
-                        try planet.save()
-                        Task.detached(priority: .userInitiated) {
-                            try await planet.savePublic()
-                        }
-                    }
                     if PlanetStore.shared.selectedArticle == article {
                         Task { @MainActor in
                             PlanetStore.shared.selectedArticle = nil
                         }
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        PlanetStore.shared.refreshSelectedArticles()
-                    }
                     Task { @MainActor in
                         PlanetStore.shared.isShowingDeleteMyArticleConfirmation = false
                         PlanetStore.shared.deletingMyArticle = nil
+                    }
+                    article.delete()
+                    Task { @MainActor in
+                        planet.updated = Date()
+                        try planet.save()
+                        if planet.articles.count < 1000 {
+                            Task.detached(priority: .userInitiated) {
+                                try await planet.savePublic()
+                            }
+                        } else {
+                            // if the planet has more than 1000 articles, we should ask user to perform a quick rebuild
+                        }
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
+                        Task { @MainActor in
+                            PlanetStore.shared.refreshSelectedArticles()
+                        }
                     }
                 }
             } label: {
