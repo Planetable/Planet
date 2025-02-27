@@ -426,7 +426,7 @@ struct MyPlanetSidebarItem: View {
             }
 
             Button {
-                Task(priority: .background) {
+                Task(priority: .userInitiated) {
                     PlanetStore.shared.selectedView = .myPlanet(planet)
                     do {
                         try await planet.quickRebuild()
@@ -446,7 +446,7 @@ struct MyPlanetSidebarItem: View {
             .keyboardShortcut("r", modifiers: [.command, .shift])
 
             Button {
-                Task(priority: .background) {
+                Task(priority: .userInitiated) {
                     PlanetStore.shared.selectedView = .myPlanet(planet)
                     do {
                         try await planet.rebuild()

@@ -89,6 +89,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     var ops: [String: Date] = [:]
     var attachmentsLastVerified: Date? = nil
+    @Published var needsRebuild: Bool = false
 
     var tags: [String: String]? = [:]
     /// Array of remote sources for aggregating content
