@@ -256,6 +256,7 @@ struct MyPlanetSidebarItem: View {
         ) {
             Button(role: .destructive) {
                 if let article = planetStore.deletingMyArticle, let planet = article.planet {
+                    let nextArticle = planet.articles.first { $0.created < article.created }
                     if PlanetStore.shared.selectedArticle == article {
                         Task { @MainActor in
                             PlanetStore.shared.selectedArticle = nil
@@ -264,6 +265,7 @@ struct MyPlanetSidebarItem: View {
                     Task { @MainActor in
                         PlanetStore.shared.isShowingDeleteMyArticleConfirmation = false
                         PlanetStore.shared.deletingMyArticle = nil
+                        PlanetStore.shared.removeArticleFromList(article: article)
                     }
                     article.delete()
                     Task { @MainActor in
@@ -275,11 +277,17 @@ struct MyPlanetSidebarItem: View {
                             }
                         } else {
                             // if the planet has more than 1000 articles, we should ask user to perform a quick rebuild
+                            planet.needsRebuild = true
                         }
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
                         Task { @MainActor in
-                            PlanetStore.shared.refreshSelectedArticles()
+                            // PlanetStore.shared.refreshSelectedArticles()
+                            if let nextArticle = nextArticle {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                                    PlanetStore.shared.selectedArticle = nextArticle
+                                }
+                            }
                         }
                     }
                 }

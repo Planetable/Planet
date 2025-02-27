@@ -396,53 +396,72 @@ enum PlanetDetailViewType: Hashable, Equatable {
         alertMessage = message ?? ""
     }
 
+    func removeArticleFromList(article: ArticleModel) {
+        Task { @MainActor in
+            if let index = selectedArticleList?.firstIndex(where: { $0.id == article.id }) {
+                selectedArticleList?.remove(at: index)
+                ArticleListViewModel.shared.articles.removeAll(where: { $0.id == article.id })
+            }
+            switch selectedView {
+            case .today:
+                if let articles = selectedArticleList {
+                    navigationSubtitle = "\(articles.count) fetched today"
+                }
+            case .unread:
+                if let articles = selectedArticleList {
+                    navigationSubtitle = "\(articles.count) unread"
+                }
+            case .starred:
+                if let articles = selectedArticleList {
+                    navigationSubtitle = "\(articles.count) starred"
+                }
+            case .myPlanet(let planet):
+                navigationSubtitle = planet.navigationSubtitle()
+            case .followingPlanet(let planet):
+                navigationSubtitle = planet.navigationSubtitle()
+            case .none:
+                navigationSubtitle = ""
+            }
+        }
+    }
+
     func refreshSelectedArticles() {
-        switch selectedView {
-        case .today:
-            Task { @MainActor in
+        Task { @MainActor in
+            switch selectedView {
+            case .today:
                 selectedArticleList = getTodayArticles()
                 navigationTitle = "Today"
                 if let articles = selectedArticleList {
                     navigationSubtitle = "\(articles.count) fetched today"
                 }
-            }
-        case .unread:
-            Task { @MainActor in
+            case .unread:
                 selectedArticleList = getUnreadArticles()
                 navigationTitle = "Unread"
                 if let articles = selectedArticleList {
                     navigationSubtitle = "\(articles.count) unread"
                 }
+            case .starred:
+                selectedArticleList = getStarredArticles()
+                navigationTitle = "Starred"
+                if let articles = selectedArticleList {
+                    navigationSubtitle = "\(articles.count) starred"
+                }
+            case .myPlanet(let planet):
+                selectedArticleList = planet.articles
+                navigationTitle = planet.name
+                navigationSubtitle = planet.navigationSubtitle()
+            case .followingPlanet(let planet):
+                selectedArticleList = planet.articles
+                navigationTitle = planet.name
+                navigationSubtitle = planet.navigationSubtitle()
+            case .none:
+                selectedArticleList = nil
+                navigationTitle = PlanetStore.app == .lite ? "Croptop" : "Planet"
+                navigationSubtitle = ""
             }
-        case .starred:
-            selectedArticleList = getStarredArticles()
-            navigationTitle = "Starred"
             if let articles = selectedArticleList {
-                navigationSubtitle = "\(articles.count) starred"
-            }
-        case .myPlanet(let planet):
-            Task { @MainActor in
-                self.selectedArticleList = planet.articles
-                self.navigationTitle = planet.name
-                self.navigationSubtitle = planet.navigationSubtitle()
-            }
-        case .followingPlanet(let planet):
-            Task { @MainActor in
-                self.selectedArticleList = planet.articles
-                self.navigationTitle = planet.name
-                self.navigationSubtitle = planet.navigationSubtitle()
-            }
-        case .none:
-            selectedArticleList = nil
-            navigationTitle = PlanetStore.app == .lite ? "Croptop" : "Planet"
-            navigationSubtitle = ""
-        }
-        if let articles = selectedArticleList {
-            Task { @MainActor in
                 ArticleListViewModel.shared.articles = articles
-            }
-        } else {
-            Task { @MainActor in
+            } else {
                 ArticleListViewModel.shared.articles = []
             }
         }
