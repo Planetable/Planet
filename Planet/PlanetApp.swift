@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 @main
 struct PlanetApp: App {
     @NSApplicationDelegateAdaptor(PlanetAppDelegate.self) var appDelegate
@@ -35,6 +34,17 @@ struct PlanetApp: App {
                         Text("Open IPFS Resource")
                     }
                     .keyboardShortcut("o", modifiers: [.command])
+
+                    Button {
+                        if let url = URL(
+                            string: IPFSState.shared.getGateway()
+                                + "/ipns/k51qzi5uqu5dibstm2yxidly22jx94embd7j3xjstfk65ulictn2ajnjvpiac7"
+                        ) {
+                            NSWorkspace.shared.open(url)
+                        }
+                    } label: {
+                        Text("Open Local Gateway")
+                    }
                 }
                 keyboardHelper.writerCommands()
                 keyboardHelper.toolsCommands()
@@ -51,7 +61,8 @@ struct PlanetApp: App {
     private func mainWindow() -> some Scene {
         if #available(macOS 13.0, *) {
             return planetMainWindow()
-        } else {
+        }
+        else {
             return planetMainWindowGroup()
         }
     }
