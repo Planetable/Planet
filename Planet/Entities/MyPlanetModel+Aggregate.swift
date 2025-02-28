@@ -153,6 +153,7 @@ extension MyPlanetModel {
         let c = newArticlesCount
         if c > 0 {
             DispatchQueue.main.async {
+                self.updated = Date()
                 PlanetStore.shared.currentTaskProgressIndicator = .done
                 PlanetStore.shared.currentTaskMessage = "\(c) new posts fetched"
             }
