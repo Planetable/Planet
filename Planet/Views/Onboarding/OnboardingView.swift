@@ -74,6 +74,11 @@ struct OnboardingView: View {
                 .padding(.vertical, 20)
             }
             .padding(.horizontal, 40)
+            HStack {
+                Spacer()
+                Link("Read the Latest Release Notes ›", destination: URL(string: "https://planetable.eth.limo/feature-update-14/")!)
+                Spacer()
+            }
             Divider()
             HStack {
                 Button {
@@ -88,7 +93,7 @@ struct OnboardingView: View {
         }
         .padding(.vertical, 40)
         .background(Color(NSColor.textBackgroundColor))
-        .frame(width: PlanetUI.SHEET_WIDTH_LARGE, height: 520)
+        .frame(width: PlanetUI.SHEET_WIDTH_LARGE)
     }
 }
 
