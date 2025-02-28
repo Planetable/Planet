@@ -30,7 +30,9 @@ struct OnboardingView: View {
                     HStack(spacing: 20) {
                         Image(systemName: "network")
                             .resizable()
+                            .aspectRatio(contentMode: .fit)
                             .frame(width: 48, height: 48, alignment: .leading)
+                            .foregroundColor(.accentColor)
                         Text("Build and publish and follow websites on IPFS")
                             .font(.system(size: 16))
                         Spacer()
@@ -39,16 +41,19 @@ struct OnboardingView: View {
                     HStack(spacing: 20) {
                         Image(systemName: "tray.2")
                             .resizable()
+                            .aspectRatio(contentMode: .fit)
                             .frame(width: 48, height: 48, alignment: .leading)
+                            .foregroundColor(.accentColor)
                         Text("Manage multiple IPNS ready to be linked to your ENS")
                             .font(.system(size: 16))
                         Spacer()
                     }
-
                     HStack(spacing: 20) {
                         Image(systemName: "rectangle.leadinghalf.filled")
                             .resizable()
+                            .aspectRatio(contentMode: .fit)
                             .frame(width: 48, height: 48, alignment: .leading)
+                            .foregroundColor(.accentColor)
                         Text("Two-column Markdown editor for writing and previewing")
                             .font(.system(size: 16))
                         Spacer()
@@ -57,7 +62,9 @@ struct OnboardingView: View {
                     HStack(spacing: 20) {
                         Image(systemName: "square.and.arrow.down.on.square")
                             .resizable()
+                            .aspectRatio(contentMode: .fit)
                             .frame(width: 48, height: 48, alignment: .leading)
+                            .foregroundColor(.accentColor)
                         Text("Export and import websites between Macs")
                             .font(.system(size: 16))
                         Spacer()
