@@ -76,7 +76,7 @@ struct OnboardingView: View {
             .padding(.horizontal, 40)
             HStack {
                 Spacer()
-                Link("Read the Latest Release Notes ›", destination: URL(string: "https://planetable.eth.limo/feature-update-14/")!)
+                Link("Read the Latest Release Notes  ❯", destination: URL(string: "https://planetable.eth.limo/feature-update-14/")!)
                 Spacer()
             }
             Divider()
