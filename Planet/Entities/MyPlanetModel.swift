@@ -2226,6 +2226,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         defer {
             Task { @MainActor in
+                self.needsRebuild = false
                 self.isRebuilding = false
                 PlanetStatusManager.shared.updateStatus()
             }
@@ -2333,6 +2334,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         defer {
             Task { @MainActor in
+                self.needsRebuild = false
                 self.isRebuilding = false
                 PlanetStatusManager.shared.updateStatus()
             }

@@ -137,8 +137,10 @@ struct FollowingArticleItemView: View {
             isPresented: $isShowingDeleteConfirmation
         ) {
             Button(role: .destructive) {
-                if PlanetStore.shared.selectedArticle == article {
-                    PlanetStore.shared.selectedArticle = nil
+                Task { @MainActor in
+                    if PlanetStore.shared.selectedArticle == article {
+                        PlanetStore.shared.selectedArticle = nil
+                    }
                 }
                 article.delete()
                 if case .followingPlanet(let selectedPlanet) = PlanetStore.shared.selectedView {
