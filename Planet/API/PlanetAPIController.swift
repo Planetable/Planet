@@ -58,6 +58,20 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
     }
 
+    // MARK: - API Server
+    
+    func start() async throws {
+        
+    }
+    
+    func stop() async throws {
+        
+    }
+    
+    func pause() async throws {
+        
+    }
+
     func startServer() {
         guard globalApp == nil else { return }
         Task.detached(priority: .utility) {
@@ -117,6 +131,8 @@ class PlanetAPIController: NSObject, ObservableObject {
         globalApp = nil
         stopBonjourService()
     }
+
+    // MARK: - Bonjour Service
 
     func startBonjourService() {
         if bonjourService == nil {
