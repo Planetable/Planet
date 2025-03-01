@@ -1924,23 +1924,25 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
             }
         }
-        let result = try await IPFSDaemon.shared.api(
-            path: "name/publish",
-            args: [
-                "arg": cid,
-                "allow-offline": "1",
-                "key": id.uuidString,
-                "quieter": "1",
-                "lifetime": "7200h",
-            ],
-            timeout: 180
-        )
-        let published = try JSONDecoder.shared.decode(IPFSPublished.self, from: result)
-        Self.logger.info("Published planet \(published.name): \(cid)")
-        await MainActor.run {
-            self.isPublishing = false
-            self.publishStartedAt = nil
-            PlanetStatusManager.shared.updateStatus()
+        Task.detached(priority: .userInitiated) {
+            let result = try await IPFSDaemon.shared.api(
+                path: "name/publish",
+                args: [
+                    "arg": cid,
+                    "allow-offline": "1",
+                    "key": self.id.uuidString,
+                    "quieter": "1",
+                    "lifetime": "7200h",
+                ],
+                timeout: 180
+            )
+            let published = try JSONDecoder.shared.decode(IPFSPublished.self, from: result)
+            Self.logger.info("Published planet \(published.name): \(cid)")
+            await MainActor.run {
+                self.isPublishing = false
+                self.publishStartedAt = nil
+                PlanetStatusManager.shared.updateStatus()
+            }
         }
         Task.detached(priority: .background) {
             await self.prewarm()
