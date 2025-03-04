@@ -26,7 +26,7 @@ extension PlanetStore {
     /// Run every 180 seconds in Planet, pin the Planet to Pinnable.xyz
     func pin() async {
         debugPrint("Pinning to Pinnable...")
-        Task {
+        Task.detached(priority: .background) {
             await withTaskGroup(of: Void.self) { taskGroup in
                 for myPlanet in myPlanets {
                     if let enabled = myPlanet.pinnableEnabled, enabled {
@@ -42,7 +42,7 @@ extension PlanetStore {
     /// Run every 60 seconds in Planet, check if Pinnable has pinned the Planets with Pinnable integration
     func checkPinnable() async {
         debugPrint("Checking Pinnable...")
-        Task {
+        Task.detached(priority: .background) {
             await withTaskGroup(of: Void.self) { taskGroup in
                 for myPlanet in myPlanets {
                     taskGroup.addTask {
