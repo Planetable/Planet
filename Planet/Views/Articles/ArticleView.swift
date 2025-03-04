@@ -5,51 +5,53 @@ struct PlanetRebuildView: View {
     @ObservedObject var planet: MyPlanetModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Divider()
-            HStack(spacing: 8) {
-                Text("Build the site to publish the latest changes")
+        if planet.needsRebuild {
+            VStack(alignment: .leading, spacing: 0) {
+                Divider()
+                HStack(spacing: 8) {
+                    Text("Build the site to publish the latest changes")
 
-                Spacer()
+                    Spacer()
 
-                Button {
-                    Task(priority: .userInitiated) {
-                        PlanetStore.shared.selectedView = .myPlanet(planet)
-                        do {
-                            try await planet.rebuild()
-                        }
-                        catch {
-                            DispatchQueue.main.async {
-                                PlanetStore.shared.isShowingAlert = true
-                                PlanetStore.shared.alertTitle = "Failed to Rebuild Planet"
-                                PlanetStore.shared.alertMessage = error.localizedDescription
+                    Button {
+                        Task(priority: .userInitiated) {
+                            PlanetStore.shared.selectedView = .myPlanet(planet)
+                            do {
+                                try await planet.rebuild()
+                            }
+                            catch {
+                                DispatchQueue.main.async {
+                                    PlanetStore.shared.isShowingAlert = true
+                                    PlanetStore.shared.alertTitle = "Failed to Rebuild Planet"
+                                    PlanetStore.shared.alertMessage = error.localizedDescription
+                                }
                             }
                         }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                        Text("Full Rebuild")
                     }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                    Text("Full Rebuild")
-                }
 
-                Button {
-                    Task(priority: .userInitiated) {
-                        PlanetStore.shared.selectedView = .myPlanet(planet)
-                        do {
-                            try await planet.quickRebuild()
-                        }
-                        catch {
-                            Task { @MainActor in
-                                PlanetStore.shared.isShowingAlert = true
-                                PlanetStore.shared.alertTitle = "Failed to Quick Rebuild Planet"
-                                PlanetStore.shared.alertMessage = error.localizedDescription
+                    Button {
+                        Task(priority: .userInitiated) {
+                            PlanetStore.shared.selectedView = .myPlanet(planet)
+                            do {
+                                try await planet.quickRebuild()
+                            }
+                            catch {
+                                Task { @MainActor in
+                                    PlanetStore.shared.isShowingAlert = true
+                                    PlanetStore.shared.alertTitle = "Failed to Quick Rebuild Planet"
+                                    PlanetStore.shared.alertMessage = error.localizedDescription
+                                }
                             }
                         }
+                    } label: {
+                        Image(systemName: "bolt.fill")
+                        Text("Quick Rebuild")
                     }
-                } label: {
-                    Image(systemName: "bolt.fill")
-                    Text("Quick Rebuild")
-                }
-            }.padding(8)
+                }.padding(8)
+            }
         }
     }
 }
@@ -240,7 +242,7 @@ struct ArticleView: View {
         VStack(spacing: 0) {
             ArticleWebView(url: $url)
             ArticleAudioPlayer()
-            if let article = planetStore.selectedArticle, let myArticle = article as? MyArticleModel, let planet = myArticle.planet as? MyPlanetModel, planet.needsRebuild {
+            if let article = planetStore.selectedArticle, let myArticle = article as? MyArticleModel, let planet = myArticle.planet as? MyPlanetModel {
                 PlanetRebuildView(planet: planet)
             }
             if let article = planetStore.selectedArticle {
