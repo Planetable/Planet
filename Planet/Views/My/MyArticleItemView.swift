@@ -120,7 +120,7 @@ struct MyArticleItemView: View {
                         }
                     }
                 }
-                
+
                 Menu("Star") {
                     ArticleSetStarView(article: article)
                 }
@@ -135,7 +135,7 @@ struct MyArticleItemView: View {
                         Text("Remove Star")
                     }
                 }
-                
+
                 Divider()
 
                 moveArticleItem()
@@ -172,8 +172,8 @@ struct MyArticleItemView: View {
                 Divider()
 
                 Button {
-                    PlanetStore.shared.isShowingDeleteMyArticleConfirmation = true
                     PlanetStore.shared.deletingMyArticle = article
+                    PlanetStore.shared.isShowingDeleteMyArticleConfirmation = true
                 } label: {
                     Image(systemName: "minus.circle")
                     Text("Delete Article")
