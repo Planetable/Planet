@@ -28,7 +28,7 @@ extension PlanetStore {
         debugPrint("Pinning to Pinnable...")
         Task.detached(priority: .background) {
             await withTaskGroup(of: Void.self) { taskGroup in
-                for myPlanet in myPlanets {
+                for myPlanet in await self.myPlanets {
                     if let enabled = myPlanet.pinnableEnabled, enabled {
                         taskGroup.addTask {
                             await myPlanet.callPinnable()
@@ -44,7 +44,7 @@ extension PlanetStore {
         debugPrint("Checking Pinnable...")
         Task.detached(priority: .background) {
             await withTaskGroup(of: Void.self) { taskGroup in
-                for myPlanet in myPlanets {
+                for myPlanet in await self.myPlanets {
                     taskGroup.addTask {
                         if let status = await myPlanet.checkPinnablePinStatus() {
                             debugPrint("Pinnable status for \(myPlanet.name): \(status)")
