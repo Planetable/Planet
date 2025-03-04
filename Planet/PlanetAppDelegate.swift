@@ -140,7 +140,11 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
         center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: nil) { _ in
             if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
                 Task { @MainActor in
-                    PlanetAPIController.shared.pauseServerForSleep()
+                    do {
+                        try await PlanetAPIController.shared.pause()
+                    } catch {
+                        debugPrint("failed to pause API server: \(error)")
+                    }
                 }
             }
         }
@@ -149,7 +153,11 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                 Task.detached(priority: .utility) {
                     try? await Task.sleep(nanoseconds: 1_000_000_000)
                     Task { @MainActor in
-                        PlanetAPIController.shared.startServer()
+                        do {
+                            try await PlanetAPIController.shared.start()
+                        } catch {
+                            debugPrint("failed to start API server: \(error)")
+                        }
                     }
                 }
             }

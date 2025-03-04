@@ -149,11 +149,27 @@ struct PlanetAPIControlView: View {
 
         Button {
             if control.serverIsRunning {
-                control.stopServer()
+                Task { @MainActor in
+                    do {
+                        try await self.control.stop()
+                    } catch {
+                        isAlert = true
+                        alertTitle = "Failed to Stop Server"
+                        alertMessage = error.localizedDescription
+                    }
+                }
             } else {
                 do {
                     try applyServerInformation()
-                    control.startServer()
+                    Task { @MainActor in
+                        do {
+                            try await self.control.start()
+                        } catch {
+                            isAlert = true
+                            alertTitle = "Failed to Start Server"
+                            alertMessage = error.localizedDescription
+                        }
+                    }
                 } catch PlanetError.InvalidAPIPortError {
                     isAlert = true
                     alertTitle = "Failed to Start Server"
