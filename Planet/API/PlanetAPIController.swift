@@ -63,7 +63,9 @@ class PlanetAPIController: NSObject, ObservableObject {
     // MARK: - API Server
     
     func start() async throws {
-        guard globalApp == nil else { return }
+        guard globalApp == nil else {
+            throw PlanetError.InternalError
+        }
         Task.detached(priority: .utility) {
             await MainActor.run {
                 self.isOperating = true
@@ -120,68 +122,6 @@ class PlanetAPIController: NSObject, ObservableObject {
         globalApp = nil
         stopBonjourService()
     }
-
-    /*
-    func startServer() {
-        guard globalApp == nil else { return }
-        Task.detached(priority: .utility) {
-            await MainActor.run {
-                self.isOperating = true
-            }
-        }
-        do {
-            let env = try Environment.detect()
-            let app = Application(env)
-            globalApp = app
-            try configure(app)
-            DispatchQueue.global().async {
-                do {
-                    try app.run()
-                } catch {
-                    self.stopServer()
-                }
-            }
-            DispatchQueue.main.async {
-                self.serverIsRunning = true
-            }
-        } catch {
-            stopServer()
-        }
-        startBonjourService()
-        Task.detached(priority: .utility) {
-            try? await Task.sleep(nanoseconds: 200_000_000)
-            await MainActor.run {
-                self.isOperating = false
-            }
-        }
-    }
-
-    func stopServer() {
-        Task.detached(priority: .utility) {
-            await MainActor.run {
-                self.isOperating = true
-            }
-        }
-        globalApp?.shutdown()
-        globalApp = nil
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.serverIsRunning = false
-        }
-        stopBonjourService()
-        Task.detached(priority: .utility) {
-            try? await Task.sleep(nanoseconds: 200_000_000)
-            await MainActor.run {
-                self.isOperating = false
-            }
-        }
-    }
-
-    func pauseServerForSleep() {
-        globalApp?.shutdown()
-        globalApp = nil
-        stopBonjourService()
-    }
-     */
 
     // MARK: - Bonjour Service
 
