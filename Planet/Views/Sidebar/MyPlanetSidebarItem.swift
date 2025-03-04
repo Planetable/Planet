@@ -270,7 +270,9 @@ struct MyPlanetSidebarItem: View {
                             }
                         }
                     }
-                    article.delete()
+                    Task.detached(priority: .userInitiated) {
+                        article.delete()
+                    }
                     DispatchQueue.main.async {
                         planet.updated = Date()
                         try? planet.save()

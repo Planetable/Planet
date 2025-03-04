@@ -1889,13 +1889,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 toPin = true
             }
             if toPin {
-                debugPrint("Filebase: about to pin for \(filebasePinName)")
-                let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
-                if let requestID = await filebase.pin(cid: cid) {
-                    Task { @MainActor in
-                        self.filebaseRequestID = requestID
-                        self.filebasePinCID = cid
-                        try self.save()
+                Task.detached(priority: .userInitiated) {
+                    debugPrint("Filebase: about to pin for \(filebasePinName)")
+                    let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
+                    if let requestID = await filebase.pin(cid: cid) {
+                        Task { @MainActor in
+                            self.filebaseRequestID = requestID
+                            self.filebasePinCID = cid
+                            try? self.save()
+                        }
                     }
                 }
             }
