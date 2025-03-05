@@ -121,17 +121,6 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
         stopBonjourService()
     }
-    
-    func pause() async throws {
-        try await globalApp?.asyncShutdown()
-        globalApp = nil
-        Task.detached(priority: .utility) {
-            await MainActor.run {
-                self.serverIsRunning = false
-            }
-        }
-        stopBonjourService()
-    }
 
     // MARK: - Bonjour Service
 
@@ -426,7 +415,6 @@ class PlanetAPIController: NSObject, ObservableObject {
 
         return httpRequest
     }
-
 
     // MARK: -
 
