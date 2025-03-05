@@ -89,12 +89,14 @@ class PlanetAPIController: NSObject, ObservableObject {
             try? await stop()
             throw error
         }
-        DispatchQueue.main.async {
-            self.serverIsRunning = true
+        Task.detached(priority: .utility) {
+            await MainActor.run {
+                self.serverIsRunning = true
+            }
         }
         startBonjourService()
     }
-    
+
     func stop() async throws {
         Task.detached(priority: .utility) {
             await MainActor.run {
@@ -111,8 +113,11 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
         try await globalApp?.asyncShutdown()
         globalApp = nil
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.serverIsRunning = false
+        Task.detached(priority: .utility) {
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            await MainActor.run {
+                self.serverIsRunning = false
+            }
         }
         stopBonjourService()
     }
@@ -120,6 +125,11 @@ class PlanetAPIController: NSObject, ObservableObject {
     func pause() async throws {
         try await globalApp?.asyncShutdown()
         globalApp = nil
+        Task.detached(priority: .utility) {
+            await MainActor.run {
+                self.serverIsRunning = false
+            }
+        }
         stopBonjourService()
     }
 
