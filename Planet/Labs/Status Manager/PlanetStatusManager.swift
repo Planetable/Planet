@@ -62,6 +62,9 @@ class PlanetStatusManager: ObservableObject {
 
     private func terminate() {
         Task.detached(priority: .utility) {
+            if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
+                try? await PlanetAPIController.shared.stop()
+            }
             try? await IPFSDaemon.shared.shutdown()
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
         }
