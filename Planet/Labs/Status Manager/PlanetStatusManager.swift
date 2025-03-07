@@ -65,7 +65,7 @@ class PlanetStatusManager: ObservableObject {
         debugPrint("terminating...")
         Task.detached(priority: .userInitiated) {
             if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-                try? await PlanetAPIController.shared.stop()
+                try? await PlanetAPIController.shared.stop(skipStatus: true)
             }
             try? await IPFSDaemon.shared.shutdown()
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)

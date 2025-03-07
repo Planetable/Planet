@@ -17,11 +17,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     private var bonjourService: PlanetAPIService?
 
     @Published private(set) var isOperating: Bool = false
-    @Published var serverIsRunning: Bool = false {
-        didSet {
-            UserDefaults.standard.set(serverIsRunning, forKey: .settingsAPIEnabled)
-        }
-    }
+    @Published private(set) var serverIsRunning: Bool = false
 
     override init() {
         super.init()
@@ -93,11 +89,12 @@ class PlanetAPIController: NSObject, ObservableObject {
             await MainActor.run {
                 self.serverIsRunning = true
             }
+            UserDefaults.standard.set(true, forKey: .settingsAPIEnabled)
         }
         startBonjourService()
     }
 
-    func stop() async throws {
+    func stop(skipStatus: Bool = false) async throws {
         Task.detached(priority: .utility) {
             await MainActor.run {
                 self.isOperating = true
@@ -117,6 +114,9 @@ class PlanetAPIController: NSObject, ObservableObject {
             try? await Task.sleep(nanoseconds: 200_000_000)
             await MainActor.run {
                 self.serverIsRunning = false
+            }
+            if !skipStatus {
+                UserDefaults.standard.set(false, forKey: .settingsAPIEnabled)
             }
         }
         stopBonjourService()
