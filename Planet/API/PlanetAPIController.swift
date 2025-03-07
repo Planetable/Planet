@@ -6,7 +6,6 @@
 import Foundation
 import SwiftUI
 import Vapor
-import Swifter
 
 
 class PlanetAPIController: NSObject, ObservableObject {
