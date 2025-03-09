@@ -1915,9 +1915,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
             }
         }
-        Task.detached {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                if self.isPublishing {
+        if #available(macOS 13.0, *) {
+            let publishStartTime = Date()
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(10))
+                if self.isPublishing && publishStartTime.timeIntervalSinceNow < -9 {
                     debugPrint("Planet publish is still running")
                     self.isPublishing = false
                     PlanetStatusManager.shared.updateStatus()
