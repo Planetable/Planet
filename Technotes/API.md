@@ -21,7 +21,7 @@ Returns:
 ### Create a new Planet: ```POST /v0/planets/my```
 
 Inputs:
-- title: String
+- name: String
 - about: String
 - template: String
 - avatar: Image file in JPEG, PNG, GIF format, 5MB max.
@@ -31,7 +31,7 @@ Parameter title is required.
 ```
 curl -X POST http://localhost:8086/v0/planets/my \
   -H 'Content-Type: multipart/form-data' \
-  -F 'title=New Planet' \
+  -F 'name=New Planet' \
   -F 'about=Say hi to planet' \
   -F 'template=Grid' \
   -F 'avatar=@/path/to/image.jpg'
@@ -63,7 +63,7 @@ Returns:
 ### Modify my Planet: ```POST /v0/planets/my/:uuid```
 
 Inputs:
-- title: String
+- name: String
 - about: String
 - template: String
 - avatar: Image file in JPEG, PNG, GIF format, 5MB max.
@@ -71,7 +71,7 @@ Inputs:
 ```
 curl -X POST http://localhost:8086/v0/planets/my/12345678-312A-466D-979A-9BEC7D0F450A \
   -H 'Content-Type: multipart/form-data' \
-  -F 'title=Updated New Planet' \
+  -F 'name=Updated New Planet' \
   -F 'avatar=@/path/to/image.jpg'
 ```
 Returns:
