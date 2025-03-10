@@ -64,10 +64,17 @@ class PlanetStatusManager: ObservableObject {
     private func terminate() {
         debugPrint("terminating...")
         Task.detached(priority: .userInitiated) {
-            if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-                try? await PlanetAPIController.shared.stop(skipStatus: true)
+            await withTaskGroup(of: Void.self) { group in
+                if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
+                    group.addTask {
+                        try? await PlanetAPIController.shared.stop(skipStatus: true)
+                    }
+                }
+                group.addTask {
+                    try? await IPFSDaemon.shared.shutdown()
+                }
+                await group.waitForAll()
             }
-            try? await IPFSDaemon.shared.shutdown()
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
             debugPrint("terminated")
         }
