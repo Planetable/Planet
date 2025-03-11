@@ -156,15 +156,14 @@ struct AccountBadgeView: View {
                             self.displayName = displayName
                         }
                     }
-                    if let avatarURL = dictionary["avatar"] as? String {
-                        let url = URL(string: avatarURL)!
-                        let data = try? Data(contentsOf: url)
-                        if let data = data {
-                            let image = NSImage(data: data)
-                            DispatchQueue.main.async {
-                                avatarImage = image
+                    if let avatarURL = dictionary["avatar"] as? String, let url = URL(string: avatarURL) {
+                        URLSession.shared.dataTask(with: url) { imageData, _, _ in
+                            if let imageData = imageData, let image = NSImage(data: imageData) {
+                                DispatchQueue.main.async {
+                                    avatarImage = image
+                                }
                             }
-                        }
+                        }.resume()
                     }
                 }
             }
