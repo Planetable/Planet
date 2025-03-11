@@ -16,11 +16,7 @@ class PlanetAPIController: NSObject, ObservableObject {
     private var bonjourService: PlanetAPIService?
 
     @Published private(set) var isOperating: Bool = false
-    @Published var serverIsRunning: Bool = false {
-        didSet {
-            UserDefaults.standard.set(serverIsRunning, forKey: .settingsAPIEnabled)
-        }
-    }
+    @Published private(set) var serverIsRunning: Bool = false
 
     override init() {
         super.init()
@@ -48,74 +44,84 @@ class PlanetAPIController: NSObject, ObservableObject {
             defaults.set(false, forKey: .settingsAPIUsesPasscode)
         }
         if defaults.bool(forKey: .settingsAPIEnabled) {
-            Task.detached(priority: .background) {
+            Task.detached(priority: .utility) {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
-                Task { @MainActor in
-                    self.startServer()
+                do {
+                    try await self.start()
+                } catch {
+                    debugPrint("failed to start server: \(error)")
                 }
             }
         }
     }
 
-    func startServer() {
-        guard globalApp == nil else { return }
+    // MARK: - API Server
+    
+    func start() async throws {
+        guard globalApp == nil else {
+            throw PlanetError.InternalError
+        }
         Task.detached(priority: .utility) {
             await MainActor.run {
                 self.isOperating = true
+            }
+        }
+        defer {
+            Task.detached(priority: .utility) {
+                try? await Task.sleep(nanoseconds: 200_000_000)
+                await MainActor.run {
+                    self.isOperating = false
+                }
             }
         }
         do {
             let env = try Environment.detect()
-            let app = Application(env)
-            globalApp = app
+            let app = try await Application.make(env)
             try configure(app)
-            DispatchQueue.global().async {
-                do {
-                    try app.run()
-                } catch {
-                    self.stopServer()
-                }
-            }
-            DispatchQueue.main.async {
+            try await app.startup()
+            globalApp = app
+        } catch {
+            try? await stop()
+            throw error
+        }
+        Task.detached(priority: .utility) {
+            await MainActor.run {
                 self.serverIsRunning = true
             }
-        } catch {
-            stopServer()
+            UserDefaults.standard.set(true, forKey: .settingsAPIEnabled)
         }
         startBonjourService()
-        Task.detached(priority: .utility) {
-            try? await Task.sleep(nanoseconds: 200_000_000)
-            await MainActor.run {
-                self.isOperating = false
-            }
-        }
     }
 
-    func stopServer() {
+    func stop(skipStatus: Bool = false) async throws {
         Task.detached(priority: .utility) {
             await MainActor.run {
                 self.isOperating = true
             }
         }
-        globalApp?.shutdown()
-        globalApp = nil
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.serverIsRunning = false
+        defer {
+            Task.detached(priority: .utility) {
+                try? await Task.sleep(nanoseconds: 200_000_000)
+                await MainActor.run {
+                    self.isOperating = false
+                }
+            }
         }
-        stopBonjourService()
+        try await globalApp?.asyncShutdown()
+        globalApp = nil
         Task.detached(priority: .utility) {
             try? await Task.sleep(nanoseconds: 200_000_000)
             await MainActor.run {
-                self.isOperating = false
+                self.serverIsRunning = false
+            }
+            if !skipStatus {
+                UserDefaults.standard.set(false, forKey: .settingsAPIEnabled)
             }
         }
-    }
-
-    func pauseServerForSleep() {
-        globalApp?.shutdown()
-        globalApp = nil
         stopBonjourService()
     }
+
+    // MARK: - Bonjour Service
 
     func startBonjourService() {
         if bonjourService == nil {
@@ -408,7 +414,6 @@ class PlanetAPIController: NSObject, ObservableObject {
 
         return httpRequest
     }
-
 
     // MARK: -
 

@@ -135,26 +135,6 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        // Notify API server if system is going to sleep / awake
-        let center = NSWorkspace.shared.notificationCenter
-        center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: nil) { _ in
-            if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-                Task { @MainActor in
-                    PlanetAPIController.shared.pauseServerForSleep()
-                }
-            }
-        }
-        center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: nil) { _ in
-            if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
-                Task.detached(priority: .utility) {
-                    try? await Task.sleep(nanoseconds: 1_000_000_000)
-                    Task { @MainActor in
-                        PlanetAPIController.shared.startServer()
-                    }
-                }
-            }
-        }
-
         // Web app updater
         Task.detached(priority: .background) {
             await WebAppUpdater.shared.updateWebApp()
