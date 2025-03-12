@@ -231,7 +231,7 @@ struct AccountBadgeView: View {
     }
 
     private func verifyNFTOwnership(address: String) async throws {
-        let client = EthereumAPI.Cloudflare
+        let client = EthereumAPI.Flashbots
         let addressInTopic =
             "0x000000000000000000000000" + address.dropFirst("0x".count).lowercased()
         let params: JSON = [
