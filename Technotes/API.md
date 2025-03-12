@@ -11,7 +11,7 @@ Returns:
 [
     {
         "id": "9191EE94-312A-466D-979A-9BEC7D0F450A",
-        "title": "Hello Planet",
+        "name": "Hello Planet",
         "about": "Say hi to planet",
         ...
     }
@@ -40,7 +40,7 @@ Returns:
 ```
 {
     "id": "12345678-312A-466D-979A-9BEC7D0F450A",
-    "title": "New Planet",
+    "name": "New Planet",
     "about": "Say hi to planet",
     ...
 }
@@ -54,7 +54,7 @@ Returns:
 ```
 {
     "id": "12345678-312A-466D-979A-9BEC7D0F450A",
-    "title": "New Planet",
+    "name": "New Planet",
     "about": "Say hi to planet",
     ...
 }
@@ -78,7 +78,7 @@ Returns:
 ```
 {
     "id": "12345678-312A-466D-979A-9BEC7D0F450A",
-    "title": "Updated New Planet",
+    "name": "Updated New Planet",
     "about": "Say hi to planet",
     ...
 }
@@ -93,7 +93,7 @@ Returns:
 ```
 {
     "id": "12345678-312A-466D-979A-9BEC7D0F450A",
-    "title": "Updated New Planet",
+    "name": "Updated New Planet",
     "about": "Say hi to planet",
     ...
 }
@@ -108,7 +108,7 @@ Returns:
 ```
 {
     "id": "12345678-312A-466D-979A-9BEC7D0F450A",
-    "title": "Updated New Planet",
+    "name": "Updated New Planet",
     "about": "Say hi to planet",
     ...
 }
