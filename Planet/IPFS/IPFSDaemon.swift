@@ -822,6 +822,7 @@ extension IPFSDaemon {
     }
 
     // Reference: https://stackoverflow.com/a/65162953
+    // Checks if the port is available by trying to bind to it.
     static func isPortOpen(port: in_port_t) -> Bool {
         let socketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0)
         if socketFileDescriptor == -1 {
@@ -846,7 +847,8 @@ extension IPFSDaemon {
         return isOpen
     }
 
-    static func checkPort(host: String, port: Int) async -> Bool {
+    // Checks if the port is in use by trying to connect to it
+    static func checkPortConnection(host: String, port: Int) async -> Bool {
         return await withCheckedContinuation { continuation in
             let socketFD = socket(AF_INET, SOCK_STREAM, 0)
             if socketFD == -1 {
