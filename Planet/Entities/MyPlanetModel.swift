@@ -1293,8 +1293,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             try updateFavicon(withImage: i)
             return
         }
-        // write 144x144 avatar.png
-        if let resizedImage = i.resizeSquare(maxLength: 144), let data = resizedImage.PNGData {
+        // write 288x288 avatar.png
+        if let resizedImage = i.resizeSquare(maxLength: 288), let data = resizedImage.PNGData {
             try data.write(to: avatarPath)
             try data.write(to: publicAvatarPath)
             avatar = resizedImage
