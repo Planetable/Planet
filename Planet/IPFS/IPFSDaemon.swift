@@ -846,6 +846,39 @@ extension IPFSDaemon {
         return isOpen
     }
 
+    static func checkPort(host: String, port: Int) async -> Bool {
+        return await withCheckedContinuation { continuation in
+            let socketFD = socket(AF_INET, SOCK_STREAM, 0)
+            if socketFD == -1 {
+                continuation.resume(returning: false)
+                return
+            }
+
+            defer { close(socketFD) }
+
+            // Set timeout
+            var timeout = timeval(tv_sec: 2, tv_usec: 0)
+            setsockopt(socketFD, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
+            setsockopt(socketFD, SOL_SOCKET, SO_SNDTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
+
+            var socketAddress = sockaddr_in()
+            socketAddress.sin_family = sa_family_t(AF_INET)
+            socketAddress.sin_port = CFSwapInt16HostToBig(UInt16(port))
+
+            guard host.withCString({ inet_aton($0, &socketAddress.sin_addr) != 0 }) else {
+                continuation.resume(returning: false)
+                return
+            }
+
+            let sockAddrPtr = withUnsafePointer(to: &socketAddress) {
+                $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { $0 }
+            }
+
+            let result = connect(socketFD, sockAddrPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
+            continuation.resume(returning: result == 0)
+        }
+    }
+
     static func scoutPort(_ range: ClosedRange<UInt16>) -> UInt16? {
         for port in range {
             if isPortOpen(port: port) {

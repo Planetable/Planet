@@ -121,32 +121,10 @@ class IPFSState: ObservableObject {
     // MARK: -
 
     func updateStatus() async {
-        // verify webui online status
-        let url = URL(string: "http://127.0.0.1:\(self.apiPort)/api/v0/id")!
-        var request = URLRequest(
-            url: url,
-            cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
-            timeoutInterval: 5
-        )
-        request.httpMethod = "POST"
-        request.networkServiceType = .responsiveData
-        let onlineStatus: Bool
-        do {
-            let (_, response) = try await URLSession.shared.data(for: request)
-            if let res = response as? HTTPURLResponse, res.statusCode == 200 {
-                onlineStatus = true
-            }
-            else {
-                onlineStatus = false
-            }
-        }
-        catch {
-            onlineStatus = false
-        }
+        let onlineStatus = await IPFSDaemon.checkPort(host: "127.0.0.1", port: Int(self.apiPort))
         await MainActor.run {
             self.online = onlineStatus
         }
-        // update current peers
         if onlineStatus {
             await self.updateServerInfo()
         }
@@ -254,4 +232,5 @@ class IPFSState: ObservableObject {
             self.updateServerInfo(info)
         }
     }
+
 }
