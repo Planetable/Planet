@@ -35,11 +35,13 @@ struct IPFSStatusView: View {
 
             VStack(spacing: 0) {
                 HStack(spacing: 6) {
-                    Circle()
-                        .frame(width: 11, height: 11, alignment: .center)
-                        .foregroundColor(ipfsState.online ? Color.green : Color.red)
-                    Text(ipfsState.online ? "Online" : "Offline")
-                        .font(.body)
+                    if !ipfsState.isOperating {
+                        Circle()
+                            .frame(width: 11, height: 11, alignment: .center)
+                            .foregroundColor(ipfsState.online ? Color.green : Color.red)
+                        Text(ipfsState.online ? "Online" : "Offline")
+                            .font(.body)
+                    }
                     Spacer()
                     if ipfsState.isOperating {
                         ProgressView()
@@ -84,7 +86,6 @@ struct IPFSStatusView: View {
                                     else {
                                         try? await IPFSDaemon.shared.shutdown()
                                     }
-                                    await IPFSState.shared.updateStatus()
                                     await MainActor.run {
                                         self.isDaemonOnline = newValue
                                     }

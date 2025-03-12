@@ -308,10 +308,10 @@ actor IPFSDaemon {
                         Self.logger.info("Daemon launched")
                         Task.detached(priority: .utility) {
                             try? await Task.sleep(nanoseconds: 500_000_000)
-                            await IPFSState.shared.updateStatus()
                             IPFSState.shared.updateAppSettings()
                             try? await IPFSState.shared.calculateRepoSize()
                             Task { @MainActor in
+                                IPFSState.shared.updateOnlineStatus(true)
                                 IPFSState.shared.updateOperatingStatus(false)
                             }
                         }
@@ -321,6 +321,7 @@ actor IPFSDaemon {
                     let log = data.logFormat()
                     Self.logger.debug("[IPFS error]\n\(log, privacy: .public)")
                     Task { @MainActor in
+                        IPFSState.shared.updateOnlineStatus(false)
                         IPFSState.shared.updateOperatingStatus(false)
                     }
                 }
@@ -335,6 +336,7 @@ actor IPFSDaemon {
             )
             Self.logger.info("Failed to launch daemon: \(String(describing: error))")
             Task { @MainActor in
+                IPFSState.shared.updateOnlineStatus(false)
                 IPFSState.shared.updateOperatingStatus(false)
             }
             throw PlanetError.IPFSError
@@ -349,6 +351,9 @@ actor IPFSDaemon {
         do {
             let (ret, out, err) = try IPFSCommand.shutdownDaemon().run()
             if ret == 0 {
+                Task { @MainActor in
+                    IPFSState.shared.updateOnlineStatus(false)
+                }
                 Self.logger.info("Daemon shut down")
             }
             else {
