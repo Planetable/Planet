@@ -847,7 +847,7 @@ extension IPFSDaemon {
         return isOpen
     }
 
-    // Checks if the port is in use by trying to connect to it
+    // Checks if the port is in use by trying to connect to it.
     static func checkPortConnection(host: String, port: Int) async -> Bool {
         return await withCheckedContinuation { continuation in
             let socketFD = socket(AF_INET, SOCK_STREAM, 0)

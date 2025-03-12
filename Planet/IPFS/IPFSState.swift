@@ -121,7 +121,7 @@ class IPFSState: ObservableObject {
     // MARK: -
 
     func updateStatus() async {
-        let onlineStatus = await IPFSDaemon.checkPort(host: "127.0.0.1", port: Int(self.apiPort))
+        let onlineStatus = await IPFSDaemon.checkPortConnection(host: "127.0.0.1", port: Int(self.apiPort))
         await MainActor.run {
             self.online = onlineStatus
         }
