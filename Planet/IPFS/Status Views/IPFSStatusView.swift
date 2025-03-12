@@ -86,6 +86,7 @@ struct IPFSStatusView: View {
                                     else {
                                         try? await IPFSDaemon.shared.shutdown()
                                     }
+                                    await IPFSState.shared.updateStatus()
                                     await MainActor.run {
                                         self.isDaemonOnline = newValue
                                     }
