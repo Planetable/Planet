@@ -440,6 +440,43 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
     }
 
+    static func followFeaturedSources() async throws {
+        // Follow planetable.eth and vitalik.eth if not already followed
+        debugPrint("About to follow featured planets")
+        let planetableFollowed = await PlanetStore.shared.followingPlanets.contains {
+            $0.link == "planetable.eth"
+        }
+        if !planetableFollowed {
+            do {
+                let planet = try await FollowingPlanetModel.follow(link: "planetable.eth")
+                Task { @MainActor in
+                    PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+                }
+            }
+            catch {
+                debugPrint("Failed to follow planetable.eth: \(error)")
+            }
+        } else {
+            debugPrint("Already following planetable.eth")
+        }
+        let vitalikFollowed = await PlanetStore.shared.followingPlanets.contains {
+            $0.link == "vitalik.eth"
+        }
+        if !vitalikFollowed {
+            do {
+                let planet = try await FollowingPlanetModel.follow(link: "vitalik.eth")
+                Task { @MainActor in
+                    PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+                }
+            }
+            catch {
+                debugPrint("Failed to follow vitalik.eth: \(error)")
+            }
+        } else {
+            debugPrint("Already following vitalik.eth")
+        }
+    }
+
     static func followENS(ens: String) async throws -> FollowingPlanetModel {
         var enskit = ENSKit(jsonrpcClient: EthereumAPI.Flashbots, ipfsClient: GoIPFSGateway())
         var resolver = try await enskit.resolver(name: ens)
