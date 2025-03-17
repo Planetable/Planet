@@ -441,6 +441,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     static func followFeaturedSources() async throws {
+        Task { @MainActor in
+            let alert = NSAlert()
+            alert.messageText = "Follow Featured Planets"
+            alert.informativeText = "You will start following: \n\nplanetable.eth\nvitalik.eth"
+            let _ = alert.runModal()
+        }
         // Follow planetable.eth and vitalik.eth if not already followed
         debugPrint("About to follow featured planets")
         let planetableFollowed = await PlanetStore.shared.followingPlanets.contains {
