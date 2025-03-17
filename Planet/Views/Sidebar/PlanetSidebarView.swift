@@ -113,7 +113,7 @@ struct PlanetSidebarView: View {
                         Button {
                             planetStore.isCreatingPlanet = true
                         } label: {
-                            Label("Create Planet", systemImage: "plus")
+                            Label("New Planet...", systemImage: "plus")
                         }
                         .disabled(planetStore.isCreatingPlanet)
 
@@ -122,7 +122,7 @@ struct PlanetSidebarView: View {
                         Button {
                             planetStore.isFollowingPlanet = true
                         } label: {
-                            Label("Follow Planet", systemImage: "plus")
+                            Label("Follow Planet...", systemImage: "plus")
                         }
                     } label: {
                         Image(systemName: "plus")
