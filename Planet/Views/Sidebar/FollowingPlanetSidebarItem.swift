@@ -43,6 +43,17 @@ struct FollowingPlanetSidebarItem: View {
                     Text("Mark All as Read")
                 }
 
+                Divider()
+
+                Button {
+                    Task { @MainActor in
+                        planetStore.selectedView = .followingPlanet(planet)
+                        planetStore.isShowingPlanetInfo = true
+                    }
+                } label: {
+                    Text("Get Info")
+                }
+
                 if let cid = planet.cid {
                     Button {
                         NSPasteboard.general.clearContents()
