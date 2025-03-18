@@ -10,12 +10,19 @@ struct FollowPlanetView: View {
 
     var body: some View {
         VStack (spacing: 0) {
-            Text("Follow Planet")
+            HStack {
+                Text("Follow Planet")
                 .frame(height: 34, alignment: .leading)
                 .padding(.bottom, 2)
                 .padding(.horizontal, 16)
                 .font(.system(size: 15, weight: .regular, design: .default))
                 .background(.clear)
+
+                Spacer()
+
+                HelpLinkButton(helpLink: URL(string: "https://www.planetable.xyz/guides/follow-planet/")!)
+                .padding(.horizontal, 16)
+            }
 
             Divider()
 
@@ -56,6 +63,8 @@ struct FollowPlanetView: View {
                 } label: {
                     Text("Follow")
                 }
+                .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
                 .disabled(isFollowing)
             }
             .padding(16)
