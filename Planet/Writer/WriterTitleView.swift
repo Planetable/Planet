@@ -164,7 +164,6 @@ struct WriterTitleView: View {
                 HStack {
                     Text("Tags")
                 }
-
                 // Tag capsules
                 WrappingHStack(
                     tags.values.sorted(),
@@ -234,7 +233,15 @@ struct WriterTitleView: View {
                 .background(Color(NSColor.textBackgroundColor))
             }
         }
-        .frame(width: 280)
+        .frame(width: tagsViewWidth(tagsCount: availableTags.count))
+    }
+
+    private func tagsViewWidth(tagsCount: Int) -> CGFloat {
+        if (tagsCount > 30) {
+            return 380
+        } else {
+            return 280
+        }
     }
 }
 
