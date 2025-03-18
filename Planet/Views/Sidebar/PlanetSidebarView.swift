@@ -131,8 +131,10 @@ struct PlanetSidebarView: View {
                             .frame(width: 24, height: 24, alignment: .center)
                     }
                     .padding(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 0))
-                    .frame(width: 24, height: 24, alignment: .center)
+                    .frame(width: 40, height: 24, alignment: .center)
+                    /*
                     .menuStyle(BorderlessButtonMenuStyle())
+                    */
                     .menuIndicator(.hidden)
                 }
             }
