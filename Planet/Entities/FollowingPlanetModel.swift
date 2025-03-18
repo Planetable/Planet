@@ -125,7 +125,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             debugPrint("Following Planet CID: \(cid)")
             // CIDv0
             if cid.hasPrefix("Qm") {
-                return URL(string: "https://eth.sucks/ipfs/\(cid)/")
+                return URL(string: "https://dweb.link/ipfs/\(cid)/")
             }
             // CIDv1
             if cid.hasPrefix("bafy") {
