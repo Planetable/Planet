@@ -41,12 +41,12 @@ class IPFSState: ObservableObject {
             }
         }
         self.refreshRateTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshRate, repeats: true, block: { _ in
-            Task.detached(priority: .userInitiated) {
+            Task.detached(priority: .utility) {
                 await self.updateStatus()
             }
         })
         self.refreshTrafficTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshTrafficRate, repeats: true, block: { _ in
-            Task.detached(priority: .userInitiated) {
+            Task.detached(priority: .utility) {
                 await self.updateTrafficStatus()
             }
         })
@@ -73,6 +73,15 @@ class IPFSState: ObservableObject {
     @MainActor
     func updateOperatingStatus(_ flag: Bool) {
         self.isOperating = flag
+    }
+
+    @MainActor
+    func updateOnlineStatus(_ flag: Bool) {
+        self.online = flag
+        guard flag else { return }
+        Task.detached(priority: .utility) {
+            await self.updateServerInfo()
+        }
     }
 
     @MainActor
@@ -114,15 +123,18 @@ class IPFSState: ObservableObject {
     func updateStatus() async {
         // verify webui online status
         let url = URL(string: "http://127.0.0.1:\(self.apiPort)/api/v0/id")!
-        var request = URLRequest(
-            url: url,
-            cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
-            timeoutInterval: 5
-        )
+        let session = URLSession(configuration: {
+            let config = URLSessionConfiguration.ephemeral
+            config.timeoutIntervalForRequest = 5
+            config.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+            return config
+        }())
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.networkServiceType = .responsiveData
         let onlineStatus: Bool
         do {
-            let (_, response) = try await URLSession.shared.data(for: request)
+            let (_, response) = try await session.data(for: request)
             if let res = response as? HTTPURLResponse, res.statusCode == 200 {
                 onlineStatus = true
             }

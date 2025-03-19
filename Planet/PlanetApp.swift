@@ -29,9 +29,28 @@ struct PlanetApp: App {
             .commands {
                 CommandGroup(replacing: .newItem) {
                     Button {
+                        Task { @MainActor in
+                            planetStore.isCreatingPlanet = true
+                        }
+                    } label: {
+                        Text("New Planet...")
+                    }
+                    .keyboardShortcut("n", modifiers: [.command])
+
+                    Button {
+                        Task { @MainActor in
+                            planetStore.isFollowingPlanet = true
+                        }
+                    } label: {
+                        Text("Follow Planet...")
+                    }
+
+                    Divider()
+
+                    Button {
                         IPFSOpenWindowManager.shared.activate()
                     } label: {
-                        Text("Open IPFS Resource")
+                        Text("Open IPFS Resource...")
                     }
                     .keyboardShortcut("o", modifiers: [.command])
 
@@ -45,6 +64,7 @@ struct PlanetApp: App {
                     } label: {
                         Text("Open Local Gateway")
                     }
+                    .keyboardShortcut("g", modifiers: [.command])
                 }
                 keyboardHelper.writerCommands()
                 keyboardHelper.toolsCommands()

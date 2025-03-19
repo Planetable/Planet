@@ -2198,6 +2198,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     func loadOps() throws {
         do {
+            if !FileManager.default.fileExists(atPath: opsPath.path) {
+                self.ops = [:]
+                return
+            }
             let opsData = try Data(contentsOf: opsPath)
             self.ops = try JSONDecoder.shared.decode([String: Date].self, from: opsData)
         }

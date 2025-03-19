@@ -162,13 +162,27 @@ extension WriterWindow: NSToolbarDelegate {
             toolbarItem.isNavigational = false
         }
 
-        let button = NSButton(frame: CGRect(x: 0, y: 0, width: 45, height: 28))
-        button.widthAnchor.constraint(equalToConstant: button.frame.width).isActive = true
-        button.heightAnchor.constraint(equalToConstant: button.frame.height).isActive = true
-        button.bezelStyle = .texturedRounded
-        button.image = image
-        button.action = Selector((selector))
-        toolbarItem.view = button
+        // For the send button, add debouncing to prevent double-clicks
+        if itemIdentifier == .send {
+            // Use a custom send button class with debounce protection
+            let debounceButton = DebounceButton(frame: CGRect(x: 0, y: 0, width: 45, height: 28))
+            debounceButton.widthAnchor.constraint(equalToConstant: debounceButton.frame.width).isActive = true
+            debounceButton.heightAnchor.constraint(equalToConstant: debounceButton.frame.height).isActive = true
+            debounceButton.bezelStyle = .texturedRounded
+            debounceButton.image = image
+            debounceButton.action = Selector((selector))
+            debounceButton.target = self
+            toolbarItem.view = debounceButton
+        } else {
+            let button = NSButton(frame: CGRect(x: 0, y: 0, width: 45, height: 28))
+            button.widthAnchor.constraint(equalToConstant: button.frame.width).isActive = true
+            button.heightAnchor.constraint(equalToConstant: button.frame.height).isActive = true
+            button.bezelStyle = .texturedRounded
+            button.image = image
+            button.action = Selector((selector))
+            button.target = self
+            toolbarItem.view = button
+        }
 
         toolbarItem.toolTip = title
         toolbarItem.label = title
@@ -218,5 +232,23 @@ extension WriterWindow: NSWindowDelegate {
         Task { @MainActor in
             KeyboardShortcutHelper.shared.activeWriterWindow = nil
         }
+    }
+}
+
+class DebounceButton: NSButton {
+    private var isProcessingClick = false
+    private let debounceTime: TimeInterval = 1.0
+
+    override func sendAction(_ action: Selector?, to target: Any?) -> Bool {
+        guard !isProcessingClick else { return false }
+
+        isProcessingClick = true
+
+        // Schedule re-enabling of the button
+        DispatchQueue.main.asyncAfter(deadline: .now() + debounceTime) { [weak self] in
+            self?.isProcessingClick = false
+        }
+
+        return super.sendAction(action, to: target)
     }
 }

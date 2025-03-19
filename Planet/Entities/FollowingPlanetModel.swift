@@ -125,7 +125,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             debugPrint("Following Planet CID: \(cid)")
             // CIDv0
             if cid.hasPrefix("Qm") {
-                return URL(string: "https://eth.sucks/ipfs/\(cid)/")
+                return URL(string: "https://dweb.link/ipfs/\(cid)/")
             }
             // CIDv1
             if cid.hasPrefix("bafy") {
@@ -437,6 +437,49 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             let planetString = String(data: planetData, encoding: .utf8)
             debugPrint("Get Public Planet from CID: Error: \(error)")
             return nil
+        }
+    }
+
+    static func followFeaturedSources() async throws {
+        Task { @MainActor in
+            let alert = NSAlert()
+            alert.messageText = "Follow Featured Planets"
+            alert.informativeText = "You will start following: \n\nplanetable.eth\nvitalik.eth"
+            let _ = alert.runModal()
+        }
+        // Follow planetable.eth and vitalik.eth if not already followed
+        debugPrint("About to follow featured planets")
+        let planetableFollowed = await PlanetStore.shared.followingPlanets.contains {
+            $0.link == "planetable.eth"
+        }
+        if !planetableFollowed {
+            do {
+                let planet = try await FollowingPlanetModel.follow(link: "planetable.eth")
+                Task { @MainActor in
+                    PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+                }
+            }
+            catch {
+                debugPrint("Failed to follow planetable.eth: \(error)")
+            }
+        } else {
+            debugPrint("Already following planetable.eth")
+        }
+        let vitalikFollowed = await PlanetStore.shared.followingPlanets.contains {
+            $0.link == "vitalik.eth"
+        }
+        if !vitalikFollowed {
+            do {
+                let planet = try await FollowingPlanetModel.follow(link: "vitalik.eth")
+                Task { @MainActor in
+                    PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+                }
+            }
+            catch {
+                debugPrint("Failed to follow vitalik.eth: \(error)")
+            }
+        } else {
+            debugPrint("Already following vitalik.eth")
         }
     }
 

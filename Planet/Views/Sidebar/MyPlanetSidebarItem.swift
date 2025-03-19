@@ -146,6 +146,15 @@ struct MyPlanetSidebarItem: View {
             developMenu()
 
             Group {
+                Button {
+                    Task { @MainActor in
+                        planetStore.selectedView = .myPlanet(planet)
+                        planetStore.isShowingPlanetInfo = true
+                    }
+                } label: {
+                    Text("Get Info")
+                }
+
                 copyMenu()
 
                 Button {

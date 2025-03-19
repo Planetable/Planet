@@ -33,6 +33,14 @@ class KeyboardShortcutHelper: ObservableObject {
             } label: {
                 Text("What's New in Planet")
             }
+
+            Button {
+                Task {
+                    try? await FollowingPlanetModel.followFeaturedSources()
+                }
+            } label: {
+                Text("Follow Featured Planets")
+            }
         }
     }
 
@@ -180,7 +188,7 @@ class KeyboardShortcutHelper: ObservableObject {
                 }
 
                 publishedFoldersMenus()
-                
+
                 apiConsoleMenus()
 
                 Divider()
@@ -457,7 +465,7 @@ class KeyboardShortcutHelper: ObservableObject {
             self.serviceStore.updatePendingPublishings()
         }
     }
-    
+
     @ViewBuilder
     private func apiConsoleMenus() -> some View {
         PlanetAPIConsoleWindowManager.shared.consoleCommandMenu()
