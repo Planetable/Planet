@@ -132,6 +132,21 @@ struct AvatarPickerView: View {
                                                 avatarChanged = true
                                                 debugPrint("Set planet avatar to \(aKey), at: \(avatarURL)")
                                             }
+                                            Task { @MainActor in
+                                                highlightedItems.removeAll()
+                                                Task.detached(priority: .utility) {
+                                                    try? await Task.sleep(nanoseconds: 20_000_000)
+                                                    let _ = await MainActor.run {
+                                                        self.highlightedItems.insert(aKey)
+                                                    }
+                                                    try? await Task.sleep(nanoseconds: 270_000_000)
+                                                    await MainActor.run {
+                                                        let _ = withAnimation(.easeOut(duration: 0.25)) {
+                                                            highlightedItems.removeAll()
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                         else {
                                             debugPrint("Cannot set planet avatar")
