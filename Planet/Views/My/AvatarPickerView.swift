@@ -11,6 +11,7 @@ enum AvatarCategory: String, CaseIterable {
     case nostalgia = "Nostalgia"
     case monochrom = "Monochrom"
     case pixelPlanet = "Pixel Planet"
+    case pixelNomad = "Pixel Nomad"
 
     var id: String { rawValue }
 
@@ -22,6 +23,8 @@ enum AvatarCategory: String, CaseIterable {
             return "MNCR"
         case .pixelPlanet:
             return "PP"
+        case .pixelNomad:
+            return "PN"
         }
     }
 }
