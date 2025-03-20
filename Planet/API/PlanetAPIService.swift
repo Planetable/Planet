@@ -60,7 +60,7 @@ class PlanetAPIService: NSObject, NetServiceDelegate {
         netService.delegate = self
         netService.includesPeerToPeer = true
 
-        debugPrint("About to publish Bonjour service: \(netService)")
+        debugPrint("About to publish Bonjour service: \(String(describing: netService))")
         // Publish the service to the network.
         netService.publish()
     }

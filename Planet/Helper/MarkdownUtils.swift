@@ -58,7 +58,7 @@ struct StencilExtension {
                                     let prefix = "\(site)/\(articleID.uuidString)/"
                                     debugPrint("prefix: \(prefix)")
                                     let absoluteURL = prefix + src
-                                    try? image.attr("src", absoluteURL)
+                                    let _ = try? image.attr("src", absoluteURL)
                                 }
                             }
                         }

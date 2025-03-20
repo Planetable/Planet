@@ -80,7 +80,7 @@ struct ArticleWebView: NSViewRepresentable {
             Task {
                 do {
                     if let contentList: WKContentRuleList = try await WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "IPFSAPIPortList", encodedContentRuleList: ruleListString) {
-                        wv.configuration.userContentController.add(contentList)
+                        await wv.configuration.userContentController.add(contentList)
                     }
                 } catch {
                     debugPrint("failed to update rule list for article view: \(error)")
@@ -144,7 +144,7 @@ struct ArticleWebView: NSViewRepresentable {
             didFailProvisionalNavigation navigation: WKNavigation!,
             withError error: Error
         ) {
-            debugPrint("ArticleWebView: didFailProvisionalNavigation \(navigation)")
+            debugPrint("ArticleWebView: didFailProvisionalNavigation \(String(describing: navigation))")
         }
 
         func webView(
@@ -162,7 +162,7 @@ struct ArticleWebView: NSViewRepresentable {
             preferences: WKWebpagePreferences,
             decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void
         ) {
-            debugPrint("WKWebView decidePolicyFor: action: \(navigationAction) / url: \(navigationAction.request.url)")
+            debugPrint("WKWebView decidePolicyFor: action: \(navigationAction) / url: \(String(describing: navigationAction.request.url))")
             // handle (ignore) target="_blank" (open in new window) link as external
             if navigationAction.targetFrame == nil, let externalURL = navigationAction.request.url,
                isValidatedLink(externalURL) {

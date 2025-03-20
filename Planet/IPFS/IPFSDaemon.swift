@@ -697,7 +697,7 @@ actor IPFSDaemon {
 
     func getFile(ipns: String, path: String = "") async throws -> Data {
         Self.logger.info("Getting file from IPNS \(ipns)\(path)")
-        guard let gatewayPort else {
+        guard let _ = gatewayPort else {
             throw PlanetError.IPFSError
         }
         let gateway = IPFSState.shared.getGateway()
