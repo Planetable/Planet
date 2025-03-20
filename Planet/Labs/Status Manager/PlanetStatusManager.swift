@@ -29,15 +29,12 @@ class PlanetStatusManager: ObservableObject {
     func reply() -> NSApplication.TerminateReply {
         if isClear {
             terminate()
-//            return .terminateNow
         } else {
             // Read @AppStorage(String.settingsWarnBeforeQuitIfPublishing) to determine whether to show alert or not
             if let warnBeforeQuitIfPublishing = UserDefaults.standard.object(forKey: String.settingsWarnBeforeQuitIfPublishing) as? Bool, warnBeforeQuitIfPublishing {
                 wait()
-//                return .terminateLater
             } else {
                 terminate()
-//                return .terminateNow
             }
         }
         return .terminateLater
@@ -62,7 +59,7 @@ class PlanetStatusManager: ObservableObject {
     }
 
     private func terminate() {
-        debugPrint("terminating...")
+        debugPrint("Main application is terminating...")
         Task.detached(priority: .userInitiated) {
             await withTaskGroup(of: Void.self) { group in
                 if UserDefaults.standard.bool(forKey: .settingsAPIEnabled) {
@@ -76,7 +73,7 @@ class PlanetStatusManager: ObservableObject {
                 await group.waitForAll()
             }
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
-            debugPrint("terminated")
+            debugPrint("Main application terminated")
         }
     }
 }
