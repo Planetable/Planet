@@ -326,6 +326,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
 
     func preprocessContentForMarkdown() -> String {
+        return content
+        /*
         var processedContent = content
         let timestamp = Int(Date().timeIntervalSince1970)
         // not very efficient, but let's see if we observe performance problem
@@ -336,6 +338,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         //    processedContent = processedContent.replacingOccurrences(of: find, with: replace)
         //}
         return processedContent
+         */
     }
 
     func renderPreview() throws {

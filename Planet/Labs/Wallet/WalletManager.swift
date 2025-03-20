@@ -231,7 +231,7 @@ class WalletManager: NSObject, ObservableObject {
             // Sign: sessionRejectionPublisher
             Sign.instance.sessionRejectionPublisher
                 .receive(on: DispatchQueue.main)
-                .sink { [unowned self] rejection in
+                .sink { rejection in
                     debugPrint("WalletConnect 2.0 Session Rejection: \(rejection)")
                     Task { @MainActor in
                         PlanetStore.shared.isShowingWalletConnectV2QRCode = false
@@ -241,9 +241,9 @@ class WalletManager: NSObject, ObservableObject {
             // Sign: sessionEventPublisher
             Sign.instance.sessionEventPublisher
                 .receive(on: DispatchQueue.main)
-                .sink { [unowned self] (event, topic, chain) in
+                .sink { (event, topic, chain) in
                     debugPrint(
-                        "WalletConnect 2.0 Session Event: event: \(event) topic: \(topic) blockchain: \(chain)"
+                        "WalletConnect 2.0 Session Event: event: \(event) topic: \(topic) blockchain: \(String(describing: chain))"
                     )
                 }.store(in: &disposeBag)
 
@@ -594,7 +594,7 @@ class WalletManager: NSObject, ObservableObject {
     {
         let tipAmount = amount * 10_000_000_000_000_000  // Tip Amount: X * 0.01 ETH
         let value = String(tipAmount, radix: 16)
-        var memoEncoded: String = memo.asTransactionData()
+        let memoEncoded: String = memo.asTransactionData()
         #if DEBUG
             let chainId = 11_155_111
         #else
@@ -627,7 +627,7 @@ class WalletManager: NSObject, ObservableObject {
                 web3.eth.getTransactionByHash(blockHash: transactionHash) { response in
                     if response.status.isSuccess, let transaction = response.result {
                         debugPrint(
-                            "Transaction on \(chain): \(transaction?.from.hex(eip55: true)) -> \(transaction?.to?.hex(eip55: true) ?? "") \(transaction?.value)"
+                            "Transaction on \(chain): \(String(describing: transaction?.from.hex(eip55: true))) -> \(transaction?.to?.hex(eip55: true) ?? "") \(String(describing: transaction?.value))"
                         )
                         continuation.resume(returning: transaction)
                     }
@@ -675,8 +675,8 @@ class WalletManager: NSObject, ObservableObject {
         if let apiToken = Bundle.main.object(forInfoDictionaryKey: "ETHERSCAN_API_TOKEN") as? String {
             for chain in EthereumChainID.allCases {
                 debugPrint("Fetching transactions for \(address) on \(chain)")
-                var etherscanAPIPrefix = chain.etherscanAPI
-                var apiCall = etherscanAPIPrefix + "?module=account&action=txlist&address=\(address)&startblock=0&endblock=99999999&page=1&offset=0&sort=asc&apikey=\(apiToken)"
+                let etherscanAPIPrefix = chain.etherscanAPI
+                let apiCall = etherscanAPIPrefix + "?module=account&action=txlist&address=\(address)&startblock=0&endblock=99999999&page=1&offset=0&sort=asc&apikey=\(apiToken)"
                 if let url = URL(string: apiCall) {
                     do {
                         let (data, _) = try await URLSession.shared.data(from: url)
@@ -775,7 +775,7 @@ extension WalletManager: WalletConnectDelegate {
             PlanetStore.shared.walletAddress =
                 self.walletConnect.session.walletInfo?.accounts[0] ?? ""
             debugPrint("Wallet Address: \(PlanetStore.shared.walletAddress)")
-            debugPrint("Session: \(self.walletConnect.session)")
+            debugPrint("Session: \(String(describing: self.walletConnect.session))")
         }
     }
 
@@ -801,7 +801,7 @@ extension PlanetStore {
 
 extension Int {
     func showAsEthers() -> String {
-        var ethers: Float = Float(self) / 100
+        let ethers: Float = Float(self) / 100
         return String(format: "%.2f Ξ", ethers)
     }
 

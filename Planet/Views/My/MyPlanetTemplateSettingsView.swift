@@ -96,7 +96,7 @@ struct MyPlanetTemplateSettingsView: View {
                         let fileName =
                             "\(planet.template?.id ?? "planet")-template-settings-\(now).json"
                         let savePanel = NSSavePanel()
-                        savePanel.allowedFileTypes = ["json"]
+                        savePanel.allowedContentTypes = [.json]
                         savePanel.nameFieldStringValue = fileName.lowercased()
                         savePanel.begin { response in
                             if response == .OK, let url = savePanel.url {
@@ -120,7 +120,7 @@ struct MyPlanetTemplateSettingsView: View {
                     Button {
                         // Import settings from a JSON file
                         let openPanel = NSOpenPanel()
-                        openPanel.allowedFileTypes = ["json"]
+                        openPanel.allowedContentTypes = [.json]
                         openPanel.begin { response in
                             if response == .OK, let url = openPanel.url {
                                 do {
