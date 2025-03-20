@@ -11,6 +11,7 @@ enum AvatarCategory: String, CaseIterable {
     case nostalgia = "Nostalgia"
     case monochrom = "Monochrom"
     case pixelPlanet = "Pixel Planet"
+    case pixelNomad = "Pixel Nomad"
 
     var id: String { rawValue }
 
@@ -22,6 +23,8 @@ enum AvatarCategory: String, CaseIterable {
             return "MNCR"
         case .pixelPlanet:
             return "PP"
+        case .pixelNomad:
+            return "PN"
         }
     }
 }
@@ -128,6 +131,21 @@ struct AvatarPickerView: View {
                                                 selectedAvatar = image
                                                 avatarChanged = true
                                                 debugPrint("Set planet avatar to \(aKey), at: \(avatarURL)")
+                                            }
+                                            Task { @MainActor in
+                                                highlightedItems.removeAll()
+                                                Task.detached(priority: .utility) {
+                                                    try? await Task.sleep(nanoseconds: 20_000_000)
+                                                    let _ = await MainActor.run {
+                                                        self.highlightedItems.insert(aKey)
+                                                    }
+                                                    try? await Task.sleep(nanoseconds: 270_000_000)
+                                                    await MainActor.run {
+                                                        let _ = withAnimation(.easeOut(duration: 0.25)) {
+                                                            highlightedItems.removeAll()
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                         else {
