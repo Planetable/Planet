@@ -136,8 +136,8 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
         }
 
         // Web app updater
-        Task.detached(priority: .background) {
-            await WebAppUpdater.shared.updateWebApp()
+        DispatchQueue.global(qos: .background).async {
+            WebAppUpdater.shared.updateWebApp()
         }
     }
 

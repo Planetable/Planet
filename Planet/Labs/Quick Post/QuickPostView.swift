@@ -138,7 +138,7 @@ struct QuickPostView: View {
 
     private func sheetHeight() -> CGFloat {
         if viewModel.fileURLs.count > 0 {
-            if let audioURL = viewModel.audioURL {
+            if let _ = viewModel.audioURL {
                 return 310 + 25
             }
             return 310
@@ -179,7 +179,7 @@ struct QuickPostView: View {
         .background(Color.secondary.opacity(0.05))
         .onTapGesture {
             // Insert media reference at cursor position
-            let fileName = url.lastPathComponent
+            let _ = url.lastPathComponent
             let mediaReference = url.htmlCode
             
             // Get current cursor position
@@ -252,7 +252,7 @@ struct QuickPostView: View {
         let response = panel.runModal()
         guard response == .OK, panel.urls.count > 0 else { return }
         let urls = panel.urls
-        try urls.forEach { url in
+        urls.forEach { url in
             viewModel.fileURLs.append(url)
             if type == .audio {
                 if let existingAudioURL = viewModel.audioURL {

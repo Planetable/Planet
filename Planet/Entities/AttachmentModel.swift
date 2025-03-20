@@ -56,10 +56,10 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
             if let im = NSImage(contentsOf: self.path) {
                 let imageRep = im.representations.first as? NSBitmapImageRep
                 let width = imageRep?.pixelsWide ?? 0
-                let height = imageRep?.pixelsHigh ?? 0
+                let _ = imageRep?.pixelsHigh ?? 0
                 let pointSize = im.size
                 let pointWidth = pointSize.width
-                let pointHeight = pointSize.height
+                let _ = pointSize.height
                 var widthToUse = 0
                 if (CGFloat(width) / pointWidth) > 1 {
                     widthToUse = Int(pointWidth)
