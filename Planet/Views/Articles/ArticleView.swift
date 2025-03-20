@@ -242,7 +242,7 @@ struct ArticleView: View {
         VStack(spacing: 0) {
             ArticleWebView(url: $url)
             ArticleAudioPlayer()
-            if let article = planetStore.selectedArticle, let myArticle = article as? MyArticleModel, let planet = myArticle.planet as? MyPlanetModel {
+            if let article = planetStore.selectedArticle, let myArticle = article as? MyArticleModel, let planet = myArticle.planet {
                 PlanetRebuildView(planet: planet)
             }
             if let article = planetStore.selectedArticle {
@@ -403,7 +403,7 @@ struct ArticleView: View {
                 .help("Search")
                 .keyboardShortcut("f", modifiers: [.command])
 
-                if let article = planetStore.selectedArticle {
+                if let _ = planetStore.selectedArticle {
                     Button {
                         isSharing = true
                     } label: {
@@ -608,7 +608,7 @@ struct ArticleView: View {
             } label: {
                 Image(systemName: "info.circle")
             }
-            if let receiver = canTip(planet: planet) {
+            if let _ = canTip(planet: planet) {
                 Button {
                     planetStore.isShowingWalletTipAmount = true
                     /* Previous logic for sending test transaction
