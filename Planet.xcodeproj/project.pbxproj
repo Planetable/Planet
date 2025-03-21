@@ -278,6 +278,8 @@
 		2AC4997427BC0EBA00F1C2D1 /* Planet.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4997227BC0EBA00F1C2D1 /* Planet.xcdatamodeld */; };
 		2AC5A09D2BFAF7D700B9B172 /* IPFSTrafficChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC5A09C2BFAF7D700B9B172 /* IPFSTrafficChartView.swift */; };
 		2AC5A09E2BFAF7D700B9B172 /* IPFSTrafficChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC5A09C2BFAF7D700B9B172 /* IPFSTrafficChartView.swift */; };
+		2AC70F622D8D127400C9F614 /* PlanetDockTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC70F612D8D127400C9F614 /* PlanetDockTile.swift */; };
+		2AC70F632D8D127400C9F614 /* PlanetDockTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC70F612D8D127400C9F614 /* PlanetDockTile.swift */; };
 		2AC889422B71D4200090D355 /* TemplateMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC889412B71D4200090D355 /* TemplateMonitor.swift */; };
 		2AD0613C2C47A5AC00E288DB /* PlanetAPIController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD0613B2C47A5AC00E288DB /* PlanetAPIController.swift */; };
 		2AD0613D2C47A5AC00E288DB /* PlanetAPIController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD0613B2C47A5AC00E288DB /* PlanetAPIController.swift */; };
@@ -679,6 +681,7 @@
 		2AC4996927BB987B00F1C2D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2AC4997327BC0EBA00F1C2D1 /* Planet.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Planet.xcdatamodel; sourceTree = "<group>"; };
 		2AC5A09C2BFAF7D700B9B172 /* IPFSTrafficChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSTrafficChartView.swift; sourceTree = "<group>"; };
+		2AC70F612D8D127400C9F614 /* PlanetDockTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDockTile.swift; sourceTree = "<group>"; };
 		2AC889412B71D4200090D355 /* TemplateMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateMonitor.swift; sourceTree = "<group>"; };
 		2AD0613B2C47A5AC00E288DB /* PlanetAPIController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIController.swift; sourceTree = "<group>"; };
 		2AD0613E2C47A6E000E288DB /* PlanetAPIControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIControlView.swift; sourceTree = "<group>"; };
@@ -1006,6 +1009,7 @@
 				2A27744D2A9515EB00A5DDC2 /* IconModel.swift */,
 				2A27744F2A9515F600A5DDC2 /* IconGalleryView.swift */,
 				2A2774552A95161F00A5DDC2 /* PlanetDockPlugIn.swift */,
+				2AC70F612D8D127400C9F614 /* PlanetDockTile.swift */,
 			);
 			path = "Icon Gallery";
 			sourceTree = "<group>";
@@ -1901,6 +1905,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2AC70F632D8D127400C9F614 /* PlanetDockTile.swift in Sources */,
 				2A2774572A95161F00A5DDC2 /* PlanetDockPlugIn.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2275,6 +2280,7 @@
 				72114683927B9B11EFE02DD4 /* OnboardingView.swift in Sources */,
 				2AF9935E2C6F743B0096F992 /* PlanetAPIConsoleWindowManager.swift in Sources */,
 				6A61D5E72B23A234007F761E /* CapsuleBar.swift in Sources */,
+				2AC70F622D8D127400C9F614 /* PlanetDockTile.swift in Sources */,
 				72114717FB02C931CE9E08E9 /* MyPlanetSidebarItem.swift in Sources */,
 				2A3D28C32C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */,
 				2A4AE87A2A89EF3600A27B5B /* GroupIndicatorView.swift in Sources */,
