@@ -787,7 +787,7 @@ struct MyPlanetEditView: View {
                             planet.saveRoundAvatar = saveRoundAvatar
                             if saveRoundAvatar {
                                 // Read the avatar file on disk and resave it
-                                if let avatar = planet.avatar {
+                                if let _ = planet.avatar {
                                     resaveAvatar = true
                                 }
                             }
