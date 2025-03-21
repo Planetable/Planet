@@ -24,8 +24,7 @@ struct DockIcon: Decodable, Equatable, Hashable {
             let value = try KeychainHelper.shared.loadValue(forKey: self.iconKey())
             return value != ""
         } catch {
-            debugPrint("failed to verify dock icon status: \(error)")
+            return false
         }
-        return false
     }
 }
