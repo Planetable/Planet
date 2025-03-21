@@ -158,8 +158,8 @@ struct MyArticleSettingsView: View {
                         } else {
                             article.title = ""
                         }
-                        var previousSlug = article.slug
-                        var nextSlug = slug
+                        let previousSlug = article.slug
+                        let nextSlug = slug
                         var slugChanged = false
                         if !slug.isEmpty {
                             if slug.count == 0 {
@@ -304,8 +304,8 @@ struct MyArticleSettingsView: View {
     }
 
     private func addTag() {
-        var aTag = newTag.trim()
-        var normalizedTag = aTag.normalizedTag()
+        let aTag = newTag.trim()
+        let normalizedTag = aTag.normalizedTag()
         if normalizedTag.count > 0 {
             if tags.keys.contains(aTag) {
                 // tag already exists

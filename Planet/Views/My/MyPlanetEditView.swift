@@ -267,7 +267,7 @@ struct MyPlanetEditView: View {
                 }
                 .frame(width: CONTROL_CAPTION_WIDTH + 20)
 
-                if let status = pinnablePinStatus {
+                if let _ = pinnablePinStatus {
                     Button {
                         if let url = planet.browserURL {
                             debugPrint("Pinnable: Open preview URL \(url)")
@@ -304,7 +304,7 @@ struct MyPlanetEditView: View {
                             pinnablePinCID = cid
                             if cid != planet.pinnablePinCID {
                                 planet.pinnablePinCID = cid
-                                try? await planet.save()
+                                try? planet.save()
                             }
                         }
                     }

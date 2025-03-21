@@ -521,7 +521,7 @@ class MyArticleModel: ArticleModel, Codable {
                     }
                 }
             }
-            if let videoFilename = self.videoFilename {
+            if let _ = self.videoFilename {
                 let videoThumbnailURL = postURL.appendingPathComponent("_videoThumbnail.png")
                 do {
                     debugPrint(

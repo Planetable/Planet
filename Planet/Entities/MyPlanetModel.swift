@@ -1832,7 +1832,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         saveRobotsTxt()
 
         // MARK: - Save template settings
-        try writeTemplateSettings()
+        writeTemplateSettings()
     }
 
     func saveRobotsTxt() {

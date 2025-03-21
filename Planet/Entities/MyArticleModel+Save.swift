@@ -440,10 +440,10 @@ extension MyArticleModel {
     func getCoverImageText() -> String {
         debugPrint("Current attachments in \(self.title): \(self.attachments ?? [])")
         // For audio, add an icon and duration
-        if let audioFilename = audioFilename {
+        if let _ = audioFilename {
             return getCoverImageTextForAudioPost()
         }
-        if let videoFilename = videoFilename {
+        if let _ = videoFilename {
             return getCoverImageTextForVideoPost()
         }
         return getCoverImageTextForTextOnlyPost()
