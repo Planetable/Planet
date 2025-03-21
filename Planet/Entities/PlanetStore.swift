@@ -595,7 +595,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
             self?.selectedView = .myPlanet(refreshedToPlanet)
             let movedArticleID = movedArticle.id
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
-                if let myArticle = self?.selectedArticleList?.first{ $0.id == movedArticleID } as? MyArticleModel {
+                if let myArticle = self?.selectedArticleList?.first(where: { $0.id == movedArticleID }) as? MyArticleModel {
                     if let refreshed = try? MyArticleModel.load(from: myArticle.path, planet: refreshedToPlanet) {
                         self?.selectedArticle = refreshed
                     }
