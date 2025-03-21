@@ -13,8 +13,8 @@ class PlanetDockPlugIn: NSObject, NSDockTilePlugIn {
             guard let selectedPackageName = n.object as? String else { return }
             UserDefaults.standard.set(selectedPackageName, forKey: "PlanetDockIconLastPackageName")
             self?.targetPackageName = selectedPackageName
-            theDockTile.update(with: selectedPackageName, bundle: bundle)
+            theDockTile.update(withPackageName: selectedPackageName, andBundle: bundle)
         }
-        theDockTile.update(with: targetPackageName, bundle: bundle)
+        theDockTile.update(withPackageName: targetPackageName, andBundle: bundle)
     }
 }
