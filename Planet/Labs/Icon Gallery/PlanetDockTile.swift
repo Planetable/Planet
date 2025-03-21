@@ -18,9 +18,8 @@ class PlanetDockTile: @unchecked Sendable {
 
     func update(with packageName: String, bundle: Bundle?) {
         DispatchQueue.main.async { [weak self] in
-            guard let self = self, let dockTile = self.dockTile else { return }
-            guard !packageName.isEmpty,
-                  let targetImage = bundle?.image(forResource: packageName) else {
+            guard let dockTile = self?.dockTile else { return }
+            guard packageName != "", let targetImage = bundle?.image(forResource: packageName) else {
                 dockTile.contentView = nil
                 dockTile.display()
                 return
