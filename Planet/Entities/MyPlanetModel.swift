@@ -312,7 +312,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
             }
             // Remove settings not in default
-            for (key, value) in currentSettings {
+            for (key, _) in currentSettings {
                 if defaultSettings[key] == nil {
                     currentSettings.removeValue(forKey: key)
                     touched = true
@@ -336,7 +336,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             // Default settings
             let defaultSettings: [String: String] = self.template?.defaultSettings() ?? [:]
             // Remove settings not in default
-            for (key, value) in currentSettings {
+            for (key, _) in currentSettings {
                 debugPrint("Template Settings: Checking setting \(key)")
                 if defaultSettings[key] == nil {
                     currentSettings.removeValue(forKey: key)
@@ -1453,7 +1453,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func copyTemplateSettings() throws {
-        guard let template = template else {
+        guard template != nil else {
             throw PlanetError.MissingTemplateError
         }
         if FileManager.default.fileExists(atPath: publicTemplateSettingsPath.path) {
@@ -1730,7 +1730,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             var tagArticles: [String: [PublicArticleModel]] = [:]
             for article in allArticles {
                 if let articleTags = article.tags {
-                    for (key, value) in articleTags {
+                    for (key, _) in articleTags {
                         if MyPlanetModel.isReservedTag(key) {
                             continue
                         }

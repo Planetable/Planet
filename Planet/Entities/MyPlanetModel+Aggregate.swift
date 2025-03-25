@@ -109,15 +109,16 @@ extension MyPlanetModel {
         await MainActor.run {
             self.isAggregating = true
         }
+        let planetName: String = self.name
         DispatchQueue.main.async {
-            debugPrint("Aggregation: Started for \(self.name)")
+            debugPrint("Aggregation: Started for \(planetName)")
             PlanetStore.shared.currentTaskMessage = "Fetching posts from other sites..."
             PlanetStore.shared.currentTaskProgressIndicator = .progress
             PlanetStore.shared.isAggregating = true
         }
         defer {
             DispatchQueue.main.async {
-                debugPrint("Aggregation: Finished for \(self.name)")
+                debugPrint("Aggregation: Finished for \(planetName)")
                 PlanetStore.shared.currentTaskMessage = "Aggregation completed"
                 PlanetStore.shared.currentTaskProgressIndicator = .done
                 DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
@@ -163,7 +164,7 @@ extension MyPlanetModel {
             // So the previous message can be seen for a while
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 PlanetStore.shared.currentTaskProgressIndicator = .progress
-                PlanetStore.shared.currentTaskMessage = "Publishing \(self.name)..."
+                PlanetStore.shared.currentTaskMessage = "Publishing \(planetName)..."
             }
             try? await publish()
             Task { @MainActor in
