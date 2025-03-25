@@ -2137,4 +2137,41 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         self.telegramLabel()
         self.mastodonLabel()
     }
+
+    @ViewBuilder
+    func sourceAddressView() -> some View {
+        Divider()
+
+        HStack(spacing: 10) {
+            switch self.planetType {
+            case .planet:
+                Image("IPFS")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16, alignment: .center)
+                    .padding(.leading, 10)
+            case .ens:
+                Image("ENS")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16, alignment: .center)
+                    .padding(.leading, 10)
+            default:
+                Image("RSS")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16, alignment: .center)
+                    .padding(.leading, 10)
+            }
+            Button {
+                if let url = self.browserURL {
+                    NSWorkspace.shared.open(url)
+                }
+            } label: {
+                Text(self.link)
+                .lineLimit(1).truncationMode(.middle)
+                .padding(.trailing, 10)
+            }.buttonStyle(.link)
+        }
+    }
 }

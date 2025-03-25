@@ -17,9 +17,6 @@ struct FollowingPlanetInfoView: View {
                 HStack(spacing: 8) {
                     Text(planet.name)
                     .font(.title)
-                    if planet.planetType == .ens {
-                        Image("ENS").resizable().frame(width: 16, height: 16)
-                    }
                 }
 
                 if let attributedString = try? AttributedString(
@@ -41,6 +38,8 @@ struct FollowingPlanetInfoView: View {
                         .padding(.trailing, 10)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+
+                planet.sourceAddressView()
 
                 planet.socialViews()
 
