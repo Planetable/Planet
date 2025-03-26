@@ -41,8 +41,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PlanetStore")
 
-    let indicatorTimer = Timer.publish(every: 1.25, tolerance: 0.25, on: .current, in: .default).autoconnect()
-
     @Published var myPlanets: [MyPlanetModel] = [] {
         didSet {
             let planets = myPlanets
