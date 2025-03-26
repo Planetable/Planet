@@ -1800,14 +1800,39 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     func removeIcon() async {
         try? FileManager.default.removeItem(at: avatarPath)
-        DispatchQueue.main.async {
-            self.avatar = nil
+        Task { @MainActor in
+            avatar = nil
         }
     }
 
     func refreshIcon() async {
         switch planetType {
+        case .ens:
+            debugPrint("About to refresh avatar for \(name) (type=ens) from \(link)")
+            guard let cid = cid else {
+                debugPrint("Unable to refresh avatar for \(name) (type=ens) because CID is nil")
+                return
+            }
+            guard let planetAvatarURL = URL(
+                string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)/avatar.png"
+            ) else {
+                debugPrint("Unable to refresh avatar for \(name) (type=ens) because avatar URL is invalid")
+                return
+            }
+            if let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
+                let httpResponse = response as? HTTPURLResponse,
+                httpResponse.ok,
+                let image = NSImage(data: data),
+                let _ = try? data.write(to: self.avatarPath)
+            {
+                Task { @MainActor in
+                    avatar = image
+                }
+            } else {
+                debugPrint("Unable to refresh avatar for \(name) (type=ens)")
+            }
         case .planet:
+            debugPrint("About to fetch avatar for \(name) (type=planet) from \(link)")
             if let planetAvatarURL = URL(
                 string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)/avatar.png"
             ),
@@ -1822,6 +1847,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 }
             }
         case .dns:
+            debugPrint("About to fetch avatar for \(name) (type=dns) from \(link)")
             guard let feedURL = URL(string: link) else {
                 return
             }
