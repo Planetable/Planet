@@ -15,6 +15,7 @@ class PlanetLiteAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        ScheduledTasksManager.shared.startTasks()
         setupNotification()
         PlanetUpdater.shared.checkForUpdatesInBackground()
     }
