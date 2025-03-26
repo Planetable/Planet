@@ -96,12 +96,12 @@ class ScheduledTasksManager: ObservableObject {
         PlanetStore.shared.updateMyPlanetsTrafficAnalytics()
     }
     
-    // Update IPFS status
+    // Update IPFS status every 30 seconds
     private func updateStatus() async {
         await IPFSState.shared.updateStatus()
     }
     
-    // Update IPFS traffic
+    // Update IPFS traffic every 5 seconds
     private func updateTrafficStatus() async {
         await IPFSState.shared.updateTrafficStatus()
     }
