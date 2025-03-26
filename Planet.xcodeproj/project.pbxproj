@@ -19,6 +19,8 @@
 		2A0E918D2BE889B000F69578 /* IPFSGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0E918B2BE889B000F69578 /* IPFSGateway.swift */; };
 		2A0E91902BE8EFC600F69578 /* IPFSStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0E918F2BE8EFC600F69578 /* IPFSStatusView.swift */; };
 		2A0E91912BE8EFC600F69578 /* IPFSStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0E918F2BE8EFC600F69578 /* IPFSStatusView.swift */; };
+		2A1B9CF62D942F9800EF5488 /* ScheduledTasksManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A1B9CF52D942F9800EF5488 /* ScheduledTasksManager.swift */; };
+		2A1B9CF72D942F9800EF5488 /* ScheduledTasksManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A1B9CF52D942F9800EF5488 /* ScheduledTasksManager.swift */; };
 		2A23C2062B8ED4E2000138DA /* PlanetDirectoryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */; };
 		2A23C2072B8F3B06000138DA /* PlanetDirectoryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */; };
 		2A250A092CF4D81E00AE9A4A /* PP.json in Resources */ = {isa = PBXBuildFile; fileRef = 2A250A082CF4D81E00AE9A4A /* PP.json */; };
@@ -584,6 +586,7 @@
 		2A09A36027C2582B0003A0B5 /* ArticleListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleListView.swift; sourceTree = "<group>"; };
 		2A0E918B2BE889B000F69578 /* IPFSGateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSGateway.swift; sourceTree = "<group>"; };
 		2A0E918F2BE8EFC600F69578 /* IPFSStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSStatusView.swift; sourceTree = "<group>"; };
+		2A1B9CF52D942F9800EF5488 /* ScheduledTasksManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledTasksManager.swift; sourceTree = "<group>"; };
 		2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDirectoryMonitor.swift; sourceTree = "<group>"; };
 		2A250A082CF4D81E00AE9A4A /* PP.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PP.json; sourceTree = "<group>"; };
 		2A2556AE293E1E7D006462D8 /* TBWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBWindowController.swift; sourceTree = "<group>"; };
@@ -1256,6 +1259,7 @@
 				2AFB896329B7ACF3003D893E /* KeychainHelper.swift */,
 				2A90A80229DBB6FC00D45E5E /* KeyboardShortcutHelper.swift */,
 				2A3967882D7ADB2F002CBE7A /* HttpRequest.swift */,
+				2A1B9CF52D942F9800EF5488 /* ScheduledTasksManager.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -2106,6 +2110,7 @@
 				2A95E6602A19A3AA001288B8 /* TemplateBrowserInspectorView.swift in Sources */,
 				6A52FAF32A88A2C2000E85F0 /* PublicPlanetModel.swift in Sources */,
 				2A95E6612A19A3AA001288B8 /* TemplateStore.swift in Sources */,
+				2A1B9CF62D942F9800EF5488 /* ScheduledTasksManager.swift in Sources */,
 				6AADD6C72AF8809600898A6E /* MyArticleModel+SavePublic.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2220,6 +2225,7 @@
 				2AC889422B71D4200090D355 /* TemplateMonitor.swift in Sources */,
 				6AF8B0282C42BD400007E2AE /* ArticleListViewModel.swift in Sources */,
 				6ACF16692927267800AE318B /* WalletTransactionProgressView.swift in Sources */,
+				2A1B9CF72D942F9800EF5488 /* ScheduledTasksManager.swift in Sources */,
 				721142A9C5080D3F17D23F1F /* JSONUtils.swift in Sources */,
 				2A2593312BAB0CB000DE758C /* MyArticleModel+ImportExport.swift in Sources */,
 				721146EC85B1251B2669195C /* ENSUtils.swift in Sources */,
