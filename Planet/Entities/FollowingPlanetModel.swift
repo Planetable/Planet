@@ -1806,6 +1806,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     func refreshIcon() async {
+        debugPrint("About to refresh avatar for \(self) name=\(name) type=\(planetType) link=\(link)")
         switch planetType {
         case .ens:
             debugPrint("About to refresh avatar for \(name) (type=ens) from \(link)")
@@ -1832,11 +1833,40 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 debugPrint("Unable to refresh avatar for \(name) (type=ens)")
             }
         case .planet:
-            debugPrint("About to fetch avatar for \(name) (type=planet) from \(link)")
-            if let planetAvatarURL = URL(
+            debugPrint("About to refresh avatar for \(name) (type=planet) from \(link)")
+            guard let cid = cid else {
+                debugPrint("Unable to refresh avatar for \(name) (type=planet) because CID is nil")
+                return
+            }
+            guard let planetAvatarURL = URL(
                 string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)/avatar.png"
-            ),
-                let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
+            ) else {
+                debugPrint("Unable to refresh avatar for \(name) (type=planet) because avatar URL is invalid")
+                return
+            }
+            if let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
+                let httpResponse = response as? HTTPURLResponse,
+                httpResponse.ok,
+                let image = NSImage(data: data),
+                let _ = try? data.write(to: self.avatarPath)
+            {
+                Task { @MainActor in
+                    avatar = image
+                }
+            }
+        case .dnslink:
+            debugPrint("About to refresh avatar for \(name) (type=dnslink) from \(link)")
+            guard let cid = cid else {
+                debugPrint("Unable to refresh avatar for \(name) (type=planet) because CID is nil")
+                return
+            }
+            guard let planetAvatarURL = URL(
+                string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)/avatar.png"
+            ) else {
+                debugPrint("Unable to refresh avatar for \(name) (type=dnslink) because avatar URL is invalid")
+                return
+            }
+            if let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
                 let httpResponse = response as? HTTPURLResponse,
                 httpResponse.ok,
                 let image = NSImage(data: data),
@@ -1854,7 +1884,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             do {
                 let (feedData, htmlSoup) = try await FeedUtils.findFeed(url: feedURL)
 
-                guard let feedData = feedData else {
+                guard let _ = feedData else {
                     return
                 }
 
@@ -1903,8 +1933,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         if let data = feedAvatar, let image = NSImage(data: data),
                             let _ = try? data.write(to: self.avatarPath)
                         {
-                            DispatchQueue.main.async {
-                                self.avatar = image
+                            Task { @MainActor in
+                                avatar = image
                             }
                             debugPrint(
                                 "refreshIcon: written avatar for \(self.name) to \(self.avatarPath)"
