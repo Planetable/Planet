@@ -1229,7 +1229,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         let image = NSImage(data: data),
                         let _ = try? data.write(to: avatarPath)
                     {
-                        await MainActor.run {
+                        Task { @MainActor in
                             avatar = image
                         }
                     }
@@ -1275,7 +1275,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 let image = NSImage(data: data),
                 let _ = try? data.write(to: avatarPath)
             {
-                await MainActor.run {
+                Task { @MainActor in
                     avatar = image
                 }
             }
@@ -1376,7 +1376,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         let image = NSImage(data: data),
                         let _ = try? data.write(to: avatarPath)
                     {
-                        await MainActor.run {
+                        Task { @MainActor in
                             avatar = image
                         }
                     }
@@ -1391,7 +1391,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         let image = NSImage(data: data),
                         let _ = try? data.write(to: avatarPath)
                     {
-                        await MainActor.run {
+                        Task { @MainActor in
                             avatar = image
                         }
                     }
@@ -1445,7 +1445,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 let image = NSImage(data: data),
                 let _ = try? data.write(to: avatarPath)
             {
-                await MainActor.run {
+                Task { @MainActor in
                     avatar = image
                 }
             }
@@ -1453,7 +1453,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 let image = NSImage(data: data),
                 let _ = try? data.write(to: avatarPath)
             {
-                await MainActor.run {
+                Task { @MainActor in
                     avatar = image
                 }
             }
@@ -1530,7 +1530,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         let image = NSImage(data: data),
                         let _ = try? data.write(to: avatarPath)
                     {
-                        await MainActor.run {
+                        Task { @MainActor in
                             avatar = image
                         }
                     }
@@ -1584,7 +1584,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 let image = NSImage(data: data),
                 let _ = try? data.write(to: avatarPath)
             {
-                await MainActor.run {
+                Task { @MainActor in
                     avatar = image
                 }
             }
@@ -1674,7 +1674,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 let image = NSImage(data: data),
                 let _ = try? data.write(to: avatarPath)
             {
-                await MainActor.run {
+                Task { @MainActor in
                     avatar = image
                 }
             }
@@ -1817,8 +1817,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 let image = NSImage(data: data),
                 let _ = try? data.write(to: self.avatarPath)
             {
-                DispatchQueue.main.async {
-                    self.avatar = image
+                Task { @MainActor in
+                    avatar = image
                 }
             }
         case .dns:
