@@ -34,7 +34,7 @@ class ScheduledTasksManager: ObservableObject {
             self.tickCount += 1
 
             if self.tickCount % 600 == 0 {
-                Task.detached {
+                Task.detached(priority: .utility) {
                     await MainActor.run {
                         self.publishMyPlanets()
                     }
@@ -42,7 +42,7 @@ class ScheduledTasksManager: ObservableObject {
             }
             
             if self.tickCount % 300 == 0 {
-                Task.detached {
+                Task.detached(priority: .background) {
                     await MainActor.run {
                         self.updateFollowingPlanets()
                     }
@@ -50,10 +50,22 @@ class ScheduledTasksManager: ObservableObject {
             }
             
             if self.tickCount % 60 == 0 {
-                Task.detached {
+                Task.detached(priority: .background) {
                     await MainActor.run {
                         self.updateMyPlanetsTrafficAnalytics()
                     }
+                }
+            }
+            
+            if self.tickCount % 30 == 0 {
+                Task.detached(priority: .utility) {
+                    await self.updateStatus()
+                }
+            }
+            
+            if self.tickCount % 5 == 0 {
+                Task.detached(priority: .background) {
+                    await self.updateTrafficStatus()
                 }
             }
         }
@@ -82,5 +94,15 @@ class ScheduledTasksManager: ObservableObject {
     @MainActor
     private func updateMyPlanetsTrafficAnalytics() {
         PlanetStore.shared.updateMyPlanetsTrafficAnalytics()
+    }
+    
+    // Update IPFS status
+    private func updateStatus() async {
+        await IPFSState.shared.updateStatus()
+    }
+    
+    // Update IPFS traffic
+    private func updateTrafficStatus() async {
+        await IPFSState.shared.updateTrafficStatus()
     }
 }

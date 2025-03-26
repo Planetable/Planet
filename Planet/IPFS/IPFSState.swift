@@ -4,8 +4,6 @@ import Foundation
 class IPFSState: ObservableObject {
     static let shared = IPFSState()
 
-    static let refreshRate: TimeInterval = 30
-    static let refreshTrafficRate: TimeInterval = 5
     static let lastUserLaunchState: String = "PlanetIPFSLastUserLaunchStateKey"
 
     /// A string to be displayed when IPFS daemon is unable to start.
@@ -24,9 +22,6 @@ class IPFSState: ObservableObject {
     @Published private(set) var serverInfo: ServerInfo?
     @Published private(set) var bandwidths: [Int: IPFSBandwidth] = [:]
 
-    private weak var refreshRateTimer: Timer?
-    private weak var refreshTrafficTimer: Timer?
-
     init() {
         debugPrint("IPFS State Manager Init")
         Task(priority: .userInitiated) {
@@ -40,23 +35,6 @@ class IPFSState: ObservableObject {
                 debugPrint("Failed to launch: \(error.localizedDescription), will try again shortly.")
             }
         }
-        self.refreshRateTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshRate, repeats: true, block: { _ in
-            Task.detached(priority: .utility) {
-                await self.updateStatus()
-            }
-        })
-        self.refreshTrafficTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshTrafficRate, repeats: true, block: { _ in
-            Task.detached(priority: .utility) {
-                await self.updateTrafficStatus()
-            }
-        })
-    }
-
-    deinit {
-        refreshRateTimer?.invalidate()
-        refreshRateTimer = nil
-        refreshTrafficTimer?.invalidate()
-        refreshTrafficTimer = nil
     }
 
     // MARK: -
