@@ -9,6 +9,8 @@ import AVKit
 import Foundation
 import SwiftUI
 import OrderedCollections
+import UniformTypeIdentifiers
+
 
 extension MyArticleModel {
     // MARK: -  Save to My/:planet_id/Articles/:article_id.json
@@ -116,21 +118,8 @@ extension MyArticleModel {
     /// Get MIME type of an attachment from its file name
     func getAttachmentMimeType(name: String) -> String {
         let path = publicBasePath.appendingPathComponent(name)
-        if FileManager.default.fileExists(atPath: path.path) {
-            let mimeType: String? = {
-                let uti = UTTypeCreatePreferredIdentifierForTag(
-                    kUTTagClassFilenameExtension,
-                    path.pathExtension as CFString,
-                    nil
-                )
-
-                let mimetype = UTTypeCopyPreferredTagWithClass(
-                    uti!.takeRetainedValue(),
-                    kUTTagClassMIMEType
-                )
-                return mimetype?.takeRetainedValue() as String?
-            }()
-            if let mimeType = mimeType {
+        if FileManager.default.fileExists(atPath: path.path), !path.pathExtension.isEmpty {
+            if let utType = UTType(filenameExtension: path.pathExtension), let mimeType = utType.preferredMIMEType {
                 return mimeType
             }
         }

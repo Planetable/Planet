@@ -433,9 +433,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             return publicPlanet
         }
         catch {
-            debugPrint("Get Public Planet from CID: Invalid Planet JSON")
-            let planetString = String(data: planetData, encoding: .utf8)
             debugPrint("Get Public Planet from CID: Error: \(error)")
+            if let planetString = String(data: planetData, encoding: .utf8) {
+                debugPrint("Get Public Planet from CID: Invalid Planet JSON String: \(planetString)")
+            } else {
+                debugPrint("Get Public Planet from CID: Invalid Planet JSON")
+            }
             return nil
         }
     }
