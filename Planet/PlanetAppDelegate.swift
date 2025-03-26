@@ -93,6 +93,8 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        ScheduledTasksManager.shared.startTasks()
+
         setupNotification()
 
         let saver = Saver.shared

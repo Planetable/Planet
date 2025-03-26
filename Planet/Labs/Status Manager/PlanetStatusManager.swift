@@ -70,6 +70,9 @@ class PlanetStatusManager: ObservableObject {
                 group.addTask {
                     try? await IPFSDaemon.shared.shutdown()
                 }
+                group.addTask {
+                    ScheduledTasksManager.shared.stopTasks()
+                }
                 await group.waitForAll()
             }
             await NSApplication.shared.reply(toApplicationShouldTerminate: true)
