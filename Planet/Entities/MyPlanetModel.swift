@@ -436,8 +436,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             return URL(string: "https://\(ipns).crop.top/")
         case .dweblink:
             return URL(string: "https://\(ipns).ipns.dweb.link/")
-        default:
-            return URL(string: "https://\(ipns).eth.sucks/")
         }
     }
 
