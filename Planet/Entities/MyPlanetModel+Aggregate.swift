@@ -537,9 +537,9 @@ extension MyPlanetModel {
                             Task(priority: .background) {
                                 try newArticle.savePublic()
                             }
-                            DispatchQueue.main.async {
-                                self.articles.append(newArticle)
-                                self.articles.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
+                            Task { @MainActor in
+                                articles.append(newArticle)
+                                articles.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
                                 PlanetStore.shared.refreshSelectedArticles()
                             }
                         }

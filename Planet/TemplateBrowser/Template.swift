@@ -390,7 +390,7 @@ class Template: Codable, Identifiable {
         let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
         var contextForRendering: [String: Any] = [
             "assets_prefix": "./",
-            "template_settings": self.settings,
+            "template_settings": self.settings ?? [:],
             "user_settings": myPlanet.templateSettingsAndFilters(),
             "page_title": "\(planet.name) - Archive",
             "page_description": planet.about,
