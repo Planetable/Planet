@@ -2257,25 +2257,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             let cpuCount = ProcessInfo.processInfo.activeProcessorCount
             let articleGroups = self.articles.chunked(into: cpuCount > 8 ? 8 : cpuCount)
             for articleGroup in articleGroups {
-                // after some benchmarking, it seems that using DispatchGroup is faster than using TaskGroup
-
-                /* DispatchGroup */
-                let group = DispatchGroup()
-                DispatchQueue.concurrentPerform(iterations: articleGroup.count) { index in
-                    group.enter()
-                    do {
-                        try articleGroup[index].savePublic(usingTasks: true)
-                        group.leave()
-                    }
-                    catch {
-                        // Handle any errors here.
-                        group.leave()
-                    }
-                }
-                group.wait()
-
                 /* TaskGroup */
-                /*
                 try await withThrowingTaskGroup(of: Void.self) { group in
                     for article in articleGroup {
                         group.addTask(priority: .high) {
@@ -2284,13 +2266,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     }
                     try await group.waitForAll()
                 }
-                */
             }
         }
-        await MainActor.run {
-            self.isRebuilding = false
-        }
         Task { @MainActor in
+            isRebuilding = false
             PlanetStore.shared.isRebuilding = false
         }
         let ended = Date()
@@ -2299,6 +2278,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Task {
             do {
                 try self.saveOps()
+                debugPrint("saved ops.json")
             }
             catch {
                 debugPrint("failed to save ops to file: \(error)")
