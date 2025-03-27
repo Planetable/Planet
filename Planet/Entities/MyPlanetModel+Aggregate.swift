@@ -153,8 +153,8 @@ extension MyPlanetModel {
         }
         let c = newArticlesCount
         if c > 0 {
-            DispatchQueue.main.async {
-                self.updated = Date()
+            Task { @MainActor in
+                updated = Date()
                 PlanetStore.shared.currentTaskProgressIndicator = .done
                 PlanetStore.shared.currentTaskMessage = "\(c) new posts fetched"
             }
@@ -337,7 +337,7 @@ extension MyPlanetModel {
                         }
                         if existingArticle.tags != article.tags {
                             debugPrint(
-                                "Aggregation: updating \(article.id) tags from \(existingArticle.tags) to \(article.tags)"
+                                "Aggregation: updating \(article.id) tags from \(existingArticle.tags ?? [:]) to \(article.tags ?? [:])"
                             )
                             await MainActor.run {
                                 existingArticle.tags = article.tags
