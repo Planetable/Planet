@@ -445,7 +445,7 @@ extension MyPlanetModel {
                     if article.originalSiteDomain == site,
                         !planet.articles.contains(where: { $0.id.uuidString == article.originalPostID })
                     {
-                        debugPrint("Aggregation: deleting \(article.originalPostID) from \(site)")
+                        debugPrint("Aggregation: deleting \(article.originalPostID ?? "No Original Post ID") from \(site)")
                         article.delete()
                         deleted += 1
                     }
