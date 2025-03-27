@@ -255,7 +255,7 @@ class Template: Codable, Identifiable {
             "has_podcast": hasPodcast,
             "planet_ipns": article.planet.ipns,
             "assets_prefix": "../",
-            "template_settings": self.settings,
+            "template_settings": self.settings ?? [:],
             "user_settings": planet.templateSettingsAndFilters(),
             "article_id": article.id.uuidString,
             "article": article.publicArticle,
@@ -311,7 +311,7 @@ class Template: Codable, Identifiable {
         let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
         var contextForRendering: [String: Any] = [
             "assets_prefix": "./",
-            "template_settings": self.settings,
+            "template_settings": self.settings ?? [:],
             "user_settings": myPlanet.templateSettingsAndFilters(),
             "page_title": planet.name,
             "page_description": planet.about,
@@ -356,7 +356,7 @@ class Template: Codable, Identifiable {
         let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
         var contextForRendering: [String: Any] = [
             "assets_prefix": "./",
-            "template_settings": self.settings,
+            "template_settings": self.settings ?? [:],
             "user_settings": myPlanet.templateSettingsAndFilters(),
             "page_title": "\(planet.name) - Tags",
             "page_description": planet.about,
