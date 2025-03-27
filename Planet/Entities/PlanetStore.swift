@@ -41,8 +41,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PlanetStore")
 
-    let indicatorTimer = Timer.publish(every: 1.25, tolerance: 0.25, on: .current, in: .default).autoconnect()
-
     @Published var myPlanets: [MyPlanetModel] = [] {
         didSet {
             let planets = myPlanets
@@ -225,19 +223,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 selectedView = .starred
             }
         }
-
-        // Publish my planets every 10 minutes
-        RunLoop.main.add(Timer(timeInterval: 600, repeats: true) { [self] timer in
-            publishMyPlanets()
-        }, forMode: .common)
-        // Check content update every 5 minutes
-        RunLoop.main.add(Timer(timeInterval: 300, repeats: true) { [self] timer in
-            updateFollowingPlanets()
-        }, forMode: .common)
-        // Get the latest analytics data every minute
-        RunLoop.main.add(Timer(timeInterval: 60, repeats: true) { [self] timer in
-            updateMyPlanetsTrafficAnalytics()
-        }, forMode: .common)
     }
 
     func load() throws {
