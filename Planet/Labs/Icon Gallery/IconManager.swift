@@ -322,7 +322,7 @@ class IconManager: ObservableObject {
                             image = i
                             imageSet.append(image)
                         }
-                        DispatchQueue.main.async {
+                        Task { @MainActor in
                             NSApp.applicationIconImage = image
                         }
                         let duration: Double = f.duration >= 0.3 ? f.duration - 0.1 : f.duration

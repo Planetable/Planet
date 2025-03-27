@@ -582,7 +582,7 @@ class Template: Codable, Identifiable {
         // render stencil template
         let context: [String: Any] = [
             "assets_prefix": "../",
-            "template_settings": self.settings,
+            "template_settings": self.settings ?? [:],
             "user_settings": [:],
             "article": article,
             "articles": [article],
