@@ -2,6 +2,16 @@ import SwiftUI
 import UniformTypeIdentifiers
 import WebKit
 
+enum LeftView {
+    case markdown
+    case prompt
+}
+
+enum RightView {
+    case preview
+    case llmOutput
+}
+
 struct WriterView: View {
     @ObservedObject var draft: DraftModel
     @ObservedObject var viewModel: WriterViewModel
@@ -10,6 +20,9 @@ struct WriterView: View {
 
     @State private var videoPlayerHeight: CGFloat = 0
     @State private var audioPlayerHeight: CGFloat = 0
+    @State private var showTabs: Bool = false
+    @State private var leftView: LeftView = .markdown
+    @State private var rightView: RightView = .preview
 
     init(draft: DraftModel, viewModel: WriterViewModel) {
         self.draft = draft
@@ -50,11 +63,33 @@ struct WriterView: View {
 
             GeometryReader { geometry in
                 HSplitView {
-                    WriterTextView(draft: draft, text: $draft.content)
-                        .frame(minWidth: geometry.size.width / 2, minHeight: 300)
-                    WriterWebView(draft: draft)
-                        .background(Color(NSColor.textBackgroundColor))
-                        .frame(minWidth: geometry.size.width / 2, minHeight: 300)
+                    VStack(spacing: 0) {
+                        if (showTabs) {
+                            tabsLeft()
+                        }
+                        switch leftView {
+                            case .markdown:
+                                WriterTextView(draft: draft, text: $draft.content)
+                                .frame(minWidth: geometry.size.width / 2, minHeight: 300)
+                            case .prompt:
+                                Text("Prompt Edit View")
+                                .frame(minWidth: geometry.size.width / 2, maxHeight: .infinity)
+                        }
+                    }
+                    VStack(spacing: 0) {
+                        if (showTabs) {
+                            tabsRight()
+                        }
+                        switch rightView {
+                            case .preview:
+                                WriterWebView(draft: draft)
+                                .background(Color(NSColor.textBackgroundColor))
+                                .frame(minWidth: geometry.size.width / 2, minHeight: 300)
+                            case .llmOutput:
+                                Text("LLM Output View")
+                                .frame(minWidth: geometry.size.width / 2, maxHeight: .infinity)
+                        }
+                    }
                 }
                 .frame(minWidth: 640, minHeight: 300)
             }
@@ -116,6 +151,74 @@ struct WriterView: View {
             } label: {
                 Text("Delete Draft")
             }
+        }
+    }
+
+    @ViewBuilder
+    private func tabsLeft() -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                HStack {
+                    HStack {
+                        Text("Markdown")
+                        .frame(maxWidth: .infinity)
+                    }
+                    .padding(.vertical, 6)
+                    .background(leftView == .markdown ? Color(NSColor.textBackgroundColor) : Color.clear)
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        leftView = .markdown
+                    }
+
+                    HStack {
+                        Text("Prompt")
+                        .frame(maxWidth: .infinity)
+                    }
+                    .padding(.vertical, 6)
+                    .background(leftView == .prompt ? Color(NSColor.textBackgroundColor) : Color.clear)
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        leftView = .prompt
+                    }
+                }
+            }
+            Divider()
+        }
+    }
+
+    @ViewBuilder
+    private func tabsRight() -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                HStack {
+                    HStack {
+                        Text("Preview")
+                        .frame(maxWidth: .infinity)
+                    }
+                    .padding(.vertical, 6)
+                    .background(rightView == .preview ? Color(NSColor.textBackgroundColor) : Color.clear)
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        rightView = .preview
+                    }
+
+                    HStack {
+                        Text("LLM Output")
+                        .frame(maxWidth: .infinity)
+                    }
+                    .padding(.vertical, 6)
+                    .background(rightView == .llmOutput ? Color(NSColor.textBackgroundColor) : Color.clear)
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        rightView = .llmOutput
+                    }
+                }
+            }
+            Divider()
         }
     }
 
