@@ -77,7 +77,6 @@ private struct DockIconPreviewView: View {
         }
         .task(id: icon.hashValue) {
             do {
-                let theImageSet = try await IconManager.shared.preparePreviewAnimationImages(withPackageName: icon.packageName, size: size)
                 let theImageFrames: [DockAnimationFrame]
                 let location = try IconManager.shared.animationLocation(withPackageName: icon.packageName)
                 let json = location.appendingPathComponent("animation.json")
@@ -89,6 +88,7 @@ private struct DockIconPreviewView: View {
                 } else {
                     theImageFrames = []
                 }
+                let theImageSet = try IconManager.shared.preparePreviewAnimationImages(withPackageName: icon.packageName, size: size)
                 await MainActor.run {
                     self.imageSet = theImageSet
                     guard self.previewable else { return }
@@ -218,7 +218,7 @@ class IconManager: ObservableObject {
         return targetURL
     }
     
-    func preparePreviewAnimationImages(withPackageName name: String, size: NSSize) async throws -> [NSImage] {
+    func preparePreviewAnimationImages(withPackageName name: String, size: NSSize) throws -> [NSImage] {
         let location = try animationLocation(withPackageName: name)
         let json = location.appendingPathComponent("animation.json")
         let key = String(format: "%@-%.d-%.d", name, size.width, size.height)
