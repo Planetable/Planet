@@ -77,6 +77,11 @@ private struct DockIconPreviewView: View {
         }
         .task(id: icon.hashValue) {
             do {
+                let theImageSet = try IconManager.shared.preparePreviewAnimationImages(withPackageName: icon.packageName, size: size)
+                await MainActor.run {
+                    self.imageSet = theImageSet
+                }
+                guard self.previewable else { return }
                 let theImageFrames: [DockAnimationFrame]
                 let location = try IconManager.shared.animationLocation(withPackageName: icon.packageName)
                 let json = location.appendingPathComponent("animation.json")
@@ -88,10 +93,7 @@ private struct DockIconPreviewView: View {
                 } else {
                     theImageFrames = []
                 }
-                let theImageSet = try IconManager.shared.preparePreviewAnimationImages(withPackageName: icon.packageName, size: size)
                 await MainActor.run {
-                    self.imageSet = theImageSet
-                    guard self.previewable else { return }
                     self.imageFrames = theImageFrames
                     self.playAnimation()
                 }
