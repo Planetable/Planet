@@ -207,5 +207,3 @@ class PlanetQuickShareViewModel: ObservableObject {
         sending = false
     }
 }
-
-extension NSItemProvider: @unchecked Sendable {}
