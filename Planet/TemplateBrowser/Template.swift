@@ -322,14 +322,14 @@ class Template: Codable, Identifiable {
             "current_item_type": context["current_item_type"] ?? "index",
             "current_page": context["page"] ?? 1,
             "total_pages": context["pages"] ?? 1,
-            "next_page": getNextPage(
+            "next_page": (getNextPage(
                 page: context["page"] as? Int ?? 1,
                 pages: context["pages"] as? Int ?? 1
-            ) ?? nil,
-            "previous_page": getPreviousPage(
+            ) ?? nil) as Any,
+            "previous_page": (getPreviousPage(
                 page: context["page"] as? Int ?? 1,
                 pages: context["pages"] as? Int ?? 1
-            ) ?? nil,
+            ) ?? nil) as Any,
         ]
         // items in context would override items in contextForRendering
         for (key, value) in context {

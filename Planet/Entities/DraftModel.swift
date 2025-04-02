@@ -506,32 +506,29 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             PlanetStore.shared.refreshSelectedArticles()
             // wrap it to delay the state change
             if planet.templateName == "Croptop" {
-                Task { @MainActor in
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        // Croptop needs a delay here when it loads from the local gateway
-                        if PlanetStore.shared.selectedArticle == article {
-                            NotificationCenter.default.post(name: .loadArticle, object: nil)
-                        }
-                        else {
-                            PlanetStore.shared.selectedArticle = article
-                        }
-                        Task(priority: .userInitiated) {
-                            NotificationCenter.default.post(name: .scrollToArticle, object: article)
-                        }
+                let theArticle = article
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    // Croptop needs a delay here when it loads from the local gateway
+                    if PlanetStore.shared.selectedArticle == theArticle {
+                        NotificationCenter.default.post(name: .loadArticle, object: nil)
+                    }
+                    else {
+                        PlanetStore.shared.selectedArticle = theArticle
+                    }
+                    Task(priority: .userInitiated) {
+                        NotificationCenter.default.post(name: .scrollToArticle, object: theArticle)
                     }
                 }
             }
             else {
-                Task { @MainActor in
-                    if PlanetStore.shared.selectedArticle == article {
-                        NotificationCenter.default.post(name: .loadArticle, object: nil)
-                    }
-                    else {
-                        PlanetStore.shared.selectedArticle = article
-                    }
-                    Task(priority: .userInitiated) {
-                        NotificationCenter.default.post(name: .scrollToArticle, object: article)
-                    }
+                if PlanetStore.shared.selectedArticle == article {
+                    NotificationCenter.default.post(name: .loadArticle, object: nil)
+                }
+                else {
+                    PlanetStore.shared.selectedArticle = article
+                }
+                Task(priority: .userInitiated) {
+                    NotificationCenter.default.post(name: .scrollToArticle, object: article)
                 }
             }
         }
