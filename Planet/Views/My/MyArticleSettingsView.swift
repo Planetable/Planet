@@ -159,7 +159,6 @@ struct MyArticleSettingsView: View {
                             article.title = ""
                         }
                         let previousSlug = article.slug
-                        let nextSlug = slug
                         var slugChanged = false
                         if !slug.isEmpty {
                             if slug.count == 0 {

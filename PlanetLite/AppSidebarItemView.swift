@@ -88,16 +88,15 @@ struct AppSidebarItemView: View {
     private func devFeatures() -> some View {
         Group {
             Button {
-                do {
-                    Task(priority: .background) {
+                Task(priority: .background) {
+                    do {
                         try await planet.rebuild()
-                    }
-                }
-                catch {
-                    Task { @MainActor in
-                        self.planetStore.isShowingAlert = true
-                        self.planetStore.alertTitle = "Failed to Rebuild Planet"
-                        self.planetStore.alertMessage = error.localizedDescription
+                    } catch {
+                        Task { @MainActor in
+                            self.planetStore.isShowingAlert = true
+                            self.planetStore.alertTitle = "Failed to Rebuild Planet"
+                            self.planetStore.alertMessage = error.localizedDescription
+                        }
                     }
                 }
             } label: {
@@ -218,7 +217,7 @@ struct AppSidebarItemView: View {
                 Divider()
             }
 
-            if let devMode = UserDefaults.standard.string(forKey: "CroptopDevMode") {
+            if let _ = UserDefaults.standard.string(forKey: "CroptopDevMode") {
                 devFeatures()
             }
 
