@@ -74,7 +74,12 @@ class PlanetKeyManagerWindowController: NSWindowController {
     
     @MainActor
     private func importForSelectedKeyItem() throws {
-        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeyManagerImportingKeyError }
+        guard
+            let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID,
+            let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID })
+        else {
+            throw PlanetError.MissingPlanetKeyError
+        }
         if PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName) {
             throw PlanetError.KeyManagerImportingKeyExistsError
         } else {
@@ -93,7 +98,12 @@ class PlanetKeyManagerWindowController: NSWindowController {
     
     @MainActor
     private func exportForSelectedKeyItem() throws {
-        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeyManagerImportingKeyError }
+        guard
+            let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID,
+            let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID })
+        else {
+            throw PlanetError.MissingPlanetKeyError
+        }
         let panel = NSOpenPanel()
         panel.message = "Choose location to save planet key"
         panel.prompt = "Choose"
