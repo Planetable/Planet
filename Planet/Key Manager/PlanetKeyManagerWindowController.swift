@@ -49,7 +49,12 @@ class PlanetKeyManagerWindowController: NSWindowController {
     
     @MainActor
     private func syncForSelectedKeyItem() throws {
-        guard let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID, let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID }) else { throw PlanetError.KeyManagerGeneratingKeyError }
+        guard
+            let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID,
+            let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID })
+        else {
+            throw PlanetError.MissingPlanetKeyError
+        }
         let keychainExists: Bool = KeychainHelper.shared.check(forKey: keyItem.keyName)
         let keystoreExists: Bool = PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName)
         /*
@@ -58,7 +63,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
             2. Sync: keychain -> keystore
          */
         if !keychainExists && !keystoreExists {
-            throw PlanetError.KeyManagerGeneratingKeyError
+            throw PlanetError.KeyManagerMissingKeyInKeychainAndKeystoreError
         } else if keystoreExists && !keychainExists {
             try KeychainHelper.shared.exportKeyToKeychain(forPlanetKeyName: keyItem.keyName)
         } else if keychainExists && !keystoreExists {
