@@ -53,7 +53,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
             let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID,
             let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID })
         else {
-            throw PlanetError.MissingPlanetKeyError
+            throw PlanetError.KeyManagerKeyNotLoadedError
         }
         let keychainExists: Bool = KeychainHelper.shared.check(forKey: keyItem.keyName)
         let keystoreExists: Bool = PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName)
@@ -78,7 +78,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
             let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID,
             let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID })
         else {
-            throw PlanetError.MissingPlanetKeyError
+            throw PlanetError.KeyManagerKeyNotLoadedError
         }
         if PlanetKeyManagerViewModel.shared.keysInKeystore.contains(keyItem.keyName) {
             throw PlanetError.KeyManagerImportingKeyExistsError
@@ -102,7 +102,7 @@ class PlanetKeyManagerWindowController: NSWindowController {
             let selectedKeyItemID = PlanetKeyManagerViewModel.shared.selectedKeyItemID,
             let keyItem = PlanetKeyManagerViewModel.shared.keys.first(where: { $0.id == selectedKeyItemID })
         else {
-            throw PlanetError.MissingPlanetKeyError
+            throw PlanetError.KeyManagerKeyNotLoadedError
         }
         let panel = NSOpenPanel()
         panel.message = "Choose location to save planet key"

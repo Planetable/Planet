@@ -41,6 +41,7 @@ enum PlanetError: Error {
     case KeyManagerSavingKeyError
     case KeyManagerLoadingKeyError
     case KeyManagerDeletingKeyError
+    case KeyManagerKeyNotLoadedError
     case KeyManagerMissingKeyInKeychainAndKeystoreError
     case KeyManagerImportingKeyError
     case KeyManagerImportingKeyExistsError
@@ -133,6 +134,8 @@ extension PlanetError: LocalizedError {
             return NSLocalizedString("Key Manager Loading Key Error", comment: "")
         case .KeyManagerDeletingKeyError:
             return NSLocalizedString("Key Manager Deleting Key Error", comment: "")
+        case .KeyManagerKeyNotLoadedError:
+            return NSLocalizedString("Key Manager Key Not Loaded Error", comment: "")
         case .KeyManagerMissingKeyInKeychainAndKeystoreError:
             return NSLocalizedString("Key Manager Key Not Found In Keychain and Keystore Error", comment: "")
         case .KeyManagerImportingKeyError:
