@@ -71,8 +71,11 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillBecomeActive(_ notification: Notification) {
-        // If Writer is open, the main window should not always receive focus or be deminiaturized.
-        debugPrint("applicationWillBecomeActive")
+        // On macOS 13 or later, use the default window behavior (since the main app window is based on `Window`, not `WindowGroup`).
+        if #available(macOS 13.0, *) {
+            return
+        }
+        // If Writer is open, the main window shouldn't always receive focus or be deminiaturized.        debugPrint("applicationWillBecomeActive")
         if WriterStore.shared.hasActiveWriterWindows() {
             return
         }
