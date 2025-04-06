@@ -71,19 +71,28 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillBecomeActive(_ notification: Notification) {
-        debugPrint("applicationWillBecomeActive")
-        // TODO: If Writer is open, then the main window should not always get focus
+        // On macOS 13 or later, use the default window behavior (since the main app window is based on `Window`, not `WindowGroup`).
+        if #available(macOS 13.0, *) {
+            return
+        }
+        // If Writer is open, the main window shouldn't always receive focus or be deminiaturized.        debugPrint("applicationWillBecomeActive")
+        if WriterStore.shared.hasActiveWriterWindows() {
+            return
+        }
         if let windows = (notification.object as? NSApplication)?.windows {
             var i = 0
             for window in windows where window.className == "SwiftUI.AppKitWindow" {
                 debugPrint("Planet window: \(window)")
                 debugPrint("window.isMainWindow: \(window.isMainWindow)")
                 debugPrint("window.isMiniaturized: \(window.isMiniaturized)")
-                if window.isMiniaturized {
-                    if i == 0 {
-                        window.makeKeyAndOrderFront(self)
-                    } else {
-                        window.deminiaturize(self)
+                // Introduce a slight delay to prevent window blinking during deminiaturization.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    if window.isMiniaturized {
+                        if i == 0 {
+                            window.makeKeyAndOrderFront(self)
+                        } else {
+                            window.deminiaturize(self)
+                        }
                     }
                 }
                 i = i + 1

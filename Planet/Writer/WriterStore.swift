@@ -44,6 +44,13 @@ import Foundation
         }
         writerWindows.removeValue(forKey: id)
     }
+    
+    func hasActiveWriterWindows() -> Bool {
+        if writerWindows.filter({ $0.value.isVisible }).count > 0 {
+            return true
+        }
+        return false
+    }
 
     // MARK: -
 
