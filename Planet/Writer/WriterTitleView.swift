@@ -11,7 +11,7 @@ import WrappingHStack
 struct WriterTitleView: View {
     @State private var updatingTags: Bool = false
     @State private var updatingDate: Bool = false
-    @State private var titleIsFocused: Bool = false
+    @State private var titleIsFocused: Bool = true
     @State private var initDate: Date = Date()
     @State private var newTag: String = ""
 
