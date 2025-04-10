@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import Zip
 
 
 private struct DockAnimationObject: Decodable {
@@ -214,7 +213,15 @@ class IconManager: ObservableObject {
         let targetURL = baseCacheURL().appendingPathComponent(name.lowercased())
         if !FileManager.default.fileExists(atPath: targetURL.path) {
             if let zipfile = Bundle.main.url(forResource: name.lowercased(), withExtension: "zip") {
-                try Zip.unzipFile(zipfile, destination: targetURL, overwrite: false, password: nil)
+                try FileManager.default.createDirectory(at: targetURL, withIntermediateDirectories: true, attributes: nil)
+                let process = Process()
+                process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
+                process.arguments = [zipfile.path, "-d", targetURL.path]
+                try process.run()
+                process.waitUntilExit()
+                if process.terminationStatus != 0 {
+                    throw PlanetError.InternalError
+                }
             }
         }
         return targetURL

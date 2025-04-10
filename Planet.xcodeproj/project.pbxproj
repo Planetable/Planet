@@ -34,7 +34,6 @@
 		2A2556BE293E1F92006462D8 /* TBInspectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2556BD293E1F92006462D8 /* TBInspectorViewController.swift */; };
 		2A2593312BAB0CB000DE758C /* MyArticleModel+ImportExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2593302BAB0CB000DE758C /* MyArticleModel+ImportExport.swift */; };
 		2A2593322BAB0CB000DE758C /* MyArticleModel+ImportExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2593302BAB0CB000DE758C /* MyArticleModel+ImportExport.swift */; };
-		2A2774412A9514EE00A5DDC2 /* Zip in Frameworks */ = {isa = PBXBuildFile; productRef = 2A2774402A9514EE00A5DDC2 /* Zip */; };
 		2A27744B2A9515BF00A5DDC2 /* IconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A27744A2A9515BF00A5DDC2 /* IconManager.swift */; };
 		2A27744E2A9515EB00A5DDC2 /* IconModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A27744D2A9515EB00A5DDC2 /* IconModel.swift */; };
 		2A2774502A9515F600A5DDC2 /* IconGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A27744F2A9515F600A5DDC2 /* IconGalleryView.swift */; };
@@ -923,7 +922,6 @@
 				6A9C211029792464005A815E /* AVKit.framework in Frameworks */,
 				6AFCF7E02B7353C6002299BA /* OrderedCollections in Frameworks */,
 				BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */,
-				2A2774412A9514EE00A5DDC2 /* Zip in Frameworks */,
 				6AFCF7DE2B7353C6002299BA /* DequeModule in Frameworks */,
 				BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */,
 				6A373A4428E8263800750256 /* CodeMirror-SwiftUI in Frameworks */,
@@ -1740,7 +1738,6 @@
 				6A71896C2947FD0500279D77 /* Web3PromiseKit */,
 				2A466FD32A809F65009FB646 /* ASMediaView */,
 				6A2A4D2B2A86422700F4491A /* WrappingHStack */,
-				2A2774402A9514EE00A5DDC2 /* Zip */,
 				6AFCF7DB2B7353C6002299BA /* Collections */,
 				6AFCF7DD2B7353C6002299BA /* DequeModule */,
 				6AFCF7DF2B7353C6002299BA /* OrderedCollections */,
@@ -1799,7 +1796,6 @@
 				6A7189672947FD0500279D77 /* XCRemoteSwiftPackageReference "Web3" */,
 				2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */,
 				6A2A4D2A2A86422700F4491A /* XCRemoteSwiftPackageReference "WrappingHStack" */,
-				2A27743F2A9514EE00A5DDC2 /* XCRemoteSwiftPackageReference "Zip" */,
 				6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */,
 				2AAF51082C293DE100C0B7AA /* XCRemoteSwiftPackageReference "HDWallet" */,
 				2AD061412C47A7B000E288DB /* XCRemoteSwiftPackageReference "vapor" */,
@@ -2689,14 +2685,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		2A27743F2A9514EE00A5DDC2 /* XCRemoteSwiftPackageReference "Zip" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/marmelroy/Zip";
-			requirement = {
-				kind = revision;
-				revision = bca30f6d6c7d37cbc4aa8f6b0002e281dcc36195;
-			};
-		};
 		2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/nmdias/FeedKit";
@@ -2844,11 +2832,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		2A2774402A9514EE00A5DDC2 /* Zip */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2A27743F2A9514EE00A5DDC2 /* XCRemoteSwiftPackageReference "Zip" */;
-			productName = Zip;
-		};
 		2A466FD32A809F65009FB646 /* ASMediaView */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */;
