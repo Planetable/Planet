@@ -199,7 +199,7 @@ struct AccountBadgeView: View {
         let web3: Web3
         let currentActiveChain = EthereumChainID.allCases.first(where: {
             $0.id == currentActiveChainID
-        })!
+        }) ?? .mainnet
         web3 = Web3(rpcURL: currentActiveChain.rpcURL)
         web3.eth.blockNumber { response in
             if response.status.isSuccess, let blockNumber = response.result {
