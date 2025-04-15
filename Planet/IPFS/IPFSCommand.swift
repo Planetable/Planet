@@ -230,7 +230,7 @@ struct IPFSCommand {
     }
 
     static func addDirectory(directory: URL) -> IPFSCommand {
-        IPFSCommand(arguments: ["add", "-r", directory.path, "--cid-version=1", "--quieter"])
+        IPFSCommand(arguments: ["add", "-r", "-H", directory.path, "--cid-version=1", "--quieter"])
     }
 
     static func getFileCID(file: URL) -> IPFSCommand {
