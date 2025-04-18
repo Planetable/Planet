@@ -840,7 +840,7 @@ extension RequestParams {
     }
 }
 
-extension WebSocket: WebSocketConnecting {}
+extension WebSocket: @retroactive WebSocketConnecting {}
 
 struct DefaultSocketFactory: WebSocketFactory {
     func create(with url: URL) -> WebSocketConnecting {
