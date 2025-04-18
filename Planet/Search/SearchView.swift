@@ -13,6 +13,8 @@ struct SearchView: View {
     @State private var result: [SearchResult] = []
     @State private var focusedResult: SearchResult?
 
+    @AppStorage("searchText") private var searchText: String = ""
+
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -25,7 +27,7 @@ struct SearchView: View {
                     .padding(.vertical, 10)
                     .padding(.trailing, 0)
 
-                TextField("Type to Search", text: $planetStore.searchText)
+                TextField("Type to Search", text: $searchText)
                     .font(.title2)
                     .textFieldStyle(PlainTextFieldStyle())
                     .padding(.top, 12)
@@ -68,7 +70,7 @@ struct SearchView: View {
             statusView()
         }
         .frame(minWidth: 500, minHeight: 300)
-        .onChange(of: planetStore.searchText) { _ in
+        .onChange(of: searchText) { _ in
             debounceSearch()
         }
         .onAppear {
@@ -88,8 +90,8 @@ struct SearchView: View {
         // Create and schedule a new timer
         searchTimer = Timer.scheduledTimer(withTimeInterval: searchDebounceInterval, repeats: false)
         { _ in
-            debugPrint("New search text length: \(self.planetStore.searchText.count)")
-            if self.planetStore.searchText.count == 0 {
+            debugPrint("New search text length: \(self.searchText.count)")
+            if self.searchText.count == 0 {
                 self.result = []
             }
             else {
@@ -100,12 +102,12 @@ struct SearchView: View {
     }
 
     private func search() {
-        let searchText = planetStore.searchText
+        let searchText = searchText
         if searchText != "" {
             Task(priority: .userInitiated) {
                 let items = await planetStore.searchAllArticles(text: searchText)
                 DispatchQueue.main.async {
-                    let latestSearchText = planetStore.searchText
+                    let latestSearchText = searchText
                     if latestSearchText != searchText {
                         return
                     }
@@ -134,7 +136,7 @@ struct SearchView: View {
             }.padding(0)
         }
     }
-    
+
     @ViewBuilder
     private func searchResultView() -> some View {
         ZStack {
@@ -184,7 +186,7 @@ struct SearchView: View {
             .opacity(0)
         }
     }
-    
+
     private func goToNextSearchResult() {
         guard result.count > 0 else { return }
         if let currentFocusedResult = focusedResult {
@@ -197,7 +199,7 @@ struct SearchView: View {
             focusedResult = result.first
         }
     }
-    
+
     private func goToPreviousSearchResult() {
         guard result.count > 0 else { return }
         if let currentFocusedResult = focusedResult {

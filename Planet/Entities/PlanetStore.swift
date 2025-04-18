@@ -162,11 +162,6 @@ enum PlanetDetailViewType: Hashable, Equatable {
     var importingArticleURLs: [URL] = []
 
     @Published var isShowingSearch: Bool = false
-    @Published var searchText: String = UserDefaults.standard.string(forKey: "searchText") ?? "" {
-        didSet {
-            UserDefaults.standard.set(searchText, forKey: "searchText")
-        }
-    }
 
     @Published var isShowingIPFSOpen: Bool = false
 

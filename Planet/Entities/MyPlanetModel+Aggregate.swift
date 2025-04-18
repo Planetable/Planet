@@ -471,7 +471,7 @@ extension MyPlanetModel {
         if let feedURL = URL(string: site), let feedData = try? Data(contentsOf: feedURL) {
             do {
                 let feed = try? await FeedUtils.parseFeed(data: feedData, url: feedURL)
-                debugPrint("Aggregation: fetched \(site): \(feed)")
+                debugPrint("Aggregation: fetched \(site): \(String(describing: feed))")
                 for article in feed?.articles ?? [] {
                     if let articleURL = URL(string: article.link) {
                         let articleID = article.link
