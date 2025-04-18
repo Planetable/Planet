@@ -129,6 +129,10 @@ class IPFSState: ObservableObject {
         // update current peers
         if onlineStatus {
             await self.updateServerInfo()
+        } else {
+            // Wait for 2 seconds and try again
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            await self.updateStatus()
         }
     }
 
