@@ -87,6 +87,7 @@ struct MyPlanetSidebarItem: View {
                                 PlanetStore.shared.isConfiguringPlanetTemplate = true
                             }
                         } label: {
+                            Image(systemName: "paintpalette.fill")
                             Text("Template Settings")
                         }
                     }
@@ -108,6 +109,7 @@ struct MyPlanetSidebarItem: View {
                         PlanetStore.shared.isEditingPlanetDonationSettings = true
                     }
                 } label: {
+                    Image("custom.ethereum")
                     Text("Accept Donation")
                 }
 
@@ -117,6 +119,7 @@ struct MyPlanetSidebarItem: View {
                         PlanetStore.shared.isEditingPlanetPodcastSettings = true
                     }
                 } label: {
+                    Image(systemName: "waveform")
                     Text("Podcast Settings")
                 }
 
