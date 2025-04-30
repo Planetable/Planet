@@ -1,4 +1,5 @@
 import Foundation
+import ImageIO
 import UniformTypeIdentifiers
 import SwiftUI
 
@@ -71,7 +72,7 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
                 } else {
                     return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
                 }
-                
+
             }
             return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
         case .file:
@@ -83,6 +84,36 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
 
     var path: URL {
         draft.attachmentsPath.appendingPathComponent(name, isDirectory: false)
+    }
+
+    var exifDate: Date? {
+        guard let imageUrl = path as URL? else {
+            return nil
+        }
+        // Get exif data from the image
+        guard let imageSource = CGImageSourceCreateWithURL(imageUrl as CFURL, nil) else {
+            return nil
+        }
+        guard let imageProperties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) else {
+            return nil
+        }
+        guard let imagePropertiesDict = imageProperties as? [String: Any] else {
+            return nil
+        }
+        guard let exifDict = imagePropertiesDict[kCGImagePropertyExifDictionary as String] as? [String: Any] else {
+            return nil
+        }
+        guard let dateTimeOriginal = exifDict[kCGImagePropertyExifDateTimeOriginal as String] as? String else {
+            return nil
+        }
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy:MM:dd HH:mm:ss"
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        guard let date = dateFormatter.date(from: dateTimeOriginal) else {
+            return nil
+        }
+        return date
     }
 
     func hash(into hasher: inout Hasher) {

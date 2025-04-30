@@ -56,7 +56,8 @@ struct WriterView: View {
                 tags: $draft.tags,
                 date: $draft.date,
                 title: $draft.title,
-                focusTitle: _focusTitle
+                focusTitle: _focusTitle,
+                attachments: $draft.attachments
             )
 
             Divider()
