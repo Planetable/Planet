@@ -70,6 +70,17 @@ class MyArticleModel: ArticleModel, Codable {
         "nft.json",
         isDirectory: false
     )
+    lazy var bgImagePath = publicBasePath.appendingPathComponent(
+        "_bg.png",
+        isDirectory: false
+    )
+
+    var heroImagePathString: String? {
+        if let heroImage = heroImage {
+            return publicBasePath.appendingPathComponent(heroImage).path
+        }
+        return nil
+    }
 
     var publicArticle: PublicArticleModel {
         PublicArticleModel(
