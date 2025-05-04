@@ -1,12 +1,11 @@
 {
   "images" : [
     {
-      "filename" : "ipfs.png",
+      "filename" : "feature.rss.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "ipfs@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
