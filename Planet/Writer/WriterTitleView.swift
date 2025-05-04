@@ -46,6 +46,7 @@ struct WriterTitleView: View {
 
             Text("\(date.simpleDateDescription())")
                 .foregroundColor(dateIsManuallySet ? .primary : .secondary)
+                .fontWeight(dateIsManuallySet ? .semibold : .regular)
                 .background(Color(NSColor.textBackgroundColor))
 
             Spacer(minLength: 8)
@@ -99,7 +100,7 @@ struct WriterTitleView: View {
                             dateIsManuallySet = false
                             date = initDate
                         } label: {
-                            Text("Cancel")
+                            Text("Revert to Initial")
                         }
                         Button {
                             updatingDate = false
@@ -126,7 +127,7 @@ struct WriterTitleView: View {
                                     // Get modified date from the file of the first attachment
                                     let fileURL = attachment.path
                                     let fileAttributes = try? FileManager.default.attributesOfItem(atPath: fileURL.path)
-                                    debugPrint("File attributes: \(fileAttributes)")
+                                    debugPrint("File attributes: \(String(describing: fileAttributes))")
                                     if let creationDate = fileAttributes?[.creationDate] as? Date {
                                         date = creationDate
                                         dateIsManuallySet = true
