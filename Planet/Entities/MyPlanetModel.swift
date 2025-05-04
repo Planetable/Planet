@@ -68,6 +68,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var juiceboxProjectID: Int?
     @Published var juiceboxProjectIDGoerli: Int?
 
+    @Published var farcasterEnabled: Bool? = false
+    @Published var farcasterUsername: String?
+    @Published var farcasterJSON: String?
+
     @Published var acceptsDonation: Bool? = false
     @Published var acceptsDonationMessage: String?
     @Published var acceptsDonationETHAddress: String?
@@ -500,6 +504,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(juiceboxProjectID)
         hasher.combine(juiceboxProjectIDGoerli)
 
+        hasher.combine(farcasterEnabled)
+        hasher.combine(farcasterUsername)
+        hasher.combine(farcasterJSON)
+
         hasher.combine(acceptsDonation)
         hasher.combine(acceptsDonationMessage)
         hasher.combine(acceptsDonationETHAddress)
@@ -574,6 +582,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.juiceboxEnabled == rhs.juiceboxEnabled
             && lhs.juiceboxProjectID == rhs.juiceboxProjectID
             && lhs.juiceboxProjectIDGoerli == rhs.juiceboxProjectIDGoerli
+            && lhs.farcasterEnabled == rhs.farcasterEnabled
+            && lhs.farcasterUsername == rhs.farcasterUsername
+            && lhs.farcasterJSON == rhs.farcasterJSON
             && lhs.acceptsDonation == rhs.acceptsDonation
             && lhs.acceptsDonationMessage == rhs.acceptsDonationMessage
             && lhs.acceptsDonationETHAddress == rhs.acceptsDonationETHAddress
@@ -604,6 +615,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             customCodeBodyEndEnabled, customCodeBodyEnd,
             podcastCategories, podcastLanguage, podcastExplicit,
             juiceboxEnabled, juiceboxProjectID, juiceboxProjectIDGoerli,
+            farcasterEnabled, farcasterUsername, farcasterJSON,
             acceptsDonation, acceptsDonationMessage, acceptsDonationETHAddress,
             tags,
             aggregation, reuseOriginalID,
@@ -682,6 +694,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Int.self,
             forKey: .juiceboxProjectIDGoerli
         )
+        farcasterEnabled = try container.decodeIfPresent(Bool.self, forKey: .farcasterEnabled)
+        farcasterUsername = try container.decodeIfPresent(
+            String.self,
+            forKey: .farcasterUsername
+        )
+        farcasterJSON = try container.decodeIfPresent(String.self, forKey: .farcasterJSON)
         acceptsDonation = try container.decodeIfPresent(Bool.self, forKey: .acceptsDonation)
         acceptsDonationMessage = try container.decodeIfPresent(
             String.self,
@@ -761,6 +779,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(juiceboxEnabled, forKey: .juiceboxEnabled)
         try container.encodeIfPresent(juiceboxProjectID, forKey: .juiceboxProjectID)
         try container.encodeIfPresent(juiceboxProjectIDGoerli, forKey: .juiceboxProjectIDGoerli)
+        try container.encodeIfPresent(farcasterEnabled, forKey: .farcasterEnabled)
+        try container.encodeIfPresent(farcasterUsername, forKey: .farcasterUsername)
+        try container.encodeIfPresent(farcasterJSON, forKey: .farcasterJSON)
         try container.encodeIfPresent(acceptsDonation, forKey: .acceptsDonation)
         try container.encodeIfPresent(acceptsDonationMessage, forKey: .acceptsDonationMessage)
         try container.encodeIfPresent(acceptsDonationETHAddress, forKey: .acceptsDonationETHAddress)
@@ -1081,6 +1102,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         if backupPlanet.juiceboxProjectIDGoerli != nil {
             planet.juiceboxProjectIDGoerli = backupPlanet.juiceboxProjectIDGoerli
+        }
+
+        // Restore Farcaster settings
+        if backupPlanet.farcasterEnabled != nil {
+            planet.farcasterEnabled = backupPlanet.farcasterEnabled
+        }
+        if backupPlanet.farcasterUsername != nil {
+            planet.farcasterUsername = backupPlanet.farcasterUsername
+        }
+        if backupPlanet.farcasterJSON != nil {
+            planet.farcasterJSON = backupPlanet.farcasterJSON
         }
 
         // Restore Donation settings
@@ -2089,6 +2121,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             juiceboxEnabled: juiceboxEnabled,
             juiceboxProjectID: juiceboxProjectID,
             juiceboxProjectIDGoerli: juiceboxProjectIDGoerli,
+            farcasterEnabled: farcasterEnabled,
+            farcasterUsername: farcasterUsername,
+            farcasterJSON: farcasterJSON,
             acceptsDonation: acceptsDonation,
             acceptsDonationMessage: acceptsDonationMessage,
             acceptsDonationETHAddress: acceptsDonationETHAddress,

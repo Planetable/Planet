@@ -121,6 +121,9 @@ struct FollowPlanetView: View {
                     planet.delete()
                 } else {
                     planetStore.followingPlanets.insert(planet, at: 0)
+                    Task {
+                        await planetStore.saveFollowingPlanetsOrder()
+                    }
                     planetStore.selectedView = .followingPlanet(planet)
                 }
             } catch PlanetError.PlanetExistsError {

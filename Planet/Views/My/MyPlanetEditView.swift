@@ -40,7 +40,11 @@ struct MyPlanetEditView: View {
 
     @State private var juiceboxEnabled: Bool = false
     @State private var juiceboxProjectID: String
-    @State private var juiceboxProjectIDGoerli: String
+    /* @State private var juiceboxProjectIDGoerli: String */
+
+    @State private var farcasterEnabled: Bool = false
+    @State private var farcasterUsername: String
+    @State private var farcasterJSON: String
 
     @State private var pinnableEnabled: Bool = false
     @State private var pinnableAPIEndpoint: String
@@ -88,9 +92,14 @@ struct MyPlanetEditView: View {
         */
         _juiceboxEnabled = State(wrappedValue: planet.juiceboxEnabled ?? false)
         _juiceboxProjectID = State(wrappedValue: planet.juiceboxProjectID?.stringValue() ?? "")
+        /*
         _juiceboxProjectIDGoerli = State(
             wrappedValue: planet.juiceboxProjectIDGoerli?.stringValue() ?? ""
         )
+        */
+        _farcasterEnabled = State(wrappedValue: planet.farcasterEnabled ?? false)
+        _farcasterUsername = State(wrappedValue: planet.farcasterUsername ?? "")
+        _farcasterJSON = State(wrappedValue: planet.farcasterJSON ?? "")
         _pinnableEnabled = State(wrappedValue: planet.pinnableEnabled ?? false)
         _pinnableAPIEndpoint = State(wrappedValue: planet.pinnableAPIEndpoint ?? "")
         _pinnablePinCID = State(wrappedValue: planet.pinnablePinCID ?? nil)
@@ -454,6 +463,122 @@ struct MyPlanetEditView: View {
         }
     }
 
+    @ViewBuilder
+    private func farcasterView() -> some View {
+        HStack {
+            HStack {
+                Spacer()
+            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
+            Toggle("Enable Farcaster Integration", isOn: $farcasterEnabled)
+                .toggleStyle(.checkbox)
+                .frame(alignment: .leading)
+            Spacer()
+            HelpLinkButton(
+                helpLink: URL(
+                    string: "https://www.planetable.xyz/guides/farcaster/"
+                )!
+            )
+        }
+
+        HStack {
+            HStack {
+                Text("Farcaster Username")
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+            TextField("", text: $farcasterUsername)
+                .textFieldStyle(.roundedBorder)
+        }
+
+        HStack {
+            HStack {
+                Text("farcaster.json")
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+            TextEditor(text: $farcasterJSON)
+                .font(.system(size: 13, weight: .regular, design: .monospaced))
+                .lineSpacing(2)
+                .disableAutocorrection(true)
+                .cornerRadius(6)
+                .frame(height: 120)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(Color.secondary.opacity(0.25), lineWidth: 1.0)
+                )
+        }
+
+        HStack {
+            Spacer()
+
+            Button {
+                if let url = URL(string: "https://miniapps.farcaster.xyz/docs/guides/publishing") {
+                    NSWorkspace.shared.open(url)
+                }
+            } label: {
+                Image(systemName: "arrow.up.forward.app")
+                Text("Mini App Publishing Guide")
+            }
+
+            Button {
+                if let url = URL(string: "https://warpcast.com/~/developers/mini-apps/manifest") {
+                    NSWorkspace.shared.open(url)
+                }
+            } label: {
+                Image(systemName: "gear")
+                Text("Manifest Tool")
+            }
+        }
+
+        Divider()
+            .padding(.top, 6)
+            .padding(.bottom, 6)
+    }
+
+    @ViewBuilder
+    private func juiceboxView() -> some View {
+        HStack {
+            HStack {
+                Spacer()
+            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
+            Toggle("Enable Juicebox Integration", isOn: $juiceboxEnabled)
+                .toggleStyle(.checkbox)
+                .frame(alignment: .leading)
+            Spacer()
+            HelpLinkButton(
+                helpLink: URL(
+                    string: "https://www.planetable.xyz/guides/juicebox/"
+                )!
+            )
+        }
+
+        HStack {
+            HStack {
+                Text("Project ID")
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+            TextField("", text: $juiceboxProjectID)
+                .textFieldStyle(.roundedBorder)
+        }
+
+        /*
+        HStack {
+            HStack {
+                Text("Project ID (Goerli)")
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+
+            TextField("", text: $juiceboxProjectIDGoerli)
+                .textFieldStyle(.roundedBorder)
+        }
+        */
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 8) {
@@ -664,47 +789,15 @@ struct MyPlanetEditView: View {
                     .tag("pinning")
 
                     VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
+                        farcasterView()
                         if PlanetStore.app == .planet {
-                            HStack {
-                                HStack {
-                                    Spacer()
-                                }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
-                                Toggle("Enable Juicebox Integration", isOn: $juiceboxEnabled)
-                                    .toggleStyle(.checkbox)
-                                    .frame(alignment: .leading)
-                                Spacer()
-                                HelpLinkButton(
-                                    helpLink: URL(
-                                        string: "https://www.planetable.xyz/guides/juicebox/"
-                                    )!
-                                )
-                            }
+                            juiceboxView()
 
-                            HStack {
-                                HStack {
-                                    Text("Project ID")
-                                    Spacer()
-                                }
-                                .frame(width: CONTROL_CAPTION_WIDTH + 20)
-
-                                TextField("", text: $juiceboxProjectID)
-                                    .textFieldStyle(.roundedBorder)
-                            }
-
-                            HStack {
-                                HStack {
-                                    Text("Project ID (Goerli)")
-                                    Spacer()
-                                }
-                                .frame(width: CONTROL_CAPTION_WIDTH + 20)
-
-                                TextField("", text: $juiceboxProjectIDGoerli)
-                                    .textFieldStyle(.roundedBorder)
-                            }
-
+                            /*
                             Divider()
                                 .padding(.top, 6)
                                 .padding(.bottom, 6)
+                            */
                         }
 
                         /*
@@ -809,7 +902,20 @@ struct MyPlanetEditView: View {
                         */
                         planet.juiceboxEnabled = juiceboxEnabled
                         planet.juiceboxProjectID = Int(juiceboxProjectID)
-                        planet.juiceboxProjectIDGoerli = Int(juiceboxProjectIDGoerli)
+                        /* planet.juiceboxProjectIDGoerli = Int(juiceboxProjectIDGoerli) */
+                        planet.farcasterEnabled = farcasterEnabled
+                        if farcasterUsername.count > 0 {
+                            planet.farcasterUsername = farcasterUsername
+                        }
+                        else {
+                            planet.farcasterUsername = nil
+                        }
+                        if farcasterJSON.count > 0 {
+                            planet.farcasterJSON = farcasterJSON
+                        }
+                        else {
+                            planet.farcasterJSON = nil
+                        }
                         planet.pinnableEnabled = pinnableEnabled
                         planet.pinnableAPIEndpoint = pinnableAPIEndpoint
                         planet.filebaseEnabled = filebaseEnabled
@@ -818,6 +924,24 @@ struct MyPlanetEditView: View {
                         Task {
                             planet.updateTemplateSettings(settings: userSettings)
                             try planet.save()
+                            if farcasterEnabled, let fjson = planet.farcasterJSON, fjson.count > 0 {
+                                let wellKnown = planet.publicBasePath.appendingPathComponent(
+                                    ".well-known"
+                                )
+                                if !FileManager.default.fileExists(atPath: wellKnown.path) {
+                                    try? FileManager.default.createDirectory(
+                                        at: wellKnown,
+                                        withIntermediateDirectories: true
+                                    )
+                                }
+                                try? fjson.write(
+                                    to: planet.publicBasePath.appendingPathComponent(
+                                        ".well-known/farcaster.json"
+                                    ),
+                                    atomically: true,
+                                    encoding: .utf8
+                                )
+                            }
                             if resaveAvatar {
                                 Task.detached {
                                     do {

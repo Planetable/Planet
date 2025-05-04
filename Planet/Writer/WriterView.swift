@@ -311,7 +311,15 @@ struct WriterView: View {
             viewModel.isMediaTrayOpen = true
         }
         try urls.forEach { url in
-            _ = try draft.addAttachment(path: url, type: viewModel.attachmentType)
+            let attachment = try draft.addAttachment(path: url, type: viewModel.attachmentType)
+            if attachment.type == .image {
+                if let markdown = attachment.markdown {
+                    NotificationCenter.default.post(
+                        name: .writerNotification(.insertText, for: attachment.draft),
+                        object: markdown
+                    )
+                }
+            }
         }
         try draft.renderPreview()
         try draft.save()

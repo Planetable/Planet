@@ -100,6 +100,7 @@ struct MyPlanetSidebarItem: View {
                         PlanetStore.shared.isEditingPlanetCustomCode = true
                     }
                 } label: {
+                    Image(systemName: "chevron.left.slash.chevron.right")
                     Text("Custom Code")
                 }
 
@@ -129,6 +130,9 @@ struct MyPlanetSidebarItem: View {
                         PlanetStore.shared.isConfiguringAggregation = true
                     }
                 } label: {
+                    if #available(macOS 15.0, *) {
+                        Image(systemName: "square.and.arrow.down.badge.clock")
+                    }
                     Text("Aggregation")
                 }
 
@@ -139,6 +143,7 @@ struct MyPlanetSidebarItem: View {
                         try await planet.publish()
                     }
                 } label: {
+                    Image(systemName: "antenna.radiowaves.left.and.right")
                     Text(planet.isPublishing ? "Publishing" : "Publish Planet")
                 }
                 .disabled(planet.isPublishing)
@@ -484,7 +489,7 @@ struct MyPlanetSidebarItem: View {
                 Button {
                     openVSCode(template)
                 } label: {
-                    Image(systemName: "chevron.left.slash.chevron.right")
+                    Image(systemName: "pencil")
                     Text("Edit Template")
                 }
             }

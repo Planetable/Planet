@@ -53,6 +53,9 @@ struct BackupMyPlanetModel: Codable {
     let juiceboxEnabled: Bool?
     let juiceboxProjectID: Int?
     let juiceboxProjectIDGoerli: Int?
+    let farcasterEnabled: Bool?
+    let farcasterUsername: String?
+    let farcasterJSON: String?
     let acceptsDonation: Bool?
     let acceptsDonationMessage: String?
     let acceptsDonationETHAddress: String?
