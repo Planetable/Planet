@@ -63,7 +63,7 @@ struct NewOnboardingView: View {
 
                     VStack(alignment: .leading, spacing: 5) {
                         feature(
-                            icon: "RSS",
+                            icon: "feature.rss",
                             title: "Follow Updates",
                             description: "Follow updates from other Planet sites, or RSS. Atom and JSON feeds are also supported.",
                             url: "https://www.planetable.xyz/guides/follow-planet/"
@@ -141,10 +141,16 @@ struct NewOnboardingView: View {
 
             VStack() {
                 HStack {
-                    Image("RSS")
+                    Image("AppLogo-Original")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: ICON_WIDTH, height: ICON_WIDTH)
+                    .cornerRadius(ICON_WIDTH / 2)
+                    // 5px border using text background color
+                    .overlay(
+                        Circle()
+                            .stroke(Color(nsColor: .textBackgroundColor), lineWidth: 5)
+                    )
                     .padding(.top, BANNER_HEIGHT - (ICON_WIDTH / 2))
                     .padding(.leading, PADDING_LEFT)
 
