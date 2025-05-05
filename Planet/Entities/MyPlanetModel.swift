@@ -700,6 +700,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             forKey: .farcasterUsername
         )
         farcasterJSON = try container.decodeIfPresent(String.self, forKey: .farcasterJSON)
+        if farcasterJSON == nil {
+            // Try read from disk
+            let jsonpath = self.publicBasePath
+                .appendingPathComponent("farcaster.json", isDirectory: false)
+            if FileManager.default.fileExists(atPath: jsonpath.path) {
+                do {
+                    let data = try Data(contentsOf: jsonpath)
+                    let json = try JSON(data: data)
+                    farcasterJSON = json.rawString()
+                } catch {
+                    MyPlanetModel.logger.error("Error reading farcaster.json: \(error)")
+                }
+            }
+        }
         acceptsDonation = try container.decodeIfPresent(Bool.self, forKey: .acceptsDonation)
         acceptsDonationMessage = try container.decodeIfPresent(
             String.self,
