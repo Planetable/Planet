@@ -52,7 +52,7 @@ struct NewOnboardingView: View {
                         )
 
                         feature(
-                            icon: "IPFS",
+                            icon: "feature.ipfs",
                             title: "IPFS Publishing",
                             description: "Publish your websites directly to the Internet with IPFS.",
                             url: "https://www.planetable.xyz/guides/local-gateway/"
@@ -70,7 +70,7 @@ struct NewOnboardingView: View {
                         )
 
                         feature(
-                            icon: "ENS",
+                            icon: "feature.ens",
                             title: "ENS .eth / SNS .sol",
                             description: "Link your IPFS websites to your blockchain names like Ethereum name (.eth) or Solana name (.sol).",
                             url: "https://www.planetable.xyz/guides/ens/"
