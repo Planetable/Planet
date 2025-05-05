@@ -141,18 +141,7 @@ struct NewOnboardingView: View {
 
             VStack() {
                 HStack {
-                    Image("AppLogo-Original")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: ICON_WIDTH, height: ICON_WIDTH)
-                    .cornerRadius(ICON_WIDTH / 2)
-                    // 5px border using text background color
-                    .overlay(
-                        Circle()
-                            .stroke(Color(nsColor: .textBackgroundColor), lineWidth: 5)
-                    )
-                    .padding(.top, BANNER_HEIGHT - (ICON_WIDTH / 2))
-                    .padding(.leading, PADDING_LEFT)
+                    logo()
 
                     Spacer()
                 }
@@ -161,6 +150,23 @@ struct NewOnboardingView: View {
             }
 
         }.frame(width: BANNER_WIDTH, height: 640)
+    }
+
+    @ViewBuilder
+    private func logo() -> some View {
+        Image("AppLogo-Original")
+            .interpolation(.high)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: ICON_WIDTH, height: ICON_WIDTH)
+            .cornerRadius(ICON_WIDTH / 2)
+            // 5px border using text background color
+            .overlay(
+                Circle()
+                    .stroke(Color(nsColor: .textBackgroundColor), lineWidth: 5)
+            )
+            .padding(.top, BANNER_HEIGHT - (ICON_WIDTH / 2))
+            .padding(.leading, PADDING_LEFT)
     }
 
     @ViewBuilder
