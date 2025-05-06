@@ -124,6 +124,9 @@ struct FollowPlanetView: View {
                     Task {
                         await planetStore.saveFollowingPlanetsOrder()
                     }
+                    Task {
+                        await planet.refreshIcon()
+                    }
                     planetStore.selectedView = .followingPlanet(planet)
                 }
             } catch PlanetError.PlanetExistsError {
