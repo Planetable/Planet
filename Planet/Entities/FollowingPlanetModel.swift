@@ -950,40 +950,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             planet.articles = []
         }
 
-        var feedAvatar: Data? = nil
-        if feed.avatar == nil {
-            if let soup = htmlDocument {
-                feedAvatar = try await FeedUtils.findAvatarFromHTMLOGImage(
-                    htmlDocument: soup,
-                    htmlURL: feedURL
-                )
-                if feedAvatar == nil {
-                    feedAvatar = try await FeedUtils.findAvatarFromHTMLIcons(
-                        htmlDocument: soup,
-                        htmlURL: feedURL
-                    )
-                }
-            }
-        }
-
-        var avatarData: Data? = nil
-
-        if feed.avatar != nil {
-            avatarData = feed.avatar
-        }
-
-        if avatarData == nil, feedAvatar != nil {
-            avatarData = feedAvatar
-        }
-
-        if let data = avatarData,
-            let image = NSImage(data: data),
-            let _ = try? data.write(to: planet.avatarPath)
-        {
-            Self.logger.info("Follow \(link): found avatar from feed")
-            planet.avatar = image
-        }
-
         try planet.save()
         try planet.articles.forEach { try $0.save() }
         return planet
