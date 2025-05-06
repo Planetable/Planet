@@ -218,6 +218,15 @@ class Template: Codable, Identifiable {
         guard let planet = article.planet else {
             throw PlanetError.RenderMarkdownError
         }
+
+        // if template.name is "memories", and article has heroImage, write _bg.png to article's public folder
+        if name == "Experimental" {
+            if let heroImagePathString = article.heroImagePathString {
+                let outputPath = article.bgImagePath
+                Template.processImage(inputPath: heroImagePathString, outputPath: outputPath.path)
+            }
+        }
+
         let hasPodcast = planet.articles.contains(where: { $0.hasAudioContent() })
         let publicPlanet = PublicPlanetModel(
             id: planet.id,
