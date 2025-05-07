@@ -912,7 +912,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         guard let feedURL = URL(string: link) else {
             throw PlanetError.InvalidPlanetURLError
         }
-        let (feedData, htmlDocument) = try await FeedUtils.findFeed(url: feedURL)
+        let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
         guard let feedData = feedData else {
             throw PlanetError.InvalidPlanetURLError
         }
