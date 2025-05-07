@@ -336,7 +336,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             try? FollowingArticleModel.load(from: $0, planet: planet)
         }
         planet.articles.sort { $0.created > $1.created }
-        planet.avatar = NSImage(contentsOf: planet.avatarPath)
+        if let data = try? Data(contentsOf: planet.avatarPath),
+            let image = NSImage(data: data) {
+            planet.avatar = image
+        }
+        else {
+            planet.avatar = nil
+        }
 
         if planet.articles.count > 0 {
             var links: [String] = []
