@@ -468,7 +468,7 @@ struct MyPlanetEditView: View {
         HStack {
             HStack {
                 Spacer()
-            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
+            }.frame(width: CONTROL_CAPTION_WIDTH + 40 + 10)
             Toggle("Enable Farcaster Integration", isOn: $farcasterEnabled)
                 .toggleStyle(.checkbox)
                 .frame(alignment: .leading)
@@ -482,10 +482,11 @@ struct MyPlanetEditView: View {
 
         HStack {
             HStack {
+                Image("custom.farcaster")
                 Text("Farcaster Username")
                 Spacer()
             }
-            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+            .frame(width: CONTROL_CAPTION_WIDTH + 40)
 
             TextField("", text: $farcasterUsername)
                 .textFieldStyle(.roundedBorder)
@@ -496,7 +497,7 @@ struct MyPlanetEditView: View {
                 Text("farcaster.json")
                 Spacer()
             }
-            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+            .frame(width: CONTROL_CAPTION_WIDTH + 40)
 
             TextEditor(text: $farcasterJSON)
                 .font(.system(size: 13, weight: .regular, design: .monospaced))
@@ -542,7 +543,7 @@ struct MyPlanetEditView: View {
         HStack {
             HStack {
                 Spacer()
-            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
+            }.frame(width: CONTROL_CAPTION_WIDTH + 40 + 10)
             Toggle("Enable Juicebox Integration", isOn: $juiceboxEnabled)
                 .toggleStyle(.checkbox)
                 .frame(alignment: .leading)
@@ -556,10 +557,11 @@ struct MyPlanetEditView: View {
 
         HStack {
             HStack {
+                Image("custom.juicebox")
                 Text("Project ID")
                 Spacer()
             }
-            .frame(width: CONTROL_CAPTION_WIDTH + 20)
+            .frame(width: CONTROL_CAPTION_WIDTH + 40)
 
             TextField("", text: $juiceboxProjectID)
                 .textFieldStyle(.roundedBorder)
