@@ -67,7 +67,16 @@ struct FollowingPlanetSidebarItem: View {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(planet.shareLink.absoluteString, forType: .string)
                 } label: {
-                    Text("Copy URL")
+                    switch planet.planetType {
+                    case .planet:
+                        Text("Copy Planet IPNS")
+                    case .ens:
+                        Text("Copy ENS URL")
+                    case .dns:
+                        Text("Copy Feed URL")
+                    default:
+                        Text("Copy URL")
+                    }
                 }
 
                 Button {

@@ -296,6 +296,7 @@ struct MyPlanetSidebarItem: View {
                         if planet.articles.count < 1000 {
                             Task.detached(priority: .userInitiated) {
                                 try await planet.savePublic()
+                                try await planet.publish()
                             }
                         } else {
                             // if the planet has more than 1000 articles, we should ask user to perform a quick rebuild
