@@ -230,8 +230,8 @@ actor IPFSDaemon {
         let swarmConnMgr = JSON(
             [
                 "GracePeriod": "20s",
-                "HighWater": 240,
-                "LowWater": 120,
+                "HighWater": 50,
+                "LowWater": 20,
                 "Type": "basic",
             ] as [String: Any]
         )
