@@ -227,11 +227,12 @@ actor IPFSDaemon {
             Self.logger.info("Unable to set DNS resolvers")
         }
 
+        let swarmConnSetting: KuboSwarmConnections = .low
         let swarmConnMgr = JSON(
             [
                 "GracePeriod": "20s",
-                "HighWater": 50,
-                "LowWater": 20,
+                "HighWater": swarmConnSetting.range.upperBound,
+                "LowWater": swarmConnSetting.range.lowerBound,
                 "Type": "basic",
             ] as [String: Any]
         )
