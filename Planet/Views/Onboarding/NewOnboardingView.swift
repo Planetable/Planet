@@ -101,6 +101,7 @@ struct NewOnboardingView: View {
                             try? await FollowingPlanetModel.followFeaturedSources()
                         }
                     } label: {
+                        Image(systemName: "sparkles")
                         Text("Follow Featured")
                     }
 
