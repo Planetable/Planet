@@ -40,8 +40,7 @@ struct NewOnboardingView: View {
                             icon: "feature.markdown-editor",
                             title: "Markdown Editor",
                             description: "Two-column Markdown editor for easily previewing changes. Drag-n-drop images, audio, or video. To-do list syntax is supported.",
-                            url: "https://planetable.eth.limo/"
-                            // TODO: Build a new page about Markdown editor
+                            url: "https://docs.iweb.eth.limo/markdown/"
                         )
 
                         feature(
@@ -55,8 +54,7 @@ struct NewOnboardingView: View {
                             icon: "feature.ipfs",
                             title: "IPFS Publishing",
                             description: "Publish your websites directly to the Internet with IPFS.",
-                            url: "https://www.planetable.xyz/guides/local-gateway/"
-                            // TODO: Build a new page about IPFS
+                            url: "https://docs.iweb.eth.limo/ipfs/"
                         )
                     }
                     .frame(maxWidth: .infinity)
