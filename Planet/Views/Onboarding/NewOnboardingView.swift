@@ -130,6 +130,8 @@ struct NewOnboardingView: View {
                     Spacer()
 
                     Button {
+                        // Save the setting
+                        UserDefaults.standard.set(showOnboardingScreen, forKey: "showOnboardingScreen")
                         dismiss()
                     } label: {
                         Text("OK")

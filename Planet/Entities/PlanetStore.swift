@@ -198,7 +198,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         if let showOnboardingScreen = UserDefaults.standard.value(forKey: "showOnboardingScreen") as? Bool {
             isShowingNewOnboarding = showOnboardingScreen
         } else {
-            isShowingNewOnboarding = false
+            isShowingNewOnboarding = true
         }
 
         do {
