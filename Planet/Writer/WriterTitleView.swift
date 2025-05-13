@@ -14,12 +14,14 @@ struct WriterTitleView: View {
     @State private var titleIsFocused: Bool = true
     @State private var initDate: Date = Date()
     @State private var newTag: String = ""
+    @State private var dateIsManuallySet: Bool = false
 
     var availableTags: [String: Int] = [:]
     @Binding var tags: [String: String]
     @Binding var date: Date
     @Binding var title: String
     @FocusState var focusTitle: Bool
+    @Binding var attachments: [Attachment]
 
     var body: some View {
         HStack(spacing: 0) {
@@ -43,7 +45,8 @@ struct WriterTitleView: View {
             Spacer(minLength: 8)
 
             Text("\(date.simpleDateDescription())")
-                .foregroundColor(.secondary)
+                .foregroundColor(dateIsManuallySet ? .primary : .secondary)
+                .fontWeight(dateIsManuallySet ? .semibold : .regular)
                 .background(Color(NSColor.textBackgroundColor))
 
             Spacer(minLength: 8)
@@ -94,9 +97,10 @@ struct WriterTitleView: View {
                         Spacer()
                         Button {
                             updatingDate = false
+                            dateIsManuallySet = false
                             date = initDate
                         } label: {
-                            Text("Cancel")
+                            Text("Revert to Initial")
                         }
                         Button {
                             updatingDate = false
@@ -108,10 +112,40 @@ struct WriterTitleView: View {
                     }
                     .padding(.horizontal, 16)
 
+                    if (attachments.count > 0) {
+                        Divider()
+
+                        HStack {
+                            Button {
+                                if let attachment = attachments.first {
+                                    // Try get creation date from EXIF
+                                    if let exifDate = attachment.exifDate {
+                                        date = exifDate
+                                        dateIsManuallySet = true
+                                        return
+                                    }
+                                    // Get modified date from the file of the first attachment
+                                    let fileURL = attachment.path
+                                    let fileAttributes = try? FileManager.default.attributesOfItem(atPath: fileURL.path)
+                                    debugPrint("File attributes: \(String(describing: fileAttributes))")
+                                    if let creationDate = fileAttributes?[.creationDate] as? Date {
+                                        date = creationDate
+                                        dateIsManuallySet = true
+                                    } else if let modificationDate = fileAttributes?[.modificationDate] as? Date {
+                                        date = modificationDate
+                                        dateIsManuallySet = true
+                                    }
+                                }
+                            } label: {
+                                Text("Set date from attachment")
+                            }
+                        }
+                    }
+
                     Spacer()
                 }
                 .padding(.horizontal, 0)
-                .frame(width: 280, height: 124)
+                .frame(width: 280, height: attachments.count > 0 ? 164 : 124)
             }
 
             Button {
@@ -247,6 +281,8 @@ struct WriterTitleView: View {
 
 struct WriterTitleView_Previews: PreviewProvider {
     static var previews: some View {
-        WriterTitleView(availableTags: [:], tags: .constant([:]), date: .constant(Date()), title: .constant(""))
+        WriterTitleView(availableTags: [:], tags: .constant([:]), date: .constant(Date()), title: .constant(""),
+            attachments: .constant([])
+        )
     }
 }

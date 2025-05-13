@@ -87,6 +87,7 @@ struct MyPlanetSidebarItem: View {
                                 PlanetStore.shared.isConfiguringPlanetTemplate = true
                             }
                         } label: {
+                            Image(systemName: "paintpalette.fill")
                             Text("Template Settings")
                         }
                     }
@@ -99,6 +100,7 @@ struct MyPlanetSidebarItem: View {
                         PlanetStore.shared.isEditingPlanetCustomCode = true
                     }
                 } label: {
+                    Image(systemName: "chevron.left.slash.chevron.right")
                     Text("Custom Code")
                 }
 
@@ -108,6 +110,7 @@ struct MyPlanetSidebarItem: View {
                         PlanetStore.shared.isEditingPlanetDonationSettings = true
                     }
                 } label: {
+                    Image("custom.ethereum")
                     Text("Accept Donation")
                 }
 
@@ -117,6 +120,7 @@ struct MyPlanetSidebarItem: View {
                         PlanetStore.shared.isEditingPlanetPodcastSettings = true
                     }
                 } label: {
+                    Image(systemName: "waveform")
                     Text("Podcast Settings")
                 }
 
@@ -126,6 +130,9 @@ struct MyPlanetSidebarItem: View {
                         PlanetStore.shared.isConfiguringAggregation = true
                     }
                 } label: {
+                    if #available(macOS 15.0, *) {
+                        Image(systemName: "square.and.arrow.down.badge.clock")
+                    }
                     Text("Aggregation")
                 }
 
@@ -136,6 +143,7 @@ struct MyPlanetSidebarItem: View {
                         try await planet.publish()
                     }
                 } label: {
+                    Image(systemName: "antenna.radiowaves.left.and.right")
                     Text(planet.isPublishing ? "Publishing" : "Publish Planet")
                 }
                 .disabled(planet.isPublishing)
@@ -288,6 +296,7 @@ struct MyPlanetSidebarItem: View {
                         if planet.articles.count < 1000 {
                             Task.detached(priority: .userInitiated) {
                                 try await planet.savePublic()
+                                try await planet.publish()
                             }
                         } else {
                             // if the planet has more than 1000 articles, we should ask user to perform a quick rebuild
@@ -481,7 +490,7 @@ struct MyPlanetSidebarItem: View {
                 Button {
                     openVSCode(template)
                 } label: {
-                    Image(systemName: "chevron.left.slash.chevron.right")
+                    Image(systemName: "pencil")
                     Text("Edit Template")
                 }
             }

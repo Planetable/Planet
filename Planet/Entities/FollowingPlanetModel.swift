@@ -336,7 +336,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             try? FollowingArticleModel.load(from: $0, planet: planet)
         }
         planet.articles.sort { $0.created > $1.created }
-        planet.avatar = NSImage(contentsOf: planet.avatarPath)
+        if let data = try? Data(contentsOf: planet.avatarPath),
+            let image = NSImage(data: data) {
+            planet.avatar = image
+        }
+        else {
+            planet.avatar = nil
+        }
 
         if planet.articles.count > 0 {
             var links: [String] = []
@@ -912,7 +918,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         guard let feedURL = URL(string: link) else {
             throw PlanetError.InvalidPlanetURLError
         }
-        let (feedData, htmlDocument) = try await FeedUtils.findFeed(url: feedURL)
+        let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
         guard let feedData = feedData else {
             throw PlanetError.InvalidPlanetURLError
         }
@@ -948,40 +954,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
         else {
             planet.articles = []
-        }
-
-        var feedAvatar: Data? = nil
-        if feed.avatar == nil {
-            if let soup = htmlDocument {
-                feedAvatar = try await FeedUtils.findAvatarFromHTMLOGImage(
-                    htmlDocument: soup,
-                    htmlURL: feedURL
-                )
-                if feedAvatar == nil {
-                    feedAvatar = try await FeedUtils.findAvatarFromHTMLIcons(
-                        htmlDocument: soup,
-                        htmlURL: feedURL
-                    )
-                }
-            }
-        }
-
-        var avatarData: Data? = nil
-
-        if feed.avatar != nil {
-            avatarData = feed.avatar
-        }
-
-        if avatarData == nil, feedAvatar != nil {
-            avatarData = feedAvatar
-        }
-
-        if let data = avatarData,
-            let image = NSImage(data: data),
-            let _ = try? data.write(to: planet.avatarPath)
-        {
-            Self.logger.info("Follow \(link): found avatar from feed")
-            planet.avatar = image
         }
 
         try planet.save()

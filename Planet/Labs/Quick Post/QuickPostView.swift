@@ -107,10 +107,13 @@ struct QuickPostView: View {
                     Image(systemName: "waveform")
                 }
                 Spacer()
-                Button("Cancel", role: .cancel) {
+                Button(role: .cancel) {
                     viewModel.fileURLs = []
                     viewModel.content = ""
                     dismiss()
+                } label: {
+                    Text("Cancel")
+                        .frame(minWidth: 50)
                 }
                 .keyboardShortcut(.cancelAction)
                 .buttonStyle(.bordered)
@@ -127,6 +130,7 @@ struct QuickPostView: View {
                     dismiss()
                 } label: {
                     Text("Post")
+                    .frame(minWidth: 50)
                 }
                 .keyboardShortcut(.return, modifiers: [.command])
                 .buttonStyle(.borderedProminent)
@@ -181,7 +185,7 @@ struct QuickPostView: View {
             // Insert media reference at cursor position
             let _ = url.lastPathComponent
             let mediaReference = url.htmlCode
-            
+
             // Get current cursor position
             let currentContent = viewModel.content
             if let textView = NSApp.keyWindow?.firstResponder as? NSTextView {
@@ -295,6 +299,12 @@ struct QuickPostView: View {
                 attachments.append(fileName)
             }
             article.attachments = attachments
+            if viewModel.audioURL != nil {
+                article.audioFilename = viewModel.audioURL?.lastPathComponent
+            }
+            if viewModel.videoURL != nil {
+                article.videoFilename = viewModel.videoURL?.lastPathComponent
+            }
         } else {
             // No attachments
             article.attachments = []

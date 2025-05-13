@@ -29,7 +29,7 @@ class KeyboardShortcutHelper: ObservableObject {
     func helpCommands() -> some Commands {
         CommandGroup(replacing: .help) {
             Button {
-                PlanetStore.shared.isShowingOnboarding = true
+                PlanetStore.shared.isShowingNewOnboarding = true
             } label: {
                 Text("What's New in Planet")
             }

@@ -154,6 +154,9 @@ struct PlanetMainView: View {
         .sheet(isPresented: $planetStore.isShowingOnboarding) {
             OnboardingView()
         }
+        .sheet(isPresented: $planetStore.isShowingNewOnboarding) {
+            NewOnboardingView()
+        }
     }
 }
 

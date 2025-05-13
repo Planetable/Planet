@@ -166,6 +166,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isShowingIPFSOpen: Bool = false
 
     @Published var isShowingOnboarding = false
+    @Published var isShowingNewOnboarding = false
 
     @Published var isShowingAlert = false
     @Published var alertTitle: String = ""
@@ -191,6 +192,13 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
         if PlanetStore.app == .lite {
             navigationTitle = "Croptop"
+        }
+
+        // Read from user defaults for "showOnboardingScreen"
+        if let showOnboardingScreen = UserDefaults.standard.value(forKey: "showOnboardingScreen") as? Bool {
+            isShowingNewOnboarding = showOnboardingScreen
+        } else {
+            isShowingNewOnboarding = true
         }
 
         do {

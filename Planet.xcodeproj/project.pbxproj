@@ -407,6 +407,7 @@
 		6A52FAF02A88969A000E85F0 /* BackupMyPlanetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A52FAEE2A88969A000E85F0 /* BackupMyPlanetModel.swift */; };
 		6A52FAF22A88A2C2000E85F0 /* PublicPlanetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A52FAF12A88A2C2000E85F0 /* PublicPlanetModel.swift */; };
 		6A52FAF32A88A2C2000E85F0 /* PublicPlanetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A52FAF12A88A2C2000E85F0 /* PublicPlanetModel.swift */; };
+		6A5640172DC0BC1500D46B67 /* NewOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5640162DC0BC0C00D46B67 /* NewOnboardingView.swift */; };
 		6A5935EC2A14E98C00151CBD /* MyPlanetTemplateSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5935EB2A14E98C00151CBD /* MyPlanetTemplateSettingsView.swift */; };
 		6A5E63AC28072AD400FB1E84 /* TemplateBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */; };
 		6A5F3971280785A700386029 /* TemplateBrowserSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5F3970280785A700386029 /* TemplateBrowserSidebar.swift */; };
@@ -463,6 +464,8 @@
 		6ABAB91828215FF30014F209 /* TemplatePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */; };
 		6AC01AEE291D258900EB6B5F /* AccountBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AED291D258900EB6B5F /* AccountBadgeView.swift */; };
 		6AC01AF0291ECC7E00EB6B5F /* WalletAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */; };
+		6AC095372DCD386200EC3AF2 /* KuboSwarmConnections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC095362DCD385600EC3AF2 /* KuboSwarmConnections.swift */; };
+		6AC095382DCD386200EC3AF2 /* KuboSwarmConnections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC095362DCD385600EC3AF2 /* KuboSwarmConnections.swift */; };
 		6AC0BC4728F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */; };
 		6AC33B932934159A001ABBCF /* EthereumTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC33B922934159A001ABBCF /* EthereumTransaction.swift */; };
 		6AC4FFD42BF498600035B00B /* IPFSOpenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC4FFD32BF498600035B00B /* IPFSOpenView.swift */; };
@@ -775,6 +778,7 @@
 		6A52FAEB2A889577000E85F0 /* BackupArticleModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupArticleModel.swift; sourceTree = "<group>"; };
 		6A52FAEE2A88969A000E85F0 /* BackupMyPlanetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupMyPlanetModel.swift; sourceTree = "<group>"; };
 		6A52FAF12A88A2C2000E85F0 /* PublicPlanetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicPlanetModel.swift; sourceTree = "<group>"; };
+		6A5640162DC0BC0C00D46B67 /* NewOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewOnboardingView.swift; sourceTree = "<group>"; };
 		6A5935EB2A14E98C00151CBD /* MyPlanetTemplateSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetTemplateSettingsView.swift; sourceTree = "<group>"; };
 		6A5E63AB28072AD400FB1E84 /* TemplateBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserView.swift; sourceTree = "<group>"; };
 		6A5F3970280785A700386029 /* TemplateBrowserSidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateBrowserSidebar.swift; sourceTree = "<group>"; };
@@ -807,6 +811,7 @@
 		6ABAB91728215FF30014F209 /* TemplatePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePreviewView.swift; sourceTree = "<group>"; };
 		6AC01AED291D258900EB6B5F /* AccountBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBadgeView.swift; sourceTree = "<group>"; };
 		6AC01AEF291ECC7E00EB6B5F /* WalletAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletAccountView.swift; sourceTree = "<group>"; };
+		6AC095362DCD385600EC3AF2 /* KuboSwarmConnections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KuboSwarmConnections.swift; sourceTree = "<group>"; };
 		6AC0BC4628F0E7FD00B85F8C /* MyPlanetPodcastSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetPodcastSettingsView.swift; sourceTree = "<group>"; };
 		6AC33B922934159A001ABBCF /* EthereumTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EthereumTransaction.swift; sourceTree = "<group>"; };
 		6AC4FFD32BF498600035B00B /* IPFSOpenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSOpenView.swift; sourceTree = "<group>"; };
@@ -1572,6 +1577,7 @@
 		72114882E08952AFB41E90A6 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				6A5640162DC0BC0C00D46B67 /* NewOnboardingView.swift */,
 				72114939C0E92FC2CFBD5F11 /* OnboardingView.swift */,
 			);
 			path = Onboarding;
@@ -1580,6 +1586,7 @@
 		72114ABE784F27251FE3A0BD /* IPFS */ = {
 			isa = PBXGroup;
 			children = (
+				6AC095362DCD385600EC3AF2 /* KuboSwarmConnections.swift */,
 				2A0E918E2BE8EFB500F69578 /* Status Views */,
 				2A8E08512BF4B139002D0C03 /* Open Views */,
 				721148C9E7BCB6F1BC539F57 /* IPFSState.swift */,
@@ -1993,6 +2000,7 @@
 				2A95E6482A19A398001288B8 /* PFDashboardViewController.swift in Sources */,
 				2A95E67D2A19A3C4001288B8 /* WKScriptHelper.swift in Sources */,
 				6AFCF7E72B737371002299BA /* TemplateMonitor.swift in Sources */,
+				6AC095382DCD386200EC3AF2 /* KuboSwarmConnections.swift in Sources */,
 				2A68C6232A26F07A0079AD5F /* RebuildProgressView.swift in Sources */,
 				2A95E68F2A19A3D0001288B8 /* PlanetKeyManagerModel.swift in Sources */,
 				2A95E6812A19A3C4001288B8 /* ViewUtils.swift in Sources */,
@@ -2302,6 +2310,7 @@
 				2AF9935A2C6F731C0096F992 /* PlanetAPIConsoleWindow.swift in Sources */,
 				2A04DADF28EAD2610040D8E0 /* PlanetPublishedFolderModel.swift in Sources */,
 				721144941B29E9E78C05A89D /* Lifetimes.swift in Sources */,
+				6AC095372DCD386200EC3AF2 /* KuboSwarmConnections.swift in Sources */,
 				721149AA66E0C018BA60DB5A /* AttachmentModel.swift in Sources */,
 				721145BB829F2234DC279697 /* WriterVideoView.swift in Sources */,
 				6A8A6A592BA5B0CA00FBF67D /* MyArticleModel+Views.swift in Sources */,
@@ -2316,6 +2325,7 @@
 				2A90A80329DBB6FC00D45E5E /* KeyboardShortcutHelper.swift in Sources */,
 				2AFB897629BA3ED8003D893E /* PlanetKeyManagerModel.swift in Sources */,
 				6A7189662947FA2D00279D77 /* WalletConnectV2QRCodeView.swift in Sources */,
+				6A5640172DC0BC1500D46B67 /* NewOnboardingView.swift in Sources */,
 				2AA797312948A1B50031E873 /* WKScriptHelper.swift in Sources */,
 				2AFB897029BA17CB003D893E /* PlanetKeyManagerWindowController.swift in Sources */,
 				2AE44EB028CD223C00944786 /* PlanetSettingsViewModel.swift in Sources */,

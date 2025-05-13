@@ -5,6 +5,8 @@
 //  Created by Xin Liu on 5/3/22.
 //
 
+import AppKit
+import CoreImage
 import Foundation
 import PathKit
 import Stencil
@@ -216,6 +218,15 @@ class Template: Codable, Identifiable {
         guard let planet = article.planet else {
             throw PlanetError.RenderMarkdownError
         }
+
+        // if template.name is "memories", and article has heroImage, write _bg.png to article's public folder
+        if name == "Experimental" {
+            if let heroImagePathString = article.heroImagePathString {
+                let outputPath = article.bgImagePath
+                Template.processImage(inputPath: heroImagePathString, outputPath: outputPath.path)
+            }
+        }
+
         let hasPodcast = planet.articles.contains(where: { $0.hasAudioContent() })
         let publicPlanet = PublicPlanetModel(
             id: planet.id,
@@ -231,6 +242,8 @@ class Template: Codable, Identifiable {
             juiceboxEnabled: planet.juiceboxEnabled ?? false,
             juiceboxProjectID: planet.juiceboxProjectID,
             juiceboxProjectIDGoerli: planet.juiceboxProjectIDGoerli,
+            farcasterEnabled: planet.farcasterEnabled ?? false,
+            farcasterUsername: planet.farcasterUsername ?? nil,
             acceptsDonation: planet.acceptsDonation ?? false,
             acceptsDonationMessage: planet.acceptsDonationMessage ?? nil,
             acceptsDonationETHAddress: planet.acceptsDonationETHAddress ?? nil,
@@ -565,6 +578,8 @@ class Template: Codable, Identifiable {
             juiceboxEnabled: true,
             juiceboxProjectID: nil,
             juiceboxProjectIDGoerli: 207,
+            farcasterEnabled: true,
+            farcasterUsername: "livid",
             acceptsDonation: false,
             acceptsDonationMessage: "",
             acceptsDonationETHAddress: "",
@@ -617,5 +632,83 @@ class Template: Codable, Identifiable {
             (result, setting) in
             result[setting.key] = setting.value.defaultValue
         } ?? [:]
+    }
+
+    static func processImage(inputPath: String, outputPath: String) {
+        let inputURL = URL(fileURLWithPath: inputPath)
+        let outputURL = URL(fileURLWithPath: outputPath)
+
+        // Load image
+        guard let nsImage = NSImage(contentsOf: inputURL) else {
+            print("Failed to load image at \(inputPath)")
+            return
+        }
+
+        let targetSize = CGSize(width: 512, height: 512)
+        let resizedImage = NSImage(size: targetSize)
+        resizedImage.lockFocus()
+        nsImage.draw(in: CGRect(origin: .zero, size: targetSize),
+                    from: .zero,
+                    operation: .copy,
+                    fraction: 1.0)
+        resizedImage.unlockFocus()
+
+        guard let tiffData = resizedImage.tiffRepresentation,
+            let ciImage = CIImage(data: tiffData) else {
+            print("Failed to convert resized image to CIImage")
+            return
+        }
+
+        let context = CIContext()
+
+        // Darken
+        guard let darkenFilter = CIFilter(name: "CIColorControls"),
+            let blurFilter = CIFilter(name: "CIGaussianBlur") else {
+            print("Failed to create filters")
+            return
+        }
+
+        darkenFilter.setValue(ciImage, forKey: kCIInputImageKey)
+        darkenFilter.setValue(-0.1, forKey: kCIInputBrightnessKey)
+        darkenFilter.setValue(1.4, forKey: kCIInputSaturationKey) // Increase saturation
+
+        blurFilter.setValue(darkenFilter.outputImage, forKey: kCIInputImageKey)
+        blurFilter.setValue(384.0, forKey: kCIInputRadiusKey)
+
+        guard let outputCIImage = blurFilter.outputImage else {
+            print("Failed to render output image")
+            return
+        }
+
+        // Create black background image
+        let blackBackground = CIImage(color: .black).cropped(to: CGRect(origin: .zero, size: targetSize))
+
+        // Composite processed image over black background
+        guard let compositeFilter = CIFilter(name: "CISourceOverCompositing") else {
+            print("Failed to create compositing filter")
+            return
+        }
+        compositeFilter.setValue(outputCIImage, forKey: kCIInputImageKey)
+        compositeFilter.setValue(blackBackground, forKey: kCIInputBackgroundImageKey)
+
+        guard let compositedImage = compositeFilter.outputImage,
+            let cgImage = context.createCGImage(compositedImage, from: CGRect(origin: .zero, size: targetSize)) else {
+            print("Failed to composite or render output image")
+            return
+        }
+
+        // Convert to NSBitmapImageRep
+        let finalRep = NSBitmapImageRep(cgImage: cgImage)
+        guard let pngData = finalRep.representation(using: .png, properties: [:]) else {
+            print("Failed to create PNG data")
+            return
+        }
+
+        do {
+            try pngData.write(to: outputURL)
+            print("Image processed and saved to \(outputPath)")
+        } catch {
+            print("Failed to save image: \(error)")
+        }
     }
 }

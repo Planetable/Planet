@@ -42,6 +42,15 @@ class WriterWindow: NSWindow {
             try draft.saveToArticle()
             Task { @MainActor in
                 WriterStore.shared.closeWriterWindow(byDraftID: self.draft.id)
+                if let target = self.draft.target {
+                    switch target {
+                    case .myPlanet(let wrapper):
+                        NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+                    case .article(let wrapper):
+                        let article = wrapper.value
+                        NotificationCenter.default.post(name: .scrollToArticle, object: article)
+                    }
+                }
             }
         } catch {
             PlanetStore.shared.alert(title: "Failed to send article: \(error)")
