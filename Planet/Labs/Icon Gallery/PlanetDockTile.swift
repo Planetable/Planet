@@ -8,7 +8,7 @@
 import Foundation
 import Cocoa
 
-
+/*
 class PlanetDockTile: @unchecked Sendable {
     private weak var dockTile: NSDockTile?
 
@@ -30,3 +30,4 @@ class PlanetDockTile: @unchecked Sendable {
         }
     }
 }
+*/
