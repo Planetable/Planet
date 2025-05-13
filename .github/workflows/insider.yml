@@ -91,9 +91,12 @@ jobs:
       - name: Codesign with Developer ID
         run: |
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Installer.xpc
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Downloader.xpc
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/Sparkle.framework/Versions/B/Sparkle
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/Sparkle.framework
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/CodeMirror-SwiftUI.framework
 
       - name: Prepare for Notarization
         run: |
