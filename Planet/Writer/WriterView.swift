@@ -15,12 +15,12 @@ enum RightView {
 struct WriterView: View {
     @ObservedObject var draft: DraftModel
     @ObservedObject var viewModel: WriterViewModel
+    @ObservedObject private var llmViewModel: WriterLLMViewModel = WriterLLMViewModel.shared
     @FocusState var focusTitle: Bool
     let dragAndDrop: WriterDragAndDrop
 
     @State private var videoPlayerHeight: CGFloat = 0
     @State private var audioPlayerHeight: CGFloat = 0
-    @State private var showTabs: Bool = false
     @State private var leftView: LeftView = .markdown
     @State private var rightView: RightView = .preview
 
@@ -31,6 +31,7 @@ struct WriterView: View {
     }
 
     var body: some View {
+        let showTabs = llmViewModel.selectedModel != "" && llmViewModel.availableModels.count > 1
         VStack(spacing: 0) {
             if let videoAttachment = draft.attachments.first(where: { $0.type == .video }) {
                 WriterVideoView(videoAttachment: videoAttachment)
@@ -50,7 +51,7 @@ struct WriterView: View {
                         self.audioPlayerHeight = 0
                     }
             }
-
+            
             WriterTitleView(
                 availableTags: draft.planet.getAllAvailableTags(),
                 tags: $draft.tags,
@@ -59,9 +60,9 @@ struct WriterView: View {
                 focusTitle: _focusTitle,
                 attachments: $draft.attachments
             )
-
+            
             Divider()
-
+            
             GeometryReader { geometry in
                 HSplitView {
                     VStack(spacing: 0) {
@@ -69,11 +70,12 @@ struct WriterView: View {
                             tabsLeft()
                         }
                         switch leftView {
-                            case .markdown:
-                                WriterTextView(draft: draft, text: $draft.content)
+                        case .markdown:
+                            WriterTextView(draft: draft, text: $draft.content)
                                 .frame(minWidth: geometry.size.width / 2, minHeight: 300)
-                            case .prompt:
-                                Text("Prompt Edit View")
+                        case .prompt:
+                            WriterPromptEditView()
+                                .environmentObject(llmViewModel)
                                 .frame(minWidth: geometry.size.width / 2, maxHeight: .infinity)
                         }
                     }
@@ -82,19 +84,20 @@ struct WriterView: View {
                             tabsRight()
                         }
                         switch rightView {
-                            case .preview:
-                                WriterWebView(draft: draft)
+                        case .preview:
+                            WriterWebView(draft: draft)
                                 .background(Color(NSColor.textBackgroundColor))
                                 .frame(minWidth: geometry.size.width / 2, minHeight: 300)
-                            case .llmOutput:
-                                Text("LLM Output View")
+                        case .llmOutput:
+                            WriterLLMOutoutView()
+                                .environmentObject(llmViewModel)
                                 .frame(minWidth: geometry.size.width / 2, maxHeight: .infinity)
                         }
                     }
                 }
                 .frame(minWidth: 640, minHeight: 300)
             }
-
+            
             mediaTray()
         }
         .frame(minWidth: 640, minHeight: 520 + videoPlayerHeight + audioPlayerHeight)
@@ -123,13 +126,13 @@ struct WriterView: View {
                 focusTitle = true
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: WriterViewModel.choosingAttachment), perform: { _ in
+        .onReceive(NotificationCenter.default.publisher(for: WriterViewModel.choosingAttachment)) { _ in
             do {
                 try addAttachmentsAction()
             } catch {
                 debugPrint("failed to add attachment: \(error)")
             }
-        })
+        }
         .confirmationDialog(
             Text("Do you want to save your changes as a draft?"),
             isPresented: $viewModel.isShowingDiscardConfirmation

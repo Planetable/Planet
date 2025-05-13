@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2A00D3502DD3D3E7009CFD67 /* WriterPromptEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00D34F2DD3D3E7009CFD67 /* WriterPromptEditView.swift */; };
+		2A00D3512DD3D3E7009CFD67 /* WriterPromptEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00D34F2DD3D3E7009CFD67 /* WriterPromptEditView.swift */; };
+		2A00D3532DD3D463009CFD67 /* WriterLLMOutoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00D3522DD3D463009CFD67 /* WriterLLMOutoutView.swift */; };
+		2A00D3542DD3D463009CFD67 /* WriterLLMOutoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00D3522DD3D463009CFD67 /* WriterLLMOutoutView.swift */; };
+		2A00D3562DD3D5DE009CFD67 /* WriterLLMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00D3552DD3D5DE009CFD67 /* WriterLLMViewModel.swift */; };
+		2A00D3572DD3D5DE009CFD67 /* WriterLLMViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00D3552DD3D5DE009CFD67 /* WriterLLMViewModel.swift */; };
+		2A00D3592DD3DF54009CFD67 /* PlanetSettingsLLMView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00D3582DD3DF54009CFD67 /* PlanetSettingsLLMView.swift */; };
+		2A00D35A2DD3DF54009CFD67 /* PlanetSettingsLLMView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00D3582DD3DF54009CFD67 /* PlanetSettingsLLMView.swift */; };
 		2A04DADD28EAD2250040D8E0 /* PlanetPublishedServiceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A04DADC28EAD2250040D8E0 /* PlanetPublishedServiceStore.swift */; };
 		2A04DADF28EAD2610040D8E0 /* PlanetPublishedFolderModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A04DADE28EAD2610040D8E0 /* PlanetPublishedFolderModel.swift */; };
 		2A052AC1290971E80028E88F /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A052AC0290971E80028E88F /* ArtworkView.swift */; };
@@ -577,6 +585,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2A00D34F2DD3D3E7009CFD67 /* WriterPromptEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriterPromptEditView.swift; sourceTree = "<group>"; };
+		2A00D3522DD3D463009CFD67 /* WriterLLMOutoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriterLLMOutoutView.swift; sourceTree = "<group>"; };
+		2A00D3552DD3D5DE009CFD67 /* WriterLLMViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriterLLMViewModel.swift; sourceTree = "<group>"; };
+		2A00D3582DD3DF54009CFD67 /* PlanetSettingsLLMView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsLLMView.swift; sourceTree = "<group>"; };
 		2A04DADC28EAD2250040D8E0 /* PlanetPublishedServiceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetPublishedServiceStore.swift; sourceTree = "<group>"; };
 		2A04DADE28EAD2610040D8E0 /* PlanetPublishedFolderModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetPublishedFolderModel.swift; sourceTree = "<group>"; };
 		2A052AC0290971E80028E88F /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
@@ -1284,6 +1296,7 @@
 				2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */,
 				2AE44EAF28CD223C00944786 /* PlanetSettingsViewModel.swift */,
 				2A3388BF2BA7E3CD00D563A7 /* PlanetSettingsPublishedFoldersView.swift */,
+				2A00D3582DD3DF54009CFD67 /* PlanetSettingsLLMView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -1300,6 +1313,9 @@
 				7211498D81C1BB38A22D001A /* WriterStore.swift */,
 				72114BB597FFD06A2A2626A9 /* WriterDragAndDrop.swift */,
 				72114B2B1F05731320A89022 /* WriterViewModel.swift */,
+				2A00D3552DD3D5DE009CFD67 /* WriterLLMViewModel.swift */,
+				2A00D34F2DD3D3E7009CFD67 /* WriterPromptEditView.swift */,
+				2A00D3522DD3D463009CFD67 /* WriterLLMOutoutView.swift */,
 				7211403BD64F1D6E5B14D69E /* WriterVideoView.swift */,
 				72114341F4E465B909F76B33 /* WriterAudioView.swift */,
 			);
@@ -1940,6 +1956,7 @@
 				2A3D28CC2C6A8137005ABCF5 /* PlanetAPILogMiddleware.swift in Sources */,
 				2AEFEE972C4BA4E700EEB958 /* PlanetAPIModels.swift in Sources */,
 				2AED38A92B4E431800E0B9BA /* CroptopApp.swift in Sources */,
+				2A00D3592DD3DF54009CFD67 /* PlanetSettingsLLMView.swift in Sources */,
 				2AF993622C6F746B0096F992 /* PlanetAPIConsoleWindowController.swift in Sources */,
 				2A95E6862A19A3CA001288B8 /* WriterView.swift in Sources */,
 				2A6DC6282AEB7F9D0025D6A7 /* PlanetStatusManager.swift in Sources */,
@@ -1975,6 +1992,7 @@
 				6A43E7D22B873F4900316F81 /* SearchResult.swift in Sources */,
 				2A95E6462A19A336001288B8 /* PlanetQuickShare+Extension.swift in Sources */,
 				2A39678A2D7ADB2F002CBE7A /* HttpRequest.swift in Sources */,
+				2A00D3542DD3D463009CFD67 /* WriterLLMOutoutView.swift in Sources */,
 				2A95E6542A19A39C001288B8 /* PlanetPublishedFolders+Extension.swift in Sources */,
 				6A61D5E82B23A234007F761E /* CapsuleBar.swift in Sources */,
 				2A95E6532A19A39C001288B8 /* PlanetPublishedServiceStore.swift in Sources */,
@@ -2070,6 +2088,7 @@
 				6A9C7BB02C2B92100056BF22 /* WCTransaction.swift in Sources */,
 				2A95E6772A19A3C4001288B8 /* URLUtils.swift in Sources */,
 				2ABD1CC42A1616DA0082D7EA /* AppDelegate.swift in Sources */,
+				2A00D3572DD3D5DE009CFD67 /* WriterLLMViewModel.swift in Sources */,
 				6AF8B0292C42BD400007E2AE /* ArticleListViewModel.swift in Sources */,
 				2A8E085B2BF4B19B002D0C03 /* IPFSOpenWindow.swift in Sources */,
 				6AD447712B0DCAF0007E92A2 /* MyPlanetCustomCodeView.swift in Sources */,
@@ -2083,6 +2102,7 @@
 				2A95E6682A19A3AF001288B8 /* TBSidebarViewController.swift in Sources */,
 				2A0E918D2BE889B000F69578 /* IPFSGateway.swift in Sources */,
 				2A95E6A02A19A446001288B8 /* MyPlanetModel.swift in Sources */,
+				2A00D3512DD3D3E7009CFD67 /* WriterPromptEditView.swift in Sources */,
 				2A95E6E82A19A64F001288B8 /* ArtworkView.swift in Sources */,
 				2A95E6522A19A398001288B8 /* PFDashboardSidebarItemView.swift in Sources */,
 				2A95E6732A19A3C4001288B8 /* KeyboardShortcutHelper.swift in Sources */,
@@ -2125,6 +2145,7 @@
 				6A96B22A2C594F9A00EA3F2A /* QuickPostViewModel.swift in Sources */,
 				6A2F5F1128DB74C500034D55 /* Filebase.swift in Sources */,
 				6ACF166529246BD800AE318B /* TipSelectView.swift in Sources */,
+				2A00D3502DD3D3E7009CFD67 /* WriterPromptEditView.swift in Sources */,
 				2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */,
 				2A3D28CB2C6A8137005ABCF5 /* PlanetAPILogMiddleware.swift in Sources */,
 				2A6DC6272AEB7F9D0025D6A7 /* PlanetStatusManager.swift in Sources */,
@@ -2185,6 +2206,7 @@
 				2A7D1BF427CA1B0A00D3C091 /* MyPlanetEditView.swift in Sources */,
 				6ADF40B92914D88C007A24E8 /* MyPlanetIPNSView.swift in Sources */,
 				6A5935EC2A14E98C00151CBD /* MyPlanetTemplateSettingsView.swift in Sources */,
+				2A00D35A2DD3DF54009CFD67 /* PlanetSettingsLLMView.swift in Sources */,
 				6A0624D22876BF130014DDDD /* MigrationProgressView.swift in Sources */,
 				2A2556B5293E1ED0006462D8 /* TBContentViewController.swift in Sources */,
 				2A23C2062B8ED4E2000138DA /* PlanetDirectoryMonitor.swift in Sources */,
@@ -2214,6 +2236,7 @@
 				72114A48526B9490A72FD92A /* MyArticleModel.swift in Sources */,
 				2AA7974129496F730031E873 /* PFDashboardSidebarView.swift in Sources */,
 				2AA7974529496F730031E873 /* PFDashboardViewController.swift in Sources */,
+				2A00D3532DD3D463009CFD67 /* WriterLLMOutoutView.swift in Sources */,
 				72114AE68D0DEDE11FC82E60 /* CoreDataPersistence.swift in Sources */,
 				72114842F65B9DF14A1B3F61 /* PlanetStore.swift in Sources */,
 				2A6F8282289A5DAF0099D87E /* PlanetDownloadsWebView.swift in Sources */,
@@ -2287,6 +2310,7 @@
 				6A61D5E72B23A234007F761E /* CapsuleBar.swift in Sources */,
 				72114717FB02C931CE9E08E9 /* MyPlanetSidebarItem.swift in Sources */,
 				2A3D28C32C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */,
+				2A00D3562DD3D5DE009CFD67 /* WriterLLMViewModel.swift in Sources */,
 				2A4AE87A2A89EF3600A27B5B /* GroupIndicatorView.swift in Sources */,
 				6AB6E4FB2915227600F17328 /* WalletManager.swift in Sources */,
 				2A7022F22897DF4600022F13 /* PlanetDownloadsWindow.swift in Sources */,

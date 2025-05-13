@@ -10,10 +10,12 @@ import SwiftUI
 struct PlanetSettingsView: View {
     @StateObject private var store: PlanetStore
     @StateObject private var serviceStore: PlanetPublishedServiceStore
+    @StateObject private var llmViewModel: WriterLLMViewModel
 
     init() {
         _store = StateObject(wrappedValue: PlanetStore.shared)
         _serviceStore = StateObject(wrappedValue: PlanetPublishedServiceStore.shared)
+        _llmViewModel = StateObject(wrappedValue: WriterLLMViewModel.shared)
     }
 
     var body: some View {
@@ -33,6 +35,14 @@ struct PlanetSettingsView: View {
                 .tag(PlanetSettingsTab.planets)
                 .frame(width: 420, height: 490)
                 .environmentObject(store)
+            
+            PlanetSettingsLLMView()
+                .tabItem {
+                    Label("LLM", systemImage: "text.book.closed")
+                }
+                .tag(PlanetSettingsTab.llm)
+                .frame(width: 480, height: 240)
+                .environmentObject(llmViewModel)
 
             PlanetAPIControlView()
                 .tabItem {
