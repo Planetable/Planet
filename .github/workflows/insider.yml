@@ -104,7 +104,7 @@ jobs:
 
       - name: Prepare for Notarization
         run: |
-          ditto -c -k --keepParent to-be-signed/Planet-Insider.app Planet-Insider.zip
+          ditto -c -k --keepParent --sequesterRsr to-be-signed/Planet-Insider.app Planet-Insider.zip
 
       - name: Submit for Notarization
         run: |
@@ -114,13 +114,17 @@ jobs:
         run: |
           xcrun stapler staple -v to-be-signed/Planet-Insider.app
 
+      - name: Clean Junk Files Before Release
+        run: |
+          find to-be-signed/Planet-Insider.app -name '._*' -delete
+      
       - name: Generate Planet-Insider.zip
         run: |
-          ditto -c -k --keepParent to-be-signed/Planet-Insider.app Planet-Insider.zip
+          ditto -c -k --keepParent --sequesterRsr to-be-signed/Planet-Insider.app Planet-Insider.zip
 
       - name: Generate Planet-Insider.zip.dSYM.zip
         run: |
-          ditto -c -k --keepParent archive/Planet.xcarchive/dSYMs/Planet.app.dSYM Planet-Insider.app.dSYM.zip
+          ditto -c -k --keepParent --sequesterRsr archive/Planet.xcarchive/dSYMs/Planet.app.dSYM Planet-Insider.app.dSYM.zip
 
       - name: Release App
         uses: softprops/action-gh-release@v1
