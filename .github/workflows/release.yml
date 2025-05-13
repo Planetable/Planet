@@ -7,6 +7,7 @@ on:
 jobs:
   release:
     runs-on: self-hosted
+    timeout-minutes: 120
 
     strategy:
       matrix:
@@ -87,13 +88,16 @@ jobs:
       - name: Codesign with Developer ID
         run: |
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Installer.xpc
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Downloader.xpc
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/Sparkle
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/Sparkle.framework
+          xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet.app/Contents/Frameworks/CodeMirror-SwiftUI.framework
 
       - name: Prepare for Notarization
         run: |
-          ditto -c -k --keepParent to-be-signed/Planet.app Planet.zip
+          ditto -c -k --keepParent --sequesterRsrc to-be-signed/Planet.app Planet.zip
 
       - name: Submit for Notarization
         run: |
@@ -105,11 +109,11 @@ jobs:
 
       - name: Generate Planet.zip
         run: |
-          ditto -c -k --keepParent to-be-signed/Planet.app Planet.zip
+          ditto -c -k --keepParent --sequesterRsrc to-be-signed/Planet.app Planet.zip
 
       - name: Generate Planet.zip.dSYM.zip
         run: |
-          ditto -c -k --keepParent archive/Planet.xcarchive/dSYMs/Planet.app.dSYM Planet.app.dSYM.zip
+          ditto -c -k --keepParent --sequesterRsrc archive/Planet.xcarchive/dSYMs/Planet.app.dSYM Planet.app.dSYM.zip
 
       - name: Release App
         uses: softprops/action-gh-release@v1
