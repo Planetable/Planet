@@ -98,6 +98,10 @@ jobs:
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/Sparkle.framework
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Planet-Insider.app/Contents/Frameworks/CodeMirror-SwiftUI.framework
 
+      - name: Clean Junk Files
+        run: |
+          find to-be-signed/Planet-Insider.app -name '._*' -delete
+
       - name: Prepare for Notarization
         run: |
           ditto -c -k --keepParent to-be-signed/Planet-Insider.app Planet-Insider.zip
