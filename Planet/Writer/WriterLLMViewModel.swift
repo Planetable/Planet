@@ -138,7 +138,6 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         let body: [String: Any] = [
             "model": selectedModel,
             "prompt": prompt,
-            "max_tokens": 128,
             "temperature": 0.7,
             "stream": true
         ]
@@ -175,51 +174,57 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
             } else {
                 self.queryStatus = .success
             }
+            if let dupIndex = self.prompts.firstIndex(of: self.prompt) {
+                self.prompts.remove(at: dupIndex)
+            }
             self.prompts.insert(self.prompt, at: 0)
         }
     }
     
     private func processServerData() {
         guard let str = String(data: buffer, encoding: .utf8) else { return }
-        
+        debugPrint("Received data: \(str)")
         let messages = str.components(separatedBy: "data: ")
-        
         var lastProcessedIndex = 0
-        
+
         for i in 0..<messages.count {
             let message = messages[i].trimmingCharacters(in: .whitespacesAndNewlines)
-            
             if message.isEmpty { continue }
-            
             if message == "[DONE]" {
                 lastProcessedIndex = i + 1
+                debugPrint("Received [DONE] signal")
                 DispatchQueue.main.async {
                     self.queryStatus = .success
                 }
                 continue
             }
-            
-            if let data = message.data(using: .utf8),
-               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let choices = json["choices"] as? [[String: Any]],
-               let first = choices.first,
-               let text = first["text"] as? String {
-                
-                DispatchQueue.main.async {
-                    self.result += text
-                    // MARK: TODO: collect raw output from stream data.
-                    self.rawResult += text
+            if message.hasPrefix("{") && (message.hasSuffix("}") || message.hasSuffix("}\n")) {
+                if let data = message.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let choices = json["choices"] as? [[String: Any]],
+                   let first = choices.first,
+                   let text = first["text"] as? String {
+                    debugPrint("Parsed text: \(text)")
+                    DispatchQueue.main.async {
+                        self.result += text
+                        self.rawResult += text
+                    }
+                    lastProcessedIndex = i + 1
+                } else {
+                    debugPrint("Failed to parse JSON: \(message)")
                 }
-                
-                lastProcessedIndex = i + 1
+            } else {
+                debugPrint("Incomplete JSON, keeping in buffer: \(message)")
+                break
             }
         }
-        
         if lastProcessedIndex < messages.count {
             let remainingMessages = Array(messages[lastProcessedIndex...])
             buffer = remainingMessages.joined(separator: "data: ").data(using: .utf8) ?? Data()
+            debugPrint("Remaining buffer: \(String(data: buffer, encoding: .utf8) ?? "")")
         } else {
             buffer = Data()
+            debugPrint("Buffer cleared")
         }
     }
     
