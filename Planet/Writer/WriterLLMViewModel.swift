@@ -225,7 +225,6 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
     
     private func processServerData() {
         guard let str = String(data: buffer, encoding: .utf8) else { return }
-        debugPrint("Received data: \(str)")
         let messages = str.components(separatedBy: "data: ")
         var lastProcessedIndex = 0
 
@@ -234,7 +233,6 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
             if message.isEmpty { continue }
             if message == "[DONE]" {
                 lastProcessedIndex = i + 1
-                debugPrint("Received [DONE] signal")
                 DispatchQueue.main.async {
                     self.queryStatus = .success
                 }

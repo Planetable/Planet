@@ -12,10 +12,7 @@ struct WriterLLMOutoutView: View {
     @EnvironmentObject private var llmViewModel: WriterLLMViewModel
 
     var body: some View {
-        TextEditor(text: $llmViewModel.rawResult)
-            .font(.custom("Menlo", size: 14.0))
-            .lineSpacing(4.0)
-            .disableAutocorrection(true)
+        WriterPromptTextView(text: $llmViewModel.rawResult)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

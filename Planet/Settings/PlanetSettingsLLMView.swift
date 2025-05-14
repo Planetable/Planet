@@ -59,7 +59,7 @@ struct PlanetSettingsLLMView: View {
                     Text("Reload Models")
                 }
             }
-            .frame(height: 54)
+            .frame(height: 42)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .background(Color.secondary.opacity(0.1))
