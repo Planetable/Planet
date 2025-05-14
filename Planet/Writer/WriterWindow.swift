@@ -45,7 +45,8 @@ class WriterWindow: NSWindow {
                 if let target = self.draft.target {
                     switch target {
                     case .myPlanet(let wrapper):
-                        NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+                        let article = wrapper.value
+                        NotificationCenter.default.post(name: .scrollToArticle, object: article)
                     case .article(let wrapper):
                         let article = wrapper.value
                         NotificationCenter.default.post(name: .scrollToArticle, object: article)
