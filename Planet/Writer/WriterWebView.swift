@@ -56,6 +56,10 @@ struct WriterWebView: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSViewType, context: Context) {
         nsView.loadFileURL(draft.previewPath, allowingReadAccessTo: draft.attachmentsPath)
-        nsView.evaluateJavaScript("scrollPosition(\(draft.scrollerOffset));")
+        if draft.isSendingDataToLLM {
+            nsView.evaluateJavaScript("scrollPosition(100);")
+        } else {
+            nsView.evaluateJavaScript("scrollPosition(\(draft.scrollerOffset));")
+        }
     }
 }

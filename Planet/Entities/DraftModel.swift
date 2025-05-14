@@ -27,6 +27,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     @Published var scrollerOffset: Float = 0
 
     @Published var tags: [String: String] = [:]
+    @Published var isSendingDataToLLM: Bool = false
 
     enum DraftTarget {
         // draft for composing a new article

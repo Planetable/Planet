@@ -16,7 +16,6 @@ struct WriterPromptEditView: View {
         VStack(spacing: 0) {
             WriterPromptTextView(text: $llmViewModel.prompt)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
             HStack {
                 Button("Cancel") {
                     llmViewModel.cancelCurrentRequest()
@@ -52,8 +51,13 @@ struct WriterPromptEditView: View {
             .padding(.top, 4)
         }
         .onChange(of: llmViewModel.result) { newValue in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            DispatchQueue.main.async {
                 self.draft.content = newValue
+            }
+        }
+        .onChange(of: llmViewModel.queryStatus) { newValue in
+            DispatchQueue.main.async {
+                self.draft.isSendingDataToLLM = newValue == LLMQueryStatus.sending
             }
         }
     }

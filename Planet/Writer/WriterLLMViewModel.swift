@@ -141,6 +141,9 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
             "model": selectedModel,
             "prompt": prompt,
             "temperature": 0.7,
+            "top_p": 0.9,
+            "top_k": 40,
+            "repeat_penalty": 1.15,
             "stream": true
         ]
         
