@@ -140,6 +140,7 @@ struct WriterView: View {
             Button {
                 viewModel.madeDiscardChoice = true
                 try? draft.save()
+                llmViewModel.cancelCurrentRequest()
                 Task { @MainActor in
                     WriterStore.shared.closeWriterWindow(byDraftID: self.draft.id)
                 }
@@ -149,6 +150,7 @@ struct WriterView: View {
             Button(role: .destructive) {
                 viewModel.madeDiscardChoice = true
                 try? draft.delete()
+                llmViewModel.cancelCurrentRequest()
                 Task { @MainActor in
                     WriterStore.shared.closeWriterWindow(byDraftID: self.draft.id)
                 }
