@@ -14,10 +14,7 @@ struct WriterPromptEditView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TextEditor(text: $llmViewModel.prompt)
-                .font(.custom("Menlo", size: 14.0))
-                .lineSpacing(4.0)
-                .disableAutocorrection(true)
+            WriterPromptTextView(text: $llmViewModel.prompt)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             
             HStack {
