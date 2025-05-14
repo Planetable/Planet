@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 
-enum LLMQueryStatus: CustomStringConvertible {
+enum LLMQueryStatus: CustomStringConvertible, Hashable {
     case idle
     case sending
     case success
@@ -31,12 +31,16 @@ enum LLMQueryStatus: CustomStringConvertible {
 
 
 class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
-    static let shared = WriterLLMViewModel()
-    
+    static let llmServerSchemeKey = "PlanetLLMServerSchemeKey"
     static let llmServerURLKey = "PlanetLLMServerURLKey"
     static let llmServerPortKey = "PlanetLLMServerPortKey"
     static let llmSelectedModelKey = "PlanetLLMSelectedModelKey"
     
+    @Published var serverScheme: String = UserDefaults.standard.string(forKey: WriterLLMViewModel.llmServerSchemeKey) ?? "http" {
+        didSet {
+            UserDefaults.standard.set(serverScheme, forKey: WriterLLMViewModel.llmServerSchemeKey)
+        }
+    }
     @Published var serverURL: String = UserDefaults.standard.string(forKey: WriterLLMViewModel.llmServerURLKey) ?? "localhost" {
         didSet {
             UserDefaults.standard.set(serverURL, forKey: WriterLLMViewModel.llmServerURLKey)
@@ -78,7 +82,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
     }
 
     func loadAvailableModels() {
-        guard let url = URL(string: "http://\(serverURL):\(serverPort)/v1/models") else {
+        guard let url = URL(string: "\(serverScheme)://\(serverURL):\(serverPort)/v1/models") else {
             debugPrint("Invalid server url: http://\(serverURL):\(serverPort)/v1/models")
             DispatchQueue.main.async {
                 self.selectedModel = ""
@@ -122,7 +126,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
     func sendPrompt() {
         cancelCurrentRequest()
 
-        guard let url = URL(string: "http://\(serverURL):\(serverPort)/v1/completions") else {
+        guard let url = URL(string: "\(serverScheme)://\(serverURL):\(serverPort)/v1/completions") else {
             result = "Invalid API URL."
             queryStatus = .error("Invalid API URL.")
             return
@@ -171,6 +175,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
             } else {
                 self.queryStatus = .success
             }
+            self.prompts.insert(self.prompt, at: 0)
         }
     }
     

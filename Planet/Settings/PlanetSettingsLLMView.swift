@@ -15,6 +15,13 @@ struct PlanetSettingsLLMView: View {
         VStack {
             Form {
                 Section {
+                    Picker("Server Scheme", selection: $viewModel.serverScheme) {
+                        Text("HTTP")
+                            .tag("http")
+                        Text("HTTPS")
+                            .tag("https")
+                    }
+                    .pickerStyle(.radioGroup)
                     TextField("Server URL", text: $viewModel.serverURL)
                         .textFieldStyle(.roundedBorder)
                     TextField("Server Port", text: $viewModel.serverPort)

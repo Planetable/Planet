@@ -15,7 +15,7 @@ struct PlanetSettingsView: View {
     init() {
         _store = StateObject(wrappedValue: PlanetStore.shared)
         _serviceStore = StateObject(wrappedValue: PlanetPublishedServiceStore.shared)
-        _llmViewModel = StateObject(wrappedValue: WriterLLMViewModel.shared)
+        _llmViewModel = StateObject(wrappedValue: WriterLLMViewModel())
     }
 
     var body: some View {

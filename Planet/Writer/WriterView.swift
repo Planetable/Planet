@@ -15,7 +15,7 @@ enum RightView {
 struct WriterView: View {
     @ObservedObject var draft: DraftModel
     @ObservedObject var viewModel: WriterViewModel
-    @ObservedObject private var llmViewModel: WriterLLMViewModel = WriterLLMViewModel.shared
+    @ObservedObject private var llmViewModel: WriterLLMViewModel = WriterLLMViewModel()
     @FocusState var focusTitle: Bool
     let dragAndDrop: WriterDragAndDrop
 
@@ -74,7 +74,7 @@ struct WriterView: View {
                             WriterTextView(draft: draft, text: $draft.content)
                                 .frame(minWidth: geometry.size.width / 2, minHeight: 300)
                         case .prompt:
-                            WriterPromptEditView()
+                            WriterPromptEditView(draft: draft)
                                 .environmentObject(llmViewModel)
                                 .frame(minWidth: geometry.size.width / 2, maxHeight: .infinity)
                         }
