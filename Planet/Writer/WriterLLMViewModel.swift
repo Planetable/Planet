@@ -136,14 +136,24 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
-        // MARK: TODO: more prompt parameters
+        // Enhanced prompt parameters based on LM Studio reference
         let body: [String: Any] = [
             "model": selectedModel,
             "prompt": prompt,
+            // Core generation parameters
             "temperature": 0.7,
             "top_p": 0.9,
             "top_k": 40,
             "repeat_penalty": 1.15,
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0,
+            // Control the length of generation
+            "max_tokens": 2048,
+            // Special tokens handling
+            "stop": ["<|eot_id|>", "<|eom_id|>", "<|eom|>"],
+            // Context handling
+            "context_length": 4096,
+            // Stream response for real-time updates
             "stream": true
         ]
         
@@ -227,13 +237,19 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
     }
     
     private func processServerData() {
-        guard let str = String(data: buffer, encoding: .utf8) else { return }
+        guard let str = String(data: buffer, encoding: .utf8) else { 
+            debugPrint("Failed to decode buffer data with UTF-8 encoding")
+            return 
+        }
+        
         let messages = str.components(separatedBy: "data: ")
         var lastProcessedIndex = 0
 
         for i in 0..<messages.count {
             let message = messages[i].trimmingCharacters(in: .whitespacesAndNewlines)
             if message.isEmpty { continue }
+            
+            // Handle completion marker
             if message == "[DONE]" {
                 lastProcessedIndex = i + 1
                 DispatchQueue.main.async {
@@ -241,16 +257,55 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
                 }
                 continue
             }
+            
+            // Process JSON responses
             if message.hasPrefix("{") && (message.hasSuffix("}") || message.hasSuffix("}\n")) {
                 if let data = message.data(using: .utf8),
-                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let choices = json["choices"] as? [[String: Any]],
-                   let first = choices.first,
-                   let text = first["text"] as? String {
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    
+                    // Extract more information from the response
+                    let choices = json["choices"] as? [[String: Any]] ?? []
+                    let first = choices.first
+                    let text = first?["text"] as? String ?? ""
+                    let finishReason = first?["finish_reason"] as? String
+                    
+                    // Extract token usage information if available
+                    if let usage = json["usage"] as? [String: Any] {
+                        let promptTokens = usage["prompt_tokens"] as? Int
+                        let completionTokens = usage["completion_tokens"] as? Int
+                        let totalTokens = usage["total_tokens"] as? Int
+                        
+                        // Log token usage for metrics
+                        if let prompt = promptTokens, let completion = completionTokens, let total = totalTokens {
+                            debugPrint("Token usage - Prompt: \(prompt), Completion: \(completion), Total: \(total)")
+                        }
+                    }
+                    
+                    // Handle different finish reasons
+                    if let reason = finishReason {
+                        switch reason {
+                        case "stop":
+                            // Normal stop - model reached a natural stopping point
+                            break
+                        case "length":
+                            // Model reached max tokens - might be incomplete
+                            debugPrint("Warning: Response truncated due to max token limit")
+                        case "content_filter":
+                            // Content was filtered due to safety settings
+                            debugPrint("Warning: Response filtered due to content guidelines")
+                        default:
+                            debugPrint("Finish reason: \(reason)")
+                        }
+                    }
+                    
+                    // Update the UI with the new text
                     DispatchQueue.main.async {
-                        self.result += text
+                        if !text.isEmpty {
+                            self.result += text
+                        }
                         self.rawResult += message + "\n"
                     }
+                    
                     lastProcessedIndex = i + 1
                 } else {
                     debugPrint("Failed to parse JSON: \(message)")
@@ -260,6 +315,8 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
                 break
             }
         }
+        
+        // Update buffer with any remaining unprocessed data
         if lastProcessedIndex < messages.count {
             let remainingMessages = Array(messages[lastProcessedIndex...])
             buffer = remainingMessages.joined(separator: "data: ").data(using: .utf8) ?? Data()
