@@ -12,10 +12,10 @@ struct WriterLLMOutoutView: View {
     @EnvironmentObject private var llmViewModel: WriterLLMViewModel
 
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        TextEditor(text: $llmViewModel.rawResult)
+            .font(.custom("Menlo", size: 14.0))
+            .lineSpacing(4.0)
+            .disableAutocorrection(true)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-}
-
-#Preview {
-    WriterLLMOutoutView()
 }

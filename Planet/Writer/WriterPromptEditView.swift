@@ -55,7 +55,7 @@ struct WriterPromptEditView: View {
             .padding(.top, 4)
         }
         .onChange(of: llmViewModel.result) { newValue in
-            Task { @MainActor in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                 self.draft.content = newValue
             }
         }

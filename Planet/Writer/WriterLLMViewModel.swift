@@ -79,6 +79,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         super.init()
         streamingSession = URLSession(configuration: .default, delegate: self, delegateQueue: .main)
         loadAvailableModels()
+        loadPrompts()
     }
 
     func loadAvailableModels() {
@@ -135,6 +136,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
+        // MARK: TODO: more prompt parameters
         let body: [String: Any] = [
             "model": selectedModel,
             "prompt": prompt,
@@ -178,6 +180,46 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
                 self.prompts.remove(at: dupIndex)
             }
             self.prompts.insert(self.prompt, at: 0)
+            DispatchQueue.global(qos: .background).async {
+                self.savePrompts()
+            }
+        }
+    }
+    
+    func cancelCurrentRequest() {
+        currentTask?.cancel()
+        currentTask = nil
+        queryStatus = .idle
+    }
+    
+    // MARK: -
+    
+    private var promptsHistoryFileURL: URL {
+        let llmURL = URLUtils.documentsPath.appendingPathComponent("Planet").appendingPathComponent("LLM")
+        try? FileManager.default.createDirectory(at: llmURL, withIntermediateDirectories: true)
+        let fileURL = llmURL.appendingPathComponent("prompts.json")
+        return fileURL
+    }
+    
+    private func loadPrompts() {
+        do {
+            let data = try Data(contentsOf: promptsHistoryFileURL)
+            if let loadedPrompts = try JSONSerialization.jsonObject(with: data) as? [String] {
+                DispatchQueue.main.async {
+                    self.prompts = loadedPrompts
+                }
+            }
+        } catch {
+            debugPrint("Failed to load prompts: \(error.localizedDescription)")
+        }
+    }
+    
+    private func savePrompts() {
+        do {
+            let data = try JSONSerialization.data(withJSONObject: prompts, options: [])
+            try data.write(to: promptsHistoryFileURL)
+        } catch {
+            debugPrint("Failed to save prompts: \(error.localizedDescription)")
         }
     }
     
@@ -204,10 +246,9 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
                    let choices = json["choices"] as? [[String: Any]],
                    let first = choices.first,
                    let text = first["text"] as? String {
-                    debugPrint("Parsed text: \(text)")
                     DispatchQueue.main.async {
                         self.result += text
-                        self.rawResult += text
+                        self.rawResult += message + "\n"
                     }
                     lastProcessedIndex = i + 1
                 } else {
@@ -221,16 +262,8 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         if lastProcessedIndex < messages.count {
             let remainingMessages = Array(messages[lastProcessedIndex...])
             buffer = remainingMessages.joined(separator: "data: ").data(using: .utf8) ?? Data()
-            debugPrint("Remaining buffer: \(String(data: buffer, encoding: .utf8) ?? "")")
         } else {
             buffer = Data()
-            debugPrint("Buffer cleared")
         }
-    }
-    
-    func cancelCurrentRequest() {
-        currentTask?.cancel()
-        currentTask = nil
-        queryStatus = .idle
     }
 }
