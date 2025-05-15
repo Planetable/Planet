@@ -12,7 +12,7 @@ struct WriterLLMOutoutView: View {
     @EnvironmentObject private var llmViewModel: WriterLLMViewModel
 
     var body: some View {
-        WriterPromptTextView(text: $llmViewModel.result)
+        WriterLLMOutputTextView(text: $llmViewModel.result)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

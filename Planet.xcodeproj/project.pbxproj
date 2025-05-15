@@ -105,6 +105,8 @@
 		2A79F9D529485F4900C33F91 /* TemplateWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A79F9D429485F4900C33F91 /* TemplateWebView.swift */; };
 		2A79FB2C2898184100F06DDF /* PlanetDownloadModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A79FB2B2898184100F06DDF /* PlanetDownloadModel.swift */; };
 		2A79FB2E289819AD00F06DDF /* PlanetDownloadsItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A79FB2D289819AD00F06DDF /* PlanetDownloadsItemView.swift */; };
+		2A7B2CA22DD5A60000864497 /* WriterLLMOutputTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7B2CA12DD5A60000864497 /* WriterLLMOutputTextView.swift */; };
+		2A7B2CA32DD5A60000864497 /* WriterLLMOutputTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7B2CA12DD5A60000864497 /* WriterLLMOutputTextView.swift */; };
 		2A7D1BF427CA1B0A00D3C091 /* MyPlanetEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7D1BF327CA1B0A00D3C091 /* MyPlanetEditView.swift */; };
 		2A8E08532BF4B173002D0C03 /* IPFSOpenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A8E08522BF4B173002D0C03 /* IPFSOpenViewController.swift */; };
 		2A8E08542BF4B173002D0C03 /* IPFSOpenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A8E08522BF4B173002D0C03 /* IPFSOpenViewController.swift */; };
@@ -659,6 +661,7 @@
 		2A79F9D429485F4900C33F91 /* TemplateWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateWebView.swift; sourceTree = "<group>"; };
 		2A79FB2B2898184100F06DDF /* PlanetDownloadModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadModel.swift; sourceTree = "<group>"; };
 		2A79FB2D289819AD00F06DDF /* PlanetDownloadsItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadsItemView.swift; sourceTree = "<group>"; };
+		2A7B2CA12DD5A60000864497 /* WriterLLMOutputTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriterLLMOutputTextView.swift; sourceTree = "<group>"; };
 		2A7D1BF327CA1B0A00D3C091 /* MyPlanetEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetEditView.swift; sourceTree = "<group>"; };
 		2A8E08522BF4B173002D0C03 /* IPFSOpenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSOpenViewController.swift; sourceTree = "<group>"; };
 		2A8E08562BF4B190002D0C03 /* IPFSOpenWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSOpenWindowController.swift; sourceTree = "<group>"; };
@@ -1319,6 +1322,7 @@
 				2A00D3552DD3D5DE009CFD67 /* WriterLLMViewModel.swift */,
 				2A00D34F2DD3D3E7009CFD67 /* WriterPromptEditView.swift */,
 				2A00D35B2DD4B0E1009CFD67 /* WriterPromptTextView.swift */,
+				2A7B2CA12DD5A60000864497 /* WriterLLMOutputTextView.swift */,
 				2A00D3522DD3D463009CFD67 /* WriterLLMOutoutView.swift */,
 				7211403BD64F1D6E5B14D69E /* WriterVideoView.swift */,
 				72114341F4E465B909F76B33 /* WriterAudioView.swift */,
@@ -2022,6 +2026,7 @@
 				2A95E68F2A19A3D0001288B8 /* PlanetKeyManagerModel.swift in Sources */,
 				2A95E6812A19A3C4001288B8 /* ViewUtils.swift in Sources */,
 				2A95E6632A19A3AA001288B8 /* TemplateWebView.swift in Sources */,
+				2A7B2CA32DD5A60000864497 /* WriterLLMOutputTextView.swift in Sources */,
 				2A391F062BF3137A006A3FD6 /* IPFSTrafficView.swift in Sources */,
 				2A6E16D82A18679A00704A08 /* AppContentView.swift in Sources */,
 				2A95E64C2A19A398001288B8 /* PFDashboardView.swift in Sources */,
@@ -2191,6 +2196,7 @@
 				2AF9C5BC289263BC00327A8F /* Updater.swift in Sources */,
 				6A9C7BAF2C2B92100056BF22 /* WCTransaction.swift in Sources */,
 				6A2827D42BD8CD29006B4A84 /* QuickPostView.swift in Sources */,
+				2A7B2CA22DD5A60000864497 /* WriterLLMOutputTextView.swift in Sources */,
 				6A18F2062A0F0FA700FC4050 /* RebuildProgressView.swift in Sources */,
 				2A2556BC293E1F53006462D8 /* TemplateBrowserInspectorView.swift in Sources */,
 				2A441BAE27C40BD30008A694 /* WriterView.swift in Sources */,
