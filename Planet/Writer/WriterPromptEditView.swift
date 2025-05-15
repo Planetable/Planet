@@ -10,7 +10,6 @@ import SwiftUI
 
 struct WriterPromptEditView: View {
     @EnvironmentObject private var llmViewModel: WriterLLMViewModel
-    @ObservedObject var draft: DraftModel
 
     var body: some View {
         VStack(spacing: 0) {
@@ -49,16 +48,6 @@ struct WriterPromptEditView: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 4)
             .padding(.top, 4)
-        }
-        .onChange(of: llmViewModel.result) { newValue in
-            DispatchQueue.main.async {
-                self.draft.content = newValue
-            }
-        }
-        .onChange(of: llmViewModel.queryStatus) { newValue in
-            DispatchQueue.main.async {
-                self.draft.isSendingDataToLLM = newValue == LLMQueryStatus.sending
-            }
         }
     }
 }

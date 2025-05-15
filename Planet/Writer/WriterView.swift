@@ -74,7 +74,7 @@ struct WriterView: View {
                             WriterTextView(draft: draft, text: $draft.content)
                                 .frame(minWidth: geometry.size.width / 2, minHeight: 300)
                         case .prompt:
-                            WriterPromptEditView(draft: draft)
+                            WriterPromptEditView()
                                 .environmentObject(llmViewModel)
                                 .frame(minWidth: geometry.size.width / 2, maxHeight: .infinity)
                         }

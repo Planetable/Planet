@@ -55,7 +55,6 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
     @Published var prompt: String = ""
     @Published var prompts: [String] = []
     @Published var result: String = ""
-    @Published var rawResult: String = ""
     @Published var selectedModel: String = UserDefaults.standard.string(forKey: WriterLLMViewModel.llmSelectedModelKey) ?? "" {
         didSet {
             UserDefaults.standard.set(selectedModel, forKey: WriterLLMViewModel.llmSelectedModelKey)
@@ -303,7 +302,6 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
                         if !text.isEmpty {
                             self.result += text
                         }
-                        self.rawResult += message + "\n"
                     }
                     
                     lastProcessedIndex = i + 1
