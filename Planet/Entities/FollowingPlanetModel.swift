@@ -496,9 +496,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         var enskit = ENSKit(jsonrpcClient: EthereumAPI.Flashbots, ipfsClient: GoIPFSGateway())
         var resolver = try await enskit.resolver(name: ens)
         if resolver == nil {
-            enskit = ENSKit(jsonrpcClient: EthereumAPI.Cloudflare, ipfsClient: GoIPFSGateway())
+            debugPrint("ENSKit resolver is nil with Flashbots, retrying with Llama")
+            enskit = ENSKit(jsonrpcClient: InfuraEthereumAPI(url: URL(string: "https://eth.llamarpc.com")!), ipfsClient: GoIPFSGateway())
             resolver = try await enskit.resolver(name: ens)
         }
+        // TODO: Lightweight ENS resolver powered by https://api.ensdata.net/vitalik.eth
         guard let resolver = resolver else {
             throw PlanetError.InvalidPlanetURLError
         }
