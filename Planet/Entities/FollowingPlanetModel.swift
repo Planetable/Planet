@@ -584,19 +584,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             */
 
-            /*
-            // Resolve wallet address
-
-            if let walletAddress = try? await resolver.addr() {
-                planet.walletAddress = "0x" + walletAddress
-                planet.walletAddressResolvedAt = Date()
-                debugPrint("Tipping: Got wallet address for \(ens): 0x\(walletAddress)")
-            }
-            else {
-                debugPrint("Tipping: Did not get wallet address for \(ens)")
-            }
-            */
-
             try planet.save()
             try planet.articles.forEach { try $0.save() }
 
@@ -1929,6 +1916,27 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
         default:
             break
+        }
+    }
+
+    func findWalletAddress() async {
+        if self.link.hasSuffix(".eth") {
+            let enskit = ENSKit(jsonrpcClient: EthereumAPI.Flashbots, ipfsClient: GoIPFSGateway())
+            if let resolver = try? await enskit.resolver(name: self.link) {
+                do {
+                    if let address = try await resolver.addr() {
+                        await MainActor.run {
+                            self.walletAddress = "0x" + address
+                            self.walletAddressResolvedAt = Date()
+                            debugPrint("FollowENS: found wallet address for \(self.link): \(address)")
+                            try? self.save()
+                        }
+                    }
+                }
+                catch {
+                    debugPrint("Tipping: Unable to find wallet address for \(self.link): \(error)")
+                }
+            }
         }
     }
 
