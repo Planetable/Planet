@@ -10,6 +10,8 @@ import SwiftUI
 
 struct WriterPromptEditView: View {
     @EnvironmentObject private var llmViewModel: WriterLLMViewModel
+    
+    @Binding var rightView: WriterView.RightView
 
     var body: some View {
         VStack(spacing: 0) {
@@ -41,6 +43,7 @@ struct WriterPromptEditView: View {
                 }
                 Button("Submit") {
                     llmViewModel.sendPrompt()
+                    rightView = WriterView.RightView.llmOutput
                 }
                 .disabled(llmViewModel.queryStatus == LLMQueryStatus.sending)
             }

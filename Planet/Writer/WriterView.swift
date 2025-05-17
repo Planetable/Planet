@@ -2,15 +2,6 @@ import SwiftUI
 import UniformTypeIdentifiers
 import WebKit
 
-enum LeftView {
-    case markdown
-    case prompt
-}
-
-enum RightView {
-    case preview
-    case llmOutput
-}
 
 struct WriterView: View {
     @ObservedObject var draft: DraftModel
@@ -74,7 +65,7 @@ struct WriterView: View {
                             WriterTextView(draft: draft, text: $draft.content)
                                 .frame(minWidth: geometry.size.width / 2, minHeight: 300)
                         case .prompt:
-                            WriterPromptEditView()
+                            WriterPromptEditView(rightView: $rightView)
                                 .environmentObject(llmViewModel)
                                 .frame(minWidth: geometry.size.width / 2, maxHeight: .infinity)
                         }
@@ -328,5 +319,18 @@ struct WriterView: View {
         }
         try draft.renderPreview()
         try draft.save()
+    }
+}
+
+
+extension WriterView {
+    enum LeftView {
+        case markdown
+        case prompt
+    }
+
+    enum RightView {
+        case preview
+        case llmOutput
     }
 }
