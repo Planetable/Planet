@@ -511,20 +511,20 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         catch {
             throw PlanetError.EthereumError
         }
-        Self.logger.info("Get contenthash from \(ens): \(String(describing: result))")
+        Self.logger.info("FollowENS: Get contenthash from \(ens): \(String(describing: result))")
         guard let contenthash = result,
             let cid = try await ENSUtils.getCID(from: contenthash)
         else {
             throw PlanetError.ENSNoContentHashError
         }
-        Self.logger.info("Follow \(ens): CID \(cid)")
-        Task.detached(priority: .background) {
+        Self.logger.info("FollowENS: \(ens) -> CID \(cid)")
+        Task.detached(priority: .utility) {
             try await IPFSDaemon.shared.pin(cid: cid)
         }
         let gateway = IPFSState.shared.getGateway()
         // update a native planet if a public planet is found
         if let publicPlanet = try await getPublicPlanet(from: cid) {
-            Self.logger.info("Follow \(ens): found native planet \(publicPlanet.name)")
+            Self.logger.info("FollowENS: \(ens): found native planet \(publicPlanet.name)")
 
             let planet = FollowingPlanetModel(
                 id: UUID(),
@@ -559,6 +559,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             planet.articles.sort { $0.created > $1.created }
 
+            /*
             // try to find ENS avatar
             if let data = try? await resolver.avatar(),
                 let image = NSImage(data: data),
@@ -581,7 +582,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 Self.logger.info("Follow \(ens): found avatar in native planet")
                 planet.avatar = image
             }
+            */
 
+            /*
             // Resolve wallet address
 
             if let walletAddress = try? await resolver.addr() {
@@ -592,6 +595,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             else {
                 debugPrint("Tipping: Did not get wallet address for \(ens)")
             }
+            */
 
             try planet.save()
             try planet.articles.forEach { try $0.save() }
