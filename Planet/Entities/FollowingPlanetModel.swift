@@ -518,9 +518,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             throw PlanetError.ENSNoContentHashError
         }
         Self.logger.info("FollowENS: \(ens) -> CID \(cid)")
-        Task.detached(priority: .utility) {
-            try await IPFSDaemon.shared.pin(cid: cid)
-        }
         let gateway = IPFSState.shared.getGateway()
         // update a native planet if a public planet is found
         if let publicPlanet = try await getPublicPlanet(from: cid) {
@@ -1759,6 +1756,18 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 Self.logger.warning(
                     "Sent notification: \(newArticles.count) new articles, request id: \(requestID)."
                 )
+            }
+        }
+    }
+
+    func pin() async {
+        if let cid = cid {
+            do {
+                debugPrint("FollowingPlanet: Pinning \(cid) for \(name)")
+                try await IPFSDaemon.shared.pin(cid: cid)
+            }
+            catch {
+                debugPrint("FollowingPlanet: Unable to pin \(cid) for \(name): \(error)")
             }
         }
     }

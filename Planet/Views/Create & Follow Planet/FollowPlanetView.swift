@@ -130,6 +130,9 @@ struct FollowPlanetView: View {
                     Task {
                         await planet.findWalletAddress()
                     }
+                    Task.detached(priority: .background) {
+                        await planet.pin()
+                    }
                     planetStore.selectedView = .followingPlanet(planet)
                 }
             } catch PlanetError.PlanetExistsError {
