@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 
 @MainActor class WriterViewModel: ObservableObject {
     static let choosingAttachment: Notification.Name = Notification.Name("WriterChooseAttachmentsNotification")
-    
+
     @Published var attachmentType: AttachmentType = .file
     @Published var allowedContentTypes: [UTType] = []
     @Published var allowMultipleSelection = false
@@ -13,7 +13,7 @@ import UniformTypeIdentifiers
 
     func chooseImages() {
         attachmentType = .image
-        allowedContentTypes = [.png, .webP, .jpeg, .gif]
+        allowedContentTypes = [.png, .webP, .jpeg, .gif, .heic, .heif, .tiff, .image]
         allowMultipleSelection = true
         NotificationCenter.default.post(name: Self.choosingAttachment, object: nil)
     }

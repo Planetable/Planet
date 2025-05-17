@@ -9,7 +9,7 @@ enum AttachmentType: String, Codable {
     case audio
     case file
 
-    static var supportedImageContentTypes: [String] = ["image/jpeg", "image/png", "image/tiff", "image/gif"]
+    static var supportedImageContentTypes: [String] = ["image/jpeg", "image/png", "image/tiff", "image/gif", "image/heic", "image/heif", "image/webp"]
     static var supportedAudioContentTypes: [String] = ["audio/aac", "audio/mpeg", "audio/ogg", "audio/wav", "audio/webm"]
     static var supportedVideoContentTypes: [String] = ["video/mp4", "video/mpeg", "video/ogg", "video/webm", "video/x-msvideo", "application/octet-stream"]
 

@@ -68,7 +68,7 @@ struct QuickPostView: View {
             HStack {
                 Button {
                     do {
-                        viewModel.allowedContentTypes = [.image]
+                        viewModel.allowedContentTypes = [.image, .heic, .heif]
                         viewModel.allowMultipleSelection = true
                         try attach(.image)
                     }
@@ -257,7 +257,28 @@ struct QuickPostView: View {
         guard response == .OK, panel.urls.count > 0 else { return }
         let urls = panel.urls
         urls.forEach { url in
-            viewModel.fileURLs.append(url)
+            if type == .image {
+                if url.lastPathComponent.hasSuffix(".heic") {
+                    // Convert HEIC to JPEG
+                    if let heicData = try? Data(contentsOf: url), let image = NSImage(data: heicData) {
+                        let jpegData = image.JPEGData
+                        let tempDir = FileManager.default.temporaryDirectory
+                        let jpegURL = tempDir.appendingPathComponent(UUID().uuidString).appendingPathExtension("jpg")
+                        if let jpegData = jpegData, let _ = try? jpegData.write(to: jpegURL) {
+                            viewModel.fileURLs.append(jpegURL)
+                        } else {
+                            viewModel.fileURLs.append(url)
+                        }
+                    } else {
+                        viewModel.fileURLs.append(url)
+                    }
+                }
+                else {
+                    viewModel.fileURLs.append(url)
+                }
+            } else {
+                viewModel.fileURLs.append(url)
+            }
             if type == .audio {
                 if let existingAudioURL = viewModel.audioURL {
                     viewModel.fileURLs.removeAll { $0 == existingAudioURL }

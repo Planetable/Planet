@@ -282,12 +282,41 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         guard path.pathExtension != "" else {
             throw PlanetError.WriterUnsupportedAttachmentTypeError
         }
-        let name = path.lastPathComponent
-        let targetPath = attachmentsPath.appendingPathComponent(name, isDirectory: false)
+        var name = path.lastPathComponent
+        var targetPath = attachmentsPath.appendingPathComponent(name, isDirectory: false)
         if FileManager.default.fileExists(atPath: targetPath.path) {
             try FileManager.default.removeItem(at: targetPath)
         }
-        try FileManager.default.copyItem(at: path, to: targetPath)
+        let copyPath: URL
+        if type == .image {
+            if path.lastPathComponent.hasSuffix(".heic") {
+                debugPrint("Convert .heic to .jpg")
+                // Convert HEIC to JPEG
+                if let heicData = try? Data(contentsOf: path), let image = NSImage(data: heicData) {
+                    let jpegData = image.JPEGData
+                    debugPrint("Convert .heic to .jpg: got jpeg data")
+                    let tempDir = FileManager.default.temporaryDirectory
+                    let jpegURL = tempDir.appendingPathComponent(UUID().uuidString).appendingPathExtension("jpg")
+                    if let jpegData = jpegData, let _ = try? jpegData.write(to: jpegURL) {
+                        copyPath = jpegURL
+                        name = jpegURL.lastPathComponent
+                        targetPath = attachmentsPath.appendingPathComponent(name, isDirectory: false)
+                    } else {
+                        debugPrint("Convert .heic to .jpg: failed to write jpeg data")
+                        copyPath = path
+                    }
+                } else {
+                    debugPrint("Convert .heic to .jpg: failed to get jpeg data")
+                    copyPath = path
+                }
+            }
+            else {
+                copyPath = path
+            }
+        } else {
+            copyPath = path
+        }
+        try FileManager.default.copyItem(at: copyPath, to: targetPath)
         if type == .video {
             // only allow one video attachment
             attachments.removeAll { $0.type == .video || $0.name == name }
