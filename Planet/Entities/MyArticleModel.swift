@@ -171,7 +171,7 @@ class MyArticleModel: ArticleModel, Codable {
         }
         switch IPFSGateway.selectedGateway() {
         case .limo:
-            return URL(string: "https://\(planet.ipns).ipfs2.eth.limo\(urlPath)")
+            return URL(string: "https://\(planet.ipns).eth.sucks\(urlPath)")
         case .sucks:
             return URL(string: "https://\(planet.ipns).eth.sucks\(urlPath)")
         case .croptop:

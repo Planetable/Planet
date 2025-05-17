@@ -112,7 +112,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         if link.hasPrefix("k51qaz") {
             switch IPFSGateway.selectedGateway() {
             case .limo:
-                return URL(string: "https://\(link).ipfs2.eth.limo/")
+                return URL(string: "https://\(link).eth.sucks/")
             case .sucks:
                 return URL(string: "https://\(link).eth.sucks/")
             case .croptop:
@@ -131,7 +131,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             if cid.hasPrefix("bafy") {
                 switch IPFSGateway.selectedGateway() {
                 case .limo:
-                    return URL(string: "https://\(cid).ipfs2.eth.limo/")
+                    return URL(string: "https://\(cid).eth.sucks/")
                 case .sucks:
                     return URL(string: "https://\(cid).eth.sucks/")
                 case .croptop:

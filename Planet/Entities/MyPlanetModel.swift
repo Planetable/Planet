@@ -433,7 +433,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         switch IPFSGateway.selectedGateway() {
         case .limo:
-            return URL(string: "https://\(ipns).ipfs2.eth.limo/")
+            return URL(string: "https://\(ipns).eth.sucks/")
         case .sucks:
             return URL(string: "https://\(ipns).eth.sucks/")
         case .croptop:

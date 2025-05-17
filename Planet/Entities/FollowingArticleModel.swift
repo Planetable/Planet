@@ -86,7 +86,7 @@ class FollowingArticleModel: ArticleModel, Codable {
             // planet article link: /12345678-90AB-CDEF-1234-567890ABCDEF/
             switch IPFSGateway.selectedGateway() {
             case .limo:
-                return URL(string: "https://\(planet.link).ipfs2.eth.limo\(link)")
+                return URL(string: "https://\(planet.link).eth.sucks\(link)")
             case .sucks:
                 return URL(string: "https://\(planet.link).eth.sucks\(link)")
             case .croptop:
@@ -140,7 +140,7 @@ class FollowingArticleModel: ArticleModel, Codable {
                 }
                 switch IPFSGateway.selectedGateway() {
                 case .limo:
-                    return URL(string: "https://\(planet.link).ipfs2.eth.limo\(link)")
+                    return URL(string: "https://\(planet.link).eth.sucks\(link)")
                 case .sucks:
                     return URL(string: "https://\(planet.link).eth.sucks\(link)")
                 case .croptop:
