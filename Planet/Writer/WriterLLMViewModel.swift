@@ -117,10 +117,10 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         task.resume()
     }
 
-    func sendPrompt() {
+    func sendPrompt(withDraft draft: DraftModel) {
         cancelCurrentRequest()
 
-        guard let url = URL(string: "\(server)/v1/completions") else {
+        guard let url = URL(string: "\(server)/v1/chat/completions") else {
             result = "Invalid API URL."
             queryStatus = .error("Invalid API URL.")
             return
@@ -128,25 +128,33 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+
+        let systemPrompt = """
+        You are a helpful writing assistant. \
+        If the user asks to *translate*, translate faithfully and preserve markdown. \
+        Otherwise respond normally.
+        """
+        let userPrompt = """
+        \(prompt)\n\n
+        \(draft.content)
+        """
         
-        // Enhanced prompt parameters based on LM Studio reference
+        let messages: [[String: String]] = [
+            ["role": "system", "content": systemPrompt],
+            ["role": "user",   "content": userPrompt]
+        ]
+        
         let body: [String: Any] = [
             "model": selectedModel,
-            "prompt": prompt,
-            // Core generation parameters
+            "messages": messages,
             "temperature": 0.7,
             "top_p": 0.9,
             "top_k": 40,
             "repeat_penalty": 1.15,
             "frequency_penalty": 0.0,
             "presence_penalty": 0.0,
-            // Control the length of generation
             "max_tokens": 2048,
-            // Special tokens handling
             "stop": ["<|eot_id|>", "<|eom_id|>", "<|eom|>"],
-            // Context handling
-            "context_length": 4096,
-            // Stream response for real-time updates
             "stream": true
         ]
         
@@ -251,50 +259,63 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
                 continue
             }
             
+            // Handle error events (non-JSON format)
+            if message.starts(with: "event: error") {
+                DispatchQueue.main.async {
+                    self.queryStatus = .error("Server returned an error: \(message)")
+                    debugPrint("Server error: \(message)")
+                }
+                lastProcessedIndex = i + 1
+                continue
+            }
+            
             // Process JSON responses
             if message.hasPrefix("{") && (message.hasSuffix("}") || message.hasSuffix("}\n")) {
                 if let data = message.data(using: .utf8),
                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                     
-                    // Extract more information from the response
-                    let choices = json["choices"] as? [[String: Any]] ?? []
-                    let first = choices.first
-                    let text = first?["text"] as? String ?? ""
-                    let finishReason = first?["finish_reason"] as? String
-                    
-                    // Extract token usage information if available
-                    if let usage = json["usage"] as? [String: Any] {
-                        let promptTokens = usage["prompt_tokens"] as? Int
-                        let completionTokens = usage["completion_tokens"] as? Int
-                        let totalTokens = usage["total_tokens"] as? Int
-                        
-                        // Log token usage for metrics
-                        if let prompt = promptTokens, let completion = completionTokens, let total = totalTokens {
-                            debugPrint("Token usage - Prompt: \(prompt), Completion: \(completion), Total: \(total)")
+                    // Check for error fields in the JSON response
+                    if let error = json["error"] as? [String: Any] {
+                        let errorMessage = error["message"] as? String ?? "Unknown error"
+                        DispatchQueue.main.async {
+                            self.queryStatus = .error(errorMessage)
                         }
+                        lastProcessedIndex = i + 1
+                        continue
                     }
                     
-                    // Handle different finish reasons
-                    if let reason = finishReason {
-                        switch reason {
-                        case "stop":
-                            // Normal stop - model reached a natural stopping point
-                            break
-                        case "length":
-                            // Model reached max tokens - might be incomplete
-                            debugPrint("Warning: Response truncated due to max token limit")
-                        case "content_filter":
-                            // Content was filtered due to safety settings
-                            debugPrint("Warning: Response filtered due to content guidelines")
-                        default:
+                    // Extract content from the response based on chat completions format
+                    let choices = json["choices"] as? [[String: Any]] ?? []
+                    var contentText = ""
+                    
+                    if let first = choices.first {
+                        // Try delta format (used in streaming responses)
+                        if let delta = first["delta"] as? [String: Any],
+                           let content = delta["content"] as? String {
+                            contentText = content
+                        }
+                        // Try message format (used in non-streaming or some APIs)
+                        else if let message = first["message"] as? [String: Any],
+                                let content = message["content"] as? String {
+                            contentText = content
+                        }
+                        // Fallback to the original text field
+                        else if let text = first["text"] as? String {
+                            contentText = text
+                        }
+                        
+                        let finishReason = first["finish_reason"] as? String
+                        
+                        // Handle different finish reasons
+                        if let reason = finishReason, !reason.isEmpty {
                             debugPrint("Finish reason: \(reason)")
                         }
                     }
                     
                     // Update the UI with the new text
                     DispatchQueue.main.async {
-                        if !text.isEmpty {
-                            self.result += text
+                        if !contentText.isEmpty {
+                            self.result += contentText
                         }
                     }
                     
