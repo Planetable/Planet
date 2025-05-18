@@ -136,6 +136,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         """
         let userPrompt = """
         \(prompt)\n\n
+        \(draft.title)
         \(draft.content)
         """
         
