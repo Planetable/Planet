@@ -69,8 +69,8 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
     }
 
     func loadAvailableModels() {
-        guard let url = URL(string: "\(server)/v1/models") else {
-            debugPrint("Invalid server: \(server)/v1/models")
+        guard let url = URL(string: "\(server)/api/v0/models") else {
+            debugPrint("Invalid server: \(server)/api/v0/models")
             DispatchQueue.main.async {
                 self.selectedModel = ""
             }
@@ -95,7 +95,14 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
             do {
                 if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                    let dataArray = json["data"] as? [[String: Any]] {
-                    let models = dataArray.compactMap { $0["id"] as? String }
+                    let models = dataArray.compactMap { dict -> String? in
+                        guard
+                            let id   = dict["id"]   as? String,
+                            let type = dict["type"] as? String,
+                            type == "llm"
+                        else { return nil }
+                        return id
+                    }
                     DispatchQueue.main.async {
                         self?.availableModels = models
                     }
