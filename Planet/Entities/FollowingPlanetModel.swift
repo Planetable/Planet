@@ -450,45 +450,37 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     static func followFeaturedSources() async throws {
+        debugPrint("About to follow featured planets")
+        let ensDomains = ["planetable.eth", "docs.planetable.eth", "vitalik.eth"]
+        let lines = ensDomains.joined(separator: "\n")
         Task { @MainActor in
             let alert = NSAlert()
             alert.messageText = "Follow Featured Planets"
-            alert.informativeText = "You will start following: \n\nplanetable.eth\nvitalik.eth"
+            alert.informativeText = "You will start following: \n\n" + lines
             let _ = alert.runModal()
         }
-        // Follow planetable.eth and vitalik.eth if not already followed
-        debugPrint("About to follow featured planets")
-        let planetableFollowed = await PlanetStore.shared.followingPlanets.contains {
-            $0.link == "planetable.eth"
-        }
-        if !planetableFollowed {
-            do {
-                let planet = try await FollowingPlanetModel.follow(link: "planetable.eth")
-                Task { @MainActor in
-                    PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+        for domain in ensDomains {
+            let isFollowed = await PlanetStore.shared.followingPlanets.contains {
+                $0.link == domain
+            }
+            if !isFollowed {
+                do {
+                    let planet = try await FollowingPlanetModel.follow(link: domain)
+                    Task { @MainActor in
+                        PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+                        await PlanetStore.shared.saveFollowingPlanetsOrder()
+                    }
+                    debugPrint("FollowFeatured: Followed \(domain)")
+                    Task {
+                        await planet.refreshIcon()
+                    }
                 }
-            }
-            catch {
-                debugPrint("Failed to follow planetable.eth: \(error)")
-            }
-        } else {
-            debugPrint("Already following planetable.eth")
-        }
-        let vitalikFollowed = await PlanetStore.shared.followingPlanets.contains {
-            $0.link == "vitalik.eth"
-        }
-        if !vitalikFollowed {
-            do {
-                let planet = try await FollowingPlanetModel.follow(link: "vitalik.eth")
-                Task { @MainActor in
-                    PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+                catch {
+                    debugPrint("FollowFeatured: Failed to follow \(domain): \(error)")
                 }
+            } else {
+                debugPrint("FollowFeatured: Already following \(domain)")
             }
-            catch {
-                debugPrint("Failed to follow vitalik.eth: \(error)")
-            }
-        } else {
-            debugPrint("Already following vitalik.eth")
         }
     }
 
