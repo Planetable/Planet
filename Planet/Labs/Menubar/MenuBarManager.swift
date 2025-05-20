@@ -2,7 +2,24 @@ import AppKit
 import SwiftUI
 
 class MenuBarManager: NSObject {
+    enum MenuItemTag: Int {
+        case status = 1
+        case menubar
+        case dock
+    }
+
     static let shared = MenuBarManager()
+
+    private var statusMenuTitle: String {
+        "IPFS Gateway: \(IPFSState.shared.online ? "Online" : "Offline")"
+    }
+
+    private var dockMenuTitle: String {
+        let current = UserDefaults.standard.bool(
+            forKey: .settingsHideDockIcon
+        )
+        return "\(current ? "Show" : "Hide") from Dock"
+    }
 
     private var statusItem: NSStatusItem?
 
@@ -62,38 +79,51 @@ class MenuBarManager: NSObject {
         }
 
         if let icon = NSImage(systemSymbolName: "cricket.ball.fill", accessibilityDescription: nil) {
-            icon.size = NSSize(width: 18, height: 18)
+            icon.size = NSSize(width: 20, height: 20)
             icon.isTemplate = true
             button.image = icon
         } else {
             button.title = "🪐"
         }
 
-        button.action = #selector(statusBarButtonClicked(sender:))
-        button.target = self
-
         // Build the menu
         let menu = NSMenu()
+        menu.delegate = self
+
+        let statusMenuItem = NSMenuItem(title: "Status", action: nil, keyEquivalent: "")
+        statusMenuItem.title = statusMenuTitle
+        statusMenuItem.tag = MenuItemTag.status.rawValue
+        menu.addItem(statusMenuItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        let toggleMenubarItem = NSMenuItem(
+            title: "Hide from Menubar",
+            action: #selector(hideMenubar),
+            keyEquivalent: ""
+        )
+        toggleMenubarItem.tag = MenuItemTag.menubar.rawValue
+        toggleMenubarItem.target = self
+        menu.addItem(toggleMenubarItem)
+
+        let toggleDockMenuItem = NSMenuItem(
+            title: dockMenuTitle,
+            action: #selector(toggleDockIcon),
+            keyEquivalent: ""
+        )
+        toggleDockMenuItem.tag = MenuItemTag.dock.rawValue
+        toggleDockMenuItem.target = self
+        menu.addItem(toggleDockMenuItem)
+
+        menu.addItem(NSMenuItem.separator())
 
         let aboutMenuItem = NSMenuItem(
-            title: "About",
+            title: "About...",
             action: #selector(showAbout),
             keyEquivalent: ""
         )
         aboutMenuItem.target = self
         menu.addItem(aboutMenuItem)
-
-        // Add Settings Menu Item
-        let settingsMenuItem = NSMenuItem(
-            title: "Show Main Window",
-            action: #selector(showMainWindow),
-            keyEquivalent: ""
-        )
-        settingsMenuItem.target = self
-        menu.addItem(settingsMenuItem)
-
-        // Separator before Toggle Item
-        menu.addItem(NSMenuItem.separator())
 
         menu.addItem(NSMenuItem(
             title: "Quit",
@@ -116,32 +146,30 @@ class MenuBarManager: NSObject {
 
     // --- Actions ---
 
-    @objc func toggleMenuBarPreference() {
-        let currentSetting = UserDefaults.standard.bool(
-            forKey: .settingsShowMenuBarIcon
-        )
-        let newSetting = !currentSetting
-        UserDefaults.standard.set(newSetting, forKey: .settingsShowMenuBarIcon)
-        updateMenuBarVisibility(newSetting)
+    @objc func hideMenubar() {
+        UserDefaults.standard.set(false, forKey: .settingsShowMenuBarIcon)
+        updateMenuBarVisibility(false)
     }
-
-    @objc func statusBarButtonClicked(sender: NSStatusBarButton) {}
 
     @objc func showAbout() {
-        NSApp.activate(ignoringOtherApps: true)
-        NSApp.orderFrontStandardAboutPanel(nil)
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        NSApplication.shared.orderFrontStandardAboutPanel(nil)
     }
 
-    @objc func showMainWindow() {
-        let app = NSApplication.shared
-        let current = app.activationPolicy()
-        guard let window = app.windows.first(where: { $0.className == "SwiftUI.AppKitWindow" }) else {
-            return
+    @objc func toggleDockIcon() {
+        let current = UserDefaults.standard.bool(forKey: .settingsHideDockIcon)
+        updateDockIconVisibility(!current)
+        UserDefaults.standard.setValue(!current, forKey: .settingsHideDockIcon)
+    }
+}
+
+extension MenuBarManager: NSMenuDelegate {
+    func menuWillOpen(_ menu: NSMenu) {
+        if let item = menu.item(withTag: MenuItemTag.status.rawValue) {
+            item.title = statusMenuTitle
         }
-        if !window.canBecomeMain || !window.isVisible {
-            NSWorkspace.shared.open(.mainEvent)
-            NSApplication.shared.setActivationPolicy(current)
+        if let item = menu.item(withTag: MenuItemTag.dock.rawValue) {
+            item.title = dockMenuTitle
         }
-        window.makeKeyAndOrderFront(nil)
     }
 }
