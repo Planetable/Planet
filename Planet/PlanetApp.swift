@@ -90,7 +90,7 @@ struct PlanetApp: App {
 
     @SceneBuilder
     private func planetMainWindowGroup() -> some Scene {
-        let mainEvent: Set<String> = Set(arrayLiteral: "planet://Planet")
+        let mainEvent: Set<String> = Set(arrayLiteral: URL.mainEvent.absoluteString)
         WindowGroup("Planet") {
             PlanetMainView()
                 .environmentObject(planetStore)

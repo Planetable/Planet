@@ -134,13 +134,14 @@ class MenuBarManager: NSObject {
 
     @objc func showMainWindow() {
         let app = NSApplication.shared
-        app.activate(ignoringOtherApps: true)
-        if let mainWindow = app.windows.first(where: { $0.canBecomeMain && $0.isMainWindow }) {
-            mainWindow.makeKeyAndOrderFront(nil)
-        } else if let firstWindow = app.windows.first(where: { $0.canBecomeMain && !$0.isVisible } ) {
-            firstWindow.makeKeyAndOrderFront(nil)
-        } else {
-
+        let current = app.activationPolicy()
+        guard let window = app.windows.first(where: { $0.className == "SwiftUI.AppKitWindow" }) else {
+            return
         }
+        if !window.canBecomeMain || !window.isVisible {
+            NSWorkspace.shared.open(.mainEvent)
+            NSApplication.shared.setActivationPolicy(current)
+        }
+        window.makeKeyAndOrderFront(nil)
     }
 }

@@ -150,6 +150,10 @@ extension String {
     static let liteAppName = "Croptop"
 }
 
+extension URL {
+    static let mainEvent = URL(string: "planet://Planet")!
+}
+
 extension Notification.Name {
     static let killHelper = Notification.Name("PlanetKillPlanetHelperNotification")
     static let terminateDaemon = Notification.Name("PlanetTerminatePlanetDaemonNotification")

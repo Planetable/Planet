@@ -135,6 +135,11 @@ struct PlanetSettingsGeneralView: View {
                                 .onChange(of: showMenuBarIcon) { newValue in
                                     Task { @MainActor in
                                         MenuBarManager.shared.updateMenuBarVisibility(newValue)
+                                        UserDefaults.standard
+                                            .set(
+                                                newValue,
+                                                forKey: .settingsShowMenuBarIcon
+                                            )
                                     }
                                 }
                             Toggle("Hide Dock Icon", isOn: $hideDockIcon)
@@ -142,6 +147,11 @@ struct PlanetSettingsGeneralView: View {
                                     Task { @MainActor in
                                         MenuBarManager.shared
                                             .updateDockIconVisibility(newValue)
+                                        UserDefaults.standard
+                                            .set(
+                                                newValue,
+                                                forKey: .settingsHideDockIcon
+                                            )
                                     }
                                 }
                         }
