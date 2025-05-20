@@ -20,6 +20,7 @@ struct PlanetApp: App {
         _iconManager = StateObject(wrappedValue: IconManager.shared)
         _keyboardHelper = ObservedObject(wrappedValue: KeyboardShortcutHelper.shared)
         _apiController = ObservedObject(wrappedValue: PlanetAPIController.shared)
+        MenuBarManager.shared.setupMenuBar()
     }
 
     var body: some Scene {

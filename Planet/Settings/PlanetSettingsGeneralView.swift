@@ -32,13 +32,15 @@ struct PlanetSettingsGeneralView: View {
 
     @AppStorage(String.settingsPreferredIPFSPublicGateway) private var preferredIPFSPublicGateway:
         String =
-            UserDefaults.standard.string(forKey: String.settingsPreferredIPFSPublicGateway)
+        UserDefaults.standard.string(forKey: String.settingsPreferredIPFSPublicGateway)
             ?? IPFSGateway.defaultGateway.rawValue
 
     @AppStorage(String.settingsEthereumChainId) private var ethereumChainId: Int = UserDefaults
         .standard.integer(forKey: String.settingsEthereumChainId)
 
     @AppStorage(String.settingsWarnBeforeQuitIfPublishing) private var warnBeforeQuitIfPublishing = false
+    @AppStorage(String.settingsShowMenuBarIcon) private var showMenuBarIcon: Bool = true
+    @AppStorage(String.settingsHideDockIcon) private var hideDockIcon: Bool = false
 
     var body: some View {
         Form {
@@ -96,7 +98,7 @@ struct PlanetSettingsGeneralView: View {
                             }
                         }
                         .pickerStyle(.menu)
-                        .onChange(of: preferredIPFSPublicGateway) { newValue in
+                        .onChange(of: preferredIPFSPublicGateway) { _ in
                             // Refresh Published Folders Dashboard Toolbar
                             NotificationCenter.default.post(
                                 name: .dashboardRefreshToolbar,
@@ -120,6 +122,30 @@ struct PlanetSettingsGeneralView: View {
                         .font(.footnote)
                         .foregroundColor(.secondary)
                         .padding(.leading, PlanetUI.SETTINGS_CAPTION_WIDTH - 10)
+                    }
+
+                    HStack(spacing: 10) {
+                        Text("App Behavior")
+                            .frame(
+                                width: PlanetUI.SETTINGS_CAPTION_WIDTH,
+                                alignment: .trailing
+                            )
+                        VStack(alignment: .leading, spacing: 10) {
+                            Toggle("Show Menu Bar Icon", isOn: $showMenuBarIcon)
+                                .onChange(of: showMenuBarIcon) { newValue in
+                                    Task { @MainActor in
+                                        MenuBarManager.shared.updateMenuBarVisibility(newValue)
+                                    }
+                                }
+                            Toggle("Hide Dock Icon", isOn: $hideDockIcon)
+                                .onChange(of: hideDockIcon) { newValue in
+                                    Task { @MainActor in
+                                        MenuBarManager.shared
+                                            .updateDockIconVisibility(newValue)
+                                    }
+                                }
+                        }
+                        Spacer()
                     }
 
                     #if DEBUG
@@ -181,7 +207,7 @@ struct PlanetSettingsGeneralView: View {
         let response = panel.runModal()
         guard response == .OK, let url = panel.url else { return }
         let planetURL = url.appendingPathComponent("Planet")
-        var useAsExistingLibraryLocation: Bool = false
+        var useAsExistingLibraryLocation = false
         if FileManager.default.fileExists(atPath: planetURL.path) {
             useAsExistingLibraryLocation = true
         }

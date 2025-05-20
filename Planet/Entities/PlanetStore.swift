@@ -132,10 +132,10 @@ enum PlanetDetailViewType: Hashable, Equatable {
     @Published var isMigrating = false
     @Published var isRebuilding = false
     @Published var rebuildTasks: Int = 0
-    @Published var isQuickSharing = false  // use in macOS 12 only.
+    @Published var isQuickSharing = false // use in macOS 12 only.
     @Published var isQuickPosting = false
 
-    @Published var isAggregating: Bool = false  // at any time, only one aggregation task is allowed.
+    @Published var isAggregating: Bool = false // at any time, only one aggregation task is allowed.
     @Published var currentTaskMessage: String = ""
     @Published var currentTaskProgressIndicator: TaskProgressIndicatorType = .none
 
@@ -470,7 +470,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
     func getUnreadArticles() -> [ArticleModel] {
         var articles = followingPlanets.flatMap { followingPlanet in
             followingPlanet.articles.filter {
-                if ($0.read == nil) {
+                if $0.read == nil {
                     return true
                 } else {
                     return false
@@ -501,9 +501,9 @@ enum PlanetDetailViewType: Hashable, Equatable {
             throw PlanetError.MovePublishingPlanetArticleError
         }
         debugPrint("moving article: \(article), from planet: \(fromPlanet), to planet: \(toPlanet)")
-        fromPlanet.articles = fromPlanet.articles.filter({ a in
-            return a.id != article.id
-        })
+        fromPlanet.articles = fromPlanet.articles.filter { a in
+            a.id != article.id
+        }
         let articleIDString: String = article.id.uuidString.uppercased()
         let fromPlanetIDString: String = fromPlanet.id.uuidString.uppercased()
         let toPlanetIDString: String = toPlanet.id.uuidString.uppercased()
@@ -566,7 +566,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
         let refreshedArticle = try MyArticleModel.load(from: movedArticle.path, planet: refreshedToPlanet)
         try refreshedArticle.savePublic()
 
-        myPlanets = myPlanets.map() { p in
+        myPlanets = myPlanets.map { p in
             if p.id == refreshedFromPlanet.id {
                 return refreshedFromPlanet
             } else if p.id == refreshedToPlanet.id {

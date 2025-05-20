@@ -21,6 +21,8 @@ extension String {
     static let settingsPublicGatewayIndex: String = "PlanetSettingsPublicGatewayIndexKey"
     static let settingsPreferredIPFSPublicGateway: String = "PlanetSettingsPreferredIPFSPublicGatewayKey"
     static let settingsWarnBeforeQuitIfPublishing: String = "PlanetSettingsWarnBeforeQuitIfPublishingKey"
+    static let settingsShowMenuBarIcon: String = "PlanetSettingsShowMenuBarIconKey"
+    static let settingsHideDockIcon: String = "PlanetSettingsHideDockIconKey"
     static let settingsEthereumChainId: String = "PlanetSettingsEthereumChainId"
     static let settingsEthereumTipAmount: String = "PlanetSettingsEthereumTipAmount"
     static let settingsAPIEnabled: String = "PlanetSettingsAPIEnabledKey"
@@ -230,10 +232,10 @@ extension Date {
 }
 
 protocol URLQueryParameterStringConvertible {
-    var queryParameters: String {get}
+    var queryParameters: String { get }
 }
 
-extension Dictionary : URLQueryParameterStringConvertible {
+extension Dictionary: URLQueryParameterStringConvertible {
     var queryParameters: String {
         var parts: [String] = []
         for (key, value) in self {
@@ -247,8 +249,8 @@ extension Dictionary : URLQueryParameterStringConvertible {
 }
 
 extension URL {
-    func appendingQueryParameters(_ parametersDictionary : Dictionary<String, String>) -> URL {
-        let URLString : String = String(format: "%@?%@", absoluteString, parametersDictionary.queryParameters)
+    func appendingQueryParameters(_ parametersDictionary: [String: String]) -> URL {
+        let URLString = String(format: "%@?%@", absoluteString, parametersDictionary.queryParameters)
         return URL(string: URLString)!
     }
 
