@@ -78,7 +78,7 @@ class MenuBarManager: NSObject {
             return
         }
 
-        if let icon = NSImage(systemSymbolName: "cricket.ball.fill", accessibilityDescription: nil) {
+        if let icon = NSImage(systemSymbolName: "globe.asia.australia", accessibilityDescription: nil) {
             icon.size = NSSize(width: 20, height: 20)
             icon.isTemplate = true
             button.image = icon
