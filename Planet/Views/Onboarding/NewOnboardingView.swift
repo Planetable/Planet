@@ -40,7 +40,7 @@ struct NewOnboardingView: View {
                             icon: "feature.markdown-editor",
                             title: "Markdown Editor",
                             description: "Two-column Markdown editor for easily previewing changes. Drag-n-drop images, audio, or video. To-do list syntax is supported.",
-                            url: "https://docs.iweb.eth.limo/markdown/"
+                            url: "https://docs.planetable.eth.limo/markdown/"
                         )
 
                         feature(
@@ -54,7 +54,7 @@ struct NewOnboardingView: View {
                             icon: "feature.ipfs",
                             title: "IPFS Publishing",
                             description: "Publish your websites directly to the Internet with IPFS.",
-                            url: "https://docs.iweb.eth.limo/ipfs/"
+                            url: "https://docs.planetable.eth.limo/ipfs/"
                         )
                     }
                     .frame(maxWidth: .infinity)
@@ -71,7 +71,7 @@ struct NewOnboardingView: View {
                             icon: "feature.ens",
                             title: "ENS .eth / SNS .sol",
                             description: "Link your IPFS websites to your blockchain names like Ethereum name (.eth) or Solana name (.sol).",
-                            url: "https://www.planetable.xyz/guides/ens/"
+                            url: "https://docs.planetable.eth.limo/ens/"
                         )
 
                         feature(
