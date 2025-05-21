@@ -22,7 +22,8 @@ struct WriterView: View {
     }
 
     var body: some View {
-        let showTabs = llmViewModel.selectedModel != "" && llmViewModel.availableModels.count > 1
+        let model = llmViewModel.selectedModel
+        let showTabs = model != "" && llmViewModel.availableModels.contains(model)
         VStack(spacing: 0) {
             if let videoAttachment = draft.attachments.first(where: { $0.type == .video }) {
                 WriterVideoView(videoAttachment: videoAttachment)
