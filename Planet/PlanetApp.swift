@@ -20,6 +20,7 @@ struct PlanetApp: App {
         _iconManager = StateObject(wrappedValue: IconManager.shared)
         _keyboardHelper = ObservedObject(wrappedValue: KeyboardShortcutHelper.shared)
         _apiController = ObservedObject(wrappedValue: PlanetAPIController.shared)
+        MenuBarManager.shared.setupMenuBar()
     }
 
     var body: some Scene {
@@ -89,7 +90,7 @@ struct PlanetApp: App {
 
     @SceneBuilder
     private func planetMainWindowGroup() -> some Scene {
-        let mainEvent: Set<String> = Set(arrayLiteral: "planet://Planet")
+        let mainEvent: Set<String> = Set(arrayLiteral: URL.mainEvent.absoluteString)
         WindowGroup("Planet") {
             PlanetMainView()
                 .environmentObject(planetStore)
