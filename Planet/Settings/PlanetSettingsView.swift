@@ -23,7 +23,7 @@ struct PlanetSettingsView: View {
                     Label("General", systemImage: "gearshape")
                 }
                 .tag(PlanetSettingsTab.general)
-                .frame(width: 420, height: 340)
+                .frame(width: 420, height: 320)
                 .environmentObject(store)
 
             PlanetSettingsPlanetsView()
