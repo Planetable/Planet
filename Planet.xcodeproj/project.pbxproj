@@ -269,6 +269,8 @@
 		2AA7974829496F730031E873 /* PlanetPublishedFolders+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973C29496F730031E873 /* PlanetPublishedFolders+Extension.swift */; };
 		2AA7974929496F730031E873 /* PFDashboardInspectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AA7973D29496F730031E873 /* PFDashboardInspectorViewController.swift */; };
 		2AAF510A2C293DE100C0B7AA /* HDWalletKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2AAF51092C293DE100C0B7AA /* HDWalletKit */; };
+		2ABCA3F02DDE7C42002208BD /* Blackbird in Frameworks */ = {isa = PBXBuildFile; productRef = 2ABCA3EF2DDE7C42002208BD /* Blackbird */; };
+		2ABCA3F22DDE7D7A002208BD /* Blackbird in Frameworks */ = {isa = PBXBuildFile; productRef = 2ABCA3F12DDE7D7A002208BD /* Blackbird */; };
 		2ABD1CC42A1616DA0082D7EA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABD1CC32A1616DA0082D7EA /* AppDelegate.swift */; };
 		2ABD1CC82A1616DB0082D7EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2ABD1CC72A1616DB0082D7EA /* Assets.xcassets */; };
 		2AC4994927BB6E7500F1C2D1 /* PlanetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC4994827BB6E7500F1C2D1 /* PlanetApp.swift */; };
@@ -883,6 +885,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2ABCA3F22DDE7D7A002208BD /* Blackbird in Frameworks */,
 				2A95E6A82A19A48C001288B8 /* ENSKit in Frameworks */,
 				6AFCF7E42B7353FE002299BA /* DequeModule in Frameworks */,
 				2AFDF8AA2A3A1E8500386B9A /* ASMediaView in Frameworks */,
@@ -927,6 +930,7 @@
 				6AFCF7DE2B7353C6002299BA /* DequeModule in Frameworks */,
 				BBFE51EC27F3AABC0055A51A /* ENSKit in Frameworks */,
 				6A373A4428E8263800750256 /* CodeMirror-SwiftUI in Frameworks */,
+				2ABCA3F02DDE7C42002208BD /* Blackbird in Frameworks */,
 				6AB6E511291527B800F17328 /* WalletConnectAuth in Frameworks */,
 				6A7189692947FD0500279D77 /* Web3 in Frameworks */,
 				BBC831AB2836239300CE1F67 /* PlanetSiteTemplates in Frameworks */,
@@ -1699,6 +1703,7 @@
 				6AFCF7E32B7353FE002299BA /* DequeModule */,
 				6AFCF7E52B7353FE002299BA /* OrderedCollections */,
 				2AD061442C47A7C000E288DB /* Vapor */,
+				2ABCA3F12DDE7D7A002208BD /* Blackbird */,
 			);
 			productName = Croptop;
 			productReference = 2ABD1CC12A1616DA0082D7EA /* Croptop.app */;
@@ -1746,6 +1751,7 @@
 				6AFCF7DF2B7353C6002299BA /* OrderedCollections */,
 				2AAF51092C293DE100C0B7AA /* HDWalletKit */,
 				2AD061422C47A7B000E288DB /* Vapor */,
+				2ABCA3EF2DDE7C42002208BD /* Blackbird */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -1802,6 +1808,7 @@
 				6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */,
 				2AAF51082C293DE100C0B7AA /* XCRemoteSwiftPackageReference "HDWallet" */,
 				2AD061412C47A7B000E288DB /* XCRemoteSwiftPackageReference "vapor" */,
+				2ABCA3EE2DDE7C42002208BD /* XCRemoteSwiftPackageReference "Blackbird" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -2705,6 +2712,14 @@
 				kind = branch;
 			};
 		};
+		2ABCA3EE2DDE7C42002208BD /* XCRemoteSwiftPackageReference "Blackbird" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/marcoarment/Blackbird";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.0;
+			};
+		};
 		2AC4996A27BB99DC00F1C2D1 /* XCRemoteSwiftPackageReference "Stencil" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stencilproject/Stencil.git";
@@ -2945,6 +2960,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2AAF51082C293DE100C0B7AA /* XCRemoteSwiftPackageReference "HDWallet" */;
 			productName = HDWalletKit;
+		};
+		2ABCA3EF2DDE7C42002208BD /* Blackbird */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2ABCA3EE2DDE7C42002208BD /* XCRemoteSwiftPackageReference "Blackbird" */;
+			productName = Blackbird;
+		};
+		2ABCA3F12DDE7D7A002208BD /* Blackbird */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2ABCA3EE2DDE7C42002208BD /* XCRemoteSwiftPackageReference "Blackbird" */;
+			productName = Blackbird;
 		};
 		2AC4996B27BB99DC00F1C2D1 /* Stencil */ = {
 			isa = XCSwiftPackageProductDependency;
