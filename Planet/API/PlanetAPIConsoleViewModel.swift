@@ -102,10 +102,10 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             try await db.execute("""
                 INSERT INTO things (type, date_created) VALUES ('log', '\(ts)');
             """)
-            let idRow = try await db.query("SELECT last_insert_rowid() AS id;")
-            guard let thingID = idRow.first?["id"]?.intValue else { return }
+            let lastRowID = try await db.query("SELECT last_insert_rowid() AS id;")
+            guard let thingID = lastRowID.first?["id"]?.intValue else { return }
 
-            let attributes: [String:String] = [
+            let attributes: [String: String] = [
                 "statusCode": String(entry.statusCode),
                 "originIP": entry.originIP,
                 "requestURL": entry.requestURL,
@@ -135,9 +135,9 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         do {
             let rows = try await db.query("""
                 SELECT t.date_created,
-                       MAX(CASE WHEN d.key='statusCode'      THEN d.value END) AS statusCode,
-                       MAX(CASE WHEN d.key='originIP'        THEN d.value END) AS originIP,
-                       MAX(CASE WHEN d.key='requestURL'      THEN d.value END) AS requestURL,
+                       MAX(CASE WHEN d.key='statusCode' THEN d.value END) AS statusCode,
+                       MAX(CASE WHEN d.key='originIP' THEN d.value END) AS originIP,
+                       MAX(CASE WHEN d.key='requestURL' THEN d.value END) AS requestURL,
                        MAX(CASE WHEN d.key='errorDescription' THEN d.value END) AS errorDescription
                 FROM things t
                 JOIN data d ON d.thing_id = t.id
