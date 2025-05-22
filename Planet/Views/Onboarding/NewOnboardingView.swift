@@ -78,7 +78,7 @@ struct NewOnboardingView: View {
                             icon: "feature.api-access",
                             title: "API Access",
                             description: "Automate, integrate with other systems, do creative things, with Planet RESTful API.",
-                            url: "https://github.com/Planetable/Planet/blob/main/Technotes/API.md"
+                            url: "https://docs.planetable.eth.limo/api/"
                             // TODO: Build a new page for API
                         )
                     }
