@@ -55,8 +55,8 @@ class PlanetAPIConsoleViewModel: ObservableObject {
     func addLog(statusCode: UInt, originIP: String, requestURL: String, errorDescription: String = "") {
         let now = Date()
         let entry = (timestamp: now, statusCode: statusCode, originIP: originIP, requestURL: requestURL, errorDescription: errorDescription)
-        logs.append(entry)
-        if logs.count > Self.maxLength { logs = Array(logs.suffix(Self.maxLength)) }
+//        logs.append(entry)
+//        if logs.count > Self.maxLength { logs = Array(logs.suffix(Self.maxLength)) }
         Task(priority: .utility) {
             await saveLog(entry)
         }
@@ -130,7 +130,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         }
     }
 
-    private func loadLogs() async {
+    func loadLogs() async {
         guard let db else { return }
         do {
             let rows = try await db.query("""
