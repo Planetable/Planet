@@ -55,10 +55,10 @@ class PlanetAPIConsoleViewModel: ObservableObject {
     func addLog(statusCode: UInt, originIP: String, requestURL: String, errorDescription: String = "") {
         let now = Date()
         let entry = (timestamp: now, statusCode: statusCode, originIP: originIP, requestURL: requestURL, errorDescription: errorDescription)
-//        logs.append(entry)
-//        if logs.count > Self.maxLength { logs = Array(logs.suffix(Self.maxLength)) }
-        Task(priority: .utility) {
-            await saveLog(entry)
+        logs.append(entry)
+        if logs.count > Self.maxLength { logs = Array(logs.suffix(Self.maxLength)) }
+        Task.detached(priority: .background) {
+            await self.saveLog(entry)
         }
     }
     
@@ -143,7 +143,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
                 JOIN data d ON d.thing_id = t.id
                 WHERE t.type='log'
                 GROUP BY t.id
-                ORDER BY t.date_created DESC
+                ORDER BY t.date_created
                 LIMIT \(Self.maxLength);
             """)
 
