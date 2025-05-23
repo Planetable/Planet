@@ -109,7 +109,49 @@ class PlanetAPIConsoleViewModel: ObservableObject {
     
     @MainActor
     func exportLogs() {
-        // MARK: TODO: Export logs loaded from database, ask user to choose a save destination, save as logs_[from_date]_[end_date].txt
+        Task.detached(priority: .utility) {
+            guard let allLogs = await self.loadLogs() else {
+                await MainActor.run {
+                    let alert = NSAlert()
+                    alert.messageText = "Export Failed"
+                    alert.informativeText = "Unable to load logs from database."
+                    alert.alertStyle = .warning
+                    alert.runModal()
+                }
+                return
+            }
+            
+            guard !allLogs.isEmpty else {
+                await MainActor.run {
+                    let alert = NSAlert()
+                    alert.messageText = "No Logs to Export"
+                    alert.informativeText = "There are no logs available to export."
+                    alert.alertStyle = .informational
+                    alert.runModal()
+                }
+                return
+            }
+            
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let fromDate = allLogs.first?.timestamp ?? Date()
+            let toDate = allLogs.last?.timestamp ?? Date()
+            let fromStr = dateFormatter.string(from: fromDate)
+            let toStr = dateFormatter.string(from: toDate)
+            let baseFilename = "logs_\(fromStr)_\(toStr).txt"
+
+            await MainActor.run {
+                let savePanel = NSSavePanel()
+                savePanel.nameFieldStringValue = baseFilename
+                savePanel.allowedContentTypes = [.plainText]
+                savePanel.canCreateDirectories = true
+                let response = savePanel.runModal()
+                guard response == .OK, let url = savePanel.url else { return }
+                Task.detached(priority: .utility) {
+                    await self.writeLogsToFile(allLogs, url: url)
+                }
+            }
+        }
     }
 
     // MARK: ‑
@@ -216,5 +258,36 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             debugPrint("Failed to load logs: \(error)")
         }
         return nil
+    }
+    
+    private func writeLogsToFile(_ logs: [(timestamp: Date, statusCode: UInt, originIP: String, requestURL: String, errorDescription: String)], url: URL) async {
+        do {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            var content = "API Console Logs\n"
+            content += "Exported on: \(dateFormatter.string(from: Date()))\n"
+            content += "Total entries: \(logs.count)\n"
+            content += String(repeating: "=", count: 50) + "\n\n"
+            for log in logs {
+                content += "[\(dateFormatter.string(from: log.timestamp))] "
+                content += "Status: \(log.statusCode) | "
+                content += "IP: \(log.originIP) | "
+                content += "URL: \(log.requestURL)"
+                if !log.errorDescription.isEmpty {
+                    content += " | Error: \(log.errorDescription)"
+                }
+                content += "\n"
+            }
+            try content.write(to: url, atomically: true, encoding: .utf8)
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+        } catch {
+            await MainActor.run {
+                let alert = NSAlert()
+                alert.messageText = "Export Failed"
+                alert.informativeText = "Failed to write logs to file: \(error.localizedDescription)"
+                alert.alertStyle = .critical
+                alert.runModal()
+            }
+        }
     }
 }
