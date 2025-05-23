@@ -145,6 +145,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
                 savePanel.nameFieldStringValue = baseFilename
                 savePanel.allowedContentTypes = [.plainText]
                 savePanel.canCreateDirectories = true
+                savePanel.title = "Export Logs"
                 let response = savePanel.runModal()
                 guard response == .OK, let url = savePanel.url else { return }
                 Task.detached(priority: .utility) {
