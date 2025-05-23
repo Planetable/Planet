@@ -65,6 +65,13 @@ class PlanetAPIConsoleWindowManager: NSObject {
             Divider()
             Button {
                 Task { @MainActor in
+                    PlanetAPIConsoleViewModel.shared.exportLogs()
+                }
+            } label: {
+                Text("Export Console Logs")
+            }
+            Button {
+                Task { @MainActor in
                     PlanetAPIConsoleViewModel.shared.clearLogs()
                 }
             } label: {

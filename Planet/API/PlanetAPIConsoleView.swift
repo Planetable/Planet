@@ -66,7 +66,7 @@ private struct AttributedConsoleView: NSViewRepresentable {
             // Match timestamp
             let timestampRange = NSRange(location: 0, length: timestampString.count)
             attributedLog.addAttribute(.foregroundColor, value: NSColor.placeholderTextColor, range: timestampRange)
-
+            
             // Match IP address
             let ipAddressPattern = "\\b((?:\\d{1,3}\\.){3}\\d{1,3}|(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4})\\b"
             let ipRegex = try! NSRegularExpression(pattern: ipAddressPattern, options: [])
@@ -90,14 +90,14 @@ private struct AttributedConsoleView: NSViewRepresentable {
                     if let statusCode = Int(statusCodeString) {
                         var color: NSColor
                         switch statusCode {
-                            case 200..<300:
-                                color = .green
-                            case 400..<500:
-                                color = .orange
-                            case 500..<600:
-                                color = .red
-                            default:
-                                color = .textColor
+                        case 200..<300:
+                            color = .green
+                        case 400..<500:
+                            color = .orange
+                        case 500..<600:
+                            color = .red
+                        default:
+                            color = .textColor
                         }
                         attributedLog.addAttribute(.foregroundColor, value: color, range: statusCodeRange)
                         attributedLog.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: self.viewModel.baseFontSize, weight: .bold), range: statusCodeRange)
