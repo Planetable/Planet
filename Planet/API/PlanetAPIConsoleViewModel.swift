@@ -10,7 +10,7 @@ import Blackbird
 
 class PlanetAPIConsoleViewModel: ObservableObject {
     static let shared = PlanetAPIConsoleViewModel()
-    static let maxLength = 5000
+    static let maxLength = 2000     // Maximum number of log output lines to display (does not affect export).
     static let baseFontKey = "APIConsoleBaseFontSizeKey"
 
     var db: Blackbird.Database?
@@ -43,8 +43,12 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         do {
             db = try Blackbird.Database(path: dbURL.path)
             debugPrint("API console database loaded at: \(dbURL.path)")
-            Task {
-                await loadLogs()
+            Task.detached(priority: .utility) {
+                await self.initSchema()
+                guard let savedLogs = await self.loadLogs() else { return }
+                await MainActor.run {
+                    self.logs = savedLogs
+                }
             }
         } catch {
             debugPrint("Failed to load API console database: \(error)")
@@ -92,9 +96,38 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             }
         }
     }
+    
+    @MainActor
+    func exportLogs() {
+        // MARK: TODO: Export logs loaded from database, ask user to choose a save destination, save as logs_[from_date]_[end_date].txt
+    }
 
     // MARK: ‑
     
+    private func initSchema() async {
+        guard let db else { return }
+        do {
+            try await db.execute("""
+                CREATE TABLE IF NOT EXISTS things (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    type TEXT NOT NULL,
+                    date_created TEXT NOT NULL
+                );
+            """)
+            try await db.execute("""
+                CREATE TABLE IF NOT EXISTS data (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    thing_id INTEGER NOT NULL REFERENCES things(id),
+                    key TEXT NOT NULL,
+                    value TEXT,
+                    UNIQUE(thing_id, key)
+                );
+            """)
+        } catch {
+            debugPrint("Failed to create schema for database: \(error)")
+        }
+    }
+
     private func saveLog(_ entry: (timestamp: Date, statusCode: UInt, originIP: String, requestURL: String, errorDescription: String)) async {
         guard let db else { return }
         let ts = ISO8601DateFormatter().string(from: entry.timestamp)
@@ -113,8 +146,8 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             ]
 
             for (key, value) in attributes {
-                let k = sqlEscape(key)
-                let v = sqlEscape(value)
+                let k = key.sqlEscaped()
+                let v = value.sqlEscaped()
                 try await db.execute("""
                     INSERT INTO data (thing_id, key, value) VALUES (\(thingID), '\(k)', '\(v)');
                 """)
@@ -126,12 +159,12 @@ class PlanetAPIConsoleViewModel: ObservableObject {
                 );
             """)
         } catch {
-            debugPrint("Error saving log entry: \(error)")
+            debugPrint("Failed to save log to database: \(error)")
         }
     }
 
-    func loadLogs() async {
-        guard let db else { return }
+    private func loadLogs() async -> [(timestamp: Date, statusCode: UInt, originIP: String, requestURL: String, errorDescription: String)]? {
+        guard let db else { return nil }
         do {
             let rows = try await db.query("""
                 SELECT t.date_created,
@@ -168,17 +201,10 @@ class PlanetAPIConsoleViewModel: ObservableObject {
                 else { continue }
                 buffer.append((ts, sc, ip, url, err))
             }
-            
-            let updatedLogs = buffer
-            await MainActor.run {
-                logs = updatedLogs
-            }
+            return buffer
         } catch {
             debugPrint("Failed to load logs: \(error)")
         }
-    }
-    
-    private func sqlEscape(_ string: String) -> String {
-        string.replacingOccurrences(of: "'", with: "''")
+        return nil
     }
 }

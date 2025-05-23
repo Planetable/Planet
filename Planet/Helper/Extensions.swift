@@ -134,6 +134,10 @@ extension String {
         let size = (self as NSString).size(withAttributes: attributes)
         return size.width
     }
+    
+    func sqlEscaped() -> String {
+        return self.replacingOccurrences(of: "'", with: "''")
+    }
 }
 
 // User Notification
