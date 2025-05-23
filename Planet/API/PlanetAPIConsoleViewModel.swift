@@ -85,6 +85,16 @@ class PlanetAPIConsoleViewModel: ObservableObject {
     
     @MainActor
     func clearLogs() {
+        let alert = NSAlert()
+        alert.messageText = "Clear All Logs"
+        alert.informativeText = "This will permanently delete all console logs and saved log data. This action cannot be undone."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Clear Logs")
+        alert.addButton(withTitle: "Cancel")
+        let response = alert.runModal()
+        guard response == .alertFirstButtonReturn else {
+            return
+        }
         logs.removeAll()
         Task.detached(priority: .utility) {
             guard let db = self.db else { return }
