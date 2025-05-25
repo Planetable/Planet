@@ -47,7 +47,7 @@ struct NewOnboardingView: View {
                             icon: "feature.templates",
                             title: "Templates",
                             description: "Choose from multiple artfully designed templates, or build your own template.",
-                            url: "https://planetable.eth.limo/templates/"
+                            url: "https://docs.planetable.eth.limo/templates/"
                         )
 
                         feature(
@@ -64,7 +64,7 @@ struct NewOnboardingView: View {
                             icon: "feature.rss",
                             title: "Follow Updates",
                             description: "Follow updates from other Planet sites, or RSS. Atom and JSON feeds are also supported.",
-                            url: "https://www.planetable.xyz/guides/follow-planet/"
+                            url: "https://docs.planetable.eth.limo/follow/"
                         )
 
                         feature(
@@ -79,7 +79,6 @@ struct NewOnboardingView: View {
                             title: "API Access",
                             description: "Automate, integrate with other systems, do creative things, with Planet RESTful API.",
                             url: "https://docs.planetable.eth.limo/api/"
-                            // TODO: Build a new page for API
                         )
                     }
                     .frame(maxWidth: .infinity)
