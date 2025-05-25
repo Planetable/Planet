@@ -132,7 +132,7 @@ struct AppSidebarItemView: View {
                     Button {
                         openVSCode(template)
                     } label: {
-                        Image(systemName: "chevron.left.slash.chevron.right")
+                        Image(systemName: "pencil")
                         Text("Open Template in VSCode")
                     }
                 }
@@ -167,6 +167,7 @@ struct AppSidebarItemView: View {
                         try await planet.publish()
                     }
                 } label: {
+                    Image(systemName: "antenna.radiowaves.left.and.right")
                     Text(planet.isPublishing ? "Publishing" : "Publish Site")
                 }
                 .disabled(planet.isPublishing)
@@ -179,6 +180,7 @@ struct AppSidebarItemView: View {
                         PlanetStore.shared.isEditingPlanet = true
                     }
                 } label: {
+                    Image(systemName: "gear")
                     Text("Site Settings")
                 }
 
@@ -200,6 +202,7 @@ struct AppSidebarItemView: View {
                         PlanetStore.shared.isEditingPlanetCustomCode = true
                     }
                 } label: {
+                    Image(systemName: "chevron.left.slash.chevron.right")
                     Text("Custom Code")
                 }
 
@@ -209,6 +212,9 @@ struct AppSidebarItemView: View {
                         PlanetStore.shared.isConfiguringAggregation = true
                     }
                 } label: {
+                    if #available(macOS 15.0, *) {
+                        Image(systemName: "square.and.arrow.down.badge.clock")
+                    }
                     Text("Aggregation")
                 }
 
