@@ -90,7 +90,7 @@ jobs:
 
       - name: Prepare for Notarization
         run: |
-          ditto -c -k --keepParent to-be-signed/Croptop.app Croptop.zip
+          ditto -c -k --keepParent --sequesterRsrc to-be-signed/Croptop.app Croptop.zip
 
       - name: Submit for Notarization
         run: |
@@ -102,11 +102,11 @@ jobs:
 
       - name: Generate Croptop.zip
         run: |
-          ditto -c -k --keepParent to-be-signed/Croptop.app Croptop.zip
+          ditto -c -k --keepParent --sequesterRsrc to-be-signed/Croptop.app Croptop.zip
 
       - name: Generate Croptop.zip.dSYM.zip
         run: |
-          ditto -c -k --keepParent archive/Croptop.xcarchive/dSYMs/Croptop.app.dSYM Croptop.app.dSYM.zip
+          ditto -c -k --keepParent --sequesterRsrc archive/Croptop.xcarchive/dSYMs/Croptop.app.dSYM Croptop.app.dSYM.zip
 
       - name: Release App
         uses: softprops/action-gh-release@v1
