@@ -87,6 +87,10 @@ jobs:
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Croptop.app/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Croptop.app/Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app
           xcrun codesign --options runtime --deep --force --verbose --timestamp --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Croptop.app/Contents/Frameworks/Sparkle.framework
+      
+      - name: Clean Junk Files
+        run: |
+          find to-be-signed/Croptop.app -name '._*' -delete
 
       - name: Prepare for Notarization
         run: |
@@ -99,6 +103,10 @@ jobs:
       - name: Staple
         run: |
           xcrun stapler staple -v to-be-signed/Croptop.app
+
+      - name: Clean Junk Files Before Release
+        run: |
+          find to-be-signed/Croptop.app -name '._*' -delete
 
       - name: Generate Croptop.zip
         run: |
