@@ -173,9 +173,16 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             debugPrint("Failed to create schema for database: \(error)")
         }
     }
+    
+    private func validateLogEntry(_ entry: APILogEntry) -> Bool {
+        guard entry.statusCode >= 100 && entry.statusCode < 600 else { return false }
+        guard !entry.requestURL.isEmpty else { return false }
+        return true
+    }
 
     private func saveLog(_ entry: APILogEntry) async {
         guard let db else { return }
+        guard validateLogEntry(entry) else { return }
         let ts = ISO8601DateFormatter().string(from: entry.timestamp)
         do {
             try await db.execute("""
