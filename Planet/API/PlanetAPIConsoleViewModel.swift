@@ -195,9 +195,11 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         guard validateLogEntry(entry) else { return }
         let ts = ISO8601DateFormatter().string(from: entry.timestamp)
         do {
-            try await db.execute("""
-                INSERT INTO things (type, date_created) VALUES ('log', '\(ts)');
-            """)
+            try await db.query(
+                "INSERT INTO things (type, date_created) VALUES (?, ?)",
+                "log",
+                ts
+            )
             let lastRowID = try await db.query("SELECT last_insert_rowid() AS id;")
             guard let thingID = lastRowID.first?["id"]?.intValue else { return }
             
@@ -211,9 +213,12 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             for (key, value) in attributes {
                 let k = key.sqlEscaped()
                 let v = value.sqlEscaped()
-                try await db.execute("""
-                    INSERT INTO data (thing_id, key, value) VALUES (\(thingID), '\(k)', '\(v)');
-                """)
+                try await db.query(
+                    "INSERT INTO data (thing_id, key, value) VALUES (?, ?, ?)",
+                    thingID,
+                    k,
+                    v
+                )
             }
             
             Task.detached(priority: .background) {
