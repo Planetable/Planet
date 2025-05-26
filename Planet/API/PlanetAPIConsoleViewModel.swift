@@ -21,14 +21,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             UserDefaults.standard.set(baseFontSize, forKey: Self.baseFontKey)
         }
     }
-
-    @Published private(set) var logs: [(
-        timestamp: Date,
-        statusCode: UInt,
-        originIP: String,
-        requestURL: String,
-        errorDescription: String
-    )] = []
+    @Published private(set) var logs: [APILogEntry] = []
 
     init() {
         // Font size
@@ -181,7 +174,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         }
     }
 
-    private func saveLog(_ entry: (timestamp: Date, statusCode: UInt, originIP: String, requestURL: String, errorDescription: String)) async {
+    private func saveLog(_ entry: APILogEntry) async {
         guard let db else { return }
         let ts = ISO8601DateFormatter().string(from: entry.timestamp)
         do {
@@ -216,7 +209,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         }
     }
 
-    private func loadLogs() async -> [(timestamp: Date, statusCode: UInt, originIP: String, requestURL: String, errorDescription: String)]? {
+    private func loadLogs() async -> [APILogEntry]? {
         guard let db else { return nil }
         do {
             let rows = try await db.query("""
@@ -261,7 +254,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         return nil
     }
     
-    private func writeLogsToFile(_ logs: [(timestamp: Date, statusCode: UInt, originIP: String, requestURL: String, errorDescription: String)], url: URL) async {
+    private func writeLogsToFile(_ logs: [APILogEntry], url: URL) async {
         do {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"

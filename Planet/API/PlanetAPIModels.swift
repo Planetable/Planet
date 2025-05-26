@@ -20,3 +20,12 @@ struct APIPlanetArticle: Content {
     var content: String?
     var attachments: [File]?
 }
+
+
+typealias APILogEntry = (
+    timestamp: Date,
+    statusCode: UInt,
+    originIP: String,
+    requestURL: String,
+    errorDescription: String
+)
