@@ -10,11 +10,14 @@ import Blackbird
 
 class PlanetAPIConsoleViewModel: ObservableObject {
     static let shared = PlanetAPIConsoleViewModel()
-    static let maxLength = 2000     // Maximum number of log output lines to display (does not affect export).
+    static let maxLength = 2000         // Maximum number of log output lines to display (does not affect export).
+    static let maxStorageDays = 30      // Maximum days of log
     static let baseFontKey = "APIConsoleBaseFontSizeKey"
-
+    
     var db: Blackbird.Database?
-
+    
+    private var lastCleanup = Date.distantPast
+    
     @Published var isShowingConsoleWindow = false
     @Published private(set) var baseFontSize: CGFloat {
         didSet {
@@ -22,12 +25,12 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         }
     }
     @Published private(set) var logs: [APILogEntry] = []
-
+    
     init() {
         // Font size
         let savedSize = CGFloat(UserDefaults.standard.float(forKey: Self.baseFontKey))
         baseFontSize = savedSize == 0 ? 12 : savedSize
-
+        
         let planetPath = URLUtils.documentsPath.appendingPathComponent("Planet")
         try? FileManager.default.createDirectory(at: planetPath, withIntermediateDirectories: true)
         let apiPath = planetPath.appendingPathComponent("API")
@@ -47,7 +50,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             debugPrint("Failed to load API console database: \(error)")
         }
     }
-
+    
     @MainActor
     func addLog(statusCode: UInt, originIP: String, requestURL: String, errorDescription: String = "") {
         let now = Date()
@@ -65,7 +68,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             baseFontSize -= 1
         }
     }
-
+    
     @MainActor
     func increaseFontSize() {
         baseFontSize += 1
@@ -132,7 +135,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             let fromStr = dateFormatter.string(from: fromDate)
             let toStr = dateFormatter.string(from: toDate)
             let baseFilename = "logs_\(fromStr)_\(toStr).txt"
-
+            
             await MainActor.run {
                 let savePanel = NSSavePanel()
                 savePanel.nameFieldStringValue = baseFilename
@@ -147,7 +150,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             }
         }
     }
-
+    
     // MARK: ‑
     
     private func initSchema() async {
@@ -186,7 +189,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         guard !entry.requestURL.isEmpty else { return false }
         return true
     }
-
+    
     private func saveLog(_ entry: APILogEntry) async {
         guard let db else { return }
         guard validateLogEntry(entry) else { return }
@@ -197,14 +200,14 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             """)
             let lastRowID = try await db.query("SELECT last_insert_rowid() AS id;")
             guard let thingID = lastRowID.first?["id"]?.intValue else { return }
-
+            
             let attributes: [String: String] = [
                 "statusCode": String(entry.statusCode),
                 "originIP": entry.originIP,
                 "requestURL": entry.requestURL,
                 "errorDescription": entry.errorDescription
             ]
-
+            
             for (key, value) in attributes {
                 let k = key.sqlEscaped()
                 let v = value.sqlEscaped()
@@ -212,17 +215,15 @@ class PlanetAPIConsoleViewModel: ObservableObject {
                     INSERT INTO data (thing_id, key, value) VALUES (\(thingID), '\(k)', '\(v)');
                 """)
             }
-
-            try await db.execute("""
-                DELETE FROM things WHERE id IN (
-                    SELECT id FROM things WHERE type = 'log' ORDER BY date_created DESC LIMIT -1 OFFSET \(Self.maxLength)
-                );
-            """)
+            
+            Task.detached(priority: .background) {
+                await self.cleanupOldLogs()
+            }
         } catch {
             debugPrint("Failed to save log to database: \(error)")
         }
     }
-
+    
     private func loadLogs() async -> [APILogEntry]? {
         guard let db else { return nil }
         do {
@@ -239,7 +240,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
                 ORDER BY t.date_created
                 LIMIT \(Self.maxLength);
             """)
-
+            
             var buffer: [(
                 timestamp: Date,
                 statusCode: UInt,
@@ -247,7 +248,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
                 requestURL: String,
                 errorDescription: String
             )] = []
-
+            
             let iso = ISO8601DateFormatter()
             for row in rows {
                 guard
@@ -296,6 +297,30 @@ class PlanetAPIConsoleViewModel: ObservableObject {
                 alert.alertStyle = .critical
                 alert.runModal()
             }
+        }
+    }
+    
+    private func cleanupOldLogs() async {
+        let now = Date()
+        guard now.timeIntervalSince(lastCleanup) > 3600 else { return }
+        lastCleanup = now
+        guard let db else { return }
+        do {
+            let cutoffDate = Calendar.current.date(byAdding: .day, value: -Self.maxStorageDays, to: now)!
+            let cutoffString = ISO8601DateFormatter().string(from: cutoffDate)
+            try await db.execute("""
+                DELETE FROM data WHERE thing_id IN (
+                    SELECT id FROM things 
+                    WHERE type = 'log' AND date_created < '\(cutoffString)'
+                );
+            """)
+            try await db.execute("""
+                DELETE FROM things 
+                WHERE type = 'log' AND date_created < '\(cutoffString)';
+            """)
+            debugPrint("Cleaned up old logs (older than \(Self.maxStorageDays) days)")
+        } catch {
+            debugPrint("Failed to cleanup old logs: \(error)")
         }
     }
 }
