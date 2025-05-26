@@ -240,15 +240,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
                 ORDER BY t.date_created
                 LIMIT \(Self.maxLength);
             """)
-            
-            var buffer: [(
-                timestamp: Date,
-                statusCode: UInt,
-                originIP: String,
-                requestURL: String,
-                errorDescription: String
-            )] = []
-            
+            var buffer: [APILogEntry] = []
             let iso = ISO8601DateFormatter()
             for row in rows {
                 guard
