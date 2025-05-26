@@ -169,6 +169,13 @@ class PlanetAPIConsoleViewModel: ObservableObject {
                     UNIQUE(thing_id, key)
                 );
             """)
+            // Add indexes for better query performance
+            try await db.execute("""
+                CREATE INDEX IF NOT EXISTS idx_things_type_date ON things(type, date_created);
+            """)
+            try await db.execute("""
+                CREATE INDEX IF NOT EXISTS idx_data_thing_key ON data(thing_id, key);
+            """)
         } catch {
             debugPrint("Failed to create schema for database: \(error)")
         }
