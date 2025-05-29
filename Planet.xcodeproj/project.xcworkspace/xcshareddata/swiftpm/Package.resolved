@@ -1,5 +1,5 @@
 {
-  "originHash" : "2c847317a1c0b8351e153596b649cffa864d30565db29d75513203a5ce326834",
+  "originHash" : "06815025805bf988ca0f09c24b8d09369b18c86cf3df549157d315388e075eda",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "d013a2b66ee468aade6da1f26c6d55cb6cd2e9ad",
         "version" : "5.5.2"
+      }
+    },
+    {
+      "identity" : "blackbird",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/marcoarment/Blackbird",
+      "state" : {
+        "revision" : "e2bf935089cd7620031ea342eaf96bf4ba3a22dc",
+        "version" : "0.5.0"
       }
     },
     {
