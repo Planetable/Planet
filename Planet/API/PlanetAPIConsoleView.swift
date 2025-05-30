@@ -46,11 +46,12 @@ private struct AttributedConsoleView: NSViewRepresentable {
     func updateNSView(_ nsView: NSScrollView, context: Context) {
         guard let textView = nsView.documentView as? NSTextView else { return }
         Task(priority: .utility) {
-            let attributedText = NSMutableAttributedString()
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm:ss.SSS"
-            if let database = viewModel.database {
-                for row in try! await PlanetAPILogEntry.query(
+            guard let database = viewModel.database else { return }
+            do {
+                let attributedText = NSMutableAttributedString()
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "HH:mm:ss.SSS"
+                for row in try await PlanetAPILogEntry.query(
                     in: database,
                     columns: [\.$timestamp, \.$statusCode, \.$requestURL, \.$originIP, \.$errorDescription],
                     orderBy: .ascending(\.$timestamp),
@@ -135,10 +136,12 @@ private struct AttributedConsoleView: NSViewRepresentable {
                         attributedText.append(attributedErrorDescription)
                     }
                 }
-            }
-            Task { @MainActor in
-                textView.textStorage?.setAttributedString(attributedText)
-                textView.scrollToEndOfDocument(nil)
+                Task { @MainActor in
+                    textView.textStorage?.setAttributedString(attributedText)
+                    textView.scrollToEndOfDocument(nil)
+                }
+            } catch {
+                debugPrint("Failed to query log entries: \(error)")
             }
         }
     }
