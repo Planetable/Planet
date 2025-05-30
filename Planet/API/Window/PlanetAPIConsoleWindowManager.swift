@@ -64,9 +64,7 @@ class PlanetAPIConsoleWindowManager: NSObject {
             .keyboardShortcut("0", modifiers: [.command])
             Divider()
             Button {
-                Task { @MainActor in
-                    PlanetAPIConsoleViewModel.shared.clearLogs()
-                }
+                PlanetAPIConsoleViewModel.shared.clearLogs()
             } label: {
                 Text("Clear Console Output")
             }

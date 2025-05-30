@@ -31,30 +31,22 @@ struct PlanetAPILogMiddleware: AsyncMiddleware {
         do {
             let response = try await next.respond(to: request)
             Task.detached(priority: .background) {
-                await MainActor.run {
-                    self.viewModel.addLog(statusCode: response.status.code, originIP: originIP, requestURL: request.method.rawValue + " " + request.url.path)
-                }
+                await self.viewModel.addLog(statusCode: response.status.code, originIP: originIP, requestURL: request.method.rawValue + " " + request.url.path)
             }
             return response
         } catch let error as AbortError {
             Task.detached(priority: .utility) {
-                await MainActor.run {
-                    self.viewModel.addLog(statusCode: error.status.code, originIP: originIP, requestURL: "\(request.method.rawValue) \(request.url.path)", errorDescription: error.reason)
-                }
+                await self.viewModel.addLog(statusCode: error.status.code, originIP: originIP, requestURL: "\(request.method.rawValue) \(request.url.path)", errorDescription: error.reason)
             }
             throw error
         } catch let error as DecodingError {
             Task.detached(priority: .utility) {
-                await MainActor.run {
-                    self.viewModel.addLog(statusCode: error.status.code, originIP: originIP, requestURL: "\(request.method.rawValue) \(request.url.path)", errorDescription: error.reason)
-                }
+                await self.viewModel.addLog(statusCode: error.status.code, originIP: originIP, requestURL: "\(request.method.rawValue) \(request.url.path)", errorDescription: error.reason)
             }
             throw error
         } catch {
             Task.detached(priority: .utility) {
-                await MainActor.run {
-                    self.viewModel.addLog(statusCode: 500, originIP: originIP, requestURL: "\(request.method.rawValue) \(request.url.path)", errorDescription: error.localizedDescription)
-                }
+                await self.viewModel.addLog(statusCode: 500, originIP: originIP, requestURL: "\(request.method.rawValue) \(request.url.path)", errorDescription: error.localizedDescription)
             }
             throw error
         }

@@ -21,16 +21,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
             UserDefaults.standard.set(baseFontSize, forKey: Self.baseFontKey)
         }
     }
-
-    @Published private(set) var logs: [
-        (
-            timestamp: Date,
-            statusCode: UInt,
-            originIP: String,
-            requestURL: String,
-            errorDescription: String
-        )
-    ] = []
+    @Published private(set) var lastUpdated: Date?
 
     init() {
         var fontSize = CGFloat(UserDefaults.standard.float(forKey: Self.baseFontKey))
@@ -47,46 +38,22 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         do {
             database = try Blackbird.Database(path: dbURL.path)
             debugPrint("API console database loaded at: \(dbURL.path)")
-            guard let database else { return }
-            Task.detached(priority: .utility) {
-                let savedLogs: [PlanetAPILogEntry] = try! await PlanetAPILogEntry.read(from: database)
-                Task { @MainActor in
-                    self.logs = savedLogs.map { l in
-                        return (
-                            timestamp: l.timestamp,
-                            statusCode: UInt(l.statusCode),
-                            originIP: l.originIP,
-                            requestURL: l.requestURL,
-                            errorDescription: l.errorDescription
-                        )
-                    }
-                    if self.logs.count > Self.maxLength {
-                        self.logs = Array(self.logs.suffix(Self.maxLength))
-                    }
-                }
-            }
         } catch {
             debugPrint("Failed to load API console database: \(error)")
         }
     }
 
-    @MainActor
-    func addLog(statusCode: UInt, originIP: String, requestURL: String, errorDescription: String = "") {
+    func addLog(statusCode: UInt, originIP: String, requestURL: String, errorDescription: String = "") async {
+        guard let database = self.database else { return }
         let now = Date()
-        let logEntry = (timestamp: now, statusCode: statusCode, originIP: originIP, requestURL: requestURL, errorDescription: errorDescription)
-        logs.append(logEntry)
-        if logs.count > Self.maxLength {
-            logs = Array(logs.suffix(Self.maxLength))
-        }
-        Task.detached(priority: .background) {
-            guard let database = self.database else { return }
-            let entry: PlanetAPILogEntry = PlanetAPILogEntry(timestamp: now, statusCode: Int(statusCode), originIP: originIP, requestURL: requestURL, errorDescription: errorDescription)
-            do {
-                try await entry.write(to: database)
-                debugPrint("Saved log entry: \(entry) to API console database")
-            } catch {
-                debugPrint("Failed to save API log entry: \(error)")
+        let entry: PlanetAPILogEntry = PlanetAPILogEntry(timestamp: now, statusCode: Int(statusCode), originIP: originIP, requestURL: requestURL, errorDescription: errorDescription)
+        do {
+            try await entry.write(to: database)
+            await MainActor.run {
+                self.lastUpdated = now
             }
+        } catch {
+            debugPrint("Failed to save API log entry: \(error)")
         }
     }
     
@@ -107,8 +74,27 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         baseFontSize = 12
     }
     
-    @MainActor
     func clearLogs() {
-        logs.removeAll()
+        guard let database else { return }
+        let alert = NSAlert()
+        alert.messageText = "Clear All Logs"
+        alert.informativeText = "This will permanently delete all console logs and saved log data. This action cannot be undone."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Clear Logs")
+        alert.addButton(withTitle: "Cancel")
+        let response = alert.runModal()
+        guard response == .alertFirstButtonReturn else {
+            return
+        }
+        Task(priority: .utility) {
+            do {
+                try await PlanetAPILogEntry.delete(from: database, matching: .all)
+                await MainActor.run {
+                    self.lastUpdated = Date()
+                }
+            } catch {
+                debugPrint("Failed to delete API log entries: \(error)")
+            }
+        }
     }
 }
