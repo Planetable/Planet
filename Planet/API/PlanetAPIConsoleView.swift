@@ -43,23 +43,43 @@ private struct AttributedConsoleView: NSViewRepresentable {
         
         scrollView.documentView = textView
         
+        let searchBGView = NSVisualEffectView()
+        searchBGView.translatesAutoresizingMaskIntoConstraints = false
+        searchBGView.material = .hudWindow
+        searchBGView.blendingMode = .behindWindow
+        searchBGView.state = .active
+        searchBGView.wantsLayer = true
+        searchBGView.layer?.cornerRadius = 8
+        searchBGView.layer?.masksToBounds = true
+        
         let searchField = NSSearchField()
         searchField.translatesAutoresizingMaskIntoConstraints = false
         searchField.placeholderString = "Search..."
         searchField.target = context.coordinator
         searchField.action = #selector(Coordinator.searchTextChanged(_:))
+        searchField.backgroundColor = NSColor.clear
+        searchField.drawsBackground = false
+        
+        searchBGView.addSubview(searchField)
         
         bgView.addSubview(scrollView)
-        bgView.addSubview(searchField)
+        bgView.addSubview(searchBGView)
 
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: bgView.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: bgView.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: bgView.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bgView.bottomAnchor),
-            searchField.trailingAnchor.constraint(equalTo: bgView.trailingAnchor, constant: -12),
-            searchField.bottomAnchor.constraint(equalTo: bgView.bottomAnchor, constant: -12),
-            searchField.widthAnchor.constraint(equalToConstant: 180)
+
+            searchBGView.trailingAnchor.constraint(equalTo: bgView.trailingAnchor, constant: -12),
+            searchBGView.bottomAnchor.constraint(equalTo: bgView.bottomAnchor, constant: -12),
+            searchBGView.widthAnchor.constraint(equalToConstant: 180),
+            searchBGView.heightAnchor.constraint(equalToConstant: 24),
+            
+            searchField.leadingAnchor.constraint(equalTo: searchBGView.leadingAnchor, constant: 0),
+            searchField.trailingAnchor.constraint(equalTo: searchBGView.trailingAnchor, constant: 0),
+            searchField.topAnchor.constraint(equalTo: searchBGView.topAnchor, constant: 0),
+            searchField.bottomAnchor.constraint(equalTo: searchBGView.bottomAnchor, constant: 0)
         ])
         
         context.coordinator.parent = self
@@ -193,6 +213,7 @@ private struct AttributedConsoleView: NSViewRepresentable {
         @objc func searchTextChanged(_ sender: NSSearchField) {
             Task { @MainActor in
                 self.parent?.viewModel.updateKeyword(sender.stringValue)
+                NotificationCenter.default.post(name: PlanetAPIConsoleWindow.updateConsoleWindowTitle, object: nil)
             }
         }
     }

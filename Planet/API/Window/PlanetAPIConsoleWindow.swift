@@ -10,6 +10,7 @@ import Cocoa
 class PlanetAPIConsoleWindow: NSWindow {
     static let minWidth: CGFloat = 480
     static let minHeight: CGFloat = 320
+    static let updateConsoleWindowTitle = Notification.Name("APIConsoleUpdateWindowTitle")
 
     init() {
         let windowOrigin: NSPoint = {
@@ -26,6 +27,14 @@ class PlanetAPIConsoleWindow: NSWindow {
         self.isOpaque = true
         self.delegate = self
         self.setFrameAutosaveName("APIConsoleWindow")
+        NotificationCenter.default.addObserver(forName: Self.updateConsoleWindowTitle, object: nil, queue: .main) { _ in
+            let keyword = PlanetAPIConsoleViewModel.shared.keyword
+            if keyword.isEmpty {
+                self.title = "API Console"
+            } else {
+                self.title = "Searching Logs: \(keyword)"
+            }
+        }
     }
 }
 
