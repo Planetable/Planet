@@ -99,6 +99,7 @@ private struct AttributedConsoleView: NSViewRepresentable {
                 let attributedText = NSMutableAttributedString()
                 let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = "HH:mm:ss.SSS"
+                let keyword = viewModel.keyword
                 for row in try await PlanetAPILogEntry.query(
                     in: database,
                     columns: [\.$timestamp, \.$statusCode, \.$requestURL, \.$originIP, \.$errorDescription],
@@ -112,10 +113,9 @@ private struct AttributedConsoleView: NSViewRepresentable {
                     let errorDescription = row[\.$errorDescription]
                     
                     // Filter by keyword
-                    let keyword = viewModel.keyword
                     if keyword.count > 0 {
                         let logContent = "\(timestampString) \(originIP) \(statusCode) \(requestURL) \(errorDescription)".lowercased()
-                        if !logContent.contains(keyword) {
+                        if !logContent.contains(keyword.lowercased()) {
                             continue
                         }
                     }
@@ -193,6 +193,11 @@ private struct AttributedConsoleView: NSViewRepresentable {
                         attributedText.append(attributedErrorDescription)
                     }
                 }
+                
+                if keyword.count > 0 {
+                    highlightKeywords(in: attributedText, keyword: keyword)
+                }
+
                 Task { @MainActor in
                     textView.textStorage?.setAttributedString(attributedText)
                     textView.scrollToEndOfDocument(nil)
@@ -200,6 +205,23 @@ private struct AttributedConsoleView: NSViewRepresentable {
             } catch {
                 debugPrint("Failed to query log entries: \(error)")
             }
+        }
+    }
+    
+    private func highlightKeywords(in attributedString: NSMutableAttributedString, keyword: String) {
+        let content = attributedString.string
+        let searchText = keyword.lowercased()
+        var searchRange = content.startIndex..<content.endIndex
+        
+        let highlightBackgroundColor = NSColor.controlAccentColor.withAlphaComponent(0.3)
+        let highlightTextColor = NSColor.controlAccentColor
+        
+        while let range = content.range(of: searchText, options: .caseInsensitive, range: searchRange) {
+            let nsRange = NSRange(range, in: content)
+            attributedString.addAttribute(.backgroundColor, value: highlightBackgroundColor, range: nsRange)
+            attributedString.addAttribute(.foregroundColor, value: highlightTextColor, range: nsRange)
+            searchRange = range.upperBound..<content.endIndex
+            if searchRange.isEmpty { break }
         }
     }
     
