@@ -22,6 +22,7 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         }
     }
     @Published private(set) var lastUpdated: Date?
+    @Published private(set) var keyword: String
 
     init() {
         var fontSize = CGFloat(UserDefaults.standard.float(forKey: Self.baseFontKey))
@@ -41,6 +42,8 @@ class PlanetAPIConsoleViewModel: ObservableObject {
         } catch {
             debugPrint("Failed to load API console database: \(error)")
         }
+        
+        keyword = ""
     }
 
     func addLog(statusCode: UInt, originIP: String, requestURL: String, errorDescription: String = "") async {
@@ -72,6 +75,11 @@ class PlanetAPIConsoleViewModel: ObservableObject {
     @MainActor
     func resetFontSize() {
         baseFontSize = 12
+    }
+    
+    @MainActor
+    func updateKeyword(_ k: String) {
+        keyword = k
     }
     
     func clearLogs() {

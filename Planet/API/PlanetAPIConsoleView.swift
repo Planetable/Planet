@@ -15,7 +15,9 @@ private struct AttributedConsoleView: NSViewRepresentable {
         _viewModel = ObservedObject(wrappedValue: PlanetAPIConsoleViewModel.shared)
     }
     
-    func makeNSView(context: Context) -> NSScrollView {
+    func makeNSView(context: Context) -> NSView {
+        let bgView = NSView()
+
         let scrollView = NSScrollView()
         scrollView.drawsBackground = true
         scrollView.borderType = .noBorder
@@ -40,11 +42,37 @@ private struct AttributedConsoleView: NSViewRepresentable {
         textView.textContainer?.widthTracksTextView = true
         
         scrollView.documentView = textView
-        return scrollView
+        
+        let searchField = NSSearchField()
+        searchField.translatesAutoresizingMaskIntoConstraints = false
+        searchField.placeholderString = "Search..."
+        searchField.target = context.coordinator
+        searchField.action = #selector(Coordinator.searchTextChanged(_:))
+        
+        bgView.addSubview(scrollView)
+        bgView.addSubview(searchField)
+
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: bgView.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: bgView.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: bgView.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: bgView.bottomAnchor),
+            searchField.trailingAnchor.constraint(equalTo: bgView.trailingAnchor, constant: -12),
+            searchField.bottomAnchor.constraint(equalTo: bgView.bottomAnchor, constant: -12),
+            searchField.widthAnchor.constraint(equalToConstant: 180)
+        ])
+        
+        context.coordinator.parent = self
+
+        return bgView
     }
     
-    func updateNSView(_ nsView: NSScrollView, context: Context) {
-        guard let textView = nsView.documentView as? NSTextView else { return }
+    func updateNSView(_ nsView: NSView, context: Context) {
+        guard
+            let scrollView = nsView.subviews.first(where: { $0 is NSScrollView }) as? NSScrollView,
+            let textView = scrollView.documentView as? NSTextView
+        else { return }
+
         Task(priority: .utility) {
             guard let database = viewModel.database else { return }
             do {
@@ -63,6 +91,15 @@ private struct AttributedConsoleView: NSViewRepresentable {
                     let originIP = row[\.$originIP]
                     let errorDescription = row[\.$errorDescription]
                     
+                    // Filter by keyword
+                    let keyword = viewModel.keyword
+                    if keyword.count > 0 {
+                        let logContent = "\(timestampString) \(originIP) \(statusCode) \(requestURL) \(errorDescription)".lowercased()
+                        if !logContent.contains(keyword) {
+                            continue
+                        }
+                    }
+
                     let logText: String = {
                         if originIP != "" {
                             return "\(timestampString) \(originIP) \(statusCode) \(requestURL)\n"
@@ -142,6 +179,20 @@ private struct AttributedConsoleView: NSViewRepresentable {
                 }
             } catch {
                 debugPrint("Failed to query log entries: \(error)")
+            }
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+    
+    class Coordinator: NSObject {
+        var parent: AttributedConsoleView?
+        
+        @objc func searchTextChanged(_ sender: NSSearchField) {
+            Task { @MainActor in
+                self.parent?.viewModel.updateKeyword(sender.stringValue)
             }
         }
     }
