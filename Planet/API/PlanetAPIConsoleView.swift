@@ -113,7 +113,7 @@ private struct AttributedConsoleView: NSViewRepresentable {
                     let errorDescription = row[\.$errorDescription]
                     
                     // Filter by keyword
-                    if keyword.count > 0 {
+                    if !keyword.isEmpty {
                         let logContent = "\(timestampString) \(originIP) \(statusCode) \(requestURL) \(errorDescription)".lowercased()
                         if !logContent.contains(keyword.lowercased()) {
                             continue
@@ -194,7 +194,7 @@ private struct AttributedConsoleView: NSViewRepresentable {
                     }
                 }
                 
-                if keyword.count > 0 {
+                if !keyword.isEmpty {
                     highlightKeywords(in: attributedText, keyword: keyword)
                 }
 
