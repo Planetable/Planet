@@ -45,7 +45,7 @@ private struct AttributedConsoleView: NSViewRepresentable {
         
         let searchBGView = NSVisualEffectView()
         searchBGView.translatesAutoresizingMaskIntoConstraints = false
-        searchBGView.material = .hudWindow
+        searchBGView.material = .contentBackground
         searchBGView.blendingMode = .behindWindow
         searchBGView.state = .active
         searchBGView.wantsLayer = true
