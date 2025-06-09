@@ -206,6 +206,26 @@ class WriterEditorTextView: NSTextView {
         [.fileURL]
     }
 
+    override func wantsPeriodicDraggingUpdates() -> Bool {
+        return false
+    }
+
+    override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        return true
+    }
+
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        return .copy
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        return .copy
+    }
+
+    override func draggingExited(_ sender: NSDraggingInfo?) {
+        super.draggingExited(sender)
+    }
+
     override func draggingEnded(_ sender: NSDraggingInfo) {
         guard urls.count > 0 else { return }
         urls.forEach { url in
@@ -220,7 +240,7 @@ class WriterEditorTextView: NSTextView {
         try? draft.save()
     }
 
-    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
         if let pasteboardObjects = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL], pasteboardObjects.count > 0 {
             urls = pasteboardObjects
         } else {
@@ -232,12 +252,14 @@ class WriterEditorTextView: NSTextView {
                 urls = []
             }
         }
-        return .copy
-    }
-
-    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
         return true
     }
+
+    override func concludeDragOperation(_ sender: NSDraggingInfo?) {
+        super.concludeDragOperation(sender)
+    }
+
+    // MARK: - Process enter / return key event
 
     override func keyDown(with event: NSEvent) {
         super.keyDown(with: event)
@@ -252,8 +274,6 @@ class WriterEditorTextView: NSTextView {
                 break
         }
     }
-
-    // MARK: - Process enter / return key event
 
     private func processEnterOrReturnEvent() throws {
         let selectedRange = self.selectedRange()
