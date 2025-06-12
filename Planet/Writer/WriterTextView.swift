@@ -187,6 +187,7 @@ class WriterEditorTextView: NSTextView {
         self.isAutomaticDashSubstitutionEnabled = false
         self.isAutomaticTextReplacementEnabled = false
         self.enabledTextCheckingTypes = 0
+        self.registerForDraggedTypes([.fileURL])
     }
 
     required init?(coder: NSCoder) {
@@ -214,11 +215,17 @@ class WriterEditorTextView: NSTextView {
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
-        return .copy
+        if sender.draggingPasteboard.types?.contains(.fileURL) == true {
+            return .copy
+        }
+        return []
     }
 
     override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
-        return .copy
+        if sender.draggingPasteboard.types?.contains(.fileURL) == true {
+            return .copy
+        }
+        return []
     }
 
     override func draggingExited(_ sender: NSDraggingInfo?) {
@@ -237,6 +244,8 @@ class WriterEditorTextView: NSTextView {
             processedURLs = pasteBoardItems
                 .compactMap { $0.propertyList(forType: .fileURL) as? String }
                 .map { URL(fileURLWithPath: $0).standardized }
+        } else {
+            return false
         }
         if processedURLs.count > 0 {
             processedURLs.forEach { url in
