@@ -726,11 +726,11 @@ actor IPFSDaemon {
             let followingPlanetIDs = Set(await PlanetStore.shared.followingPlanets.map { $0.id })
             let myPlanetIDs = Set(await PlanetStore.shared.myPlanets.map { $0.id })
 
-            debugPrint(
+            Self.logger.debug(
                 "GC: Checking unknown CIDs against FollowingPlanets: \(followingPlanetIDs.count) IDs"
             )
             for planet in await PlanetStore.shared.followingPlanets {
-                debugPrint("GC: FollowingPlanet ID: \(planet.id), CID: \(planet.cid ?? "nil")")
+                Self.logger.debug("GC: FollowingPlanet ID: \(planet.id), CID: \(planet.cid ?? "nil")")
             }
 
             var unmatchedPlanetIDs: [String] = []
@@ -739,7 +739,7 @@ actor IPFSDaemon {
             for unknownCID in unknownCIDs {
                 let planetURL = URL(string: "\(gateway)/ipfs/\(unknownCID)/planet.json")!
 
-                debugPrint("GC: Checking planet.json for unknown CID \(unknownCID) at \(planetURL)")
+                Self.logger.debug("GC: Checking planet.json for unknown CID \(unknownCID) at \(planetURL)")
 
                 do {
                     let (planetData, planetResponse) = try await URLSession.shared.data(
@@ -751,22 +751,22 @@ actor IPFSDaemon {
                             PlanetID.self,
                             from: planetData
                         )
-                        debugPrint(
+                        Self.logger.debug(
                             "GC: Fetched planet.json for unknown CID \(unknownCID) - Planet ID: \(planetID.id)"
                         )
 
                         if followingPlanetIDs.contains(planetID.id) {
-                            debugPrint(
+                            Self.logger.debug(
                                 "GC: Found matching FollowingPlanet for unknown CID \(unknownCID) - Planet ID: \(planetID.id)"
                             )
                         }
                         else if myPlanetIDs.contains(planetID.id) {
-                            debugPrint(
+                            Self.logger.debug(
                                 "GC: Found matching MyPlanet for unknown CID \(unknownCID) - Planet ID: \(planetID.id)"
                             )
                         }
                         else {
-                            debugPrint(
+                            Self.logger.debug(
                                 "GC: No matching planet found for unknown CID \(unknownCID) - Planet ID: \(planetID.id)"
                             )
                             unmatchedPlanetIDs.append(planetID.id.uuidString)
@@ -784,10 +784,10 @@ actor IPFSDaemon {
 
             let matchedPlanetCount = followingPlanetIDs.count + myPlanetIDs.count
             let matchedCIDCount = unknownCIDs.count - unmatchedCIDs.count
-            debugPrint("GC: Matched \(matchedCIDCount) CIDs out of \(unknownCIDs.count) unknown CIDs")
-            debugPrint("GC: Total planets in store: \(matchedPlanetCount) (Following: \(followingPlanetIDs.count), My: \(myPlanetIDs.count))")
-            debugPrint("GC: Unmatched planet IDs: \(unmatchedPlanetIDs)")
-            debugPrint("GC: Unmatched CIDs: \(unmatchedCIDs)")
+            Self.logger.debug("GC: Matched \(matchedCIDCount) CIDs out of \(unknownCIDs.count) unknown CIDs")
+            Self.logger.debug("GC: Total planets in store: \(matchedPlanetCount) (Following: \(followingPlanetIDs.count), My: \(myPlanetIDs.count))")
+            Self.logger.debug("GC: Unmatched planet IDs: \(unmatchedPlanetIDs)")
+            Self.logger.debug("GC: Unmatched CIDs: \(unmatchedCIDs)")
 
             // Unpin unmatched CIDs
             if !unmatchedCIDs.isEmpty {
@@ -880,9 +880,9 @@ actor IPFSDaemon {
             httpResponse.ok
         else {
             if let errorDetails = String(data: data, encoding: .utf8) {
-                debugPrint("Failed to access IPFS API \(path): \(errorDetails)")
+                Self.logger.error("Failed to access IPFS API \(path): \(errorDetails)")
             }
-            debugPrint("IPFS API Error: \(response)")
+            Self.logger.error("IPFS API Error: \(response)")
             throw PlanetError.IPFSAPIError
         }
         // debugPrint the response
@@ -892,11 +892,11 @@ actor IPFSDaemon {
                 var peers = 0
                 if let swarmPeers = try? decoder.decode(IPFSPeers.self, from: data) {
                     peers = swarmPeers.peers?.count ?? 0
-                    debugPrint("IPFS API Response for \(path): \(peers) peers")
+                    Self.logger.debug("IPFS API Response for \(path): \(peers) peers")
                 }
             }
             else {
-                debugPrint("IPFS API Response for \(path) / \(args): \(responseString)")
+                Self.logger.debug("IPFS API Response for \(path) / \(args): \(responseString)")
             }
         }
         return data
