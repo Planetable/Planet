@@ -179,7 +179,8 @@ class WriterCustomTextView: NSView {
 
 class WriterEditorTextView: NSTextView {
     @ObservedObject var draft: DraftModel
-    var urls: [URL] = []
+
+    var processedURLs: [URL] = []
 
     init(draft: DraftModel, frame: NSRect, textContainer: NSTextContainer) {
         self.draft = draft
@@ -206,9 +207,29 @@ class WriterEditorTextView: NSTextView {
         [.fileURL]
     }
 
-    override func draggingEnded(_ sender: NSDraggingInfo) {
-        guard urls.count > 0 else { return }
-        urls.forEach { url in
+    override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        return true
+    }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        return true
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        if let pasteboardObjects = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL], pasteboardObjects.count > 0 {
+            processedURLs = pasteboardObjects
+        } else if let pasteBoardItems = sender.draggingPasteboard.pasteboardItems {
+            processedURLs = pasteBoardItems
+                .compactMap { $0.propertyList(forType: .fileURL) as? String }
+                .map { URL(fileURLWithPath: $0).standardized }
+        }
+        return .copy
+    }
+
+    override func concludeDragOperation(_ sender: (any NSDraggingInfo)?) {
+        super.concludeDragOperation(sender)
+        guard processedURLs.count > 0 else { return }
+        processedURLs.forEach { url in
             if let attachment = try? draft.addAttachment(path: url, type: AttachmentType.from(url)),
                let markdown = attachment.markdown {
                 NotificationCenter.default.post(
@@ -220,24 +241,7 @@ class WriterEditorTextView: NSTextView {
         try? draft.save()
     }
 
-    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
-        if let pasteboardObjects = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL], pasteboardObjects.count > 0 {
-            urls = pasteboardObjects
-        } else {
-            if let pasteBoardItems = sender.draggingPasteboard.pasteboardItems {
-                urls = pasteBoardItems
-                    .compactMap { $0.propertyList(forType: .fileURL) as? String }
-                    .map { URL(fileURLWithPath: $0).standardized }
-            } else {
-                urls = []
-            }
-        }
-        return .copy
-    }
-
-    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
-        return true
-    }
+    // MARK: - Process enter / return key event
 
     override func keyDown(with event: NSEvent) {
         super.keyDown(with: event)
@@ -252,8 +256,6 @@ class WriterEditorTextView: NSTextView {
                 break
         }
     }
-
-    // MARK: - Process enter / return key event
 
     private func processEnterOrReturnEvent() throws {
         let selectedRange = self.selectedRange()
