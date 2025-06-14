@@ -289,6 +289,23 @@ class KeyboardShortcutHelper: ObservableObject {
                     Text("Import Planet")
                 }
                 .keyboardShortcut("i", modifiers: [.command, .shift])
+
+                Divider()
+            }
+
+            Group {
+                Button {
+                    Task {
+                        do {
+                            try await IPFSDaemon.shared.gc()
+                        }
+                        catch {
+                            debugPrint("GC: failed to run gc: \(error)")
+                        }
+                    }
+                } label: {
+                    Text("Run IPFS Garbage Collection")
+                }
             }
         }
     }

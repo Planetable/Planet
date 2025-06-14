@@ -19,7 +19,7 @@ struct IPFSRepoState: Codable {
     let numObjects: Int64
     let repoPath: String
     let version: String
-    
+
     enum CodingKeys: String, CodingKey {
         case repoSize = "RepoSize"
         case storageMax = "StorageMax"
@@ -87,4 +87,24 @@ struct IPFSBandwidth: Codable {
         case rateIn = "RateIn"
         case rateOut = "RateOut"
     }
+}
+
+struct IPFSPinned: Codable {
+    let keys: [String: IPFSPinInfo]
+
+    enum CodingKeys: String, CodingKey {
+        case keys = "Keys"
+    }
+}
+
+struct IPFSPinInfo: Codable {
+    let type: String
+
+    enum CodingKeys: String, CodingKey {
+        case type = "Type"
+    }
+}
+
+struct PlanetID: Codable {
+    let id: UUID
 }

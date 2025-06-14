@@ -668,9 +668,146 @@ actor IPFSDaemon {
 
     func gc() async throws {
         Self.logger.info("Running garbage collection")
+
+        // Get pinned recursive CIDs from IPFS
+        let pinnedResult = try await IPFSDaemon.shared.api(
+            path: "pin/ls",
+            args: ["type": "recursive"]
+        )
+
+        let pinned: IPFSPinned
+        do {
+            pinned = try JSONDecoder.shared.decode(IPFSPinned.self, from: pinnedResult)
+        }
+        catch {
+            Self.logger.error("GC: Failed to decode pinned objects: \(error)")
+            throw PlanetError.IPFSAPIError
+        }
+
+        let pinnedCIDs = Set(pinned.keys.keys)
+        Self.logger.info("GC: Found \(pinnedCIDs.count) pinned recursive CIDs")
+
+        // Get known CIDs from PlanetStore
+        var knownCIDs = Set<String>()
+
+        // Add CIDs from MyPlanetModel
+        for planet in await PlanetStore.shared.myPlanets {
+            if let lastCID = planet.lastPublishedCID, !lastCID.isEmpty {
+                knownCIDs.insert(lastCID)
+
+                // Check if this planet's CID is pinned
+                if !pinnedCIDs.contains(lastCID) {
+                    Self.logger.warning(
+                        "GC: MyPlanet '\(planet.name)' CID \(lastCID) is not pinned"
+                    )
+                }
+                else {
+                    Self.logger.info("GC: MyPlanet '\(planet.name)' CID \(lastCID) is pinned")
+                }
+            }
+        }
+
+        // Add CIDs from FollowingPlanetModel
+        for planet in await PlanetStore.shared.followingPlanets {
+            if let lastCID = planet.cid, !lastCID.isEmpty {
+                knownCIDs.insert(lastCID)
+            }
+        }
+
+        Self.logger.info("GC: Found \(knownCIDs.count) known CIDs from PlanetStore")
+
+        // Find unknown CIDs (pinned but not in store)
+        let unknownCIDs = pinnedCIDs.subtracting(knownCIDs)
+        Self.logger.info("GC: Found \(unknownCIDs.count) unknown CIDs")
+
+        // Check unknown CIDs for planet.json and compare with FollowingPlanetModel IDs
+        if !unknownCIDs.isEmpty {
+            let gateway = IPFSState.shared.getGateway()
+            let followingPlanetIDs = Set(await PlanetStore.shared.followingPlanets.map { $0.id })
+            let myPlanetIDs = Set(await PlanetStore.shared.myPlanets.map { $0.id })
+
+            Self.logger.debug(
+                "GC: Checking unknown CIDs against FollowingPlanets: \(followingPlanetIDs.count) IDs"
+            )
+            for planet in await PlanetStore.shared.followingPlanets {
+                Self.logger.debug("GC: FollowingPlanet ID: \(planet.id), CID: \(planet.cid ?? "nil")")
+            }
+
+            var unmatchedPlanetIDs: [String] = []
+            var unmatchedCIDs: [String] = []
+
+            for unknownCID in unknownCIDs {
+                let planetURL = URL(string: "\(gateway)/ipfs/\(unknownCID)/planet.json")!
+
+                Self.logger.debug("GC: Checking planet.json for unknown CID \(unknownCID) at \(planetURL)")
+
+                do {
+                    let (planetData, planetResponse) = try await URLSession.shared.data(
+                        from: planetURL
+                    )
+
+                    if let httpResponse = planetResponse as? HTTPURLResponse, httpResponse.ok {
+                        let planetID = try JSONDecoder.shared.decode(
+                            PlanetID.self,
+                            from: planetData
+                        )
+                        Self.logger.debug(
+                            "GC: Fetched planet.json for unknown CID \(unknownCID) - Planet ID: \(planetID.id)"
+                        )
+
+                        if followingPlanetIDs.contains(planetID.id) {
+                            Self.logger.debug(
+                                "GC: Found matching FollowingPlanet for unknown CID \(unknownCID) - Planet ID: \(planetID.id)"
+                            )
+                        }
+                        else if myPlanetIDs.contains(planetID.id) {
+                            Self.logger.debug(
+                                "GC: Found matching MyPlanet for unknown CID \(unknownCID) - Planet ID: \(planetID.id)"
+                            )
+                        }
+                        else {
+                            Self.logger.debug(
+                                "GC: No matching planet found for unknown CID \(unknownCID) - Planet ID: \(planetID.id)"
+                            )
+                            unmatchedPlanetIDs.append(planetID.id.uuidString)
+                            unmatchedCIDs.append(unknownCID)
+                        }
+                    }
+                }
+                catch {
+                    // Ignore errors - CID might not contain a valid planet.json
+                    Self.logger.error(
+                        "GC: Failed to fetch planet.json for unknown CID \(unknownCID): \(error)"
+                    )
+                }
+            }
+
+            let matchedPlanetCount = followingPlanetIDs.count + myPlanetIDs.count
+            let matchedCIDCount = unknownCIDs.count - unmatchedCIDs.count
+            Self.logger.debug("GC: Matched \(matchedCIDCount) CIDs out of \(unknownCIDs.count) unknown CIDs")
+            Self.logger.debug("GC: Total planets in store: \(matchedPlanetCount) (Following: \(followingPlanetIDs.count), My: \(myPlanetIDs.count))")
+            Self.logger.debug("GC: Unmatched planet IDs: \(unmatchedPlanetIDs)")
+            Self.logger.debug("GC: Unmatched CIDs: \(unmatchedCIDs)")
+
+            // Unpin unmatched CIDs
+            if !unmatchedCIDs.isEmpty {
+                Self.logger.info("GC: Unpinning \(unmatchedCIDs.count) unmatched CIDs")
+                for cid in unmatchedCIDs {
+                    do {
+                        try await IPFSDaemon.shared.api(path: "pin/rm", args: ["arg": cid], timeout: 30)
+                        Self.logger.info("GC: Successfully unpinned unmatched CID \(cid)")
+                    } catch {
+                        Self.logger.error("GC: Failed to unpin CID \(cid): \(error)")
+                    }
+                }
+            }
+        }
+
+        // Perform actual garbage collection
         let result = try await IPFSDaemon.shared.api(path: "repo/gc", timeout: 120)
         // Parse JSON result array
-        let count = String(data: result, encoding: .utf8)?
+        let count =
+            String(data: result, encoding: .utf8)?
             .components(separatedBy: .newlines)
             .filter { $0.contains("Key") }
             .count ?? 0
@@ -691,7 +828,8 @@ actor IPFSDaemon {
 
             try? await UNUserNotificationCenter.current().add(request)
             Self.logger.info("Garbage collection removed \(count) objects")
-        } else {
+        }
+        else {
             Self.logger.info("Garbage collection did not remove any objects")
         }
     }
@@ -742,9 +880,9 @@ actor IPFSDaemon {
             httpResponse.ok
         else {
             if let errorDetails = String(data: data, encoding: .utf8) {
-                debugPrint("Failed to access IPFS API \(path): \(errorDetails)")
+                Self.logger.error("Failed to access IPFS API \(path): \(errorDetails)")
             }
-            debugPrint("IPFS API Error: \(response)")
+            Self.logger.error("IPFS API Error: \(response)")
             throw PlanetError.IPFSAPIError
         }
         // debugPrint the response
@@ -754,11 +892,11 @@ actor IPFSDaemon {
                 var peers = 0
                 if let swarmPeers = try? decoder.decode(IPFSPeers.self, from: data) {
                     peers = swarmPeers.peers?.count ?? 0
-                    debugPrint("IPFS API Response for \(path): \(peers) peers")
+                    Self.logger.debug("IPFS API Response for \(path): \(peers) peers")
                 }
             }
             else {
-                debugPrint("IPFS API Response for \(path) / \(args): \(responseString)")
+                Self.logger.debug("IPFS API Response for \(path) / \(args): \(responseString)")
             }
         }
         return data
@@ -775,7 +913,7 @@ extension IPFSDaemon {
                 "/ip4/167.71.172.216/tcp/4001",
                 "/ip6/2604:a880:800:10::826:1/tcp/4001",
                 "/ip4/167.71.172.216/udp/4001/quic",
-                "/ip6/2604:a880:800:10::826:1/udp/4001/quic"
+                "/ip6/2604:a880:800:10::826:1/udp/4001/quic",
             ],
         ],  // Pinnable
         [
@@ -784,7 +922,7 @@ extension IPFSDaemon {
                 "/ip4/143.198.18.166/tcp/4001",
                 "/ip6/2604:a880:800:10::735:7001/tcp/4001",
                 "/ip4/143.198.18.166/udp/4001/quic",
-                "/ip6/2604:a880:800:10::735:7001/udp/4001/quic"
+                "/ip6/2604:a880:800:10::735:7001/udp/4001/quic",
             ],
         ],  // eth.sucks
         [
@@ -804,14 +942,14 @@ extension IPFSDaemon {
             "Addrs": [
                 "/dns4/bitswap.filebase.io/tcp/443/wss"
             ],
-        ]   // Filebase
+        ],  // Filebase
     ])
     // DoH resolvers
     static let resolvers = JSON([
         "bit.": "https://dweb-dns.v2ex.pro/dns-query",
         "sol.": "https://dweb-dns.v2ex.pro/dns-query",
         "fc.": "https://dweb-dns.v2ex.pro/dns-query",
-        "eth.": "https://dns.eth.limo/dns-query"
+        "eth.": "https://dns.eth.limo/dns-query",
     ])
 
     static func urlForCID(_ cid: String) -> URL? {
