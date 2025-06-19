@@ -2006,49 +2006,42 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     func prewarm() async {
         guard let rootURL = browserURL else { return }
-        let planetJSONURL = rootURL.appendingPathComponent("planet.json")
-        let avatarURL = rootURL.appendingPathComponent("avatar.png")
-        let faviconURL = rootURL.appendingPathComponent("favicon.ico")
-        do {
-            debugPrint("About to prewarm \(name): \(rootURL)")
-            let (rootData, _) = try await URLSession.shared.data(from: rootURL)
-            debugPrint("Prewarmed \(name): \(rootData.count) bytes")
+
+        // Helper function to prewarm a single URL
+        @Sendable func prewarmURL(_ url: URL, description: String = "") async {
+            do {
+                let desc = description.isEmpty ? "" : " \(description)"
+                debugPrint("About to prewarm \(name)\(desc): \(url)")
+                let (data, _) = try await URLSession.shared.data(from: url)
+                debugPrint("Prewarmed \(name)\(desc): \(data.count) bytes")
+            }
+            catch {
+                debugPrint("Failed to prewarm \(name)\(description.isEmpty ? "" : " \(description)") \(url): \(error)")
+            }
         }
-        catch {
-            debugPrint("Failed to prewarm \(name) \(rootURL): \(error)")
+
+        // Prewarm standard URLs
+        let urlsToPrewarm = [
+            (rootURL, "/"),
+            (rootURL.appendingPathComponent("avatar.png"), "avatar"),
+            (rootURL.appendingPathComponent("favicon.ico"), "favicon"),
+            (rootURL.appendingPathComponent("planet.json"), "planet.json"),
+            (rootURL.appendingPathComponent("tags.html"), "tags"),
+            (rootURL.appendingPathComponent("archive.html"), "archive")
+        ]
+
+        // Prewarm all URLs concurrently
+        await withTaskGroup(of: Void.self) { group in
+            for (url, description) in urlsToPrewarm {
+                group.addTask {
+                    await prewarmURL(url, description: description)
+                }
+            }
         }
-        do {
-            debugPrint("About to prewarm \(name): \(avatarURL)")
-            let (avatarData, _) = try await URLSession.shared.data(from: avatarURL)
-            debugPrint("Prewarmed \(name): \(avatarData.count) bytes")
-        }
-        catch {
-            debugPrint("Failed to prewarm \(name) \(avatarURL): \(error)")
-        }
-        do {
-            debugPrint("About to prewarm \(name): \(faviconURL)")
-            let (faviconData, _) = try await URLSession.shared.data(from: faviconURL)
-            debugPrint("Prewarmed \(name): \(faviconData.count) bytes")
-        }
-        catch {
-            debugPrint("Failed to prewarm \(name) \(faviconURL): \(error)")
-        }
-        do {
-            debugPrint("About to prewarm \(name): \(planetJSONURL)")
-            let (planetJSONData, _) = try await URLSession.shared.data(from: planetJSONURL)
-            debugPrint("Prewarmed \(name): \(planetJSONData.count) bytes")
-        }
-        catch {
-            debugPrint("Failed to prewarm \(name) \(planetJSONURL): \(error)")
-        }
-        guard let cidURL = cidURL else { return }
-        do {
-            debugPrint("About to prewarm \(name) CID: \(cidURL)")
-            let (cidData, _) = try await URLSession.shared.data(from: cidURL)
-            debugPrint("Prewarmed \(name) CID: \(cidData.count) bytes")
-        }
-        catch {
-            debugPrint("Failed to prewarm \(name) \(cidURL) CID: \(error)")
+
+        // Prewarm CID URL if available
+        if let cidURL = cidURL {
+            await prewarmURL(cidURL, description: "CID")
         }
     }
 
