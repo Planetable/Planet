@@ -53,18 +53,12 @@
 			</array>
 		</dict>
 		<dict>
-			<key>CFBundleTypeIconSystemGenerated</key>
-			<integer>1</integer>
-			<key>CFBundleTypeName</key>
-			<string>Drop MP3</string>
-			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
-			<key>LSHandlerRank</key>
-			<string>Alternate</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>mp3</string>
 			</array>
+			<key>CFBundleTypeIconSystemGenerated</key>
+			<integer>1</integer>
 			<key>CFBundleTypeMIMETypes</key>
 			<array>
 				<string>audio/mpeg</string>
@@ -72,6 +66,12 @@
 				<string>audio/mpg</string>
 				<string>audio/mp3</string>
 			</array>
+			<key>CFBundleTypeName</key>
+			<string>Drop MP3</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>public.mp3</string>
@@ -242,6 +242,30 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>post</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.plain-text</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Markdown Text</string>
+			<key>UTTypeIcons</key>
+			<dict/>
+			<key>UTTypeIdentifier</key>
+			<string>net.daringfireball.markdown</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>md</string>
+					<string>markdown</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>text/markdown</string>
 				</array>
 			</dict>
 		</dict>

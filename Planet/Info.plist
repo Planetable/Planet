@@ -108,8 +108,12 @@
 			</array>
 		</dict>
 	</array>
+	<key>ETHERSCAN_API_TOKEN</key>
+	<string>$(ETHERSCAN_API_TOKEN)</string>
 	<key>NSDockTilePlugIn</key>
 	<string>PlanetDockPlugIn.docktileplugin</string>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
 	<key>ORGANIZATION_IDENTIFIER_PREFIX</key>
 	<string>$(ORGANIZATION_IDENTIFIER_PREFIX)</string>
 	<key>PLANET_APP_ICON_NAME</key>
@@ -231,14 +235,34 @@
 				</array>
 			</dict>
 		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.plain-text</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Markdown Text</string>
+			<key>UTTypeIcons</key>
+			<dict/>
+			<key>UTTypeIdentifier</key>
+			<string>net.daringfireball.markdown</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>md</string>
+					<string>markdown</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>text/markdown</string>
+				</array>
+			</dict>
+		</dict>
 	</array>
 	<key>WALLETCONNECTV2_ENABLED</key>
 	<true/>
 	<key>WALLETCONNECTV2_PROJECT_ID</key>
 	<string>$(WALLETCONNECTV2_PROJECT_ID)</string>
-	<key>ETHERSCAN_API_TOKEN</key>
-	<string>$(ETHERSCAN_API_TOKEN)</string>
-	<key>NSSupportsSuddenTermination</key>
-	<false/>
 </dict>
 </plist>

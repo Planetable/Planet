@@ -291,6 +291,16 @@ class KeyboardShortcutHelper: ObservableObject {
                 .keyboardShortcut("i", modifiers: [.command, .shift])
 
                 Divider()
+
+                Button {
+                    Task { @MainActor in
+                        PlanetImportManager.shared.importMarkdownFiles()
+                    }
+                } label: {
+                    Text("Import Markdown Files")
+                }
+
+                Divider()
             }
 
             Group {

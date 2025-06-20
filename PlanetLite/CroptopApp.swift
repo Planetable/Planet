@@ -113,6 +113,14 @@ struct CroptopApp: App {
             .keyboardShortcut("i", modifiers: [.command, .shift])
 
             Button {
+                Task { @MainActor in
+                    PlanetImportManager.shared.importMarkdownFiles()
+                }
+            } label: {
+                Text("Import Markdown Files")
+            }
+
+            Button {
                 if let planet = keyboardHelper.activeMyPlanet {
                     Task {
                         do {
