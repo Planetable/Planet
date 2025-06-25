@@ -24,6 +24,11 @@ class PlanetImportManager: NSObject {
     private var importWindowController: PlanetImportWindowController?
 
     @MainActor
+    func cancelImport() {
+        importWindowController?.close()
+    }
+
+    @MainActor
     func importMarkdownFiles() {
         // Make sure there's planet available
         guard PlanetStore.shared.myPlanets.count > 0 else {
@@ -53,13 +58,5 @@ class PlanetImportManager: NSObject {
         }
         importWindowController?.showWindow(nil)
         PlanetImportViewModel.shared.updateMarkdownURLs(urls)
-
-        Task(priority: .userInitiated) {
-            do {
-                try await PlanetImportViewModel.shared.processAndImport()
-            } catch {
-                debugPrint("failed to process and import files: \(error)")
-            }
-        }
     }
 }

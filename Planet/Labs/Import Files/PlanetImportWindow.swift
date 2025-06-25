@@ -26,9 +26,6 @@ class PlanetImportWindow: NSWindow {
 
 extension PlanetImportWindow: NSWindowDelegate {
     func windowShouldClose(_ sender: NSWindow) -> Bool {
-        DispatchQueue.global(qos: .background).async {
-            PlanetImportViewModel.shared.cleanup()
-        }
         return true
     }
 }

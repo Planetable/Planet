@@ -20,7 +20,29 @@ struct PlanetImportView: View {
     var body: some View {
         VStack {
             Text("Import Markdown Files: \(viewModel.markdownURLs.count)")
+            Spacer()
+            HStack {
+                Button {
+                    viewModel.cancelImport()
+                } label: {
+                    Text("Cancel")
+                }
+                Spacer()
+                Button {
+                    Task {
+                        do {
+                            try await viewModel.prepareToImport()
+                        } catch {
+                            debugPrint("failed to process and import: \(error)")
+                        }
+                    }
+                } label: {
+                    Text("Next")
+                }
+                .disabled(viewModel.markdownURLs.count == 0)
+            }
         }
         .frame(minWidth: PlanetImportWindow.windowMinWidth, idealWidth: PlanetImportWindow.windowMinWidth, maxWidth: .infinity, minHeight: PlanetImportWindow.windowMinHeight, idealHeight: PlanetImportWindow.windowMinHeight, maxHeight: .infinity)
+        .padding(PlanetUI.SHEET_PADDING)
     }
 }

@@ -7,6 +7,76 @@
 
 import Foundation
 import SwiftUI
+import Markdown
+
+
+struct InlineResourceCollector: MarkupVisitor {
+    var links: [Markdown.Link] = []
+    var images: [Markdown.Image] = []
+    var htmlBlocks: [Markdown.HTMLBlock] = []
+
+    mutating func visitLink(_ link: Markdown.Link) {
+        links.append(link)
+        visitChildren(of: link)
+    }
+
+    mutating func visitImage(_ image: Markdown.Image) {
+        images.append(image)
+        visitChildren(of: image)
+    }
+
+    mutating func visitHTMLBlock(_ htmlBlock: Markdown.HTMLBlock) {
+        htmlBlocks.append(htmlBlock)
+    }
+
+    mutating func defaultVisit(_ markup: Markdown.Markup) {
+        visitChildren(of: markup)
+    }
+
+    private mutating func visitChildren(of markup: Markdown.Markup) {
+        for child in markup.children {
+            let _ = visit(child)
+        }
+    }
+}
+
+
+enum InlineResourceType {
+    case image
+    case audio
+    case video
+    case file
+
+    private func regexPatternForElement() -> String {
+        switch self {
+        case .image:
+            return #"<img\s+[^>]*src="([^"]+)""#
+        case .audio:
+            return #"<audio\s+[^>]*src="([^"]+)""#
+        case .video:
+            return #"<video\s+[^>]*src="([^"]+)""#
+        case .file:
+            return #"<a\s+[^>]*href="([^"]+\.(zip|rar|7z|tar|gz|bz2|pdf|docx?|xlsx?|pptx?|csv|txt|mp3|wav|mp4|mov|avi|mkv|flac|jpg|jpeg|png|gif|bmp|svg|webp|swift|c|cpp|h|py|js|json|xml|html?|css|exe|dmg|app|apk|msi))"[^>]*>"#
+        }
+    }
+
+    func extractSourcesFromHTMLBlock(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
+        let pattern = self.regexPatternForElement()
+        var sources: [String] = []
+        for htmlBlock in htmlBlocks {
+            let htmlContent = htmlBlock.rawHTML
+            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+                let matches = regex.matches(in: htmlContent, options: [], range: NSRange(htmlContent.startIndex..., in: htmlContent))
+                for match in matches {
+                    if let range = Range(match.range(at: 1), in: htmlContent) {
+                        sources.append(String(htmlContent[range]))
+                    }
+                }
+            }
+        }
+        return sources
+    }
+}
 
 
 class PlanetImportViewModel: ObservableObject {
@@ -21,13 +91,21 @@ class PlanetImportViewModel: ObservableObject {
         markdownURLs = urls
     }
 
-    func processAndImport() async throws {
+    func prepareToImport() async throws {
         let url = try importDirectory()
-        // analyze and process each file.
+        // MARK: TODO: analyze and process each file.
     }
 
-    func cleanup() {
-        
+    func cancelImport() {
+        Task { @MainActor in
+            PlanetImportManager.shared.cancelImport()
+        }
+        do {
+            let url = try importDirectory()
+            try FileManager.default.removeItem(at: url)
+        } catch {
+            debugPrint("failed to clean up temp import directory: \(error)")
+        }
     }
 
     // MARK: -
@@ -43,5 +121,21 @@ class PlanetImportViewModel: ObservableObject {
         }
         try FileManager.default.createDirectory(at: importURL, withIntermediateDirectories: true)
         return importURL
+    }
+
+    private func extractImageSourcesFromHTMLBlock(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
+        return InlineResourceType.image.extractSourcesFromHTMLBlock(htmlBlocks)
+    }
+
+    private func extractVideoSourcesFromHTMLBlock(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
+        return InlineResourceType.video.extractSourcesFromHTMLBlock(htmlBlocks)
+    }
+
+    private func extractAudioSources(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
+        return InlineResourceType.audio.extractSourcesFromHTMLBlock(htmlBlocks)
+    }
+
+    private func extractFileSources(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
+        return InlineResourceType.file.extractSourcesFromHTMLBlock(htmlBlocks)
     }
 }

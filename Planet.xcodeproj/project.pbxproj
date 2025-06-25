@@ -41,6 +41,8 @@
 		2A2774572A95161F00A5DDC2 /* PlanetDockPlugIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2774552A95161F00A5DDC2 /* PlanetDockPlugIn.swift */; };
 		2A2774592A95171F00A5DDC2 /* PlanetDockPlugIn.docktileplugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2A2774462A95159700A5DDC2 /* PlanetDockPlugIn.docktileplugin */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		2A2E33F227F4A93B0093F405 /* AttachmentThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2E33F127F4A93B0093F405 /* AttachmentThumbnailView.swift */; };
+		2A2EC68C2E0C009000479669 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = 2A2EC68B2E0C009000479669 /* Markdown */; };
+		2A2EC68E2E0C04AC00479669 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = 2A2EC68D2E0C04AC00479669 /* Markdown */; };
 		2A2F70EC2967057100755931 /* WriterTitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70EB2967057100755931 /* WriterTitleView.swift */; };
 		2A2F70EE29670D1300755931 /* CLTextFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70ED29670D1300755931 /* CLTextFieldView.swift */; };
 		2A3388C02BA7E3CD00D563A7 /* PlanetSettingsPublishedFoldersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3388BF2BA7E3CD00D563A7 /* PlanetSettingsPublishedFoldersView.swift */; };
@@ -216,7 +218,6 @@
 		2A95E6AC2A19A48C001288B8 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6AB2A19A48C001288B8 /* SwiftSoup */; };
 		2A95E6AE2A19A48C001288B8 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6AD2A19A48C001288B8 /* Sparkle */; };
 		2A95E6B02A19A48C001288B8 /* HTMLEntities in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6AF2A19A48C001288B8 /* HTMLEntities */; };
-		2A95E6B22A19A48C001288B8 /* libcmark_gfm in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6B12A19A48C001288B8 /* libcmark_gfm */; };
 		2A95E6B42A19A48C001288B8 /* CodeMirror-SwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6B32A19A48C001288B8 /* CodeMirror-SwiftUI */; };
 		2A95E6B52A19A48C001288B8 /* CodeMirror-SwiftUI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6B32A19A48C001288B8 /* CodeMirror-SwiftUI */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		2A95E6B72A19A48C001288B8 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 2A95E6B62A19A48C001288B8 /* Starscream */; };
@@ -544,7 +545,6 @@
 		72114F25F504270EB29068C9 /* PlanetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211404DFC1B4D23F84EA279 /* PlanetError.swift */; };
 		72114FE37ADE9340E448FF3E /* WriterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114B2B1F05731320A89022 /* WriterViewModel.swift */; };
 		BB6FC66D28423AF80072C3A1 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = BB6FC66C28423AF80072C3A1 /* SwiftSoup */; };
-		BB7FC8752898C70A00359802 /* libcmark_gfm in Frameworks */ = {isa = PBXBuildFile; productRef = BB7FC8742898C70A00359802 /* libcmark_gfm */; };
 		BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BB99C7062847AC9F001836B2 /* Sparkle */; };
 		BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */ = {isa = PBXBuildFile; productRef = BBAE651A28987A31007E1818 /* HTMLEntities */; };
 		BBC831AB2836239300CE1F67 /* PlanetSiteTemplates in Frameworks */ = {isa = PBXBuildFile; productRef = BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */; };
@@ -911,7 +911,6 @@
 				2A95E6D12A19A48C001288B8 /* WalletConnectSwift in Frameworks */,
 				2A95E6A42A19A48C001288B8 /* Stencil in Frameworks */,
 				2A95E6D72A19A48C001288B8 /* Web3PromiseKit in Frameworks */,
-				2A95E6B22A19A48C001288B8 /* libcmark_gfm in Frameworks */,
 				2A95E6D52A19A48C001288B8 /* Web3ContractABI in Frameworks */,
 				2A95E6E32A19A5D1001288B8 /* AVKit.framework in Frameworks */,
 				2A95E6B72A19A48C001288B8 /* Starscream in Frameworks */,
@@ -923,6 +922,7 @@
 				2A95E6AA2A19A48C001288B8 /* PlanetSiteTemplates in Frameworks */,
 				2AD061452C47A7C000E288DB /* Vapor in Frameworks */,
 				2A95E6AC2A19A48C001288B8 /* SwiftSoup in Frameworks */,
+				2A2EC68E2E0C04AC00479669 /* Markdown in Frameworks */,
 				2A95E6C52A19A48C001288B8 /* WalletConnectPush in Frameworks */,
 				2A95E6C12A19A48C001288B8 /* WalletConnectNetworking in Frameworks */,
 				6AFCF7E62B7353FE002299BA /* OrderedCollections in Frameworks */,
@@ -936,7 +936,7 @@
 			files = (
 				2AD061432C47A7B000E288DB /* Vapor in Frameworks */,
 				6AB6E515291527B800F17328 /* WalletConnectPairing in Frameworks */,
-				BB7FC8752898C70A00359802 /* libcmark_gfm in Frameworks */,
+				2A2EC68C2E0C009000479669 /* Markdown in Frameworks */,
 				2A466FD42A809F65009FB646 /* ASMediaView in Frameworks */,
 				BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */,
 				6A9C211029792464005A815E /* AVKit.framework in Frameworks */,
@@ -1713,7 +1713,6 @@
 				2A95E6AB2A19A48C001288B8 /* SwiftSoup */,
 				2A95E6AD2A19A48C001288B8 /* Sparkle */,
 				2A95E6AF2A19A48C001288B8 /* HTMLEntities */,
-				2A95E6B12A19A48C001288B8 /* libcmark_gfm */,
 				2A95E6B32A19A48C001288B8 /* CodeMirror-SwiftUI */,
 				2A95E6B62A19A48C001288B8 /* Starscream */,
 				2A95E6B82A19A48C001288B8 /* WalletConnect */,
@@ -1731,6 +1730,7 @@
 				6AFCF7E32B7353FE002299BA /* DequeModule */,
 				6AFCF7E52B7353FE002299BA /* OrderedCollections */,
 				2AD061442C47A7C000E288DB /* Vapor */,
+				2A2EC68D2E0C04AC00479669 /* Markdown */,
 			);
 			productName = Croptop;
 			productReference = 2ABD1CC12A1616DA0082D7EA /* Croptop.app */;
@@ -1759,7 +1759,6 @@
 				BB6FC66C28423AF80072C3A1 /* SwiftSoup */,
 				BB99C7062847AC9F001836B2 /* Sparkle */,
 				BBAE651A28987A31007E1818 /* HTMLEntities */,
-				BB7FC8742898C70A00359802 /* libcmark_gfm */,
 				6A373A4328E8263800750256 /* CodeMirror-SwiftUI */,
 				6ADF40C329151407007A24E8 /* Starscream */,
 				6AB6E50E291527B800F17328 /* WalletConnect */,
@@ -1778,6 +1777,7 @@
 				6AFCF7DF2B7353C6002299BA /* OrderedCollections */,
 				2AAF51092C293DE100C0B7AA /* HDWalletKit */,
 				2AD061422C47A7B000E288DB /* Vapor */,
+				2A2EC68B2E0C009000479669 /* Markdown */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -1823,7 +1823,6 @@
 				BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				BB99C7052847AC9F001836B2 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				BBAE651928987A31007E1818 /* XCRemoteSwiftPackageReference "swift-html-entities" */,
-				BB7FC8732898C70A00359802 /* XCRemoteSwiftPackageReference "libcmark_gfm" */,
 				6A373A4228E8263800750256 /* XCRemoteSwiftPackageReference "CodeMirror-SwiftUI" */,
 				6ADF40C229151407007A24E8 /* XCRemoteSwiftPackageReference "Starscream" */,
 				6AB6E50D291527B800F17328 /* XCRemoteSwiftPackageReference "WalletConnectSwiftV2" */,
@@ -1834,6 +1833,7 @@
 				6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */,
 				2AAF51082C293DE100C0B7AA /* XCRemoteSwiftPackageReference "HDWallet" */,
 				2AD061412C47A7B000E288DB /* XCRemoteSwiftPackageReference "vapor" */,
+				2A2EC68A2E0C009000479669 /* XCRemoteSwiftPackageReference "swift-markdown" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -2733,6 +2733,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		2A2EC68A2E0C009000479669 /* XCRemoteSwiftPackageReference "swift-markdown" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swiftlang/swift-markdown";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.6.0;
+			};
+		};
 		2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/nmdias/FeedKit";
@@ -2837,14 +2845,6 @@
 				minimumVersion = 2.4.2;
 			};
 		};
-		BB7FC8732898C70A00359802 /* XCRemoteSwiftPackageReference "libcmark_gfm" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/KristopherGBaker/libcmark_gfm";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.29.4;
-			};
-		};
 		BB99C7052847AC9F001836B2 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
@@ -2880,6 +2880,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2A2EC68B2E0C009000479669 /* Markdown */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2A2EC68A2E0C009000479669 /* XCRemoteSwiftPackageReference "swift-markdown" */;
+			productName = Markdown;
+		};
+		2A2EC68D2E0C04AC00479669 /* Markdown */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2A2EC68A2E0C009000479669 /* XCRemoteSwiftPackageReference "swift-markdown" */;
+			productName = Markdown;
+		};
 		2A466FD32A809F65009FB646 /* ASMediaView */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2AFDF8A82A3A1E8500386B9A /* XCRemoteSwiftPackageReference "mediaview" */;
@@ -2924,11 +2934,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BBAE651928987A31007E1818 /* XCRemoteSwiftPackageReference "swift-html-entities" */;
 			productName = HTMLEntities;
-		};
-		2A95E6B12A19A48C001288B8 /* libcmark_gfm */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BB7FC8732898C70A00359802 /* XCRemoteSwiftPackageReference "libcmark_gfm" */;
-			productName = libcmark_gfm;
 		};
 		2A95E6B32A19A48C001288B8 /* CodeMirror-SwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -3109,11 +3114,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BB6FC66B28423AF80072C3A1 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
-		};
-		BB7FC8742898C70A00359802 /* libcmark_gfm */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BB7FC8732898C70A00359802 /* XCRemoteSwiftPackageReference "libcmark_gfm" */;
-			productName = libcmark_gfm;
 		};
 		BB99C7062847AC9F001836B2 /* Sparkle */ = {
 			isa = XCSwiftPackageProductDependency;

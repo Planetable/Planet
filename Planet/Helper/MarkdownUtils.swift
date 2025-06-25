@@ -2,7 +2,8 @@ import Foundation
 import HTMLEntities
 import Stencil
 import SwiftSoup
-import libcmark_gfm
+import cmark_gfm
+import cmark_gfm_extensions
 
 struct StencilExtension {
     static let escapeJSTable: [Character: String] = {
