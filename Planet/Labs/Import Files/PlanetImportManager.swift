@@ -24,7 +24,7 @@ class PlanetImportManager: NSObject {
     private var importWindowController: PlanetImportWindowController?
 
     @MainActor
-    func cancelImport() {
+    func dismiss() {
         importWindowController?.close()
         importWindowController = nil
     }

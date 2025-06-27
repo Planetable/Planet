@@ -96,7 +96,7 @@ class PlanetImportViewModel: ObservableObject {
         markdownURLs = urls
     }
 
-    func validateMarkdown(_ url: URL) async -> Bool {
+    func validateMarkdown(_ url: URL) async throws -> Bool {
         Task { @MainActor in
             if !validating.contains(url) {
                 validating.append(url)
@@ -104,11 +104,32 @@ class PlanetImportViewModel: ObservableObject {
         }
         defer {
             Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                try? await Task.sleep(nanoseconds: 500_000_000)
                 validating = validating.filter({ $0 != url })
             }
         }
-        return false
+
+        let markdownDocument = try Document(parsing: url)
+        var collector = InlineResourceCollector()
+        collector.visit(markdownDocument)
+
+        let markdownLinks = collector.links.compactMap({ $0.destination })
+        let markdownImages = collector.images.compactMap({ $0.source })
+
+        let htmlBlocks = collector.htmlBlocks
+        let images = extractImageSourcesFromHTMLBlock(htmlBlocks)
+        let videos = extractVideoSourcesFromHTMLBlock(htmlBlocks)
+        let audios = extractAudioSourcesFromHTMLBlock(htmlBlocks)
+        let files = extractFileSourcesFromHTMLBlock(htmlBlocks)
+
+        debugPrint("markdown links: \(markdownLinks)")
+        debugPrint("markdown images: \(markdownImages)")
+        debugPrint("image sources: \(images)")
+        debugPrint("video sources: \(videos)")
+        debugPrint("audio sources: \(audios)")
+        debugPrint("file sources: \(files)")
+
+        return true
     }
 
     func prepareToImport() async throws {
@@ -118,8 +139,14 @@ class PlanetImportViewModel: ObservableObject {
 
     func cancelImport() {
         Task { @MainActor in
-            PlanetImportManager.shared.cancelImport()
+            PlanetImportManager.shared.dismiss()
         }
+        cleanup()
+    }
+
+    // MARK: -
+
+    private func cleanup() {
         do {
             let url = try importDirectory()
             try FileManager.default.removeItem(at: url)
@@ -127,8 +154,6 @@ class PlanetImportViewModel: ObservableObject {
             debugPrint("failed to clean up temp import directory: \(error)")
         }
     }
-
-    // MARK: -
 
     private func importDirectory() throws -> URL {
         let tempURL = URLUtils.temporaryPath.appendingPathComponent("ImportMarkdownFiles")
@@ -151,11 +176,11 @@ class PlanetImportViewModel: ObservableObject {
         return InlineResourceType.video.extractSourcesFromHTMLBlock(htmlBlocks)
     }
 
-    private func extractAudioSources(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
+    private func extractAudioSourcesFromHTMLBlock(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
         return InlineResourceType.audio.extractSourcesFromHTMLBlock(htmlBlocks)
     }
 
-    private func extractFileSources(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
+    private func extractFileSourcesFromHTMLBlock(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
         return InlineResourceType.file.extractSourcesFromHTMLBlock(htmlBlocks)
     }
 }

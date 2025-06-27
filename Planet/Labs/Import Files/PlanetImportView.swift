@@ -11,7 +11,15 @@ import SwiftUI
 
 
 struct PlanetImportView: View {
+    enum Step {
+        case one
+        case two
+    }
+
     @StateObject private var viewModel: PlanetImportViewModel
+
+    @State private var step: Step = .one
+    @State private var targetPlanet: MyPlanetModel?
 
     init() {
         _viewModel = StateObject(wrappedValue: PlanetImportViewModel.shared)
@@ -19,53 +27,97 @@ struct PlanetImportView: View {
 
     var body: some View {
         VStack {
-            let isValidating = viewModel.validating.count > 0
-            ScrollView {
-                ForEach(viewModel.markdownURLs, id: \.self) { url in
-                    PlanetImportItemView(url: url)
-                        .environmentObject(viewModel)
+            switch step {
+            case .one:
+                let isValidating = viewModel.validating.count > 0
+                ScrollView {
+                    ForEach(viewModel.markdownURLs, id: \.self) { url in
+                        PlanetImportItemView(url: url)
+                            .environmentObject(viewModel)
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            ZStack {
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ZStack {
+                    HStack {
+                        Spacer()
+                        Text("Total Files: \(viewModel.markdownURLs.count)")
+                            .foregroundStyle(Color.secondary)
+                        Spacer()
+                    }
+                    HStack {
+                        Button {
+                            viewModel.cancelImport()
+                        } label: {
+                            Text("Cancel")
+                        }
+                        Spacer()
+                        Group {
+                            if isValidating {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                                    .controlSize(.small)
+                                    .frame(width: 24)
+                            } else {
+                                Spacer(minLength: 24)
+                            }
+                        }
+                        .frame(width: 24)
+                        Button {
+                            step = .two
+                        } label: {
+                            Text("Next")
+                        }
+                        .disabled(viewModel.markdownURLs.count == 0 || isValidating)
+                    }
+                }
+            case .two:
                 HStack {
-                    Spacer()
-                    Text("Total Files: \(viewModel.markdownURLs.count)")
+                    Text("Select a planet to import files")
                         .foregroundStyle(Color.secondary)
                     Spacer()
                 }
-                HStack {
-                    Button {
-                        viewModel.cancelImport()
-                    } label: {
-                        Text("Cancel")
-                    }
-                    Spacer()
-                    Group {
-                        if isValidating {
-                            ProgressView()
-                                .progressViewStyle(.circular)
-                                .controlSize(.small)
-                                .frame(width: 24)
-                        } else {
-                            Spacer(minLength: 24)
+                ScrollView {
+                    ForEach(PlanetStore.shared.myPlanets, id: \.self) { planet in
+                        HStack {
+                            planet.avatarView(size: 40)
+                            Text(planet.name)
+                            Spacer()
+                            if targetPlanet == planet {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 16, height: 16)
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            targetPlanet = planet
                         }
                     }
-                    .frame(width: 24)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                HStack {
                     Button {
-                        // next step
+                        step = .one
                     } label: {
-                        Text("Next")
+                        Text("Back")
                     }
-                    .disabled(viewModel.markdownURLs.count == 0 || isValidating)
+                    Spacer()
+                    Button {
+                        importToPlanet()
+                    } label: {
+                        Text("Import")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(targetPlanet == nil)
                 }
             }
+
         }
         .frame(minWidth: PlanetImportWindow.windowMinWidth, idealWidth: PlanetImportWindow.windowMinWidth, maxWidth: .infinity, minHeight: PlanetImportWindow.windowMinHeight, idealHeight: PlanetImportWindow.windowMinHeight, maxHeight: .infinity)
         .padding(PlanetUI.SHEET_PADDING)
         .sheet(isPresented: $viewModel.showingPreview, onDismiss: {
-            // reload
         }, content: {
             if let previewURL = viewModel.previewURL {
                 PlanetImportPreviewView(url: previewURL)
@@ -87,6 +139,11 @@ struct PlanetImportView: View {
         alert.messageText = "Failed to Import Files"
         alert.informativeText = error.localizedDescription
         alert.runModal()
+        viewModel.cancelImport()
+    }
+
+    private func importToPlanet() {
+        guard let targetPlanet else { return }
         viewModel.cancelImport()
     }
 }

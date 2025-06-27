@@ -48,9 +48,15 @@ struct PlanetImportItemView: View {
         .padding(.bottom, 6)
         .padding(.horizontal, 0)
         .task {
-            let valid = await viewModel.validateMarkdown(url)
-            await MainActor.run {
-                isValid = valid
+            do {
+                let valid = try await viewModel.validateMarkdown(url)
+                await MainActor.run {
+                    isValid = valid
+                }
+            } catch {
+                await MainActor.run {
+                    isValid = false
+                }
             }
         }
     }
