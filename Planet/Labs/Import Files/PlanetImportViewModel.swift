@@ -82,18 +82,38 @@ enum InlineResourceType {
 class PlanetImportViewModel: ObservableObject {
     static let shared = PlanetImportViewModel()
 
+    @Published var showingPreview: Bool = false
+    @Published var previewURL: URL?
+
     @Published private(set) var markdownURLs: [URL] = []
+    @Published private(set) var validating: [URL] = []
     @Published private(set) var importUUID: UUID = UUID()
 
     @MainActor
     func updateMarkdownURLs(_ urls: [URL]) {
         importUUID = UUID()
+        validating.removeAll()
         markdownURLs = urls
+    }
+
+    func validateMarkdown(_ url: URL) async -> Bool {
+        Task { @MainActor in
+            if !validating.contains(url) {
+                validating.append(url)
+            }
+        }
+        defer {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                validating = validating.filter({ $0 != url })
+            }
+        }
+        return false
     }
 
     func prepareToImport() async throws {
         let url = try importDirectory()
-        // MARK: TODO: analyze and process each file.
+        debugPrint("prepare to import at url: \(url)")
     }
 
     func cancelImport() {

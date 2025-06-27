@@ -26,6 +26,7 @@ class PlanetImportWindow: NSWindow {
 
 extension PlanetImportWindow: NSWindowDelegate {
     func windowShouldClose(_ sender: NSWindow) -> Bool {
+        PlanetImportViewModel.shared.cancelImport()
         return true
     }
 }
