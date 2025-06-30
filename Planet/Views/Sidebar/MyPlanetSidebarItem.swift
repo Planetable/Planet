@@ -310,20 +310,21 @@ struct MyPlanetSidebarItem: View {
         }
     }
 
+    private func hasApplication(bundleIdentifier: String) -> Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) != nil
+    }
+
     private func hasiTerm() -> Bool {
-        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.googlecode.iterm2") != nil
+        hasApplication(bundleIdentifier: "com.googlecode.iterm2")
     }
 
     private func hasWorldWideWeb() -> Bool {
-        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.iconfactory.WorldWideWeb")
-            != nil
+        hasApplication(bundleIdentifier: "com.iconfactory.WorldWideWeb")
     }
 
-    private func openWorldWideWeb(_ path: URL) {
+    private func openWithApplication(bundleIdentifier: String, path: URL) {
         guard
-            let appUrl = NSWorkspace.shared.urlForApplication(
-                withBundleIdentifier: "com.iconfactory.WorldWideWeb"
-            )
+            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier)
         else { return }
 
         let url = URL(fileURLWithPath: path.path)
@@ -333,6 +334,10 @@ struct MyPlanetSidebarItem: View {
             configuration: self.openConfiguration(),
             completionHandler: nil
         )
+    }
+
+    private func openWorldWideWeb(_ path: URL) {
+        openWithApplication(bundleIdentifier: "com.iconfactory.WorldWideWeb", path: path)
     }
 
     private func openConfiguration() -> NSWorkspace.OpenConfiguration {
@@ -384,28 +389,11 @@ struct MyPlanetSidebarItem: View {
     }
 
     private func openVSCode(_ template: Template) {
-        guard
-            let appUrl = NSWorkspace.shared.urlForApplication(
-                withBundleIdentifier: "com.microsoft.VSCode"
-            )
-        else { return }
-
-        let url = URL(fileURLWithPath: template.path.path)
-        NSWorkspace.shared.open(
-            [url],
-            withApplicationAt: appUrl,
-            configuration: self.openConfiguration(),
-            completionHandler: nil
-        )
+        openWithApplication(bundleIdentifier: "com.microsoft.VSCode", path: template.path)
     }
 
     private func openiTerm(_ template: Template) {
-        guard
-            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.googlecode.iterm2")
-        else { return }
-
-        let url = URL(fileURLWithPath: template.path.path)
-        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
+        openWithApplication(bundleIdentifier: "com.googlecode.iterm2", path: template.path)
     }
 
     @ViewBuilder
