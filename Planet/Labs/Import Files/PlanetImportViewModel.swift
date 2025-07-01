@@ -99,12 +99,32 @@ class PlanetImportViewModel: ObservableObject {
             Self.logger.info(.init(stringLiteral: "\(url.path) is inaccessible"))
             return true
         }
-
-        // print unaccessible links
         Self.logger.info(.init(stringLiteral: "Unaccessible Local Sources:"))
         Self.logger.info(.init(stringLiteral: unaccessibleLocalSources.map({ $0.absoluteString }).joined(separator: ", ")))
-
         return unaccessibleLocalSources.isEmpty
+    }
+
+    func titleFromMarkdown(_ markdownURL: URL) throws -> String {
+        let title = markdownURL.deletingPathExtension().lastPathComponent
+        if title.count <= 3 {
+            let content = try contentFromMarkdown(markdownURL)
+            let lines = content.components(separatedBy: .newlines)
+            for line in lines {
+                if line.hasPrefix("# ") {
+                    return line.replacingOccurrences(of: "# ", with: "")
+                }
+            }
+        }
+        return title
+    }
+
+    func dateFromMarkdown(_ markdownURL: URL) throws -> Date {
+        let attributes = try FileManager.default.attributesOfItem(atPath: markdownURL.path)
+        return attributes[FileAttributeKey.creationDate] as! Date
+    }
+
+    func contentFromMarkdown(_ markdownURL: URL) throws -> String {
+        return try String(contentsOf: markdownURL, encoding: .utf8).trim()
     }
 
     func prepareToImport() async throws {
