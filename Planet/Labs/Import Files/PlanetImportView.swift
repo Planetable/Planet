@@ -143,7 +143,68 @@ struct PlanetImportView: View {
     }
 
     private func importToPlanet() {
+        defer {
+            viewModel.cancelImport()
+        }
         guard let targetPlanet else { return }
-        viewModel.cancelImport()
+        PlanetImportViewModel.logger.info(.init(stringLiteral: "About to import to planet: \(targetPlanet.name)"))
+        var importArticles: [MyArticleModel] = []
+        for url in viewModel.markdownURLs {
+            PlanetImportViewModel.logger.info(.init(stringLiteral: "Process and import markdown: \(url) ..."))
+            do {
+                let title = try viewModel.titleFromMarkdown(url)
+                let date = try viewModel.dateFromMarkdown(url)
+                let content = try viewModel.contentFromMarkdown(url)
+                let article = try MyArticleModel.compose(
+                    link: nil,
+                    date: date,
+                    title: title,
+                    content: content,
+                    summary: nil,
+                    planet: targetPlanet
+                )
+                //MARK: TODO: add attachments
+                article.attachments = []
+                article.tags = [:]
+                importArticles.append(article)
+            } catch {
+                PlanetImportViewModel.logger.info(.init(stringLiteral: "Skip markdown url: \(url), error: \(error)"))
+            }
+        }
+
+        guard importArticles.count > 0 else { return }
+
+        var articles = targetPlanet.articles
+        articles?.append(contentsOf: importArticles)
+        articles?.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
+        targetPlanet.articles = articles
+
+        for article in importArticles {
+            do {
+                try article.save()
+                try article.savePublic()
+            } catch {
+                PlanetImportViewModel.logger.info(.init(stringLiteral: "Failed to import article: \(article.title), error: \(error)"))
+            }
+        }
+
+        do {
+            try targetPlanet.copyTemplateAssets()
+            targetPlanet.updated = Date()
+            try targetPlanet.save()
+            Task(priority: .userInitiated) {
+                try await targetPlanet.savePublic()
+                try await targetPlanet.publish()
+            }
+        } catch {
+            PlanetImportViewModel.logger.info(.init(stringLiteral: "Failed to save target planet, error: \(error)"))
+        }
+
+        Task { @MainActor in
+            PlanetStore.shared.selectedView = .myPlanet(targetPlanet)
+            PlanetStore.shared.refreshSelectedArticles()
+        }
+
+        PlanetImportViewModel.logger.info(.init(stringLiteral: "Imported markdown files."))
     }
 }
