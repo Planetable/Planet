@@ -111,7 +111,7 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
                 let firstAttachment = attachments.first
             {
                 HStack(spacing: 4) {
-                    if [".jpg", ".png", ".gif", ".tiff", ".avif", ".heif", ".webp"].contains(where: firstAttachment.lowercased().hasSuffix)
+                    if [".jpg", ".jpeg", ".png", ".gif", ".tiff", ".avif", ".heif", ".webp"].contains(where: firstAttachment.lowercased().hasSuffix)
                     {
                         Text(Image(systemName: "photo"))
                             .font(.caption)
