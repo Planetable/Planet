@@ -41,12 +41,12 @@
 		2A2774572A95161F00A5DDC2 /* PlanetDockPlugIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2774552A95161F00A5DDC2 /* PlanetDockPlugIn.swift */; };
 		2A2774592A95171F00A5DDC2 /* PlanetDockPlugIn.docktileplugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2A2774462A95159700A5DDC2 /* PlanetDockPlugIn.docktileplugin */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		2A2E33F227F4A93B0093F405 /* AttachmentThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2E33F127F4A93B0093F405 /* AttachmentThumbnailView.swift */; };
-		2A2EC68C2E0C009000479669 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = 2A2EC68B2E0C009000479669 /* Markdown */; };
-		2A2EC68E2E0C04AC00479669 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = 2A2EC68D2E0C04AC00479669 /* Markdown */; };
 		2A2EC71E2E0E68A200479669 /* PlanetImportItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2EC71D2E0E68A200479669 /* PlanetImportItemView.swift */; };
 		2A2EC71F2E0E68A200479669 /* PlanetImportItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2EC71D2E0E68A200479669 /* PlanetImportItemView.swift */; };
 		2A2EC7212E0E7CB400479669 /* PlanetImportPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2EC7202E0E7CB400479669 /* PlanetImportPreviewView.swift */; };
 		2A2EC7222E0E7CB400479669 /* PlanetImportPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2EC7202E0E7CB400479669 /* PlanetImportPreviewView.swift */; };
+		2A2EC7F32E1421AE00479669 /* libcmark_gfm in Frameworks */ = {isa = PBXBuildFile; productRef = 2A2EC7F22E1421AE00479669 /* libcmark_gfm */; };
+		2A2EC7F52E1421BE00479669 /* libcmark_gfm in Frameworks */ = {isa = PBXBuildFile; productRef = 2A2EC7F42E1421BE00479669 /* libcmark_gfm */; };
 		2A2F70EC2967057100755931 /* WriterTitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70EB2967057100755931 /* WriterTitleView.swift */; };
 		2A2F70EE29670D1300755931 /* CLTextFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70ED29670D1300755931 /* CLTextFieldView.swift */; };
 		2A3388C02BA7E3CD00D563A7 /* PlanetSettingsPublishedFoldersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3388BF2BA7E3CD00D563A7 /* PlanetSettingsPublishedFoldersView.swift */; };
@@ -919,6 +919,7 @@
 				2A95E6D72A19A48C001288B8 /* Web3PromiseKit in Frameworks */,
 				2A95E6D52A19A48C001288B8 /* Web3ContractABI in Frameworks */,
 				2A95E6E32A19A5D1001288B8 /* AVKit.framework in Frameworks */,
+				2A2EC7F52E1421BE00479669 /* libcmark_gfm in Frameworks */,
 				2A95E6B72A19A48C001288B8 /* Starscream in Frameworks */,
 				2A95E6B02A19A48C001288B8 /* HTMLEntities in Frameworks */,
 				2A95E6B42A19A48C001288B8 /* CodeMirror-SwiftUI in Frameworks */,
@@ -928,7 +929,6 @@
 				2A95E6AA2A19A48C001288B8 /* PlanetSiteTemplates in Frameworks */,
 				2AD061452C47A7C000E288DB /* Vapor in Frameworks */,
 				2A95E6AC2A19A48C001288B8 /* SwiftSoup in Frameworks */,
-				2A2EC68E2E0C04AC00479669 /* Markdown in Frameworks */,
 				2A95E6C52A19A48C001288B8 /* WalletConnectPush in Frameworks */,
 				2A95E6C12A19A48C001288B8 /* WalletConnectNetworking in Frameworks */,
 				6AFCF7E62B7353FE002299BA /* OrderedCollections in Frameworks */,
@@ -942,8 +942,8 @@
 			files = (
 				2AD061432C47A7B000E288DB /* Vapor in Frameworks */,
 				6AB6E515291527B800F17328 /* WalletConnectPairing in Frameworks */,
-				2A2EC68C2E0C009000479669 /* Markdown in Frameworks */,
 				2A466FD42A809F65009FB646 /* ASMediaView in Frameworks */,
+				2A2EC7F32E1421AE00479669 /* libcmark_gfm in Frameworks */,
 				BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */,
 				6A9C211029792464005A815E /* AVKit.framework in Frameworks */,
 				6AFCF7E02B7353C6002299BA /* OrderedCollections in Frameworks */,
@@ -1738,7 +1738,7 @@
 				6AFCF7E32B7353FE002299BA /* DequeModule */,
 				6AFCF7E52B7353FE002299BA /* OrderedCollections */,
 				2AD061442C47A7C000E288DB /* Vapor */,
-				2A2EC68D2E0C04AC00479669 /* Markdown */,
+				2A2EC7F42E1421BE00479669 /* libcmark_gfm */,
 			);
 			productName = Croptop;
 			productReference = 2ABD1CC12A1616DA0082D7EA /* Croptop.app */;
@@ -1785,7 +1785,7 @@
 				6AFCF7DF2B7353C6002299BA /* OrderedCollections */,
 				2AAF51092C293DE100C0B7AA /* HDWalletKit */,
 				2AD061422C47A7B000E288DB /* Vapor */,
-				2A2EC68B2E0C009000479669 /* Markdown */,
+				2A2EC7F22E1421AE00479669 /* libcmark_gfm */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -1841,7 +1841,7 @@
 				6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */,
 				2AAF51082C293DE100C0B7AA /* XCRemoteSwiftPackageReference "HDWallet" */,
 				2AD061412C47A7B000E288DB /* XCRemoteSwiftPackageReference "vapor" */,
-				2A2EC68A2E0C009000479669 /* XCRemoteSwiftPackageReference "swift-markdown" */,
+				2A2EC7F12E1421AE00479669 /* XCRemoteSwiftPackageReference "libcmark_gfm" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -2745,12 +2745,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		2A2EC68A2E0C009000479669 /* XCRemoteSwiftPackageReference "swift-markdown" */ = {
+		2A2EC7F12E1421AE00479669 /* XCRemoteSwiftPackageReference "libcmark_gfm" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/swiftlang/swift-markdown";
+			repositoryURL = "https://github.com/KristopherGBaker/libcmark_gfm";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.6.0;
+				minimumVersion = 0.29.4;
 			};
 		};
 		2A69F04527E1B53A00141DC0 /* XCRemoteSwiftPackageReference "FeedKit" */ = {
@@ -2892,15 +2892,15 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		2A2EC68B2E0C009000479669 /* Markdown */ = {
+		2A2EC7F22E1421AE00479669 /* libcmark_gfm */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2A2EC68A2E0C009000479669 /* XCRemoteSwiftPackageReference "swift-markdown" */;
-			productName = Markdown;
+			package = 2A2EC7F12E1421AE00479669 /* XCRemoteSwiftPackageReference "libcmark_gfm" */;
+			productName = libcmark_gfm;
 		};
-		2A2EC68D2E0C04AC00479669 /* Markdown */ = {
+		2A2EC7F42E1421BE00479669 /* libcmark_gfm */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2A2EC68A2E0C009000479669 /* XCRemoteSwiftPackageReference "swift-markdown" */;
-			productName = Markdown;
+			package = 2A2EC7F12E1421AE00479669 /* XCRemoteSwiftPackageReference "libcmark_gfm" */;
+			productName = libcmark_gfm;
 		};
 		2A466FD32A809F65009FB646 /* ASMediaView */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -7,38 +7,6 @@
 
 import Foundation
 import SwiftUI
-import Markdown
-
-
-struct InlineResourceCollector: MarkupVisitor {
-    var links: [Markdown.Link] = []
-    var images: [Markdown.Image] = []
-    var htmlBlocks: [Markdown.HTMLBlock] = []
-
-    mutating func visitLink(_ link: Markdown.Link) {
-        links.append(link)
-        visitChildren(of: link)
-    }
-
-    mutating func visitImage(_ image: Markdown.Image) {
-        images.append(image)
-        visitChildren(of: image)
-    }
-
-    mutating func visitHTMLBlock(_ htmlBlock: Markdown.HTMLBlock) {
-        htmlBlocks.append(htmlBlock)
-    }
-
-    mutating func defaultVisit(_ markup: Markdown.Markup) {
-        visitChildren(of: markup)
-    }
-
-    private mutating func visitChildren(of markup: Markdown.Markup) {
-        for child in markup.children {
-            let _ = visit(child)
-        }
-    }
-}
 
 
 enum InlineResourceType {
@@ -46,6 +14,8 @@ enum InlineResourceType {
     case audio
     case video
     case file
+    case markdownLink
+    case markdownImage
 
     private func regexPatternForElement() -> String {
         switch self {
@@ -57,20 +27,25 @@ enum InlineResourceType {
             return #"<video\s+[^>]*src="([^"]+)""#
         case .file:
             return #"<a\s+[^>]*href="([^"]+\.(zip|rar|7z|tar|gz|bz2|pdf|docx?|xlsx?|pptx?|csv|txt|mp3|wav|mp4|mov|avi|mkv|flac|jpg|jpeg|png|gif|bmp|svg|webp|swift|c|cpp|h|py|js|json|xml|html?|css|exe|dmg|app|apk|msi))"[^>]*>"#
+        case .markdownLink:
+            return #"\[([^\]]*)\]\(([^)]+)\)"#
+        case .markdownImage:
+            return #"!\[([^\]]*)\]\(([^)]+)\)"#
         }
     }
 
-    func extractSourcesFromHTMLBlock(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
+    // MARK: -
+
+    func extractSourcesFromHTMLContent(_ htmlContent: String) -> [String] {
         let pattern = self.regexPatternForElement()
         var sources: [String] = []
-        for htmlBlock in htmlBlocks {
-            let htmlContent = htmlBlock.rawHTML
-            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-                let matches = regex.matches(in: htmlContent, options: [], range: NSRange(htmlContent.startIndex..., in: htmlContent))
-                for match in matches {
-                    if let range = Range(match.range(at: 1), in: htmlContent) {
-                        sources.append(String(htmlContent[range]))
-                    }
+        
+        if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+            let matches = regex.matches(in: htmlContent, options: [], range: NSRange(htmlContent.startIndex..., in: htmlContent))
+            for match in matches {
+                let rangeIndex = (self == .markdownLink || self == .markdownImage) ? 2 : 1
+                if let range = Range(match.range(at: rangeIndex), in: htmlContent) {
+                    sources.append(String(htmlContent[range]))
                 }
             }
         }
@@ -109,18 +84,13 @@ class PlanetImportViewModel: ObservableObject {
             }
         }
 
-        let markdownDocument = try Document(parsing: url)
-        var collector = InlineResourceCollector()
-        collector.visit(markdownDocument)
-
-        let markdownLinks = collector.links.compactMap({ $0.destination })
-        let markdownImages = collector.images.compactMap({ $0.source })
-
-        let htmlBlocks = collector.htmlBlocks
-        let images = extractImageSourcesFromHTMLBlock(htmlBlocks)
-        let videos = extractVideoSourcesFromHTMLBlock(htmlBlocks)
-        let audios = extractAudioSourcesFromHTMLBlock(htmlBlocks)
-        let files = extractFileSourcesFromHTMLBlock(htmlBlocks)
+        let markdownContent = try String(contentsOf: url)
+        let markdownLinks = extractMarkdownLinksFromContent(markdownContent)
+        let markdownImages = extractMarkdownImagesFromContent(markdownContent)
+        let images = extractImageSourcesFromHTMLContent(markdownContent)
+        let videos = extractVideoSourcesFromHTMLContent(markdownContent)
+        let audios = extractAudioSourcesFromHTMLContent(markdownContent)
+        let files = extractFileSourcesFromHTMLContent(markdownContent)
 
         debugPrint("markdown links: \(markdownLinks)")
         debugPrint("markdown images: \(markdownImages)")
@@ -168,19 +138,27 @@ class PlanetImportViewModel: ObservableObject {
         return importURL
     }
 
-    private func extractImageSourcesFromHTMLBlock(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
-        return InlineResourceType.image.extractSourcesFromHTMLBlock(htmlBlocks)
+    private func extractMarkdownLinksFromContent(_ content: String) -> [String] {
+        return InlineResourceType.markdownLink.extractSourcesFromHTMLContent(content)
+    }
+    
+    private func extractMarkdownImagesFromContent(_ content: String) -> [String] {
+        return InlineResourceType.markdownImage.extractSourcesFromHTMLContent(content)
     }
 
-    private func extractVideoSourcesFromHTMLBlock(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
-        return InlineResourceType.video.extractSourcesFromHTMLBlock(htmlBlocks)
+    private func extractImageSourcesFromHTMLContent(_ content: String) -> [String] {
+        return InlineResourceType.image.extractSourcesFromHTMLContent(content)
     }
 
-    private func extractAudioSourcesFromHTMLBlock(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
-        return InlineResourceType.audio.extractSourcesFromHTMLBlock(htmlBlocks)
+    private func extractVideoSourcesFromHTMLContent(_ content: String) -> [String] {
+        return InlineResourceType.video.extractSourcesFromHTMLContent(content)
     }
 
-    private func extractFileSourcesFromHTMLBlock(_ htmlBlocks: [Markdown.HTMLBlock]) -> [String] {
-        return InlineResourceType.file.extractSourcesFromHTMLBlock(htmlBlocks)
+    private func extractAudioSourcesFromHTMLContent(_ content: String) -> [String] {
+        return InlineResourceType.audio.extractSourcesFromHTMLContent(content)
+    }
+
+    private func extractFileSourcesFromHTMLContent(_ content: String) -> [String] {
+        return InlineResourceType.file.extractSourcesFromHTMLContent(content)
     }
 }
