@@ -39,10 +39,23 @@ struct PlanetImportItemView: View {
                         viewModel.showingPreview = true
                     }
                 } label: {
-                    Label("Missing Resources", systemImage: "exclamationmark.circle")
-                        .foregroundStyle(Color.orange)
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.circle")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 12, height: 12)
+                        Text("Missing Resources")
+                            .fontWeight(.light)
+                    }
+                    .foregroundStyle(Color.orange)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.orange, lineWidth: 1)
+                )
             }
         }
         .padding(.bottom, 6)
