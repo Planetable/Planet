@@ -146,8 +146,14 @@ struct PlanetImportView: View {
         defer {
             viewModel.cancelImport()
         }
-        guard let targetPlanet else { return }
+
+        guard let targetPlanet else {
+            PlanetImportViewModel.logger.info(.init(stringLiteral: "Target planet not found, abort importing."))
+            return
+        }
+
         PlanetImportViewModel.logger.info(.init(stringLiteral: "About to import to planet: \(targetPlanet.name)"))
+
         var importArticles: [MyArticleModel] = []
         for url in viewModel.markdownURLs {
             PlanetImportViewModel.logger.info(.init(stringLiteral: "Process and import markdown: \(url) ..."))
@@ -172,7 +178,10 @@ struct PlanetImportView: View {
             }
         }
 
-        guard importArticles.count > 0 else { return }
+        guard importArticles.count > 0 else {
+            PlanetImportViewModel.logger.info(.init(stringLiteral: "Markdown files not found, abort importing."))
+            return
+        }
 
         var articles = targetPlanet.articles
         articles?.append(contentsOf: importArticles)
