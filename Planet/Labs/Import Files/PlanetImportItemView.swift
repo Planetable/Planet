@@ -72,5 +72,19 @@ struct PlanetImportItemView: View {
                 }
             }
         }
+        .onChange(of: viewModel.previewUpdated) { _ in
+            Task.detached(priority: .userInitiated) {
+                do {
+                    let valid = try await viewModel.validateMarkdown(url)
+                    await MainActor.run {
+                        isValid = valid
+                    }
+                } catch {
+                    await MainActor.run {
+                        isValid = false
+                    }
+                }
+            }
+        }
     }
 }

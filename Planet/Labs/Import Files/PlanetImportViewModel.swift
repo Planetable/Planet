@@ -64,6 +64,7 @@ class PlanetImportViewModel: ObservableObject {
     static let logger = Logger(label: "Import Markdown Files")
 
     @Published var showingPreview: Bool = false
+    @Published var previewUpdated: Date = Date()
     @Published var previewURL: URL?
 
     @Published private(set) var markdownURLs: [URL] = []
@@ -156,10 +157,9 @@ class PlanetImportViewModel: ObservableObject {
             try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true)
         }
         let importURL = tempURL.appendingPathComponent(importUUID.uuidString)
-        if FileManager.default.fileExists(atPath: importURL.path) {
-            try FileManager.default.removeItem(at: importURL)
+        if !FileManager.default.fileExists(atPath: importURL.path) {
+            try FileManager.default.createDirectory(at: importURL, withIntermediateDirectories: true)
         }
-        try FileManager.default.createDirectory(at: importURL, withIntermediateDirectories: true)
         return importURL
     }
 
@@ -188,7 +188,25 @@ class PlanetImportViewModel: ObservableObject {
     }
 
     private func isResourceAccessible(withBaseURL baseURL: URL, url: URL) -> Bool {
-        return FileManager.default.fileExists(atPath: baseURL.appendingPathComponent(url.path).path) || FileManager.default.fileExists(atPath: url.path)
+        do {
+            let importURL = try importDirectory()
+            Self.logger.info("Is resource available: \(baseURL), url: \(url), import url: \(importURL)")
+            let exists = FileManager.default.fileExists(atPath: baseURL.appendingPathComponent(url.path).path) || FileManager.default.fileExists(atPath: url.path)
+            if exists {
+                Self.logger.info("Resource available at: \(url)")
+                return true
+            } else {
+                // Validate one more time in re-located directory if user has updated this resource manually.
+                let updatedURL = importURL.appendingPathComponent(url.lastPathComponent)
+                let flag = FileManager.default.fileExists(atPath: updatedURL.path)
+                if flag {
+                    Self.logger.info("Updated resource available at: \(updatedURL)")
+                }
+                return flag
+            }
+        } catch {
+            return false
+        }
     }
 
     private func getLocalURLs(fromMarkdown url: URL) throws -> [URL] {

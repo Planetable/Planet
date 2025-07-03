@@ -29,91 +29,10 @@ struct PlanetImportView: View {
         VStack {
             switch step {
             case .one:
-                let isValidating = viewModel.validating.count > 0
-                ScrollView {
-                    ForEach(viewModel.markdownURLs, id: \.self) { url in
-                        PlanetImportItemView(url: url)
-                            .environmentObject(viewModel)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                ZStack {
-                    HStack {
-                        Spacer()
-                        Text("Total Files: \(viewModel.markdownURLs.count)")
-                            .foregroundStyle(Color.secondary)
-                        Spacer()
-                    }
-                    HStack {
-                        Button {
-                            viewModel.cancelImport()
-                        } label: {
-                            Text("Cancel")
-                        }
-                        Spacer()
-                        Group {
-                            if isValidating {
-                                ProgressView()
-                                    .progressViewStyle(.circular)
-                                    .controlSize(.small)
-                                    .frame(width: 24)
-                            } else {
-                                Spacer(minLength: 24)
-                            }
-                        }
-                        .frame(width: 24)
-                        Button {
-                            step = .two
-                        } label: {
-                            Text("Next")
-                        }
-                        .disabled(viewModel.markdownURLs.count == 0 || isValidating)
-                    }
-                }
+                stepOne()
             case .two:
-                HStack {
-                    Text("Select a planet to import files")
-                        .foregroundStyle(Color.secondary)
-                    Spacer()
-                }
-                ScrollView {
-                    ForEach(PlanetStore.shared.myPlanets, id: \.self) { planet in
-                        HStack {
-                            planet.avatarView(size: 40)
-                            Text(planet.name)
-                            Spacer()
-                            if targetPlanet == planet {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 16, height: 16)
-                                    .foregroundStyle(Color.accentColor)
-                            }
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            targetPlanet = planet
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                HStack {
-                    Button {
-                        step = .one
-                    } label: {
-                        Text("Back")
-                    }
-                    Spacer()
-                    Button {
-                        importToPlanet()
-                    } label: {
-                        Text("Import")
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(targetPlanet == nil)
-                }
+                stepTwo()
             }
-
         }
         .frame(minWidth: PlanetImportWindow.windowMinWidth, idealWidth: PlanetImportWindow.windowMinWidth, maxWidth: .infinity, minHeight: PlanetImportWindow.windowMinHeight, idealHeight: PlanetImportWindow.windowMinHeight, maxHeight: .infinity)
         .padding(PlanetUI.SHEET_PADDING)
@@ -133,6 +52,104 @@ struct PlanetImportView: View {
     }
 
     // MARK: -
+
+    @ViewBuilder
+    private func stepOne() -> some View {
+        let isValidating = viewModel.validating.count > 0
+        ScrollView {
+            ForEach(viewModel.markdownURLs, id: \.self) { url in
+                PlanetImportItemView(url: url)
+                    .environmentObject(viewModel)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        ZStack {
+            HStack {
+                Spacer()
+                Text("Total Files: \(viewModel.markdownURLs.count)")
+                    .foregroundStyle(Color.secondary)
+                Spacer()
+            }
+            HStack {
+                Button {
+                    viewModel.cancelImport()
+                } label: {
+                    Text("Cancel")
+                }
+                Spacer()
+                Group {
+                    if isValidating {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .controlSize(.small)
+                            .frame(width: 24)
+                    } else {
+                        Spacer(minLength: 24)
+                    }
+                }
+                .frame(width: 24)
+                Button {
+                    Task { @MainActor in
+                        viewModel.previewUpdated = Date()
+                    }
+                } label: {
+                    Text("Reload")
+                }
+                .disabled(viewModel.markdownURLs.count == 0 || isValidating)
+                Button {
+                    step = .two
+                } label: {
+                    Text("Next")
+                }
+                .disabled(viewModel.markdownURLs.count == 0 || isValidating)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func stepTwo() -> some View {
+        HStack {
+            Text("Select a planet to import files")
+                .foregroundStyle(Color.secondary)
+            Spacer()
+        }
+        ScrollView {
+            ForEach(PlanetStore.shared.myPlanets, id: \.self) { planet in
+                HStack {
+                    planet.avatarView(size: 40)
+                    Text(planet.name)
+                    Spacer()
+                    if targetPlanet == planet {
+                        Image(systemName: "checkmark.circle.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 16, height: 16)
+                            .foregroundStyle(Color.accentColor)
+                    }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    targetPlanet = planet
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        HStack {
+            Button {
+                step = .one
+            } label: {
+                Text("Back")
+            }
+            Spacer()
+            Button {
+                importToPlanet()
+            } label: {
+                Text("Import")
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(targetPlanet == nil)
+        }
+    }
 
     private func failedToImport(error: Error) {
         let alert = NSAlert()
