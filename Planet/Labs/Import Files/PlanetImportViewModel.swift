@@ -64,7 +64,7 @@ class PlanetImportViewModel: ObservableObject {
     static let logger = Logger(label: "Import Markdown Files")
 
     @Published var showingPreview: Bool = false
-    @Published var previewURL: URL?
+    @Published var previewMarkdownURL: URL?
 
     @Published private(set) var markdownURLs: [URL] = []
     @Published private(set) var missingResources: [String: [URL]] = [:]
@@ -86,18 +86,15 @@ class PlanetImportViewModel: ObservableObject {
         previewUpdated = Date()
     }
 
-    @MainActor
-    func updateResource(_ url: URL, forKey key: String) {
-        if self.missingResources[key] == nil {
-            self.missingResources[key] = []
-        }
-        if let urls: [URL] = self.missingResources[key] {
-            if !urls.contains(url) {
-                self.missingResources[key]?.append(url)
+    func updateResource(_ url: URL, forMarkdown markdownURL: URL) throws {
+        let targetURL = try importDirectory().appendingPathComponent(url.lastPathComponent)
+        try FileManager.default.copyItem(at: url, to: targetURL)
+        Task.detached {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            await MainActor.run {
+                self.reloadResources()
             }
         }
-        guard validating.count == 0 else { return }
-        previewUpdated = Date()
     }
 
     func validateMarkdown(_ markdownURL: URL) async throws -> Bool {
@@ -123,7 +120,7 @@ class PlanetImportViewModel: ObservableObject {
             Self.logger.info(.init(stringLiteral: "\(url.path) is inaccessible"))
             Task.detached(priority: .utility) {
                 await MainActor.run {
-                    self.updateResource(url, forKey: key)
+                    self.updateMissingResource(url, forKey: key)
                 }
             }
             return true
@@ -177,6 +174,20 @@ class PlanetImportViewModel: ObservableObject {
         } catch {
             debugPrint("failed to clean up temp import directory: \(error)")
         }
+    }
+
+    @MainActor
+    private func updateMissingResource(_ url: URL, forKey key: String) {
+        if self.missingResources[key] == nil {
+            self.missingResources[key] = []
+        }
+        if let urls: [URL] = self.missingResources[key] {
+            if !urls.contains(url) {
+                self.missingResources[key]?.append(url)
+            }
+        }
+        guard validating.count == 0 else { return }
+        previewUpdated = Date()
     }
 
     private func importDirectory() throws -> URL {

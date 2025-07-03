@@ -35,7 +35,7 @@ struct PlanetImportItemView: View {
             if !isValid {
                 Button {
                     Task { @MainActor in
-                        viewModel.previewURL = url
+                        viewModel.previewMarkdownURL = url
                         viewModel.showingPreview = true
                     }
                 } label: {

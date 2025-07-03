@@ -12,8 +12,8 @@ import SwiftUI
 struct PlanetImportPreviewItemView: View {
     @EnvironmentObject private var viewModel: PlanetImportViewModel
 
-    var key: String
     var url: URL
+    var markdownURL: URL
 
     var body: some View {
         HStack {
@@ -41,8 +41,13 @@ struct PlanetImportPreviewItemView: View {
         panel.canCreateDirectories = false
         let response = panel.runModal()
         guard response == .OK, panel.urls.count > 0, let updatedURL = panel.urls.first else { return }
-        Task { @MainActor in
-            viewModel.updateResource(updatedURL, forKey: key)
+        do {
+            try viewModel.updateResource(updatedURL, forMarkdown: markdownURL)
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Update Resource"
+            alert.informativeText = error.localizedDescription
+            alert.runModal()
         }
     }
 }

@@ -38,8 +38,8 @@ struct PlanetImportView: View {
         .padding(PlanetUI.SHEET_PADDING)
         .sheet(isPresented: $viewModel.showingPreview, onDismiss: {
         }, content: {
-            if let previewURL = viewModel.previewURL {
-                PlanetImportPreviewView(url: previewURL)
+            if let markdownURL = viewModel.previewMarkdownURL {
+                PlanetImportPreviewView(markdownURL: markdownURL)
                     .environmentObject(viewModel)
             }
         })

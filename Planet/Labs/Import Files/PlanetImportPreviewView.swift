@@ -14,23 +14,22 @@ struct PlanetImportPreviewView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var viewModel: PlanetImportViewModel
 
-    var url: URL
+    var markdownURL: URL
 
     var body: some View {
         VStack(spacing: 0) {
-            let key = url.absoluteString.md5()
+            let key = markdownURL.absoluteString.md5()
             let missing = viewModel.missingResources[key] ?? []
-
             HStack {
-                let img = NSWorkspace.shared.icon(forFile: url.path)
+                let img = NSWorkspace.shared.icon(forFile: markdownURL.path)
                 Image(nsImage: img)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 36, height: 36)
                 VStack {
-                    Text(url.lastPathComponent)
+                    Text(markdownURL.lastPathComponent)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(url.absoluteString)
+                    Text(markdownURL.absoluteString)
                         .font(.footnote)
                         .foregroundStyle(Color.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -45,7 +44,7 @@ struct PlanetImportPreviewView: View {
 
             ScrollView {
                 ForEach(missing.sorted(by: { $0.absoluteString > $1.absoluteString }), id: \.self) { url in
-                    PlanetImportPreviewItemView(key: key, url: url)
+                    PlanetImportPreviewItemView(url: url, markdownURL: markdownURL)
                         .environmentObject(viewModel)
                 }
             }
