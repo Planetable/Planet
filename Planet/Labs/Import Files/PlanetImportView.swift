@@ -167,6 +167,7 @@ struct PlanetImportView: View {
 
         guard let targetPlanet else {
             PlanetImportViewModel.logger.info(.init(stringLiteral: "Target planet not found, abort importing."))
+            failedToImport(error: PlanetError.PlanetNotExistsError)
             return
         }
 
@@ -187,12 +188,52 @@ struct PlanetImportView: View {
                     summary: nil,
                     planet: targetPlanet
                 )
-                //MARK: TODO: add attachments
-                article.attachments = []
+                // Add local resources as attachments
+                let resources = try viewModel.localResourcesFromMarkdown(url)
+                PlanetImportViewModel.logger.info("Process local resources: \(resources.map({ $0.absoluteString }).joined(separator: ", "))")
+                if resources.count > 0 {
+                    var attachments: [String] = []
+                    for resourceURL in resources {
+                        let filename: String?
+                        let sourceURL: URL?
+                        let targetURL: URL?
+                        if !FileManager.default.fileExists(atPath: resourceURL.path) {
+                            // Check for resource with updated base url
+                            let baseURL = url.deletingLastPathComponent()
+                            let baseResourceURL = baseURL.appendingPathComponent(resourceURL.path)
+                            if FileManager.default.fileExists(atPath: baseResourceURL.path) {
+                                filename = baseResourceURL.lastPathComponent
+                                sourceURL = baseResourceURL
+                                targetURL = article.publicBasePath.appendingPathComponent(baseResourceURL.lastPathComponent)
+                            }
+                            // Check for updated resource at import directory
+                            else if let updatedResourceURL = viewModel.updatedLocalResource(resourceURL, forMarkdown: url) {
+                                filename = url.lastPathComponent
+                                sourceURL = updatedResourceURL
+                                targetURL = article.publicBasePath.appendingPathComponent(url.lastPathComponent)
+                            }
+                            else {
+                                continue
+                            }
+                        } else {
+                            filename = url.lastPathComponent
+                            sourceURL = resourceURL
+                            targetURL = article.publicBasePath.appendingPathComponent(url.lastPathComponent)
+                        }
+                        if let filename, let sourceURL, let targetURL {
+                            try FileManager.default.copyItem(at: sourceURL, to: targetURL)
+                            attachments.append(filename)
+                        }
+                    }
+                    article.attachments = attachments
+                } else {
+                    article.attachments = []
+                }
                 article.tags = [:]
                 importArticles.append(article)
             } catch {
-                PlanetImportViewModel.logger.info(.init(stringLiteral: "Skip markdown url: \(url), error: \(error)"))
+                PlanetImportViewModel.logger.info(.init(stringLiteral: "Failed to import markdown: \(url), error: \(error)"))
+                failedToImport(error: error)
             }
         }
 

@@ -87,7 +87,12 @@ class PlanetImportViewModel: ObservableObject {
     }
 
     func updateResource(_ url: URL, forMarkdown markdownURL: URL) throws {
-        let targetURL = try importDirectory().appendingPathComponent(url.lastPathComponent)
+        let markdownFilenameMD5 = markdownURL.lastPathComponent.md5()
+        let importURL = try importDirectory().appendingPathComponent(markdownFilenameMD5)
+        if !FileManager.default.fileExists(atPath: importURL.path) {
+            try FileManager.default.createDirectory(at: importURL, withIntermediateDirectories: true)
+        }
+        let targetURL = importURL.appendingPathComponent(url.lastPathComponent)
         try FileManager.default.copyItem(at: url, to: targetURL)
         Task.detached {
             try? await Task.sleep(nanoseconds: 500_000_000)
@@ -109,11 +114,10 @@ class PlanetImportViewModel: ObservableObject {
                 validating = validating.filter({ $0 != markdownURL })
             }
         }
-        let baseMarkdownURL = markdownURL.deletingLastPathComponent()
         let localURLs = try getLocalURLs(fromMarkdown: markdownURL)
         let key = markdownURL.absoluteString.md5()
         let unaccessibleLocalSources = localURLs.filter { url in
-            if isResourceAccessible(withBaseURL: baseMarkdownURL, url: url) {
+            if isResourceAccessible(url, forMarkdown: markdownURL) {
                 Self.logger.info(.init(stringLiteral: "\(url.path) is accessible"))
                 return false
             }
@@ -153,16 +157,28 @@ class PlanetImportViewModel: ObservableObject {
         return try String(contentsOf: markdownURL, encoding: .utf8).trim()
     }
 
+    func localResourcesFromMarkdown(_ markdownURL: URL) throws -> [URL] {
+        return try getLocalURLs(fromMarkdown: markdownURL)
+    }
+
+    func updatedLocalResource(_ url: URL, forMarkdown markdownURL: URL) -> URL? {
+        // MARK: TODO: return updated url for this markdown.
+        return nil
+    }
+
     func prepareToImport() async throws {
         let url = try importDirectory()
-        debugPrint("prepare to import at url: \(url)")
+        Self.logger.info("Prepare to import markdown files at temp directory: \(url)")
     }
 
     func cancelImport() {
         Task { @MainActor in
             PlanetImportManager.shared.dismiss()
         }
-        cleanup()
+        Task.detached(priority: .background) {
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            self.cleanup()
+        }
     }
 
     // MARK: -
@@ -226,16 +242,18 @@ class PlanetImportViewModel: ObservableObject {
         return false
     }
 
-    private func isResourceAccessible(withBaseURL baseURL: URL, url: URL) -> Bool {
+    private func isResourceAccessible(_ url: URL, forMarkdown markdownURL: URL) -> Bool {
         do {
-            let importURL = try importDirectory()
-            Self.logger.info("Is resource available: \(baseURL), url: \(url), import url: \(importURL)")
+            let baseURL = markdownURL.deletingLastPathComponent()
+            Self.logger.info("Is resource available: \(url), base url: \(baseURL)")
             let exists = FileManager.default.fileExists(atPath: baseURL.appendingPathComponent(url.path).path) || FileManager.default.fileExists(atPath: url.path)
             if exists {
                 Self.logger.info("Resource available at: \(url)")
                 return true
             } else {
                 // Validate one more time in re-located directory if user has updated this resource manually.
+                let markdownFilenameMD5 = markdownURL.lastPathComponent.md5()
+                let importURL = try importDirectory().appendingPathComponent(markdownFilenameMD5)
                 let updatedURL = importURL.appendingPathComponent(url.lastPathComponent)
                 let flag = FileManager.default.fileExists(atPath: updatedURL.path)
                 if flag {
