@@ -40,6 +40,7 @@ struct PlanetImportView: View {
         }, content: {
             if let previewURL = viewModel.previewURL {
                 PlanetImportPreviewView(url: previewURL)
+                    .environmentObject(viewModel)
             }
         })
         .task {
@@ -90,7 +91,7 @@ struct PlanetImportView: View {
                 .frame(width: 24)
                 Button {
                     Task { @MainActor in
-                        viewModel.previewUpdated = Date()
+                        viewModel.reloadResources()
                     }
                 } label: {
                     Text("Reload")

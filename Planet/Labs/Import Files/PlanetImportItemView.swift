@@ -61,29 +61,24 @@ struct PlanetImportItemView: View {
         .padding(.bottom, 6)
         .padding(.horizontal, 0)
         .task {
-            do {
-                let valid = try await viewModel.validateMarkdown(url)
-                await MainActor.run {
-                    isValid = valid
-                }
-            } catch {
-                await MainActor.run {
-                    isValid = false
-                }
-            }
+            await validateAction()
         }
         .onChange(of: viewModel.previewUpdated) { _ in
             Task.detached(priority: .userInitiated) {
-                do {
-                    let valid = try await viewModel.validateMarkdown(url)
-                    await MainActor.run {
-                        isValid = valid
-                    }
-                } catch {
-                    await MainActor.run {
-                        isValid = false
-                    }
-                }
+                await validateAction()
+            }
+        }
+    }
+
+    private func validateAction() async {
+        do {
+            let valid = try await viewModel.validateMarkdown(url)
+            await MainActor.run {
+                isValid = valid
+            }
+        } catch {
+            await MainActor.run {
+                isValid = false
             }
         }
     }

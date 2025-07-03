@@ -64,18 +64,40 @@ class PlanetImportViewModel: ObservableObject {
     static let logger = Logger(label: "Import Markdown Files")
 
     @Published var showingPreview: Bool = false
-    @Published var previewUpdated: Date = Date()
     @Published var previewURL: URL?
 
     @Published private(set) var markdownURLs: [URL] = []
+    @Published private(set) var missingResources: [String: [URL]] = [:]
     @Published private(set) var validating: [URL] = []
     @Published private(set) var importUUID: UUID = UUID()
+    @Published private(set) var previewUpdated: Date = Date()
 
     @MainActor
     func updateMarkdownURLs(_ urls: [URL]) {
         importUUID = UUID()
         validating.removeAll()
+        missingResources.removeAll()
         markdownURLs = urls
+    }
+
+    @MainActor
+    func reloadResources() {
+        missingResources.removeAll()
+        previewUpdated = Date()
+    }
+
+    @MainActor
+    func updateResource(_ url: URL, forKey key: String) {
+        if self.missingResources[key] == nil {
+            self.missingResources[key] = []
+        }
+        if let urls: [URL] = self.missingResources[key] {
+            if !urls.contains(url) {
+                self.missingResources[key]?.append(url)
+            }
+        }
+        guard validating.count == 0 else { return }
+        previewUpdated = Date()
     }
 
     func validateMarkdown(_ markdownURL: URL) async throws -> Bool {
@@ -92,12 +114,18 @@ class PlanetImportViewModel: ObservableObject {
         }
         let baseMarkdownURL = markdownURL.deletingLastPathComponent()
         let localURLs = try getLocalURLs(fromMarkdown: markdownURL)
+        let key = markdownURL.absoluteString.md5()
         let unaccessibleLocalSources = localURLs.filter { url in
             if isResourceAccessible(withBaseURL: baseMarkdownURL, url: url) {
                 Self.logger.info(.init(stringLiteral: "\(url.path) is accessible"))
                 return false
             }
             Self.logger.info(.init(stringLiteral: "\(url.path) is inaccessible"))
+            Task.detached(priority: .utility) {
+                await MainActor.run {
+                    self.updateResource(url, forKey: key)
+                }
+            }
             return true
         }
         Self.logger.info(.init(stringLiteral: "Unaccessible Local Sources:"))

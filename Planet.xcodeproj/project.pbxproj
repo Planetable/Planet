@@ -112,6 +112,8 @@
 		2A79FB2C2898184100F06DDF /* PlanetDownloadModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A79FB2B2898184100F06DDF /* PlanetDownloadModel.swift */; };
 		2A79FB2E289819AD00F06DDF /* PlanetDownloadsItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A79FB2D289819AD00F06DDF /* PlanetDownloadsItemView.swift */; };
 		2A7D1BF427CA1B0A00D3C091 /* MyPlanetEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7D1BF327CA1B0A00D3C091 /* MyPlanetEditView.swift */; };
+		2A876F0F2E1671F200A9739A /* PlanetImportPreviewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A876F0E2E1671F200A9739A /* PlanetImportPreviewItemView.swift */; };
+		2A876F102E1671F200A9739A /* PlanetImportPreviewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A876F0E2E1671F200A9739A /* PlanetImportPreviewItemView.swift */; };
 		2A8E08532BF4B173002D0C03 /* IPFSOpenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A8E08522BF4B173002D0C03 /* IPFSOpenViewController.swift */; };
 		2A8E08542BF4B173002D0C03 /* IPFSOpenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A8E08522BF4B173002D0C03 /* IPFSOpenViewController.swift */; };
 		2A8E08572BF4B190002D0C03 /* IPFSOpenWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A8E08562BF4B190002D0C03 /* IPFSOpenWindowController.swift */; };
@@ -668,6 +670,7 @@
 		2A79FB2B2898184100F06DDF /* PlanetDownloadModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadModel.swift; sourceTree = "<group>"; };
 		2A79FB2D289819AD00F06DDF /* PlanetDownloadsItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDownloadsItemView.swift; sourceTree = "<group>"; };
 		2A7D1BF327CA1B0A00D3C091 /* MyPlanetEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetEditView.swift; sourceTree = "<group>"; };
+		2A876F0E2E1671F200A9739A /* PlanetImportPreviewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetImportPreviewItemView.swift; sourceTree = "<group>"; };
 		2A8E08522BF4B173002D0C03 /* IPFSOpenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSOpenViewController.swift; sourceTree = "<group>"; };
 		2A8E08562BF4B190002D0C03 /* IPFSOpenWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSOpenWindowController.swift; sourceTree = "<group>"; };
 		2A8E08592BF4B19B002D0C03 /* IPFSOpenWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSOpenWindow.swift; sourceTree = "<group>"; };
@@ -1308,6 +1311,7 @@
 				2A5328D52E05433F00829A60 /* PlanetImportViewController.swift */,
 				2A5328CF2E0542DD00829A60 /* PlanetImportView.swift */,
 				2A2EC71D2E0E68A200479669 /* PlanetImportItemView.swift */,
+				2A876F0E2E1671F200A9739A /* PlanetImportPreviewItemView.swift */,
 				2A2EC7202E0E7CB400479669 /* PlanetImportPreviewView.swift */,
 				2A5328D22E05431500829A60 /* PlanetImportViewModel.swift */,
 			);
@@ -1969,6 +1973,7 @@
 				2A8E08542BF4B173002D0C03 /* IPFSOpenViewController.swift in Sources */,
 				2A95E67A2A19A3C4001288B8 /* JSONUtils.swift in Sources */,
 				2A95E6792A19A3C4001288B8 /* FeedUtils.swift in Sources */,
+				2A876F102E1671F200A9739A /* PlanetImportPreviewItemView.swift in Sources */,
 				2AED38AE2B50D51C00E0B9BA /* AppMainView.swift in Sources */,
 				6A2827D52BD8CD29006B4A84 /* QuickPostView.swift in Sources */,
 				2A95E6DE2A19A521001288B8 /* Pinnable.swift in Sources */,
@@ -2347,6 +2352,7 @@
 				72114AFCB4EDB617C07192BB /* FollowingPlanetSidebarItem.swift in Sources */,
 				2AFB896929BA1455003D893E /* PlanetKeyManagerView.swift in Sources */,
 				2AF993612C6F746B0096F992 /* PlanetAPIConsoleWindowController.swift in Sources */,
+				2A876F0F2E1671F200A9739A /* PlanetImportPreviewItemView.swift in Sources */,
 				2A27744B2A9515BF00A5DDC2 /* IconManager.swift in Sources */,
 				2AF993642C6F74C50096F992 /* PlanetAPIConsoleViewController.swift in Sources */,
 				6ACF1667292570AF00AE318B /* PlanetUI.swift in Sources */,
