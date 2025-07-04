@@ -193,20 +193,31 @@ struct PlanetImportView: View {
                 PlanetImportViewModel.logger.info("Process local resources: \(resources.map({ $0.absoluteString }).joined(separator: ", "))")
                 if resources.count > 0 {
                     var attachments: [String] = []
+                    var multiLevelResources: [URL: String] = [:]
                     for resourceURL in resources {
                         let filename: String?
                         let sourceURL: URL?
                         let targetURL: URL?
                         if !FileManager.default.fileExists(atPath: resourceURL.path) {
-                            // Check for resource with updated base url
+                            // Multi-level inline resources
                             let baseURL = url.deletingLastPathComponent()
                             let baseResourceURL = baseURL.appendingPathComponent(resourceURL.path)
                             if FileManager.default.fileExists(atPath: baseResourceURL.path) {
-                                filename = baseResourceURL.lastPathComponent
+                                /*
+                                 Handle multi-level inline resources when importing Markdown
+                                    - Flatten nested resource paths (e.g. resource/screenshots/1.png → resource-screenshots-1.png)
+                                    - Rewrite article content to reference the renamed attachments
+                                 */
+                                let components = resourceURL.path.split(separator: "/")
+                                let singleLevelFilename = components.joined(separator: "-")
+                                filename = singleLevelFilename
                                 sourceURL = baseResourceURL
-                                targetURL = article.publicBasePath.appendingPathComponent(baseResourceURL.lastPathComponent)
+                                targetURL = article.publicBasePath.appendingPathComponent(singleLevelFilename)
+                                if components.count > 1 {
+                                    multiLevelResources[resourceURL] = singleLevelFilename
+                                }
                             }
-                            // Check for updated resource at import directory
+                            // User updated inline resources
                             else if let updatedResourceURL = viewModel.updatedLocalResource(resourceURL, forMarkdown: url) {
                                 filename = url.lastPathComponent
                                 sourceURL = updatedResourceURL
@@ -226,6 +237,13 @@ struct PlanetImportView: View {
                         }
                     }
                     article.attachments = attachments
+                    // Update article content by replacing multi-level inline resources
+                    if multiLevelResources.keys.count > 0 {
+                        PlanetImportViewModel.logger.info("got multi level resources: urls: \(multiLevelResources.keys.map( {$0.absoluteString}).joined(separator: ", ")), file names: \(multiLevelResources.values.joined(separator: ", "))")
+                        multiLevelResources.forEach { url, filename in
+                            article.content = article.content.replacingOccurrences(of: url.path, with: filename)
+                        }
+                    }
                 } else {
                     article.attachments = []
                 }
