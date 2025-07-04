@@ -47,7 +47,7 @@ struct PlanetImportView: View {
             do {
                 try await viewModel.prepareToImport()
             } catch {
-                failedToImport(error: error)
+                viewModel.failedToImport(error: error)
             }
         }
     }
@@ -143,154 +143,16 @@ struct PlanetImportView: View {
             }
             Spacer()
             Button {
-                importToPlanet()
+                guard let targetPlanet else {
+                    viewModel.failedToImport(error: PlanetError.PlanetNotExistsError)
+                    return
+                }
+                viewModel.importToPlanet(targetPlanet)
             } label: {
                 Text("Import")
             }
             .buttonStyle(.borderedProminent)
             .disabled(targetPlanet == nil)
         }
-    }
-
-    private func failedToImport(error: Error) {
-        let alert = NSAlert()
-        alert.messageText = "Failed to Import Files"
-        alert.informativeText = error.localizedDescription
-        alert.runModal()
-        viewModel.cancelImport()
-    }
-
-    private func importToPlanet() {
-        defer {
-            viewModel.cancelImport()
-        }
-
-        guard let targetPlanet else {
-            PlanetImportViewModel.logger.info(.init(stringLiteral: "Target planet not found, abort importing."))
-            failedToImport(error: PlanetError.PlanetNotExistsError)
-            return
-        }
-
-        PlanetImportViewModel.logger.info(.init(stringLiteral: "About to import to planet: \(targetPlanet.name)"))
-
-        var importArticles: [MyArticleModel] = []
-        for url in viewModel.markdownURLs {
-            PlanetImportViewModel.logger.info(.init(stringLiteral: "Process and import markdown: \(url) ..."))
-            do {
-                let title = try viewModel.titleFromMarkdown(url)
-                let date = try viewModel.dateFromMarkdown(url)
-                let content = try viewModel.contentFromMarkdown(url)
-                let article = try MyArticleModel.compose(
-                    link: nil,
-                    date: date,
-                    title: title,
-                    content: content,
-                    summary: nil,
-                    planet: targetPlanet
-                )
-                // Add local resources as attachments
-                let resources = try viewModel.localResourcesFromMarkdown(url)
-                PlanetImportViewModel.logger.info("Process local resources: \(resources.map({ $0.absoluteString }).joined(separator: ", "))")
-                if resources.count > 0 {
-                    var attachments: [String] = []
-                    var multiLevelResources: [URL: String] = [:]
-                    for resourceURL in resources {
-                        let filename: String?
-                        let sourceURL: URL?
-                        let targetURL: URL?
-                        if !FileManager.default.fileExists(atPath: resourceURL.path) {
-                            // Multi-level inline resources
-                            let baseURL = url.deletingLastPathComponent()
-                            let baseResourceURL = baseURL.appendingPathComponent(resourceURL.path)
-                            if FileManager.default.fileExists(atPath: baseResourceURL.path) {
-                                /*
-                                 Handle multi-level inline resources when importing Markdown
-                                    - Flatten nested resource paths (e.g. resource/screenshots/1.png → resource-screenshots-1.png)
-                                    - Rewrite article content to reference the renamed attachments
-                                 */
-                                let components = resourceURL.path.split(separator: "/")
-                                let singleLevelFilename = components.joined(separator: "-")
-                                filename = singleLevelFilename
-                                sourceURL = baseResourceURL
-                                targetURL = article.publicBasePath.appendingPathComponent(singleLevelFilename)
-                                if components.count > 1 {
-                                    multiLevelResources[resourceURL] = singleLevelFilename
-                                }
-                            }
-                            // User updated inline resources
-                            else if let updatedResourceURL = viewModel.updatedLocalResource(resourceURL, forMarkdown: url) {
-                                filename = url.lastPathComponent
-                                sourceURL = updatedResourceURL
-                                targetURL = article.publicBasePath.appendingPathComponent(url.lastPathComponent)
-                            }
-                            else {
-                                continue
-                            }
-                        } else {
-                            filename = url.lastPathComponent
-                            sourceURL = resourceURL
-                            targetURL = article.publicBasePath.appendingPathComponent(url.lastPathComponent)
-                        }
-                        if let filename, let sourceURL, let targetURL {
-                            try FileManager.default.copyItem(at: sourceURL, to: targetURL)
-                            attachments.append(filename)
-                        }
-                    }
-                    article.attachments = attachments
-                    // Update article content by replacing multi-level inline resources
-                    if multiLevelResources.keys.count > 0 {
-                        PlanetImportViewModel.logger.info("got multi level resources: urls: \(multiLevelResources.keys.map( {$0.absoluteString}).joined(separator: ", ")), file names: \(multiLevelResources.values.joined(separator: ", "))")
-                        multiLevelResources.forEach { url, filename in
-                            article.content = article.content.replacingOccurrences(of: url.path, with: filename)
-                        }
-                    }
-                } else {
-                    article.attachments = []
-                }
-                article.tags = [:]
-                importArticles.append(article)
-            } catch {
-                PlanetImportViewModel.logger.info(.init(stringLiteral: "Failed to import markdown: \(url), error: \(error)"))
-                failedToImport(error: error)
-            }
-        }
-
-        guard importArticles.count > 0 else {
-            PlanetImportViewModel.logger.info(.init(stringLiteral: "Markdown files not found, abort importing."))
-            return
-        }
-
-        var articles = targetPlanet.articles
-        articles?.append(contentsOf: importArticles)
-        articles?.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
-        targetPlanet.articles = articles
-
-        for article in importArticles {
-            do {
-                try article.save()
-                try article.savePublic()
-            } catch {
-                PlanetImportViewModel.logger.info(.init(stringLiteral: "Failed to import article: \(article.title), error: \(error)"))
-            }
-        }
-
-        do {
-            try targetPlanet.copyTemplateAssets()
-            targetPlanet.updated = Date()
-            try targetPlanet.save()
-            Task(priority: .userInitiated) {
-                try await targetPlanet.savePublic()
-                try await targetPlanet.publish()
-            }
-        } catch {
-            PlanetImportViewModel.logger.info(.init(stringLiteral: "Failed to save target planet, error: \(error)"))
-        }
-
-        Task { @MainActor in
-            PlanetStore.shared.selectedView = .myPlanet(targetPlanet)
-            PlanetStore.shared.refreshSelectedArticles()
-        }
-
-        PlanetImportViewModel.logger.info(.init(stringLiteral: "Imported markdown files."))
     }
 }

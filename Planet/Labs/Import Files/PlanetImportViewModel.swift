@@ -134,29 +134,6 @@ class PlanetImportViewModel: ObservableObject {
         return unaccessibleLocalSources.isEmpty
     }
 
-    func titleFromMarkdown(_ markdownURL: URL) throws -> String {
-        let title = markdownURL.deletingPathExtension().lastPathComponent
-        if title.count <= 3 {
-            let content = try contentFromMarkdown(markdownURL)
-            let lines = content.components(separatedBy: .newlines)
-            for line in lines {
-                if line.hasPrefix("# ") {
-                    return line.replacingOccurrences(of: "# ", with: "")
-                }
-            }
-        }
-        return title
-    }
-
-    func dateFromMarkdown(_ markdownURL: URL) throws -> Date {
-        let attributes = try FileManager.default.attributesOfItem(atPath: markdownURL.path)
-        return attributes[FileAttributeKey.creationDate] as! Date
-    }
-
-    func contentFromMarkdown(_ markdownURL: URL) throws -> String {
-        return try String(contentsOf: markdownURL, encoding: .utf8).trim()
-    }
-
     func localResourcesFromMarkdown(_ markdownURL: URL) throws -> [URL] {
         return try getLocalURLs(fromMarkdown: markdownURL)
     }
@@ -179,6 +156,142 @@ class PlanetImportViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 5_000_000_000)
             self.cleanup()
         }
+    }
+
+    func importToPlanet(_ planet: MyPlanetModel) {
+        defer {
+            cancelImport()
+        }
+
+        Self.logger.info(.init(stringLiteral: "About to import to planet: \(planet.name)"))
+
+        var importArticles: [MyArticleModel] = []
+        for url in markdownURLs {
+            Self.logger.info(.init(stringLiteral: "Process and import markdown: \(url) ..."))
+            do {
+                let title = try titleFromMarkdown(url)
+                let date = try dateFromMarkdown(url)
+                let content = try contentFromMarkdown(url)
+                let article = try MyArticleModel.compose(
+                    link: nil,
+                    date: date,
+                    title: title,
+                    content: content,
+                    summary: nil,
+                    planet: planet
+                )
+                // Add local resources as attachments
+                let resources = try localResourcesFromMarkdown(url)
+                Self.logger.info("Process local resources: \(resources.map({ $0.absoluteString }).joined(separator: ", "))")
+                if resources.count > 0 {
+                    var attachments: [String] = []
+                    var multiLevelResources: [URL: String] = [:]
+                    for resourceURL in resources {
+                        let filename: String?
+                        let sourceURL: URL?
+                        let targetURL: URL?
+                        if !FileManager.default.fileExists(atPath: resourceURL.path) {
+                            // Multi-level inline resources
+                            let baseURL = url.deletingLastPathComponent()
+                            let baseResourceURL = baseURL.appendingPathComponent(resourceURL.path)
+                            if FileManager.default.fileExists(atPath: baseResourceURL.path) {
+                                /*
+                                 Handle multi-level inline resources when importing Markdown
+                                    - Flatten nested resource paths (e.g. resource/screenshots/1.png → resource-screenshots-1.png)
+                                    - Rewrite article content to reference the renamed attachments
+                                 */
+                                let components = resourceURL.path.split(separator: "/")
+                                let singleLevelFilename = components.joined(separator: "-")
+                                filename = singleLevelFilename
+                                sourceURL = baseResourceURL
+                                targetURL = article.publicBasePath.appendingPathComponent(singleLevelFilename)
+                                if components.count > 1 {
+                                    multiLevelResources[resourceURL] = singleLevelFilename
+                                }
+                            }
+                            // User updated inline resources
+                            else if let updatedResourceURL = updatedLocalResource(resourceURL, forMarkdown: url) {
+                                filename = url.lastPathComponent
+                                sourceURL = updatedResourceURL
+                                targetURL = article.publicBasePath.appendingPathComponent(url.lastPathComponent)
+                            }
+                            else {
+                                continue
+                            }
+                        } else {
+                            filename = url.lastPathComponent
+                            sourceURL = resourceURL
+                            targetURL = article.publicBasePath.appendingPathComponent(url.lastPathComponent)
+                        }
+                        if let filename, let sourceURL, let targetURL {
+                            try FileManager.default.copyItem(at: sourceURL, to: targetURL)
+                            attachments.append(filename)
+                        }
+                    }
+                    article.attachments = attachments
+                    // Update article content by replacing multi-level inline resources
+                    if multiLevelResources.keys.count > 1 {
+                        Self.logger.info("Multi-level resources: urls: \(multiLevelResources.keys.map( {$0.absoluteString}).joined(separator: ", ")), names: \(multiLevelResources.values.joined(separator: ", "))")
+                        multiLevelResources.forEach { url, filename in
+                            article.content = article.content.replacingOccurrences(of: url.path, with: filename)
+                        }
+                    }
+                } else {
+                    article.attachments = []
+                }
+                article.tags = [:]
+                importArticles.append(article)
+            } catch {
+                Self.logger.info(.init(stringLiteral: "Failed to import markdown: \(url), error: \(error)"))
+                failedToImport(error: error)
+            }
+        }
+
+        guard importArticles.count > 0 else {
+            Self.logger.info(.init(stringLiteral: "Markdown files not found, abort importing."))
+            return
+        }
+
+        var articles = planet.articles
+        articles?.append(contentsOf: importArticles)
+        articles?.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
+        planet.articles = articles
+
+        for article in importArticles {
+            do {
+                try article.save()
+                try article.savePublic()
+            } catch {
+                Self.logger.info(.init(stringLiteral: "Failed to import article: \(article.title), error: \(error)"))
+            }
+        }
+
+        do {
+            try planet.copyTemplateAssets()
+            planet.updated = Date()
+            try planet.save()
+            Task(priority: .userInitiated) {
+                try await planet.savePublic()
+                try await planet.publish()
+            }
+        } catch {
+            Self.logger.info(.init(stringLiteral: "Failed to save target planet, error: \(error)"))
+        }
+
+        Task { @MainActor in
+            PlanetStore.shared.selectedView = .myPlanet(planet)
+            PlanetStore.shared.refreshSelectedArticles()
+        }
+
+        Self.logger.info(.init(stringLiteral: "Imported markdown files."))
+    }
+
+    func failedToImport(error: Error) {
+        let alert = NSAlert()
+        alert.messageText = "Failed to Import Files"
+        alert.informativeText = error.localizedDescription
+        alert.runModal()
+        cancelImport()
     }
 
     // MARK: -
@@ -264,6 +377,29 @@ class PlanetImportViewModel: ObservableObject {
         } catch {
             return false
         }
+    }
+
+    private func titleFromMarkdown(_ markdownURL: URL) throws -> String {
+        let title = markdownURL.deletingPathExtension().lastPathComponent
+        if title.count <= 3 {
+            let content = try contentFromMarkdown(markdownURL)
+            let lines = content.components(separatedBy: .newlines)
+            for line in lines {
+                if line.hasPrefix("# ") {
+                    return line.replacingOccurrences(of: "# ", with: "")
+                }
+            }
+        }
+        return title
+    }
+
+    private func dateFromMarkdown(_ markdownURL: URL) throws -> Date {
+        let attributes = try FileManager.default.attributesOfItem(atPath: markdownURL.path)
+        return attributes[FileAttributeKey.creationDate] as! Date
+    }
+
+    private func contentFromMarkdown(_ markdownURL: URL) throws -> String {
+        return try String(contentsOf: markdownURL, encoding: .utf8).trim()
     }
 
     private func getLocalURLs(fromMarkdown url: URL) throws -> [URL] {
