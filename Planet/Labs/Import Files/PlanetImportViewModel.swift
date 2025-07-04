@@ -224,7 +224,7 @@ class PlanetImportViewModel: ObservableObject {
                             targetURL = article.publicBasePath.appendingPathComponent(url.lastPathComponent)
                         }
                         if let filename, let sourceURL, let targetURL {
-                            try FileManager.default.copyItem(at: sourceURL, to: targetURL)
+                            try copySelectedFile(sourceURL, to: targetURL)
                             attachments.append(filename)
                         }
                     }
@@ -329,6 +329,18 @@ class PlanetImportViewModel: ObservableObject {
             try FileManager.default.createDirectory(at: importURL, withIntermediateDirectories: true)
         }
         return importURL
+    }
+
+    private func copySelectedFile(_ sourceURL: URL, to targetURL: URL) throws {
+        guard sourceURL.startAccessingSecurityScopedResource() else {
+            throw NSError(domain: NSCocoaErrorDomain,
+                          code: NSFileReadNoPermissionError,
+                          userInfo: [NSLocalizedDescriptionKey : "Sandbox read permission denied at: \(sourceURL.path)"])
+        }
+        defer {
+            sourceURL.stopAccessingSecurityScopedResource()
+        }
+        try FileManager.default.copyItem(at: sourceURL, to: targetURL)
     }
 
     private func isResourceLocalURL(_ url: URL) -> Bool {
