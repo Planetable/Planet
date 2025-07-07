@@ -33,7 +33,7 @@ struct PlanetImportPreviewItemView: View {
 
     private func locateAction() {
         let panel = NSOpenPanel()
-        panel.message = "Select Resource to Update"
+        panel.message = "Select resource to update missing url: \(url.path)"
         panel.prompt = "Select"
         panel.allowsMultipleSelection = false
         panel.canChooseFiles = true
@@ -42,7 +42,7 @@ struct PlanetImportPreviewItemView: View {
         let response = panel.runModal()
         guard response == .OK, panel.urls.count > 0, let updatedURL = panel.urls.first else { return }
         do {
-            try viewModel.updateResource(updatedURL, forMarkdown: markdownURL)
+            try viewModel.updateResource(updatedURL, originURL: url, forMarkdown: markdownURL)
         } catch {
             let alert = NSAlert()
             alert.messageText = "Failed to Update Resource"

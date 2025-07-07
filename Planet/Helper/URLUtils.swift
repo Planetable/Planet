@@ -172,6 +172,33 @@ extension URL {
         return pathExtension.lowercased() == "jpg" || pathExtension.lowercased() == "jpeg"
     }
 
+    var isMarkdown: Bool {
+        return ["md", "markdown"].contains(self.pathExtension.lowercased())
+    }
+
+    var isLocalResource: Bool {
+        // 1. In-document anchor (fragment only, no path)
+        if scheme == nil, host == nil, path.isEmpty, fragment != nil {
+            return false
+        }
+
+        // 2. file:// URLs
+        if isFileURL { return true }
+
+        // 3. Relative paths (no scheme, no host, non-empty path)
+        if scheme == nil, host == nil { return true }
+
+        // 4. Windows drive-letter paths parsed as “c:/…”
+        if let s = scheme, s.count == 1, s.first!.isLetter, host == nil {
+            return true
+        }
+
+        // 5. UNC paths like \\SERVER\Share
+        if absoluteString.hasPrefix("\\\\") { return true }
+
+        return false
+    }
+
     func removeGPSInfo() {
         do {
             let data = try Data(contentsOf: self)

@@ -27,7 +27,6 @@ enum InlineResourceType {
         case .video:
             return #"<video\s+[^>]*src="([^"]+)""#
         case .file:
-            // MARK: TODO: add from UTType
             return #"<a\s+[^>]*href="([^"]+\.(zip|rar|7z|tar|gz|bz2|pdf|docx?|xlsx?|pptx?|csv|sh|txt|mp3|wav|mp4|mov|avi|mkv|flac|jpg|jpeg|png|gif|bmp|svg|webp|swift|c|cpp|h|py|js|json|xml|html?|css|exe|dmg|app|apk|msi))"[^>]*>"#
         case .markdownLink:
             return #"\[([^\]]*)\]\(([^)]+)\)"#
@@ -77,7 +76,7 @@ class PlanetImportViewModel: ObservableObject {
         importUUID = UUID()
         validating.removeAll()
         missingResources.removeAll()
-        markdownURLs = urls
+        markdownURLs = filterMarkdownFiles(from: urls)
     }
 
     @MainActor
@@ -86,13 +85,15 @@ class PlanetImportViewModel: ObservableObject {
         previewUpdated = Date()
     }
 
-    func updateResource(_ url: URL, forMarkdown markdownURL: URL) throws {
+    func updateResource(_ url: URL, originURL: URL, forMarkdown markdownURL: URL) throws {
         let markdownFilenameMD5 = markdownURL.lastPathComponent.md5()
         let importURL = try importDirectory().appendingPathComponent(markdownFilenameMD5)
         if !FileManager.default.fileExists(atPath: importURL.path) {
             try FileManager.default.createDirectory(at: importURL, withIntermediateDirectories: true)
         }
-        let targetURL = importURL.appendingPathComponent(url.lastPathComponent)
+        let singleLevelFilename: String = originURL.path.split(separator: "/").joined(separator: "-")
+        let targetURL = importURL.appendingPathComponent(singleLevelFilename)
+        Self.logger.info("Updating url: \(url.path), origin url: \(originURL.path), for markdown: \(markdownURL.path), at: \(targetURL.path)")
         try FileManager.default.copyItem(at: url, to: targetURL)
         Task.detached {
             try? await Task.sleep(nanoseconds: 500_000_000)
@@ -139,7 +140,22 @@ class PlanetImportViewModel: ObservableObject {
     }
 
     func updatedLocalResource(_ url: URL, forMarkdown markdownURL: URL) -> URL? {
-        // MARK: TODO: return updated url for this markdown.
+        do {
+            let markdownFilenameMD5 = markdownURL.lastPathComponent.md5()
+            let importURL = try importDirectory().appendingPathComponent(markdownFilenameMD5)
+            // If the markdown file has inline images with the same filename:
+            // - one: 'resources/a/one.png'
+            // - two: 'resources/b/one.png'
+            // So we need to use single-level filenames
+            let components = url.path.split(separator: "/")
+            let singleLevelFilename = components.joined(separator: "-")
+            let targetURL = importURL.appendingPathComponent(singleLevelFilename)
+            if FileManager.default.fileExists(atPath: targetURL.path) {
+                return targetURL
+            }
+        } catch {
+            Self.logger.info("Updated local resource not found: \(url.path)")
+        }
         return nil
     }
 
@@ -182,7 +198,7 @@ class PlanetImportViewModel: ObservableObject {
                 )
                 // Add local resources as attachments
                 let resources = try localResourcesFromMarkdown(url)
-                Self.logger.info("Process local resources: \(resources.map({ $0.absoluteString }).joined(separator: ", "))")
+                Self.logger.info("Process local resources: \(resources.map({ $0.absoluteString }).joined(separator: ", ")), for markdown file: \(url)")
                 if resources.count > 0 {
                     var attachments: [String] = []
                     var multiLevelResources: [URL: String] = [:]
@@ -191,10 +207,12 @@ class PlanetImportViewModel: ObservableObject {
                         let sourceURL: URL?
                         let targetURL: URL?
                         if !FileManager.default.fileExists(atPath: resourceURL.path) {
+                            Self.logger.info("Local resource: \(resourceURL.path) not exists, continue checking...")
                             // Multi-level inline resources
                             let baseURL = url.deletingLastPathComponent()
                             let baseResourceURL = baseURL.appendingPathComponent(resourceURL.path)
                             if FileManager.default.fileExists(atPath: baseResourceURL.path) {
+                                Self.logger.info("Local resource converted with base url: \(baseURL.path), exists: \(baseResourceURL.path), processing...")
                                 /*
                                  Handle multi-level inline resources when importing Markdown
                                     - Flatten nested resource paths (e.g. resource/screenshots/1.png → resource-screenshots-1.png)
@@ -211,21 +229,26 @@ class PlanetImportViewModel: ObservableObject {
                             }
                             // User updated inline resources
                             else if let updatedResourceURL = updatedLocalResource(resourceURL, forMarkdown: url) {
-                                filename = url.lastPathComponent
+                                Self.logger.info("Local resource exists in updated local resource directory: \(updatedResourceURL.path), processing...")
+                                filename = updatedResourceURL.lastPathComponent
                                 sourceURL = updatedResourceURL
-                                targetURL = article.publicBasePath.appendingPathComponent(url.lastPathComponent)
+                                targetURL = article.publicBasePath.appendingPathComponent(updatedResourceURL.lastPathComponent)
+                                multiLevelResources[resourceURL] = updatedResourceURL.lastPathComponent
                             }
+                            // Skip
                             else {
                                 continue
                             }
                         } else {
-                            filename = url.lastPathComponent
+                            filename = resourceURL.lastPathComponent
                             sourceURL = resourceURL
-                            targetURL = article.publicBasePath.appendingPathComponent(url.lastPathComponent)
+                            targetURL = article.publicBasePath.appendingPathComponent(resourceURL.lastPathComponent)
                         }
-                        if let filename, let sourceURL, let targetURL {
-                            try copySelectedFile(sourceURL, to: targetURL)
+                        if let filename, filename != "", let sourceURL, let targetURL {
+                            Self.logger.info("Copy file: \(filename), from: \(sourceURL.path) to: \(targetURL.path)")
+                            try FileManager.default.copyItem(at: sourceURL, to: targetURL)
                             attachments.append(filename)
+                            Self.logger.info("Added attachment: \(filename), need to convert multi-level name into single-level name: \(multiLevelResources.count > 0), multi-level resources, keys: \(multiLevelResources.keys.map({ $0.path }).joined(separator: ", ")), values: \(multiLevelResources.values.joined(separator: ", "))")
                         }
                     }
                     article.attachments = attachments
@@ -331,40 +354,27 @@ class PlanetImportViewModel: ObservableObject {
         return importURL
     }
 
-    private func copySelectedFile(_ sourceURL: URL, to targetURL: URL) throws {
-        guard sourceURL.startAccessingSecurityScopedResource() else {
-            throw NSError(domain: NSCocoaErrorDomain,
-                          code: NSFileReadNoPermissionError,
-                          userInfo: [NSLocalizedDescriptionKey : "Sandbox read permission denied at: \(sourceURL.path)"])
+    private func filterMarkdownFiles(from urls: [URL]) -> [URL] {
+        var set = Set<URL>()
+        for url in urls {
+            var isDir: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir) else { continue }
+            if isDir.boolValue {
+                if let enumerator = FileManager.default.enumerator(
+                    at: url,
+                    includingPropertiesForKeys: [.isRegularFileKey],
+                    options: [.skipsHiddenFiles, .skipsPackageDescendants]
+                ) {
+                    for case let u as URL in enumerator
+                    where u.isMarkdown {
+                        set.insert(u.resolvingSymlinksInPath())
+                    }
+                }
+            } else if url.isMarkdown {
+                set.insert(url.resolvingSymlinksInPath())
+            }
         }
-        defer {
-            sourceURL.stopAccessingSecurityScopedResource()
-        }
-        try FileManager.default.copyItem(at: sourceURL, to: targetURL)
-    }
-
-    private func isResourceLocalURL(_ url: URL) -> Bool {
-        // Proper file URLs
-        if url.isFileURL {
-            return true
-        }
-
-        // No scheme & no host  →  root or relative path
-        if url.scheme == nil, url.host == nil {
-            return true
-        }
-
-        // Windows drive-letter path parsed as scheme “C”, “D”
-        if let s = url.scheme, s.count == 1, s.first!.isLetter {
-            return true
-        }
-
-        // UNC share literally written as \\SERVER\Share\file.png
-        if url.absoluteString.hasPrefix("\\\\") {
-            return true
-        }
-
-        return false
+        return Array(set).sorted(by: { $0.path < $1.path })
     }
 
     private func isResourceAccessible(_ url: URL, forMarkdown markdownURL: URL) -> Bool {
@@ -383,6 +393,12 @@ class PlanetImportViewModel: ObservableObject {
                 let flag = FileManager.default.fileExists(atPath: updatedURL.path)
                 if flag {
                     Self.logger.info("Updated resource available at: \(updatedURL)")
+                } else {
+                    // Validate again with converted single-level filenames
+                    let components = url.path.split(separator: "/")
+                    let singleLevelFilename = components.joined(separator: "-")
+                    let updatedSingleLevelURL = importURL.appendingPathComponent(singleLevelFilename)
+                    return FileManager.default.fileExists(atPath: updatedSingleLevelURL.path)
                 }
                 return flag
             }
@@ -421,12 +437,12 @@ class PlanetImportViewModel: ObservableObject {
 
         let markdownContent = try String(contentsOf: url)
 
-        let markdownLinks = extractMarkdownLinksFromContent(markdownContent).filter({ isResourceLocalURL($0) })
-        let markdownImages = extractMarkdownImagesFromContent(markdownContent).filter({ isResourceLocalURL($0) })
-        let images = extractImageSourcesFromHTMLContent(markdownContent).filter({ isResourceLocalURL($0) })
-        let videos = extractVideoSourcesFromHTMLContent(markdownContent).filter({ isResourceLocalURL($0) })
-        let audios = extractAudioSourcesFromHTMLContent(markdownContent).filter({ isResourceLocalURL($0) })
-        let files = extractFileSourcesFromHTMLContent(markdownContent).filter({ isResourceLocalURL($0) })
+        let markdownLinks = extractMarkdownLinksFromContent(markdownContent).filter({ $0.isLocalResource })
+        let markdownImages = extractMarkdownImagesFromContent(markdownContent).filter({ $0.isLocalResource })
+        let images = extractImageSourcesFromHTMLContent(markdownContent).filter({ $0.isLocalResource })
+        let videos = extractVideoSourcesFromHTMLContent(markdownContent).filter({ $0.isLocalResource })
+        let audios = extractAudioSourcesFromHTMLContent(markdownContent).filter({ $0.isLocalResource })
+        let files = extractFileSourcesFromHTMLContent(markdownContent).filter({ $0.isLocalResource })
 
         Self.logger.info(.init(stringLiteral: "Local Markdown Links:"))
         Self.logger.info(.init(stringLiteral: markdownLinks.map({ $0.absoluteString }).joined(separator: ", ")))

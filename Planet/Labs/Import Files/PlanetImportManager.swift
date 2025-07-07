@@ -42,18 +42,17 @@ class PlanetImportManager: NSObject {
 
         // Choose markdown files
         let panel = NSOpenPanel()
-        panel.message = "Select Markdown Files to Import"
+        panel.message = "If any selected markdown files reference local inline resources, choose their containing folder instead."
+        panel.title = "Select Markdown Files to Import"
         panel.prompt = "Select"
         panel.allowsMultipleSelection = true
-        panel.allowedContentTypes = [UTType.markdown]
-        panel.canChooseDirectories = false
+        panel.allowedContentTypes = [UTType.markdown, .directory]
+        panel.canChooseDirectories = true
         panel.canChooseFiles = true
         panel.canCreateDirectories = false
         let response = panel.runModal()
         guard response == .OK, panel.urls.count > 0 else { return }
         let urls = panel.urls
-
-        // Present import window
         if importWindowController == nil {
             importWindowController = PlanetImportWindowController()
         }
