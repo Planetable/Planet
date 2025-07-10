@@ -21,12 +21,10 @@ struct PlanetImportItemView: View {
             VStack {
                 HStack {
                     Text(url.lastPathComponent)
-                        .font(.subheadline)
                     Spacer()
                 }
                 HStack {
                     Text(url.absoluteString)
-                        .font(.footnote)
                         .foregroundStyle(Color.secondary)
                     Spacer()
                 }

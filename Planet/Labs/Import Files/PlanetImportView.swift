@@ -26,7 +26,7 @@ struct PlanetImportView: View {
     }
 
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             switch step {
             case .one:
                 stepOne()
@@ -35,7 +35,7 @@ struct PlanetImportView: View {
             }
         }
         .frame(minWidth: PlanetImportWindow.windowMinWidth, idealWidth: PlanetImportWindow.windowMinWidth, maxWidth: .infinity, minHeight: PlanetImportWindow.windowMinHeight, idealHeight: PlanetImportWindow.windowMinHeight, maxHeight: .infinity)
-        .padding(PlanetUI.SHEET_PADDING)
+        .padding(0)
         .sheet(isPresented: $viewModel.showingPreview, onDismiss: {
         }, content: {
             if let markdownURL = viewModel.previewMarkdownURL {
@@ -58,12 +58,18 @@ struct PlanetImportView: View {
     private func stepOne() -> some View {
         let isValidating = viewModel.validating.count > 0
         ScrollView {
-            ForEach(viewModel.markdownURLs, id: \.self) { url in
-                PlanetImportItemView(url: url)
-                    .environmentObject(viewModel)
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(viewModel.markdownURLs, id: \.self) { url in
+                    PlanetImportItemView(url: url)
+                        .environmentObject(viewModel)
+                }
             }
+            .padding(PlanetUI.SHEET_PADDING)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        Divider()
+            .padding(.bottom, PlanetUI.SHEET_PADDING)
+            .padding(.top, 0)
         ZStack {
             HStack {
                 Spacer()
@@ -105,54 +111,69 @@ struct PlanetImportView: View {
                 .disabled(viewModel.markdownURLs.count == 0 || isValidating)
             }
         }
+        .padding(.horizontal, PlanetUI.SHEET_PADDING)
+        .padding(.bottom, PlanetUI.SHEET_PADDING)
+        .padding(.top, 0)
     }
 
     @ViewBuilder
     private func stepTwo() -> some View {
-        HStack {
-            Text("Select a planet to import files")
-                .foregroundStyle(Color.secondary)
-            Spacer()
-        }
         ScrollView {
-            ForEach(PlanetStore.shared.myPlanets, id: \.self) { planet in
-                HStack {
-                    planet.avatarView(size: 40)
-                    Text(planet.name)
-                    Spacer()
-                    if targetPlanet == planet {
-                        Image(systemName: "checkmark.circle.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 16, height: 16)
-                            .foregroundStyle(Color.accentColor)
+            VStack(alignment: .leading) {
+                ForEach(PlanetStore.shared.myPlanets, id: \.self) { planet in
+                    HStack {
+                        planet.avatarView(size: 40)
+                        Text(planet.name)
+                        Spacer()
+                        if targetPlanet == planet {
+                            Image(systemName: "checkmark.circle.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 16, height: 16)
+                                .foregroundStyle(Color.accentColor)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        targetPlanet = planet
                     }
                 }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    targetPlanet = planet
-                }
             }
+            .padding(PlanetUI.SHEET_PADDING)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        HStack {
-            Button {
-                step = .one
-            } label: {
-                Text("Back")
+        Divider()
+            .padding(.bottom, PlanetUI.SHEET_PADDING)
+            .padding(.top, 0)
+        ZStack {
+            HStack {
+                Spacer()
+                Text("Select a planet to import files")
+                    .foregroundStyle(Color.secondary)
+                Spacer()
             }
-            Spacer()
-            Button {
-                guard let targetPlanet else {
-                    viewModel.failedToImport(error: PlanetError.PlanetNotExistsError)
-                    return
+            HStack {
+                Button {
+                    step = .one
+                } label: {
+                    Text("Back")
                 }
-                viewModel.importToPlanet(targetPlanet)
-            } label: {
-                Text("Import")
+                Spacer()
+                Button {
+                    guard let targetPlanet else {
+                        viewModel.failedToImport(error: PlanetError.PlanetNotExistsError)
+                        return
+                    }
+                    viewModel.importToPlanet(targetPlanet)
+                } label: {
+                    Text("Import")
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(targetPlanet == nil)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(targetPlanet == nil)
         }
+        .padding(.horizontal, PlanetUI.SHEET_PADDING)
+        .padding(.bottom, PlanetUI.SHEET_PADDING)
+        .padding(.top, 0)
     }
 }
