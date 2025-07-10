@@ -47,15 +47,8 @@ struct PlanetImportItemView: View {
                         Text("Missing Resources")
                             .fontWeight(.light)
                     }
-                    .foregroundStyle(Color.orange)
                 }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.orange, lineWidth: 1)
-                )
+                .buttonStyle(.borderless)
             }
         }
         .padding(.bottom, 6)

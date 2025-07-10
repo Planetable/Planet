@@ -18,7 +18,6 @@ struct PlanetImportPreviewItemView: View {
     var body: some View {
         HStack {
             Text(url.path)
-                .foregroundStyle(Color.orange)
             Spacer(minLength: 8)
             Button {
                 locateAction()

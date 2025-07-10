@@ -43,9 +43,11 @@ struct PlanetImportPreviewView: View {
                 .padding(0)
 
             ScrollView {
-                ForEach(missing.sorted(by: { $0.absoluteString > $1.absoluteString }), id: \.self) { url in
-                    PlanetImportPreviewItemView(url: url, markdownURL: markdownURL)
-                        .environmentObject(viewModel)
+                VStack(spacing: 0) {
+                    ForEach(missing.sorted(by: { $0.absoluteString > $1.absoluteString }), id: \.self) { url in
+                        PlanetImportPreviewItemView(url: url, markdownURL: markdownURL)
+                            .environmentObject(viewModel)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
