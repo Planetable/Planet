@@ -813,6 +813,9 @@ actor IPFSDaemon {
             .count ?? 0
 
         if count > 0 {
+            // Re-calculate repo size after gc
+            try? await IPFSState.shared.calculateRepoSize()
+
             // Create and schedule notification
             let content = UNMutableNotificationContent()
             content.title = "IPFS Garbage Collection Complete"
