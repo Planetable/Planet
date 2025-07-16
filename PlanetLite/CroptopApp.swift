@@ -13,11 +13,13 @@ struct CroptopApp: App {
     @ObservedObject private var updater: PlanetUpdater
     @ObservedObject private var keyboardHelper: KeyboardShortcutHelper
     @ObservedObject var apiController: PlanetAPIController
+    @ObservedObject private var ipfsState: IPFSState
 
     init() {
         _updater = ObservedObject(wrappedValue: PlanetUpdater.shared)
         _keyboardHelper = ObservedObject(wrappedValue: KeyboardShortcutHelper.shared)
         _apiController = ObservedObject(wrappedValue: PlanetAPIController.shared)
+        _ipfsState = ObservedObject(wrappedValue: IPFSState.shared)
     }
 
     var body: some Scene {
@@ -145,7 +147,39 @@ struct CroptopApp: App {
     @CommandsBuilder
     func consoleToolsCommands() -> some Commands {
         CommandMenu("Tools") {
+            // API Console
             PlanetAPIConsoleWindowManager.shared.consoleCommandMenu()
+
+            Divider()
+
+            // Open and close IPFS Status
+            if ipfsState.isShowingStatusWindow {
+                Button {
+                    IPFSStatusWindowManager.shared.deactivate()
+                } label: {
+                    Text("Close IPFS Status")
+                }
+            } else {
+                Button {
+                    IPFSStatusWindowManager.shared.activate()
+                } label: {
+                    Text("Open IPFS Status")
+                }
+            }
+
+            // IPFS Garbage Collection
+            Button {
+                Task {
+                    do {
+                        try await IPFSDaemon.shared.gc()
+                    }
+                    catch {
+                        debugPrint("GC: failed to run gc: \(error)")
+                    }
+                }
+            } label: {
+                Text("Run IPFS Garbage Collection")
+            }
         }
     }
 
