@@ -16,13 +16,16 @@ class KeyboardShortcutHelper: ObservableObject {
 
     @ObservedObject private var updater: PlanetUpdater
     @ObservedObject private var serviceStore: PlanetPublishedServiceStore
+    @ObservedObject private var ipfsState: IPFSState
 
     @Published var activeWriterWindow: WriterWindow?
     @Published var activeMyPlanet: MyPlanetModel?
+    @Published var activeIPFSStatusWindow: IPFSStatusWindow?
 
     init() {
         _updater = ObservedObject(wrappedValue: PlanetUpdater.shared)
         _serviceStore = ObservedObject(wrappedValue: PlanetPublishedServiceStore.shared)
+        _ipfsState = ObservedObject(wrappedValue: IPFSState.shared)
     }
 
     @CommandsBuilder
@@ -294,6 +297,20 @@ class KeyboardShortcutHelper: ObservableObject {
             }
 
             Group {
+                if ipfsState.isShowingStatusWindow {
+                    Button {
+                        IPFSStatusWindowManager.shared.deactivate()
+                    } label: {
+                        Text("Close IPFS Status")
+                    }
+                } else {
+                    Button {
+                        IPFSStatusWindowManager.shared.activate()
+                    } label: {
+                        Text("Open IPFS Status")
+                    }
+                }
+
                 Button {
                     Task {
                         do {
