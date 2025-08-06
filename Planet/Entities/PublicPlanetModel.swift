@@ -43,8 +43,6 @@ struct PublicPlanetModel: Codable {
 
     let tags: [String: String]?
 
-    let authorName: String?
-
     func hasAudioContent() -> Bool {
         for article in articles {
             if article.audioFilename != nil {

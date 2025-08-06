@@ -19,9 +19,7 @@
     {% if has_podcast_cover_art %}
     <itunes:image href="{{ root_prefix }}/podcastCoverArt.png"/>
     {% endif %}
-    {% if planet.authorName %}
-    <itunes:author>{{ planet.authorName|escape }}</itunes:author>
-    {% endif %}
+    <itunes:author>{{ podcast_author_name|escape }}</itunes:author>
     <language>{{ planet.podcastLanguage|escape }}</language>
     <itunes:explicit>{% if planet.podcastExplicit %}yes{% else %}no{% endif %}</itunes:explicit>
     {% for category in planet.podcastCategories %}
@@ -40,9 +38,7 @@
         {% if podcast %}
         <enclosure url="{{ root_prefix }}/{{ article.id }}/{{ article.audioFilename }}" length="{{ article.audioByteLength }}" type="audio/mpeg" />
         <itunes:duration>{{ article.audioDuration|hhmmss }}</itunes:duration>
-        {% if planet.authorName %}
-        <itunes:author>{{ planet.authorName|escape }}</itunes:author>
-        {% endif %}
+        <itunes:author>{{ podcast_author_name|escape }}</itunes:author>
         {% endif %}
         <description><![CDATA[
             {{ article.content|md2html|absoluteImageURL:root_prefix,article.id }}

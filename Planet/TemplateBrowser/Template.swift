@@ -255,8 +255,7 @@ class Template: Codable, Identifiable {
             podcastCategories: planet.podcastCategories ?? [:],
             podcastLanguage: planet.podcastLanguage ?? "en",
             podcastExplicit: planet.podcastExplicit ?? false,
-            tags: planet.tags ?? [:],
-            authorName: planet.authorName
+            tags: planet.tags ?? [:]
         )
         let pageAboutHTML = CMarkRenderer.renderMarkdownHTML(markdown: planet.about) ?? planet.about
 
@@ -592,8 +591,7 @@ class Template: Codable, Identifiable {
             podcastCategories: [:],
             podcastLanguage: "en-US",
             podcastExplicit: false,
-            tags: [:],
-            authorName: ""
+            tags: [:]
         )
 
         // render stencil template
