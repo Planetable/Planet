@@ -1568,7 +1568,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     podcastCategories: podcastCategories,
                     podcastLanguage: podcastLanguage,
                     podcastExplicit: podcastExplicit,
-                    tags: tags
+                    tags: tags,
+                    authorName: authorName
                 )
                 let environment = Environment(extensions: [StencilExtension.common])
                 let root_prefix: String
@@ -1697,7 +1698,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             podcastCategories: podcastCategories,
             podcastLanguage: podcastLanguage,
             podcastExplicit: podcastExplicit,
-            tags: tags
+            tags: tags,
+            authorName: authorName
         )
         let hasPodcastCoverArt = FileManager.default.fileExists(
             atPath: publicPodcastCoverArtPath.path
