@@ -195,9 +195,7 @@ struct CMarkRenderer {
             }
         }
 
-        inputText.withCString { cstr in
-            cmark_parser_feed(parser, cstr, strlen(cstr))
-        }
+        cmark_parser_feed(parser, inputText, inputText.utf8.count)
 
         guard let node = cmark_parser_finish(parser) else { return nil }
         defer { cmark_node_free(node) }
