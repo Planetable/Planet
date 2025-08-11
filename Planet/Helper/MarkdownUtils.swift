@@ -202,9 +202,10 @@ struct CMarkRenderer {
 
         // use GitHub flavored rules: render line break in <p> as <br>
         // Reference: https://github.com/theacodes/cmarkgfm/blob/master/README.rst#advanced-usage
-        guard let htmlPtr = cmark_render_html(node, CMARK_OPT_UNSAFE | CMARK_OPT_HARDBREAKS, nil) else { return nil }
-        defer { free(htmlPtr) }
+        guard let htmlBuffer = cmark_render_html(node, CMARK_OPT_UNSAFE | CMARK_OPT_HARDBREAKS, nil) else { return nil }
+        defer { free(htmlBuffer) }
 
-        return String(cString: htmlPtr)
+        guard let html = String(validatingUTF8: htmlBuffer) else { return nil }
+        return html
     }
 }
