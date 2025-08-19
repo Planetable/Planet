@@ -17,6 +17,7 @@ class IPFSState: ObservableObject {
     @Published private(set) var apiPort: UInt16 = 5981
     @Published private(set) var gatewayPort: UInt16 = 18181
     @Published private(set) var swarmPort: UInt16 = 4001
+    @Published private(set) var pid: Int32 = -1
     @Published private(set) var isCalculatingRepoSize: Bool = false
     @Published private(set) var repoSize: Int64?
     @Published private(set) var serverInfo: ServerInfo?
@@ -75,6 +76,17 @@ class IPFSState: ObservableObject {
     @MainActor
     func updateGatewayPort(_ port: UInt16) {
         self.gatewayPort = port
+    }
+
+    @MainActor
+    func updatePID(_ value: Int32) {
+        guard value > 0 else { return }
+        self.pid = value
+    }
+
+    @MainActor
+    func resetPID() {
+        self.pid = -1
     }
 
     @MainActor

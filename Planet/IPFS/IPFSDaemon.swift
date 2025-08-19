@@ -2,6 +2,7 @@ import Foundation
 import SwiftyJSON
 import UserNotifications
 import os
+import Darwin
 
 actor IPFSDaemon {
     static let shared = IPFSDaemon()
@@ -296,7 +297,12 @@ actor IPFSDaemon {
             }
             throw PlanetError.IPFSError
         }
-        _ = try? IPFSCommand.shutdownDaemon().run()
+        let pid = IPFSState.shared.pid
+        if pid > 0 {
+            kill(pid, SIGKILL)
+            Self.logger.info("Previous running daemon killed, pid: \(pid)")
+        }
+//        _ = try? IPFSCommand.shutdownDaemon().run()
         do {
             Task { @MainActor in
                 IPFSState.shared.updateOperatingStatus(true)
@@ -345,14 +351,29 @@ actor IPFSDaemon {
     }
 
     func shutdown() throws {
-        Self.logger.info("Shutting down daemon")
+        let timeout: TimeInterval = 5
+        let targetPID = IPFSState.shared.pid
+        Self.logger.info("Shutting down daemon, pid: \(targetPID), timeout in \(timeout) seconds.")
         Task { @MainActor in
             IPFSState.shared.updateOperatingStatus(true)
         }
         do {
+            let killer = DispatchWorkItem {
+                let currentPID = IPFSState.shared.pid
+                guard currentPID == targetPID, currentPID > 0 else { return }
+                kill(currentPID, SIGKILL)
+                Self.logger.info("Daemon killed due to timeout, pid: \(currentPID)")
+                Task { @MainActor in
+                    IPFSState.shared.resetPID()
+                }
+            }
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + timeout, execute: killer)
+
             let (ret, out, err) = try IPFSCommand.shutdownDaemon().run()
             if ret == 0 {
+                killer.cancel()
                 Task { @MainActor in
+                    IPFSState.shared.resetPID()
                     IPFSState.shared.updateOnlineStatus(false)
                 }
                 Self.logger.info("Daemon shut down")

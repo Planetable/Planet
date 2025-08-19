@@ -114,6 +114,10 @@ struct IPFSCommand {
 
         try process.run()
 
+        DispatchQueue.main.async {
+            IPFSState.shared.updatePID(process.processIdentifier)
+        }
+
         process.terminationHandler = { process in
             outputPipe.fileHandleForReading.readabilityHandler = nil
             errorPipe.fileHandleForReading.readabilityHandler = nil
