@@ -1588,6 +1588,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "domain": domainWithGateway ?? "",
                     "root_prefix": root_prefix,
                     "podcast": podcastOnly,
+                    "podcast_author_name": authorName ?? "",
                     "has_podcast_cover_art": FileManager.default.fileExists(
                         atPath: publicPodcastCoverArtPath.path
                     ),
