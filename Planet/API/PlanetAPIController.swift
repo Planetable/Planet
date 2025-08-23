@@ -91,6 +91,9 @@ class PlanetAPIController: NSObject, ObservableObject {
             UserDefaults.standard.set(true, forKey: .settingsAPIEnabled)
         }
         startBonjourService()
+        DispatchQueue.main.async {
+            SleepHelper.shared.enablePreventingIdleSleep()
+        }
     }
 
     func stop(skipStatus: Bool = false) async throws {
@@ -119,6 +122,11 @@ class PlanetAPIController: NSObject, ObservableObject {
             }
         }
         stopBonjourService()
+        DispatchQueue.main.async {
+            if !IPFSState.shared.online {
+                SleepHelper.shared.disablePreventingIdleSleep()
+            }
+        }
     }
 
     // MARK: - Bonjour Service

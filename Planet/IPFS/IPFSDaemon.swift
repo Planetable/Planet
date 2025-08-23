@@ -316,6 +316,9 @@ actor IPFSDaemon {
                                 IPFSState.shared.updateOperatingStatus(false)
                             }
                         }
+                        DispatchQueue.main.async {
+                            SleepHelper.shared.enablePreventingIdleSleep()
+                        }
                     }
                 },
                 errHandler: { data in
@@ -379,6 +382,11 @@ actor IPFSDaemon {
         }
         Task { @MainActor in
             IPFSState.shared.updateOperatingStatus(false)
+        }
+        DispatchQueue.main.async {
+            if !PlanetAPIController.shared.serverIsRunning {
+                SleepHelper.shared.disablePreventingIdleSleep()
+            }
         }
     }
 

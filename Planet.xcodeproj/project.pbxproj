@@ -77,6 +77,8 @@
 		2A4AE87B2A89EF3600A27B5B /* GroupIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4AE8792A89EF3600A27B5B /* GroupIndicatorView.swift */; };
 		2A4AE87D2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */; };
 		2A4AE87E2A89F49B00A27B5B /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */; };
+		2A5DA7572E5958510074549F /* SleepHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DA7562E5958510074549F /* SleepHelper.swift */; };
+		2A5DA7582E5958510074549F /* SleepHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DA7562E5958510074549F /* SleepHelper.swift */; };
 		2A5DAE5E2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */; };
 		2A5DAE5F2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */; };
 		2A6247AE292CC5F400714BFA /* IndicatorLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */; };
@@ -630,6 +632,7 @@
 		2A466FD02A809E2C009FB646 /* IndicatorViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorViews.swift; sourceTree = "<group>"; };
 		2A4AE8792A89EF3600A27B5B /* GroupIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupIndicatorView.swift; sourceTree = "<group>"; };
 		2A4AE87C2A89F49B00A27B5B /* SharedAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SharedAssets.xcassets; sourceTree = "<group>"; };
+		2A5DA7562E5958510074549F /* SleepHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepHelper.swift; sourceTree = "<group>"; };
 		2A5DAE5D2BFEF20C001ED527 /* IPFSMigrationCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSMigrationCommand.swift; sourceTree = "<group>"; };
 		2A6247AD292CC5F400714BFA /* IndicatorLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorLabelView.swift; sourceTree = "<group>"; };
 		2A6DC6262AEB7F9D0025D6A7 /* PlanetStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetStatusManager.swift; sourceTree = "<group>"; };
@@ -1259,6 +1262,7 @@
 				2A90A80229DBB6FC00D45E5E /* KeyboardShortcutHelper.swift */,
 				2A3967882D7ADB2F002CBE7A /* HttpRequest.swift */,
 				2A1B9CF52D942F9800EF5488 /* ScheduledTasksManager.swift */,
+				2A5DA7562E5958510074549F /* SleepHelper.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -1949,6 +1953,7 @@
 				2A95E6E72A19A64F001288B8 /* SharingServicePicker.swift in Sources */,
 				2A95E68C2A19A3CA001288B8 /* WriterTextView.swift in Sources */,
 				2A95E64D2A19A398001288B8 /* PFDashboardContentView.swift in Sources */,
+				2A5DA7572E5958510074549F /* SleepHelper.swift in Sources */,
 				6AA2C2032AFF538B00F6C633 /* MyArticleGridView.swift in Sources */,
 				6AB75A8E2A5496F20050AD58 /* MyPlanetTemplateSettingsView.swift in Sources */,
 				2A996ADA2A1DA6D100BEF898 /* PlanetDownloadsWebView.swift in Sources */,
@@ -2275,6 +2280,7 @@
 				6A52FAE92A8893E9000E85F0 /* PublicArticleModel.swift in Sources */,
 				6AC01AF0291ECC7E00EB6B5F /* WalletAccountView.swift in Sources */,
 				721145603D528B27CC6091D1 /* WriterDragAndDrop.swift in Sources */,
+				2A5DA7582E5958510074549F /* SleepHelper.swift in Sources */,
 				2AA7974329496F730031E873 /* PFDashboardSidebarViewController.swift in Sources */,
 				2A3C6E762C22A3AA007B2CCD /* IPFSStatusWindowController.swift in Sources */,
 				2A391F052BF3137A006A3FD6 /* IPFSTrafficView.swift in Sources */,
