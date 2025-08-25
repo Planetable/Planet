@@ -148,7 +148,7 @@ struct FollowPlanetView: View {
                 if !isCancelled {
                     PlanetStore.shared.alert(
                         title: "Failed to follow planet",
-                        message: "\(error)"
+                        message: error.localizedDescription
                     )
                 }
             }
