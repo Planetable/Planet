@@ -78,6 +78,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         streamingSession = URLSession(configuration: .default, delegate: self, delegateQueue: .main)
         loadAvailableModels()
         loadPrompts()
+        #if canImport(FoundationModels)
         if #available(macOS 26.0, *) {
             appleIntelligenceAvailable = SystemLanguageModel.default.isAvailable
             if !appleIntelligenceAvailable {
@@ -86,6 +87,10 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
                 // prewarm the language session...
             }
         }
+        #else
+        appleIntelligenceAvailable = false
+        useAppleIntelligence = false
+        #endif
     }
 
     func loadAvailableModels() {
@@ -138,6 +143,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
     }
 
     func sendPrompt(withDraft draft: DraftModel) {
+        #if canImport(FoundationModels)
         if useAppleIntelligence, #available(macOS 26.0, *) {
             Task.detached {
                 do {
@@ -151,6 +157,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
             }
             return
         }
+        #endif
         cancelCurrentRequest()
 
         guard let url = URL(string: "\(server)/v1/chat/completions") else {
@@ -271,6 +278,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         }
     }
 
+    #if canImport(FoundationModels)
     @available(macOS 26.0, *)
     @MainActor
     private func processWithAppleIntelligence(_ draft: DraftModel) async throws {
@@ -294,6 +302,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         result = response.content
         queryStatus = .success
     }
+    #endif
 
     private func processServerData() {
         guard let str = String(data: buffer, encoding: .utf8) else { 
