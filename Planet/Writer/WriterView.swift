@@ -6,7 +6,7 @@ import WebKit
 struct WriterView: View {
     @ObservedObject var draft: DraftModel
     @ObservedObject var viewModel: WriterViewModel
-    @ObservedObject private var llmViewModel: WriterLLMViewModel = WriterLLMViewModel()
+    @ObservedObject private var llmViewModel: WriterLLMViewModel = WriterLLMViewModel.shared
     @FocusState var focusTitle: Bool
     let dragAndDrop: WriterDragAndDrop
 
@@ -14,6 +14,14 @@ struct WriterView: View {
     @State private var audioPlayerHeight: CGFloat = 0
     @State private var leftView: LeftView = .markdown
     @State private var rightView: RightView = .preview
+
+    static let tabHighlightColor: Color = {
+        if #available(macOS 26.0, *) {
+            return Color.accentColor.opacity(0.05)
+        } else {
+            return Color(NSColor.textBackgroundColor)
+        }
+    }()
 
     init(draft: DraftModel, viewModel: WriterViewModel) {
         self.draft = draft
@@ -23,7 +31,7 @@ struct WriterView: View {
 
     var body: some View {
         let model = llmViewModel.selectedModel
-        let showTabs = model != "" && llmViewModel.availableModels.contains(model)
+        let showTabs = (model != "" && llmViewModel.availableModels.contains(model)) || llmViewModel.useAppleIntelligence
         VStack(spacing: 0) {
             if let videoAttachment = draft.attachments.first(where: { $0.type == .video }) {
                 WriterVideoView(videoAttachment: videoAttachment)
@@ -162,7 +170,7 @@ struct WriterView: View {
                         .frame(maxWidth: .infinity)
                     }
                     .padding(.vertical, 6)
-                    .background(leftView == .markdown ? Color(NSColor.textBackgroundColor) : Color.clear)
+                    .background(leftView == .markdown ? Self.tabHighlightColor : Color.clear)
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -174,7 +182,7 @@ struct WriterView: View {
                         .frame(maxWidth: .infinity)
                     }
                     .padding(.vertical, 6)
-                    .background(leftView == .prompt ? Color(NSColor.textBackgroundColor) : Color.clear)
+                    .background(leftView == .prompt ? Self.tabHighlightColor : Color.clear)
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -196,7 +204,7 @@ struct WriterView: View {
                         .frame(maxWidth: .infinity)
                     }
                     .padding(.vertical, 6)
-                    .background(rightView == .preview ? Color(NSColor.textBackgroundColor) : Color.clear)
+                    .background(rightView == .preview ? Self.tabHighlightColor : Color.clear)
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -208,7 +216,7 @@ struct WriterView: View {
                         .frame(maxWidth: .infinity)
                     }
                     .padding(.vertical, 6)
-                    .background(rightView == .llmOutput ? Color(NSColor.textBackgroundColor) : Color.clear)
+                    .background(rightView == .llmOutput ? Self.tabHighlightColor : Color.clear)
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
                     .onTapGesture {

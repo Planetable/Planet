@@ -14,12 +14,21 @@ struct PlanetSettingsLLMView: View {
     var body: some View {
         VStack {
             Form {
+                if viewModel.appleIntelligenceAvailable {
+                    Section {
+                        Toggle(isOn: $viewModel.useAppleIntelligence) {
+                            Text("Use Apple Intelligence")
+                        }
+                    }
+                    .padding(.top, 6)
+                }
+
                 Section {
                     TextField("Server", text: $viewModel.server)
                         .textFieldStyle(.roundedBorder)
                 }
                 .padding(.top, 6)
-                
+
                 Section {
                     if !viewModel.availableModels.isEmpty {
                         Picker("Select Model", selection: $viewModel.selectedModel) {

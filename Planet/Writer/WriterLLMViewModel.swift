@@ -7,6 +7,9 @@
 
 import Foundation
 import SwiftUI
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
 
 
 enum LLMQueryStatus: CustomStringConvertible, Hashable {
@@ -31,9 +34,12 @@ enum LLMQueryStatus: CustomStringConvertible, Hashable {
 
 
 class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
+    static let shared = WriterLLMViewModel()
+
     static let llmServerKey = "PlanetLLMServerKey"
     static let llmSelectedModelKey = "PlanetLLMSelectedModelKey"
-    
+    static let useAppleIntelligenceKey = "PlanetUseAppleIntelligenceKey"
+
     @Published var server: String = UserDefaults.standard.string(forKey: WriterLLMViewModel.llmServerKey) ?? "http://localhost:1234" {
         didSet {
             UserDefaults.standard.set(server, forKey: WriterLLMViewModel.llmServerKey)
@@ -56,16 +62,30 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         }
     }
     @Published var queryStatus: LLMQueryStatus = .idle
-    
+    @Published var appleIntelligenceAvailable: Bool = false
+    @Published var useAppleIntelligence: Bool = UserDefaults.standard.bool(forKey: WriterLLMViewModel.useAppleIntelligenceKey) {
+        didSet {
+            UserDefaults.standard.set(useAppleIntelligence, forKey: WriterLLMViewModel.useAppleIntelligenceKey)
+        }
+    }
+
     private var currentTask: URLSessionTask?
     private var buffer = Data()
     private var streamingSession: URLSession?
-    
+
     override init() {
         super.init()
         streamingSession = URLSession(configuration: .default, delegate: self, delegateQueue: .main)
         loadAvailableModels()
         loadPrompts()
+        if #available(macOS 26.0, *) {
+            appleIntelligenceAvailable = SystemLanguageModel.default.isAvailable
+            if !appleIntelligenceAvailable {
+                useAppleIntelligence = false
+            } else {
+                // prewarm the language session...
+            }
+        }
     }
 
     func loadAvailableModels() {
@@ -118,6 +138,19 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
     }
 
     func sendPrompt(withDraft draft: DraftModel) {
+        if useAppleIntelligence, #available(macOS 26.0, *) {
+            Task.detached {
+                do {
+                    try await self.processWithAppleIntelligence(draft)
+                } catch {
+                    Task { @MainActor in
+                        self.result = "Failed to encode request."
+                        self.queryStatus = .error("Failed to encode request.")
+                    }
+                }
+            }
+            return
+        }
         cancelCurrentRequest()
 
         guard let url = URL(string: "\(server)/v1/chat/completions") else {
@@ -176,7 +209,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         currentTask = task
         task?.resume()
     }
-    
+
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         buffer.append(data)
         processServerData()
@@ -237,7 +270,31 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
             debugPrint("Failed to save prompts: \(error.localizedDescription)")
         }
     }
-    
+
+    @available(macOS 26.0, *)
+    @MainActor
+    private func processWithAppleIntelligence(_ draft: DraftModel) async throws {
+        debugPrint("processing with apple intelligence: \(draft) ...")
+        let session = LanguageModelSession {
+            """
+            You are a helpful writing assistant. \
+            If the user asks to *translate*, translate faithfully and preserve markdown. \
+            Otherwise respond normally.
+            """
+        }
+        let userPrompt = """
+        \(prompt)\n\n
+        \(draft.title)
+        \(draft.content)
+        """
+        queryStatus = .sending
+        result = ""
+        buffer = Data()
+        let response = try await session.respond(to: userPrompt)
+        result = response.content
+        queryStatus = .success
+    }
+
     private func processServerData() {
         guard let str = String(data: buffer, encoding: .utf8) else { 
             debugPrint("Failed to decode buffer data with UTF-8 encoding")
