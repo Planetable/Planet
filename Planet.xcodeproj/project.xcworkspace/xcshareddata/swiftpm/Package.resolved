@@ -1,5 +1,5 @@
 {
-  "originHash" : "2c847317a1c0b8351e153596b649cffa864d30565db29d75513203a5ce326834",
+  "originHash" : "6936249e48f537137b6f05a0d0e6a095087669d4375236b2047995e6929b72c9",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Planetable/ENSKit",
       "state" : {
-        "branch" : "main",
-        "revision" : "321c4d1cfdf54207901d2add58b23d48543f5fa8"
+        "branch" : "xcode26",
+        "revision" : "ebacb6c02dc74cdb62c4e7f9e9699563014db412"
       }
     },
     {
@@ -76,10 +76,10 @@
     {
       "identity" : "hdwallet",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/WalletConnect/HDWallet",
+      "location" : "https://github.com/kailuo/HDWallet",
       "state" : {
-        "branch" : "develop",
-        "revision" : "748a85b1dfe9a2fa592bd9266c5a926e4e1d3f44"
+        "branch" : "xcode26",
+        "revision" : "4b9d2d366557a097c4d892da8f96e5f52203e2f7"
       }
     },
     {

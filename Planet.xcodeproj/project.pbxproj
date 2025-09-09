@@ -2735,9 +2735,9 @@
 		};
 		2AAF51082C293DE100C0B7AA /* XCRemoteSwiftPackageReference "HDWallet" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/WalletConnect/HDWallet";
+			repositoryURL = "https://github.com/kailuo/HDWallet";
 			requirement = {
-				branch = develop;
+				branch = xcode26;
 				kind = branch;
 			};
 		};
@@ -2865,7 +2865,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Planetable/ENSKit";
 			requirement = {
-				branch = main;
+				branch = xcode26;
 				kind = branch;
 			};
 		};
