@@ -150,7 +150,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
                     let stream = await self.processWithAppleIntelligence(draft)
                     for try await response in stream {
                         Task { @MainActor in
-                            self.result += response.content
+                            self.result = response.content
                             self.queryStatus = .sending
                         }
                     }
