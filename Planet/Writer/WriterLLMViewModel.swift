@@ -147,10 +147,18 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         if useAppleIntelligence, #available(macOS 26.0, *) {
             Task.detached {
                 do {
-                    try await self.processWithAppleIntelligence(draft)
+                    let stream = await self.processWithAppleIntelligence(draft)
+                    for try await response in stream {
+                        Task { @MainActor in
+                            self.result += response.content
+                            self.queryStatus = .sending
+                        }
+                    }
+                    Task { @MainActor in
+                        self.queryStatus = .success
+                    }
                 } catch {
                     Task { @MainActor in
-                        self.result = "Failed to encode request."
                         self.queryStatus = .error("Failed to encode request.")
                     }
                 }
@@ -281,7 +289,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
     #if canImport(FoundationModels)
     @available(macOS 26.0, *)
     @MainActor
-    private func processWithAppleIntelligence(_ draft: DraftModel) async throws {
+    private func processWithAppleIntelligence(_ draft: DraftModel) -> LanguageModelSession.ResponseStream<String> {
         debugPrint("processing with apple intelligence: \(draft) ...")
         let session = LanguageModelSession {
             """
@@ -298,9 +306,7 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
         queryStatus = .sending
         result = ""
         buffer = Data()
-        let response = try await session.respond(to: userPrompt)
-        result = response.content
-        queryStatus = .success
+        return session.streamResponse(to: userPrompt)
     }
     #endif
 
