@@ -17,8 +17,15 @@ struct PlanetSettingsLLMView: View {
                 if viewModel.appleIntelligenceAvailable {
                     Section {
                         Toggle(isOn: $viewModel.useAppleIntelligence) {
-                            Text("Use Apple Intelligence")
+                            Text("Apple Intelligence")
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .toggleStyle(.switch)
+                    } footer: {
+                        Text("All responses are generated using on-device Apple Intelligence. Turn off this option to use other LLM servers.")
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .foregroundStyle(Color.secondary)
                     }
                     .padding(.top, 6)
                 }
@@ -59,7 +66,7 @@ struct PlanetSettingsLLMView: View {
                     Text("Reload Models")
                 }
             }
-            .frame(height: 42)
+            .frame(height: 56)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .background(Color.secondary.opacity(0.1))

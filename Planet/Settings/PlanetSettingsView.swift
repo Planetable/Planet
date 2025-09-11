@@ -41,7 +41,7 @@ struct PlanetSettingsView: View {
                     Label("LLM", systemImage: "text.book.closed")
                 }
                 .tag(PlanetSettingsTab.llm)
-                .frame(width: 480, height: 240)
+                .frame(width: 480, height: 280)
                 .environmentObject(llmViewModel)
 
             PlanetAPIControlView()
