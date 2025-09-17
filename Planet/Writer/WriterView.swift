@@ -6,7 +6,7 @@ import WebKit
 struct WriterView: View {
     @ObservedObject var draft: DraftModel
     @ObservedObject var viewModel: WriterViewModel
-    @ObservedObject private var llmViewModel: WriterLLMViewModel = WriterLLMViewModel.shared
+    @ObservedObject private var llmViewModel: WriterLLMViewModel = WriterLLMViewModel()
     @FocusState var focusTitle: Bool
     let dragAndDrop: WriterDragAndDrop
 
