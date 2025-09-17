@@ -15,6 +15,8 @@ struct WriterView: View {
     @State private var leftView: LeftView = .markdown
     @State private var rightView: RightView = .preview
 
+    @AppStorage(WriterLLMViewModel.useAppleIntelligenceKey) private var useAppleIntelligence: Bool = false
+
     static let tabHighlightColor: Color = {
         if #available(macOS 26.0, *) {
             return Color.accentColor.opacity(0.05)
@@ -31,7 +33,7 @@ struct WriterView: View {
 
     var body: some View {
         let model = llmViewModel.selectedModel
-        let showTabs = (model != "" && llmViewModel.availableModels.contains(model)) || llmViewModel.useAppleIntelligence
+        let showTabs = (model != "" && llmViewModel.availableModels.contains(model)) || useAppleIntelligence
         VStack(spacing: 0) {
             if let videoAttachment = draft.attachments.first(where: { $0.type == .video }) {
                 WriterVideoView(videoAttachment: videoAttachment)

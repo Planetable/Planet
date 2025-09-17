@@ -83,8 +83,6 @@ class WriterLLMViewModel: NSObject, ObservableObject, URLSessionDataDelegate {
             appleIntelligenceAvailable = SystemLanguageModel.default.isAvailable
             if !appleIntelligenceAvailable {
                 useAppleIntelligence = false
-            } else {
-                // prewarm the language session...
             }
         }
         #else
