@@ -274,14 +274,9 @@ class PlanetAPIController: NSObject, ObservableObject {
         app.http.server.configuration.port = port
         app.http.server.configuration.hostname = "0.0.0.0"
 
-        let repoPath: String = {
-            if #available(macOS 13.0, *) {
-                return URLUtils.repoPath().appendingPathComponent("Public", conformingTo: .folder).path()
-            } else {
-                return URLUtils.repoPath().appendingPathComponent("Public", conformingTo: .folder).path
-            }
-        }()
-        let fileMiddleware = FileMiddleware(publicDirectory: repoPath, defaultFile: "index.html")
+        let publicURL = URLUtils.repoPath().appendingPathComponent("Public", isDirectory: true)
+        let publicPath = publicURL.standardizedFileURL.resolvingSymlinksInPath().path
+        let fileMiddleware = FileMiddleware(publicDirectory: publicPath, defaultFile: "index.html")
         app.middleware.use(fileMiddleware)
 
         let logMiddleware = PlanetAPILogMiddleware()
