@@ -1273,11 +1273,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             debugPrint("Updating planet (ENS type) \(name): about to get contenthash")
 
-            guard let contentHash = data.contentHash else {
-                debugPrint("FollowENS ENSDataClient: No content hash set for \(ens)")
-                throw PlanetError.ENSNoContentHashError
-            }
-
             guard let contentHashURL = URL(string: {
                 if contentHash.hasPrefix("k51") {
                     return "ipns://\(contentHash)"
