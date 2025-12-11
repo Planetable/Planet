@@ -37,7 +37,7 @@ struct ENSUtils {
     // ENSKit uses Cloudflare Ethereum Gateway by default, which does not search history
     // Use other Ethereum API that supports searchContenthashHistory and lastContenthashChange
     // static let shared = ENSKit(jsonrpcClient: EthereumAPI.Flashbots, ipfsClient: GoIPFSGateway())
-    static let shared = ENSKit(ipfsClient: GoIPFSGateway())
+    // static let shared = ENSKit(ipfsClient: GoIPFSGateway())
 
     static func isIPNS(_ str: String) -> Bool {
         if !str.hasPrefix("k") {

@@ -1,4 +1,5 @@
 import ENSKit
+import ENSDataKit
 import Foundation
 import SwiftSoup
 import SwiftUI
@@ -485,27 +486,38 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     static func followENS(ens: String) async throws -> FollowingPlanetModel {
-        var enskit = ENSKit(jsonrpcClient: EthereumAPI.Flashbots, ipfsClient: GoIPFSGateway())
-        var resolver = try await enskit.resolver(name: ens)
-        if resolver == nil {
-            debugPrint("ENSKit resolver is nil with Flashbots, retrying with Llama")
-            enskit = ENSKit(jsonrpcClient: InfuraEthereumAPI(url: URL(string: "https://eth.llamarpc.com")!), ipfsClient: GoIPFSGateway())
-            resolver = try await enskit.resolver(name: ens)
-        }
-        // TODO: Lightweight ENS resolver powered by https://api.ensdata.net/vitalik.eth
-        guard let resolver = resolver else {
-            throw PlanetError.InvalidPlanetURLError
-        }
-        let result: URL?
+        let ensdata = ENSDataClient()
+        let data: ENSData
         do {
-            result = try await resolver.contenthash()
-        }
-        catch {
+            data = try await ensdata.resolve(ens)
+            print("FollowENS ENSDataClient: Resolved \(ens) with ENSDataClient: \(String(describing: data))")
+        } catch {
+            debugPrint("FollowENS ENSDataClient: Failed to resolve \(ens): \(error)")
+            // ignore error
             throw PlanetError.EthereumError
         }
-        Self.logger.info("FollowENS: Get contenthash from \(ens): \(String(describing: result))")
-        guard let contenthash = result,
-            let cid = try await ENSUtils.getCID(from: contenthash)
+
+        guard let contentHash = data.contentHash else {
+            debugPrint("FollowENS ENSDataClient: No content hash set for \(ens)")
+            throw PlanetError.ENSNoContentHashError
+        }
+
+        guard let contentHashURL = URL(string: {
+            if contentHash.hasPrefix("k51") {
+                return "ipns://\(contentHash)"
+            } else if contentHash.hasPrefix("Qm") {
+                return "ipfs://\(contentHash)"
+            } else if contentHash.hasPrefix("bafy") {
+                return "ipfs://\(contentHash)"
+            } else {
+                return "ipfs://\(contentHash)"
+            }
+        }() ) else {
+            debugPrint("FollowENS ENSDataClient: Invalid content hash URL for \(ens): \(contentHash)")
+            throw PlanetError.ENSNoContentHashError
+        }
+
+        guard let cid = try await ENSUtils.getCID(from: contentHashURL)
         else {
             throw PlanetError.ENSNoContentHashError
         }
@@ -548,31 +560,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             planet.articles.sort { $0.created > $1.created }
 
-            /*
-            // try to find ENS avatar
-            if let data = try? await resolver.avatar(),
-                let image = NSImage(data: data),
-                let _ = try? data.write(to: planet.avatarPath)
-            {
-                Self.logger.info("Follow \(ens): found avatar from ENS")
-                planet.avatar = image
-            }
-            else
-            // try to find native planet avatar
-            if let planetAvatarURL = URL(
-                string: "\(gateway)/ipfs/\(cid)/avatar.png"
-            ),
-                let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
-                let httpResponse = response as? HTTPURLResponse,
-                httpResponse.ok,
-                let image = NSImage(data: data),
-                let _ = try? data.write(to: planet.avatarPath)
-            {
-                Self.logger.info("Follow \(ens): found avatar in native planet")
-                planet.avatar = image
-            }
-            */
-
             try planet.save()
             try planet.articles.forEach { try $0.save() }
 
@@ -609,8 +596,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             )
             // Resolve wallet address
 
-            if let walletAddress = try? await resolver.addr() {
-                planet.walletAddress = "0x" + walletAddress
+            if let walletAddress = data.address {
+                planet.walletAddress = walletAddress
                 planet.walletAddressResolvedAt = Date()
                 debugPrint("Tipping: Got wallet address for \(ens): \(walletAddress)")
             }
@@ -678,32 +665,39 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             withIntermediateDirectories: true
         )
 
-        if let data = try? await resolver.avatar(),
+        if let avatarURLString = data.avatar,
+            let avatarURL = URL(string: avatarURLString),
+            let (data, response) = try? await URLSession.shared.data(from: avatarURL),
+            let httpResponse = response as? HTTPURLResponse,
+            httpResponse.ok,
             let image = NSImage(data: data),
             let _ = try? data.write(to: planet.avatarPath)
         {
             Self.logger.info("Follow \(ens): found avatar from ENS")
             planet.avatar = image
         }
-        else if let data = feedAvatar,
-            let image = NSImage(data: data),
-            let _ = try? data.write(to: planet.avatarPath)
+        else if let feedAvatar = feedAvatar,
+            let image = NSImage(data: feedAvatar),
+            let _ = try? feedAvatar.write(to: planet.avatarPath)
         {
             Self.logger.info("Follow \(ens): found avatar from feed")
             planet.avatar = image
+        }
+        else {
+            Self.logger.info("Follow \(ens): no avatar found")
         }
 
         try planet.save()
         try planet.articles.forEach { try $0.save() }
 
-        if let walletAddress = try? await resolver.addr() {
+        if let walletAddress = data.address {
             debugPrint("Tipping: got wallet address for \(planet.link): \(walletAddress)")
             var saveNow: Bool = false
-            if planet.walletAddress == nil || planet.walletAddress != "0x" + walletAddress {
+            if planet.walletAddress == nil || planet.walletAddress != walletAddress {
                 saveNow = true
             }
             await MainActor.run {
-                planet.walletAddress = "0x" + walletAddress
+                planet.walletAddress = walletAddress
                 planet.walletAddressResolvedAt = Date()
             }
             if saveNow {

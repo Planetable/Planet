@@ -1,5 +1,5 @@
 {
-  "originHash" : "2c847317a1c0b8351e153596b649cffa864d30565db29d75513203a5ce326834",
+  "originHash" : "ef6e01c23d73fcf5d6cc328fe458dc1d8cdfa34f903d3ffb7539bd0dcc610daf",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -53,6 +53,15 @@
       "state" : {
         "revision" : "039f56c5d7960f277087a0be51f5eb04ed0ec073",
         "version" : "1.5.1"
+      }
+    },
+    {
+      "identity" : "ensdatakit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Planetable/ENSDataKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "f134cb157c2161b0a88cf25cdf46017648d9123e"
       }
     },
     {

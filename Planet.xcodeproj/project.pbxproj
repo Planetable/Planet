@@ -423,6 +423,7 @@
 		6A74E49D2A5929BB00FF2F2A /* MintSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A74E49B2A5929BB00FF2F2A /* MintSettings.swift */; };
 		6A75FA5C2D1A0F5100B76AE8 /* WebAppUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A75FA5B2D1A0F4A00B76AE8 /* WebAppUpdater.swift */; };
 		6A75FA5D2D1A0F5100B76AE8 /* WebAppUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A75FA5B2D1A0F4A00B76AE8 /* WebAppUpdater.swift */; };
+		6A7E140E2EE1369000316863 /* ENSDataKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6A7E140D2EE1369000316863 /* ENSDataKit */; };
 		6A7F60662B21A37100475731 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A7F60652B21A37100475731 /* SearchView.swift */; };
 		6A7F60672B21A37100475731 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A7F60652B21A37100475731 /* SearchView.swift */; };
 		6A7F60692B21ACE500475731 /* PlanetStore+Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A7F60682B21ACE500475731 /* PlanetStore+Search.swift */; };
@@ -930,6 +931,7 @@
 				6AB6E511291527B800F17328 /* WalletConnectAuth in Frameworks */,
 				6A7189692947FD0500279D77 /* Web3 in Frameworks */,
 				BBC831AB2836239300CE1F67 /* PlanetSiteTemplates in Frameworks */,
+				6A7E140E2EE1369000316863 /* ENSDataKit in Frameworks */,
 				6AB6E50F291527B800F17328 /* WalletConnect in Frameworks */,
 				2AAF510A2C293DE100C0B7AA /* HDWalletKit in Frameworks */,
 				2A69F04727E1B53A00141DC0 /* FeedKit in Frameworks */,
@@ -1746,6 +1748,7 @@
 				6AFCF7DF2B7353C6002299BA /* OrderedCollections */,
 				2AAF51092C293DE100C0B7AA /* HDWalletKit */,
 				2AD061422C47A7B000E288DB /* Vapor */,
+				6A7E140D2EE1369000316863 /* ENSDataKit */,
 			);
 			productName = Planet;
 			productReference = 2AC4994527BB6E7500F1C2D1 /* Planet.app */;
@@ -1802,6 +1805,7 @@
 				6AFCF7DA2B7353C6002299BA /* XCRemoteSwiftPackageReference "swift-collections" */,
 				2AAF51082C293DE100C0B7AA /* XCRemoteSwiftPackageReference "HDWallet" */,
 				2AD061412C47A7B000E288DB /* XCRemoteSwiftPackageReference "vapor" */,
+				6A7E140C2EE1369000316863 /* XCRemoteSwiftPackageReference "ENSDataKit" */,
 			);
 			productRefGroup = 2AC4994627BB6E7500F1C2D1 /* Products */;
 			projectDirPath = "";
@@ -2753,6 +2757,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		6A7E140C2EE1369000316863 /* XCRemoteSwiftPackageReference "ENSDataKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Planetable/ENSDataKit";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		6AABC6A8291A62A9009FD13F /* XCRemoteSwiftPackageReference "WalletConnectSwift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/WalletConnect/WalletConnectSwift.git";
@@ -2995,6 +3007,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6A7189672947FD0500279D77 /* XCRemoteSwiftPackageReference "Web3" */;
 			productName = Web3PromiseKit;
+		};
+		6A7E140D2EE1369000316863 /* ENSDataKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6A7E140C2EE1369000316863 /* XCRemoteSwiftPackageReference "ENSDataKit" */;
+			productName = ENSDataKit;
 		};
 		6AABC6A9291A62A9009FD13F /* WalletConnectSwift */ = {
 			isa = XCSwiftPackageProductDependency;
