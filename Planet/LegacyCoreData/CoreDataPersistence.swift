@@ -2,7 +2,6 @@ import SwiftUI
 import Foundation
 import CoreData
 import FeedKit
-import ENSKit
 import SwiftSoup
 
 
