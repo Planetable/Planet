@@ -1,5 +1,5 @@
 {
-  "originHash" : "d89665f7f1fc2b7cafcf0a2c8f19b96047bacf403bb752697a5437a232610dfd",
+  "originHash" : "e9e04a39726bcfcc3942e59803a0f2832c4462fe86077a5192351be1b7e06890",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -71,15 +71,6 @@
       "state" : {
         "revision" : "68493a33d862c33c9a9f67ec729b3b7df1b20ade",
         "version" : "9.1.2"
-      }
-    },
-    {
-      "identity" : "hdwallet",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/WalletConnect/HDWallet",
-      "state" : {
-        "branch" : "develop",
-        "revision" : "748a85b1dfe9a2fa592bd9266c5a926e4e1d3f44"
       }
     },
     {
