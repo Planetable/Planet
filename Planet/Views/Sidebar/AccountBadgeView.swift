@@ -5,7 +5,6 @@
 //  Created by Xin Liu on 11/10/22.
 //
 
-import ENSKit
 import SwiftUI
 import SwiftyJSON
 import Web3
