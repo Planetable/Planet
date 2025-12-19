@@ -1340,7 +1340,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
                     if let avatarURLString = data.avatar,
                        let avatarURL = URL(string: avatarURLString),
-                       let (avatarData, avatarResponse) = try? await URLSession.shared.data(from: avatarURL),
+                       let (avatarData, _) = try? await URLSession.shared.data(from: avatarURL),
                        let image = NSImage(data: avatarData),
                        let _ = try? avatarData.write(to: avatarPath)
                     {
@@ -1411,7 +1411,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
             if let avatarURLString = data.avatar,
                let avatarURL = URL(string: avatarURLString),
-               let (avatarData, avatarResponse) = try? await URLSession.shared.data(from: avatarURL),
+               let (avatarData, _) = try? await URLSession.shared.data(from: avatarURL),
                let image = NSImage(data: avatarData),
                let _ = try? avatarData.write(to: avatarPath)
             {
