@@ -55,6 +55,7 @@ struct TemplateBrowserSidebar: View {
                         Button {
                             openiTerm(template)
                         } label: {
+                            Image(systemName: "terminal.fill")
                             Text("Open in iTerm")
                         }
                     }
