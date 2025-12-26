@@ -10,7 +10,7 @@ import SwiftUI
 struct QuickPostView: View {
     @StateObject private var viewModel: QuickPostViewModel
     @Environment(\.dismiss) private var dismiss
-
+    @State private var previousContent: String = ""
     init() {
         _viewModel = StateObject(wrappedValue: QuickPostViewModel.shared)
     }
@@ -42,6 +42,10 @@ struct QuickPostView: View {
                     .padding(.leading, 0)
                     .padding(.trailing, 10)
                     .frame(height: 160)
+                    .onChange(of: viewModel.content) { newValue in
+                        handleAutocomplete(oldValue: previousContent, newValue: newValue)
+                        previousContent = newValue
+                    }
             }
             .background(Color(NSColor.textBackgroundColor))
 
@@ -148,6 +152,45 @@ struct QuickPostView: View {
             return 310
         }
         return 200
+    }
+
+    private func handleAutocomplete(oldValue: String, newValue: String) {
+        // Only process if content increased (user added text, not deleted)
+        guard newValue.count > oldValue.count else { return }
+
+        // Check if the last added character(s) include a newline
+        let addedText = String(newValue.suffix(newValue.count - oldValue.count))
+        guard addedText.contains("\n") else { return }
+
+        // Split into lines
+        let lines = newValue.components(separatedBy: "\n")
+        guard lines.count >= 2 else { return }
+
+        // Get the previous line (the one before the newly added line)
+        let previousLine = lines[lines.count - 2]
+        let trimmedPrevious = previousLine.trimmingCharacters(in: .whitespaces)
+
+        // Check if previous line is an empty list item
+        if trimmedPrevious == "*" || trimmedPrevious == "-" {
+            // Remove the empty list marker from previous line
+            var updatedLines = lines
+            updatedLines[lines.count - 2] = ""
+            viewModel.content = updatedLines.joined(separator: "\n")
+            return
+        }
+
+        // Check if previous line starts with list markers
+        if trimmedPrevious.hasPrefix("* ") {
+            // Add "* " to the new line if not already there
+            if newValue.hasSuffix("\n") {
+                viewModel.content = newValue + "* "
+            }
+        } else if trimmedPrevious.hasPrefix("- ") {
+            // Add "- " to the new line if not already there
+            if newValue.hasSuffix("\n") {
+                viewModel.content = newValue + "- "
+            }
+        }
     }
 
     @ViewBuilder
