@@ -170,8 +170,8 @@ struct QuickPostView: View {
         let previousLine = lines[lines.count - 2]
         let trimmedPrevious = previousLine.trimmingCharacters(in: .whitespaces)
 
-        // Check if previous line is an empty list item
-        if trimmedPrevious == "*" || trimmedPrevious == "-" {
+        // Check if previous line is an empty list item (including todo lists)
+        if trimmedPrevious == "*" || trimmedPrevious == "-" || trimmedPrevious == "- [ ]" || trimmedPrevious == "- [x]" {
             // Remove the empty list marker from previous line
             var updatedLines = lines
             updatedLines[lines.count - 2] = ""
@@ -179,8 +179,15 @@ struct QuickPostView: View {
             return
         }
 
+        // Check if previous line starts with todo list markers
+        if trimmedPrevious.hasPrefix("- [ ] ") || trimmedPrevious.hasPrefix("- [x] ") {
+            // Add "- [ ] " to the new line
+            if newValue.hasSuffix("\n") {
+                viewModel.content = newValue + "- [ ] "
+            }
+        }
         // Check if previous line starts with list markers
-        if trimmedPrevious.hasPrefix("* ") {
+        else if trimmedPrevious.hasPrefix("* ") {
             // Add "* " to the new line if not already there
             if newValue.hasSuffix("\n") {
                 viewModel.content = newValue + "* "
