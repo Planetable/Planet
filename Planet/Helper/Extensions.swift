@@ -28,6 +28,10 @@ extension String {
     static let settingsAPIPort: String = "PlanetSettingsAPIPortKey"
     static let settingsAPIUsername: String = "PlanetSettingsAPIUsernameKey"
     static let settingsAPIPasscode: String = "PlanetSettingsAPIPasscodeKey"
+    static let settingsAIAPIBase: String = "PlanetSettingsAIAPIBaseKey"
+    static let settingsAIAPIToken: String = "PlanetSettingsAIAPITokenKey"
+    static let settingsAIPreferredModel: String = "PlanetSettingsAIPreferredModelKey"
+    static let settingsAIIsReady: String = "PlanetSettingsAIIsReadyKey"
 
     func sanitized() -> String {
         // Reference: https://superuser.com/a/358861

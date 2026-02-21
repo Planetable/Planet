@@ -26,6 +26,13 @@ struct PlanetSettingsView: View {
                 .frame(width: 420, height: 320)
                 .environmentObject(store)
 
+            PlanetSettingsAIView()
+                .tabItem {
+                    Label("AI", systemImage: "sparkles")
+                }
+                .tag(PlanetSettingsTab.ai)
+                .frame(width: 580, height: 360)
+
             PlanetSettingsPlanetsView()
                 .tabItem {
                     Label("Planets", systemImage: "tray.full")

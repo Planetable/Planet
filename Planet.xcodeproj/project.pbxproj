@@ -434,6 +434,8 @@
 		6A8A6A592BA5B0CA00FBF67D /* MyArticleModel+Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8A6A582BA5B0CA00FBF67D /* MyArticleModel+Views.swift */; };
 		6A8A6A5A2BA5B0CA00FBF67D /* MyArticleModel+Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8A6A582BA5B0CA00FBF67D /* MyArticleModel+Views.swift */; };
 		6A8C3A6728C9361800339A86 /* DotBitKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8C3A6628C9361800339A86 /* DotBitKit.swift */; };
+		6A8D7DCC2F49C14B0084703B /* PlanetSettingsAIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8D7DCB2F49C1420084703B /* PlanetSettingsAIView.swift */; };
+		6A8D7DCD2F49C14B0084703B /* PlanetSettingsAIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8D7DCB2F49C1420084703B /* PlanetSettingsAIView.swift */; };
 		6A900193296C9F3800BC088E /* MyArticleSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */; };
 		6A941CED2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A941CEC2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift */; };
 		6A941CEE2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A941CEC2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift */; };
@@ -796,6 +798,7 @@
 		6A8776D32A01B78800C6003B /* Pinnable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pinnable.swift; sourceTree = "<group>"; };
 		6A8A6A582BA5B0CA00FBF67D /* MyArticleModel+Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MyArticleModel+Views.swift"; sourceTree = "<group>"; };
 		6A8C3A6628C9361800339A86 /* DotBitKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotBitKit.swift; sourceTree = "<group>"; };
+		6A8D7DCB2F49C1420084703B /* PlanetSettingsAIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsAIView.swift; sourceTree = "<group>"; };
 		6A900192296C9F3800BC088E /* MyArticleSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyArticleSettingsView.swift; sourceTree = "<group>"; };
 		6A941CEC2AF5E7A300CA8261 /* PlanetStore+ServerInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlanetStore+ServerInfo.swift"; sourceTree = "<group>"; };
 		6A96B2292C594F9A00EA3F2A /* QuickPostViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPostViewModel.swift; sourceTree = "<group>"; };
@@ -1285,6 +1288,7 @@
 			children = (
 				2AE44EA828CD214800944786 /* PlanetSettingsView.swift */,
 				2AE44EAB28CD218200944786 /* PlanetSettingsGeneralView.swift */,
+				6A8D7DCB2F49C1420084703B /* PlanetSettingsAIView.swift */,
 				6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */,
 				2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */,
 				2AE44EAF28CD223C00944786 /* PlanetSettingsViewModel.swift */,
@@ -1983,6 +1987,7 @@
 				6A43E7D22B873F4900316F81 /* SearchResult.swift in Sources */,
 				2A95E6462A19A336001288B8 /* PlanetQuickShare+Extension.swift in Sources */,
 				2A39678A2D7ADB2F002CBE7A /* HttpRequest.swift in Sources */,
+				6A8D7DCC2F49C14B0084703B /* PlanetSettingsAIView.swift in Sources */,
 				2A95E6542A19A39C001288B8 /* PlanetPublishedFolders+Extension.swift in Sources */,
 				6A61D5E82B23A234007F761E /* CapsuleBar.swift in Sources */,
 				2A95E6532A19A39C001288B8 /* PlanetPublishedServiceStore.swift in Sources */,
@@ -2239,6 +2244,7 @@
 				721145EEDE381A8BDED43E93 /* FeedUtils.swift in Sources */,
 				721144331A990EB4451F1C1F /* MyPlanetModel.swift in Sources */,
 				2AEFEE962C4BA4E700EEB958 /* PlanetAPIModels.swift in Sources */,
+				6A8D7DCD2F49C14B0084703B /* PlanetSettingsAIView.swift in Sources */,
 				72114A3B2AA58EA6B139AEB8 /* FollowingPlanetModel.swift in Sources */,
 				72114C03242147A247A8B317 /* Runner.swift in Sources */,
 				6ADD7D882A51B616003D2E54 /* MyArticleModel+Save.swift in Sources */,
