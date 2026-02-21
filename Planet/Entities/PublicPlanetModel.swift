@@ -24,9 +24,6 @@ struct PublicPlanetModel: Codable {
     let juiceboxProjectID: Int?
     let juiceboxProjectIDGoerli: Int?
 
-    let farcasterEnabled: Bool?
-    let farcasterUsername: String?
-
     let acceptsDonation: Bool?
     let acceptsDonationMessage: String?
     let acceptsDonationETHAddress: String?
