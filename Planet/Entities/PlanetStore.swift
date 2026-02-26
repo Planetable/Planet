@@ -35,11 +35,73 @@ enum PlanetDetailViewType: Hashable, Equatable {
     }
 }
 
+final class MyJSONDirectoryMonitor {
+    private var stream: FSEventStreamRef?
+    private let callback: FSEventStreamCallback = { (_, contextInfo, numEvents, eventPaths, _, _) in
+        guard let contextInfo else { return }
+        let monitor = Unmanaged<MyJSONDirectoryMonitor>.fromOpaque(contextInfo).takeUnretainedValue()
+        let pathsArray = unsafeBitCast(eventPaths, to: NSArray.self)
+        var changedPaths: [String] = []
+        for idx in 0..<Int(numEvents) {
+            if let path = pathsArray[idx] as? String {
+                changedPaths.append(path)
+            }
+        }
+        monitor.changed(changedPaths)
+    }
+    private let directory: String
+    private let changed: ([String]) -> Void
+
+    init(directory: String, changed: @escaping ([String]) -> Void) {
+        self.directory = directory
+        self.changed = changed
+    }
+
+    deinit {
+        stop()
+    }
+
+    func start() {
+        stop()
+        let pathsToWatch: CFArray = [directory] as CFArray
+        var context = FSEventStreamContext(
+            version: 0,
+            info: UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque()),
+            retain: nil,
+            release: nil,
+            copyDescription: nil
+        )
+        stream = FSEventStreamCreate(
+            kCFAllocatorDefault,
+            callback,
+            &context,
+            pathsToWatch,
+            FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
+            0.5,
+            UInt32(kFSEventStreamCreateFlagUseCFTypes | kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagIgnoreSelf)
+        )
+        guard let stream else { return }
+        FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
+        FSEventStreamStart(stream)
+    }
+
+    func stop() {
+        guard let stream else { return }
+        FSEventStreamStop(stream)
+        FSEventStreamInvalidate(stream)
+        FSEventStreamRelease(stream)
+        self.stream = nil
+    }
+}
+
 @MainActor class PlanetStore: ObservableObject {
     static let shared = PlanetStore()
     static let version = 1
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PlanetStore")
+    private var myDataMonitor: MyJSONDirectoryMonitor?
+    private var myDataReloadTask: Task<Void, Never>?
+    private var myDataReloadInProgress = false
 
     @Published var myPlanets: [MyPlanetModel] = [] {
         didSet {
@@ -67,6 +129,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
 
     @Published var selectedView: PlanetDetailViewType? {
         didSet {
+            let canonicalView = canonicalSelectedView(selectedView)
+            if selectedView != canonicalView {
+                selectedView = canonicalView
+                return
+            }
             if selectedView != oldValue {
                 Task { @MainActor in
                     self.selectedArticle = nil
@@ -77,7 +144,8 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 Task { @MainActor in
                     switch selectedView {
                     case .myPlanet(let planet):
-                        KeyboardShortcutHelper.shared.activeMyPlanet = planet
+                        let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) ?? planet
+                        KeyboardShortcutHelper.shared.activeMyPlanet = canonicalPlanet
                         // Update Planet Lite Window Titles
                         // let liteSubtitle = "ipns://\(planet.ipns.shortIPNS())"
                         // navigationSubtitle = liteSubtitle
@@ -88,6 +156,29 @@ enum PlanetDetailViewType: Hashable, Equatable {
                     }
                 }
             }
+        }
+    }
+
+    private func canonicalSelectedView(_ view: PlanetDetailViewType?) -> PlanetDetailViewType? {
+        switch view {
+        case .myPlanet(let planet):
+            if let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) {
+                return .myPlanet(canonicalPlanet)
+            }
+            return nil
+        case .followingPlanet(let planet):
+            if let canonicalPlanet = followingPlanets.first(where: { $0.id == planet.id }) {
+                return .followingPlanet(canonicalPlanet)
+            }
+            return nil
+        case .today:
+            return .today
+        case .unread:
+            return .unread
+        case .starred:
+            return .starred
+        case .none:
+            return nil
         }
     }
     @Published var selectedArticleList: [ArticleModel]? = nil
@@ -226,6 +317,7 @@ enum PlanetDetailViewType: Hashable, Equatable {
                 selectedView = .starred
             }
         }
+
     }
 
     func load() throws {
@@ -256,6 +348,164 @@ enum PlanetDetailViewType: Hashable, Equatable {
         updateTotalUnreadCount()
         updateTotalStarredCount()
         updateTotalTodayCount()
+        if myDataMonitor == nil {
+            refreshMyDataMonitor()
+        }
+    }
+
+    private enum SelectedViewSnapshot {
+        case none
+        case today
+        case unread
+        case starred
+        case myPlanet(UUID)
+        case followingPlanet(UUID)
+    }
+
+    private struct MyArticleSelectionTarget {
+        let planetID: UUID
+        let articleID: UUID
+    }
+
+    private func refreshMyDataMonitor() {
+        myDataMonitor?.stop()
+        myDataMonitor = MyJSONDirectoryMonitor(directory: MyPlanetModel.myPlanetsPath().path) { [weak self] paths in
+            Task { @MainActor in
+                self?.handleExternalMyJSONPathChanges(paths)
+            }
+        }
+        myDataMonitor?.start()
+    }
+
+    private func handleExternalMyJSONPathChanges(_ changedPaths: [String]) {
+        let jsonPaths = changedPaths.filter { $0.hasSuffix(".json") }
+        guard !jsonPaths.isEmpty else { return }
+        let selectedMyArticle = jsonPaths.compactMap(parseMyArticleSelectionTarget(fromPath:)).first
+        myDataReloadTask?.cancel()
+        myDataReloadTask = Task { @MainActor in
+            do {
+                try await Task.sleep(nanoseconds: 250_000_000)
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
+            logger.info("Detected my data json changes, reloading store")
+            reloadAfterExternalMyDataChange(selectMyArticle: selectedMyArticle)
+        }
+    }
+
+    private func reloadAfterExternalMyDataChange(selectMyArticle target: MyArticleSelectionTarget?) {
+        guard !myDataReloadInProgress else { return }
+        myDataReloadInProgress = true
+        defer { myDataReloadInProgress = false }
+
+        let selectedViewSnapshot = snapshotSelectedView()
+        let selectedArticleID = selectedArticle?.id
+
+        // Only navigate to the changed article when the user is already viewing that planet,
+        // to avoid disrupting reading of an unrelated planet.
+        let isViewingTargetPlanet: Bool
+        if case .myPlanet(let id) = selectedViewSnapshot, let target, target.planetID == id {
+            isViewingTargetPlanet = true
+        } else {
+            isViewingTargetPlanet = false
+        }
+
+        do {
+            try load()
+            if let target,
+                let article = myPlanets.first(where: { $0.id == target.planetID })?.articles.first(where: { $0.id == target.articleID })
+            {
+                Task.detached {
+                    try? article.savePublic()
+                    await MainActor.run {
+                        NotificationCenter.default.post(name: .loadArticle, object: nil)
+                    }
+                }
+            }
+            selectedArticleList = nil
+            ArticleListViewModel.shared.articles = []
+            restoreSelection(from: selectedViewSnapshot)
+            refreshSelectedArticles()
+            if isViewingTargetPlanet, let target,
+                let planet = myPlanets.first(where: { $0.id == target.planetID })
+            {
+                // Force detail-view refresh for the changed article.
+                selectedArticle = nil
+                selectedArticle = planet.articles.first(where: { $0.id == target.articleID })
+            } else {
+                // Force detail-view refresh for the previously-selected article.
+                selectedArticle = nil
+                if let selectedArticleID {
+                    selectedArticle = selectedArticleList?.first(where: { $0.id == selectedArticleID })
+                }
+            }
+        } catch {
+            logger.error("Failed to reload after external my data change: \(error.localizedDescription)")
+        }
+    }
+
+    private func snapshotSelectedView() -> SelectedViewSnapshot {
+        switch selectedView {
+        case .today:
+            return .today
+        case .unread:
+            return .unread
+        case .starred:
+            return .starred
+        case .myPlanet(let planet):
+            return .myPlanet(planet.id)
+        case .followingPlanet(let planet):
+            return .followingPlanet(planet.id)
+        case .none:
+            return .none
+        }
+    }
+
+    private func restoreSelection(from snapshot: SelectedViewSnapshot) {
+        switch snapshot {
+        case .today:
+            selectedView = .today
+        case .unread:
+            selectedView = .unread
+        case .starred:
+            selectedView = .starred
+        case .myPlanet(let id):
+            if let planet = myPlanets.first(where: { $0.id == id }) {
+                selectedView = .myPlanet(planet)
+            } else {
+                selectedView = nil
+            }
+        case .followingPlanet(let id):
+            if let planet = followingPlanets.first(where: { $0.id == id }) {
+                selectedView = .followingPlanet(planet)
+            } else {
+                selectedView = nil
+            }
+        case .none:
+            selectedView = nil
+        }
+    }
+
+    private func parseMyArticleSelectionTarget(fromPath path: String) -> MyArticleSelectionTarget? {
+        let url = URL(fileURLWithPath: path)
+        let components = url.pathComponents
+        guard let myIndex = components.lastIndex(of: "My"),
+            components.count > myIndex + 3
+        else {
+            return nil
+        }
+        let planetIDString = components[myIndex + 1]
+        let articlesComponent = components[myIndex + 2]
+        let articleFilename = components[myIndex + 3]
+        guard articlesComponent == "Articles",
+            articleFilename.lowercased().hasSuffix(".json"),
+            let planetID = UUID(uuidString: planetIDString),
+            let articleID = UUID(uuidString: String(articleFilename.dropLast(5)))
+        else {
+            return nil
+        }
+        return MyArticleSelectionTarget(planetID: planetID, articleID: articleID)
     }
 
     func publishMyPlanets() {
@@ -404,9 +654,11 @@ enum PlanetDetailViewType: Hashable, Equatable {
                     navigationSubtitle = "\(articles.count) starred"
                 }
             case .myPlanet(let planet):
-                navigationSubtitle = planet.navigationSubtitle()
+                let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) ?? planet
+                navigationSubtitle = canonicalPlanet.navigationSubtitle()
             case .followingPlanet(let planet):
-                navigationSubtitle = planet.navigationSubtitle()
+                let canonicalPlanet = followingPlanets.first(where: { $0.id == planet.id }) ?? planet
+                navigationSubtitle = canonicalPlanet.navigationSubtitle()
             case .none:
                 navigationSubtitle = ""
             }
@@ -435,13 +687,15 @@ enum PlanetDetailViewType: Hashable, Equatable {
                     navigationSubtitle = "\(articles.count) starred"
                 }
             case .myPlanet(let planet):
-                selectedArticleList = planet.articles
-                navigationTitle = planet.name
-                navigationSubtitle = planet.navigationSubtitle()
+                let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) ?? planet
+                selectedArticleList = canonicalPlanet.articles
+                navigationTitle = canonicalPlanet.name
+                navigationSubtitle = canonicalPlanet.navigationSubtitle()
             case .followingPlanet(let planet):
-                selectedArticleList = planet.articles
-                navigationTitle = planet.name
-                navigationSubtitle = planet.navigationSubtitle()
+                let canonicalPlanet = followingPlanets.first(where: { $0.id == planet.id }) ?? planet
+                selectedArticleList = canonicalPlanet.articles
+                navigationTitle = canonicalPlanet.name
+                navigationSubtitle = canonicalPlanet.navigationSubtitle()
             case .none:
                 selectedArticleList = nil
                 navigationTitle = PlanetStore.app == .lite ? "Croptop" : "Planet"
