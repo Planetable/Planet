@@ -1,0 +1,2 @@
+- Xcode is installed under /Applications/Xcode-16.4.0.app/
+- Must compile for macOS 12
