@@ -174,6 +174,7 @@ struct ArticleAIChatView: View {
                                 )
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .id(message.id)
                         }
 
