@@ -1,2 +1,3 @@
-- Xcode is installed under /Applications/Xcode-16.4.0.app/
+- Use Xcode at `/Applications/Xcode-16.4.0.app/`, if not found, then try `/Applications/Xcode.app/`
 - Must compile for macOS 12
+- AI related features debug log `planet-ai-debug.log` can be found at `~/Library/Containers/xyz.planetable.Planet/Data/tmp/planet-ai-debug.log`
