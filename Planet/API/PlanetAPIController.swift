@@ -631,7 +631,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
         // TODO: What if the saveToArticle operation is a Task.detached?
         try await MainActor.run {
-            try draft.saveToArticle()
+            _ = try draft.saveToArticle()
         }
         if let a = planet.articles.first {
             return try self.createResponse(from: a, status: .created)
@@ -706,7 +706,7 @@ class PlanetAPIController: NSObject, ObservableObject {
             }
         }
         try await MainActor.run {
-            try draft.saveToArticle()
+            _ = try draft.saveToArticle()
         }
         return try self.createResponse(from: article, status: .accepted)
     }

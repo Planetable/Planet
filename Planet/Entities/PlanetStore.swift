@@ -666,46 +666,44 @@ final class MyJSONDirectoryMonitor {
     }
 
     func refreshSelectedArticles() {
-        Task { @MainActor in
-            switch selectedView {
-            case .today:
-                selectedArticleList = getTodayArticles()
-                navigationTitle = "Today"
-                if let articles = selectedArticleList {
-                    navigationSubtitle = "\(articles.count) fetched today"
-                }
-            case .unread:
-                selectedArticleList = getUnreadArticles()
-                navigationTitle = "Unread"
-                if let articles = selectedArticleList {
-                    navigationSubtitle = "\(articles.count) unread"
-                }
-            case .starred:
-                selectedArticleList = getStarredArticles()
-                navigationTitle = "Starred"
-                if let articles = selectedArticleList {
-                    navigationSubtitle = "\(articles.count) starred"
-                }
-            case .myPlanet(let planet):
-                let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) ?? planet
-                selectedArticleList = canonicalPlanet.articles
-                navigationTitle = canonicalPlanet.name
-                navigationSubtitle = canonicalPlanet.navigationSubtitle()
-            case .followingPlanet(let planet):
-                let canonicalPlanet = followingPlanets.first(where: { $0.id == planet.id }) ?? planet
-                selectedArticleList = canonicalPlanet.articles
-                navigationTitle = canonicalPlanet.name
-                navigationSubtitle = canonicalPlanet.navigationSubtitle()
-            case .none:
-                selectedArticleList = nil
-                navigationTitle = PlanetStore.app == .lite ? "Croptop" : "Planet"
-                navigationSubtitle = ""
-            }
+        switch selectedView {
+        case .today:
+            selectedArticleList = getTodayArticles()
+            navigationTitle = "Today"
             if let articles = selectedArticleList {
-                ArticleListViewModel.shared.articles = articles
-            } else {
-                ArticleListViewModel.shared.articles = []
+                navigationSubtitle = "\(articles.count) fetched today"
             }
+        case .unread:
+            selectedArticleList = getUnreadArticles()
+            navigationTitle = "Unread"
+            if let articles = selectedArticleList {
+                navigationSubtitle = "\(articles.count) unread"
+            }
+        case .starred:
+            selectedArticleList = getStarredArticles()
+            navigationTitle = "Starred"
+            if let articles = selectedArticleList {
+                navigationSubtitle = "\(articles.count) starred"
+            }
+        case .myPlanet(let planet):
+            let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) ?? planet
+            selectedArticleList = canonicalPlanet.articles
+            navigationTitle = canonicalPlanet.name
+            navigationSubtitle = canonicalPlanet.navigationSubtitle()
+        case .followingPlanet(let planet):
+            let canonicalPlanet = followingPlanets.first(where: { $0.id == planet.id }) ?? planet
+            selectedArticleList = canonicalPlanet.articles
+            navigationTitle = canonicalPlanet.name
+            navigationSubtitle = canonicalPlanet.navigationSubtitle()
+        case .none:
+            selectedArticleList = nil
+            navigationTitle = PlanetStore.app == .lite ? "Croptop" : "Planet"
+            navigationSubtitle = ""
+        }
+        if let articles = selectedArticleList {
+            ArticleListViewModel.shared.articles = articles
+        } else {
+            ArticleListViewModel.shared.articles = []
         }
     }
 
