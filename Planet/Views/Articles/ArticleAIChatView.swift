@@ -841,10 +841,15 @@ struct ArticleAIChatView: View {
             }
             let fields = inferredChangeKeys(
                 from: arguments,
-                idKeys: Set(["article_id"])
+                idKeys: Set(["article_id", "replace_content"])
             )
             if !fields.isEmpty {
                 parts.append("Planned updates: \(previewList(fields, limit: 6)).")
+            }
+            if boolValue(from: arguments["replace_content"]) == true {
+                parts.append("Content mode: replace.")
+            } else if fields.contains("content") {
+                parts.append("Content mode: append.")
             }
         case "read_planet":
             if let planetID = stringValue(from: arguments["planet_id"]) {
@@ -1727,7 +1732,7 @@ struct ArticleAIChatView: View {
                 "type": "function",
                 "function": [
                     "name": "write_article",
-                    "description": "Write changes into a MyArticleModel JSON and reload PlanetStore.",
+                    "description": "Write changes into a MyArticleModel JSON and reload PlanetStore. For generated content, append by default; set replace_content=true only when the user explicitly asks to replace the full article body.",
                     "parameters": [
                         "type": "object",
                         "properties": [
@@ -1738,6 +1743,10 @@ struct ArticleAIChatView: View {
                             "changes": [
                                 "type": "object",
                                 "description": "Top-level JSON fields to merge. Use null to clear optional values.",
+                            ],
+                            "replace_content": [
+                                "type": "boolean",
+                                "description": "Optional. Defaults to false. Set true only when user explicitly asks to replace the full article content.",
                             ],
                         ],
                         "required": ["changes"],
@@ -1896,7 +1905,8 @@ struct ArticleAIChatView: View {
     @MainActor
     private func runWriteArticleTool(arguments: [String: Any]) async -> String {
         let articleID = stringValue(from: arguments["article_id"])
-        debugLog("runWriteArticleTool articleID=\(articleID ?? "nil"), rawChanges=\(debugDescription(arguments["changes"] ?? [:], maxLength: 1800))")
+        let replaceContent = boolValue(from: arguments["replace_content"]) ?? false
+        debugLog("runWriteArticleTool articleID=\(articleID ?? "nil"), replaceContent=\(replaceContent), rawChanges=\(debugDescription(arguments["changes"] ?? [:], maxLength: 1800))")
         guard let myArticle = resolveMyArticle(articleID: articleID) else {
             return toolResult([
                 "ok": false,
@@ -1905,7 +1915,7 @@ struct ArticleAIChatView: View {
                     : "MyArticleModel not found for article_id: \(articleID!)",
                 ])
         }
-        guard var changes = normalizedChanges(from: arguments, idKeys: Set(["article_id"])) else {
+        guard var changes = normalizedChanges(from: arguments, idKeys: Set(["article_id", "replace_content"])) else {
             let rawChanges = arguments["changes"]
             let detail = "Expected `changes` as object/JSON-string, or top-level fields. got=\(debugValueType(rawChanges)); preview=\(debugDescription(rawChanges ?? "nil", maxLength: 500))"
             return rejectedChangesToolResult(
@@ -1915,6 +1925,17 @@ struct ArticleAIChatView: View {
             )
         }
         changes.removeValue(forKey: "id")
+        if let invalidContentChangeDetail = normalizeArticleContentWriteChange(
+            changes: &changes,
+            article: myArticle,
+            replaceContent: replaceContent
+        ) {
+            return rejectedChangesToolResult(
+                toolName: "write_article",
+                detail: invalidContentChangeDetail,
+                example: #"{"changes":{"content":"..."},"replace_content":true}"#
+            )
+        }
         if changes.isEmpty {
             return rejectedChangesToolResult(
                 toolName: "write_article",
@@ -2239,6 +2260,95 @@ struct ArticleAIChatView: View {
             throw NSError(domain: "ArticleAIChat", code: 8, userInfo: [NSLocalizedDescriptionKey: "Model JSON is not an object"])
         }
         return dict
+    }
+
+    private func normalizeArticleContentWriteChange(
+        changes: inout [String: Any],
+        article: MyArticleModel,
+        replaceContent: Bool
+    ) -> String? {
+        guard let rawContent = changes["content"] else {
+            return nil
+        }
+
+        if rawContent is NSNull {
+            return replaceContent
+                ? nil
+                : "`changes.content` clears the full article body. Set `replace_content` to true only if the user explicitly requested full overwrite."
+        }
+
+        guard let contentText = rawContent as? String else {
+            return "`changes.content` must be a string."
+        }
+
+        var normalizedNewContent = contentText
+        if let extractedHeading = extractLeadingMarkdownH1(from: contentText) {
+            normalizedNewContent = extractedHeading.content
+            changes["title"] = extractedHeading.title
+        }
+
+        if replaceContent {
+            changes["content"] = normalizedNewContent
+            return nil
+        }
+
+        changes["content"] = appendedArticleContent(
+            existingContent: article.content,
+            newContent: normalizedNewContent
+        )
+        return nil
+    }
+
+    private func extractLeadingMarkdownH1(from content: String) -> (title: String, content: String)? {
+        let normalizedContent = content
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        var lines = normalizedContent.components(separatedBy: "\n")
+
+        guard let headingIndex = lines.firstIndex(where: {
+            !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }) else {
+            return nil
+        }
+
+        let line = lines[headingIndex].trimmingCharacters(in: .whitespaces)
+        guard line.hasPrefix("#"), !line.hasPrefix("##") else {
+            return nil
+        }
+
+        let remainder = line.dropFirst()
+        guard let first = remainder.first, first == " " || first == "\t" else {
+            return nil
+        }
+
+        var title = String(remainder).trimmingCharacters(in: .whitespacesAndNewlines)
+        title = title.replacingOccurrences(of: #"\s#+\s*$"#, with: "", options: .regularExpression)
+        title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else {
+            return nil
+        }
+
+        lines.remove(at: headingIndex)
+        if headingIndex < lines.count,
+            lines[headingIndex].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        {
+            lines.remove(at: headingIndex)
+        }
+
+        let strippedContent = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        return (title: title, content: strippedContent)
+    }
+
+    private func appendedArticleContent(existingContent: String, newContent: String) -> String {
+        let trimmedNewContent = newContent.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedNewContent.isEmpty else {
+            return existingContent
+        }
+
+        guard !existingContent.isEmpty else {
+            return trimmedNewContent
+        }
+        return "\(existingContent)\n\n---\n\n\(trimmedNewContent)"
     }
 
     private func shouldRegenerateArticlePublicFiles(for changes: [String: Any]) -> Bool {
@@ -2706,6 +2816,26 @@ struct ArticleAIChatView: View {
         return nil
     }
 
+    private func boolValue(from value: Any?) -> Bool? {
+        if let value = value as? Bool {
+            return value
+        }
+        if let value = value as? NSNumber {
+            return value.boolValue
+        }
+        if let value = value as? String {
+            switch value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+            case "true", "1", "yes", "y", "on":
+                return true
+            case "false", "0", "no", "n", "off":
+                return false
+            default:
+                return nil
+            }
+        }
+        return nil
+    }
+
     private func debugLog(_ message: String) {
         ArticleAIDebugLogger.log("[ArticleAIChat] \(message)")
     }
@@ -2896,6 +3026,8 @@ struct ArticleAIChatView: View {
         No small talk, no preambles like "here is", and do not ask follow-up questions at the end.
         If tools are available, use them when needed to read or update article/planet models or run shell commands.
         For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
+        For write_article content generation, append to existing content by default; only replace full content when the user explicitly asks, by setting replace_content=true.
+        If generated content starts with a Markdown H1 heading (# Title), put that heading text into changes.title and omit the H1 line from changes.content.
         """
     }
 
