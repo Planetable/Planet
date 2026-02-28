@@ -10,10 +10,17 @@ import Foundation
 import SwiftUI
 
 private struct ArticleAIChatMessage: Identifiable {
-    let id = UUID()
+    let id: UUID
     let role: String
     let content: String
     let tokenUsage: String?
+
+    init(id: UUID = UUID(), role: String, content: String, tokenUsage: String?) {
+        self.id = id
+        self.role = role
+        self.content = content
+        self.tokenUsage = tokenUsage
+    }
 }
 
 struct ArticleAIChatPersistedMessage: Codable {
@@ -45,6 +52,12 @@ private struct ArticleAIReplyResult {
     let text: String
     let tokenUsage: String?
     let messages: [[String: Any]]
+}
+
+private struct ArticleAIStreamToolCallState {
+    var id: String = ""
+    var name: String = ""
+    var arguments: String = ""
 }
 
 private struct ArticleAIToolFailureDetail {
@@ -145,6 +158,7 @@ struct ArticleAIChatView: View {
                         Text("Context loaded from: \(contextTitle)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
 
                         ForEach(messages) { message in
                             HStack(alignment: .top) {
@@ -366,14 +380,33 @@ struct ArticleAIChatView: View {
         apiMessages.append(["role": "user", "content": prompt])
         persistChat()
         isSending = true
-        toolProgressText = "Warming up research mode...\nLoading your prompt and context."
+        toolProgressText = nil
+        let streamingMessageID = UUID()
 
         Task {
             do {
-                let reply = try await requestReply(messages: apiMessages)
+                let reply = try await requestReply(
+                    messages: apiMessages,
+                    onAssistantTextUpdate: { partialText in
+                        await MainActor.run {
+                            updateAssistantStreamingMessage(
+                                id: streamingMessageID,
+                                content: partialText,
+                                tokenUsage: nil,
+                                createIfMissing: true,
+                                removeWhenEmpty: true
+                            )
+                        }
+                    }
+                )
                 debugLog("assistant reply received textLength=\(reply.text.count), tokenUsage=\(reply.tokenUsage ?? "nil"), messagesCount=\(reply.messages.count)")
                 await MainActor.run {
-                    messages.append(ArticleAIChatMessage(role: "assistant", content: reply.text, tokenUsage: reply.tokenUsage))
+                    updateAssistantStreamingMessage(
+                        id: streamingMessageID,
+                        content: reply.text,
+                        tokenUsage: reply.tokenUsage,
+                        createIfMissing: true
+                    )
                     apiMessages = reply.messages
                     persistChat()
                     toolProgressText = nil
@@ -382,6 +415,12 @@ struct ArticleAIChatView: View {
             } catch {
                 debugLogError("sendMessage requestReply failed", error: error)
                 await MainActor.run {
+                    if let index = messages.firstIndex(where: { $0.id == streamingMessageID }) {
+                        let isEmpty = messages[index].content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        if isEmpty {
+                            messages.remove(at: index)
+                        }
+                    }
                     errorText = error.localizedDescription
                     toolProgressText = nil
                     isSending = false
@@ -390,7 +429,47 @@ struct ArticleAIChatView: View {
         }
     }
 
-    private func requestReply(messages: [[String: Any]]) async throws -> ArticleAIReplyResult {
+    @MainActor
+    private func updateAssistantStreamingMessage(
+        id: UUID,
+        content: String,
+        tokenUsage: String?,
+        createIfMissing: Bool = false,
+        removeWhenEmpty: Bool = false
+    ) {
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let index = messages.firstIndex(where: { $0.id == id }) {
+            if removeWhenEmpty && trimmed.isEmpty {
+                messages.remove(at: index)
+                return
+            }
+            messages[index] = ArticleAIChatMessage(
+                id: id,
+                role: "assistant",
+                content: content,
+                tokenUsage: tokenUsage
+            )
+            return
+        }
+
+        guard createIfMissing, !trimmed.isEmpty else {
+            return
+        }
+        messages.append(
+            ArticleAIChatMessage(
+                id: id,
+                role: "assistant",
+                content: content,
+                tokenUsage: tokenUsage
+            )
+        )
+    }
+
+    private func requestReply(
+        messages: [[String: Any]],
+        onAssistantTextUpdate: ((String) async -> Void)? = nil
+    ) async throws -> ArticleAIReplyResult {
         let base = UserDefaults.standard.string(forKey: .settingsAIAPIBase)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let model = UserDefaults.standard.string(forKey: .settingsAIPreferredModel) ?? "claude-sonnet-4-6"
@@ -414,31 +493,37 @@ struct ArticleAIChatView: View {
         var seenMutationNotices: Set<String> = []
         var totalToolCallsExecuted = 0
         var recentToolRuns: [String] = []
+        var didUseToolsInResponse = false
         let maxToolSteps = 8
         for step in 0..<maxToolSteps {
-            await updateToolProgress(
-                thinkingProgressText(
-                    round: step + 1,
-                    maxRounds: maxToolSteps,
-                    recentToolRuns: recentToolRuns
+            if didUseToolsInResponse {
+                updateToolProgress(
+                    thinkingProgressText(
+                        round: step + 1,
+                        maxRounds: maxToolSteps,
+                        recentToolRuns: recentToolRuns
+                    )
                 )
-            )
+            }
             debugLog("toolLoop step=\(step + 1)/\(maxToolSteps), workingMessages=\(workingMessages.count)")
             let completion = try await requestCompletion(
                 url: url,
                 model: model,
                 token: token,
                 messages: workingMessages,
-                toolsEnabled: toolsEnabled
+                toolsEnabled: toolsEnabled,
+                onTextDelta: onAssistantTextUpdate
             )
             finalTokenUsage = completion.tokenUsage
             workingMessages.append(completion.assistantMessage)
             debugLog("completion parsed step=\(step + 1), textLength=\(completion.text.count), toolCalls=\(completion.toolCalls.map { $0.name }.joined(separator: ",")), tokenUsage=\(completion.tokenUsage ?? "nil")")
 
             if completion.toolCalls.isEmpty {
-                await updateToolProgress(
-                    "Wrapping up the response...\nNo additional tool actions are needed."
-                )
+                if didUseToolsInResponse {
+                    updateToolProgress(
+                        "Wrapping up the response...\nNo additional tool actions are needed."
+                    )
+                }
                 let replyText = completion.text.trimmingCharacters(in: .whitespacesAndNewlines)
                 let finalText = assistantTextWithMutationNotices(
                     baseText: replyText,
@@ -452,11 +537,16 @@ struct ArticleAIChatView: View {
                     last["content"] = finalText
                     workingMessages[workingMessages.count - 1] = last
                 }
-                await updateToolProgress(nil)
+                updateToolProgress(nil)
                 return ArticleAIReplyResult(text: finalText, tokenUsage: finalTokenUsage, messages: workingMessages)
             }
 
-            await updateToolProgress(
+            if let onAssistantTextUpdate {
+                await onAssistantTextUpdate("")
+            }
+
+            didUseToolsInResponse = true
+            updateToolProgress(
                 toolQueueProgressText(
                     toolCalls: completion.toolCalls,
                     round: step + 1,
@@ -466,7 +556,7 @@ struct ArticleAIChatView: View {
 
             for (toolIndex, toolCall) in completion.toolCalls.enumerated() {
                 let arguments = decodeToolArguments(toolCall.arguments)
-                await updateToolProgress(
+                updateToolProgress(
                     toolExecutionProgressText(
                         toolCall: toolCall,
                         arguments: arguments,
@@ -491,7 +581,7 @@ struct ArticleAIChatView: View {
                 if recentToolRuns.count > 3 {
                     recentToolRuns.removeFirst(recentToolRuns.count - 3)
                 }
-                await updateToolProgress(
+                updateToolProgress(
                     toolCompletionProgressText(
                         toolCall: toolCall,
                         toolResult: toolResult,
@@ -545,7 +635,7 @@ struct ArticleAIChatView: View {
                         "role": "assistant",
                         "content": finalLocalMessage,
                     ])
-                    await updateToolProgress(nil)
+                    updateToolProgress(nil)
                     return ArticleAIReplyResult(
                         text: finalLocalMessage,
                         tokenUsage: finalTokenUsage,
@@ -582,7 +672,7 @@ struct ArticleAIChatView: View {
                     "role": "assistant",
                     "content": finalFailureMessage,
                 ])
-                await updateToolProgress(nil)
+                updateToolProgress(nil)
                 return ArticleAIReplyResult(
                     text: finalFailureMessage,
                     tokenUsage: finalTokenUsage,
@@ -605,7 +695,7 @@ struct ArticleAIChatView: View {
             "role": "assistant",
             "content": finalFailureMessage,
         ])
-        await updateToolProgress(nil)
+        updateToolProgress(nil)
         return ArticleAIReplyResult(
             text: finalFailureMessage,
             tokenUsage: finalTokenUsage,
@@ -636,7 +726,7 @@ struct ArticleAIChatView: View {
             "Round \(round)/\(maxRounds)",
         ]
         if !recentToolRuns.isEmpty {
-            lines.append("Just ran: \(recentToolRuns.joined(separator: " -> "))")
+            lines.append("Ran: \(recentToolRuns.joined(separator: " -> "))")
         }
         return lines.joined(separator: "\n")
     }
@@ -913,38 +1003,514 @@ struct ArticleAIChatView: View {
         model: String,
         token: String?,
         messages: [[String: Any]],
-        toolsEnabled: Bool
+        toolsEnabled: Bool,
+        onTextDelta: ((String) async -> Void)? = nil
     ) async throws -> ArticleAICompletionStep {
         debugLog("requestCompletion start model=\(model), toolsEnabled=\(toolsEnabled), messages=\(messages.count)")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
         if let token = token, !token.isEmpty {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
         var payload: [String: Any] = [
             "model": model,
-            "stream": false,
+            "stream": true,
             "messages": messages.map(messagePayload(from:)),
         ]
+        let includeUsageOption = modelNeedsOpenAIStreamUsageOption(model)
+        if includeUsageOption {
+            payload["stream_options"] = [
+                "include_usage": true,
+            ]
+        }
         if toolsEnabled {
             payload["tools"] = aiToolDefinitions
             payload["tool_choice"] = "auto"
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
+        debugLog("requestCompletion sending stream=true, includeUsageOption=\(includeUsageOption), payloadBytes=\(request.httpBody?.count ?? 0), accept=\(request.value(forHTTPHeaderField: "Accept") ?? "nil")")
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-        debugLog("requestCompletion response bytes=\(data.count)")
+        let (bytes, response) = try await URLSession.shared.bytes(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw NSError(domain: "ArticleAIChat", code: 3, userInfo: [NSLocalizedDescriptionKey: "Invalid AI API response"])
         }
-        debugLog("requestCompletion status=\(http.statusCode), bodyPreview=\(truncate(String(data: data, encoding: .utf8) ?? "<non-utf8>", maxLength: 2500))")
+        debugLog("requestCompletion status=\(http.statusCode), contentType=\(http.value(forHTTPHeaderField: "Content-Type") ?? "unknown")")
         guard (200 ... 299).contains(http.statusCode) else {
-            let body = String(data: data, encoding: .utf8) ?? "Unknown error"
+            let bodyData = try await dataFromAsyncBytes(bytes)
+            let body = String(data: bodyData, encoding: .utf8) ?? "Unknown error"
             throw NSError(domain: "ArticleAIChat", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "AI API error \(http.statusCode): \(body)"])
         }
-        return try parseCompletionStep(data: data)
+        return try await parseCompletionStepFromStreamingBytes(
+            bytes: bytes,
+            fallbackModel: model,
+            onTextDelta: onTextDelta
+        )
+    }
+
+    private func parseCompletionStepFromStreamingBytes(
+        bytes: URLSession.AsyncBytes,
+        fallbackModel: String,
+        onTextDelta: ((String) async -> Void)?
+    ) async throws -> ArticleAICompletionStep {
+        var rawLines: [String] = []
+        var pendingEventDataLines: [String] = []
+        var sawStreamPayload = false
+
+        var streamedModel: String? = nil
+        var streamedRole = "assistant"
+        var streamedText = ""
+        var streamedUsage: [String: Any]? = nil
+        var openAIToolCallStates: [Int: ArticleAIStreamToolCallState] = [:]
+        var anthropicToolOrder: [String] = []
+        var anthropicToolNames: [String: String] = [:]
+        var anthropicToolInputs: [String: Any] = [:]
+        var streamEventCount = 0
+        var parsedChunkCount = 0
+        var failedChunkCount = 0
+        var dataLineCount = 0
+        var deltaCallbackCount = 0
+        var ignoredChunkWithoutChoicesCount = 0
+
+        debugLog("sse parser start fallbackModel=\(fallbackModel)")
+
+        func parseChunkJSONObject(eventDataLines: [String], eventIndex: Int) -> [String: Any]? {
+            let joinedWithNewline = eventDataLines.joined(separator: "\n")
+            let joinedWithoutNewline = eventDataLines.joined()
+
+            let candidate1 = joinedWithNewline.trimmingCharacters(in: .whitespacesAndNewlines)
+            let candidate2 = joinedWithoutNewline.trimmingCharacters(in: .whitespacesAndNewlines)
+            var candidates: [String] = []
+            if !candidate1.isEmpty {
+                candidates.append(candidate1)
+            }
+            if !candidate2.isEmpty && candidate2 != candidate1 {
+                candidates.append(candidate2)
+            }
+
+            guard !candidates.isEmpty else {
+                debugLog("sse event \(eventIndex) has no JSON candidate after trimming")
+                return nil
+            }
+
+            for (candidateIndex, candidate) in candidates.enumerated() {
+                guard let data = candidate.data(using: .utf8) else {
+                    debugLog("sse event \(eventIndex) candidate \(candidateIndex + 1) is not utf8 encodable")
+                    continue
+                }
+                do {
+                    let json = try JSONSerialization.jsonObject(with: data)
+                    guard let object = json as? [String: Any] else {
+                        debugLog("sse event \(eventIndex) candidate \(candidateIndex + 1) parsed non-object json type=\(debugValueType(json))")
+                        continue
+                    }
+                    if candidateIndex > 0 {
+                        debugLog("sse event \(eventIndex) recovered by candidate \(candidateIndex + 1)")
+                    }
+                    return object
+                } catch {
+                    let nsError = error as NSError
+                    debugLog(
+                        "sse event \(eventIndex) candidate \(candidateIndex + 1) parse error domain=\(nsError.domain), code=\(nsError.code), description=\(nsError.localizedDescription), preview=\(truncate(candidate, maxLength: 800))"
+                    )
+                }
+            }
+
+            return nil
+        }
+
+        func pendingEventLooksComplete(_ eventDataLines: [String]) -> Bool {
+            guard !eventDataLines.isEmpty else {
+                return false
+            }
+
+            let joinedWithNewline = eventDataLines.joined(separator: "\n")
+            let joinedWithoutNewline = eventDataLines.joined()
+            let candidate1 = joinedWithNewline.trimmingCharacters(in: .whitespacesAndNewlines)
+            let candidate2 = joinedWithoutNewline.trimmingCharacters(in: .whitespacesAndNewlines)
+            var candidates: [String] = []
+            if !candidate1.isEmpty {
+                candidates.append(candidate1)
+            }
+            if !candidate2.isEmpty && candidate2 != candidate1 {
+                candidates.append(candidate2)
+            }
+
+            for candidate in candidates {
+                if candidate == "[DONE]" {
+                    return true
+                }
+                guard let data = candidate.data(using: .utf8) else {
+                    continue
+                }
+                if let json = try? JSONSerialization.jsonObject(with: data),
+                    json is [String: Any]
+                {
+                    return true
+                }
+            }
+
+            return false
+        }
+
+        func appendStreamedTextDelta(_ text: String, source: String) async {
+            guard !text.isEmpty else {
+                return
+            }
+            streamedText += text
+            if let onTextDelta {
+                await onTextDelta(streamedText)
+                deltaCallbackCount += 1
+                if deltaCallbackCount <= 3 || deltaCallbackCount % 25 == 0 {
+                    debugLog(
+                        "sse text update source=\(source), deltaLength=\(text.count), totalLength=\(streamedText.count), callbacks=\(deltaCallbackCount)"
+                    )
+                }
+            }
+        }
+
+        func flushPendingEvent() async {
+            guard !pendingEventDataLines.isEmpty else {
+                return
+            }
+
+            let eventDataLines = pendingEventDataLines
+            pendingEventDataLines.removeAll(keepingCapacity: true)
+            streamEventCount += 1
+
+            let joinedEventData = eventDataLines.joined(separator: "\n")
+            let trimmedEventData = joinedEventData.trimmingCharacters(in: .whitespacesAndNewlines)
+            if streamEventCount <= 5 || streamEventCount % 50 == 0 {
+                debugLog(
+                    "sse event \(streamEventCount) lineCount=\(eventDataLines.count), payloadLength=\(trimmedEventData.count), preview=\(truncate(trimmedEventData, maxLength: 220))"
+                )
+            }
+
+            guard !trimmedEventData.isEmpty else {
+                return
+            }
+
+            if trimmedEventData == "[DONE]" {
+                debugLog("sse event \(streamEventCount) received done marker")
+                return
+            }
+
+            guard let chunkJSON = parseChunkJSONObject(eventDataLines: eventDataLines, eventIndex: streamEventCount) else {
+                failedChunkCount += 1
+                return
+            }
+            parsedChunkCount += 1
+
+            if let chunkModel = chunkJSON["model"] as? String, !chunkModel.isEmpty {
+                streamedModel = chunkModel
+            }
+            if let usage = chunkJSON["usage"] as? [String: Any] {
+                streamedUsage = usage
+            }
+            if let chunkError = chunkJSON["error"] {
+                debugLog("sse chunk \(streamEventCount) reported error payload=\(debugDescription(chunkError, maxLength: 1200))")
+            }
+
+            if let eventType = chunkJSON["type"] as? String, !eventType.isEmpty {
+                if streamEventCount <= 5 || eventType.contains("stop") || eventType.contains("error") {
+                    debugLog("sse chunk \(streamEventCount) type=\(eventType)")
+                }
+
+                if eventType == "message_start",
+                    let message = chunkJSON["message"] as? [String: Any]
+                {
+                    if let role = message["role"] as? String, !role.isEmpty {
+                        streamedRole = role
+                    }
+                    if let model = message["model"] as? String, !model.isEmpty {
+                        streamedModel = model
+                    }
+                } else if eventType == "content_block_delta",
+                    let delta = chunkJSON["delta"] as? [String: Any],
+                    let deltaType = delta["type"] as? String
+                {
+                    if deltaType == "text_delta",
+                        let text = delta["text"] as? String
+                    {
+                        await appendStreamedTextDelta(text, source: "anthropic.text_delta")
+                    } else if deltaType == "input_json_delta",
+                        let partialJSON = delta["partial_json"] as? String,
+                        !partialJSON.isEmpty
+                    {
+                        let blockIndex = intValue(from: chunkJSON["index"]) ?? 0
+                        let toolID = "anthropic-tool-\(blockIndex)"
+                        if !anthropicToolOrder.contains(toolID) {
+                            anthropicToolOrder.append(toolID)
+                        }
+                        let previous = anthropicToolInputs[toolID] as? String ?? ""
+                        anthropicToolInputs[toolID] = previous + partialJSON
+                    }
+                } else if eventType == "content_block_start",
+                    let contentBlock = chunkJSON["content_block"] as? [String: Any],
+                    (contentBlock["type"] as? String) == "tool_use"
+                {
+                    let blockIndex = intValue(from: chunkJSON["index"]) ?? 0
+                    let toolID = (contentBlock["id"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+                        ?? "anthropic-tool-\(blockIndex)"
+                    if !anthropicToolOrder.contains(toolID) {
+                        anthropicToolOrder.append(toolID)
+                    }
+                    if let name = contentBlock["name"] as? String, !name.isEmpty {
+                        anthropicToolNames[toolID] = name
+                    }
+                    if let input = contentBlock["input"] {
+                        anthropicToolInputs[toolID] = input
+                    }
+                } else if eventType == "message_delta",
+                    let usage = chunkJSON["usage"] as? [String: Any]
+                {
+                    streamedUsage = usage
+                }
+            }
+
+            guard
+                let choices = chunkJSON["choices"] as? [[String: Any]],
+                let firstChoice = choices.first
+            else {
+                ignoredChunkWithoutChoicesCount += 1
+                if ignoredChunkWithoutChoicesCount <= 5 || ignoredChunkWithoutChoicesCount % 25 == 0 {
+                    debugLog("sse chunk \(streamEventCount) ignored (no choices). keys=\(Array(chunkJSON.keys).sorted())")
+                }
+                return
+            }
+
+            if let delta = firstChoice["delta"] as? [String: Any] {
+                if let role = delta["role"] as? String, !role.isEmpty {
+                    streamedRole = role
+                }
+
+                if let deltaContent = delta["content"] {
+                    if let deltaText = deltaContent as? String {
+                        await appendStreamedTextDelta(deltaText, source: "openai.content")
+                    } else if let contentParts = deltaContent as? [[String: Any]] {
+                        for part in contentParts {
+                            if let text = part["text"] as? String {
+                                await appendStreamedTextDelta(text, source: "openai.content.part")
+                            }
+
+                            guard (part["type"] as? String) == "tool_use" else {
+                                continue
+                            }
+                            let partID = (part["id"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+                            let toolID = (partID?.isEmpty == false) ? partID! : UUID().uuidString
+                            if !anthropicToolOrder.contains(toolID) {
+                                anthropicToolOrder.append(toolID)
+                            }
+                            if let name = part["name"] as? String, !name.isEmpty {
+                                anthropicToolNames[toolID] = name
+                            }
+                            if let input = part["input"] {
+                                anthropicToolInputs[toolID] = input
+                            } else if let inputJSONDelta = part["input_json_delta"] as? String,
+                                !inputJSONDelta.isEmpty
+                            {
+                                let previous = anthropicToolInputs[toolID] as? String ?? ""
+                                anthropicToolInputs[toolID] = previous + inputJSONDelta
+                            }
+                        }
+                    }
+                }
+
+                if let deltaToolCalls = delta["tool_calls"] as? [[String: Any]] {
+                    for (fallbackIndex, deltaToolCall) in deltaToolCalls.enumerated() {
+                        let index = intValue(from: deltaToolCall["index"]) ?? fallbackIndex
+                        var state = openAIToolCallStates[index] ?? ArticleAIStreamToolCallState()
+
+                        if let callID = deltaToolCall["id"] as? String, !callID.isEmpty {
+                            state.id = callID
+                        }
+                        if let function = deltaToolCall["function"] as? [String: Any] {
+                            if let namePart = function["name"] as? String, !namePart.isEmpty {
+                                state.name += namePart
+                            }
+                            if let argumentsPart = function["arguments"] as? String, !argumentsPart.isEmpty {
+                                state.arguments += argumentsPart
+                            }
+                        }
+
+                        openAIToolCallStates[index] = state
+                    }
+                }
+            } else if let message = firstChoice["message"] as? [String: Any] {
+                if let role = message["role"] as? String, !role.isEmpty {
+                    streamedRole = role
+                }
+                let messageText = extractText(from: message)
+                if !messageText.isEmpty {
+                    streamedText = messageText
+                    if let onTextDelta {
+                        await onTextDelta(streamedText)
+                    }
+                }
+                if let toolCalls = message["tool_calls"] as? [[String: Any]] {
+                    for (index, toolCall) in toolCalls.enumerated() {
+                        guard let function = toolCall["function"] as? [String: Any] else { continue }
+                        var state = openAIToolCallStates[index] ?? ArticleAIStreamToolCallState()
+                        if let callID = toolCall["id"] as? String, !callID.isEmpty {
+                            state.id = callID
+                        }
+                        if let name = function["name"] as? String, !name.isEmpty {
+                            state.name = name
+                        }
+                        if let arguments = function["arguments"] as? String, !arguments.isEmpty {
+                            state.arguments = arguments
+                        }
+                        openAIToolCallStates[index] = state
+                    }
+                }
+            }
+        }
+
+        for try await line in bytes.lines {
+            rawLines.append(line)
+
+            if line.hasPrefix("data:") {
+                sawStreamPayload = true
+                dataLineCount += 1
+                // Support both framing styles:
+                // 1) spec-compliant SSE where a single event may contain multiple `data:` lines
+                //    and ends with a blank line;
+                // 2) one-JSON-per-`data:` line streams without blank-line separators.
+                // Only flush early when the pending payload is already a complete event.
+                if pendingEventLooksComplete(pendingEventDataLines) {
+                    debugLog("sse flushing complete pending event before new data line \(dataLineCount)")
+                    await flushPendingEvent()
+                }
+                var dataLine = String(line.dropFirst(5))
+                if dataLine.hasPrefix(" ") {
+                    dataLine.removeFirst()
+                }
+                pendingEventDataLines.append(dataLine)
+                if dataLineCount <= 5 || dataLineCount % 100 == 0 {
+                    debugLog("sse data line \(dataLineCount) length=\(dataLine.count), preview=\(truncate(dataLine, maxLength: 180))")
+                }
+                continue
+            }
+
+            if line.hasPrefix(":") || line.hasPrefix("event:") || line.hasPrefix("id:") || line.hasPrefix("retry:") {
+                if rawLines.count <= 10 {
+                    debugLog("sse control line preview=\(truncate(line, maxLength: 180))")
+                }
+                continue
+            }
+
+            if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                await flushPendingEvent()
+                continue
+            }
+
+            if rawLines.count <= 10 || rawLines.count % 150 == 0 {
+                debugLog("sse non-standard line preview=\(truncate(line, maxLength: 180))")
+            }
+        }
+
+        await flushPendingEvent()
+        debugLog("sse stream complete sawStreamPayload=\(sawStreamPayload), rawLines=\(rawLines.count), dataLines=\(dataLineCount), events=\(streamEventCount), parsedChunks=\(parsedChunkCount), failedChunks=\(failedChunkCount), textLength=\(streamedText.count)")
+
+        if !sawStreamPayload {
+            let rawBody = rawLines.joined(separator: "\n")
+            debugLog("sse fallback to non-stream parse rawBodyLength=\(rawBody.count), preview=\(truncate(rawBody, maxLength: 1200))")
+            guard let rawData = rawBody.data(using: .utf8) else {
+                throw NSError(domain: "ArticleAIChat", code: 4, userInfo: [NSLocalizedDescriptionKey: "Unexpected AI response format"])
+            }
+            do {
+                return try parseCompletionStep(data: rawData)
+            } catch {
+                debugLogError("sse fallback parseCompletionStep failed", error: error)
+                throw error
+            }
+        }
+
+        let openAIToolCalls = openAIToolCallStates
+            .sorted(by: { $0.key < $1.key })
+            .compactMap { (_, state) -> [String: Any]? in
+                let name = state.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !name.isEmpty else {
+                    return nil
+                }
+                let callID = state.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    ? UUID().uuidString
+                    : state.id
+                let arguments = state.arguments.trimmingCharacters(in: .whitespacesAndNewlines)
+                return [
+                    "id": callID,
+                    "type": "function",
+                    "function": [
+                        "name": name,
+                        "arguments": arguments.isEmpty ? "{}" : arguments,
+                    ],
+                ]
+            }
+
+        var assistantMessage: [String: Any] = [
+            "role": streamedRole,
+        ]
+        if !openAIToolCalls.isEmpty {
+            assistantMessage["content"] = streamedText
+            assistantMessage["tool_calls"] = openAIToolCalls
+        } else if !anthropicToolOrder.isEmpty {
+            var contentParts: [[String: Any]] = []
+            if !streamedText.isEmpty {
+                contentParts.append([
+                    "type": "text",
+                    "text": streamedText,
+                ])
+            }
+            for toolID in anthropicToolOrder {
+                guard let name = anthropicToolNames[toolID], !name.isEmpty else { continue }
+                contentParts.append([
+                    "type": "tool_use",
+                    "id": toolID,
+                    "name": name,
+                    "input": anthropicToolInputs[toolID] ?? [:],
+                ])
+            }
+            assistantMessage["content"] = contentParts
+        } else {
+            assistantMessage["content"] = streamedText
+        }
+
+        var reconstructedResponse: [String: Any] = [
+            "choices": [
+                [
+                    "message": assistantMessage,
+                ],
+            ],
+        ]
+        if let usage = streamedUsage {
+            reconstructedResponse["usage"] = usage
+        }
+        if let streamedModel = streamedModel, !streamedModel.isEmpty {
+            reconstructedResponse["model"] = streamedModel
+        } else if !fallbackModel.isEmpty {
+            reconstructedResponse["model"] = fallbackModel
+        }
+
+        do {
+            let reconstructedData = try JSONSerialization.data(withJSONObject: reconstructedResponse, options: [])
+            let completion = try parseCompletionStep(data: reconstructedData)
+            debugLog("requestCompletion stream done textLength=\(completion.text.count), toolCalls=\(completion.toolCalls.count), tokenUsage=\(completion.tokenUsage ?? "nil"), finalModel=\(streamedModel ?? fallbackModel)")
+            return completion
+        } catch {
+            debugLogError("sse reconstructed response parsing failed", error: error)
+            debugLog("sse reconstructed response preview=\(debugDescription(reconstructedResponse, maxLength: 1400))")
+            throw error
+        }
+    }
+
+    private func dataFromAsyncBytes(_ bytes: URLSession.AsyncBytes) async throws -> Data {
+        var data = Data()
+        for try await byte in bytes {
+            data.append(byte)
+        }
+        return data
     }
 
     private func parseCompletionStep(data: Data) throws -> ArticleAICompletionStep {
@@ -1020,14 +1586,34 @@ struct ArticleAIChatView: View {
         let modelName = json["model"] as? String
         guard let usage = json["usage"] as? [String: Any] else { return nil }
 
-        let promptTokens = usage["prompt_tokens"] as? Int
-        let completionTokens = usage["completion_tokens"] as? Int
-        let totalTokens = usage["total_tokens"] as? Int
+        func usageInt(_ keys: [String]) -> Int? {
+            for key in keys {
+                if let value = usage[key] as? Int {
+                    return value
+                }
+                if let number = usage[key] as? NSNumber {
+                    return number.intValue
+                }
+            }
+            return nil
+        }
+
+        let promptTokens = usageInt(["prompt_tokens", "input_tokens"])
+        let completionTokens = usageInt(["completion_tokens", "output_tokens"])
+        let explicitTotalTokens = usageInt(["total_tokens"])
+        let totalTokens: Int? = explicitTotalTokens ?? {
+            guard let promptTokens, let completionTokens else { return nil }
+            return promptTokens + completionTokens
+        }()
+        let cacheReadTokens = usageInt(["cache_read_input_tokens", "prompt_cache_hit_tokens"])
+        let cacheWriteTokens = usageInt(["cache_creation_input_tokens", "prompt_cache_miss_tokens"])
 
         var parts: [String] = [
             promptTokens != nil ? "Prompt: \(promptTokens!)" : nil,
             completionTokens != nil ? "Completion: \(completionTokens!)" : nil,
             totalTokens != nil ? "Total: \(totalTokens!)" : nil,
+            cacheReadTokens != nil ? "Cache Read: \(cacheReadTokens!)" : nil,
+            cacheWriteTokens != nil ? "Cache Write: \(cacheWriteTokens!)" : nil,
         ].compactMap { $0 }
 
         if let modelName = modelName, !modelName.isEmpty {
@@ -1078,6 +1664,38 @@ struct ArticleAIChatView: View {
     private func modelSupportsToolUse(_ model: String) -> Bool {
         let modelName = model.lowercased()
         return modelName.contains("sonnet") || modelName.contains("opus")
+    }
+
+    private func modelNeedsOpenAIStreamUsageOption(_ model: String) -> Bool {
+        let normalized = model
+            .lowercased()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if normalized.isEmpty {
+            return false
+        }
+
+        // Anthropic-compatible models already emit usage in streaming events.
+        if normalized.contains("claude")
+            || normalized.contains("sonnet")
+            || normalized.contains("opus")
+            || normalized.contains("haiku")
+        {
+            return false
+        }
+
+        let candidate = normalized.split(separator: "/").last.map(String.init) ?? normalized
+        if candidate.hasPrefix("gpt-")
+            || candidate.hasPrefix("chatgpt")
+            || candidate.hasPrefix("o1")
+            || candidate.hasPrefix("o3")
+            || candidate.hasPrefix("o4")
+        {
+            return true
+        }
+        if normalized.hasPrefix("openai/") || normalized.contains("/openai/") {
+            return true
+        }
+        return false
     }
 
     private var aiToolDefinitions: [[String: Any]] {
@@ -1202,13 +1820,13 @@ struct ArticleAIChatView: View {
         let arguments = decodeToolArguments(toolCall.arguments)
         switch toolCall.name {
         case "read_article":
-            return await runReadArticleTool(arguments: arguments)
+            return runReadArticleTool(arguments: arguments)
         case "write_article":
             return await runWriteArticleTool(arguments: arguments)
         case "read_planet":
-            return await runReadPlanetTool(arguments: arguments)
+            return runReadPlanetTool(arguments: arguments)
         case "write_planet":
-            return await runWritePlanetTool(arguments: arguments)
+            return runWritePlanetTool(arguments: arguments)
         case "shell":
             return runShellTool(arguments: arguments)
         default:
