@@ -396,7 +396,6 @@ struct ArticleView: View {
                             }
                         }
                     }
-                    .buttonStyle(.plain)
                     .help("Chat with AI about this article")
                 }
 
