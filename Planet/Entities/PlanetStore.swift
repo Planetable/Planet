@@ -102,6 +102,7 @@ final class MyJSONDirectoryMonitor {
     private var myDataMonitor: MyJSONDirectoryMonitor?
     private var myDataReloadTask: Task<Void, Never>?
     private var myDataReloadInProgress = false
+    private var selectedViewRefreshTask: Task<Void, Never>?
 
     @Published var myPlanets: [MyPlanetModel] = [] {
         didSet {
@@ -135,16 +136,20 @@ final class MyJSONDirectoryMonitor {
                 return
             }
             if selectedView != oldValue {
-                Task { @MainActor in
+                let selectedViewSnapshot = selectedView
+                selectedViewRefreshTask?.cancel()
+                selectedViewRefreshTask = Task { @MainActor in
+                    // Defer publishes to the next main-actor turn to avoid SwiftUI re-entrancy warnings.
+                    await Task.yield()
+                    guard !Task.isCancelled, self.selectedView == selectedViewSnapshot else {
+                        return
+                    }
                     self.selectedArticle = nil
-                }
-                refreshSelectedArticles()
-                UserDefaults.standard.set(selectedView?.stringValue, forKey: "lastSelectedView")
+                    self.refreshSelectedArticles()
 
-                Task { @MainActor in
-                    switch selectedView {
+                    switch self.selectedView {
                     case .myPlanet(let planet):
-                        let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) ?? planet
+                        let canonicalPlanet = self.myPlanets.first(where: { $0.id == planet.id }) ?? planet
                         KeyboardShortcutHelper.shared.activeMyPlanet = canonicalPlanet
                         // Update Planet Lite Window Titles
                         // let liteSubtitle = "ipns://\(planet.ipns.shortIPNS())"
@@ -152,9 +157,10 @@ final class MyJSONDirectoryMonitor {
                     default:
                         KeyboardShortcutHelper.shared.activeMyPlanet = nil
                         // Reset Planet Lite Window Titles
-                        navigationSubtitle = ""
+                        self.navigationSubtitle = ""
                     }
                 }
+                UserDefaults.standard.set(selectedView?.stringValue, forKey: "lastSelectedView")
             }
         }
     }
