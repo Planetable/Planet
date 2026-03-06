@@ -42,8 +42,49 @@ struct ArticleListView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @StateObject private var viewModel = ArticleListViewModel()
     @State var articles: [ArticleModel]? = []
+    @State private var pendingScrollArticleID: UUID?
+    @State private var pendingScrollTask: Task<Void, Never>?
 
     let articleDropDelegate = ArticleListDropDelegate()
+
+    private func scrollToArticle(_ articleID: UUID, proxy: ScrollViewProxy, animated: Bool) {
+        if animated {
+            withAnimation {
+                proxy.scrollTo(articleID, anchor: .center)
+            }
+        } else {
+            proxy.scrollTo(articleID, anchor: .center)
+        }
+    }
+
+    private func retryPendingArticleScroll(proxy: ScrollViewProxy) {
+        guard let articleID = pendingScrollArticleID else {
+            return
+        }
+        scrollToArticle(articleID, proxy: proxy, animated: false)
+    }
+
+    private func requestArticleScroll(_ articleID: UUID, proxy: ScrollViewProxy) {
+        pendingScrollArticleID = articleID
+        scrollToArticle(articleID, proxy: proxy, animated: true)
+
+        pendingScrollTask?.cancel()
+        pendingScrollTask = Task { @MainActor in
+            // Re-apply after selectedView/list updates to keep the row visible.
+            try? await Task.sleep(nanoseconds: 180_000_000)
+            guard !Task.isCancelled, pendingScrollArticleID == articleID else {
+                return
+            }
+            retryPendingArticleScroll(proxy: proxy)
+
+            try? await Task.sleep(nanoseconds: 180_000_000)
+            guard !Task.isCancelled, pendingScrollArticleID == articleID else {
+                return
+            }
+            retryPendingArticleScroll(proxy: proxy)
+            pendingScrollArticleID = nil
+        }
+    }
 
     private func filterArticles(_ articles: [ArticleModel]) -> [ArticleModel]? {
         switch viewModel.filter {
@@ -166,6 +207,9 @@ struct ArticleListView: View {
                         .onReceive(NotificationCenter.default.publisher(for: .scrollToTopArticleList)) { n in
                             if let article = viewModel.articles.first {
                                 debugPrint("Scrolling to top of Article List: \(article)")
+                                pendingScrollTask?.cancel()
+                                pendingScrollTask = nil
+                                pendingScrollArticleID = nil
                                 withAnimation {
                                     proxy.scrollTo(article.id, anchor: .top)
                                 }
@@ -174,9 +218,34 @@ struct ArticleListView: View {
                         .onReceive(NotificationCenter.default.publisher(for: .scrollToArticle)) { n in
                             if let article = n.object as? ArticleModel {
                                 debugPrint("Scrolling to Article: \(article)")
-                                withAnimation {
-                                    proxy.scrollTo(article.id, anchor: .center)
-                                }
+                                requestArticleScroll(article.id, proxy: proxy)
+                            }
+                        }
+                        .onChange(of: planetStore.selectedView?.stringValue) { _ in
+                            guard pendingScrollArticleID != nil else {
+                                return
+                            }
+                            Task { @MainActor in
+                                await Task.yield()
+                                retryPendingArticleScroll(proxy: proxy)
+                            }
+                        }
+                        .onChange(of: viewModel.articles.map(\.id)) { _ in
+                            guard pendingScrollArticleID != nil else {
+                                return
+                            }
+                            Task { @MainActor in
+                                await Task.yield()
+                                retryPendingArticleScroll(proxy: proxy)
+                            }
+                        }
+                        .onChange(of: planetStore.selectedArticle?.id) { id in
+                            guard let pendingID = pendingScrollArticleID, pendingID == id else {
+                                return
+                            }
+                            Task { @MainActor in
+                                await Task.yield()
+                                retryPendingArticleScroll(proxy: proxy)
                             }
                         }
                     }
@@ -266,6 +335,11 @@ struct ArticleListView: View {
         .onWidthChange { newWidth in
             @AppStorage("articleListWidth") var articleListWidth = 240.0
             articleListWidth = newWidth
+        }
+        .onDisappear {
+            pendingScrollTask?.cancel()
+            pendingScrollTask = nil
+            pendingScrollArticleID = nil
         }
     }
 }
