@@ -358,6 +358,7 @@ struct ArticleView: View {
             ToolbarItemGroup(placement: .automatic) {
                 // Functions for the current selected planet
                 toolbarPlanetView()
+                toolbarFollowingArticlePlanetAvatarView()
             }
 
             ToolbarItemGroup(placement: .automatic) {
@@ -608,6 +609,43 @@ struct ArticleView: View {
                 ArticleAudioPlayerViewModel.shared.title = followingArticle.title
             } label: {
                 Label("Play Audio", systemImage: "headphones")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func toolbarFollowingArticlePlanetAvatarView() -> some View {
+        if let followingArticle = planetStore.selectedArticle as? FollowingArticleModel,
+            let articlePlanet = followingArticle.planet
+        {
+            if case .followingPlanet(let selectedPlanet) = planetStore.selectedView,
+                selectedPlanet.id == articlePlanet.id
+            {
+                EmptyView()
+            } else {
+                Button {
+                    let targetArticleID = followingArticle.id
+                    let targetPlanet = articlePlanet
+                    planetStore.selectedView = .followingPlanet(targetPlanet)
+                    Task { @MainActor in
+                        // Wait briefly for selectedView didSet to refresh article list before restoring selection.
+                        try? await Task.sleep(nanoseconds: 50_000_000)
+                        guard case .followingPlanet(let selectedPlanet) = planetStore.selectedView,
+                            selectedPlanet.id == targetPlanet.id
+                        else {
+                            return
+                        }
+                        if let article = planetStore.selectedArticleList?.first(where: { $0.id == targetArticleID })
+                            ?? selectedPlanet.articles.first(where: { $0.id == targetArticleID })
+                        {
+                            planetStore.selectedArticle = article
+                            NotificationCenter.default.post(name: .scrollToArticle, object: article)
+                        }
+                    }
+                } label: {
+                    articlePlanet.avatarView(size: 20)
+                }
+                .help("Show \(articlePlanet.name)")
             }
         }
     }
