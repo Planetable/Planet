@@ -3,10 +3,20 @@ import SwiftyJSON
 import UserNotifications
 import os
 
+struct IPFSDaemonHealthStatus: Sendable {
+    let processRunning: Bool
+    let gatewayReachable: Bool
+
+    var isOnline: Bool {
+        processRunning && gatewayReachable
+    }
+}
+
 actor IPFSDaemon {
     static let shared = IPFSDaemon()
 
     private var settingUp: Bool = false
+    private var daemonProcess: Process?
     private var swarmPort: UInt16!
     private var apiPort: UInt16!
     private var gatewayPort: UInt16!
@@ -287,8 +297,30 @@ actor IPFSDaemon {
         }
     }
 
+    func healthStatus(apiPort: UInt16, gatewayPort: UInt16) -> IPFSDaemonHealthStatus {
+        if let daemonProcess, !daemonProcess.isRunning {
+            self.daemonProcess = nil
+        }
+
+        let hasTrackedProcess = daemonProcess?.isRunning == true
+        let hasDaemonControlPort = Self.hasDaemonControlPort(apiPort: apiPort)
+        let gatewayReachable = Self.isLoopbackPortReachable(port: gatewayPort)
+
+        return IPFSDaemonHealthStatus(
+            processRunning: hasTrackedProcess || hasDaemonControlPort,
+            gatewayReachable: gatewayReachable
+        )
+    }
+
     func launch() throws {
         Self.logger.info("Launching daemon")
+        if let daemonProcess, daemonProcess.isRunning {
+            Self.logger.info("Daemon is already running")
+            Task.detached(priority: .utility) {
+                await IPFSState.shared.updateStatus()
+            }
+            return
+        }
         if swarmPort == nil || apiPort == nil || gatewayPort == nil {
             Self.logger.info("IPFS is not ready, abort launching process, trying to setup again.")
             Task.detached(priority: .utility) {
@@ -301,18 +333,20 @@ actor IPFSDaemon {
             Task { @MainActor in
                 IPFSState.shared.updateOperatingStatus(true)
             }
-            try IPFSCommand.launchDaemon().run(
+            var didHandleReadySignal = false
+            let launchedProcess = try IPFSCommand.launchDaemon().run(
                 outHandler: { data in
                     let log = data.logFormat()
                     Self.logger.debug("[IPFS stdout]\n\(log, privacy: .public)")
-                    if log.contains("Daemon is ready") {
+                    if !didHandleReadySignal, log.contains("Daemon is ready") {
+                        didHandleReadySignal = true
                         Self.logger.info("Daemon launched")
                         Task.detached(priority: .utility) {
                             try? await Task.sleep(nanoseconds: 500_000_000)
                             IPFSState.shared.updateAppSettings()
                             try? await IPFSState.shared.calculateRepoSize()
-                            Task { @MainActor in
-                                IPFSState.shared.updateOnlineStatus(true)
+                            await IPFSState.shared.updateStatus()
+                            await MainActor.run {
                                 IPFSState.shared.updateOperatingStatus(false)
                             }
                         }
@@ -321,12 +355,14 @@ actor IPFSDaemon {
                 errHandler: { data in
                     let log = data.logFormat()
                     Self.logger.debug("[IPFS error]\n\(log, privacy: .public)")
-                    Task { @MainActor in
-                        IPFSState.shared.updateOnlineStatus(false)
-                        IPFSState.shared.updateOperatingStatus(false)
+                },
+                completionHandler: { ret in
+                    Task.detached(priority: .utility) {
+                        await self.handleDaemonTermination(terminationStatus: ret)
                     }
                 }
             )
+            self.daemonProcess = launchedProcess
         }
         catch {
             Self.logger.error(
@@ -378,6 +414,18 @@ actor IPFSDaemon {
             )
         }
         Task { @MainActor in
+            IPFSState.shared.updateOperatingStatus(false)
+        }
+    }
+
+    private func handleDaemonTermination(terminationStatus: Int) async {
+        if daemonProcess?.isRunning != true {
+            daemonProcess = nil
+        }
+
+        Self.logger.info("Daemon process terminated with status \(terminationStatus)")
+        await MainActor.run {
+            IPFSState.shared.updateOnlineStatus(false)
             IPFSState.shared.updateOperatingStatus(false)
         }
     }
@@ -960,6 +1008,14 @@ extension IPFSDaemon {
         return URL(string: "https://\(ipns).eth.sucks/")
     }
 
+    private static func hasDaemonControlPort(apiPort: UInt16) -> Bool {
+        let apiFile = IPFSCommand.IPFSRepositoryPath.appendingPathComponent("api", isDirectory: false)
+        guard FileManager.default.fileExists(atPath: apiFile.path) else {
+            return false
+        }
+        return isLoopbackPortReachable(port: apiPort)
+    }
+
     // Reference: https://stackoverflow.com/a/65162953
     static func isPortOpen(port: in_port_t) -> Bool {
         let socketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0)
@@ -983,6 +1039,31 @@ extension IPFSDaemon {
         let isOpen = listen(socketFileDescriptor, SOMAXCONN) != -1
         Darwin.close(socketFileDescriptor)
         return isOpen
+    }
+
+    static func isLoopbackPortReachable(port: in_port_t) -> Bool {
+        let socketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0)
+        if socketFileDescriptor == -1 {
+            return false
+        }
+        defer {
+            Darwin.close(socketFileDescriptor)
+        }
+
+        var addr = sockaddr_in()
+        let sizeOfSocketAddr = MemoryLayout<sockaddr_in>.size
+        addr.sin_len = __uint8_t(sizeOfSocketAddr)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = Int(OSHostByteOrder()) == OSLittleEndian ? _OSSwapInt16(port) : port
+        addr.sin_addr = in_addr(s_addr: inet_addr("127.0.0.1"))
+        addr.sin_zero = (0, 0, 0, 0, 0, 0, 0, 0)
+
+        return withUnsafePointer(to: &addr) { pointer in
+            pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPointer in
+                Darwin.connect(socketFileDescriptor, sockaddrPointer, socklen_t(sizeOfSocketAddr))
+                    == 0
+            }
+        }
     }
 
     static func scoutPort(_ range: ClosedRange<UInt16>) -> UInt16? {

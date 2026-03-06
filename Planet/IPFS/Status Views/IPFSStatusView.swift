@@ -39,7 +39,7 @@ struct IPFSStatusView: View {
                         Circle()
                             .frame(width: 11, height: 11, alignment: .center)
                             .foregroundColor(ipfsState.online ? Color.green : Color.red)
-                        Text(ipfsState.online ? "Online" : "Offline")
+                        Text(ipfsState.online ? "IPFS Online" : "IPFS Offline")
                             .font(.body)
                     }
                     Spacer()
@@ -80,6 +80,9 @@ struct IPFSStatusView: View {
                             .tint(.green)
                             .onChange(of: isDaemonOnline) { newValue in
                                 Task.detached(priority: .userInitiated) {
+                                    await MainActor.run {
+                                        IPFSState.shared.updateUserLaunchPreference(newValue)
+                                    }
                                     if newValue {
                                         try? await IPFSDaemon.shared.launch()
                                     }
@@ -88,12 +91,8 @@ struct IPFSStatusView: View {
                                     }
                                     await IPFSState.shared.updateStatus()
                                     await MainActor.run {
-                                        self.isDaemonOnline = newValue
+                                        self.isDaemonOnline = IPFSState.shared.online
                                     }
-                                    UserDefaults.standard.setValue(
-                                        newValue,
-                                        forKey: IPFSState.lastUserLaunchState
-                                    )
                                 }
                             }
                     }
@@ -132,6 +131,12 @@ struct IPFSStatusView: View {
                     debugPrint("failed to calculate repo size: \(error)")
                 }
             }
+        }
+        .onAppear {
+            isDaemonOnline = ipfsState.online
+        }
+        .onChange(of: ipfsState.online) { newValue in
+            isDaemonOnline = newValue
         }
     }
 

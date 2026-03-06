@@ -104,7 +104,7 @@ struct PlanetSidebarView: View {
                     Circle()
                         .frame(width: 11, height: 11, alignment: .center)
                         .foregroundColor(ipfsState.online ? Color.green : Color.red)
-                    Text(ipfsState.online ? "Online" : "Offline")
+                    Text(ipfsState.online ? "IPFS Online" : "IPFS Offline")
                         .font(.body)
 
                     Spacer()
@@ -162,6 +162,9 @@ struct PlanetSidebarView: View {
         }
         .sheet(isPresented: $planetStore.isCreatingPlanet) {
             CreatePlanetView()
+        }
+        .task {
+            await ipfsState.updateStatus()
         }
         .frame(minWidth: 220, idealWidth: UserDefaults.standard.double(forKey: "sidebarWidth") > 0 ? UserDefaults.standard.double(forKey: "sidebarWidth") : 220) // See https://github.com/Planetable/Planet/issues/393
         .toolbar {

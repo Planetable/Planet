@@ -77,11 +77,12 @@ struct IPFSCommand {
         return (Int(process.terminationStatus), outputData, errorData)
     }
 
+    @discardableResult
     func run(
         outHandler: ((_ data: Data) -> Void)? = nil,
         errHandler: ((_ data: Data) -> Void)? = nil,
         completionHandler: ((_ ret: Int) -> Void)? = nil
-    ) throws {
+    ) throws -> Process {
         let process = Process()
         process.executableURL = IPFSCommand.IPFSExecutablePath
         process.arguments = arguments
@@ -119,6 +120,8 @@ struct IPFSCommand {
             errorPipe.fileHandleForReading.readabilityHandler = nil
             completionHandler?(Int(process.terminationStatus))
         }
+
+        return process
     }
 
     static func IPFSInit() -> IPFSCommand {
