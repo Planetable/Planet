@@ -97,15 +97,19 @@ final class MyJSONDirectoryMonitor {
 @MainActor class PlanetStore: ObservableObject {
     static let shared = PlanetStore()
     static let version = 1
+    nonisolated(unsafe) static var isSharedReady = false
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PlanetStore")
     private var myDataMonitor: MyJSONDirectoryMonitor?
     private var myDataReloadTask: Task<Void, Never>?
     private var myDataReloadInProgress = false
     private var selectedViewRefreshTask: Task<Void, Never>?
+    var searchSnapshotRebuildTask: Task<Void, Never>?
+    var cachedSearchSnapshots: [SearchArticleSnapshot] = []
 
     @Published var myPlanets: [MyPlanetModel] = [] {
         didSet {
+            rebuildSearchSnapshots()
             let planets = myPlanets
             Task.detached {
                 await MainActor.run {
@@ -118,6 +122,7 @@ final class MyJSONDirectoryMonitor {
 
     @Published var followingPlanets: [FollowingPlanetModel] = [] {
         didSet {
+            rebuildSearchSnapshots()
             Task { @MainActor in
                 ArticleWebViewModel.shared.updateFollowingPlanets(followingPlanets)
             }
@@ -303,6 +308,7 @@ final class MyJSONDirectoryMonitor {
         } catch {
             fatalError("Error when accessing planet repo: \(error)")
         }
+        rebuildSearchSnapshots()
 
         if let lastSelectedView = UserDefaults.standard.string(forKey: "lastSelectedView") {
             if lastSelectedView.hasPrefix("myPlanet:") {
@@ -323,6 +329,7 @@ final class MyJSONDirectoryMonitor {
                 selectedView = .starred
             }
         }
+        Self.isSharedReady = true
 
     }
 

@@ -38,7 +38,11 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     @Published var isUpdating = false
 
     // populated when initializing
-    @Published var articles: [FollowingArticleModel]! = nil
+    @Published var articles: [FollowingArticleModel]! = nil {
+        didSet {
+            PlanetStore.requestSearchSnapshotRebuild()
+        }
+    }
     @Published var avatar: NSImage? = nil
 
     // juicebox

@@ -85,7 +85,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var podcastCoverArt: NSImage? = nil
 
     @Published var drafts: [DraftModel]! = nil
-    @Published var articles: [MyArticleModel]! = nil
+    @Published var articles: [MyArticleModel]! = nil {
+        didSet {
+            PlanetStore.requestSearchSnapshotRebuild()
+        }
+    }
 
     var ops: [String: Date] = [:]
     var attachmentsLastVerified: Date? = nil

@@ -18,6 +18,7 @@ extension MyArticleModel {
     /// Persist any changes to the model.
     func save() throws {
         try JSONEncoder.shared.encode(self).write(to: path)
+        PlanetStore.upsertSearchSnapshotIfReady(for: self)
     }
 
     /// Delete the metadata and any in the public folder
@@ -25,6 +26,7 @@ extension MyArticleModel {
         if let slug = self.slug, slug.count > 0 {
             self.removeSlug(slug)
         }
+        PlanetStore.removeSearchSnapshotIfReady(articleID: self.id)
         Task { @MainActor in
             self.planet.articles.removeAll { $0.id == self.id }
         }

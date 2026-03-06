@@ -316,9 +316,11 @@ class FollowingArticleModel: ArticleModel, Codable {
 
     func save() throws {
         try JSONEncoder.shared.encode(self).write(to: path)
+        PlanetStore.upsertSearchSnapshotIfReady(for: self)
     }
 
     func delete() {
+        PlanetStore.removeSearchSnapshotIfReady(articleID: self.id)
         try? FileManager.default.removeItem(at: path)
     }
 }

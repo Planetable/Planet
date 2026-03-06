@@ -12,12 +12,19 @@ struct SearchView: View {
 
     @State private var result: [SearchResult] = []
     @State private var focusedResult: SearchResult?
+    @State private var searchText: String
+    @State private var isSearching = false
 
-    @AppStorage("searchText") private var searchText: String = ""
+    @AppStorage("searchText") private var storedSearchText: String = ""
     @State private var searchTask: Task<Void, Never>?
 
     @Environment(\.dismiss) private var dismiss
     private let searchEmptyAnchorID = "search-results-empty-anchor"
+    private let searchDebounceNanoseconds: UInt64 = 50_000_000
+
+    init() {
+        _searchText = State(initialValue: UserDefaults.standard.string(forKey: "searchText") ?? "")
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -76,22 +83,24 @@ struct SearchView: View {
         }
         .frame(minWidth: 500, minHeight: 300)
         .onChange(of: searchText) { _ in
-            debounceSearch()
+            scheduleSearch()
         }
         .onAppear {
-            search()
+            if !trimmedSearchText.isEmpty {
+                scheduleSearch(immediately: true)
+            }
         }
         .onDisappear {
-            searchTimer?.invalidate()
-            searchTimer = nil
             searchTask?.cancel()
             searchTask = nil
+            isSearching = false
+            storedSearchText = searchText
         }
     }
 
-    @State private var searchTimer: Timer?
-
-    private let searchDebounceInterval: TimeInterval = 0.08  // 80 milliseconds
+    private var trimmedSearchText: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     @MainActor
     private func restoreSelectionAndScroll(
@@ -136,45 +145,36 @@ struct SearchView: View {
         NotificationCenter.default.post(name: .scrollToArticle, object: fallbackArticle)
     }
 
-    private func debounceSearch() {
-        // Invalidate and nullify the existing timer if it exists
-        searchTimer?.invalidate()
-        searchTimer = nil
+    private func scheduleSearch(immediately: Bool = false) {
+        let query = trimmedSearchText
+        focusedResult = nil
 
-        // Create and schedule a new timer
-        searchTimer = Timer.scheduledTimer(withTimeInterval: searchDebounceInterval, repeats: false)
-        { _ in
-            debugPrint("New search text length: \(self.searchText.count)")
-            if self.searchText.count == 0 {
-                self.searchTask?.cancel()
-                self.searchTask = nil
-                self.result = []
-            }
-            else {
-                self.search()
-            }
-            self.focusedResult = nil
-        }
-    }
-
-    private func search() {
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else {
             searchTask?.cancel()
             searchTask = nil
+            isSearching = false
             result = []
+            storedSearchText = ""
             return
         }
 
         searchTask?.cancel()
+        isSearching = true
         searchTask = Task(priority: .userInitiated) {
+            if !immediately {
+                try? await Task.sleep(nanoseconds: searchDebounceNanoseconds)
+            }
+            guard !Task.isCancelled else { return }
+
             let items = await planetStore.searchAllArticles(text: query)
             guard !Task.isCancelled else { return }
             await MainActor.run {
-                guard query == self.searchText.trimmingCharacters(in: .whitespacesAndNewlines) else {
+                guard query == self.trimmedSearchText else {
                     return
                 }
+                self.storedSearchText = self.searchText
                 self.result = items
+                self.isSearching = false
             }
         }
     }
@@ -186,7 +186,11 @@ struct SearchView: View {
                 if result.isEmpty {
                     HStack {
                         Spacer()
-                        Text(searchText.isEmpty ? "Start typing to search" : "No matching articles")
+                        Text(
+                            trimmedSearchText.isEmpty
+                                ? "Start typing to search"
+                                : (isSearching ? "Searching..." : "No matching articles")
+                        )
                             .foregroundColor(.secondary)
                         Spacer()
                     }
@@ -195,7 +199,7 @@ struct SearchView: View {
                     .id(searchEmptyAnchorID)
                 }
 
-                ForEach(result, id: \.self) { item in
+                ForEach(result, id: \.articleID) { item in
                     searchResultRow(item)
                         .id(item.articleID)
                         .onTapGesture {
@@ -365,7 +369,13 @@ struct SearchView: View {
     @ViewBuilder
     private func statusView() -> some View {
         HStack {
-            if result.count > 1 {
+            if isSearching {
+                ProgressView()
+                    .controlSize(.small)
+                Text(result.isEmpty ? "Searching..." : "Updating results...")
+                    .foregroundColor(.secondary)
+            }
+            else if result.count > 1 {
                 Text("\(result.count) results")
                     .foregroundColor(.secondary)
             }

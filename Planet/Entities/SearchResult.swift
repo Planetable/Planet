@@ -7,12 +7,12 @@
 
 import Foundation
 
-enum PlanetKind: String {
+enum PlanetKind: String, Sendable {
     case my
     case following
 }
 
-struct SearchResult: Hashable {
+struct SearchResult: Hashable, Sendable {
     let articleID: UUID
     let articleCreated: Date
     let title: String
