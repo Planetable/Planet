@@ -758,9 +758,44 @@ final class MyJSONDirectoryMonitor {
         return articles
     }
 
+    private func restoreMovedMyArticleSelection(targetArticleID: UUID, targetPlanetID: UUID) async {
+        // Retry because selectedView refreshes the article list asynchronously.
+        let retryDelays: [UInt64] = [80_000_000, 180_000_000, 320_000_000]
+
+        for delay in retryDelays {
+            try? await Task.sleep(nanoseconds: delay)
+
+            guard case .myPlanet(let selectedPlanet) = selectedView,
+                selectedPlanet.id == targetPlanetID
+            else {
+                continue
+            }
+
+            if let article = selectedArticleList?.first(where: { $0.id == targetArticleID })
+                ?? selectedPlanet.articles.first(where: { $0.id == targetArticleID })
+            {
+                selectedArticle = article
+                NotificationCenter.default.post(name: .scrollToArticle, object: article)
+                return
+            }
+        }
+
+        guard let targetPlanet = myPlanets.first(where: { $0.id == targetPlanetID }),
+            let article = targetPlanet.articles.first(where: { $0.id == targetArticleID })
+        else {
+            return
+        }
+
+        selectedArticle = article
+        NotificationCenter.default.post(name: .scrollToArticle, object: article)
+    }
+
     func moveMyArticle(_ article: MyArticleModel, toPlanet: MyPlanetModel) async throws {
         guard let fromPlanet = article.planet else {
             throw PlanetError.InternalError
+        }
+        guard !WriterStore.shared.isEditing(article: article) else {
+            throw PlanetError.MoveEditingPlanetArticleError
         }
         guard fromPlanet.isPublishing == false, toPlanet.isPublishing == false else {
             throw PlanetError.MovePublishingPlanetArticleError
@@ -769,24 +804,43 @@ final class MyJSONDirectoryMonitor {
         fromPlanet.articles = fromPlanet.articles.filter({ a in
             return a.id != article.id
         })
-        let articleIDString: String = article.id.uuidString.uppercased()
-        let fromPlanetIDString: String = fromPlanet.id.uuidString.uppercased()
-        let toPlanetIDString: String = toPlanet.id.uuidString.uppercased()
+        let articleIDString: String = article.id.uuidString
+        let fromPlanetIDString: String = fromPlanet.id.uuidString
+        let toPlanetIDString: String = toPlanet.id.uuidString
         let fromArticlePath = article.path
         let targetArticlePath = fromArticlePath.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(toPlanetIDString).appendingPathComponent("Articles").appendingPathComponent("\(articleIDString).json")
         debugPrint("moving article from: \(fromArticlePath), to: \(targetArticlePath) ...")
         try FileManager.default.copyItem(at: fromArticlePath, to: targetArticlePath)
 
         let fromArticlePublicPath = article.publicBasePath
-        let targetArticlePublicPath = fromArticlePublicPath.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(toPlanet.id.uuidString.uppercased()).appendingPathComponent(article.id.uuidString.uppercased())
+        let targetArticlePublicPath = fromArticlePublicPath.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(toPlanet.id.uuidString).appendingPathComponent(article.id.uuidString)
         debugPrint("moving public article from: \(fromArticlePublicPath), to: \(targetArticlePublicPath) ...")
         try FileManager.default.copyItem(at: fromArticlePublicPath, to: targetArticlePublicPath)
 
+        let fromDraftPath = fromPlanet.articleDraftsPath.appendingPathComponent(
+            articleIDString,
+            isDirectory: true
+        )
+        let targetDraftPath = toPlanet.articleDraftsPath.appendingPathComponent(
+            articleIDString,
+            isDirectory: true
+        )
+        let hasArticleDraft = FileManager.default.fileExists(atPath: fromDraftPath.path)
+        if hasArticleDraft {
+            debugPrint("moving article draft from: \(fromDraftPath), to: \(targetDraftPath) ...")
+            try FileManager.default.copyItem(at: fromDraftPath, to: targetDraftPath)
+        }
+
         debugPrint("delete previous article")
         article.delete()
+        if hasArticleDraft {
+            debugPrint("delete previous article draft")
+            try FileManager.default.removeItem(at: fromDraftPath)
+        }
 
         let movedArticle = article
         movedArticle.planet = toPlanet
+        movedArticle.draft = nil
 
         movedArticle.path = URL(string: article.path.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
         movedArticle.publicBasePath = URL(string: article.publicBasePath.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
@@ -842,18 +896,14 @@ final class MyJSONDirectoryMonitor {
 
         debugPrint("refresh UI")
         selectedArticle = nil
-        selectedView = nil
+        selectedView = .myPlanet(refreshedToPlanet)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.selectedView = .myPlanet(refreshedToPlanet)
-            let movedArticleID = movedArticle.id
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
-                if let myArticle = self?.selectedArticleList?.first(where: { $0.id == movedArticleID }) as? MyArticleModel {
-                    if let refreshed = try? MyArticleModel.load(from: myArticle.path, planet: refreshedToPlanet) {
-                        self?.selectedArticle = refreshed
-                    }
-                }
-            }
+        let movedArticleID = movedArticle.id
+        Task(priority: .userInitiated) { @MainActor [weak self] in
+            await self?.restoreMovedMyArticleSelection(
+                targetArticleID: movedArticleID,
+                targetPlanetID: refreshedToPlanet.id
+            )
         }
 
         debugPrint("publish changes ...")

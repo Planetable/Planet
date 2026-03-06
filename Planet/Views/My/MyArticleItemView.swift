@@ -279,6 +279,9 @@ struct MyArticleItemView: View {
                             case PlanetError.MovePublishingPlanetArticleError:
                                 PlanetStore.shared.alertMessage =
                                     "Please wait for the planet publishing completed then try again."
+                            case PlanetError.MoveEditingPlanetArticleError:
+                                PlanetStore.shared.alertMessage =
+                                    "Close the Writer window for this article before moving it."
                             default:
                                 PlanetStore.shared.alertMessage = error.localizedDescription
                             }

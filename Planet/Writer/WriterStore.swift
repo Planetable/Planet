@@ -44,7 +44,18 @@ import Foundation
         }
         writerWindows.removeValue(forKey: id)
     }
-    
+
+    func isEditing(article: MyArticleModel) -> Bool {
+        writerWindows.values.contains { window in
+            switch window.draft.target! {
+            case .article(let wrapper):
+                return wrapper.value.id == article.id
+            case .myPlanet:
+                return false
+            }
+        }
+    }
+
     func hasActiveWriterWindows() -> Bool {
         if writerWindows.filter({ $0.value.isVisible }).count > 0 {
             return true

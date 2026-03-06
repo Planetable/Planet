@@ -36,6 +36,7 @@ enum PlanetError: Error {
     case PublishedServiceFolderUnchangedError
     case PublishedServiceFolderPermissionError
     case MovePublishingPlanetArticleError
+    case MoveEditingPlanetArticleError
     case WalletConnectV2ProjectIDMissingError
     case PublicAPIError
     case KeyManagerSavingKeyError
@@ -124,6 +125,8 @@ extension PlanetError: LocalizedError {
             return NSLocalizedString("Published Service Folder Permission Error", comment: "")
         case .MovePublishingPlanetArticleError:
             return NSLocalizedString("Move Publishing Planet Article Error", comment: "")
+        case .MoveEditingPlanetArticleError:
+            return NSLocalizedString("Move Editing Planet Article Error", comment: "")
         case .WalletConnectV2ProjectIDMissingError:
             return NSLocalizedString("Wallet Connect V2 Project ID Missing Error", comment: "")
         case .PublicAPIError:
