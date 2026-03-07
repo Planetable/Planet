@@ -758,6 +758,112 @@ final class MyJSONDirectoryMonitor {
         return articles
     }
 
+    private func preferredSelectionViewAfterSaving(
+        _ article: MyArticleModel,
+        preserving preferredView: PlanetDetailViewType?
+    ) -> PlanetDetailViewType {
+        let articlePlanet = article.planet!
+
+        switch preferredView {
+        case .today:
+            if article.created.timeIntervalSinceNow > -86400 {
+                return .today
+            }
+        case .starred:
+            if article.starred != nil {
+                return .starred
+            }
+        case .myPlanet(let planet):
+            let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) ?? planet
+            return .myPlanet(canonicalPlanet)
+        default:
+            break
+        }
+
+        let canonicalPlanet = myPlanets.first(where: { $0.id == articlePlanet.id }) ?? articlePlanet
+        return .myPlanet(canonicalPlanet)
+    }
+
+    @MainActor
+    func restoreSavedMyArticleSelection(
+        _ article: MyArticleModel,
+        preserving preferredView: PlanetDetailViewType?
+    ) async {
+        let articlePlanet = article.planet!
+        let targetPlanet = myPlanets.first(where: { $0.id == articlePlanet.id }) ?? articlePlanet
+        let selectionDelay: UInt64 = targetPlanet.templateName == "Croptop" ? 200_000_000 : 0
+
+        func selectArticleFromCurrentList() -> ArticleModel? {
+            selectedArticleList?.first(where: { $0.id == article.id })
+                ?? targetPlanet.articles.first(where: { $0.id == article.id })
+        }
+
+        func applySelection(_ selected: ArticleModel) async {
+            if selectionDelay > 0 {
+                // Croptop needs a delay here when it loads from the local gateway.
+                try? await Task.sleep(nanoseconds: selectionDelay)
+            }
+            if let current = selectedArticle, current === selected {
+                NotificationCenter.default.post(name: .loadArticle, object: nil)
+            } else {
+                selectedArticle = selected
+            }
+            NotificationCenter.default.post(name: .scrollToArticle, object: selected)
+            try? await Task.sleep(nanoseconds: 120_000_000)
+            NotificationCenter.default.post(name: .scrollToArticle, object: selected)
+        }
+
+        let preferredTargetView = preferredSelectionViewAfterSaving(article, preserving: preferredView)
+        let initialView = selectedView
+        selectedView = preferredTargetView
+        if selectedView == initialView {
+            refreshSelectedArticles()
+        }
+
+        let retryDelays: [UInt64] = (preferredTargetView == initialView)
+            ? [0, 80_000_000, 180_000_000, 320_000_000]
+            : [80_000_000, 180_000_000, 320_000_000]
+        for delay in retryDelays {
+            if delay > 0 {
+                try? await Task.sleep(nanoseconds: delay)
+            }
+            guard selectedView?.stringValue == preferredTargetView.stringValue else {
+                continue
+            }
+            if let selected = selectArticleFromCurrentList() {
+                await applySelection(selected)
+                return
+            }
+        }
+
+        let fallbackView = PlanetDetailViewType.myPlanet(targetPlanet)
+        let currentView = selectedView
+        selectedView = fallbackView
+        if selectedView == currentView {
+            refreshSelectedArticles()
+        }
+
+        let fallbackRetryDelays: [UInt64] = (fallbackView == currentView)
+            ? [0, 80_000_000, 180_000_000, 320_000_000]
+            : [80_000_000, 180_000_000, 320_000_000]
+        for delay in fallbackRetryDelays {
+            if delay > 0 {
+                try? await Task.sleep(nanoseconds: delay)
+            }
+            guard case .myPlanet(let selectedPlanet) = selectedView,
+                selectedPlanet.id == targetPlanet.id
+            else {
+                continue
+            }
+            if let selected = selectArticleFromCurrentList() {
+                await applySelection(selected)
+                return
+            }
+        }
+
+        await applySelection(targetPlanet.articles.first(where: { $0.id == article.id }) ?? article)
+    }
+
     private func restoreMovedMyArticleSelection(targetArticleID: UUID, targetPlanetID: UUID) async {
         // Retry because selectedView refreshes the article list asynchronously.
         let retryDelays: [UInt64] = [80_000_000, 180_000_000, 320_000_000]

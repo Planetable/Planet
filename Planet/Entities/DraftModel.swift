@@ -532,33 +532,11 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         }
 
         Task { @MainActor in
-            PlanetStore.shared.selectedView = .myPlanet(planet)
-            PlanetStore.shared.refreshSelectedArticles()
-            let selectingArticle =
-                PlanetStore.shared.selectedArticleList?.first(where: { $0.id == article.id }) ?? article
-            // wrap it to delay the state change
-            if planet.templateName == "Croptop" {
-                let theArticle = selectingArticle
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    // Croptop needs a delay here when it loads from the local gateway
-                    if let selected = PlanetStore.shared.selectedArticle, selected === theArticle {
-                        NotificationCenter.default.post(name: .loadArticle, object: nil)
-                    }
-                    else {
-                        PlanetStore.shared.selectedArticle = theArticle
-                    }
-                    NotificationCenter.default.post(name: .scrollToArticle, object: theArticle)
-                }
-            }
-            else {
-                if let selected = PlanetStore.shared.selectedArticle, selected === selectingArticle {
-                    NotificationCenter.default.post(name: .loadArticle, object: nil)
-                }
-                else {
-                    PlanetStore.shared.selectedArticle = selectingArticle
-                }
-                NotificationCenter.default.post(name: .scrollToArticle, object: selectingArticle)
-            }
+            let preferredView = PlanetStore.shared.selectedView
+            await PlanetStore.shared.restoreSavedMyArticleSelection(
+                article,
+                preserving: preferredView
+            )
         }
 
         // Croptop: delete cached hero image after editing.
