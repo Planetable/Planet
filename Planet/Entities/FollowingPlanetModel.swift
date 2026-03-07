@@ -40,9 +40,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     // populated when initializing
     @Published var articles: [FollowingArticleModel]! = nil {
         didSet {
+            rebuildUnreadMetadata()
             PlanetStore.requestSearchSnapshotRebuild()
         }
     }
+    @Published private(set) var unreadCount: Int = 0
+    @Published private(set) var unreadArticles: [FollowingArticleModel] = []
     @Published var avatar: NSImage? = nil
 
     // juicebox
@@ -154,62 +157,38 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         return URL(string: "planet://\(link)")!
     }
 
+    private func rebuildUnreadMetadata() {
+        let unread = articles?.filter { $0.read == nil } ?? []
+        unreadArticles = unread
+        unreadCount = unread.count
+    }
+
+    func updateUnreadMetadata(for article: FollowingArticleModel, previousRead: Date?, currentRead: Date?) {
+        let wasUnread = previousRead == nil
+        let isUnread = currentRead == nil
+        guard wasUnread != isUnread else {
+            return
+        }
+
+        if isUnread {
+            guard !unreadArticles.contains(where: { $0.id == article.id }) else {
+                return
+            }
+            let insertionIndex = unreadArticles.firstIndex(where: { $0.created < article.created })
+                ?? unreadArticles.endIndex
+            unreadArticles.insert(article, at: insertionIndex)
+        } else {
+            unreadArticles.removeAll { $0.id == article.id }
+        }
+        unreadCount = unreadArticles.count
+    }
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-        hasher.combine(name)
-        hasher.combine(about)
-        hasher.combine(created)
-        hasher.combine(planetType)
-        hasher.combine(link)
-        hasher.combine(cid)
-        hasher.combine(updated)
-        hasher.combine(lastRetrieved)
-        hasher.combine(archived)
-        hasher.combine(archivedAt)
-        hasher.combine(walletAddress)
-        hasher.combine(walletAddressResolvedAt)
-        hasher.combine(isUpdating)
-        hasher.combine(articles)
-        hasher.combine(avatar)
-        hasher.combine(twitterUsername)
-        hasher.combine(githubUsername)
-        hasher.combine(telegramUsername)
-        hasher.combine(mastodonUsername)
-        hasher.combine(juiceboxEnabled)
-        hasher.combine(juiceboxProjectID)
-        hasher.combine(juiceboxProjectIDGoerli)
     }
 
     static func == (lhs: FollowingPlanetModel, rhs: FollowingPlanetModel) -> Bool {
-        if lhs === rhs {
-            return true
-        }
-        if type(of: lhs) != type(of: rhs) {
-            return false
-        }
-        return lhs.id == rhs.id
-            && lhs.name == rhs.name
-            && lhs.about == rhs.about
-            && lhs.created == rhs.created
-            && lhs.planetType == rhs.planetType
-            && lhs.link == rhs.link
-            && lhs.cid == rhs.cid
-            && lhs.updated == rhs.updated
-            && lhs.lastRetrieved == rhs.lastRetrieved
-            && lhs.archived == rhs.archived
-            && lhs.archivedAt == rhs.archivedAt
-            && lhs.walletAddress == rhs.walletAddress
-            && lhs.walletAddressResolvedAt == rhs.walletAddressResolvedAt
-            && lhs.isUpdating == rhs.isUpdating
-            && lhs.articles == rhs.articles
-            && lhs.avatar == rhs.avatar
-            && lhs.twitterUsername == rhs.twitterUsername
-            && lhs.githubUsername == rhs.githubUsername
-            && lhs.telegramUsername == rhs.telegramUsername
-            && lhs.mastodonUsername == rhs.mastodonUsername
-            && lhs.juiceboxEnabled == rhs.juiceboxEnabled
-            && lhs.juiceboxProjectID == rhs.juiceboxProjectID
-            && lhs.juiceboxProjectIDGoerli == rhs.juiceboxProjectIDGoerli
+        lhs.id == rhs.id
     }
 
     enum CodingKeys: String, CodingKey {
@@ -1992,8 +1971,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             return "0 articles"
         }
         else {
-            let unread = articles.filter { $0.read == nil }.count
-            return "\(unread) unread · \(articles.count) total"
+            return "\(unreadCount) unread · \(articles.count) total"
         }
     }
 

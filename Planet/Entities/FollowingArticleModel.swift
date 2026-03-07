@@ -6,6 +6,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     var link: String
     @Published var read: Date? = nil {
         didSet {
+            planet?.updateUnreadMetadata(for: self, previousRead: oldValue, currentRead: read)
             if oldValue == nil || read == nil {
                 // send notification to set navigation subtitle
                 NotificationCenter.default.post(name: .followingArticleReadChanged, object: self)

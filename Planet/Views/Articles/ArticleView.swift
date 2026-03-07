@@ -256,102 +256,18 @@ struct ArticleView: View {
         .background(
             Color(NSColor.textBackgroundColor)
         )
-        .onChange(of: planetStore.selectedArticle) { newArticle in
-            if let myArticle = newArticle as? MyArticleModel {
-                if myArticle.planet.templateName == "Croptop" {
-                    if FileManager.default.fileExists(atPath: myArticle.publicSimplePath.path) {
-                        let now = Date()
-                        let simpleHTMLAge =
-                            now.timeIntervalSince1970
-                            - ((try? FileManager.default.attributesOfItem(
-                                atPath: myArticle.publicSimplePath.path
-                            )[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0)
-                        if simpleHTMLAge < 7 {
-                            url = myArticle.publicSimplePath
-                        }
-                        else {
-                            url = myArticle.localPreviewURL ?? myArticle.publicIndexPath
-                        }
-                    }
-                    else {
-                        url = myArticle.localPreviewURL ?? myArticle.publicIndexPath
-                    }
-                }
-                else {
-                    // in future we can use the local gateway for all planets
-                    url = myArticle.publicIndexPath
-                }
-                sharingItem = myArticle.browserURL?.absoluteURL
-                currentItemLink = myArticle.link
-            }
-            else if let followingArticle = newArticle as? FollowingArticleModel {
-                if let webviewURL = followingArticle.webviewURL {
-                    url = webviewURL
-                }
-                else {
-                    debugPrint("Failed to switch selected article - branch A")
-                    url = Self.noSelectionURL
-                }
-                sharingItem = followingArticle.browserURL?.absoluteURL
-                currentItemLink = followingArticle.link
-                if followingArticle.planet.planetType == .ens {
-                    currentItemHost = followingArticle.planet.link
-                }
-                if followingArticle.planet.planetType == .dotbit {
-                    currentItemHost = followingArticle.planet.link
-                }
-            }
-            else {
-                debugPrint("Failed to switch selected article - branch B")
-                url = Self.noSelectionURL
-                currentItemLink = nil
-                planetStore.walletTransactionMemo = ""
-            }
-            if let linkString = currentItemLink, !linkString.hasPrefix("/"),
-                let linkURL = URL(string: linkString)
-            {
-                var link = linkURL.path
-                if let query = linkURL.query {
-                    link.append("?" + query)
-                }
-                if let fragment = linkURL.fragment {
-                    link.append("#" + fragment)
-                }
-                currentItemLink = link
-            }
-            debugPrint("Current item link is \(currentItemLink ?? "nil")")
-            if let host = currentItemHost {
-                planetStore.walletTransactionMemo = "planet:\(host)"
-                if let link = currentItemLink {
-                    planetStore.walletTransactionMemo = "planet:\(host)\(link)"
-                }
-            }
-            debugPrint(
-                "Current prepared transaction memo is \(planetStore.walletTransactionMemo)"
-            )
-            NotificationCenter.default.post(name: .loadArticle, object: nil)
+        .onChange(of: planetStore.selectedArticle) { _ in
+            syncSelectedArticlePresentation()
             refreshAIChatResponseCount()
         }
         .onChange(of: planetStore.selectedView) { _ in
-            url = Self.noSelectionURL
-            currentItemLink = nil
-            planetStore.walletTransactionMemo = ""
-            NotificationCenter.default.post(name: .loadArticle, object: nil)
-            switch planetStore.selectedView {
-            case .followingPlanet(let followingPlanet):
-                planetStore.walletTransactionMemo = "planet:\(followingPlanet.link)"
-            default:
-                break
+            if planetStore.selectedArticle == nil {
+                syncSelectedArticlePresentation()
             }
             refreshAIChatResponseCount()
         }
         .onAppear {
-            switch planetStore.selectedView {
-            case .followingPlanet(let followingPlanet):
-                planetStore.walletTransactionMemo = "planet:\(followingPlanet.link)"
-            default:
-                break
-            }
+            syncSelectedArticlePresentation()
             refreshAIChatResponseCount()
         }
         .toolbar {
@@ -528,6 +444,91 @@ struct ArticleView: View {
         conf.hides = false
         conf.activates = true
         return conf
+    }
+
+    private func syncSelectedArticlePresentation() {
+        currentItemHost = nil
+        currentItemLink = nil
+        sharingItem = nil
+        planetStore.walletTransactionMemo = ""
+
+        if let myArticle = planetStore.selectedArticle as? MyArticleModel {
+            url = articleURL(for: myArticle)
+            sharingItem = myArticle.browserURL?.absoluteURL
+            currentItemLink = myArticle.link
+        } else if let followingArticle = planetStore.selectedArticle as? FollowingArticleModel {
+            if let webviewURL = followingArticle.webviewURL {
+                url = webviewURL
+            } else {
+                debugPrint("Failed to switch selected article - branch A")
+                url = Self.noSelectionURL
+            }
+            sharingItem = followingArticle.browserURL?.absoluteURL
+            currentItemLink = followingArticle.link
+            if followingArticle.planet.planetType == .ens
+                || followingArticle.planet.planetType == .dotbit
+            {
+                currentItemHost = followingArticle.planet.link
+            }
+        } else {
+            debugPrint("Failed to switch selected article - branch B")
+            url = Self.noSelectionURL
+        }
+
+        normalizeCurrentItemLink()
+
+        if let host = currentItemHost {
+            planetStore.walletTransactionMemo = "planet:\(host)"
+            if let link = currentItemLink {
+                planetStore.walletTransactionMemo = "planet:\(host)\(link)"
+            }
+        } else if case .followingPlanet(let followingPlanet) = planetStore.selectedView,
+            planetStore.selectedArticle == nil
+        {
+            planetStore.walletTransactionMemo = "planet:\(followingPlanet.link)"
+        }
+
+        debugPrint("Current item link is \(currentItemLink ?? "nil")")
+        debugPrint(
+            "Current prepared transaction memo is \(planetStore.walletTransactionMemo)"
+        )
+    }
+
+    private func articleURL(for myArticle: MyArticleModel) -> URL {
+        if myArticle.planet.templateName == "Croptop" {
+            if FileManager.default.fileExists(atPath: myArticle.publicSimplePath.path) {
+                let now = Date()
+                let simpleHTMLAge = now.timeIntervalSince1970 - (
+                    (try? FileManager.default.attributesOfItem(
+                        atPath: myArticle.publicSimplePath.path
+                    )[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
+                )
+                if simpleHTMLAge < 7 {
+                    return myArticle.publicSimplePath
+                }
+            }
+            return myArticle.localPreviewURL ?? myArticle.publicIndexPath
+        }
+
+        // In future we can use the local gateway for all planets.
+        return myArticle.publicIndexPath
+    }
+
+    private func normalizeCurrentItemLink() {
+        guard let linkString = currentItemLink, !linkString.hasPrefix("/"),
+            let linkURL = URL(string: linkString)
+        else {
+            return
+        }
+
+        var link = linkURL.path
+        if let query = linkURL.query {
+            link.append("?" + query)
+        }
+        if let fragment = linkURL.fragment {
+            link.append("#" + fragment)
+        }
+        currentItemLink = link
     }
 
     @ViewBuilder

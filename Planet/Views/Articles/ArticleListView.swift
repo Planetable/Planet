@@ -312,22 +312,7 @@ struct ArticleListView: View {
             {
                 debugPrint("FollowingArticleReadChanged: \(planet.name) -> \(article.title)")
                 Task { @MainActor in
-                    switch planetStore.selectedView {
-                    case .unread:
-                        debugPrint("Setting the new navigation subtitle for Unread")
-                        if let articles = planetStore.selectedArticleList?.filter({ item in
-                            if let followingArticle = item as? FollowingArticleModel {
-                                return followingArticle.read == nil
-                            }
-                            return false
-                        }) {
-                            planetStore.navigationSubtitle = "\(articles.count) unread"
-                        }
-                    case .followingPlanet(let planet):
-                        planetStore.navigationSubtitle = planet.navigationSubtitle()
-                    default:
-                        break
-                    }
+                    planetStore.updateNavigationSubtitle()
                 }
             }
         }

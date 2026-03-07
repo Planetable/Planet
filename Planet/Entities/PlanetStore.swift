@@ -33,6 +33,36 @@ enum PlanetDetailViewType: Hashable, Equatable {
             return "followingPlanet:\(planet.id.uuidString)"
         }
     }
+
+    static func == (lhs: PlanetDetailViewType, rhs: PlanetDetailViewType) -> Bool {
+        switch (lhs, rhs) {
+        case (.today, .today), (.unread, .unread), (.starred, .starred):
+            return true
+        case (.myPlanet(let lhsPlanet), .myPlanet(let rhsPlanet)):
+            return lhsPlanet.id == rhsPlanet.id
+        case (.followingPlanet(let lhsPlanet), .followingPlanet(let rhsPlanet)):
+            return lhsPlanet.id == rhsPlanet.id
+        default:
+            return false
+        }
+    }
+
+    func hash(into hasher: inout Hasher) {
+        switch self {
+        case .today:
+            hasher.combine(0)
+        case .unread:
+            hasher.combine(1)
+        case .starred:
+            hasher.combine(2)
+        case .myPlanet(let planet):
+            hasher.combine(3)
+            hasher.combine(planet.id)
+        case .followingPlanet(let planet):
+            hasher.combine(4)
+            hasher.combine(planet.id)
+        }
+    }
 }
 
 final class MyJSONDirectoryMonitor {
@@ -149,7 +179,6 @@ final class MyJSONDirectoryMonitor {
                     guard !Task.isCancelled, self.selectedView == selectedViewSnapshot else {
                         return
                     }
-                    self.selectedArticle = nil
                     self.refreshSelectedArticles()
 
                     switch self.selectedView {
@@ -542,7 +571,7 @@ final class MyJSONDirectoryMonitor {
     }
 
     func updateTotalUnreadCount() {
-        totalUnreadCount = followingPlanets.reduce(0) { $0 + $1.articles.filter { $0.read == nil }.count }
+        totalUnreadCount = followingPlanets.reduce(0) { $0 + $1.unreadCount }
     }
 
     func updateTotalStarredCount() {
@@ -653,32 +682,41 @@ final class MyJSONDirectoryMonitor {
                 selectedArticleList?.remove(at: index)
                 ArticleListViewModel.shared.articles.removeAll(where: { $0.id == article.id })
             }
-            switch selectedView {
-            case .today:
-                if let articles = selectedArticleList {
-                    navigationSubtitle = "\(articles.count) fetched today"
-                }
-            case .unread:
-                if let articles = selectedArticleList {
-                    navigationSubtitle = "\(articles.count) unread"
-                }
-            case .starred:
-                if let articles = selectedArticleList {
-                    navigationSubtitle = "\(articles.count) starred"
-                }
-            case .myPlanet(let planet):
-                let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) ?? planet
-                navigationSubtitle = canonicalPlanet.navigationSubtitle()
-            case .followingPlanet(let planet):
-                let canonicalPlanet = followingPlanets.first(where: { $0.id == planet.id }) ?? planet
-                navigationSubtitle = canonicalPlanet.navigationSubtitle()
-            case .none:
-                navigationSubtitle = ""
+            updateNavigationSubtitle()
+        }
+    }
+
+    func updateNavigationSubtitle() {
+        switch selectedView {
+        case .today:
+            if let articles = selectedArticleList {
+                navigationSubtitle = "\(articles.count) fetched today"
             }
+        case .unread:
+            if let articles = selectedArticleList {
+                navigationSubtitle = "\(articles.count) unread"
+            }
+        case .starred:
+            if let articles = selectedArticleList {
+                navigationSubtitle = "\(articles.count) starred"
+            }
+        case .myPlanet(let planet):
+            let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) ?? planet
+            navigationSubtitle = canonicalPlanet.navigationSubtitle()
+        case .followingPlanet(let planet):
+            let canonicalPlanet = followingPlanets.first(where: { $0.id == planet.id }) ?? planet
+            navigationSubtitle = canonicalPlanet.navigationSubtitle()
+        case .none:
+            navigationSubtitle = ""
         }
     }
 
     func refreshSelectedArticles() {
+        let previousSelectedArticleID = selectedArticle?.id
+        // Clear selection before changing the article list so SwiftUI's List
+        // never has a selection pointing to an item not in its data source.
+        selectedArticle = nil
+
         switch selectedView {
         case .today:
             selectedArticleList = getTodayArticles()
@@ -713,10 +751,12 @@ final class MyJSONDirectoryMonitor {
             navigationTitle = PlanetStore.app == .lite ? "Croptop" : "Planet"
             navigationSubtitle = ""
         }
-        if let articles = selectedArticleList {
-            ArticleListViewModel.shared.articles = articles
-        } else {
-            ArticleListViewModel.shared.articles = []
+
+        // Restore selection if the previously selected article exists in the new list.
+        if let previousSelectedArticleID,
+            let matchingArticle = selectedArticleList?.first(where: { $0.id == previousSelectedArticleID })
+        {
+            selectedArticle = matchingArticle
         }
     }
 
@@ -733,14 +773,10 @@ final class MyJSONDirectoryMonitor {
     }
 
     func getUnreadArticles() -> [ArticleModel] {
-        var articles = followingPlanets.flatMap { followingPlanet in
-            followingPlanet.articles.filter {
-                if ($0.read == nil) {
-                    return true
-                } else {
-                    return false
-                }
-            }
+        var articles: [ArticleModel] = []
+        articles.reserveCapacity(totalUnreadCount)
+        for followingPlanet in followingPlanets where !followingPlanet.unreadArticles.isEmpty {
+            articles.append(contentsOf: followingPlanet.unreadArticles)
         }
         articles.sort { $0.created > $1.created }
         return articles

@@ -17,7 +17,7 @@ struct FollowingPlanetSidebarItem: View {
                 LoadingIndicatorView()
             }
         }
-        .badge(planet.articles.filter { $0.read == nil }.count)
+        .badge(planet.unreadCount)
         .contextMenu {
             VStack {
                 Button {

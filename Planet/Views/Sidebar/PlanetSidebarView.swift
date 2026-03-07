@@ -68,7 +68,8 @@ struct PlanetSidebarView: View {
                     ForEach(planetStore.myPlanets) { planet in
                         HStack {
                             MyPlanetSidebarItem(planet: planet)
-                        }.tag(PlanetDetailViewType.myPlanet(planet))
+                        }
+                        .tag(PlanetDetailViewType.myPlanet(planet))
                     }
                     .onMove { (indexes, dest) in
                         withAnimation {
@@ -81,7 +82,8 @@ struct PlanetSidebarView: View {
                     ForEach(planetStore.followingPlanets) { planet in
                         HStack {
                             FollowingPlanetSidebarItem(planet: planet)
-                        }.tag(PlanetDetailViewType.followingPlanet(planet))
+                        }
+                        .tag(PlanetDetailViewType.followingPlanet(planet))
                     }
                     .onMove { (indexes, dest) in
                         withAnimation {
