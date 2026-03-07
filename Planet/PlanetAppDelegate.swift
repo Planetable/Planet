@@ -128,6 +128,11 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Prevent computer sleep if the setting is enabled (default: true)
+        if UserDefaults.standard.object(forKey: String.settingsPreventSleep) == nil || UserDefaults.standard.bool(forKey: String.settingsPreventSleep) {
+            SleepPreventer.shared.enable()
+        }
+
         PlanetUpdater.shared.checkForUpdatesInBackground()
 
         // Connect Wallet V2

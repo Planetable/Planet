@@ -32,6 +32,7 @@ extension String {
     static let settingsAIAPIToken: String = "PlanetSettingsAIAPITokenKey"
     static let settingsAIPreferredModel: String = "PlanetSettingsAIPreferredModelKey"
     static let settingsAIIsReady: String = "PlanetSettingsAIIsReadyKey"
+    static let settingsPreventSleep: String = "PlanetSettingsPreventSleepKey"
 
     func sanitized() -> String {
         // Reference: https://superuser.com/a/358861
