@@ -807,7 +807,7 @@ struct ArticleView: View {
                 }.help("Visit Juicebox Project")
             }
         default:
-            Text("")
+            EmptyView()
         }
     }
 }

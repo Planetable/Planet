@@ -38,6 +38,18 @@ class ArticleListDropDelegate: DropDelegate {
 }
 
 
+private struct FilterButtonCompatModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            content
+        } else {
+            content
+                .padding(EdgeInsets(top: 0, leading: 10, bottom: 1, trailing: 0))
+                .frame(width: 40, height: 20, alignment: .leading)
+        }
+    }
+}
+
 struct ArticleListView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @StateObject private var viewModel = ArticleListViewModel()
@@ -291,8 +303,7 @@ struct ArticleListView: View {
             } label: {
                 FilterIndicatorView(filter: viewModel.filter)
             }
-            .padding(EdgeInsets(top: 0, leading: 10, bottom: 1, trailing: 0))
-            .frame(width: 40, height: 20, alignment: .leading)
+            .modifier(FilterButtonCompatModifier())
             .menuIndicator(.hidden)
             .help(viewModel.filter.rawValue)
         }
