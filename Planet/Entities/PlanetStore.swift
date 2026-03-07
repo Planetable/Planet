@@ -134,6 +134,8 @@ final class MyJSONDirectoryMonitor {
     private var myDataReloadTask: Task<Void, Never>?
     private var myDataReloadInProgress = false
     private var selectedViewRefreshTask: Task<Void, Never>?
+    private var pendingArticleRestoreID: UUID?
+    private var pendingSidebarScroll = false
     var searchSnapshotRebuildTask: Task<Void, Never>?
     var cachedSearchSnapshots: [SearchArticleSnapshot] = []
 
@@ -235,6 +237,7 @@ final class MyJSONDirectoryMonitor {
                         PlanetStore.shared.updateTotalTodayCount()
                     }
                 }
+                UserDefaults.standard.set(selectedArticle?.id.uuidString, forKey: "lastSelectedArticle")
             }
         }
     }
@@ -358,6 +361,14 @@ final class MyJSONDirectoryMonitor {
                 selectedView = .starred
             }
         }
+        if let lastSelectedArticleIDString = UserDefaults.standard.string(forKey: "lastSelectedArticle"),
+           let lastSelectedArticleID = UUID(uuidString: lastSelectedArticleIDString) {
+            pendingArticleRestoreID = lastSelectedArticleID
+        }
+        if selectedView != nil {
+            pendingSidebarScroll = true
+        }
+
         Self.isSharedReady = true
 
     }
@@ -711,6 +722,27 @@ final class MyJSONDirectoryMonitor {
         }
     }
 
+    private func scrollSidebarToSelectedView() {
+        let sidebarID: String?
+        switch selectedView {
+        case .today:
+            sidebarID = "sidebar-today"
+        case .unread:
+            sidebarID = "sidebar-unread"
+        case .starred:
+            sidebarID = "sidebar-starred"
+        case .myPlanet(let planet):
+            sidebarID = "sidebar-my-\(planet.id.uuidString)"
+        case .followingPlanet(let planet):
+            sidebarID = "sidebar-following-\(planet.id.uuidString)"
+        case .none:
+            sidebarID = nil
+        }
+        if let sidebarID {
+            NotificationCenter.default.post(name: .scrollToSidebarItem, object: sidebarID)
+        }
+    }
+
     func refreshSelectedArticles() {
         let previousSelectedArticleID = selectedArticle?.id
         // Clear selection before changing the article list so SwiftUI's List
@@ -753,10 +785,30 @@ final class MyJSONDirectoryMonitor {
         }
 
         // Restore selection if the previously selected article exists in the new list.
-        if let previousSelectedArticleID,
-            let matchingArticle = selectedArticleList?.first(where: { $0.id == previousSelectedArticleID })
+        let restoreID = previousSelectedArticleID ?? pendingArticleRestoreID
+        let isPendingRestore = previousSelectedArticleID == nil && pendingArticleRestoreID != nil
+        pendingArticleRestoreID = nil
+        if let restoreID,
+            let matchingArticle = selectedArticleList?.first(where: { $0.id == restoreID })
         {
             selectedArticle = matchingArticle
+        } else if isPendingRestore, let restoreID {
+            // Article not in current aggregate view (e.g. read article no longer in Unread).
+            // Fall back to navigating to the article's planet.
+            if let planet = followingPlanets.first(where: { $0.articles.contains(where: { $0.id == restoreID }) }) {
+                pendingArticleRestoreID = restoreID
+                pendingSidebarScroll = true
+                selectedView = .followingPlanet(planet)
+            } else if let planet = myPlanets.first(where: { $0.articles.contains(where: { $0.id == restoreID }) }) {
+                pendingArticleRestoreID = restoreID
+                pendingSidebarScroll = true
+                selectedView = .myPlanet(planet)
+            }
+        }
+
+        if pendingSidebarScroll {
+            pendingSidebarScroll = false
+            scrollSidebarToSelectedView()
         }
     }
 

@@ -306,6 +306,7 @@ struct SearchView: View {
                     let article = planet.articles.first(where: { $0.id == item.articleID })
                 {
                     planetStore.selectedView = .myPlanet(planet)
+                    NotificationCenter.default.post(name: .scrollToSidebarItem, object: "sidebar-my-\(planet.id.uuidString)")
                     await restoreSelectionAndScroll(
                         targetArticleID: item.articleID,
                         targetPlanetID: item.planetID,
@@ -317,6 +318,7 @@ struct SearchView: View {
                 if let planet = planetStore.followingPlanets.first(where: { $0.id == item.planetID }
                 ), let article = planet.articles.first(where: { $0.id == item.articleID }) {
                     planetStore.selectedView = .followingPlanet(planet)
+                    NotificationCenter.default.post(name: .scrollToSidebarItem, object: "sidebar-following-\(planet.id.uuidString)")
                     await restoreSelectionAndScroll(
                         targetArticleID: item.articleID,
                         targetPlanetID: item.planetID,

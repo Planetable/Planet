@@ -179,6 +179,7 @@ extension Notification.Name {
 
     static let scrollToTopArticleList = Notification.Name("PlanetScrollToTopArticleListNotification")
     static let scrollToArticle = Notification.Name("PlanetScrollToArticleNotification")
+    static let scrollToSidebarItem = Notification.Name("PlanetScrollToSidebarItemNotification")
 }
 
 // Writer

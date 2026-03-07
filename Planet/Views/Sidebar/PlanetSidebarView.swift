@@ -22,77 +22,89 @@ struct PlanetSidebarView: View {
                 Divider()
             }
 
-            List(selection: $planetStore.selectedView) {
-                Section(header: Text("Smart Feeds")) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "sun.max.fill")
-                            .resizable()
-                            .foregroundColor(Color.orange)
-                            .frame(width: 18, height: 18)
-                            .padding(.all, 2)
-                        Text("Today")
-                            .font(.body)
-                            .foregroundColor(.primary)
-                    }
-                    .badge(planetStore.totalTodayCount)
-                    .tag(PlanetDetailViewType.today)
+            ScrollViewReader { sidebarProxy in
+                List(selection: $planetStore.selectedView) {
+                    Section(header: Text("Smart Feeds")) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "sun.max.fill")
+                                .resizable()
+                                .foregroundColor(Color.orange)
+                                .frame(width: 18, height: 18)
+                                .padding(.all, 2)
+                            Text("Today")
+                                .font(.body)
+                                .foregroundColor(.primary)
+                        }
+                        .badge(planetStore.totalTodayCount)
+                        .tag(PlanetDetailViewType.today)
+                        .id("sidebar-today")
 
-                    HStack(spacing: 4) {
-                        Image(systemName: "circle.inset.filled")
-                            .resizable()
-                            .foregroundColor(Color.blue)
-                            .frame(width: 18, height: 18)
-                            .padding(.all, 2)
-                        Text("Unread")
-                            .font(.body)
-                            .foregroundColor(.primary)
-                    }
-                    .badge(planetStore.totalUnreadCount)
-                    .tag(PlanetDetailViewType.unread)
+                        HStack(spacing: 4) {
+                            Image(systemName: "circle.inset.filled")
+                                .resizable()
+                                .foregroundColor(Color.blue)
+                                .frame(width: 18, height: 18)
+                                .padding(.all, 2)
+                            Text("Unread")
+                                .font(.body)
+                                .foregroundColor(.primary)
+                        }
+                        .badge(planetStore.totalUnreadCount)
+                        .tag(PlanetDetailViewType.unread)
+                        .id("sidebar-unread")
 
-                    HStack(spacing: 4) {
-                        Image(systemName: "star.fill")
-                            .resizable()
-                            .renderingMode(.original)
-                            .frame(width: 18, height: 18)
-                            .padding(.all, 2)
-                        Text("Starred")
-                            .font(.body)
-                            .foregroundColor(.primary)
+                        HStack(spacing: 4) {
+                            Image(systemName: "star.fill")
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 18, height: 18)
+                                .padding(.all, 2)
+                            Text("Starred")
+                                .font(.body)
+                                .foregroundColor(.primary)
+                        }
+                        .badge(planetStore.totalStarredCount)
+                        .tag(PlanetDetailViewType.starred)
+                        .id("sidebar-starred")
                     }
-                    .badge(planetStore.totalStarredCount)
-                    .tag(PlanetDetailViewType.starred)
+
+                    Section(header: Text("My Planets")) {
+                        ForEach(planetStore.myPlanets) { planet in
+                            HStack {
+                                MyPlanetSidebarItem(planet: planet)
+                            }
+                            .tag(PlanetDetailViewType.myPlanet(planet))
+                            .id("sidebar-my-\(planet.id.uuidString)")
+                        }
+                        .onMove { (indexes, dest) in
+                            withAnimation {
+                                planetStore.moveMyPlanets(fromOffsets: indexes, toOffset: dest)
+                            }
+                        }
+                    }
+
+                    Section(header: Text("Following Planets")) {
+                        ForEach(planetStore.followingPlanets) { planet in
+                            HStack {
+                                FollowingPlanetSidebarItem(planet: planet)
+                            }
+                            .tag(PlanetDetailViewType.followingPlanet(planet))
+                            .id("sidebar-following-\(planet.id.uuidString)")
+                        }
+                        .onMove { (indexes, dest) in
+                            withAnimation {
+                                planetStore.moveFollowingPlanets(fromOffsets: indexes, toOffset: dest)
+                            }
+                        }
+                    }
                 }
-
-                Section(header: Text("My Planets")) {
-                    ForEach(planetStore.myPlanets) { planet in
-                        HStack {
-                            MyPlanetSidebarItem(planet: planet)
-                        }
-                        .tag(PlanetDetailViewType.myPlanet(planet))
-                    }
-                    .onMove { (indexes, dest) in
-                        withAnimation {
-                            planetStore.moveMyPlanets(fromOffsets: indexes, toOffset: dest)
-                        }
-                    }
-                }
-
-                Section(header: Text("Following Planets")) {
-                    ForEach(planetStore.followingPlanets) { planet in
-                        HStack {
-                            FollowingPlanetSidebarItem(planet: planet)
-                        }
-                        .tag(PlanetDetailViewType.followingPlanet(planet))
-                    }
-                    .onMove { (indexes, dest) in
-                        withAnimation {
-                            planetStore.moveFollowingPlanets(fromOffsets: indexes, toOffset: dest)
-                        }
+                .listStyle(.sidebar)
+                .onReceive(NotificationCenter.default.publisher(for: .scrollToSidebarItem)) { n in
+                    if let id = n.object as? String {
+                        sidebarProxy.scrollTo(id, anchor: .center)
                     }
                 }
             }
-            .listStyle(.sidebar)
 
             Divider()
 

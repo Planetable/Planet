@@ -628,6 +628,7 @@ struct ArticleView: View {
                     let targetArticleID = myArticle.id
                     let targetPlanet = articlePlanet
                     planetStore.selectedView = .myPlanet(targetPlanet)
+                    NotificationCenter.default.post(name: .scrollToSidebarItem, object: "sidebar-my-\(targetPlanet.id.uuidString)")
                     Task { @MainActor in
                         await restoreMyArticleSelection(
                             targetArticleID: targetArticleID,
@@ -651,6 +652,7 @@ struct ArticleView: View {
                     let targetArticleID = followingArticle.id
                     let targetPlanet = articlePlanet
                     planetStore.selectedView = .followingPlanet(targetPlanet)
+                    NotificationCenter.default.post(name: .scrollToSidebarItem, object: "sidebar-following-\(targetPlanet.id.uuidString)")
                     Task { @MainActor in
                         await restoreFollowingArticleSelection(
                             targetArticleID: targetArticleID,
