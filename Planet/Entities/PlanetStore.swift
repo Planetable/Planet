@@ -705,7 +705,11 @@ final class MyJSONDirectoryMonitor {
             }
         case .unread:
             if let articles = selectedArticleList {
-                navigationSubtitle = "\(articles.count) unread"
+                if totalUnreadCount > articles.count {
+                    navigationSubtitle = "\(articles.count) of \(totalUnreadCount) unread"
+                } else {
+                    navigationSubtitle = "\(articles.count) unread"
+                }
             }
         case .starred:
             if let articles = selectedArticleList {
@@ -760,7 +764,11 @@ final class MyJSONDirectoryMonitor {
             selectedArticleList = getUnreadArticles()
             navigationTitle = "Unread"
             if let articles = selectedArticleList {
-                navigationSubtitle = "\(articles.count) unread"
+                if totalUnreadCount > articles.count {
+                    navigationSubtitle = "\(articles.count) of \(totalUnreadCount) unread"
+                } else {
+                    navigationSubtitle = "\(articles.count) unread"
+                }
             }
         case .starred:
             selectedArticleList = getStarredArticles()
@@ -824,13 +832,18 @@ final class MyJSONDirectoryMonitor {
         return articles
     }
 
+    private static let unreadDisplayLimit = 500
+
     func getUnreadArticles() -> [ArticleModel] {
         var articles: [ArticleModel] = []
-        articles.reserveCapacity(totalUnreadCount)
+        articles.reserveCapacity(min(totalUnreadCount, Self.unreadDisplayLimit))
         for followingPlanet in followingPlanets where !followingPlanet.unreadArticles.isEmpty {
             articles.append(contentsOf: followingPlanet.unreadArticles)
         }
         articles.sort { $0.created > $1.created }
+        if articles.count > Self.unreadDisplayLimit {
+            articles.removeLast(articles.count - Self.unreadDisplayLimit)
+        }
         return articles
     }
 

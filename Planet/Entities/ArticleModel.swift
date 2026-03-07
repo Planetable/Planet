@@ -66,12 +66,16 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
         hasher.combine(id)
     }
 
-    func humanizeCreated() -> String {
+    private static let humanizeDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         formatter.timeStyle = .none
         formatter.doesRelativeDateFormatting = true
-        return formatter.string(from: created)
+        return formatter
+    }()
+
+    func humanizeCreated() -> String {
+        Self.humanizeDateFormatter.string(from: created)
     }
 
     @MainActor

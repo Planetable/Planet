@@ -1,12 +1,8 @@
 import SwiftUI
 
 struct MyArticleItemView: View {
-    @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var article: MyArticleModel
-
-    private var isSelected: Bool {
-        planetStore.selectedArticle?.id == article.id
-    }
+    var isSelected: Bool
 
     var body: some View {
         HStack {

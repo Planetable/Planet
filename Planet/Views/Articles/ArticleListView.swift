@@ -195,23 +195,24 @@ struct ArticleListView: View {
                     ScrollViewReader { proxy in
                         List(viewModel.articles, id: \.self, selection: $planetStore.selectedArticle) {
                             article in
+                            let selected = planetStore.selectedArticle?.id == article.id
                             HStack {
                                 if let myArticle = article as? MyArticleModel {
                                     if #available(macOS 13.0, *) {
-                                        MyArticleItemView(article: myArticle)
+                                        MyArticleItemView(article: myArticle, isSelected: selected)
                                             .listRowSeparator(.visible)
                                     }
                                     else {
-                                        MyArticleItemView(article: myArticle)
+                                        MyArticleItemView(article: myArticle, isSelected: selected)
                                     }
                                 }
                                 else if let followingArticle = article as? FollowingArticleModel {
                                     if #available(macOS 13.0, *) {
-                                        FollowingArticleItemView(article: followingArticle)
+                                        FollowingArticleItemView(article: followingArticle, isSelected: selected)
                                             .listRowSeparator(.visible)
                                     }
                                     else {
-                                        FollowingArticleItemView(article: followingArticle)
+                                        FollowingArticleItemView(article: followingArticle, isSelected: selected)
                                     }
                                 }
                             }.id(article.id)
@@ -242,7 +243,7 @@ struct ArticleListView: View {
                                 retryPendingArticleScroll(proxy: proxy)
                             }
                         }
-                        .onChange(of: viewModel.articles.map(\.id)) { _ in
+                        .onChange(of: viewModel.articlesVersion) { _ in
                             guard pendingScrollArticleID != nil else {
                                 return
                             }

@@ -1,14 +1,10 @@
 import SwiftUI
 
 struct FollowingArticleItemView: View {
-    @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var article: FollowingArticleModel
+    var isSelected: Bool
 
     @State private var isShowingDeleteConfirmation = false
-
-    private var isSelected: Bool {
-        planetStore.selectedArticle?.id == article.id
-    }
 
     var body: some View {
         HStack {
