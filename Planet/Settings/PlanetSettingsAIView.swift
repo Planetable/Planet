@@ -44,6 +44,9 @@ struct PlanetSettingsAIView: View {
                         UserDefaults.standard.set(newValue, forKey: .settingsAIAPIBase)
                         scheduleCheck()
                     }
+                Text(AIEndpointSecurityPolicy.insecureHTTPErrorDescription)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
             .padding(.top, 6)
 
@@ -229,9 +232,11 @@ struct PlanetSettingsAIView: View {
     }
 
     private func fetchModels(base: String, token: String, preferredModel: String) async {
-        let urlString = base.hasSuffix("/") ? "\(base)models" : "\(base)/models"
-        guard let url = URL(string: urlString) else {
-            await MainActor.run { setModelStatus(.error("Invalid URL")) }
+        let url: URL
+        do {
+            url = try AIEndpointSecurityPolicy.modelsURL(base: base)
+        } catch {
+            await MainActor.run { setModelStatus(.error(error.localizedDescription)) }
             return
         }
         var request = URLRequest(url: url)

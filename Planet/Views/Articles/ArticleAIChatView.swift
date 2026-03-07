@@ -477,8 +477,15 @@ struct ArticleAIChatView: View {
         guard !base.isEmpty else {
             throw NSError(domain: "ArticleAIChat", code: 1, userInfo: [NSLocalizedDescriptionKey: "AI API base URL is not configured"])
         }
-        guard let url = URL(string: base.hasSuffix("/") ? "\(base)chat/completions" : "\(base)/chat/completions") else {
-            throw NSError(domain: "ArticleAIChat", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid AI API base URL"])
+        let url: URL
+        do {
+            url = try AIEndpointSecurityPolicy.chatCompletionsURL(base: base)
+        } catch {
+            throw NSError(
+                domain: "ArticleAIChat",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
+            )
         }
 
         let token = try? KeychainHelper.shared.loadValue(forKey: .settingsAIAPIToken)

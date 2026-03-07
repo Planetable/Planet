@@ -108,6 +108,81 @@ struct URLUtils {
     }()
 }
 
+struct AIEndpointSecurityPolicy {
+    private static let allowedInsecureIPv4Ranges: [(network: UInt32, mask: UInt32)] = [
+        (network: 0x7F000000, mask: 0xFF000000),
+        (network: 0x0A000000, mask: 0xFF000000),
+        (network: 0x64000000, mask: 0xFF000000),
+        (network: 0xC0A80000, mask: 0xFFFF0000),
+    ]
+
+    static let insecureHTTPErrorDescription =
+        "HTTP AI endpoints are only allowed for localhost, 127.0.0.0/8, 10.0.0.0/8, 100.0.0.0/8, and 192.168.0.0/16. Use HTTPS for other hosts."
+
+    static func modelsURL(base: String) throws -> URL {
+        try endpointURL(base: base, pathComponents: ["models"])
+    }
+
+    static func chatCompletionsURL(base: String) throws -> URL {
+        try endpointURL(base: base, pathComponents: ["chat", "completions"])
+    }
+
+    private static func endpointURL(base: String, pathComponents: [String]) throws -> URL {
+        let trimmedBase = base.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let baseURL = URL(string: trimmedBase) else {
+            throw validationError("Invalid URL")
+        }
+        guard let scheme = baseURL.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
+            throw validationError("Invalid URL")
+        }
+        guard let host = baseURL.host?.lowercased(), !host.isEmpty else {
+            throw validationError("Invalid URL")
+        }
+        if scheme == "http" && !isAllowedInsecureHost(host) {
+            throw validationError(insecureHTTPErrorDescription)
+        }
+        return pathComponents.reduce(baseURL) { partialURL, pathComponent in
+            partialURL.appendingPathComponent(pathComponent)
+        }
+    }
+
+    private static func isAllowedInsecureHost(_ host: String) -> Bool {
+        if host == "localhost" {
+            return true
+        }
+        guard let address = ipv4Address(host) else {
+            return false
+        }
+        return allowedInsecureIPv4Ranges.contains { range in
+            (address & range.mask) == range.network
+        }
+    }
+
+    private static func ipv4Address(_ host: String) -> UInt32? {
+        let octets = host.split(separator: ".", omittingEmptySubsequences: false)
+        guard octets.count == 4 else {
+            return nil
+        }
+
+        var address: UInt32 = 0
+        for octet in octets {
+            guard let value = UInt8(String(octet)) else {
+                return nil
+            }
+            address = (address << 8) | UInt32(truncatingIfNeeded: value)
+        }
+        return address
+    }
+
+    private static func validationError(_ description: String) -> NSError {
+        NSError(
+            domain: "PlanetAIEndpointSecurityPolicy",
+            code: 1,
+            userInfo: [NSLocalizedDescriptionKey: description]
+        )
+    }
+}
+
 extension URL {
     var isHTTP: Bool {
         if let scheme = scheme?.lowercased(),

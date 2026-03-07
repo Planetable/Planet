@@ -108,6 +108,11 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>NSDockTilePlugIn</key>
 	<string>PlanetDockPlugIn.docktileplugin</string>
 	<key>ORGANIZATION_IDENTIFIER_PREFIX</key>
