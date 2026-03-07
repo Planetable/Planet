@@ -364,6 +364,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         ) {
             await MainActor.run {
                 PlanetStore.shared.selectedView = .followingPlanet(existing)
+                PlanetStore.shared.selectedArticle = existing.articles.first
+                let sidebarID = "sidebar-following-\(existing.id.uuidString)"
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .scrollToSidebarItem, object: sidebarID)
+                    NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+                }
             }
             throw PlanetError.PlanetExistsError
         }
