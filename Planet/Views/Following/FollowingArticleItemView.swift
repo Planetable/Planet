@@ -1,15 +1,20 @@
 import SwiftUI
 
 struct FollowingArticleItemView: View {
+    @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject var article: FollowingArticleModel
 
     @State private var isShowingDeleteConfirmation = false
+
+    private var isSelected: Bool {
+        planetStore.selectedArticle?.id == article.id
+    }
 
     var body: some View {
         HStack {
             VStack {
                 if article.starred != nil {
-                    article.starView()
+                    article.starView(isSelected: isSelected)
                 }
                 else {
                     Circle()

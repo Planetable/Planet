@@ -193,10 +193,10 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
     }
 
     @ViewBuilder
-    func starView() -> some View {
+    func starView(isSelected: Bool = false) -> some View {
         if starred == nil {
             Image(systemName: "star")
-                .renderingMode(.original)
+                .foregroundColor(isSelected ? .white : .yellow)
                 .frame(width: 8, height: 8)
                 .padding(.init(top: 6, leading: 4, bottom: 4, trailing: 4))
         }
@@ -204,42 +204,42 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
             switch starType {
             case .star:
                 Image(systemName: "star.fill")
-                    .renderingMode(.original)
+                    .foregroundColor(isSelected ? .white : .yellow)
                     .frame(width: 8, height: 8)
                     .padding(.init(top: 6, leading: 4, bottom: 4, trailing: 4))
             case .plan:
                 Image(systemName: "circle.dotted")
-                    .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                    .foregroundColor(isSelected ? .white : Color(NSColor.tertiaryLabelColor))
                     .frame(width: 8, height: 8)
                     .padding(.init(top: 6, leading: 4, bottom: 4, trailing: 4))
             case .todo:
                 Image(systemName: "circle")
-                    .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                    .foregroundColor(isSelected ? .white : Color(NSColor.tertiaryLabelColor))
                     .frame(width: 8, height: 8)
                     .padding(.init(top: 6, leading: 4, bottom: 4, trailing: 4))
             case .done:
                 Image(systemName: "checkmark.circle.fill")
-                    .renderingMode(.original)
+                    .foregroundColor(isSelected ? .white : .blue)
                     .frame(width: 8, height: 8)
                     .padding(.init(top: 6, leading: 4, bottom: 4, trailing: 4))
             case .sparkles:
                 Image(systemName: "sparkles")
-                    .renderingMode(.original)
+                    .foregroundColor(isSelected ? .white : .yellow)
                     .frame(width: 8, height: 8)
                     .padding(.init(top: 6, leading: 4, bottom: 4, trailing: 4))
             case .heart:
                 Image(systemName: "heart.fill")
-                    .renderingMode(.original)
+                    .foregroundColor(isSelected ? .white : .red)
                     .frame(width: 8, height: 8)
                     .padding(.init(top: 6, leading: 4, bottom: 4, trailing: 4))
             case .question:
                 Image(systemName: "questionmark.circle.fill")
-                    .renderingMode(.original)
+                    .foregroundColor(isSelected ? .white : .orange)
                     .frame(width: 8, height: 8)
                     .padding(.init(top: 6, leading: 4, bottom: 4, trailing: 4))
             case .paperplane:
                 Image(systemName: "paperplane.circle.fill")
-                    .renderingMode(.original)
+                    .foregroundColor(isSelected ? .white : .blue)
                     .frame(width: 8, height: 8)
                     .padding(.init(top: 6, leading: 4, bottom: 4, trailing: 4))
             }
