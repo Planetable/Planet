@@ -7,6 +7,13 @@ struct AvailableFeed: Codable {
     let mime: String
 }
 
+struct FeedDiscoveryResult {
+    let feedData: Data?
+    let feedURL: URL?
+    let htmlDocument: Document?
+    let htmlURL: URL?
+}
+
 struct FeedUtils {
     static func isFeed(mime: String) -> Bool {
         mime.contains("application/xml")
@@ -47,7 +54,7 @@ struct FeedUtils {
         return nil
     }
 
-    static func findFeed(url: URL) async throws -> (feed: Data?, html: Document?) {
+    static func findFeed(url: URL) async throws -> FeedDiscoveryResult {
         guard let (data, response) = try? await URLSession.shared.data(from: url) else {
             throw PlanetError.NetworkError
         }
@@ -55,17 +62,32 @@ struct FeedUtils {
               httpResponse.ok,
               let mime = httpResponse.mimeType?.lowercased()
         else {
-            return (nil, nil)
+            return FeedDiscoveryResult(
+                feedData: nil,
+                feedURL: nil,
+                htmlDocument: nil,
+                htmlURL: nil
+            )
         }
         if isFeed(mime: mime) {
-            return (data, nil)
+            return FeedDiscoveryResult(
+                feedData: data,
+                feedURL: url,
+                htmlDocument: nil,
+                htmlURL: nil
+            )
         }
         if mime.contains("text/html") {
             // parse HTML and find <link rel="alternate">
             guard let homepageHTML = String(data: data, encoding: .utf8),
                   let soup = try? SwiftSoup.parse(homepageHTML)
             else {
-                return (nil, nil)
+                return FeedDiscoveryResult(
+                    feedData: nil,
+                    feedURL: nil,
+                    htmlDocument: nil,
+                    htmlURL: nil
+                )
             }
             let availableFeeds = try soup.select("link[rel=alternate]")
                 .compactMap { elem in
@@ -81,11 +103,30 @@ struct FeedUtils {
                 }
             debugPrint("FeedUtils: availableFeeds: \(availableFeeds)")
             if availableFeeds.count == 0 {
-                return (nil, soup)
+                return FeedDiscoveryResult(
+                    feedData: nil,
+                    feedURL: nil,
+                    htmlDocument: soup,
+                    htmlURL: url
+                )
             }
-            guard let bestFeed = selectBestFeed(availableFeeds) else { return (nil, soup) }
+            guard let bestFeed = selectBestFeed(availableFeeds) else {
+                return FeedDiscoveryResult(
+                    feedData: nil,
+                    feedURL: nil,
+                    htmlDocument: soup,
+                    htmlURL: url
+                )
+            }
             debugPrint("FeedUtils: proceeds with the selection: \(bestFeed)")
-            guard let feedURL = URL(string: bestFeed.url) else { return (nil, soup) }
+            guard let feedURL = URL(string: bestFeed.url) else {
+                return FeedDiscoveryResult(
+                    feedData: nil,
+                    feedURL: nil,
+                    htmlDocument: soup,
+                    htmlURL: url
+                )
+            }
             // fetch feed
             guard let (data, response) = try? await URLSession.shared.data(from: feedURL) else {
                 throw PlanetError.NetworkError
@@ -93,46 +134,43 @@ struct FeedUtils {
             guard let httpResponse = response as? HTTPURLResponse,
                   httpResponse.ok
             else {
-                return (nil, soup)
+                return FeedDiscoveryResult(
+                    feedData: nil,
+                    feedURL: nil,
+                    htmlDocument: soup,
+                    htmlURL: url
+                )
             }
-            return (data, soup)
+            return FeedDiscoveryResult(
+                feedData: data,
+                feedURL: feedURL,
+                htmlDocument: soup,
+                htmlURL: url
+            )
         }
         // unknown HTTP response
-        return (nil, nil)
+        return FeedDiscoveryResult(
+            feedData: nil,
+            feedURL: nil,
+            htmlDocument: nil,
+            htmlURL: nil
+        )
     }
 
     static func findAvatarFromHTMLIcons(htmlDocument: Document, htmlURL: URL) async throws -> Data? {
-        let possibleAvatarElems = try htmlDocument.select("link[sizes]")
-        let avatarElem = possibleAvatarElems.sorted { elemA, elemB in
-            let elemASizes = try? elemA.attr("sizes")
-            let elemBSizes = try? elemB.attr("sizes")
-            if let elemASizes = elemASizes, let elemBSizes = elemBSizes {
-                let elemAWidth = elemASizes.components(separatedBy: "x").first?.trimmingCharacters(in: .whitespacesAndNewlines)
-                let elemBWidth = elemBSizes.components(separatedBy: "x").first?.trimmingCharacters(in: .whitespacesAndNewlines)
-                if let elemAWidth = elemAWidth, let elemBWidth = elemBWidth {
-                    return Int(elemAWidth) ?? 0 > Int(elemBWidth) ?? 0
-                }
-                return false
-            } else {
+        let possibleAvatarElems = try htmlDocument.select("link[rel][href]").array().filter { elem in
+            guard let rel = try? elem.attr("rel").lowercased() else {
                 return false
             }
+            return rel.contains("icon")
+        }
+        let avatarElem = possibleAvatarElems.sorted { elemA, elemB in
+            iconScore(for: elemA) > iconScore(for: elemB)
         }.first
 
-        var avatarURLString: String? = nil
-
-        if avatarElem == nil {
-            let simpleLinkElems = try htmlDocument.select("link[rel='icon']")
-            let simpleLinkElem = simpleLinkElems.first
-            if let simpleLinkElemHref = try? simpleLinkElem?.attr("href") {
-                avatarURLString = simpleLinkElemHref
-            }
-        } else {
-            if let avatarElemHref = try? avatarElem?.attr("href") {
-                avatarURLString = avatarElemHref
-            }
-        }
-
-        guard let avatarURLString = avatarURLString, let avatarURL = URL(string: avatarURLString, relativeTo: htmlURL) else {
+        guard let avatarURLString = try? avatarElem?.attr("href"),
+              let avatarURL = URL(string: avatarURLString, relativeTo: htmlURL)
+        else {
             return nil
         }
 
@@ -146,6 +184,26 @@ struct FeedUtils {
             return nil
         }
         return data
+    }
+
+    private static func iconScore(for element: Element) -> Int {
+        guard let sizes = try? element.attr("sizes").lowercased() else {
+            return 0
+        }
+        if sizes == "any" {
+            return Int.max
+        }
+        let bestSize = sizes
+            .split(separator: " ")
+            .compactMap { size -> Int? in
+                let components = size.split(separator: "x")
+                guard let first = components.first else {
+                    return nil
+                }
+                return Int(first)
+            }
+            .max()
+        return bestSize ?? 0
     }
 
     static func findAvatarFromHTMLOGImage(htmlDocument: Document, htmlURL: URL) async throws -> Data? {
@@ -349,7 +407,10 @@ struct FeedUtils {
             var avatar: Data? = nil
             if let imageURL = feed.icon,
                let url = URL(string: imageURL),
-               let data = try? Data(contentsOf: url) {
+               let (data, response) = try? await URLSession.shared.data(from: url),
+               let httpResponse = response as? HTTPURLResponse,
+               httpResponse.ok
+            {
                 avatar = data
             }
             let articles: [PublicArticleModel]? = feed.items?.compactMap { item in

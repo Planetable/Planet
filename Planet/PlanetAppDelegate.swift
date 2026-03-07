@@ -28,9 +28,26 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
         if url.absoluteString.hasPrefix("planet://") {
             let link = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
             Task { @MainActor in
-                let planet = try await FollowingPlanetModel.follow(link: link)
-                PlanetStore.shared.followingPlanets.insert(planet, at: 0)
-                PlanetStore.shared.selectedView = .followingPlanet(planet)
+                do {
+                    let planet = try await FollowingPlanetModel.follow(link: link)
+                    PlanetStore.shared.followingPlanets.insert(planet, at: 0)
+                    await PlanetStore.shared.saveFollowingPlanetsOrder()
+                    PlanetStore.shared.selectedView = .followingPlanet(planet)
+                    PlanetStore.shared.selectedArticle = planet.articles.first
+                    let sidebarID = "sidebar-following-\(planet.id.uuidString)"
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: .scrollToSidebarItem, object: sidebarID)
+                        NotificationCenter.default.post(name: .scrollToTopArticleList, object: nil)
+                    }
+                }
+                catch PlanetError.PlanetExistsError {
+                    // ignore
+                }
+                catch {
+                    PlanetStore.shared.isShowingAlert = true
+                    PlanetStore.shared.alertTitle = "Failed to Follow Planet"
+                    PlanetStore.shared.alertMessage = error.localizedDescription
+                }
             }
         } else if url.lastPathComponent.hasSuffix(".planet") {
             Task { @MainActor in

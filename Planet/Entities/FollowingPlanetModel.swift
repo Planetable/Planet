@@ -367,18 +367,23 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
             throw PlanetError.PlanetExistsError
         }
+        let planet: FollowingPlanetModel
         if link.hasSuffix(".eth") {
-            return try await followENS(ens: link)
+            planet = try await followENS(ens: link)
         }
-        if link.hasSuffix(".bit") {
-            return try await followDotBit(dotbit: link)
+        else if link.hasSuffix(".bit") {
+            planet = try await followDotBit(dotbit: link)
         }
         else if link.lowercased().hasPrefix("http://") || link.lowercased().hasPrefix("https://") {
-            return try await followHTTP(link: link)
+            planet = try await followHTTP(link: link)
         }
         else {
-            return try await followIPNSorDNSLink(name: link)
+            planet = try await followIPNSorDNSLink(name: link)
         }
+        Task.detached(priority: .background) {
+            await planet.pin()
+        }
+        return planet
     }
 
     static func deduplicate(_ articles: [PublicArticleModel]) -> [PublicArticleModel] {
@@ -391,6 +396,333 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             }
         }
         return result
+    }
+
+    private struct FeedContent {
+        let name: String
+        let about: String
+        let articles: [PublicArticleModel]
+        let avatarData: Data?
+    }
+
+    private static func prepareStorage(for planet: FollowingPlanetModel) throws {
+        try FileManager.default.createDirectory(
+            at: planet.basePath,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: planet.articlesPath,
+            withIntermediateDirectories: true
+        )
+    }
+
+    private static func savePlanet(_ planet: FollowingPlanetModel) throws {
+        try planet.save()
+        try planet.articles.forEach { try $0.save() }
+    }
+
+    private static func setArticles(
+        _ publicArticles: [PublicArticleModel],
+        on planet: FollowingPlanetModel
+    ) {
+        let items = deduplicate(publicArticles)
+        planet.articles = items.map {
+            FollowingArticleModel.from(publicArticle: $0, planet: planet)
+        }
+        planet.articles.sort { $0.created > $1.created }
+    }
+
+    private static func fetchData(from url: URL) async -> Data? {
+        guard let (data, response) = try? await URLSession.shared.data(from: url),
+              let httpResponse = response as? HTTPURLResponse,
+              httpResponse.ok
+        else {
+            return nil
+        }
+        return data
+    }
+
+    private static func fetchData(from urlString: String?) async -> Data? {
+        guard let urlString,
+              let url = URL(string: urlString)
+        else {
+            return nil
+        }
+        return await fetchData(from: url)
+    }
+
+    private static func imageIsValid(_ data: Data) -> Bool {
+        NSImage(data: data) != nil
+    }
+
+    private static func imageIsSquare(_ data: Data) -> Bool {
+        guard let image = NSImage(data: data) else {
+            return false
+        }
+        return image.size.width == image.size.height
+    }
+
+    private static func avatarHTMLSource(
+        from discovery: FeedDiscoveryResult
+    ) async throws -> (document: Document, url: URL)? {
+        if let htmlDocument = discovery.htmlDocument,
+           let htmlURL = discovery.htmlURL
+        {
+            return (htmlDocument, htmlURL)
+        }
+
+        guard let feedData = discovery.feedData,
+              let feedURL = discovery.feedURL
+        else {
+            return nil
+        }
+
+        var avatarPageURL: URL? = nil
+        if let feedLink = FeedUtils.findLinkFromFeed(feedData: feedData) {
+            avatarPageURL = URL(string: feedLink, relativeTo: feedURL)?.absoluteURL
+        }
+        if avatarPageURL == nil {
+            let candidateURL = feedURL.deletingLastPathComponent()
+            if candidateURL != feedURL {
+                avatarPageURL = candidateURL
+            }
+        }
+        if avatarPageURL == nil,
+           let scheme = feedURL.scheme,
+           let host = feedURL.host
+        {
+            avatarPageURL = URL(string: "\(scheme)://\(host)")
+        }
+        guard let avatarPageURL else {
+            return nil
+        }
+        guard let document = try await FeedUtils.getHTMLDocument(url: avatarPageURL) else {
+            return nil
+        }
+        return (document, avatarPageURL)
+    }
+
+    private static func resolveHTMLAvatarData(
+        from discovery: FeedDiscoveryResult
+    ) async throws -> Data? {
+        guard let source = try await avatarHTMLSource(from: discovery) else {
+            return nil
+        }
+
+        let ogImageData = try await FeedUtils.findAvatarFromHTMLOGImage(
+            htmlDocument: source.document,
+            htmlURL: source.url
+        )
+        if let ogImageData,
+           imageIsValid(ogImageData),
+           imageIsSquare(ogImageData)
+        {
+            return ogImageData
+        }
+
+        let iconData = try await FeedUtils.findAvatarFromHTMLIcons(
+            htmlDocument: source.document,
+            htmlURL: source.url
+        )
+        if let iconData, imageIsValid(iconData) {
+            return iconData
+        }
+
+        if let ogImageData, imageIsValid(ogImageData) {
+            return ogImageData
+        }
+
+        return nil
+    }
+
+    private static func resolveFeedAvatarData(
+        preferredAvatarData: Data? = nil,
+        feedAvatar: Data?,
+        discovery: FeedDiscoveryResult
+    ) async throws -> Data? {
+        if let preferredAvatarData,
+           imageIsValid(preferredAvatarData)
+        {
+            return preferredAvatarData
+        }
+
+        if let feedAvatar,
+           imageIsValid(feedAvatar),
+           imageIsSquare(feedAvatar)
+        {
+            return feedAvatar
+        }
+
+        if let htmlAvatarData = try await resolveHTMLAvatarData(from: discovery) {
+            return htmlAvatarData
+        }
+
+        if let feedAvatar, imageIsValid(feedAvatar) {
+            return feedAvatar
+        }
+
+        return nil
+    }
+
+    @MainActor
+    private static func applyAvatarData(_ data: Data?, to planet: FollowingPlanetModel) {
+        guard let data,
+              let image = NSImage(data: data),
+              let _ = try? data.write(to: planet.avatarPath)
+        else {
+            return
+        }
+        planet.avatar = image
+    }
+
+    private static func feedContent(
+        from discovery: FeedDiscoveryResult,
+        fallbackName: String,
+        fallbackAbout: String = "",
+        fallbackArticleLink: String = "/",
+        preferredAvatarData: Data? = nil,
+        allowHomepageFallback: Bool
+    ) async throws -> FeedContent {
+        if let feedData = discovery.feedData,
+           let feedURL = discovery.feedURL
+        {
+            let feed = try await FeedUtils.parseFeed(data: feedData, url: feedURL)
+            let avatarData = try await resolveFeedAvatarData(
+                preferredAvatarData: preferredAvatarData,
+                feedAvatar: feed.avatar,
+                discovery: discovery
+            )
+            return FeedContent(
+                name: feed.name ?? fallbackName,
+                about: feed.about ?? fallbackAbout,
+                articles: feed.articles ?? [],
+                avatarData: avatarData
+            )
+        }
+
+        if allowHomepageFallback,
+           let htmlDocument = discovery.htmlDocument
+        {
+            let now = Date()
+            let homepage = PublicArticleModel(
+                id: UUID(),
+                link: fallbackArticleLink,
+                title: (try? htmlDocument.title()) ?? "Homepage",
+                content: "",
+                contentRendered: nil,
+                created: now,
+                hasVideo: false,
+                videoFilename: nil,
+                hasAudio: false,
+                audioFilename: nil,
+                audioDuration: nil,
+                audioByteLength: nil,
+                attachments: nil,
+                heroImage: nil,
+                heroImageWidth: nil,
+                heroImageHeight: nil,
+                heroImageURL: nil,
+                heroImageFilename: nil
+            )
+            let avatarData: Data?
+            if let preferredAvatarData {
+                avatarData = preferredAvatarData
+            }
+            else {
+                avatarData = try await resolveHTMLAvatarData(from: discovery)
+            }
+            return FeedContent(
+                name: fallbackName,
+                about: fallbackAbout,
+                articles: [homepage],
+                avatarData: avatarData
+            )
+        }
+
+        throw PlanetError.InvalidPlanetURLError
+    }
+
+    private static func createFeedPlanet(
+        planetType: PlanetType,
+        link: String,
+        cid: String?,
+        fallbackName: String,
+        fallbackAbout: String = "",
+        discovery: FeedDiscoveryResult,
+        preferredAvatarData: Data? = nil,
+        walletAddress: String? = nil,
+        allowHomepageFallback: Bool
+    ) async throws -> FollowingPlanetModel {
+        let content = try await feedContent(
+            from: discovery,
+            fallbackName: fallbackName,
+            fallbackAbout: fallbackAbout,
+            preferredAvatarData: preferredAvatarData,
+            allowHomepageFallback: allowHomepageFallback
+        )
+        let now = Date()
+        let planet = FollowingPlanetModel(
+            id: UUID(),
+            planetType: planetType,
+            name: content.name,
+            about: content.about,
+            link: link,
+            cid: cid,
+            created: now,
+            updated: now,
+            lastRetrieved: now
+        )
+        if let walletAddress {
+            planet.walletAddress = walletAddress
+            planet.walletAddressResolvedAt = Date()
+        }
+        setArticles(content.articles, on: planet)
+        try prepareStorage(for: planet)
+        await applyAvatarData(content.avatarData, to: planet)
+        try savePlanet(planet)
+        return planet
+    }
+
+    private func updateFromFeedDiscovery(
+        _ discovery: FeedDiscoveryResult,
+        fallbackName: String,
+        error: PlanetError,
+        newCID: String? = nil,
+        preferredAvatarData: Data? = nil
+    ) async throws {
+        guard let feedData = discovery.feedData,
+              let feedURL = discovery.feedURL
+        else {
+            throw error
+        }
+
+        let feed = try await FeedUtils.parseFeed(data: feedData, url: feedURL)
+        let avatarData = try await Self.resolveFeedAvatarData(
+            preferredAvatarData: preferredAvatarData,
+            feedAvatar: feed.avatar,
+            discovery: discovery
+        )
+        let now = Date()
+
+        await MainActor.run {
+            if let newCID {
+                cid = newCID
+            }
+            name = feed.name ?? fallbackName
+            about = feed.about ?? ""
+            updated = now
+            lastRetrieved = now
+        }
+
+        if let publicArticles = feed.articles {
+            try await updateArticles(publicArticles: Self.deduplicate(publicArticles))
+        }
+
+        await Self.applyAvatarData(avatarData, to: self)
+
+        await MainActor.run {
+            try? save()
+        }
     }
 
     static func getPublicPlanet(from cid: String) async throws -> PublicPlanetModel? {
@@ -454,9 +786,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                         await PlanetStore.shared.saveFollowingPlanetsOrder()
                     }
                     debugPrint("FollowFeatured: Followed \(domain)")
-                    Task {
-                        await planet.refreshIcon()
-                    }
                 }
                 catch {
                     debugPrint("FollowFeatured: Failed to follow \(domain): \(error)")
@@ -505,6 +834,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
         Self.logger.info("FollowENS: \(ens) -> CID \(cid)")
         let gateway = IPFSState.shared.getGateway()
+        let ensAvatarData = await fetchData(from: data.avatar)
+        let walletAddress = data.address
         // update a native planet if a public planet is found
         if let publicPlanet = try await getPublicPlanet(from: cid) {
             Self.logger.info("FollowENS: \(ens): found native planet \(publicPlanet.name)")
@@ -528,174 +859,37 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 lastRetrieved: Date()
             )
 
-            try FileManager.default.createDirectory(
-                at: planet.basePath,
-                withIntermediateDirectories: true
-            )
-            try FileManager.default.createDirectory(
-                at: planet.articlesPath,
-                withIntermediateDirectories: true
-            )
-
-            planet.articles = publicPlanet.articles.map {
-                FollowingArticleModel.from(publicArticle: $0, planet: planet)
+            if let walletAddress {
+                planet.walletAddress = walletAddress
+                planet.walletAddressResolvedAt = Date()
             }
-            planet.articles.sort { $0.created > $1.created }
-
-            try planet.save()
-            try planet.articles.forEach { try $0.save() }
-
-            Task.detached { @MainActor in
-                PlanetStore.shared.updateTotalUnreadCount()
-                PlanetStore.shared.updateTotalTodayCount()
+            setArticles(publicPlanet.articles, on: planet)
+            try prepareStorage(for: planet)
+            await applyAvatarData(ensAvatarData, to: planet)
+            if planet.avatar == nil,
+               let nativeAvatarURL = URL(string: "\(gateway)/ipfs/\(cid)/avatar.png")
+            {
+                await applyAvatarData(await fetchData(from: nativeAvatarURL), to: planet)
             }
+            try savePlanet(planet)
 
             return planet
         }
         debugPrint("Follow \(ens): did not find native planet.json")
-        // did not get published planet file, try to get feed
         guard let feedURL = URL(string: "\(gateway)/ipfs/\(cid)/") else {
             throw PlanetError.InvalidPlanetURLError
         }
-        let (feedData, htmlSoup) = try await FeedUtils.findFeed(url: feedURL)
-        let now = Date()
-        let planet: FollowingPlanetModel
-        var feedAvatar: Data? = nil
-        if let feedData = feedData {
-            Self.logger.info("Follow ENS \(ens): found feed")
-            let feed = try await FeedUtils.parseFeed(data: feedData, url: feedURL)
-            feedAvatar = feed.avatar
-            planet = FollowingPlanetModel(
-                id: UUID(),
-                planetType: .ens,
-                name: feed.name ?? ens,
-                about: feed.about ?? "",
-                link: ens,
-                cid: cid,
-                created: now,
-                updated: now,
-                lastRetrieved: now
-            )
-            // Resolve wallet address
-
-            if let walletAddress = data.address {
-                planet.walletAddress = walletAddress
-                planet.walletAddressResolvedAt = Date()
-                debugPrint("Tipping: Got wallet address for \(ens): \(walletAddress)")
-            }
-            else {
-                debugPrint("Tipping: Did not get wallet address for \(ens)")
-            }
-            if let publicArticles = feed.articles {
-                let items = deduplicate(publicArticles)
-                planet.articles = items.map {
-                    FollowingArticleModel.from(publicArticle: $0, planet: planet)
-                }
-                planet.articles.sort { $0.created > $1.created }
-            }
-            else {
-                planet.articles = []
-            }
-        }
-        else if let htmlSoup = htmlSoup {
-            Self.logger.info("Follow \(ens): no feed, use homepage as the only article")
-            planet = FollowingPlanetModel(
-                id: UUID(),
-                planetType: .ens,
-                name: ens,
-                about: "",
-                link: ens,
-                cid: cid,
-                created: now,
-                updated: now,
-                lastRetrieved: now
-            )
-            let homepage = PublicArticleModel(
-                id: UUID(),
-                link: "/",
-                title: (try? htmlSoup.title()) ?? "Homepage",
-                content: "",
-                contentRendered: nil,
-                created: now,
-                hasVideo: false,
-                videoFilename: nil,
-                hasAudio: false,
-                audioFilename: nil,
-                audioDuration: nil,
-                audioByteLength: nil,
-                attachments: nil,
-                heroImage: nil,
-                heroImageWidth: nil,
-                heroImageHeight: nil,
-                heroImageURL: nil,
-                heroImageFilename: nil
-            )
-            planet.articles = [
-                FollowingArticleModel.from(publicArticle: homepage, planet: planet)
-            ]
-        }
-        else {
-            throw PlanetError.InvalidPlanetURLError
-        }
-
-        try FileManager.default.createDirectory(
-            at: planet.basePath,
-            withIntermediateDirectories: true
+        let discovery = try await FeedUtils.findFeed(url: feedURL)
+        return try await createFeedPlanet(
+            planetType: .ens,
+            link: ens,
+            cid: cid,
+            fallbackName: ens,
+            discovery: discovery,
+            preferredAvatarData: ensAvatarData,
+            walletAddress: walletAddress,
+            allowHomepageFallback: true
         )
-        try FileManager.default.createDirectory(
-            at: planet.articlesPath,
-            withIntermediateDirectories: true
-        )
-
-        if let avatarURLString = data.avatar,
-            let avatarURL = URL(string: avatarURLString),
-            let (data, response) = try? await URLSession.shared.data(from: avatarURL),
-            let httpResponse = response as? HTTPURLResponse,
-            httpResponse.ok,
-            let image = NSImage(data: data),
-            let _ = try? data.write(to: planet.avatarPath)
-        {
-            Self.logger.info("Follow \(ens): found avatar from ENS")
-            planet.avatar = image
-        }
-        else if let feedAvatar = feedAvatar,
-            let image = NSImage(data: feedAvatar),
-            let _ = try? feedAvatar.write(to: planet.avatarPath)
-        {
-            Self.logger.info("Follow \(ens): found avatar from feed")
-            planet.avatar = image
-        }
-        else {
-            Self.logger.info("Follow \(ens): no avatar found")
-        }
-
-        try planet.save()
-        try planet.articles.forEach { try $0.save() }
-
-        if let walletAddress = data.address {
-            debugPrint("Tipping: got wallet address for \(planet.link): \(walletAddress)")
-            var saveNow: Bool = false
-            if planet.walletAddress == nil || planet.walletAddress != walletAddress {
-                saveNow = true
-            }
-            await MainActor.run {
-                planet.walletAddress = walletAddress
-                planet.walletAddressResolvedAt = Date()
-            }
-            if saveNow {
-                try planet.save()
-            }
-        }
-        else {
-            debugPrint("Tipping: no wallet address for \(planet.link)")
-        }
-
-        Task.detached { @MainActor in
-            PlanetStore.shared.updateTotalUnreadCount()
-            PlanetStore.shared.updateTotalTodayCount()
-        }
-
-        return planet
     }
 
     static func followDotBit(dotbit: String) async throws -> FollowingPlanetModel {
@@ -716,9 +910,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             cid = resolved
         }
         Self.logger.info("Follow \(dotbit): CID \(cid)")
-        Task.detached(priority: .background) {
-            try await IPFSDaemon.shared.pin(cid: cid)
-        }
         // update a native planet if a public planet is found
         if let planetURL = URL(string: "\(gateway)/ipfs/\(cid)/planet.json"),
             let (planetData, planetResponse) = try? await URLSession.shared.data(from: planetURL),
@@ -743,180 +934,44 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 lastRetrieved: Date()
             )
 
-            try FileManager.default.createDirectory(
-                at: planet.basePath,
-                withIntermediateDirectories: true
-            )
-            try FileManager.default.createDirectory(
-                at: planet.articlesPath,
-                withIntermediateDirectories: true
-            )
-
-            planet.articles = publicPlanet.articles.map {
-                FollowingArticleModel.from(publicArticle: $0, planet: planet)
+            setArticles(publicPlanet.articles, on: planet)
+            try prepareStorage(for: planet)
+            if let nativeAvatarURL = URL(string: "\(gateway)/ipfs/\(cid)/avatar.png") {
+                await applyAvatarData(await fetchData(from: nativeAvatarURL), to: planet)
             }
-            planet.articles.sort { $0.created > $1.created }
-
-            // try to find native planet avatar
-            if let planetAvatarURL = URL(
-                string: "\(gateway)/ipfs/\(cid)/avatar.png"
-            ),
-                let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
-                let httpResponse = response as? HTTPURLResponse,
-                httpResponse.ok,
-                let image = NSImage(data: data),
-                let _ = try? data.write(to: planet.avatarPath)
-            {
-                Self.logger.info("Follow \(dotbit): found avatar in native planet")
-                planet.avatar = image
-            }
-
-            try planet.save()
-            try planet.articles.forEach { try $0.save() }
+            try savePlanet(planet)
             return planet
         }
-        // did not get published planet file, try to get feed
         guard let feedURL = URL(string: "\(gateway)/ipfs/\(cid)/") else {
             throw PlanetError.InvalidPlanetURLError
         }
-        let (feedData, htmlSoup) = try await FeedUtils.findFeed(url: feedURL)
-        let now = Date()
-        let planet: FollowingPlanetModel
-        var feedAvatar: Data? = nil
-        if let feedData = feedData {
-            Self.logger.info("Follow .bit \(dotbit): found feed")
-            let feed = try await FeedUtils.parseFeed(data: feedData, url: feedURL)
-            feedAvatar = feed.avatar
-            planet = FollowingPlanetModel(
-                id: UUID(),
-                planetType: .ens,
-                name: feed.name ?? dotbit,
-                about: feed.about ?? "",
-                link: dotbit,
-                cid: cid,
-                created: now,
-                updated: now,
-                lastRetrieved: now
-            )
-            if let publicArticles = feed.articles {
-                let items = deduplicate(publicArticles)
-                planet.articles = items.map {
-                    FollowingArticleModel.from(publicArticle: $0, planet: planet)
-                }
-                planet.articles.sort { $0.created > $1.created }
-            }
-            else {
-                planet.articles = []
-            }
-        }
-        else if let htmlSoup = htmlSoup {
-            Self.logger.info("Follow \(dotbit): no feed, use homepage as the only article")
-            planet = FollowingPlanetModel(
-                id: UUID(),
-                planetType: .dotbit,
-                name: dotbit,
-                about: "",
-                link: dotbit,
-                cid: cid,
-                created: now,
-                updated: now,
-                lastRetrieved: now
-            )
-            let homepage = PublicArticleModel(
-                id: UUID(),
-                link: "/",
-                title: (try? htmlSoup.title()) ?? "Homepage",
-                content: "",
-                contentRendered: nil,
-                created: now,
-                hasVideo: false,
-                videoFilename: nil,
-                hasAudio: false,
-                audioFilename: nil,
-                audioDuration: nil,
-                audioByteLength: nil,
-                attachments: nil,
-                heroImage: nil,
-                heroImageWidth: nil,
-                heroImageHeight: nil,
-                heroImageURL: nil,
-                heroImageFilename: nil
-            )
-            planet.articles = [
-                FollowingArticleModel.from(publicArticle: homepage, planet: planet)
-            ]
-        }
-        else {
-            throw PlanetError.InvalidPlanetURLError
-        }
-
-        try FileManager.default.createDirectory(
-            at: planet.basePath,
-            withIntermediateDirectories: true
+        let discovery = try await FeedUtils.findFeed(url: feedURL)
+        return try await createFeedPlanet(
+            planetType: .dotbit,
+            link: dotbit,
+            cid: cid,
+            fallbackName: dotbit,
+            discovery: discovery,
+            allowHomepageFallback: true
         )
-        try FileManager.default.createDirectory(
-            at: planet.articlesPath,
-            withIntermediateDirectories: true
-        )
-
-        if let data = feedAvatar,
-            let image = NSImage(data: data),
-            let _ = try? data.write(to: planet.avatarPath)
-        {
-            Self.logger.info("Follow \(dotbit): found avatar from feed")
-            planet.avatar = image
-        }
-
-        try planet.save()
-        try planet.articles.forEach { try $0.save() }
-        return planet
     }
 
     static func followHTTP(link: String) async throws -> FollowingPlanetModel {
         guard let feedURL = URL(string: link) else {
             throw PlanetError.InvalidPlanetURLError
         }
-        let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
-        guard let feedData = feedData else {
+        let discovery = try await FeedUtils.findFeed(url: feedURL)
+        guard discovery.feedData != nil else {
             throw PlanetError.InvalidPlanetURLError
         }
-        Self.logger.info("Follow HTTP feed \(link): found feed")
-        let feed = try await FeedUtils.parseFeed(data: feedData, url: feedURL)
-        let now = Date()
-        let planet = FollowingPlanetModel(
-            id: UUID(),
+        return try await createFeedPlanet(
             planetType: .dns,
-            name: feed.name ?? link,
-            about: feed.about ?? "",
             link: link,
             cid: nil,
-            created: now,
-            updated: now,
-            lastRetrieved: now
+            fallbackName: link,
+            discovery: discovery,
+            allowHomepageFallback: false
         )
-        try FileManager.default.createDirectory(
-            at: planet.basePath,
-            withIntermediateDirectories: true
-        )
-        try FileManager.default.createDirectory(
-            at: planet.articlesPath,
-            withIntermediateDirectories: true
-        )
-
-        if let publicArticles = feed.articles {
-            let items: [PublicArticleModel] = deduplicate(publicArticles)
-            planet.articles = items.map {
-                FollowingArticleModel.from(publicArticle: $0, planet: planet)
-            }
-            planet.articles.sort { $0.created > $1.created }
-        }
-        else {
-            planet.articles = []
-        }
-
-        try planet.save()
-        try planet.articles.forEach { try $0.save() }
-        return planet
     }
 
     static func followIPNSorDNSLink(name: String) async throws -> FollowingPlanetModel {
@@ -924,9 +979,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         let cid = try await IPFSDaemon.shared.resolveIPNSorDNSLink(name: name)
         let gateway = IPFSState.shared.getGateway()
         Self.logger.info("Follow \(name): CID \(cid)")
-        Task.detached(priority: .background) {
-            try await IPFSDaemon.shared.pin(cid: cid)
-        }
         if let planetURL = URL(string: "\(gateway)/ipfs/\(cid)/planet.json"),
             let (planetData, planetResponse) = try? await URLSession.shared.data(from: planetURL),
             let httpResponse = planetResponse as? HTTPURLResponse,
@@ -951,147 +1003,26 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 lastRetrieved: Date()
             )
 
-            try FileManager.default.createDirectory(
-                at: planet.basePath,
-                withIntermediateDirectories: true
-            )
-            try FileManager.default.createDirectory(
-                at: planet.articlesPath,
-                withIntermediateDirectories: true
-            )
-
-            planet.articles = publicPlanet.articles.map {
-                FollowingArticleModel.from(publicArticle: $0, planet: planet)
+            setArticles(publicPlanet.articles, on: planet)
+            try prepareStorage(for: planet)
+            if let nativeAvatarURL = URL(string: "\(gateway)/ipfs/\(cid)/avatar.png") {
+                await applyAvatarData(await fetchData(from: nativeAvatarURL), to: planet)
             }
-            planet.articles.sort {
-                $0.created > $1.created
-            }
-
-            if let planetAvatarURL = URL(
-                string: "\(gateway)/ipfs/\(cid)/avatar.png"
-            ),
-                let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
-                let httpResponse = response as? HTTPURLResponse,
-                httpResponse.ok,
-                let image = NSImage(data: data),
-                let _ = try? data.write(to: planet.avatarPath)
-            {
-                planet.avatar = image
-            }
-
-            try planet.save()
-            try planet.articles.forEach {
-                try $0.save()
-            }
-
-            Task.detached { @MainActor in
-                PlanetStore.shared.updateTotalUnreadCount()
-                PlanetStore.shared.updateTotalTodayCount()
-            }
-
+            try savePlanet(planet)
             return planet
         }
-        // did not get published planet file, try to get feed
         guard let feedURL = URL(string: "\(gateway)/ipfs/\(cid)/") else {
             throw PlanetError.InvalidPlanetURLError
         }
-        let (feedData, htmlSoup) = try await FeedUtils.findFeed(url: feedURL)
-        let now = Date()
-        let planet: FollowingPlanetModel
-        var feedAvatar: Data? = nil
-        if let feedData = feedData {
-            Self.logger.info("Follow IPNS or DNSLink \(name): found feed")
-            let feed = try await FeedUtils.parseFeed(data: feedData, url: feedURL)
-            feedAvatar = feed.avatar
-            planet = FollowingPlanetModel(
-                id: UUID(),
-                planetType: planetType,
-                name: feed.name ?? name,
-                about: feed.about ?? "",
-                link: name,
-                cid: cid,
-                created: now,
-                updated: now,
-                lastRetrieved: now
-            )
-            if let publicArticles = feed.articles {
-                let items: [PublicArticleModel] = deduplicate(publicArticles)
-                planet.articles = items.map {
-                    FollowingArticleModel.from(publicArticle: $0, planet: planet)
-                }
-                planet.articles.sort { $0.created > $1.created }
-            }
-            else {
-                planet.articles = []
-            }
-        }
-        else if let htmlSoup = htmlSoup {
-            Self.logger.info("Follow \(name): no feed, use homepage as the only article")
-            planet = FollowingPlanetModel(
-                id: UUID(),
-                planetType: .ens,
-                name: name,
-                about: "",
-                link: name,
-                cid: cid,
-                created: now,
-                updated: now,
-                lastRetrieved: now
-            )
-            let homepage = PublicArticleModel(
-                id: UUID(),
-                link: "/",
-                title: (try? htmlSoup.title()) ?? "Homepage",
-                content: "",
-                contentRendered: nil,
-                created: now,
-                hasVideo: false,
-                videoFilename: nil,
-                hasAudio: false,
-                audioFilename: nil,
-                audioDuration: nil,
-                audioByteLength: nil,
-                attachments: nil,
-                heroImage: nil,
-                heroImageWidth: nil,
-                heroImageHeight: nil,
-                heroImageURL: nil,
-                heroImageFilename: nil
-            )
-            planet.articles = [
-                FollowingArticleModel.from(publicArticle: homepage, planet: planet)
-            ]
-        }
-        else {
-            throw PlanetError.InvalidPlanetURLError
-        }
-
-        try FileManager.default.createDirectory(
-            at: planet.basePath,
-            withIntermediateDirectories: true
+        let discovery = try await FeedUtils.findFeed(url: feedURL)
+        return try await createFeedPlanet(
+            planetType: planetType,
+            link: name,
+            cid: cid,
+            fallbackName: name,
+            discovery: discovery,
+            allowHomepageFallback: true
         )
-        try FileManager.default.createDirectory(
-            at: planet.articlesPath,
-            withIntermediateDirectories: true
-        )
-
-        if let data = feedAvatar,
-            let image = NSImage(data: data),
-            let _ = try? data.write(to: planet.avatarPath)
-        {
-            Self.logger.info("Follow \(name): found avatar from feed")
-            planet.avatar = image
-        }
-
-        try planet.save()
-        try planet.articles.forEach { try $0.save() }
-
-        Task.detached { @MainActor in
-            PlanetStore.shared.updateTotalUnreadCount()
-            PlanetStore.shared.updateTotalTodayCount()
-        }
-
-        return planet
     }
 
     func update() async throws {
@@ -1150,18 +1081,9 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
                     if let planetAvatarURL = URL(
                         string: "\(gateway)/ipfs/\(newCID)/avatar.png"
-                    ),
-                        let (data, response) = try? await URLSession.shared.data(
-                            from: planetAvatarURL
-                        ),
-                        let httpResponse = response as? HTTPURLResponse,
-                        httpResponse.ok,
-                        let image = NSImage(data: data),
-                        let _ = try? data.write(to: avatarPath)
+                    )
                     {
-                        Task { @MainActor in
-                            avatar = image
-                        }
+                        await Self.applyAvatarData(await Self.fetchData(from: planetAvatarURL), to: self)
                     }
 
                     await MainActor.run {
@@ -1180,39 +1102,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             guard let feedURL = URL(string: "\(gateway)/ipfs/\(newCID)/") else {
                 throw PlanetError.InvalidPlanetURLError
             }
-            let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
-            guard let feedData = feedData else {
-                throw PlanetError.InvalidPlanetURLError
-            }
-            let feed = try await FeedUtils.parseFeed(data: feedData, url: feedURL)
-            let now = Date()
-
-            await MainActor.run {
-                name = feed.name ?? link
-                about = feed.about ?? ""
-                updated = now
-                if cid != newCID {
-                    cid = newCID
-                }
-                lastRetrieved = now
-            }
-
-            if let publicArticles = feed.articles {
-                try await updateArticles(publicArticles: publicArticles)
-            }
-
-            if let data = feed.avatar,
-                let image = NSImage(data: data),
-                let _ = try? data.write(to: avatarPath)
-            {
-                Task { @MainActor in
-                    avatar = image
-                }
-            }
-
-            await MainActor.run {
-                try? save()
-            }
+            let discovery = try await FeedUtils.findFeed(url: feedURL)
+            try await updateFromFeedDiscovery(
+                discovery,
+                fallbackName: link,
+                error: PlanetError.InvalidPlanetURLError,
+                newCID: newCID
+            )
             return
         case .ens:
             debugPrint("Updating planet (ENS type) \(name): link: \(link)")
@@ -1286,6 +1182,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             Task.detached(priority: .background) {
                 try await IPFSDaemon.shared.pin(cid: newCID)
             }
+            let ensAvatarData = await Self.fetchData(from: data.avatar)
             do {
                 let planetURL = URL(
                     string: "\(gateway)/ipfs/\(newCID)/planet.json"
@@ -1321,30 +1218,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
 
 
-                    if let avatarURLString = data.avatar,
-                       let avatarURL = URL(string: avatarURLString),
-                       let (avatarData, _) = try? await URLSession.shared.data(from: avatarURL),
-                       let image = NSImage(data: avatarData),
-                       let _ = try? avatarData.write(to: avatarPath)
-                    {
-                        Task { @MainActor in
-                            avatar = image
-                        }
+                    if let ensAvatarData {
+                        await Self.applyAvatarData(ensAvatarData, to: self)
                     }
                     else if let planetAvatarURL = URL(
                         string: "\(gateway)/ipfs/\(newCID)/avatar.png"
-                    ),
-                        let (avatarData, avatarResponse) = try? await URLSession.shared.data(
-                            from: planetAvatarURL
-                        ),
-                        let httpResponse = avatarResponse as? HTTPURLResponse,
-                        httpResponse.ok,
-                        let image = NSImage(data: avatarData),
-                        let _ = try? avatarData.write(to: avatarPath)
-                    {
-                        Task { @MainActor in
-                            avatar = image
-                        }
+                    ) {
+                        await Self.applyAvatarData(await Self.fetchData(from: planetAvatarURL), to: self)
                     }
 
                     await MainActor.run {
@@ -1372,48 +1252,14 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 throw PlanetError.InvalidPlanetURLError
             }
             Self.logger.info("Planet \(self.name) is finding feed at \(feedURL)")
-            let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
-            guard let feedData = feedData else {
-                throw PlanetError.InvalidPlanetURLError
-            }
-            Self.logger.info("Planet \(self.name) feed data fetched: \(feedData.count) bytes")
-            let feed = try await FeedUtils.parseFeed(data: feedData, url: feedURL)
-            let now = Date()
-
-            await MainActor.run {
-                cid = newCID
-                name = feed.name ?? link
-                about = feed.about ?? ""
-                updated = now
-                lastRetrieved = now
-            }
-
-            if let publicArticles = feed.articles {
-                try await updateArticles(publicArticles: publicArticles)
-            }
-
-            if let avatarURLString = data.avatar,
-               let avatarURL = URL(string: avatarURLString),
-               let (avatarData, _) = try? await URLSession.shared.data(from: avatarURL),
-               let image = NSImage(data: avatarData),
-               let _ = try? avatarData.write(to: avatarPath)
-            {
-                Task { @MainActor in
-                    avatar = image
-                }
-            }
-            else if let data = feed.avatar,
-                let image = NSImage(data: data),
-                let _ = try? data.write(to: avatarPath)
-            {
-                Task { @MainActor in
-                    avatar = image
-                }
-            }
-
-            await MainActor.run {
-                try? save()
-            }
+            let discovery = try await FeedUtils.findFeed(url: feedURL)
+            try await updateFromFeedDiscovery(
+                discovery,
+                fallbackName: link,
+                error: PlanetError.InvalidPlanetURLError,
+                newCID: newCID,
+                preferredAvatarData: ensAvatarData
+            )
             return
         case .dotbit:
             guard let dweb = await DotBitKit.shared.resolve(link) else {
@@ -1474,18 +1320,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
                     if let planetAvatarURL = URL(
                         string: "\(gateway)/ipfs/\(newCID)/avatar.png"
-                    ),
-                        let (data, response) = try? await URLSession.shared.data(
-                            from: planetAvatarURL
-                        ),
-                        let httpResponse = response as? HTTPURLResponse,
-                        httpResponse.ok,
-                        let image = NSImage(data: data),
-                        let _ = try? data.write(to: avatarPath)
-                    {
-                        Task { @MainActor in
-                            avatar = image
-                        }
+                    ) {
+                        await Self.applyAvatarData(await Self.fetchData(from: planetAvatarURL), to: self)
                     }
 
                     await MainActor.run {
@@ -1513,128 +1349,24 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
                 throw PlanetError.InvalidPlanetURLError
             }
             Self.logger.info("Planet \(self.name) is finding feed at \(feedURL)")
-            let (feedData, _) = try await FeedUtils.findFeed(url: feedURL)
-            guard let feedData = feedData else {
-                throw PlanetError.InvalidPlanetURLError
-            }
-            Self.logger.info("Planet \(self.name) feed data fetched: \(feedData.count) bytes")
-            let feed = try await FeedUtils.parseFeed(data: feedData, url: feedURL)
-            let now = Date()
-
-            await MainActor.run {
-                cid = newCID
-                name = feed.name ?? link
-                about = feed.about ?? ""
-                updated = now
-                lastRetrieved = now
-            }
-
-            if let publicArticles = feed.articles {
-                try await updateArticles(publicArticles: publicArticles)
-            }
-
-            if let data = feed.avatar,
-                let image = NSImage(data: data),
-                let _ = try? data.write(to: avatarPath)
-            {
-                Task { @MainActor in
-                    avatar = image
-                }
-            }
-
-            await MainActor.run {
-                try? save()
-            }
+            let discovery = try await FeedUtils.findFeed(url: feedURL)
+            try await updateFromFeedDiscovery(
+                discovery,
+                fallbackName: link,
+                error: PlanetError.InvalidPlanetURLError,
+                newCID: newCID
+            )
             return
         case .dns:
             guard let feedURL = URL(string: link) else {
                 throw PlanetError.PlanetFeedError
             }
-            let (feedData, htmlDocument) = try await FeedUtils.findFeed(url: feedURL)
-            guard let feedData = feedData else {
-                throw PlanetError.PlanetFeedError
-            }
-            let feed = try await FeedUtils.parseFeed(data: feedData, url: feedURL)
-
-            var feedAvatar: Data? = nil
-            if feed.avatar == nil {
-                let homepageDocument: Document?
-                if htmlDocument == nil {
-                    var urlForFindingAvatar: URL? = nil
-                    if let feedLink = FeedUtils.findLinkFromFeed(feedData: feedData),
-                        let feedLinkURL = URL(string: feedLink)
-                    {
-                        urlForFindingAvatar = feedLinkURL
-                    }
-                    else {
-                        if let domain = feedURL.host {
-                            urlForFindingAvatar = URL(string: "https://\(domain)")
-                        }
-                    }
-                    if let avatarPageURL = urlForFindingAvatar {
-                        homepageDocument = try await FeedUtils.getHTMLDocument(url: avatarPageURL)
-                    }
-                    else {
-                        homepageDocument = nil
-                    }
-                }
-                else {
-                    homepageDocument = htmlDocument
-                }
-                if let soup = homepageDocument {
-                    debugPrint("FeedAvatar: Trying to fetch og:image as feed avatar")
-                    feedAvatar = try await FeedUtils.findAvatarFromHTMLOGImage(
-                        htmlDocument: soup,
-                        htmlURL: feedURL
-                    )
-                    var avatarIsSquare = true
-                    if let imageData = feedAvatar, let feedAvatarImage = NSImage(data: imageData) {
-                        avatarIsSquare = feedAvatarImage.size.width == feedAvatarImage.size.height
-                    }
-                    if feedAvatar == nil || !avatarIsSquare {
-                        debugPrint("FeedAvatar: Trying to fetch icons from links as feed avatar")
-                        feedAvatar = try await FeedUtils.findAvatarFromHTMLIcons(
-                            htmlDocument: soup,
-                            htmlURL: feedURL
-                        )
-                    }
-                }
-            }
-
-            var avatarData: Data? = nil
-
-            if feed.avatar != nil {
-                avatarData = feed.avatar
-            }
-
-            if avatarData == nil, feedAvatar != nil {
-                avatarData = feedAvatar
-            }
-
-            let now = Date()
-            await MainActor.run {
-                name = feed.name ?? link
-                about = feed.about ?? ""
-                updated = now
-                lastRetrieved = now
-            }
-
-            if let publicArticles = feed.articles {
-                try await updateArticles(publicArticles: publicArticles)
-            }
-
-            if let data = avatarData,
-                let image = NSImage(data: data),
-                let _ = try? data.write(to: avatarPath)
-            {
-                Task { @MainActor in
-                    avatar = image
-                }
-            }
-
-            await MainActor.run {
-                try? save()
-            }
+            let discovery = try await FeedUtils.findFeed(url: feedURL)
+            try await updateFromFeedDiscovery(
+                discovery,
+                fallbackName: link,
+                error: PlanetError.PlanetFeedError
+            )
             return
         }
     }
@@ -1770,152 +1502,83 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
     }
 
+    private func refreshGatewayAvatar(label: String) async {
+        guard let cid else {
+            debugPrint("Unable to refresh avatar for \(name) (type=\(label)) because CID is nil")
+            return
+        }
+        guard let planetAvatarURL = URL(
+            string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)/avatar.png"
+        ) else {
+            debugPrint("Unable to refresh avatar for \(name) (type=\(label)) because avatar URL is invalid")
+            return
+        }
+        if let data = await Self.fetchData(from: planetAvatarURL) {
+            await Self.applyAvatarData(data, to: self)
+        }
+        else {
+            debugPrint("Unable to refresh avatar for \(name) (type=\(label))")
+        }
+    }
+
+    private func refreshFeedAvatar() async {
+        guard let feedURL = URL(string: link) else {
+            return
+        }
+        do {
+            let discovery = try await FeedUtils.findFeed(url: feedURL)
+            let avatarData: Data?
+            if let feedData = discovery.feedData,
+               let discoveredFeedURL = discovery.feedURL
+            {
+                let feed = try await FeedUtils.parseFeed(data: feedData, url: discoveredFeedURL)
+                avatarData = try await Self.resolveFeedAvatarData(
+                    feedAvatar: feed.avatar,
+                    discovery: discovery
+                )
+            }
+            else {
+                avatarData = try await Self.resolveHTMLAvatarData(from: discovery)
+            }
+            if let avatarData {
+                await Self.applyAvatarData(avatarData, to: self)
+            }
+            else {
+                debugPrint("refreshIcon: avatar not found for \(feedURL)")
+            }
+        }
+        catch {
+            debugPrint("refreshIcon error: \(error)")
+        }
+    }
+
     func refreshIcon() async {
         debugPrint("About to refresh avatar for \(self) name=\(name) type=\(planetType) link=\(link)")
         switch planetType {
         case .ens:
             debugPrint("About to refresh avatar for \(name) (type=ens) from \(link)")
-            guard let cid = cid else {
-                debugPrint("Unable to refresh avatar for \(name) (type=ens) because CID is nil")
-                return
-            }
-            guard let planetAvatarURL = URL(
-                string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)/avatar.png"
-            ) else {
-                debugPrint("Unable to refresh avatar for \(name) (type=ens) because avatar URL is invalid")
-                return
-            }
-            if let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
-                let httpResponse = response as? HTTPURLResponse,
-                httpResponse.ok,
-                let image = NSImage(data: data),
-                let _ = try? data.write(to: self.avatarPath)
+            let ensdata = ENSDataClient()
+            if let data = try? await ensdata.resolve(link),
+               let ensAvatarData = await Self.fetchData(from: data.avatar),
+               Self.imageIsValid(ensAvatarData)
             {
-                Task { @MainActor in
-                    avatar = image
-                }
-            } else {
-                debugPrint("Unable to refresh avatar for \(name) (type=ens)")
+                await Self.applyAvatarData(ensAvatarData, to: self)
+            }
+            else {
+                await refreshGatewayAvatar(label: "ens")
             }
         case .planet:
             debugPrint("About to refresh avatar for \(name) (type=planet) from \(link)")
-            guard let cid = cid else {
-                debugPrint("Unable to refresh avatar for \(name) (type=planet) because CID is nil")
-                return
-            }
-            guard let planetAvatarURL = URL(
-                string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)/avatar.png"
-            ) else {
-                debugPrint("Unable to refresh avatar for \(name) (type=planet) because avatar URL is invalid")
-                return
-            }
-            if let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
-                let httpResponse = response as? HTTPURLResponse,
-                httpResponse.ok,
-                let image = NSImage(data: data),
-                let _ = try? data.write(to: self.avatarPath)
-            {
-                Task { @MainActor in
-                    avatar = image
-                }
-            }
+            await refreshGatewayAvatar(label: "planet")
         case .dnslink:
             debugPrint("About to refresh avatar for \(name) (type=dnslink) from \(link)")
-            guard let cid = cid else {
-                debugPrint("Unable to refresh avatar for \(name) (type=planet) because CID is nil")
-                return
-            }
-            guard let planetAvatarURL = URL(
-                string: "\(IPFSState.shared.getGateway())/ipfs/\(cid)/avatar.png"
-            ) else {
-                debugPrint("Unable to refresh avatar for \(name) (type=dnslink) because avatar URL is invalid")
-                return
-            }
-            if let (data, response) = try? await URLSession.shared.data(from: planetAvatarURL),
-                let httpResponse = response as? HTTPURLResponse,
-                httpResponse.ok,
-                let image = NSImage(data: data),
-                let _ = try? data.write(to: self.avatarPath)
-            {
-                Task { @MainActor in
-                    avatar = image
-                }
-            }
+            await refreshGatewayAvatar(label: "dnslink")
+        case .dotbit:
+            debugPrint("About to refresh avatar for \(name) (type=dotbit) from \(link)")
+            await refreshGatewayAvatar(label: "dotbit")
         case .dns:
             debugPrint("About to fetch avatar for \(name) (type=dns) from \(link)")
-            guard let feedURL = URL(string: link) else {
-                return
-            }
-            do {
-                let (feedData, htmlSoup) = try await FeedUtils.findFeed(url: feedURL)
-
-                guard let _ = feedData else {
-                    return
-                }
-
-                var feedAvatar: Data? = nil
-                var urlForFindingAvatar: URL? = nil
-                let homepageDocument: Document?
-
-                if htmlSoup == nil {
-                    if let domain = feedURL.host {
-                        urlForFindingAvatar = URL(string: "https://\(domain)")
-                    }
-                    if let avatarPageURL = urlForFindingAvatar {
-                        homepageDocument = try await FeedUtils.getHTMLDocument(url: avatarPageURL)
-                    }
-                    else {
-                        homepageDocument = nil
-                    }
-                }
-                else {
-                    homepageDocument = htmlSoup
-                    urlForFindingAvatar = feedURL
-                }
-                if let soup = homepageDocument, let url = urlForFindingAvatar {
-                    debugPrint("refreshIcon: Trying to fetch og:image as feed avatar from \(url)")
-                    feedAvatar = try await FeedUtils.findAvatarFromHTMLOGImage(
-                        htmlDocument: soup,
-                        htmlURL: url
-                    )
-                    var avatarIsSquare = true
-                    if let imageData = feedAvatar, let feedAvatarImage = NSImage(data: imageData) {
-                        avatarIsSquare = feedAvatarImage.size.width == feedAvatarImage.size.height
-                    }
-                    if feedAvatar == nil || !avatarIsSquare {
-                        debugPrint(
-                            "refreshIcon: Trying to fetch icons from links as feed avatar from \(url)"
-                        )
-                        feedAvatar = try await FeedUtils.findAvatarFromHTMLIcons(
-                            htmlDocument: soup,
-                            htmlURL: feedURL
-                        )
-                    }
-                    if feedAvatar == nil {
-                        debugPrint("refreshIcon: avatar not found for \(feedURL)")
-                    }
-                    else {
-                        if let data = feedAvatar, let image = NSImage(data: data),
-                            let _ = try? data.write(to: self.avatarPath)
-                        {
-                            Task { @MainActor in
-                                avatar = image
-                            }
-                            debugPrint(
-                                "refreshIcon: written avatar for \(self.name) to \(self.avatarPath)"
-                            )
-                        }
-                    }
-                }
-                else {
-                    debugPrint("refreshIcon: no soup")
-                }
-            }
-            catch {
-                debugPrint("refreshIcon error: \(error)")
-            }
-        default:
-            break
+            await refreshFeedAvatar()
         }
     }
 

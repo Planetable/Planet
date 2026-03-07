@@ -142,6 +142,7 @@ final class MyJSONDirectoryMonitor {
     @Published var myPlanets: [MyPlanetModel] = [] {
         didSet {
             rebuildSearchSnapshots()
+            updateTotalStarredCount()
             let planets = myPlanets
             Task.detached {
                 await MainActor.run {
@@ -155,6 +156,9 @@ final class MyJSONDirectoryMonitor {
     @Published var followingPlanets: [FollowingPlanetModel] = [] {
         didSet {
             rebuildSearchSnapshots()
+            updateTotalUnreadCount()
+            updateTotalTodayCount()
+            updateTotalStarredCount()
             Task { @MainActor in
                 ArticleWebViewModel.shared.updateFollowingPlanets(followingPlanets)
             }
@@ -398,9 +402,6 @@ final class MyJSONDirectoryMonitor {
         followingPlanets = Array(followingAllPlanets[followingPlanetPartition...])
         loadFollowingPlanetsOrder()
         logger.info("Loaded \(self.followingPlanets.count) following planets")
-        updateTotalUnreadCount()
-        updateTotalStarredCount()
-        updateTotalTodayCount()
         if myDataMonitor == nil {
             refreshMyDataMonitor()
         }
