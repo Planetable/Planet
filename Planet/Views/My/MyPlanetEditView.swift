@@ -163,6 +163,11 @@ struct MyPlanetEditView: View {
         VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
             HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                 HStack {
+                    Image("custom.mastodon.fill")
+                        .renderingMode(.original)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16, alignment: .center)
                     Text("Mastodon")
                     Spacer()
                 }
@@ -174,6 +179,11 @@ struct MyPlanetEditView: View {
 
             HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                 HStack {
+                    Image("custom.twitter")
+                        .renderingMode(.original)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16, alignment: .center)
                     Text("Twitter")
                     Spacer()
                 }
@@ -185,6 +195,10 @@ struct MyPlanetEditView: View {
 
             HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                 HStack {
+                    Image("custom.github")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16, alignment: .center)
                     Text("GitHub")
                     Spacer()
                 }
@@ -196,6 +210,11 @@ struct MyPlanetEditView: View {
 
             HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                 HStack {
+                    Image("custom.telegram")
+                        .renderingMode(.original)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16, alignment: .center)
                     Text("Telegram")
                     Spacer()
                 }
@@ -207,6 +226,11 @@ struct MyPlanetEditView: View {
 
             HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
                 HStack {
+                    Image("custom.discord")
+                        .renderingMode(.original)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16, alignment: .center)
                     Text("Discord Link")
                     Spacer()
                 }
@@ -214,6 +238,14 @@ struct MyPlanetEditView: View {
 
                 TextField("", text: $discordLink)
                     .textFieldStyle(.roundedBorder)
+            }
+
+            if PlanetStore.app == .planet {
+                Divider()
+                    .padding(.top, 6)
+                    .padding(.bottom, 6)
+
+                juiceboxView()
             }
         }
         .padding(16)
@@ -459,10 +491,10 @@ struct MyPlanetEditView: View {
 
     @ViewBuilder
     private func juiceboxView() -> some View {
-        HStack {
+        HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
             HStack {
                 Spacer()
-            }.frame(width: CONTROL_CAPTION_WIDTH + 40 + 10)
+            }.frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
             Toggle("Enable Juicebox Integration", isOn: $juiceboxEnabled)
                 .toggleStyle(.checkbox)
                 .frame(alignment: .leading)
@@ -474,13 +506,13 @@ struct MyPlanetEditView: View {
             )
         }
 
-        HStack {
+        HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
             HStack {
                 Image("custom.juicebox")
                 Text("Project ID")
                 Spacer()
             }
-            .frame(width: CONTROL_CAPTION_WIDTH + 40)
+            .frame(width: SOCIAL_CONTROL_CAPTION_WIDTH)
 
             TextField("", text: $juiceboxProjectID)
                 .textFieldStyle(.roundedBorder)
@@ -709,61 +741,6 @@ struct MyPlanetEditView: View {
                     }
                     .tag("pinning")
 
-                    VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
-                        if PlanetStore.app == .planet {
-                            juiceboxView()
-
-                            /*
-                            Divider()
-                                .padding(.top, 6)
-                                .padding(.bottom, 6)
-                            */
-                        }
-
-                        /*
-                        HStack {
-                            HStack {
-                                Spacer()
-                            }.frame(width: CONTROL_CAPTION_WIDTH + 20 + 10)
-                            Toggle("Enable dWebServices.xyz for IPNS", isOn: $dWebServicesEnabled)
-                                .toggleStyle(.checkbox)
-                                .frame(alignment: .leading)
-                            Spacer()
-                            HelpLinkButton(
-                                helpLink: URL(
-                                    string: "https://www.planetable.xyz/guides/dweb-services-xyz/"
-                                )!
-                            )
-                        }
-
-                        HStack {
-                            HStack {
-                                Text("Domain")
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
-
-                            TextField("", text: $dWebServicesDomain)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
-                        HStack {
-                            HStack {
-                                Text("API Key")
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 20)
-
-                            SecureField("", text: $dWebServicesAPIKey)
-                                .textFieldStyle(.roundedBorder)
-                        }
-                        */
-                    }
-                    .padding(16)
-                    .tabItem {
-                        Text("Integrations")
-                    }
-                    .tag("integrations")
                 }
 
                 HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
