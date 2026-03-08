@@ -111,6 +111,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     /// Prewarm new post on public gateway
     @Published var prewarmNewPost: Bool? = true
 
+    /// Publish the latest CID to this planet's IPNS record
+    @Published var publishAsIPNS: Bool? = true
+
     static func myPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
@@ -520,6 +523,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(saveRoundAvatar)
         hasher.combine(doNotIndex)
         hasher.combine(prewarmNewPost)
+        hasher.combine(publishAsIPNS)
     }
 
     static func == (lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
@@ -591,6 +595,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.saveRoundAvatar == rhs.saveRoundAvatar
             && lhs.doNotIndex == rhs.doNotIndex
             && lhs.prewarmNewPost == rhs.prewarmNewPost
+            && lhs.publishAsIPNS == rhs.publishAsIPNS
     }
 
     enum CodingKeys: String, CodingKey {
@@ -613,7 +618,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             aggregation, reuseOriginalID,
             saveRoundAvatar,
             doNotIndex,
-            prewarmNewPost
+            prewarmNewPost,
+            publishAsIPNS
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -713,6 +719,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Bool.self,
             forKey: .prewarmNewPost
         )
+        publishAsIPNS = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .publishAsIPNS
+        ) ?? true
     }
 
     func encode(to encoder: Encoder) throws {
@@ -774,6 +784,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(saveRoundAvatar, forKey: .saveRoundAvatar)
         try container.encodeIfPresent(doNotIndex, forKey: .doNotIndex)
         try container.encodeIfPresent(prewarmNewPost, forKey: .prewarmNewPost)
+        try container.encodeIfPresent(publishAsIPNS, forKey: .publishAsIPNS)
     }
 
     init(
@@ -1113,6 +1124,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         // Restore prewarmNewPost
         planet.prewarmNewPost = backupPlanet.prewarmNewPost
+
+        // Restore publishAsIPNS
+        planet.publishAsIPNS = backupPlanet.publishAsIPNS ?? true
 
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
@@ -1854,6 +1868,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             debugPrint("Planet \(name) is being rebuilt, skipping publish")
             return
         }
+        guard publishAsIPNS ?? true else {
+            await MainActor.run {
+                self.isPublishing = false
+                self.publishStartedAt = nil
+                PlanetStatusManager.shared.updateStatus()
+            }
+            Self.logger.info("Skipping IPFS publish for planet \(self.name, privacy: .public)")
+            return
+        }
         await MainActor.run {
             self.isPublishing = true
             self.publishStartedAt = Date()
@@ -1960,6 +1983,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func prewarm() async {
+        guard publishAsIPNS ?? true else { return }
         guard let rootURL = browserURL else { return }
 
         // Helper function to prewarm a single URL
@@ -2126,7 +2150,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             reuseOriginalID: reuseOriginalID,
             saveRoundAvatar: saveRoundAvatar,
             doNotIndex: doNotIndex,
-            prewarmNewPost: prewarmNewPost
+            prewarmNewPost: prewarmNewPost,
+            publishAsIPNS: publishAsIPNS
         )
         do {
             try FileManager.default.copyItem(at: publicBasePath, to: exportPath)

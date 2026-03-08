@@ -20,6 +20,7 @@ struct MyPlanetEditView: View {
     @State private var saveRoundAvatar: Bool = false
     @State private var doNotIndex: Bool = false
     @State private var prewarmNewPost: Bool = true
+    @State private var publishAsIPNS: Bool = true
 
     @State private var plausibleEnabled: Bool = false
     @State private var plausibleDomain: String
@@ -72,6 +73,7 @@ struct MyPlanetEditView: View {
         _saveRoundAvatar = State(wrappedValue: planet.saveRoundAvatar ?? false)
         _doNotIndex = State(wrappedValue: planet.doNotIndex ?? false)
         _prewarmNewPost = State(wrappedValue: planet.prewarmNewPost ?? true)
+        _publishAsIPNS = State(wrappedValue: planet.publishAsIPNS ?? true)
         _plausibleEnabled = State(wrappedValue: planet.plausibleEnabled ?? false)
         _plausibleDomain = State(wrappedValue: planet.plausibleDomain ?? "")
         _plausibleAPIKey = State(wrappedValue: planet.plausibleAPIKey ?? "")
@@ -99,6 +101,91 @@ struct MyPlanetEditView: View {
         _filebaseEnabled = State(wrappedValue: planet.filebaseEnabled ?? false)
         _filebasePinName = State(wrappedValue: planet.filebasePinName ?? "")
         _filebaseAPIToken = State(wrappedValue: planet.filebaseAPIToken ?? "")
+    }
+
+    @ViewBuilder
+    private func publishingLinkRow(title: String, value: String, url: URL?) -> some View {
+        let rowContent = HStack(spacing: PlanetUI.CONTROL_ITEM_GAP) {
+            Text(title)
+                .font(.system(size: 12, weight: .bold))
+                .frame(width: CONTROL_CAPTION_WIDTH, alignment: .leading)
+
+            Text(value)
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundColor(url == nil ? .secondary : .primary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+
+            Spacer()
+
+            if url != nil {
+                Image(systemName: "arrow.up.right.square")
+                    .foregroundColor(.secondary)
+            }
+        }
+        .contentShape(Rectangle())
+
+        if let url {
+            Button {
+                NSWorkspace.shared.open(url)
+            } label: {
+                rowContent
+            }
+            .buttonStyle(.plain)
+        }
+        else {
+            rowContent
+        }
+    }
+
+    @ViewBuilder
+    private func publishingTab() -> some View {
+        VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
+            HStack {
+                HStack {
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH + 10)
+
+                Toggle("Publish as IPNS", isOn: $publishAsIPNS)
+                    .toggleStyle(.checkbox)
+                    .frame(alignment: .leading)
+
+                Spacer()
+            }
+
+            HStack {
+                HStack {
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH + 10)
+
+                Text(
+                    "When disabled, new publish actions skip IPFS work and leave any existing IPNS or CID unchanged."
+                )
+                .lineLimit(2)
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+
+            publishingLinkRow(
+                title: "IPNS",
+                value: planet.ipns,
+                url: IPFSDaemon.urlForIPNS(planet.ipns)
+            )
+
+            publishingLinkRow(
+                title: "CID",
+                value: planet.lastPublishedCID ?? "Not published yet",
+                url: planet.lastPublishedCID.flatMap { IPFSDaemon.urlForCID($0) }
+            )
+        }
+        .padding(16)
+        .tabItem {
+            Text("Publishing")
+        }
+        .tag("publishing")
     }
 
     @ViewBuilder
@@ -720,6 +807,8 @@ struct MyPlanetEditView: View {
 
                     analyticsTab()
 
+                    publishingTab()
+
                     if PlanetStore.app == .planet {
                         socialTab()
                     }
@@ -783,6 +872,8 @@ struct MyPlanetEditView: View {
                             }
                         }
                         planet.doNotIndex = doNotIndex
+                        planet.prewarmNewPost = prewarmNewPost
+                        planet.publishAsIPNS = publishAsIPNS
                         planet.plausibleEnabled = plausibleEnabled
                         planet.plausibleDomain = plausibleDomain.trim()
                         planet.plausibleAPIKey = plausibleAPIKey

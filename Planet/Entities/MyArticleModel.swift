@@ -445,6 +445,7 @@ class MyArticleModel: ArticleModel, Codable {
     // MARK: Prewarm
 
     func prewarm() async {
+        guard planet.publishAsIPNS ?? true else { return }
         guard let postURL = browserURL else { return }
         let planetName = self.planet.name
         let articleJSONURL = postURL.appendingPathComponent("article.json")

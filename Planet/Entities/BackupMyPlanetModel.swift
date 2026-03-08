@@ -63,4 +63,5 @@ struct BackupMyPlanetModel: Codable {
     let saveRoundAvatar: Bool?
     let doNotIndex: Bool?
     let prewarmNewPost: Bool?
+    let publishAsIPNS: Bool?
 }

@@ -1001,11 +1001,36 @@ extension IPFSDaemon {
     ])
 
     static func urlForCID(_ cid: String) -> URL? {
-        return URL(string: "https://\(cid).eth.sucks/")
+        // CIDv0 (Qm…) doesn't work with subdomain-style gateways; always use dweb.link path style
+        if cid.hasPrefix("Qm") {
+            return URL(string: "https://dweb.link/ipfs/\(cid)/")
+        }
+        switch IPFSGateway.selectedGateway() {
+        case .limo:
+            // eth.limo does not support CID or IPNS subdomain resolution; fall back to eth.sucks
+            return URL(string: "https://\(cid).eth.sucks/")
+        case .sucks:
+            return URL(string: "https://\(cid).eth.sucks/")
+        case .croptop:
+            return URL(string: "https://\(cid).crop.top/")
+        case .dweblink:
+            return URL(string: "https://dweb.link/ipfs/\(cid)/")
+        }
     }
 
+    // No CIDv0 special case needed here — IPNS names are always key-based, never CIDv0
     static func urlForIPNS(_ ipns: String) -> URL? {
-        return URL(string: "https://\(ipns).eth.sucks/")
+        switch IPFSGateway.selectedGateway() {
+        case .limo:
+            // eth.limo does not support CID or IPNS subdomain resolution; fall back to eth.sucks
+            return URL(string: "https://\(ipns).eth.sucks/")
+        case .sucks:
+            return URL(string: "https://\(ipns).eth.sucks/")
+        case .croptop:
+            return URL(string: "https://\(ipns).crop.top/")
+        case .dweblink:
+            return URL(string: "https://\(ipns).ipns.dweb.link/")
+        }
     }
 
     private static func hasDaemonControlPort(apiPort: UInt16) -> Bool {
