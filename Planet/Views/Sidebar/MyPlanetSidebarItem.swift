@@ -68,6 +68,16 @@ struct MyPlanetSidebarItem: View {
                     Text("Open in Local Gateway")
                 }
 
+                if let url = planet.cloudflarePagesURL,
+                   let host = url.host
+                {
+                    Button {
+                        NSWorkspace.shared.open(url)
+                    } label: {
+                        Text("Open \(host)")
+                    }
+                }
+
                 Divider()
 
                 if let template = planet.template, template.hasSettings {

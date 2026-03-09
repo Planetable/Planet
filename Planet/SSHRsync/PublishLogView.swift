@@ -1,5 +1,5 @@
 //
-//  SSHRsyncLogView.swift
+//  PublishLogView.swift
 //  Planet
 //
 
@@ -7,19 +7,46 @@ import SwiftUI
 import AppKit
 
 
-class SSHRsyncLogWindowManager: NSObject, NSWindowDelegate {
-    static let shared = SSHRsyncLogWindowManager()
+enum PublishLogSource: String, CaseIterable {
+    case sshRsync = "SSH Rsync"
+    case cloudflarePages = "Cloudflare Pages"
+
+    func readAll() -> String {
+        switch self {
+        case .sshRsync:
+            return SSHRsyncLogger.readAll()
+        case .cloudflarePages:
+            return CloudflarePagesLogger.readAll()
+        }
+    }
+
+    func clear() {
+        switch self {
+        case .sshRsync:
+            SSHRsyncLogger.clear()
+        case .cloudflarePages:
+            CloudflarePagesLogger.clear()
+        }
+    }
+}
+
+
+class PublishLogWindowManager: NSObject, NSWindowDelegate {
+    static let shared = PublishLogWindowManager()
 
     private var window: NSWindow?
 
-    func open() {
+    func open(tab: PublishLogSource? = nil) {
+        if let tab {
+            PublishLogViewModel.shared.selectedSource = tab
+        }
         if let window {
             reload()
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
         }
-        let viewModel = SSHRsyncLogViewModel.shared
+        let viewModel = PublishLogViewModel.shared
         viewModel.reload()
         let w = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 560, height: 400),
@@ -28,11 +55,11 @@ class SSHRsyncLogWindowManager: NSObject, NSWindowDelegate {
             defer: false
         )
         w.isReleasedWhenClosed = false
-        w.title = "SSH Rsync Log"
+        w.title = "Log"
         w.minSize = NSSize(width: 400, height: 240)
-        w.contentView = NSHostingView(rootView: SSHRsyncLogView(viewModel: viewModel))
+        w.contentView = NSHostingView(rootView: PublishLogView(viewModel: viewModel))
         w.center()
-        w.setFrameAutosaveName("SSHRsyncLogWindow")
+        w.setFrameAutosaveName("PublishLogWindow")
         w.delegate = self
         w.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -40,7 +67,7 @@ class SSHRsyncLogWindowManager: NSObject, NSWindowDelegate {
     }
 
     func reload() {
-        SSHRsyncLogViewModel.shared.reload()
+        PublishLogViewModel.shared.reload()
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -49,19 +76,22 @@ class SSHRsyncLogWindowManager: NSObject, NSWindowDelegate {
 }
 
 
-class SSHRsyncLogViewModel: ObservableObject {
-    static let shared = SSHRsyncLogViewModel()
+class PublishLogViewModel: ObservableObject {
+    static let shared = PublishLogViewModel()
     @Published var logContent: String = ""
+    @Published var selectedSource: PublishLogSource = .sshRsync {
+        didSet { reload() }
+    }
 
     private var dispatchSource: DispatchSourceFileSystemObject?
     private var fileDescriptor: Int32 = -1
 
     func reload() {
-        logContent = SSHRsyncLogger.readAll()
+        logContent = selectedSource.readAll()
     }
 
     func clear() {
-        SSHRsyncLogger.clear()
+        selectedSource.clear()
         logContent = ""
     }
 
@@ -95,8 +125,8 @@ class SSHRsyncLogViewModel: ObservableObject {
 }
 
 
-private struct SSHRsyncLogTextView: NSViewRepresentable {
-    @ObservedObject var viewModel: SSHRsyncLogViewModel
+private struct PublishLogTextView: NSViewRepresentable {
+    @ObservedObject var viewModel: PublishLogViewModel
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
@@ -225,13 +255,26 @@ private struct SSHKeyWarningRow: View {
 }
 
 
-struct SSHRsyncLogView: View {
-    @ObservedObject fileprivate var viewModel: SSHRsyncLogViewModel
+struct PublishLogView: View {
+    @ObservedObject fileprivate var viewModel: PublishLogViewModel
 
     var body: some View {
         VStack(spacing: 0) {
-            SSHKeyWarningRow(logContent: viewModel.logContent)
-            SSHRsyncLogTextView(viewModel: viewModel)
+            Picker("", selection: $viewModel.selectedSource) {
+                ForEach(PublishLogSource.allCases, id: \.self) { source in
+                    Text(source.rawValue).tag(source)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+            .padding(.bottom, 4)
+
+            if viewModel.selectedSource == .sshRsync {
+                SSHKeyWarningRow(logContent: viewModel.logContent)
+            }
+
+            PublishLogTextView(viewModel: viewModel)
         }
         .frame(minWidth: 400, minHeight: 240)
             .onAppear { viewModel.startMonitoring() }

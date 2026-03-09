@@ -51,6 +51,7 @@ enum PlanetError: Error {
     case ServiceAirDropNotExistsError
     case WriterUnsupportedAttachmentTypeError
     case SSHRsyncPublishError(String)
+    case CloudflarePagesPublishError(String)
     case InternalError
     case UnknownError(Error)
 }
@@ -157,6 +158,8 @@ extension PlanetError: LocalizedError {
         case .ServiceAirDropNotExistsError:
             return NSLocalizedString("Service AirDrop Not Exists Error", comment: "")
         case .SSHRsyncPublishError(let message):
+            return message
+        case .CloudflarePagesPublishError(let message):
             return message
         case .InternalError:
             return NSLocalizedString("Planet Internal Error", comment: "")

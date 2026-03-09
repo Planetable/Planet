@@ -192,9 +192,9 @@ class KeyboardShortcutHelper: ObservableObject {
                 apiConsoleMenus()
 
                 Button {
-                    SSHRsyncLogWindowManager.shared.open()
+                    PublishLogWindowManager.shared.open()
                 } label: {
-                    Text("SSH Rsync Log")
+                    Text("Log")
                 }
 
                 Divider()

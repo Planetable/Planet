@@ -68,4 +68,10 @@ struct BackupMyPlanetModel: Codable {
     let sshRsyncDestination: String?
     let sshRsyncKeyPath: String?
     let sshRsyncDeleteEnabled: Bool?
+    let cloudflarePagesEnabled: Bool?
+    let cloudflarePagesAccountID: String?
+    let cloudflarePagesAPIToken: String?
+    let cloudflarePagesProjectName: String?
+    let cloudflarePagesLastDeployedProjectName: String?
+    let cloudflarePagesLastDeployedURL: String?
 }

@@ -36,7 +36,7 @@ class ScheduledTasksManager: ObservableObject {
             if self.tickCount % 600 == 0 {
                 Task.detached(priority: .utility) {
                     await MainActor.run {
-                        self.publishMyPlanets()
+                        self.refreshMyPlanetsIPNSKeepAlive()
                     }
                 }
             }
@@ -78,10 +78,10 @@ class ScheduledTasksManager: ObservableObject {
     }
 
     // MARK: -
-    // Publish my planets every 10 minutes
+    // Refresh IPNS records every 10 minutes without republishing other destinations
     @MainActor
-    private func publishMyPlanets() {
-        PlanetStore.shared.publishMyPlanets()
+    private func refreshMyPlanetsIPNSKeepAlive() {
+        PlanetStore.shared.refreshMyPlanetsIPNSKeepAlive()
     }
     
     // Check content update every 5 minutes

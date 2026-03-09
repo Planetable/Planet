@@ -577,6 +577,21 @@ final class MyJSONDirectoryMonitor {
         }
     }
 
+    func refreshMyPlanetsIPNSKeepAlive() {
+        Task {
+            await withTaskGroup(of: Void.self) { taskGroup in
+                for (i, myPlanet) in myPlanets.enumerated() {
+                    taskGroup.addTask {
+                        try? await myPlanet.publishIPNSKeepAlive()
+                    }
+                    if i >= 2 {
+                        await taskGroup.next()
+                    }
+                }
+            }
+        }
+    }
+
     func updateTotalTodayCount() {
         let b = followingPlanets.reduce(0) { $0 + $1.articles.filter { $0.read == nil && $0.created.timeIntervalSinceNow > -86400 }.count }
         totalTodayCount = b

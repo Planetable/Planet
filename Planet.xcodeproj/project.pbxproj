@@ -62,8 +62,10 @@
 		2A3D28C32C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28C12C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift */; };
 		5F244DE6913A63FF00000004 /* SSHRsyncLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */; };
 		76B55B235F244DE6913A63FF /* SSHRsyncLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */; };
-		5F244DE6913A63FF00000005 /* SSHRsyncLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000002 /* SSHRsyncLogView.swift */; };
-		E77C82F7465746DF88F58625 /* SSHRsyncLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000002 /* SSHRsyncLogView.swift */; };
+		5F244DE6913A63FF00000005 /* PublishLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000002 /* PublishLogView.swift */; };
+		E77C82F7465746DF88F58625 /* PublishLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000002 /* PublishLogView.swift */; };
+		CF0A0002303909CF00000001 /* CloudflarePagesLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */; };
+		CF0A0002303909CF00000002 /* CloudflarePagesLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */; };
 		2A3D28C82C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28C72C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift */; };
 		2A3D28C92C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28C72C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift */; };
 		2A3D28CB2C6A8137005ABCF5 /* PlanetAPILogMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28CA2C6A8137005ABCF5 /* PlanetAPILogMiddleware.swift */; };
@@ -228,6 +230,8 @@
 		2A95E6DE2A19A521001288B8 /* Pinnable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8776D32A01B78800C6003B /* Pinnable.swift */; };
 		2A95E6DF2A19A521001288B8 /* Plausible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1228DB75F700034D55 /* Plausible.swift */; };
 		2A95E6E02A19A521001288B8 /* Filebase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1028DB74C500034D55 /* Filebase.swift */; };
+		CF0A0001303909CF00000001 /* CloudflarePages.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0001303909CF00000000 /* CloudflarePages.swift */; };
+		CF0A0001303909CF00000002 /* CloudflarePages.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0001303909CF00000000 /* CloudflarePages.swift */; };
 		2A95E6E12A19A521001288B8 /* dWebServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1428DB767A00034D55 /* dWebServices.swift */; };
 		2A95E6E32A19A5D1001288B8 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A9C210F29792464005A815E /* AVKit.framework */; };
 		2A95E6E42A19A64F001288B8 /* CLTextFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70ED29670D1300755931 /* CLTextFieldView.swift */; };
@@ -630,7 +634,8 @@
 		2A3C6E702C22A3AA007B2CCD /* IPFSStatusWindowManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSStatusWindowManager.swift; sourceTree = "<group>"; };
 		2A3D28C12C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIConsoleView.swift; sourceTree = "<group>"; };
 		5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHRsyncLogger.swift; sourceTree = "<group>"; };
-		5F244DE6913A63FF00000002 /* SSHRsyncLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHRsyncLogView.swift; sourceTree = "<group>"; };
+		5F244DE6913A63FF00000002 /* PublishLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishLogView.swift; sourceTree = "<group>"; };
+		CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflarePagesLogger.swift; sourceTree = "<group>"; };
 		2A3D28C72C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIConsoleViewModel.swift; sourceTree = "<group>"; };
 		2A3D28CA2C6A8137005ABCF5 /* PlanetAPILogMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPILogMiddleware.swift; sourceTree = "<group>"; };
 		2A4164D329E64755009BFC24 /* PlanetQuickShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetQuickShareView.swift; sourceTree = "<group>"; };
@@ -773,6 +778,7 @@
 		6A2B9BE527ED24A00005467C /* FollowingArticleItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowingArticleItemView.swift; sourceTree = "<group>"; };
 		6A2C0BBB2A729DC2009E53DE /* AvatarPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarPickerView.swift; sourceTree = "<group>"; };
 		6A2D6B8C285141A60078F531 /* Saver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Saver.swift; sourceTree = "<group>"; };
+		CF0A0001303909CF00000000 /* CloudflarePages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflarePages.swift; sourceTree = "<group>"; };
 		6A2F5F1028DB74C500034D55 /* Filebase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filebase.swift; sourceTree = "<group>"; };
 		6A2F5F1228DB75F700034D55 /* Plausible.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plausible.swift; sourceTree = "<group>"; };
 		6A2F5F1428DB767A00034D55 /* dWebServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = dWebServices.swift; sourceTree = "<group>"; };
@@ -1410,8 +1416,9 @@
 		5F244DE6913A63FF00000003 /* SSHRsync */ = {
 			isa = PBXGroup;
 			children = (
+				CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */,
 				5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */,
-				5F244DE6913A63FF00000002 /* SSHRsyncLogView.swift */,
+				5F244DE6913A63FF00000002 /* PublishLogView.swift */,
 			);
 			path = SSHRsync;
 			sourceTree = "<group>";
@@ -1485,6 +1492,7 @@
 		6A2F5F0F28DB74AB00034D55 /* Integrations */ = {
 			isa = PBXGroup;
 			children = (
+				CF0A0001303909CF00000000 /* CloudflarePages.swift */,
 				6A2F5F1028DB74C500034D55 /* Filebase.swift */,
 				6A2F5F1228DB75F700034D55 /* Plausible.swift */,
 				6A2F5F1428DB767A00034D55 /* dWebServices.swift */,
@@ -2065,10 +2073,12 @@
 				2A3D28C22C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */,
 				5F244DE6913A63FF00000004 /* SSHRsyncLogger.swift in Sources */,
 				5F244DE6913A63FF00000005 /* SSHRsyncLogView.swift in Sources */,
+				CF0A0002303909CF00000001 /* CloudflarePagesLogger.swift in Sources */,
 				2A8E08582BF4B190002D0C03 /* IPFSOpenWindowController.swift in Sources */,
 				2A95E65E2A19A3AA001288B8 /* TemplateBrowserSidebar.swift in Sources */,
 				6A0326A02C81DF2100FEDD55 /* String+EthereumChecksumAddress.swift in Sources */,
 				2A95E6F12A19A781001288B8 /* CoreDataPersistence.swift in Sources */,
+				CF0A0001303909CF00000001 /* CloudflarePages.swift in Sources */,
 				2A95E6E02A19A521001288B8 /* Filebase.swift in Sources */,
 				2A996AD32A1DA69600BEF898 /* PlanetDownloadsWindowController.swift in Sources */,
 				2A5DAE5F2BFEF20C001ED527 /* IPFSMigrationCommand.swift in Sources */,
@@ -2162,6 +2172,7 @@
 				2AE07DDA27C9F4EA00377651 /* ArticleWebView.swift in Sources */,
 				2A09A36127C2582B0003A0B5 /* ArticleListView.swift in Sources */,
 				6A96B22A2C594F9A00EA3F2A /* QuickPostViewModel.swift in Sources */,
+				CF0A0001303909CF00000002 /* CloudflarePages.swift in Sources */,
 				6A2F5F1128DB74C500034D55 /* Filebase.swift in Sources */,
 				6ACF166529246BD800AE318B /* TipSelectView.swift in Sources */,
 				2A441BB327C4DF110008A694 /* FollowPlanetView.swift in Sources */,
@@ -2331,6 +2342,7 @@
 				2A3D28C32C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */,
 				76B55B235F244DE6913A63FF /* SSHRsyncLogger.swift in Sources */,
 				E77C82F7465746DF88F58625 /* SSHRsyncLogView.swift in Sources */,
+				CF0A0002303909CF00000002 /* CloudflarePagesLogger.swift in Sources */,
 				2A4AE87A2A89EF3600A27B5B /* GroupIndicatorView.swift in Sources */,
 				6AB6E4FB2915227600F17328 /* WalletManager.swift in Sources */,
 				2A7022F22897DF4600022F13 /* PlanetDownloadsWindow.swift in Sources */,

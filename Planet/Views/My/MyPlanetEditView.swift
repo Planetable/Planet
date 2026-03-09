@@ -26,6 +26,11 @@ struct MyPlanetEditView: View {
     @State private var sshRsyncKeyPath: String?
     @State private var sshRsyncDeleteEnabled: Bool = false
 
+    @State private var cloudflarePagesEnabled: Bool = false
+    @State private var cloudflarePagesAccountID: String
+    @State private var cloudflarePagesAPIToken: String
+    @State private var cloudflarePagesProjectName: String
+
     @State private var plausibleEnabled: Bool = false
     @State private var plausibleDomain: String
     @State private var plausibleAPIKey: String
@@ -82,6 +87,10 @@ struct MyPlanetEditView: View {
         _sshRsyncDestination = State(wrappedValue: planet.sshRsyncDestination ?? "")
         _sshRsyncKeyPath = State(wrappedValue: planet.sshRsyncKeyPath)
         _sshRsyncDeleteEnabled = State(wrappedValue: planet.sshRsyncDeleteEnabled ?? false)
+        _cloudflarePagesEnabled = State(wrappedValue: planet.cloudflarePagesEnabled ?? false)
+        _cloudflarePagesAccountID = State(wrappedValue: planet.cloudflarePagesAccountID ?? "")
+        _cloudflarePagesAPIToken = State(wrappedValue: planet.cloudflarePagesAPIToken ?? "")
+        _cloudflarePagesProjectName = State(wrappedValue: planet.cloudflarePagesProjectName ?? "")
         _plausibleEnabled = State(wrappedValue: planet.plausibleEnabled ?? false)
         _plausibleDomain = State(wrappedValue: planet.plausibleDomain ?? "")
         _plausibleAPIKey = State(wrappedValue: planet.plausibleAPIKey ?? "")
@@ -274,6 +283,81 @@ struct MyPlanetEditView: View {
             publishingHelpRow(
                 "When enabled, files on the destination that are not in the source will be removed."
             )
+
+            Divider()
+                .padding(.top, 6)
+                .padding(.bottom, 6)
+
+            HStack {
+                HStack {
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH + 10)
+
+                Toggle("Publish via Cloudflare Pages", isOn: $cloudflarePagesEnabled)
+                    .toggleStyle(.checkbox)
+                    .frame(alignment: .leading)
+
+                Spacer()
+            }
+
+            HStack {
+                HStack {
+                    Text("Account ID")
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH)
+
+                TextField(
+                    "",
+                    text: $cloudflarePagesAccountID,
+                    prompt: Text("Cloudflare Account ID")
+                )
+                .textFieldStyle(.roundedBorder)
+            }
+
+            HStack {
+                HStack {
+                    Text("API Token")
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH)
+
+                SecureField(
+                    "",
+                    text: $cloudflarePagesAPIToken,
+                    prompt: Text("Cloudflare API Token")
+                )
+                .textFieldStyle(.roundedBorder)
+            }
+
+            HStack {
+                HStack {
+                    Text("Project Name")
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH)
+
+                TextField(
+                    "",
+                    text: $cloudflarePagesProjectName,
+                    prompt: Text("my-site")
+                )
+                .textFieldStyle(.roundedBorder)
+            }
+
+            publishingHelpRow(
+                "The project will be created automatically if it doesn't exist. Use an API token with Cloudflare Pages Edit permission."
+            )
+
+            if let urlString = planet.cloudflarePagesLastDeployedURL,
+               let url = URL(string: urlString) {
+                publishingLinkRow(
+                    title: "Pages URL",
+                    value: url.absoluteString,
+                    url: url
+                )
+            }
         }
         .padding(16)
         .tabItem {
@@ -974,6 +1058,10 @@ struct MyPlanetEditView: View {
                         )
                         planet.sshRsyncKeyPath = sshRsyncKeyPath
                         planet.sshRsyncDeleteEnabled = sshRsyncDeleteEnabled
+                        planet.cloudflarePagesEnabled = cloudflarePagesEnabled
+                        planet.cloudflarePagesAccountID = cloudflarePagesAccountID.trim().isEmpty ? nil : cloudflarePagesAccountID.trim()
+                        planet.cloudflarePagesAPIToken = cloudflarePagesAPIToken.trim().isEmpty ? nil : cloudflarePagesAPIToken.trim()
+                        planet.cloudflarePagesProjectName = cloudflarePagesProjectName.trim().isEmpty ? nil : cloudflarePagesProjectName.trim()
                         planet.plausibleEnabled = plausibleEnabled
                         planet.plausibleDomain = plausibleDomain.trim()
                         planet.plausibleAPIKey = plausibleAPIKey
@@ -1112,6 +1200,18 @@ extension MyPlanetEditView {
                 showValidationAlert(
                     title: "Invalid SSH rsync Address",
                     message: "Use the format user@example.com:/www/example."
+                )
+            }
+        }
+        if cloudflarePagesEnabled {
+            if cloudflarePagesAccountID.trim().isEmpty
+                || cloudflarePagesAPIToken.trim().isEmpty
+                || cloudflarePagesProjectName.trim().isEmpty
+            {
+                errors += 1
+                showValidationAlert(
+                    title: "Incomplete Cloudflare Pages Settings",
+                    message: "Account ID, API Token, and Project Name are all required when Cloudflare Pages publishing is enabled."
                 )
             }
         }

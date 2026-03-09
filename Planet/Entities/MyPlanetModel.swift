@@ -121,6 +121,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var sshRsyncKeyPath: String?
     @Published var sshRsyncDeleteEnabled: Bool? = false
 
+    /// Publish the generated site to Cloudflare Pages via Direct Upload
+    @Published var cloudflarePagesEnabled: Bool? = false
+    @Published var cloudflarePagesAccountID: String?
+    @Published var cloudflarePagesAPIToken: String?
+    @Published var cloudflarePagesProjectName: String?
+    @Published var cloudflarePagesLastDeployedProjectName: String?
+    @Published var cloudflarePagesLastDeployedURL: String?
+
     private static let sshRsyncDestinationRegex: NSRegularExpression = {
         try! NSRegularExpression(
             pattern: #"^[^@\s:/]+@[^:\s/]+:\S+$"#,
@@ -482,6 +490,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return URL(string: "https://\(cid).eth.sucks/")
     }
 
+    var cloudflarePagesURL: URL? {
+        guard cloudflarePagesEnabled ?? false,
+              let projectName = cloudflarePagesProjectName?.trim(),
+              !projectName.isEmpty,
+              let deployedProjectName = cloudflarePagesLastDeployedProjectName?.trim(),
+              deployedProjectName == projectName,
+              let urlString = cloudflarePagesLastDeployedURL,
+              let url = URL(string: urlString)
+        else {
+            return nil
+        }
+        return url
+    }
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(name)
@@ -559,6 +581,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(sshRsyncDestination)
         hasher.combine(sshRsyncKeyPath)
         hasher.combine(sshRsyncDeleteEnabled)
+        hasher.combine(cloudflarePagesEnabled)
+        hasher.combine(cloudflarePagesAccountID)
+        hasher.combine(cloudflarePagesAPIToken)
+        hasher.combine(cloudflarePagesProjectName)
+        hasher.combine(cloudflarePagesLastDeployedProjectName)
+        hasher.combine(cloudflarePagesLastDeployedURL)
     }
 
     static func == (lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
@@ -635,6 +663,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.sshRsyncDestination == rhs.sshRsyncDestination
             && lhs.sshRsyncKeyPath == rhs.sshRsyncKeyPath
             && lhs.sshRsyncDeleteEnabled == rhs.sshRsyncDeleteEnabled
+            && lhs.cloudflarePagesEnabled == rhs.cloudflarePagesEnabled
+            && lhs.cloudflarePagesAccountID == rhs.cloudflarePagesAccountID
+            && lhs.cloudflarePagesAPIToken == rhs.cloudflarePagesAPIToken
+            && lhs.cloudflarePagesProjectName == rhs.cloudflarePagesProjectName
+            && lhs.cloudflarePagesLastDeployedProjectName == rhs.cloudflarePagesLastDeployedProjectName
+            && lhs.cloudflarePagesLastDeployedURL == rhs.cloudflarePagesLastDeployedURL
     }
 
     enum CodingKeys: String, CodingKey {
@@ -660,7 +694,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             prewarmNewPost,
             publishAsIPNS,
             sshRsyncEnabled, sshRsyncDestination, sshRsyncKeyPath,
-            sshRsyncDeleteEnabled
+            sshRsyncDeleteEnabled,
+            cloudflarePagesEnabled, cloudflarePagesAccountID, cloudflarePagesAPIToken,
+            cloudflarePagesProjectName, cloudflarePagesLastDeployedProjectName,
+            cloudflarePagesLastDeployedURL
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -782,6 +819,30 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Bool.self,
             forKey: .sshRsyncDeleteEnabled
         ) ?? false
+        cloudflarePagesEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .cloudflarePagesEnabled
+        ) ?? false
+        cloudflarePagesAccountID = try container.decodeIfPresent(
+            String.self,
+            forKey: .cloudflarePagesAccountID
+        )
+        cloudflarePagesAPIToken = try container.decodeIfPresent(
+            String.self,
+            forKey: .cloudflarePagesAPIToken
+        )
+        cloudflarePagesProjectName = try container.decodeIfPresent(
+            String.self,
+            forKey: .cloudflarePagesProjectName
+        )
+        cloudflarePagesLastDeployedProjectName = try container.decodeIfPresent(
+            String.self,
+            forKey: .cloudflarePagesLastDeployedProjectName
+        )
+        cloudflarePagesLastDeployedURL = try container.decodeIfPresent(
+            String.self,
+            forKey: .cloudflarePagesLastDeployedURL
+        )
     }
 
     func encode(to encoder: Encoder) throws {
@@ -851,6 +912,18 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         )
         try container.encodeIfPresent(sshRsyncKeyPath, forKey: .sshRsyncKeyPath)
         try container.encodeIfPresent(sshRsyncDeleteEnabled, forKey: .sshRsyncDeleteEnabled)
+        try container.encodeIfPresent(cloudflarePagesEnabled, forKey: .cloudflarePagesEnabled)
+        try container.encodeIfPresent(cloudflarePagesAccountID, forKey: .cloudflarePagesAccountID)
+        try container.encodeIfPresent(cloudflarePagesAPIToken, forKey: .cloudflarePagesAPIToken)
+        try container.encodeIfPresent(cloudflarePagesProjectName, forKey: .cloudflarePagesProjectName)
+        try container.encodeIfPresent(
+            cloudflarePagesLastDeployedProjectName,
+            forKey: .cloudflarePagesLastDeployedProjectName
+        )
+        try container.encodeIfPresent(
+            cloudflarePagesLastDeployedURL,
+            forKey: .cloudflarePagesLastDeployedURL
+        )
     }
 
     init(
@@ -1201,6 +1274,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         )
         planet.sshRsyncKeyPath = backupPlanet.sshRsyncKeyPath
         planet.sshRsyncDeleteEnabled = backupPlanet.sshRsyncDeleteEnabled ?? false
+
+        // Restore Cloudflare Pages settings
+        planet.cloudflarePagesEnabled = backupPlanet.cloudflarePagesEnabled ?? false
+        planet.cloudflarePagesAccountID = backupPlanet.cloudflarePagesAccountID
+        planet.cloudflarePagesAPIToken = backupPlanet.cloudflarePagesAPIToken
+        planet.cloudflarePagesProjectName = backupPlanet.cloudflarePagesProjectName
+        planet.cloudflarePagesLastDeployedProjectName = backupPlanet.cloudflarePagesLastDeployedProjectName
+        planet.cloudflarePagesLastDeployedURL = backupPlanet.cloudflarePagesLastDeployedURL
 
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
@@ -1945,8 +2026,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let shouldPublishIPNS = publishAsIPNS ?? true
         let shouldPublishSSHRsync = sshRsyncEnabled ?? false
         let rsyncDestination = Self.normalizedSSHRsyncDestination(sshRsyncDestination)
+        let shouldPublishCloudflarePages = cloudflarePagesEnabled ?? false
 
-        guard shouldPublishIPNS || shouldPublishSSHRsync else {
+        guard shouldPublishIPNS || shouldPublishSSHRsync || shouldPublishCloudflarePages else {
             await MainActor.run {
                 self.isPublishing = false
                 self.publishStartedAt = nil
@@ -2030,12 +2112,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         enum PublishTarget {
             case ipns
             case sshRsync
+            case cloudflarePages
         }
 
         var ipnsPublished = false
         var sshRsyncPublished = false
+        var cloudflarePagesPublished = false
         var ipnsError: Error? = nil
         var sshRsyncError: Error? = nil
+        var cloudflarePagesError: Error? = nil
 
         await withTaskGroup(of: (PublishTarget, Error?).self) { group in
             if let cid {
@@ -2060,6 +2145,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     }
                 }
             }
+            if shouldPublishCloudflarePages {
+                group.addTask(priority: .userInitiated) {
+                    do {
+                        try await self.publishViaCloudflarePages()
+                        return (.cloudflarePages, nil)
+                    }
+                    catch {
+                        return (.cloudflarePages, error)
+                    }
+                }
+            }
             for await (target, error) in group {
                 switch target {
                 case .ipns:
@@ -2068,6 +2164,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 case .sshRsync:
                     sshRsyncPublished = error == nil
                     sshRsyncError = error
+                case .cloudflarePages:
+                    cloudflarePagesPublished = error == nil
+                    cloudflarePagesError = error
                 }
             }
         }
@@ -2093,7 +2192,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 await self.callPinnable()
             }
         }
-        else if sshRsyncPublished {
+        else if sshRsyncPublished || cloudflarePagesPublished {
             try await MainActor.run {
                 self.lastPublished = Date()
                 try self.save()
@@ -2106,6 +2205,60 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if let sshRsyncError {
             throw sshRsyncError
         }
+        if let cloudflarePagesError {
+            throw cloudflarePagesError
+        }
+    }
+
+    func publishIPNSKeepAlive() async throws {
+        guard publishAsIPNS ?? true else {
+            Self.logger.info(
+                "Skipping scheduled IPNS keepalive for planet \(self.name, privacy: .public)"
+            )
+            return
+        }
+        if isRebuilding {
+            debugPrint("Planet \(name) is being rebuilt, skipping scheduled IPNS keepalive")
+            return
+        }
+
+        await MainActor.run {
+            self.isPublishing = true
+            self.publishStartedAt = Date()
+            PlanetStatusManager.shared.updateStatus()
+        }
+        defer {
+            Task { @MainActor in
+                self.isPublishing = false
+                self.publishStartedAt = nil
+                PlanetStatusManager.shared.updateStatus()
+            }
+        }
+
+        if try await !IPFSDaemon.shared.checkKeyExists(name: id.uuidString) {
+            try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: id.uuidString)
+        }
+
+        let cid: String
+        if let lastPublishedCID, !lastPublishedCID.isEmpty {
+            cid = lastPublishedCID
+        } else {
+            let latestCID = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
+            if latestCID.isEmpty {
+                throw PlanetError.PublishPlanetError
+            }
+            cid = latestCID
+        }
+
+        try await publishCIDToIPNS(cid: cid)
+        try await MainActor.run {
+            self.lastPublished = Date()
+            if self.lastPublishedCID?.isEmpty != false {
+                self.lastPublishedCID = cid
+            }
+            try self.save()
+        }
+        Self.logger.info("Refreshed IPNS keepalive for planet \(self.name, privacy: .public)")
     }
 
     private func publishCIDToIPNS(cid: String) async throws {
@@ -2170,7 +2323,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                         "SSH rsync publish failed for planet \(self.name, privacy: .public): \(message, privacy: .public)"
                     )
                     Task { @MainActor in
-                        SSHRsyncLogWindowManager.shared.open()
+                        PublishLogWindowManager.shared.open(tab: .sshRsync)
                     }
                     finish(.failure(PlanetError.SSHRsyncPublishError(message)))
                     return
@@ -2189,10 +2342,51 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             catch {
                 SSHRsyncLogger.log("[ERROR] [\(self.name)] Failed to launch rsync: \(error.localizedDescription)")
                 Task { @MainActor in
-                    SSHRsyncLogWindowManager.shared.open()
+                    PublishLogWindowManager.shared.open(tab: .sshRsync)
                 }
                 finish(.failure(error))
             }
+        }
+    }
+
+    private func publishViaCloudflarePages() async throws {
+        guard let accountID = cloudflarePagesAccountID, !accountID.isEmpty,
+              let apiToken = cloudflarePagesAPIToken, !apiToken.isEmpty,
+              let projectName = cloudflarePagesProjectName, !projectName.isEmpty
+        else {
+            let message = "Cloudflare Pages is enabled but Account ID, API Token, or Project Name is missing."
+            CloudflarePagesLogger.log("[ERROR] [\(name)] \(message)")
+            throw PlanetError.CloudflarePagesPublishError(message)
+        }
+        CloudflarePagesLogger.log("[\(name)] Starting deployment to project '\(projectName)'")
+        do {
+            let cf = CloudflarePages(accountID: accountID, apiToken: apiToken, projectName: projectName)
+            let siteURL = try await cf.deploy(directoryURL: publicBasePath)
+            if let siteURL {
+                try await MainActor.run {
+                    self.cloudflarePagesLastDeployedProjectName = projectName
+                    self.cloudflarePagesLastDeployedURL = siteURL.absoluteString
+                    try self.save()
+                }
+                CloudflarePagesLogger.log("[\(name)] Published to \(siteURL.absoluteString)")
+            } else {
+                CloudflarePagesLogger.log(
+                    "[WARNING] [\(name)] Published successfully, but the deployment response did not include a stable production Pages URL."
+                )
+            }
+            Self.logger.info(
+                "Published planet \(self.name, privacy: .public) via Cloudflare Pages to project \(projectName, privacy: .public)"
+            )
+        }
+        catch {
+            CloudflarePagesLogger.log("[ERROR] [\(name)] \(error.localizedDescription)")
+            Self.logger.error(
+                "Cloudflare Pages publish failed for planet \(self.name, privacy: .public): \(error.localizedDescription, privacy: .public)"
+            )
+            Task { @MainActor in
+                PublishLogWindowManager.shared.open(tab: .cloudflarePages)
+            }
+            throw error
         }
     }
 
@@ -2369,7 +2563,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             sshRsyncEnabled: sshRsyncEnabled,
             sshRsyncDestination: Self.normalizedSSHRsyncDestination(sshRsyncDestination),
             sshRsyncKeyPath: sshRsyncKeyPath,
-            sshRsyncDeleteEnabled: sshRsyncDeleteEnabled
+            sshRsyncDeleteEnabled: sshRsyncDeleteEnabled,
+            cloudflarePagesEnabled: cloudflarePagesEnabled,
+            cloudflarePagesAccountID: cloudflarePagesAccountID,
+            cloudflarePagesAPIToken: cloudflarePagesAPIToken,
+            cloudflarePagesProjectName: cloudflarePagesProjectName,
+            cloudflarePagesLastDeployedProjectName: cloudflarePagesLastDeployedProjectName,
+            cloudflarePagesLastDeployedURL: cloudflarePagesLastDeployedURL
         )
         do {
             try FileManager.default.copyItem(at: publicBasePath, to: exportPath)
