@@ -4,3 +4,6 @@
 local.xcconfig
 xcuserdata
 archive/
+.agents/
+skills/
+skills-lock.json
