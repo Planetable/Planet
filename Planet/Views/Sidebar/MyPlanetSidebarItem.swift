@@ -57,6 +57,7 @@ struct MyPlanetSidebarItem: View {
                         NSWorkspace.shared.open(url)
                     }
                 } label: {
+                    Image(systemName: "cube")
                     Text("Open in Public Gateway")
                 }
 
@@ -65,6 +66,7 @@ struct MyPlanetSidebarItem: View {
                         NSWorkspace.shared.open(url)
                     }
                 } label: {
+                    Image(systemName: "cube")
                     Text("Open in Local Gateway")
                 }
 
@@ -74,6 +76,7 @@ struct MyPlanetSidebarItem: View {
                     Button {
                         NSWorkspace.shared.open(url)
                     } label: {
+                        Image("custom.cloudflare")
                         Text("Open \(host)")
                     }
                 }
