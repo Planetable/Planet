@@ -21,6 +21,10 @@ struct MyPlanetEditView: View {
     @State private var doNotIndex: Bool = false
     @State private var prewarmNewPost: Bool = true
     @State private var publishAsIPNS: Bool = true
+    @State private var sshRsyncEnabled: Bool = false
+    @State private var sshRsyncDestination: String
+    @State private var sshRsyncKeyPath: String?
+    @State private var sshRsyncDeleteEnabled: Bool = false
 
     @State private var plausibleEnabled: Bool = false
     @State private var plausibleDomain: String
@@ -74,6 +78,10 @@ struct MyPlanetEditView: View {
         _doNotIndex = State(wrappedValue: planet.doNotIndex ?? false)
         _prewarmNewPost = State(wrappedValue: planet.prewarmNewPost ?? true)
         _publishAsIPNS = State(wrappedValue: planet.publishAsIPNS ?? true)
+        _sshRsyncEnabled = State(wrappedValue: planet.sshRsyncEnabled ?? false)
+        _sshRsyncDestination = State(wrappedValue: planet.sshRsyncDestination ?? "")
+        _sshRsyncKeyPath = State(wrappedValue: planet.sshRsyncKeyPath)
+        _sshRsyncDeleteEnabled = State(wrappedValue: planet.sshRsyncDeleteEnabled ?? false)
         _plausibleEnabled = State(wrappedValue: planet.plausibleEnabled ?? false)
         _plausibleDomain = State(wrappedValue: planet.plausibleDomain ?? "")
         _plausibleAPIKey = State(wrappedValue: planet.plausibleAPIKey ?? "")
@@ -138,6 +146,23 @@ struct MyPlanetEditView: View {
         }
     }
 
+    private func publishingHelpRow(_ text: String) -> some View {
+        HStack {
+            HStack {
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH + 10)
+
+            Text(text)
+                .lineLimit(3)
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer()
+        }
+    }
+
     @ViewBuilder
     private func publishingTab() -> some View {
         VStack(spacing: PlanetUI.CONTROL_ROW_SPACING) {
@@ -154,20 +179,9 @@ struct MyPlanetEditView: View {
                 Spacer()
             }
 
-            HStack {
-                HStack {
-                    Spacer()
-                }
-                .frame(width: CONTROL_CAPTION_WIDTH + 10)
-
-                Text(
-                    "When disabled, new publish actions skip IPFS work and leave any existing IPNS or CID unchanged."
-                )
-                .lineLimit(2)
-                .font(.footnote)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            }
+            publishingHelpRow(
+                "When disabled, publish actions skip IPFS work and leave any existing IPNS or CID unchanged."
+            )
 
             publishingLinkRow(
                 title: "IPNS",
@@ -179,6 +193,86 @@ struct MyPlanetEditView: View {
                 title: "CID",
                 value: planet.lastPublishedCID ?? "Not published yet",
                 url: planet.lastPublishedCID.flatMap { IPFSDaemon.urlForCID($0) }
+            )
+
+            Divider()
+                .padding(.top, 6)
+                .padding(.bottom, 6)
+
+            HStack {
+                HStack {
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH + 10)
+
+                Toggle("Publish via SSH rsync", isOn: $sshRsyncEnabled)
+                    .toggleStyle(.checkbox)
+                    .frame(alignment: .leading)
+
+                Spacer()
+            }
+
+            HStack {
+                HStack {
+                    Text("Address")
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH)
+
+                TextField(
+                    "",
+                    text: $sshRsyncDestination,
+                    prompt: Text("user@example.com:/www/example")
+                )
+                .textFieldStyle(.roundedBorder)
+            }
+
+            HStack {
+                HStack {
+                    Text("SSH Key")
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH)
+
+                Text(sshRsyncKeyPath ?? "None (using ssh-agent)")
+                    .foregroundColor(sshRsyncKeyPath != nil ? .primary : .secondary)
+                    .font(.system(size: 12, design: .monospaced))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+
+                Spacer()
+
+                if sshRsyncKeyPath != nil {
+                    Button("Clear") {
+                        sshRsyncKeyPath = nil
+                        try? FileManager.default.removeItem(at: planet.sshRsyncKeyStorePath)
+                    }
+                }
+
+                Button("Select") {
+                    selectSSHKey()
+                }
+            }
+
+            publishingHelpRow(
+                "Select a private key if ssh-agent is not available."
+            )
+
+            HStack {
+                HStack {
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH + 10)
+
+                Toggle("Delete extraneous files on destination", isOn: $sshRsyncDeleteEnabled)
+                    .toggleStyle(.checkbox)
+                    .frame(alignment: .leading)
+
+                Spacer()
+            }
+
+            publishingHelpRow(
+                "When enabled, files on the destination that are not in the source will be removed."
             )
         }
         .padding(16)
@@ -874,6 +968,12 @@ struct MyPlanetEditView: View {
                         planet.doNotIndex = doNotIndex
                         planet.prewarmNewPost = prewarmNewPost
                         planet.publishAsIPNS = publishAsIPNS
+                        planet.sshRsyncEnabled = sshRsyncEnabled
+                        planet.sshRsyncDestination = MyPlanetModel.normalizedSSHRsyncDestination(
+                            sshRsyncDestination
+                        )
+                        planet.sshRsyncKeyPath = sshRsyncKeyPath
+                        planet.sshRsyncDeleteEnabled = sshRsyncDeleteEnabled
                         planet.plausibleEnabled = plausibleEnabled
                         planet.plausibleDomain = plausibleDomain.trim()
                         planet.plausibleAPIKey = plausibleAPIKey
@@ -938,6 +1038,46 @@ struct MyPlanetEditView: View {
 }
 
 extension MyPlanetEditView {
+    private func selectSSHKey() {
+        let panel = NSOpenPanel()
+        panel.title = "Select SSH Private Key"
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.showsHiddenFiles = true
+        panel.directoryURL = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".ssh", isDirectory: true)
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let destination = planet.sshRsyncKeyStorePath
+            if FileManager.default.fileExists(atPath: destination.path) {
+                try FileManager.default.removeItem(at: destination)
+            }
+            try FileManager.default.copyItem(at: url, to: destination)
+            // Ensure the key file has strict permissions
+            try FileManager.default.setAttributes(
+                [.posixPermissions: 0o600],
+                ofItemAtPath: destination.path
+            )
+            sshRsyncKeyPath = url.lastPathComponent
+        }
+        catch {
+            showValidationAlert(
+                title: "Failed to Import SSH Key",
+                message: error.localizedDescription
+            )
+        }
+    }
+
+    private func showValidationAlert(title: String, message: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
+
     func verifyUserInput() -> Int {
         var errors: Int = 0
         // TODO: Better sanity check goes here
@@ -950,14 +1090,29 @@ extension MyPlanetEditView {
             let range = NSRange(location: 0, length: domain.trim().count)
             if regex.firstMatch(in: domain.trim(), options: [], range: range) == nil {
                 errors += 1
-
-                let alert = NSAlert()
-                alert.messageText = "Invalid Domain Name"
-                alert.informativeText =
-                    "Please enter a valid domain name. Do not include the protocol (http:// or https://) or any trailing slashes."
-                alert.alertStyle = .informational
-                alert.addButton(withTitle: "OK")
-                alert.runModal()
+                showValidationAlert(
+                    title: "Invalid Domain Name",
+                    message: "Please enter a valid domain name. Do not include the protocol (http:// or https://) or any trailing slashes."
+                )
+            }
+        }
+        if sshRsyncEnabled {
+            guard let destination = MyPlanetModel.normalizedSSHRsyncDestination(
+                sshRsyncDestination
+            ) else {
+                errors += 1
+                showValidationAlert(
+                    title: "Missing SSH rsync Address",
+                    message: "Enter a destination like user@example.com:/www/example before enabling SSH rsync publishing."
+                )
+                return errors
+            }
+            if !MyPlanetModel.isValidSSHRsyncDestination(destination) {
+                errors += 1
+                showValidationAlert(
+                    title: "Invalid SSH rsync Address",
+                    message: "Use the format user@example.com:/www/example."
+                )
             }
         }
         return errors

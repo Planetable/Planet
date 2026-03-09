@@ -29,6 +29,7 @@ enum PlanetError: Error {
     case FollowLocalPlanetError
     case FollowPlanetVerifyError
     case InvalidPlanetURLError
+    case InvalidSSHRsyncDestinationError
     case ENSNoContentHashError
     case DotBitNoDWebRecordError
     case DotBitIPNSResolveError
@@ -49,6 +50,7 @@ enum PlanetError: Error {
     case KeyManagerExportingKeyExistsError
     case ServiceAirDropNotExistsError
     case WriterUnsupportedAttachmentTypeError
+    case SSHRsyncPublishError(String)
     case InternalError
     case UnknownError(Error)
 }
@@ -111,6 +113,11 @@ extension PlanetError: LocalizedError {
             return NSLocalizedString("Follow Planet Verify Error", comment: "")
         case .InvalidPlanetURLError:
             return NSLocalizedString("Invalid Planet URL Error", comment: "")
+        case .InvalidSSHRsyncDestinationError:
+            return NSLocalizedString(
+                "Invalid SSH rsync destination. Use the format user@example.com:/www/example",
+                comment: ""
+            )
         case .ENSNoContentHashError:
             return NSLocalizedString("ENS No Content Hash Error", comment: "")
         case .DotBitNoDWebRecordError:
@@ -149,6 +156,8 @@ extension PlanetError: LocalizedError {
             return NSLocalizedString("Key Manager Exporting Key Exists Error", comment: "")
         case .ServiceAirDropNotExistsError:
             return NSLocalizedString("Service AirDrop Not Exists Error", comment: "")
+        case .SSHRsyncPublishError(let message):
+            return message
         case .InternalError:
             return NSLocalizedString("Planet Internal Error", comment: "")
         case .WriterUnsupportedAttachmentTypeError:

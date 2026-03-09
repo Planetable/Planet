@@ -60,6 +60,10 @@
 		2A3C6E792C22A3AA007B2CCD /* IPFSStatusWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3C6E702C22A3AA007B2CCD /* IPFSStatusWindowManager.swift */; };
 		2A3D28C22C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28C12C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift */; };
 		2A3D28C32C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28C12C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift */; };
+		5F244DE6913A63FF00000004 /* SSHRsyncLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */; };
+		76B55B235F244DE6913A63FF /* SSHRsyncLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */; };
+		5F244DE6913A63FF00000005 /* SSHRsyncLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000002 /* SSHRsyncLogView.swift */; };
+		E77C82F7465746DF88F58625 /* SSHRsyncLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000002 /* SSHRsyncLogView.swift */; };
 		2A3D28C82C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28C72C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift */; };
 		2A3D28C92C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28C72C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift */; };
 		2A3D28CB2C6A8137005ABCF5 /* PlanetAPILogMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28CA2C6A8137005ABCF5 /* PlanetAPILogMiddleware.swift */; };
@@ -625,6 +629,8 @@
 		2A3C6E6F2C22A3AA007B2CCD /* IPFSStatusWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSStatusWindowController.swift; sourceTree = "<group>"; };
 		2A3C6E702C22A3AA007B2CCD /* IPFSStatusWindowManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSStatusWindowManager.swift; sourceTree = "<group>"; };
 		2A3D28C12C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIConsoleView.swift; sourceTree = "<group>"; };
+		5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHRsyncLogger.swift; sourceTree = "<group>"; };
+		5F244DE6913A63FF00000002 /* SSHRsyncLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHRsyncLogView.swift; sourceTree = "<group>"; };
 		2A3D28C72C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIConsoleViewModel.swift; sourceTree = "<group>"; };
 		2A3D28CA2C6A8137005ABCF5 /* PlanetAPILogMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPILogMiddleware.swift; sourceTree = "<group>"; };
 		2A4164D329E64755009BFC24 /* PlanetQuickShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetQuickShareView.swift; sourceTree = "<group>"; };
@@ -1205,6 +1211,7 @@
 			children = (
 				6A7F60642B21A35000475731 /* Search */,
 				6A1F97A42ADDDDE500C75625 /* API */,
+				5F244DE6913A63FF00000003 /* SSHRsync */,
 				6A1FD5042A75A67C00391972 /* Art */,
 				2AC4996927BB987B00F1C2D1 /* Info.plist */,
 				E8B4FE442A8D146100C01E94 /* InfoPlist.strings */,
@@ -1398,6 +1405,15 @@
 				6A1DA07C28B4278300C6B5A9 /* DecentralizedApp.swift */,
 			);
 			path = dApps;
+			sourceTree = "<group>";
+		};
+		5F244DE6913A63FF00000003 /* SSHRsync */ = {
+			isa = PBXGroup;
+			children = (
+				5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */,
+				5F244DE6913A63FF00000002 /* SSHRsyncLogView.swift */,
+			);
+			path = SSHRsync;
 			sourceTree = "<group>";
 		};
 		6A1F97A42ADDDDE500C75625 /* API */ = {
@@ -2047,6 +2063,8 @@
 				2A95E6672A19A3AF001288B8 /* TBWindow.swift in Sources */,
 				2A95E64A2A19A398001288B8 /* PFDashboardSidebarView.swift in Sources */,
 				2A3D28C22C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */,
+				5F244DE6913A63FF00000004 /* SSHRsyncLogger.swift in Sources */,
+				5F244DE6913A63FF00000005 /* SSHRsyncLogView.swift in Sources */,
 				2A8E08582BF4B190002D0C03 /* IPFSOpenWindowController.swift in Sources */,
 				2A95E65E2A19A3AA001288B8 /* TemplateBrowserSidebar.swift in Sources */,
 				6A0326A02C81DF2100FEDD55 /* String+EthereumChecksumAddress.swift in Sources */,
@@ -2311,6 +2329,8 @@
 				6A61D5E72B23A234007F761E /* CapsuleBar.swift in Sources */,
 				72114717FB02C931CE9E08E9 /* MyPlanetSidebarItem.swift in Sources */,
 				2A3D28C32C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */,
+				76B55B235F244DE6913A63FF /* SSHRsyncLogger.swift in Sources */,
+				E77C82F7465746DF88F58625 /* SSHRsyncLogView.swift in Sources */,
 				2A4AE87A2A89EF3600A27B5B /* GroupIndicatorView.swift in Sources */,
 				6AB6E4FB2915227600F17328 /* WalletManager.swift in Sources */,
 				2A7022F22897DF4600022F13 /* PlanetDownloadsWindow.swift in Sources */,

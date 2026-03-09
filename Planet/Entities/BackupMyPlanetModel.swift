@@ -64,4 +64,8 @@ struct BackupMyPlanetModel: Codable {
     let doNotIndex: Bool?
     let prewarmNewPost: Bool?
     let publishAsIPNS: Bool?
+    let sshRsyncEnabled: Bool?
+    let sshRsyncDestination: String?
+    let sshRsyncKeyPath: String?
+    let sshRsyncDeleteEnabled: Bool?
 }

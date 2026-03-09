@@ -114,6 +114,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     /// Publish the latest CID to this planet's IPNS record
     @Published var publishAsIPNS: Bool? = true
 
+    /// Publish the generated site to a remote server with rsync over SSH
+    @Published var sshRsyncEnabled: Bool? = false
+    @Published var sshRsyncDestination: String?
+    /// Original filename of the user-selected SSH key (the key itself is stored in basePath/ssh_key)
+    @Published var sshRsyncKeyPath: String?
+    @Published var sshRsyncDeleteEnabled: Bool? = false
+
+    private static let sshRsyncDestinationRegex: NSRegularExpression = {
+        try! NSRegularExpression(
+            pattern: #"^[^@\s:/]+@[^:\s/]+:\S+$"#,
+            options: []
+        )
+    }()
+
     static func myPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("My", isDirectory: true)
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
@@ -121,6 +135,20 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
     static func isReservedTag(_ tag: String) -> Bool {
         return RESERVED_KEYWORDS_FOR_TAGS.contains(tag)
+    }
+    static func normalizedSSHRsyncDestination(_ destination: String?) -> String? {
+        guard let destination else { return nil }
+        let trimmed = destination.trim()
+        return trimmed.isEmpty ? nil : trimmed
+    }
+    static func isValidSSHRsyncDestination(_ destination: String) -> Bool {
+        let normalizedDestination = destination.trim()
+        let range = NSRange(location: 0, length: normalizedDestination.utf16.count)
+        return sshRsyncDestinationRegex.firstMatch(
+            in: normalizedDestination,
+            options: [],
+            range: range
+        ) != nil
     }
     func removeReservedTags() -> [String: String] {
         var tags = self.tags ?? [:]
@@ -131,6 +159,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
     var basePath: URL {
         return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
+    }
+    var sshRsyncKeyStorePath: URL {
+        return basePath.appendingPathComponent("ssh_key", isDirectory: false)
     }
     var infoPath: URL {
         return Self.myPlanetsPath().appendingPathComponent(self.id.uuidString, isDirectory: true)
@@ -524,6 +555,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         hasher.combine(doNotIndex)
         hasher.combine(prewarmNewPost)
         hasher.combine(publishAsIPNS)
+        hasher.combine(sshRsyncEnabled)
+        hasher.combine(sshRsyncDestination)
+        hasher.combine(sshRsyncKeyPath)
+        hasher.combine(sshRsyncDeleteEnabled)
     }
 
     static func == (lhs: MyPlanetModel, rhs: MyPlanetModel) -> Bool {
@@ -596,6 +631,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.doNotIndex == rhs.doNotIndex
             && lhs.prewarmNewPost == rhs.prewarmNewPost
             && lhs.publishAsIPNS == rhs.publishAsIPNS
+            && lhs.sshRsyncEnabled == rhs.sshRsyncEnabled
+            && lhs.sshRsyncDestination == rhs.sshRsyncDestination
+            && lhs.sshRsyncKeyPath == rhs.sshRsyncKeyPath
+            && lhs.sshRsyncDeleteEnabled == rhs.sshRsyncDeleteEnabled
     }
 
     enum CodingKeys: String, CodingKey {
@@ -619,7 +658,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             saveRoundAvatar,
             doNotIndex,
             prewarmNewPost,
-            publishAsIPNS
+            publishAsIPNS,
+            sshRsyncEnabled, sshRsyncDestination, sshRsyncKeyPath,
+            sshRsyncDeleteEnabled
     }
 
     // `@Published` property wrapper invalidates default decode/encode implementation
@@ -723,6 +764,24 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Bool.self,
             forKey: .publishAsIPNS
         ) ?? true
+        sshRsyncEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .sshRsyncEnabled
+        ) ?? false
+        sshRsyncDestination = Self.normalizedSSHRsyncDestination(
+            try container.decodeIfPresent(
+                String.self,
+                forKey: .sshRsyncDestination
+            )
+        )
+        sshRsyncKeyPath = try container.decodeIfPresent(
+            String.self,
+            forKey: .sshRsyncKeyPath
+        )
+        sshRsyncDeleteEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .sshRsyncDeleteEnabled
+        ) ?? false
     }
 
     func encode(to encoder: Encoder) throws {
@@ -785,6 +844,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encodeIfPresent(doNotIndex, forKey: .doNotIndex)
         try container.encodeIfPresent(prewarmNewPost, forKey: .prewarmNewPost)
         try container.encodeIfPresent(publishAsIPNS, forKey: .publishAsIPNS)
+        try container.encodeIfPresent(sshRsyncEnabled, forKey: .sshRsyncEnabled)
+        try container.encodeIfPresent(
+            Self.normalizedSSHRsyncDestination(sshRsyncDestination),
+            forKey: .sshRsyncDestination
+        )
+        try container.encodeIfPresent(sshRsyncKeyPath, forKey: .sshRsyncKeyPath)
+        try container.encodeIfPresent(sshRsyncDeleteEnabled, forKey: .sshRsyncDeleteEnabled)
     }
 
     init(
@@ -1127,6 +1193,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         // Restore publishAsIPNS
         planet.publishAsIPNS = backupPlanet.publishAsIPNS ?? true
+
+        // Restore SSH rsync settings
+        planet.sshRsyncEnabled = backupPlanet.sshRsyncEnabled ?? false
+        planet.sshRsyncDestination = Self.normalizedSSHRsyncDestination(
+            backupPlanet.sshRsyncDestination
+        )
+        planet.sshRsyncKeyPath = backupPlanet.sshRsyncKeyPath
+        planet.sshRsyncDeleteEnabled = backupPlanet.sshRsyncDeleteEnabled ?? false
 
         // delete existing planet files if exists
         // it is important we validate that the planet does not exist, or we override an existing planet with a stale backup
@@ -1868,117 +1942,257 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             debugPrint("Planet \(name) is being rebuilt, skipping publish")
             return
         }
-        guard publishAsIPNS ?? true else {
+        let shouldPublishIPNS = publishAsIPNS ?? true
+        let shouldPublishSSHRsync = sshRsyncEnabled ?? false
+        let rsyncDestination = Self.normalizedSSHRsyncDestination(sshRsyncDestination)
+
+        guard shouldPublishIPNS || shouldPublishSSHRsync else {
             await MainActor.run {
                 self.isPublishing = false
                 self.publishStartedAt = nil
                 PlanetStatusManager.shared.updateStatus()
             }
-            Self.logger.info("Skipping IPFS publish for planet \(self.name, privacy: .public)")
+            Self.logger.info("Skipping publish for planet \(self.name, privacy: .public)")
             return
+        }
+        if shouldPublishSSHRsync {
+            guard let rsyncDestination, Self.isValidSSHRsyncDestination(rsyncDestination) else {
+                throw PlanetError.InvalidSSHRsyncDestinationError
+            }
         }
         await MainActor.run {
             self.isPublishing = true
             self.publishStartedAt = Date()
             PlanetStatusManager.shared.updateStatus()
         }
-        // Make sure planet key is available in keystore or in keychain, abort publishing if not.
-        if try await !IPFSDaemon.shared.checkKeyExists(name: id.uuidString) {
-            try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: id.uuidString)
-        }
-        let cid = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
-        if cid.count == 0 {
-            throw PlanetError.PublishPlanetError
-        }
-        debugPrint("Publishing the latest CID for \(name): \(cid)")
-        // Send the latest CID to dWebServices.xyz if enabled
-        /*
-        if let dWebServicesEnabled = dWebServicesEnabled, dWebServicesEnabled,
-            let dWebServicesDomain = dWebServicesDomain, let dWebServicesAPIKey = dWebServicesAPIKey
-        {
-            debugPrint("dWebServices: about to update for \(dWebServicesDomain)")
-            let dWebRecord = dWebServices(domain: dWebServicesDomain, apiKey: dWebServicesAPIKey)
-            await dWebRecord.publish(cid: cid)
-        }
-        */
-        // Send the latest CID to Filebase if enabled
-        if let filebaseEnabled = filebaseEnabled, filebaseEnabled,
-            let filebasePinName = filebasePinName, let filebaseAPIToken = filebaseAPIToken
-        {
-            var toPin: Bool = false
-            if let existingCID = filebasePinCID {
-                if existingCID.count == 0 || existingCID != cid {
-                    toPin = true
-                }
-            }
-            else {
-                toPin = true
-            }
-            if toPin {
-                Task.detached(priority: .userInitiated) {
-                    debugPrint("Filebase: about to pin for \(filebasePinName)")
-                    let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
-                    if let requestID = await filebase.pin(cid: cid) {
-                        Task { @MainActor in
-                            self.filebaseRequestID = requestID
-                            self.filebasePinCID = cid
-                            try? self.save()
-                        }
-                    }
-                }
-            }
-            else {
-                debugPrint("Filebase: no need to pin for \(filebasePinName)")
-            }
-        }
-        Task { @MainActor in
-            if cid != self.lastPublishedCID {
-                self.lastPublished = Date()
-                self.lastPublishedCID = cid
-                try self.save()
-                Task {
-                    await self.sendNotificationForNewCID(cid: cid)
-                }
-            }
-        }
-        if #available(macOS 13.0, *) {
-            let publishStartTime = Date()
+        defer {
             Task { @MainActor in
-                try? await Task.sleep(for: .seconds(10))
-                if self.isPublishing && publishStartTime.timeIntervalSinceNow < -9 {
-                    debugPrint("Planet publish is still running")
-                    self.isPublishing = false
-                    PlanetStatusManager.shared.updateStatus()
-                } else {
-                    debugPrint("Planet publish is done")
-                }
-            }
-        }
-        Task.detached(priority: .userInitiated) {
-            let result = try await IPFSDaemon.shared.api(
-                path: "name/publish",
-                args: [
-                    "arg": cid,
-                    "allow-offline": "1",
-                    "key": self.id.uuidString,
-                    "quieter": "1",
-                    "lifetime": "7200h",
-                ],
-                timeout: 180
-            )
-            let published = try JSONDecoder.shared.decode(IPFSPublished.self, from: result)
-            Self.logger.info("Published planet \(published.name): \(cid)")
-            await MainActor.run {
                 self.isPublishing = false
                 self.publishStartedAt = nil
                 PlanetStatusManager.shared.updateStatus()
             }
         }
-        Task.detached(priority: .background) {
-            await self.prewarm()
+
+        var cid: String? = nil
+        if shouldPublishIPNS {
+            // Make sure planet key is available in keystore or in keychain, abort publishing if not.
+            if try await !IPFSDaemon.shared.checkKeyExists(name: id.uuidString) {
+                try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: id.uuidString)
+            }
+            let latestCID = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
+            if latestCID.count == 0 {
+                throw PlanetError.PublishPlanetError
+            }
+            cid = latestCID
+            debugPrint("Publishing the latest CID for \(name): \(latestCID)")
+            // Send the latest CID to dWebServices.xyz if enabled
+            /*
+            if let dWebServicesEnabled = dWebServicesEnabled, dWebServicesEnabled,
+                let dWebServicesDomain = dWebServicesDomain, let dWebServicesAPIKey = dWebServicesAPIKey
+            {
+                debugPrint("dWebServices: about to update for \(dWebServicesDomain)")
+                let dWebRecord = dWebServices(domain: dWebServicesDomain, apiKey: dWebServicesAPIKey)
+                await dWebRecord.publish(cid: latestCID)
+            }
+            */
+            // Send the latest CID to Filebase if enabled
+            if let filebaseEnabled = filebaseEnabled, filebaseEnabled,
+                let filebasePinName = filebasePinName, let filebaseAPIToken = filebaseAPIToken
+            {
+                var toPin: Bool = false
+                if let existingCID = filebasePinCID {
+                    if existingCID.count == 0 || existingCID != latestCID {
+                        toPin = true
+                    }
+                }
+                else {
+                    toPin = true
+                }
+                if toPin {
+                    Task.detached(priority: .userInitiated) {
+                        debugPrint("Filebase: about to pin for \(filebasePinName)")
+                        let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
+                        if let requestID = await filebase.pin(cid: latestCID) {
+                            Task { @MainActor in
+                                self.filebaseRequestID = requestID
+                                self.filebasePinCID = latestCID
+                                try? self.save()
+                            }
+                        }
+                    }
+                }
+                else {
+                    debugPrint("Filebase: no need to pin for \(filebasePinName)")
+                }
+            }
         }
-        Task.detached(priority: .background) {
-            await self.callPinnable()
+
+        enum PublishTarget {
+            case ipns
+            case sshRsync
+        }
+
+        var ipnsPublished = false
+        var sshRsyncPublished = false
+        var ipnsError: Error? = nil
+        var sshRsyncError: Error? = nil
+
+        await withTaskGroup(of: (PublishTarget, Error?).self) { group in
+            if let cid {
+                group.addTask(priority: .userInitiated) {
+                    do {
+                        try await self.publishCIDToIPNS(cid: cid)
+                        return (.ipns, nil)
+                    }
+                    catch {
+                        return (.ipns, error)
+                    }
+                }
+            }
+            if shouldPublishSSHRsync, let rsyncDestination {
+                group.addTask(priority: .userInitiated) {
+                    do {
+                        try await self.publishViaSSHRsync(destination: rsyncDestination)
+                        return (.sshRsync, nil)
+                    }
+                    catch {
+                        return (.sshRsync, error)
+                    }
+                }
+            }
+            for await (target, error) in group {
+                switch target {
+                case .ipns:
+                    ipnsPublished = error == nil
+                    ipnsError = error
+                case .sshRsync:
+                    sshRsyncPublished = error == nil
+                    sshRsyncError = error
+                }
+            }
+        }
+
+        if let cid, ipnsPublished {
+            let shouldNotify = await MainActor.run {
+                cid != self.lastPublishedCID
+            }
+            try await MainActor.run {
+                self.lastPublished = Date()
+                self.lastPublishedCID = cid
+                try self.save()
+            }
+            if shouldNotify {
+                Task.detached(priority: .background) {
+                    await self.sendNotificationForNewCID(cid: cid)
+                }
+            }
+            Task.detached(priority: .background) {
+                await self.prewarm()
+            }
+            Task.detached(priority: .background) {
+                await self.callPinnable()
+            }
+        }
+        else if sshRsyncPublished {
+            try await MainActor.run {
+                self.lastPublished = Date()
+                try self.save()
+            }
+        }
+
+        if let ipnsError {
+            throw ipnsError
+        }
+        if let sshRsyncError {
+            throw sshRsyncError
+        }
+    }
+
+    private func publishCIDToIPNS(cid: String) async throws {
+        let result = try await IPFSDaemon.shared.api(
+            path: "name/publish",
+            args: [
+                "arg": cid,
+                "allow-offline": "1",
+                "key": self.id.uuidString,
+                "quieter": "1",
+                "lifetime": "7200h",
+            ],
+            timeout: 180
+        )
+        let published = try JSONDecoder.shared.decode(IPFSPublished.self, from: result)
+        Self.logger.info("Published planet \(published.name): \(cid)")
+    }
+
+    private func publishViaSSHRsync(destination: String) async throws {
+        let source = publicBasePath.path + "/"
+        var sshOptions = "ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+        if sshRsyncKeyPath != nil,
+           FileManager.default.fileExists(atPath: sshRsyncKeyStorePath.path)
+        {
+            sshOptions += " -o IdentityFile=\(sshRsyncKeyStorePath.path) -o IdentitiesOnly=yes"
+        }
+        var rsyncArgs = ["-a"]
+        if sshRsyncDeleteEnabled ?? false {
+            rsyncArgs.append("--delete")
+        }
+        rsyncArgs += ["-e", sshOptions, source, destination]
+        let command = "rsync \(rsyncArgs.joined(separator: " "))"
+        SSHRsyncLogger.log("[\(name)] Starting: \(command)")
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/rsync")
+            process.arguments = rsyncArgs
+
+            let stdoutPipe = Pipe()
+            let stderrPipe = Pipe()
+            process.standardOutput = stdoutPipe
+            process.standardError = stderrPipe
+
+            var didResume = false
+            func finish(_ result: Result<Void, Error>) {
+                guard !didResume else { return }
+                didResume = true
+                continuation.resume(with: result)
+            }
+
+            process.terminationHandler = { process in
+                let stdout = stdoutPipe.fileHandleForReading.readDataToEndOfFile().logFormat().trim()
+                let stderr = stderrPipe.fileHandleForReading.readDataToEndOfFile().logFormat().trim()
+
+                guard process.terminationStatus == 0 else {
+                    let details = stderr.isEmpty ? stdout : stderr
+                    let message = details.isEmpty
+                        ? "SSH rsync failed with exit code \(process.terminationStatus)."
+                        : "SSH rsync failed: \(details)"
+                    SSHRsyncLogger.log("[ERROR] [\(self.name)] \(message)")
+                    Self.logger.error(
+                        "SSH rsync publish failed for planet \(self.name, privacy: .public): \(message, privacy: .public)"
+                    )
+                    Task { @MainActor in
+                        SSHRsyncLogWindowManager.shared.open()
+                    }
+                    finish(.failure(PlanetError.SSHRsyncPublishError(message)))
+                    return
+                }
+
+                SSHRsyncLogger.log("[\(self.name)] Published to \(destination)")
+                Self.logger.info(
+                    "Published planet \(self.name, privacy: .public) via SSH rsync to \(destination, privacy: .public)"
+                )
+                finish(.success(()))
+            }
+
+            do {
+                try process.run()
+            }
+            catch {
+                SSHRsyncLogger.log("[ERROR] [\(self.name)] Failed to launch rsync: \(error.localizedDescription)")
+                Task { @MainActor in
+                    SSHRsyncLogWindowManager.shared.open()
+                }
+                finish(.failure(error))
+            }
         }
     }
 
@@ -2151,7 +2365,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             saveRoundAvatar: saveRoundAvatar,
             doNotIndex: doNotIndex,
             prewarmNewPost: prewarmNewPost,
-            publishAsIPNS: publishAsIPNS
+            publishAsIPNS: publishAsIPNS,
+            sshRsyncEnabled: sshRsyncEnabled,
+            sshRsyncDestination: Self.normalizedSSHRsyncDestination(sshRsyncDestination),
+            sshRsyncKeyPath: sshRsyncKeyPath,
+            sshRsyncDeleteEnabled: sshRsyncDeleteEnabled
         )
         do {
             try FileManager.default.copyItem(at: publicBasePath, to: exportPath)
