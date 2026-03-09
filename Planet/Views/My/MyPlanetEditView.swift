@@ -71,6 +71,44 @@ struct MyPlanetEditView: View {
 
     // Highlight Color (Currently only for Croptop)
     @State private var selectedColor: Color = Color(hex: "#F056C1")
+    @State private var avatarChanged = false
+
+    private struct EditSnapshot: Equatable {
+        let name: String
+        let about: String
+        let domain: String?
+        let authorName: String?
+        let templateName: String
+        let saveRoundAvatar: Bool
+        let doNotIndex: Bool
+        let prewarmNewPost: Bool
+        let publishAsIPNS: Bool
+        let sshRsyncEnabled: Bool
+        let sshRsyncDestination: String?
+        let sshRsyncKeyPath: String?
+        let sshRsyncDeleteEnabled: Bool
+        let cloudflarePagesEnabled: Bool
+        let cloudflarePagesAccountID: String?
+        let cloudflarePagesAPIToken: String?
+        let cloudflarePagesProjectName: String?
+        let plausibleEnabled: Bool
+        let plausibleDomain: String?
+        let plausibleAPIKey: String?
+        let plausibleAPIServer: String
+        let twitterUsername: String?
+        let githubUsername: String?
+        let telegramUsername: String?
+        let mastodonUsername: String?
+        let discordLink: String?
+        let juiceboxEnabled: Bool
+        let juiceboxProjectID: Int?
+        let pinnableEnabled: Bool
+        let pinnableAPIEndpoint: String?
+        let filebaseEnabled: Bool
+        let filebasePinName: String?
+        let filebaseAPIToken: String?
+        let templateSettings: [String: String]
+    }
 
     init(planet: MyPlanetModel) {
         self.planet = planet
@@ -822,6 +860,7 @@ struct MyPlanetEditView: View {
                                 uploadAction: { url in
                                     do {
                                         try planet.updateAvatar(path: url)
+                                        avatarChanged = true
                                     }
                                     catch {
                                         debugPrint("failed to upload planet avatar: \(error)")
@@ -830,6 +869,7 @@ struct MyPlanetEditView: View {
                                 deleteAction: {
                                     do {
                                         try planet.removeAvatar()
+                                        avatarChanged = true
                                     }
                                     catch {
                                         debugPrint("failed to remove planet avatar: \(error)")
@@ -1025,67 +1065,18 @@ struct MyPlanetEditView: View {
                         if verifyUserInput() > 0 {
                             return
                         }
-                        if !name.trim().isEmpty {
-                            planet.name = name.trim()
+                        let snapshot = desiredSnapshot()
+                        let hasChanges = avatarChanged || snapshot != currentSnapshot()
+                        guard hasChanges else {
+                            dismiss()
+                            return
                         }
-                        var resaveAvatar = false
-                        planet.about = about.trim()
-                        planet.domain = domain.trim()
-                        if planet.authorName != authorName {
-                            if authorName == "" {
-                                planet.authorName = nil
-                            }
-                            else {
-                                planet.authorName = authorName.trim()
-                            }
-                        }
-                        planet.templateName = templateName
-                        if planet.saveRoundAvatar != saveRoundAvatar {
-                            planet.saveRoundAvatar = saveRoundAvatar
-                            if saveRoundAvatar {
-                                // Read the avatar file on disk and resave it
-                                if let _ = planet.avatar {
-                                    resaveAvatar = true
-                                }
-                            }
-                        }
-                        planet.doNotIndex = doNotIndex
-                        planet.prewarmNewPost = prewarmNewPost
-                        planet.publishAsIPNS = publishAsIPNS
-                        planet.sshRsyncEnabled = sshRsyncEnabled
-                        planet.sshRsyncDestination = MyPlanetModel.normalizedSSHRsyncDestination(
-                            sshRsyncDestination
-                        )
-                        planet.sshRsyncKeyPath = sshRsyncKeyPath
-                        planet.sshRsyncDeleteEnabled = sshRsyncDeleteEnabled
-                        planet.cloudflarePagesEnabled = cloudflarePagesEnabled
-                        planet.cloudflarePagesAccountID = cloudflarePagesAccountID.trim().isEmpty ? nil : cloudflarePagesAccountID.trim()
-                        planet.cloudflarePagesAPIToken = cloudflarePagesAPIToken.trim().isEmpty ? nil : cloudflarePagesAPIToken.trim()
-                        planet.cloudflarePagesProjectName = cloudflarePagesProjectName.trim().isEmpty ? nil : cloudflarePagesProjectName.trim()
-                        planet.plausibleEnabled = plausibleEnabled
-                        planet.plausibleDomain = plausibleDomain.trim()
-                        planet.plausibleAPIKey = plausibleAPIKey
-                        planet.plausibleAPIServer = plausibleAPIServer
-                        planet.twitterUsername = twitterUsername.sanitized().trim()
-                        planet.githubUsername = githubUsername.sanitized().trim()
-                        planet.telegramUsername = telegramUsername.sanitized().trim()
-                        planet.mastodonUsername = mastodonUsername.sanitized().trim()
-                        planet.discordLink = discordLink.trim()
-                        /*
-                        planet.dWebServicesEnabled = dWebServicesEnabled
-                        planet.dWebServicesDomain = dWebServicesDomain
-                        planet.dWebServicesAPIKey = dWebServicesAPIKey
-                        */
-                        planet.juiceboxEnabled = juiceboxEnabled
-                        planet.juiceboxProjectID = Int(juiceboxProjectID)
-                        /* planet.juiceboxProjectIDGoerli = Int(juiceboxProjectIDGoerli) */
-                        planet.pinnableEnabled = pinnableEnabled
-                        planet.pinnableAPIEndpoint = pinnableAPIEndpoint
-                        planet.filebaseEnabled = filebaseEnabled
-                        planet.filebasePinName = filebasePinName
-                        planet.filebaseAPIToken = filebaseAPIToken
+                        let resaveAvatar =
+                            (planet.saveRoundAvatar ?? false) != snapshot.saveRoundAvatar
+                            && snapshot.saveRoundAvatar
+                            && planet.avatar != nil
+                        apply(snapshot)
                         Task {
-                            planet.updateTemplateSettings(settings: userSettings)
                             try planet.save()
                             if resaveAvatar {
                                 Task.detached {
@@ -1126,6 +1117,149 @@ struct MyPlanetEditView: View {
 }
 
 extension MyPlanetEditView {
+    private func normalizedOptionalString(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trim()
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    private func normalizedSocialUsername(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.sanitized().trim()
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    private func normalizedPlausibleAPIServer(_ value: String?) -> String {
+        normalizedOptionalString(value) ?? "plausible.io"
+    }
+
+    private func currentSnapshot() -> EditSnapshot {
+        EditSnapshot(
+            name: planet.name.trim(),
+            about: planet.about.trim(),
+            domain: normalizedOptionalString(planet.domain),
+            authorName: normalizedOptionalString(planet.authorName),
+            templateName: planet.templateName,
+            saveRoundAvatar: planet.saveRoundAvatar ?? false,
+            doNotIndex: planet.doNotIndex ?? false,
+            prewarmNewPost: planet.prewarmNewPost ?? true,
+            publishAsIPNS: planet.publishAsIPNS ?? true,
+            sshRsyncEnabled: planet.sshRsyncEnabled ?? false,
+            sshRsyncDestination: MyPlanetModel.normalizedSSHRsyncDestination(
+                planet.sshRsyncDestination
+            ),
+            sshRsyncKeyPath: planet.sshRsyncKeyPath,
+            sshRsyncDeleteEnabled: planet.sshRsyncDeleteEnabled ?? false,
+            cloudflarePagesEnabled: planet.cloudflarePagesEnabled ?? false,
+            cloudflarePagesAccountID: normalizedOptionalString(planet.cloudflarePagesAccountID),
+            cloudflarePagesAPIToken: normalizedOptionalString(planet.cloudflarePagesAPIToken),
+            cloudflarePagesProjectName: normalizedOptionalString(planet.cloudflarePagesProjectName),
+            plausibleEnabled: planet.plausibleEnabled ?? false,
+            plausibleDomain: normalizedOptionalString(planet.plausibleDomain),
+            plausibleAPIKey: normalizedOptionalString(planet.plausibleAPIKey),
+            plausibleAPIServer: normalizedPlausibleAPIServer(planet.plausibleAPIServer),
+            twitterUsername: normalizedSocialUsername(planet.twitterUsername),
+            githubUsername: normalizedSocialUsername(planet.githubUsername),
+            telegramUsername: normalizedSocialUsername(planet.telegramUsername),
+            mastodonUsername: normalizedSocialUsername(planet.mastodonUsername),
+            discordLink: normalizedOptionalString(planet.discordLink),
+            juiceboxEnabled: planet.juiceboxEnabled ?? false,
+            juiceboxProjectID: planet.juiceboxProjectID,
+            pinnableEnabled: planet.pinnableEnabled ?? false,
+            pinnableAPIEndpoint: normalizedOptionalString(planet.pinnableAPIEndpoint),
+            filebaseEnabled: planet.filebaseEnabled ?? false,
+            filebasePinName: normalizedOptionalString(planet.filebasePinName),
+            filebaseAPIToken: normalizedOptionalString(planet.filebaseAPIToken),
+            templateSettings: currentSettings
+        )
+    }
+
+    private func desiredSnapshot() -> EditSnapshot {
+        let normalizedName = name.trim()
+        return EditSnapshot(
+            name: normalizedName.isEmpty ? planet.name.trim() : normalizedName,
+            about: about.trim(),
+            domain: normalizedOptionalString(domain),
+            authorName: normalizedOptionalString(authorName),
+            templateName: templateName,
+            saveRoundAvatar: saveRoundAvatar,
+            doNotIndex: doNotIndex,
+            prewarmNewPost: prewarmNewPost,
+            publishAsIPNS: publishAsIPNS,
+            sshRsyncEnabled: sshRsyncEnabled,
+            sshRsyncDestination: MyPlanetModel.normalizedSSHRsyncDestination(
+                sshRsyncDestination
+            ),
+            sshRsyncKeyPath: sshRsyncKeyPath,
+            sshRsyncDeleteEnabled: sshRsyncDeleteEnabled,
+            cloudflarePagesEnabled: cloudflarePagesEnabled,
+            cloudflarePagesAccountID: normalizedOptionalString(cloudflarePagesAccountID),
+            cloudflarePagesAPIToken: normalizedOptionalString(cloudflarePagesAPIToken),
+            cloudflarePagesProjectName: normalizedOptionalString(cloudflarePagesProjectName),
+            plausibleEnabled: plausibleEnabled,
+            plausibleDomain: normalizedOptionalString(plausibleDomain),
+            plausibleAPIKey: normalizedOptionalString(plausibleAPIKey),
+            plausibleAPIServer: normalizedPlausibleAPIServer(plausibleAPIServer),
+            twitterUsername: normalizedSocialUsername(twitterUsername),
+            githubUsername: normalizedSocialUsername(githubUsername),
+            telegramUsername: normalizedSocialUsername(telegramUsername),
+            mastodonUsername: normalizedSocialUsername(mastodonUsername),
+            discordLink: normalizedOptionalString(discordLink),
+            juiceboxEnabled: juiceboxEnabled,
+            juiceboxProjectID: Int(juiceboxProjectID),
+            pinnableEnabled: pinnableEnabled,
+            pinnableAPIEndpoint: normalizedOptionalString(pinnableAPIEndpoint),
+            filebaseEnabled: filebaseEnabled,
+            filebasePinName: normalizedOptionalString(filebasePinName),
+            filebaseAPIToken: normalizedOptionalString(filebaseAPIToken),
+            templateSettings: userSettings
+        )
+    }
+
+    private func apply(_ snapshot: EditSnapshot) {
+        planet.name = snapshot.name
+        planet.about = snapshot.about
+        planet.domain = snapshot.domain
+        planet.authorName = snapshot.authorName
+        planet.templateName = snapshot.templateName
+        planet.saveRoundAvatar = snapshot.saveRoundAvatar
+        planet.doNotIndex = snapshot.doNotIndex
+        planet.prewarmNewPost = snapshot.prewarmNewPost
+        planet.publishAsIPNS = snapshot.publishAsIPNS
+        planet.sshRsyncEnabled = snapshot.sshRsyncEnabled
+        planet.sshRsyncDestination = snapshot.sshRsyncDestination
+        planet.sshRsyncKeyPath = snapshot.sshRsyncKeyPath
+        planet.sshRsyncDeleteEnabled = snapshot.sshRsyncDeleteEnabled
+        planet.cloudflarePagesEnabled = snapshot.cloudflarePagesEnabled
+        planet.cloudflarePagesAccountID = snapshot.cloudflarePagesAccountID
+        planet.cloudflarePagesAPIToken = snapshot.cloudflarePagesAPIToken
+        planet.cloudflarePagesProjectName = snapshot.cloudflarePagesProjectName
+        planet.plausibleEnabled = snapshot.plausibleEnabled
+        planet.plausibleDomain = snapshot.plausibleDomain
+        planet.plausibleAPIKey = snapshot.plausibleAPIKey
+        planet.plausibleAPIServer =
+            snapshot.plausibleAPIServer == "plausible.io" ? nil : snapshot.plausibleAPIServer
+        planet.twitterUsername = snapshot.twitterUsername
+        planet.githubUsername = snapshot.githubUsername
+        planet.telegramUsername = snapshot.telegramUsername
+        planet.mastodonUsername = snapshot.mastodonUsername
+        planet.discordLink = snapshot.discordLink
+        /*
+        planet.dWebServicesEnabled = dWebServicesEnabled
+        planet.dWebServicesDomain = dWebServicesDomain
+        planet.dWebServicesAPIKey = dWebServicesAPIKey
+        */
+        planet.juiceboxEnabled = snapshot.juiceboxEnabled
+        planet.juiceboxProjectID = snapshot.juiceboxProjectID
+        /* planet.juiceboxProjectIDGoerli = Int(juiceboxProjectIDGoerli) */
+        planet.pinnableEnabled = snapshot.pinnableEnabled
+        planet.pinnableAPIEndpoint = snapshot.pinnableAPIEndpoint
+        planet.filebaseEnabled = snapshot.filebaseEnabled
+        planet.filebasePinName = snapshot.filebasePinName
+        planet.filebaseAPIToken = snapshot.filebaseAPIToken
+        planet.updateTemplateSettings(settings: snapshot.templateSettings)
+    }
+
     private func selectSSHKey() {
         let panel = NSOpenPanel()
         panel.title = "Select SSH Private Key"
