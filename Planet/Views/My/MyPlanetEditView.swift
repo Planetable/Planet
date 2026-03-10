@@ -4,6 +4,13 @@ struct MyPlanetEditView: View {
     let CONTROL_CAPTION_WIDTH: CGFloat = 120
     let SOCIAL_CONTROL_CAPTION_WIDTH: CGFloat = 120
 
+    private enum CloudflareTokenStatus: Equatable {
+        case idle
+        case checking
+        case verified
+        case invalid
+    }
+
     @Environment(\.dismiss) var dismiss
 
     @EnvironmentObject var planetStore: PlanetStore
@@ -30,6 +37,8 @@ struct MyPlanetEditView: View {
     @State private var cloudflarePagesAccountID: String
     @State private var cloudflarePagesAPIToken: String
     @State private var cloudflarePagesProjectName: String
+    @State private var cloudflareTokenStatus: CloudflareTokenStatus = .idle
+    @State private var cloudflareTokenCheckTask: Task<Void, Never>? = nil
 
     @State private var plausibleEnabled: Bool = false
     @State private var plausibleDomain: String
@@ -355,8 +364,11 @@ struct MyPlanetEditView: View {
             }
 
             HStack {
-                HStack {
+                HStack(spacing: 6) {
                     Text("API Token")
+                    if let indicatorState = cloudflareTokenIndicatorState {
+                        StatusIndicatorView(state: indicatorState)
+                    }
                     Spacer()
                 }
                 .frame(width: CONTROL_CAPTION_WIDTH)
@@ -1112,11 +1124,52 @@ struct MyPlanetEditView: View {
                     selectedColor = Color(hex: value)
                 }
             }
+            scheduleCloudflareTokenVerification()
+        }
+        .onChange(of: cloudflarePagesAPIToken) { _ in
+            scheduleCloudflareTokenVerification()
+        }
+        .onDisappear {
+            cloudflareTokenCheckTask?.cancel()
         }
     }
 }
 
 extension MyPlanetEditView {
+    private var cloudflareTokenIndicatorState: StatusIndicatorState? {
+        switch cloudflareTokenStatus {
+        case .checking:
+            .checking
+        case .verified:
+            .success
+        case .idle, .invalid:
+            nil
+        }
+    }
+
+    private func scheduleCloudflareTokenVerification() {
+        cloudflareTokenCheckTask?.cancel()
+
+        let token = cloudflarePagesAPIToken.trim()
+        guard !token.isEmpty else {
+            cloudflareTokenStatus = .idle
+            return
+        }
+
+        cloudflareTokenStatus = .checking
+        cloudflareTokenCheckTask = Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            guard !Task.isCancelled else { return }
+
+            let isVerified = await CloudflarePages.verifyAPIToken(token)
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                cloudflareTokenStatus = isVerified ? .verified : .invalid
+            }
+        }
+    }
+
     private func normalizedOptionalString(_ value: String?) -> String? {
         guard let value else { return nil }
         let trimmed = value.trim()

@@ -126,7 +126,7 @@ struct PlanetSettingsAIView: View {
 
             Section {
                 HStack(spacing: 8) {
-                    statusCircle
+                    StatusIndicatorView(state: statusIndicatorState)
                     statusLabel
                 }
                 .padding(.top, 4)
@@ -148,26 +148,16 @@ struct PlanetSettingsAIView: View {
         }
     }
 
-    @ViewBuilder
-    private var statusCircle: some View {
+    private var statusIndicatorState: StatusIndicatorState {
         switch modelStatus {
         case .idle:
-            Circle()
-                .frame(width: 10, height: 10)
-                .foregroundStyle(Color.gray)
+            .idle
         case .checking:
-            ProgressView()
-                .progressViewStyle(.circular)
-                .controlSize(.mini)
-                .frame(width: 10, height: 10)
+            .checking
         case .ok(_, let modelFound):
-            Circle()
-                .frame(width: 10, height: 10)
-                .foregroundStyle(modelFound ? Color.green : Color.orange)
+            modelFound ? .success : .warning
         case .error:
-            Circle()
-                .frame(width: 10, height: 10)
-                .foregroundStyle(Color.red)
+            .error
         }
     }
 

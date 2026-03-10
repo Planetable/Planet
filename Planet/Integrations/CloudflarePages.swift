@@ -14,6 +14,7 @@ struct CloudflarePages {
     /// Max raw file data per upload batch (~10 MB; becomes ~14 MB after base64 + JSON overhead)
     private static let maxBatchSize = 10 * 1024 * 1024
     private static let rootHTMLMarker = "\n<!-- Planet Cloudflare Pages root -->\n"
+    private static let tokenVerifyURL = URL(string: "https://api.cloudflare.com/client/v4/user/tokens/verify")!
 
     let accountID: String
     let apiToken: String
@@ -25,6 +26,29 @@ struct CloudflarePages {
 
     private var assetsBaseURL: String {
         "https://api.cloudflare.com/client/v4/pages/assets"
+    }
+
+    static func verifyAPIToken(_ apiToken: String) async -> Bool {
+        let trimmedToken = apiToken.trim()
+        guard !trimmedToken.isEmpty else {
+            return false
+        }
+
+        var request = URLRequest(url: tokenVerifyURL)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(trimmedToken)", forHTTPHeaderField: "Authorization")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                return false
+            }
+            let verification = try JSONDecoder().decode(CloudflareTokenVerificationResponse.self, from: data)
+            return verification.success
+        } catch {
+            logger.error("Cloudflare token verification failed: \(error.localizedDescription, privacy: .public)")
+            return false
+        }
     }
 
     /// Ensure the Pages project exists, creating it if needed.
@@ -448,6 +472,10 @@ struct CloudflarePages {
 
 private struct PagesDeploymentEnvelope: Decodable {
     let result: PagesDeployment
+}
+
+private struct CloudflareTokenVerificationResponse: Decodable {
+    let success: Bool
 }
 
 private struct PagesDeployment: Decodable {

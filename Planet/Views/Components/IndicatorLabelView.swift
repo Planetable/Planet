@@ -7,6 +7,44 @@
 
 import SwiftUI
 
+enum StatusIndicatorState: Equatable {
+    case idle
+    case checking
+    case success
+    case warning
+    case error
+}
+
+struct StatusIndicatorView: View {
+    let state: StatusIndicatorState
+    var size: CGFloat = 10
+
+    var body: some View {
+        switch state {
+        case .idle:
+            Circle()
+                .frame(width: size, height: size)
+                .foregroundStyle(.gray)
+        case .checking:
+            ProgressView()
+                .progressViewStyle(.circular)
+                .controlSize(.mini)
+                .frame(width: size, height: size)
+        case .success:
+            Circle()
+                .frame(width: size, height: size)
+                .foregroundStyle(.green)
+        case .warning:
+            Circle()
+                .frame(width: size, height: size)
+                .foregroundStyle(.orange)
+        case .error:
+            Circle()
+                .frame(width: size, height: size)
+                .foregroundStyle(.red)
+        }
+    }
+}
 
 struct IndicatorLabelView: View {
     var dotColor: Color
