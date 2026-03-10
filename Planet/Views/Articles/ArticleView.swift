@@ -227,6 +227,7 @@ struct ArticleSetStarView: View {
 struct ArticleView: View {
     static let noSelectionURL = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
     @EnvironmentObject var planetStore: PlanetStore
+    @ObservedObject private var ipfsState = IPFSState.shared
     @AppStorage(String.settingsAIIsReady) private var settingsAIIsReady: Bool = false
 
     @State private var url: URL = Self.noSelectionURL
@@ -265,6 +266,9 @@ struct ArticleView: View {
                 syncSelectedArticlePresentation()
             }
             refreshAIChatResponseCount()
+        }
+        .onChange(of: ipfsState.online) { online in
+            handleIPFSOnlineChange(online)
         }
         .onAppear {
             syncSelectedArticlePresentation()
@@ -492,6 +496,33 @@ struct ArticleView: View {
         debugPrint(
             "Current prepared transaction memo is \(planetStore.walletTransactionMemo)"
         )
+    }
+
+    private func handleIPFSOnlineChange(_ online: Bool) {
+        guard online, planetStore.selectedArticle != nil else {
+            return
+        }
+
+        let previousURL = url
+        syncSelectedArticlePresentation()
+
+        guard usesLocalGateway(url) else {
+            return
+        }
+        guard previousURL == url else {
+            return
+        }
+
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .loadArticle, object: nil)
+        }
+    }
+
+    private func usesLocalGateway(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else {
+            return false
+        }
+        return host == "127.0.0.1" || host == "localhost"
     }
 
     private func articleURL(for myArticle: MyArticleModel) -> URL {
