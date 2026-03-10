@@ -2,21 +2,21 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 class ArticleListDropDelegate: DropDelegate {
-    private enum MarkdownDropError: LocalizedError {
-        case multipleMarkdownFiles
+    private enum TextImportDropError: LocalizedError {
+        case multipleTextFiles
         case targetPlanetRequired
 
         var errorDescription: String? {
             switch self {
-            case .multipleMarkdownFiles:
-                return "Drop a single Markdown file at a time."
+            case .multipleTextFiles:
+                return "Drop a single Markdown or text file at a time."
             case .targetPlanetRequired:
-                return "Select one of your planets before dropping a Markdown file."
+                return "Select one of your planets before dropping a Markdown or text file."
             }
         }
     }
 
-    private struct ImportedMarkdownDocument {
+    private struct ImportedTextDocument {
         let title: String
         let content: String
     }
@@ -48,8 +48,8 @@ class ArticleListDropDelegate: DropDelegate {
         return urls
     }
 
-    private static func isMarkdownFile(_ url: URL) -> Bool {
-        ["md", "markdown"].contains(url.pathExtension.lowercased())
+    private static func isImportableTextFile(_ url: URL) -> Bool {
+        ["md", "markdown", "txt"].contains(url.pathExtension.lowercased())
     }
 
     private static func withSecurityScopedAccess<T>(to urls: [URL], _ body: () throws -> T) throws -> T {
@@ -60,13 +60,13 @@ class ArticleListDropDelegate: DropDelegate {
         return try body()
     }
 
-    private static func loadMarkdownDocument(from url: URL) throws -> ImportedMarkdownDocument {
+    private static func loadTextDocument(from url: URL) throws -> ImportedTextDocument {
         var usedEncoding = String.Encoding.utf8.rawValue
         let content = try NSString(contentsOf: url, usedEncoding: &usedEncoding) as String
         if let extracted = extractLeadingMarkdownH1(from: content) {
-            return ImportedMarkdownDocument(title: extracted.title, content: extracted.content)
+            return ImportedTextDocument(title: extracted.title, content: extracted.content)
         }
-        return ImportedMarkdownDocument(title: "", content: content)
+        return ImportedTextDocument(title: "", content: content)
     }
 
     private static func extractLeadingMarkdownH1(from content: String) -> (title: String, content: String)? {
@@ -109,22 +109,22 @@ class ArticleListDropDelegate: DropDelegate {
     }
 
     @MainActor
-    private static func handleMarkdownDrop(_ fileURLs: [URL]) throws -> Bool {
-        let markdownURLs = fileURLs.filter { isMarkdownFile($0) }
-        guard !markdownURLs.isEmpty else {
+    private static func handleTextDocumentDrop(_ fileURLs: [URL]) throws -> Bool {
+        let textDocumentURLs = fileURLs.filter { isImportableTextFile($0) }
+        guard !textDocumentURLs.isEmpty else {
             return false
         }
-        guard markdownURLs.count == 1 else {
-            throw MarkdownDropError.multipleMarkdownFiles
+        guard textDocumentURLs.count == 1 else {
+            throw TextImportDropError.multipleTextFiles
         }
         guard case .myPlanet(let planet)? = PlanetStore.shared.selectedView else {
-            throw MarkdownDropError.targetPlanetRequired
+            throw TextImportDropError.targetPlanetRequired
         }
 
-        let markdownURL = markdownURLs[0]
-        let attachmentURLs = fileURLs.filter { $0 != markdownURL }
+        let textDocumentURL = textDocumentURLs[0]
+        let attachmentURLs = fileURLs.filter { $0 != textDocumentURL }
         try withSecurityScopedAccess(to: fileURLs) {
-            let document = try loadMarkdownDocument(from: markdownURL)
+            let document = try loadTextDocument(from: textDocumentURL)
             try WriterStore.shared.newArticle(
                 for: planet,
                 initialTitle: document.title,
@@ -140,7 +140,7 @@ class ArticleListDropDelegate: DropDelegate {
         Task { @MainActor in
             do {
                 let fileURLs = await Self.droppedFileURLs(from: info)
-                if try Self.handleMarkdownDrop(fileURLs) {
+                if try Self.handleTextDocumentDrop(fileURLs) {
                     if #available(macOS 14.0, *) {
                         NSApp.activate()
                     } else {

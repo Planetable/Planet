@@ -36,7 +36,7 @@ struct WriterTextView: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: WriterCustomTextView, context: Context) {
-        nsView.text = text
+        nsView.updateText(text, preferredSelectedRanges: context.coordinator.selectedRanges)
     }
 
     class Coordinator: NSObject, NSTextViewDelegate {
@@ -169,6 +169,31 @@ class WriterCustomTextView: NSView {
         textView.insertText(text, replacementRange: range)
     }
 
+    func updateText(_ text: String, preferredSelectedRanges: [NSValue]) {
+        self.text = text
+        guard textView.string != text else {
+            return
+        }
+
+        let targetRanges = preferredSelectedRanges.compactMap { value -> NSValue? in
+            let range = value.rangeValue
+            guard range.location != NSNotFound,
+                range.location + range.length <= (text as NSString).length
+            else {
+                return nil
+            }
+            return value
+        }
+
+        textView.string = text
+        if targetRanges.isEmpty {
+            let end = (text as NSString).length
+            textView.setSelectedRange(NSRange(location: end, length: 0))
+        } else {
+            textView.selectedRanges = targetRanges
+        }
+    }
+
     func removeTargetText(text: String) {
         let text = textView.string.replacingOccurrences(of: text, with: "")
         textView.string = text
@@ -229,16 +254,15 @@ class WriterEditorTextView: NSTextView {
     override func concludeDragOperation(_ sender: (any NSDraggingInfo)?) {
         super.concludeDragOperation(sender)
         guard processedURLs.count > 0 else { return }
-        processedURLs.forEach { url in
-            if let attachment = try? draft.addAttachment(path: url, type: AttachmentType.from(url)),
-               let markdown = attachment.markdown {
-                NotificationCenter.default.post(
-                    name: .writerNotification(.insertText, for: attachment.draft),
-                    object: markdown
-                )
-            }
+        let droppedURLs = processedURLs
+        processedURLs = []
+        Task { @MainActor in
+            await WriterDragAndDrop.handleDroppedFiles(
+                droppedURLs,
+                for: draft,
+                insertAttachmentMarkdown: true
+            )
         }
-        try? draft.save()
     }
 
     // MARK: - Process enter / return key event

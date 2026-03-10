@@ -16,6 +16,8 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     var downloadsWindowController: PlanetDownloadsWindowController?
     var publishedFoldersDashboardWindowController: PFDashboardWindowController?
     var keyManagerWindowController: PlanetKeyManagerWindowController?
+    private var pendingQuickShareURLs: [URL] = []
+    private var pendingQuickShareTask: Task<Void, Never>?
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         return true
@@ -78,7 +80,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         } else {
-            createQuickShareWindow(forFiles: urls)
+            queueQuickShareWindow(forFiles: urls)
         }
     }
 
@@ -293,6 +295,32 @@ extension PlanetAppDelegate {
                 alert.addButton(withTitle: "OK")
                 alert.runModal()
             }
+        }
+    }
+
+    private func queueQuickShareWindow(forFiles files: [URL]) {
+        let existingPaths = Set(pendingQuickShareURLs.map { $0.standardizedFileURL.path })
+        var pendingPaths = existingPaths
+        for file in files {
+            let path = file.standardizedFileURL.path
+            if pendingPaths.insert(path).inserted {
+                pendingQuickShareURLs.append(file)
+            }
+        }
+        pendingQuickShareTask?.cancel()
+        pendingQuickShareTask = Task { @MainActor in
+            do {
+                try await Task.sleep(nanoseconds: 200_000_000)
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else {
+                return
+            }
+            let filesToOpen = pendingQuickShareURLs
+            pendingQuickShareURLs = []
+            pendingQuickShareTask = nil
+            createQuickShareWindow(forFiles: filesToOpen)
         }
     }
 }

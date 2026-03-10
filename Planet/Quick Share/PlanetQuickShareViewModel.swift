@@ -12,6 +12,11 @@ import UniformTypeIdentifiers
 class PlanetQuickShareViewModel: ObservableObject {
     static let shared = PlanetQuickShareViewModel()
 
+    private struct ImportedTextDocument {
+        let title: String?
+        let content: String
+    }
+
     @Published private(set) var sending: Bool = false
     @Published var myPlanets: [MyPlanetModel] = []
     @Published var selectedPlanetID: UUID = UUID() {
@@ -78,15 +83,37 @@ class PlanetQuickShareViewModel: ObservableObject {
         {
             selectedPlanetID = uuid
         }
-        title = files.first?.lastPathComponent.sanitized() ?? Date().dateDescription()
+
+        let textDocumentURLs = files.filter { Self.isImportableTextFile($0) }
+        let importedTextDocument: ImportedTextDocument?
+        if textDocumentURLs.count == 1, let textDocumentURL = textDocumentURLs.first {
+            importedTextDocument = try Self.withSecurityScopedAccess(to: [textDocumentURL]) {
+                try Self.loadTextDocument(from: textDocumentURL)
+            }
+            title = textDocumentURL.deletingPathExtension().lastPathComponent.sanitized()
+        } else {
+            importedTextDocument = nil
+            title = files.first?.lastPathComponent.sanitized() ?? Date().dateDescription()
+        }
         for file in files {
             if file.pathExtension == "tiff" && title == file.lastPathComponent {
                 title = file.deletingPathExtension().appendingPathExtension("png").lastPathComponent
             }
         }
-        content = ""
+        if let importedTextDocument {
+            if let documentTitle = importedTextDocument.title, !documentTitle.isEmpty {
+                title = documentTitle
+            }
+            content = importedTextDocument.content
+        } else {
+            content = ""
+        }
         externalLink = ""
-        fileURLs = files
+        if let textDocumentURL = textDocumentURLs.first, textDocumentURLs.count == 1 {
+            fileURLs = files.filter { $0 != textDocumentURL }
+        } else {
+            fileURLs = files
+        }
     }
 
     func processPasteItems(_ providers: [NSItemProvider]) {
@@ -205,5 +232,65 @@ class PlanetQuickShareViewModel: ObservableObject {
         fileURLs = []
         tags = [:]
         sending = false
+    }
+
+    private static func isImportableTextFile(_ url: URL) -> Bool {
+        ["md", "markdown", "txt"].contains(url.pathExtension.lowercased())
+    }
+
+    private static func withSecurityScopedAccess<T>(to urls: [URL], _ body: () throws -> T) throws -> T {
+        let scopedURLs = urls.filter { $0.startAccessingSecurityScopedResource() }
+        defer {
+            scopedURLs.forEach { $0.stopAccessingSecurityScopedResource() }
+        }
+        return try body()
+    }
+
+    private static func loadTextDocument(from url: URL) throws -> ImportedTextDocument {
+        var usedEncoding = String.Encoding.utf8.rawValue
+        let content = try NSString(contentsOf: url, usedEncoding: &usedEncoding) as String
+        if let extracted = extractLeadingMarkdownH1(from: content) {
+            return ImportedTextDocument(title: extracted.title, content: extracted.content)
+        }
+        return ImportedTextDocument(title: nil, content: content)
+    }
+
+    private static func extractLeadingMarkdownH1(from content: String) -> (title: String, content: String)? {
+        let normalizedContent = content
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        var lines = normalizedContent.components(separatedBy: "\n")
+
+        guard let headingIndex = lines.firstIndex(where: {
+            !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }) else {
+            return nil
+        }
+
+        let line = lines[headingIndex].trimmingCharacters(in: .whitespaces)
+        guard line.hasPrefix("#"), !line.hasPrefix("##") else {
+            return nil
+        }
+
+        let remainder = line.dropFirst()
+        guard let first = remainder.first, first == " " || first == "\t" else {
+            return nil
+        }
+
+        var title = String(remainder).trimmingCharacters(in: .whitespacesAndNewlines)
+        title = title.replacingOccurrences(of: #"\s#+\s*$"#, with: "", options: .regularExpression)
+        title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else {
+            return nil
+        }
+
+        lines.remove(at: headingIndex)
+        if headingIndex < lines.count,
+            lines[headingIndex].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        {
+            lines.remove(at: headingIndex)
+        }
+
+        return (title: title, content: lines.joined(separator: "\n"))
     }
 }
