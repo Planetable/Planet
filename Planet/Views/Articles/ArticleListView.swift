@@ -2,6 +2,25 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 class ArticleListDropDelegate: DropDelegate {
+    private enum MarkdownDropError: LocalizedError {
+        case multipleMarkdownFiles
+        case targetPlanetRequired
+
+        var errorDescription: String? {
+            switch self {
+            case .multipleMarkdownFiles:
+                return "Drop a single Markdown file at a time."
+            case .targetPlanetRequired:
+                return "Select one of your planets before dropping a Markdown file."
+            }
+        }
+    }
+
+    private struct ImportedMarkdownDocument {
+        let title: String
+        let content: String
+    }
+
     init() {}
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
@@ -12,11 +31,126 @@ class ArticleListDropDelegate: DropDelegate {
         return info.itemProviders(for: [.fileURL]).count > 0
     }
 
+    private static func droppedFileURLs(from info: DropInfo) async -> [URL] {
+        var urls: [URL] = []
+        var seenPaths = Set<String>()
+        for provider in info.itemProviders(for: [.fileURL]) {
+            if let item = try? await provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier),
+                let data = item as? Data,
+                let url = URL(dataRepresentation: data, relativeTo: nil)
+            {
+                let path = url.standardizedFileURL.path
+                if seenPaths.insert(path).inserted {
+                    urls.append(url)
+                }
+            }
+        }
+        return urls
+    }
+
+    private static func isMarkdownFile(_ url: URL) -> Bool {
+        ["md", "markdown"].contains(url.pathExtension.lowercased())
+    }
+
+    private static func withSecurityScopedAccess<T>(to urls: [URL], _ body: () throws -> T) throws -> T {
+        let scopedURLs = urls.filter { $0.startAccessingSecurityScopedResource() }
+        defer {
+            scopedURLs.forEach { $0.stopAccessingSecurityScopedResource() }
+        }
+        return try body()
+    }
+
+    private static func loadMarkdownDocument(from url: URL) throws -> ImportedMarkdownDocument {
+        var usedEncoding = String.Encoding.utf8.rawValue
+        let content = try NSString(contentsOf: url, usedEncoding: &usedEncoding) as String
+        if let extracted = extractLeadingMarkdownH1(from: content) {
+            return ImportedMarkdownDocument(title: extracted.title, content: extracted.content)
+        }
+        return ImportedMarkdownDocument(title: "", content: content)
+    }
+
+    private static func extractLeadingMarkdownH1(from content: String) -> (title: String, content: String)? {
+        let normalizedContent = content
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        var lines = normalizedContent.components(separatedBy: "\n")
+
+        guard let headingIndex = lines.firstIndex(where: {
+            !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }) else {
+            return nil
+        }
+
+        let line = lines[headingIndex].trimmingCharacters(in: .whitespaces)
+        guard line.hasPrefix("#"), !line.hasPrefix("##") else {
+            return nil
+        }
+
+        let remainder = line.dropFirst()
+        guard let first = remainder.first, first == " " || first == "\t" else {
+            return nil
+        }
+
+        var title = String(remainder).trimmingCharacters(in: .whitespacesAndNewlines)
+        title = title.replacingOccurrences(of: #"\s#+\s*$"#, with: "", options: .regularExpression)
+        title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else {
+            return nil
+        }
+
+        lines.remove(at: headingIndex)
+        if headingIndex < lines.count,
+            lines[headingIndex].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        {
+            lines.remove(at: headingIndex)
+        }
+
+        return (title: title, content: lines.joined(separator: "\n"))
+    }
+
+    @MainActor
+    private static func handleMarkdownDrop(_ fileURLs: [URL]) throws -> Bool {
+        let markdownURLs = fileURLs.filter { isMarkdownFile($0) }
+        guard !markdownURLs.isEmpty else {
+            return false
+        }
+        guard markdownURLs.count == 1 else {
+            throw MarkdownDropError.multipleMarkdownFiles
+        }
+        guard case .myPlanet(let planet)? = PlanetStore.shared.selectedView else {
+            throw MarkdownDropError.targetPlanetRequired
+        }
+
+        let markdownURL = markdownURLs[0]
+        let attachmentURLs = fileURLs.filter { $0 != markdownURL }
+        try withSecurityScopedAccess(to: fileURLs) {
+            let document = try loadMarkdownDocument(from: markdownURL)
+            try WriterStore.shared.newArticle(
+                for: planet,
+                initialTitle: document.title,
+                initialContent: document.content,
+                attachmentURLs: attachmentURLs,
+                forceNewDraft: true
+            )
+        }
+        return true
+    }
+
     func performDrop(info: DropInfo) -> Bool {
         Task { @MainActor in
-            let urls: [URL] = await PlanetQuickShareDropDelegate.processDropInfo(info)
-            guard urls.count > 0 else { return }
             do {
+                let fileURLs = await Self.droppedFileURLs(from: info)
+                if try Self.handleMarkdownDrop(fileURLs) {
+                    if #available(macOS 14.0, *) {
+                        NSApp.activate()
+                    } else {
+                        NSApp.activate(ignoringOtherApps: true)
+                    }
+                    return
+                }
+
+                let urls: [URL] = await PlanetQuickShareDropDelegate.processDropInfo(info)
+                guard urls.count > 0 else { return }
                 try PlanetQuickShareViewModel.shared.prepareFiles(urls)
                 PlanetStore.shared.isQuickSharing = true
                 if #available(macOS 14.0, *) {
