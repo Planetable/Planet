@@ -47,8 +47,9 @@ struct PlanetSettingsAIView: View {
                 Text(AIEndpointSecurityPolicy.insecureHTTPErrorDescription)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .padding(.top, 1)
+                    .padding(.bottom, 8)
             }
-            .padding(.top, 6)
 
             Section {
                 ZStack {

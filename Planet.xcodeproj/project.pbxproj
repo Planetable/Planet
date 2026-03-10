@@ -21,8 +21,6 @@
 		2A0E91912BE8EFC600F69578 /* IPFSStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0E918F2BE8EFC600F69578 /* IPFSStatusView.swift */; };
 		2A1B9CF62D942F9800EF5488 /* ScheduledTasksManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A1B9CF52D942F9800EF5488 /* ScheduledTasksManager.swift */; };
 		2A1B9CF72D942F9800EF5488 /* ScheduledTasksManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A1B9CF52D942F9800EF5488 /* ScheduledTasksManager.swift */; };
-		C1A2B3D4E5F6A7B8C9D0E1F3 /* SleepPreventer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F6A7B8C9D0E1F2 /* SleepPreventer.swift */; };
-		C1A2B3D4E5F6A7B8C9D0E1F4 /* SleepPreventer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F6A7B8C9D0E1F2 /* SleepPreventer.swift */; };
 		2A23C2062B8ED4E2000138DA /* PlanetDirectoryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */; };
 		2A23C2072B8F3B06000138DA /* PlanetDirectoryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */; };
 		2A250A092CF4D81E00AE9A4A /* PP.json in Resources */ = {isa = PBXBuildFile; fileRef = 2A250A082CF4D81E00AE9A4A /* PP.json */; };
@@ -60,12 +58,6 @@
 		2A3C6E792C22A3AA007B2CCD /* IPFSStatusWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3C6E702C22A3AA007B2CCD /* IPFSStatusWindowManager.swift */; };
 		2A3D28C22C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28C12C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift */; };
 		2A3D28C32C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28C12C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift */; };
-		5F244DE6913A63FF00000004 /* SSHRsyncLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */; };
-		76B55B235F244DE6913A63FF /* SSHRsyncLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */; };
-		5F244DE6913A63FF00000005 /* PublishLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000002 /* PublishLogView.swift */; };
-		E77C82F7465746DF88F58625 /* PublishLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000002 /* PublishLogView.swift */; };
-		CF0A0002303909CF00000001 /* CloudflarePagesLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */; };
-		CF0A0002303909CF00000002 /* CloudflarePagesLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */; };
 		2A3D28C82C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28C72C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift */; };
 		2A3D28C92C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28C72C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift */; };
 		2A3D28CB2C6A8137005ABCF5 /* PlanetAPILogMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3D28CA2C6A8137005ABCF5 /* PlanetAPILogMiddleware.swift */; };
@@ -230,8 +222,6 @@
 		2A95E6DE2A19A521001288B8 /* Pinnable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8776D32A01B78800C6003B /* Pinnable.swift */; };
 		2A95E6DF2A19A521001288B8 /* Plausible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1228DB75F700034D55 /* Plausible.swift */; };
 		2A95E6E02A19A521001288B8 /* Filebase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1028DB74C500034D55 /* Filebase.swift */; };
-		CF0A0001303909CF00000001 /* CloudflarePages.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0001303909CF00000000 /* CloudflarePages.swift */; };
-		CF0A0001303909CF00000002 /* CloudflarePages.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0001303909CF00000000 /* CloudflarePages.swift */; };
 		2A95E6E12A19A521001288B8 /* dWebServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2F5F1428DB767A00034D55 /* dWebServices.swift */; };
 		2A95E6E32A19A5D1001288B8 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A9C210F29792464005A815E /* AVKit.framework */; };
 		2A95E6E42A19A64F001288B8 /* CLTextFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2F70ED29670D1300755931 /* CLTextFieldView.swift */; };
@@ -359,6 +349,8 @@
 		2AFB897629BA3ED8003D893E /* PlanetKeyManagerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB897529BA3ED8003D893E /* PlanetKeyManagerModel.swift */; };
 		2AFDF8AA2A3A1E8500386B9A /* ASMediaView in Frameworks */ = {isa = PBXBuildFile; productRef = 2AFDF8A92A3A1E8500386B9A /* ASMediaView */; };
 		2AFFD51B28AD760400EDB020 /* HelpLinkButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */; };
+		5F244DE6913A63FF00000004 /* SSHRsyncLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */; };
+		5F244DE6913A63FF00000005 /* PublishLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000002 /* PublishLogView.swift */; };
 		6A03269C2C81C49100FEDD55 /* MyPlanetDonationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A03269B2C81C49100FEDD55 /* MyPlanetDonationSettingsView.swift */; };
 		6A03269D2C81C49100FEDD55 /* MyPlanetDonationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A03269B2C81C49100FEDD55 /* MyPlanetDonationSettingsView.swift */; };
 		6A03269F2C81DF2100FEDD55 /* String+EthereumChecksumAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A03269E2C81DF2000FEDD55 /* String+EthereumChecksumAddress.swift */; };
@@ -499,6 +491,7 @@
 		6AE93656290CB10700BAC092 /* PlanetSettingsPlanetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */; };
 		6AEE99DC2C26C2AD00736D0B /* MNCR.json in Resources */ = {isa = PBXBuildFile; fileRef = 6AEE99DB2C26C2AD00736D0B /* MNCR.json */; };
 		6AEE99DD2C26C2AD00736D0B /* MNCR.json in Resources */ = {isa = PBXBuildFile; fileRef = 6AEE99DB2C26C2AD00736D0B /* MNCR.json */; };
+		6AF54DA22F602EC300DCF858 /* ChatInputField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AF54DA12F602EC300DCF858 /* ChatInputField.swift */; };
 		6AF8B0282C42BD400007E2AE /* ArticleListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AF8B0272C42BD400007E2AE /* ArticleListViewModel.swift */; };
 		6AF8B0292C42BD400007E2AE /* ArticleListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AF8B0272C42BD400007E2AE /* ArticleListViewModel.swift */; };
 		6AFCF7DC2B7353C6002299BA /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7DB2B7353C6002299BA /* Collections */; };
@@ -548,11 +541,21 @@
 		72114E3DCDF2B0618F4693D7 /* MyArticleItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211477C97CD9725E13B885E /* MyArticleItemView.swift */; };
 		72114F25F504270EB29068C9 /* PlanetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7211404DFC1B4D23F84EA279 /* PlanetError.swift */; };
 		72114FE37ADE9340E448FF3E /* WriterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72114B2B1F05731320A89022 /* WriterViewModel.swift */; };
+		76B55B235F244DE6913A63FF /* SSHRsyncLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */; };
 		BB6FC66D28423AF80072C3A1 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = BB6FC66C28423AF80072C3A1 /* SwiftSoup */; };
 		BB7FC8752898C70A00359802 /* libcmark_gfm in Frameworks */ = {isa = PBXBuildFile; productRef = BB7FC8742898C70A00359802 /* libcmark_gfm */; };
 		BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BB99C7062847AC9F001836B2 /* Sparkle */; };
 		BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */ = {isa = PBXBuildFile; productRef = BBAE651A28987A31007E1818 /* HTMLEntities */; };
 		BBC831AB2836239300CE1F67 /* PlanetSiteTemplates in Frameworks */ = {isa = PBXBuildFile; productRef = BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */; };
+		C1A2B3D4E5F6A7B8C9D0E1F3 /* SleepPreventer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F6A7B8C9D0E1F2 /* SleepPreventer.swift */; };
+		C1A2B3D4E5F6A7B8C9D0E1F4 /* SleepPreventer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F6A7B8C9D0E1F2 /* SleepPreventer.swift */; };
+		CF0A0001303909CF00000001 /* CloudflarePages.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0001303909CF00000000 /* CloudflarePages.swift */; };
+		CF0A0001303909CF00000002 /* CloudflarePages.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0001303909CF00000000 /* CloudflarePages.swift */; };
+		CF0A0002303909CF00000001 /* CloudflarePagesLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */; };
+		CF0A0002303909CF00000002 /* CloudflarePagesLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */; };
+		D1E4B9A12F4CB0A100AA1101 /* PlanetSettingsLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E4B9A32F4CB0A100AA1101 /* PlanetSettingsLayout.swift */; };
+		D1E4B9A22F4CB0A100AA1101 /* PlanetSettingsLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E4B9A32F4CB0A100AA1101 /* PlanetSettingsLayout.swift */; };
+		E77C82F7465746DF88F58625 /* PublishLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F244DE6913A63FF00000002 /* PublishLogView.swift */; };
 		E8B4FE3D2A8D144E00C01E94 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E8B4FE3F2A8D144E00C01E94 /* Localizable.strings */; };
 		E8B4FE422A8D146100C01E94 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = E8B4FE442A8D146100C01E94 /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
@@ -603,7 +606,6 @@
 		2A0E918B2BE889B000F69578 /* IPFSGateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSGateway.swift; sourceTree = "<group>"; };
 		2A0E918F2BE8EFC600F69578 /* IPFSStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPFSStatusView.swift; sourceTree = "<group>"; };
 		2A1B9CF52D942F9800EF5488 /* ScheduledTasksManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledTasksManager.swift; sourceTree = "<group>"; };
-		C1A2B3D4E5F6A7B8C9D0E1F2 /* SleepPreventer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepPreventer.swift; sourceTree = "<group>"; };
 		2A23C2052B8ED4E2000138DA /* PlanetDirectoryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetDirectoryMonitor.swift; sourceTree = "<group>"; };
 		2A250A082CF4D81E00AE9A4A /* PP.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PP.json; sourceTree = "<group>"; };
 		2A2556AE293E1E7D006462D8 /* TBWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TBWindowController.swift; sourceTree = "<group>"; };
@@ -633,9 +635,6 @@
 		2A3C6E6F2C22A3AA007B2CCD /* IPFSStatusWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSStatusWindowController.swift; sourceTree = "<group>"; };
 		2A3C6E702C22A3AA007B2CCD /* IPFSStatusWindowManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IPFSStatusWindowManager.swift; sourceTree = "<group>"; };
 		2A3D28C12C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIConsoleView.swift; sourceTree = "<group>"; };
-		5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHRsyncLogger.swift; sourceTree = "<group>"; };
-		5F244DE6913A63FF00000002 /* PublishLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishLogView.swift; sourceTree = "<group>"; };
-		CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflarePagesLogger.swift; sourceTree = "<group>"; };
 		2A3D28C72C6A80F5005ABCF5 /* PlanetAPIConsoleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPIConsoleViewModel.swift; sourceTree = "<group>"; };
 		2A3D28CA2C6A8137005ABCF5 /* PlanetAPILogMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetAPILogMiddleware.swift; sourceTree = "<group>"; };
 		2A4164D329E64755009BFC24 /* PlanetQuickShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetQuickShareView.swift; sourceTree = "<group>"; };
@@ -762,6 +761,8 @@
 		2AFB897329BA35D6003D893E /* PlanetKeyManager+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlanetKeyManager+Extension.swift"; sourceTree = "<group>"; };
 		2AFB897529BA3ED8003D893E /* PlanetKeyManagerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetKeyManagerModel.swift; sourceTree = "<group>"; };
 		2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpLinkButton.swift; sourceTree = "<group>"; };
+		5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHRsyncLogger.swift; sourceTree = "<group>"; };
+		5F244DE6913A63FF00000002 /* PublishLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishLogView.swift; sourceTree = "<group>"; };
 		6A03269B2C81C49100FEDD55 /* MyPlanetDonationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetDonationSettingsView.swift; sourceTree = "<group>"; };
 		6A03269E2C81DF2000FEDD55 /* String+EthereumChecksumAddress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+EthereumChecksumAddress.swift"; sourceTree = "<group>"; };
 		6A0624D12876BF130014DDDD /* MigrationProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationProgressView.swift; sourceTree = "<group>"; };
@@ -778,7 +779,6 @@
 		6A2B9BE527ED24A00005467C /* FollowingArticleItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowingArticleItemView.swift; sourceTree = "<group>"; };
 		6A2C0BBB2A729DC2009E53DE /* AvatarPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarPickerView.swift; sourceTree = "<group>"; };
 		6A2D6B8C285141A60078F531 /* Saver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Saver.swift; sourceTree = "<group>"; };
-		CF0A0001303909CF00000000 /* CloudflarePages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflarePages.swift; sourceTree = "<group>"; };
 		6A2F5F1028DB74C500034D55 /* Filebase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filebase.swift; sourceTree = "<group>"; };
 		6A2F5F1228DB75F700034D55 /* Plausible.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plausible.swift; sourceTree = "<group>"; };
 		6A2F5F1428DB767A00034D55 /* dWebServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = dWebServices.swift; sourceTree = "<group>"; };
@@ -847,6 +847,7 @@
 		6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsPlanetsView.swift; sourceTree = "<group>"; };
 		6AEE99DB2C26C2AD00736D0B /* MNCR.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = MNCR.json; sourceTree = "<group>"; };
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
+		6AF54DA12F602EC300DCF858 /* ChatInputField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatInputField.swift; sourceTree = "<group>"; };
 		6AF8B0272C42BD400007E2AE /* ArticleListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleListViewModel.swift; sourceTree = "<group>"; };
 		7211403BD64F1D6E5B14D69E /* WriterVideoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WriterVideoView.swift; sourceTree = "<group>"; };
 		7211404DFC1B4D23F84EA279 /* PlanetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetError.swift; sourceTree = "<group>"; };
@@ -891,6 +892,10 @@
 		BB8ADF83282580130024DEE2 /* Planet v6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v6.xcdatamodel"; sourceTree = "<group>"; };
 		BBC60A1A2803931C007A42D0 /* Planet v5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v5.xcdatamodel"; sourceTree = "<group>"; };
 		BBC831AC2837075600CE1F67 /* Planet v7.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v7.xcdatamodel"; sourceTree = "<group>"; };
+		C1A2B3D4E5F6A7B8C9D0E1F2 /* SleepPreventer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepPreventer.swift; sourceTree = "<group>"; };
+		CF0A0001303909CF00000000 /* CloudflarePages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflarePages.swift; sourceTree = "<group>"; };
+		CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflarePagesLogger.swift; sourceTree = "<group>"; };
+		D1E4B9A32F4CB0A100AA1101 /* PlanetSettingsLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsLayout.swift; sourceTree = "<group>"; };
 		E8B4FE3E2A8D144E00C01E94 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		E8B4FE432A8D146100C01E94 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1308,6 +1313,7 @@
 				2AE44EA828CD214800944786 /* PlanetSettingsView.swift */,
 				2AE44EAB28CD218200944786 /* PlanetSettingsGeneralView.swift */,
 				6A8D7DCB2F49C1420084703B /* PlanetSettingsAIView.swift */,
+				D1E4B9A32F4CB0A100AA1101 /* PlanetSettingsLayout.swift */,
 				6AE93655290CB10700BAC092 /* PlanetSettingsPlanetsView.swift */,
 				2AE44EAD28CD219700944786 /* PlanetSettingsModel.swift */,
 				2AE44EAF28CD223C00944786 /* PlanetSettingsViewModel.swift */,
@@ -1359,6 +1365,16 @@
 			path = "Key Manager";
 			sourceTree = "<group>";
 		};
+		5F244DE6913A63FF00000003 /* SSHRsync */ = {
+			isa = PBXGroup;
+			children = (
+				CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */,
+				5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */,
+				5F244DE6913A63FF00000002 /* PublishLogView.swift */,
+			);
+			path = SSHRsync;
+			sourceTree = "<group>";
+		};
 		6A0624D02876BF020014DDDD /* Saver */ = {
 			isa = PBXGroup;
 			children = (
@@ -1382,6 +1398,7 @@
 			isa = PBXGroup;
 			children = (
 				6A85ABDF2F4C92D3003E8F63 /* ArticleAIChatView.swift */,
+				6AF54DA12F602EC300DCF858 /* ChatInputField.swift */,
 				7211433BE4B52A03C1722DA7 /* ArticleAudioPlayer.swift */,
 				2A09A36027C2582B0003A0B5 /* ArticleListView.swift */,
 				6AF8B0272C42BD400007E2AE /* ArticleListViewModel.swift */,
@@ -1411,16 +1428,6 @@
 				6A1DA07C28B4278300C6B5A9 /* DecentralizedApp.swift */,
 			);
 			path = dApps;
-			sourceTree = "<group>";
-		};
-		5F244DE6913A63FF00000003 /* SSHRsync */ = {
-			isa = PBXGroup;
-			children = (
-				CF0A0002303909CF00000000 /* CloudflarePagesLogger.swift */,
-				5F244DE6913A63FF00000001 /* SSHRsyncLogger.swift */,
-				5F244DE6913A63FF00000002 /* PublishLogView.swift */,
-			);
-			path = SSHRsync;
 			sourceTree = "<group>";
 		};
 		6A1F97A42ADDDDE500C75625 /* API */ = {
@@ -2019,6 +2026,7 @@
 				2A95E6462A19A336001288B8 /* PlanetQuickShare+Extension.swift in Sources */,
 				2A39678A2D7ADB2F002CBE7A /* HttpRequest.swift in Sources */,
 				6A8D7DCC2F49C14B0084703B /* PlanetSettingsAIView.swift in Sources */,
+				D1E4B9A12F4CB0A100AA1101 /* PlanetSettingsLayout.swift in Sources */,
 				2A95E6542A19A39C001288B8 /* PlanetPublishedFolders+Extension.swift in Sources */,
 				6A61D5E82B23A234007F761E /* CapsuleBar.swift in Sources */,
 				2A95E6532A19A39C001288B8 /* PlanetPublishedServiceStore.swift in Sources */,
@@ -2072,7 +2080,7 @@
 				2A95E64A2A19A398001288B8 /* PFDashboardSidebarView.swift in Sources */,
 				2A3D28C22C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */,
 				5F244DE6913A63FF00000004 /* SSHRsyncLogger.swift in Sources */,
-				5F244DE6913A63FF00000005 /* SSHRsyncLogView.swift in Sources */,
+				5F244DE6913A63FF00000005 /* PublishLogView.swift in Sources */,
 				CF0A0002303909CF00000001 /* CloudflarePagesLogger.swift in Sources */,
 				2A8E08582BF4B190002D0C03 /* IPFSOpenWindowController.swift in Sources */,
 				2A95E65E2A19A3AA001288B8 /* TemplateBrowserSidebar.swift in Sources */,
@@ -2251,6 +2259,7 @@
 				72114F25F504270EB29068C9 /* PlanetError.swift in Sources */,
 				6A2D6B8D285141A60078F531 /* Saver.swift in Sources */,
 				C1A2B3D4E5F6A7B8C9D0E1F4 /* SleepPreventer.swift in Sources */,
+				6AF54DA22F602EC300DCF858 /* ChatInputField.swift in Sources */,
 				72114509730D9D97178E0E82 /* IPFSState.swift in Sources */,
 				6A2F5F1328DB75F700034D55 /* Plausible.swift in Sources */,
 				2AFB896429B7ACF3003D893E /* KeychainHelper.swift in Sources */,
@@ -2283,6 +2292,7 @@
 				721145EEDE381A8BDED43E93 /* FeedUtils.swift in Sources */,
 				721144331A990EB4451F1C1F /* MyPlanetModel.swift in Sources */,
 				2AEFEE962C4BA4E700EEB958 /* PlanetAPIModels.swift in Sources */,
+				D1E4B9A22F4CB0A100AA1101 /* PlanetSettingsLayout.swift in Sources */,
 				6A8D7DCD2F49C14B0084703B /* PlanetSettingsAIView.swift in Sources */,
 				72114A3B2AA58EA6B139AEB8 /* FollowingPlanetModel.swift in Sources */,
 				72114C03242147A247A8B317 /* Runner.swift in Sources */,
@@ -2341,7 +2351,7 @@
 				72114717FB02C931CE9E08E9 /* MyPlanetSidebarItem.swift in Sources */,
 				2A3D28C32C6A80DE005ABCF5 /* PlanetAPIConsoleView.swift in Sources */,
 				76B55B235F244DE6913A63FF /* SSHRsyncLogger.swift in Sources */,
-				E77C82F7465746DF88F58625 /* SSHRsyncLogView.swift in Sources */,
+				E77C82F7465746DF88F58625 /* PublishLogView.swift in Sources */,
 				CF0A0002303909CF00000002 /* CloudflarePagesLogger.swift in Sources */,
 				2A4AE87A2A89EF3600A27B5B /* GroupIndicatorView.swift in Sources */,
 				6AB6E4FB2915227600F17328 /* WalletManager.swift in Sources */,

@@ -110,6 +110,10 @@ struct ArticleAIChatView: View {
     @State private var chatFontSize: CGFloat = 14
     @State private var toolProgressText: String? = nil
 
+    private var canSendMessage: Bool {
+        !isSending && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -167,7 +171,7 @@ struct ArticleAIChatView: View {
                                     .lineSpacing(5)
                                     .foregroundStyle(.secondary)
                                     .padding(.top, message.role == "assistant" ? 0 : 8)
-                                    .frame(width: 34, alignment: .leading)
+                                    .frame(width: 34, alignment: .trailing)
                                 VStack(alignment: .leading, spacing: 6) {
                                     chatMessageContent(for: message)
                                         .font(.system(size: chatFontSize))
@@ -198,7 +202,7 @@ struct ArticleAIChatView: View {
                                     .font(.system(size: chatFontSize))
                                     .lineSpacing(5)
                                     .foregroundStyle(.secondary)
-                                    .frame(width: 34, alignment: .leading)
+                                    .frame(width: 34, alignment: .trailing)
                                 Text(toolProgressText)
                                     .font(.system(size: chatFontSize))
                                     .lineSpacing(5)
@@ -230,16 +234,32 @@ struct ArticleAIChatView: View {
 
             Divider()
 
-            HStack(spacing: 8) {
-                chatInputField()
+            VStack(spacing: 0) {
+                ChatInputField(
+                    text: $inputText,
+                    fontSize: chatFontSize,
+                    isDisabled: isSending
+                )
 
-                Button("Send") {
-                    sendMessage()
+                Divider()
+
+                HStack(spacing: 8) {
+                    Text("Return inserts a new line. Command-Return sends.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Send") {
+                        sendMessage()
+                    }
+                    .frame(minWidth: 56)
+                    .disabled(!canSendMessage)
+                    .keyboardShortcut(.return, modifiers: [.command])
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.roundedRectangle)
                 }
-                .disabled(isSending || inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                .keyboardShortcut(.return, modifiers: [])
+                .padding(10)
+                .background(Color(NSColor.windowBackgroundColor))
             }
-            .padding(12)
         }
         .frame(width: 720, height: 520)
         .onAppear {
@@ -250,26 +270,6 @@ struct ArticleAIChatView: View {
             Task { @MainActor in
                 shouldAnimateScroll = true
             }
-        }
-    }
-
-    @ViewBuilder
-    private func chatInputField() -> some View {
-        if #available(macOS 13.0, *) {
-            TextField("Ask about this article…", text: $inputText, axis: .vertical)
-                .lineLimit(1 ... 6)
-                .textFieldStyle(.roundedBorder)
-                .onSubmit {
-                    sendMessage()
-                }
-                .disabled(isSending)
-        } else {
-            TextField("Ask about this article…", text: $inputText)
-                .textFieldStyle(.roundedBorder)
-                .onSubmit {
-                    sendMessage()
-                }
-                .disabled(isSending)
         }
     }
 
@@ -356,18 +356,26 @@ struct ArticleAIChatView: View {
             let attributed = attributedAssistantMessage(message.content)
         {
             Text(attributed)
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
         } else {
-            Text(message.content)
+            Text(verbatim: normalizedMessageContent(message.content))
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
         }
     }
 
     private func attributedAssistantMessage(_ content: String) -> AttributedString? {
-        let normalized = content
-            .replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
+        let normalized = normalizedMessageContent(content)
         var options = AttributedString.MarkdownParsingOptions()
         options.interpretedSyntax = .inlineOnlyPreservingWhitespace
         return try? AttributedString(markdown: normalized, options: options)
+    }
+
+    private func normalizedMessageContent(_ content: String) -> String {
+        content
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
     }
 
     private func sendMessage() {
