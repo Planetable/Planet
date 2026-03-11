@@ -108,6 +108,15 @@ extension MyArticleModel {
         processSlug()
         marks.recordEvent("ArticleSlug", for: self.title)
 
+        if !usingTasks {
+            do {
+                try self.planet.saveOps()
+            }
+            catch {
+                debugPrint("failed to save ops to file: \(error)")
+            }
+        }
+
         // MARK: - Send notification when done
         Task { @MainActor in
             debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
@@ -221,7 +230,7 @@ extension MyArticleModel {
         let videoThumbnailFilename = "_videoThumbnail.png"
         let videoThumbnailPath = publicBasePath.appendingPathComponent(videoThumbnailFilename)
         let opKey = "\(self.id)-video-thumbnail-\(videoFilename)"
-        if let op = self.planet.ops[opKey],
+        if let op = self.planet.opDate(for: opKey),
             FileManager.default.fileExists(atPath: videoThumbnailPath.path)
         {
             debugPrint("Video thumbnail operation for \(opKey) is already done at \(op)")
@@ -232,9 +241,7 @@ extension MyArticleModel {
         {
             try? data.write(to: videoThumbnailPath)
         }
-        Task { @MainActor in
-            self.planet.ops[opKey] = Date()
-        }
+        self.planet.recordOp(opKey)
     }
 
     func getVideoThumbnail() -> NSImage? {
@@ -382,7 +389,7 @@ extension MyArticleModel {
         let heroGridJPEGFilename = "_grid.jpg"
         let heroGridJPEGPath = publicBasePath.appendingPathComponent(heroGridJPEGFilename)
         let opKey = "\(self.id)-hero-grid-\(heroImageFilename)"
-        if let op = self.planet.ops[opKey],
+        if let op = self.planet.opDate(for: opKey),
             FileManager.default.fileExists(atPath: heroImagePath.path),
             FileManager.default.fileExists(atPath: heroGridPNGPath.path)
         {
@@ -401,10 +408,8 @@ extension MyArticleModel {
         DispatchQueue.main.async {
             self.hasHeroGrid = true
         }
-        Task { @MainActor in
-            debugPrint("Hero grid is saved for \(self.title)")
-            self.planet.ops[opKey] = Date()
-        }
+        debugPrint("Hero grid is saved for \(self.title)")
+        self.planet.recordOp(opKey)
     }
 
     var heroGridImage: NSImage? {

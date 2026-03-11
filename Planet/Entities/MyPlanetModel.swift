@@ -91,7 +91,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
-    var ops: [String: Date] = [:]
+    // Protects the in-memory ops cache from parallel article rebuild tasks.
+    private let opsLock = NSLock()
+    private var ops: [String: Date] = [:]
     var attachmentsLastVerified: Date? = nil
     @Published var needsRebuild: Bool = false
 
@@ -2326,6 +2328,23 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let command = "rsync \(rsyncArgs.joined(separator: " "))"
         SSHRsyncLogger.log("[\(name)] Starting: \(command)")
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            final class ContinuationState: @unchecked Sendable {
+                private let lock = NSLock()
+                private var continuation: CheckedContinuation<Void, Error>?
+
+                init(_ continuation: CheckedContinuation<Void, Error>) {
+                    self.continuation = continuation
+                }
+
+                func finish(_ result: Result<Void, Error>) {
+                    lock.lock()
+                    let continuation = self.continuation
+                    self.continuation = nil
+                    lock.unlock()
+                    continuation?.resume(with: result)
+                }
+            }
+
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/rsync")
             process.arguments = rsyncArgs
@@ -2335,11 +2354,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             process.standardOutput = stdoutPipe
             process.standardError = stderrPipe
 
-            var didResume = false
-            func finish(_ result: Result<Void, Error>) {
-                guard !didResume else { return }
-                didResume = true
-                continuation.resume(with: result)
+            let continuationState = ContinuationState(continuation)
+            let finish: @Sendable (Result<Void, Error>) -> Void = { result in
+                continuationState.finish(result)
             }
 
             process.terminationHandler = { process in
@@ -2664,18 +2681,40 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
     }
 
+    func opDate(for key: String) -> Date? {
+        opsLock.lock()
+        defer { opsLock.unlock() }
+        return ops[key]
+    }
+
+    func recordOp(_ key: String, at date: Date = Date()) {
+        opsLock.lock()
+        ops[key] = date
+        opsLock.unlock()
+    }
+
+    private func replaceOps(_ newOps: [String: Date]) {
+        opsLock.lock()
+        ops = newOps
+        opsLock.unlock()
+    }
+
     func saveOps() throws {
-        try JSONEncoder.shared.encode(self.ops).write(to: opsPath)
+        opsLock.lock()
+        defer { opsLock.unlock() }
+        let opsData = try JSONEncoder.shared.encode(ops)
+        try opsData.write(to: opsPath)
     }
 
     func loadOps() throws {
         do {
             if !FileManager.default.fileExists(atPath: opsPath.path) {
-                self.ops = [:]
+                replaceOps([:])
                 return
             }
             let opsData = try Data(contentsOf: opsPath)
-            self.ops = try JSONDecoder.shared.decode([String: Date].self, from: opsData)
+            let decodedOps = try JSONDecoder.shared.decode([String: Date].self, from: opsData)
+            replaceOps(decodedOps)
         }
         catch {
             debugPrint("failed to load ops from file: \(error)")
