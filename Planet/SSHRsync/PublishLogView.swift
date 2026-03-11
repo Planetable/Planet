@@ -8,11 +8,25 @@ import AppKit
 
 
 enum PublishLogSource: String, CaseIterable {
+    case ipfs = "IPFS"
     case sshRsync = "SSH Rsync"
     case cloudflarePages = "Cloudflare Pages"
 
+    var logPath: String {
+        switch self {
+        case .ipfs:
+            return IPFSLogger.logPath
+        case .sshRsync:
+            return SSHRsyncLogger.logPath
+        case .cloudflarePages:
+            return CloudflarePagesLogger.logPath
+        }
+    }
+
     func readAll() -> String {
         switch self {
+        case .ipfs:
+            return IPFSLogger.readAll()
         case .sshRsync:
             return SSHRsyncLogger.readAll()
         case .cloudflarePages:
@@ -22,6 +36,8 @@ enum PublishLogSource: String, CaseIterable {
 
     func clear() {
         switch self {
+        case .ipfs:
+            IPFSLogger.clear()
         case .sshRsync:
             SSHRsyncLogger.clear()
         case .cloudflarePages:
@@ -78,13 +94,31 @@ class PublishLogWindowManager: NSObject, NSWindowDelegate {
 
 class PublishLogViewModel: ObservableObject {
     static let shared = PublishLogViewModel()
+    private static let selectedSourceDefaultsKey = "PublishLogView.SelectedSource"
     @Published var logContent: String = ""
-    @Published var selectedSource: PublishLogSource = .sshRsync {
-        didSet { reload() }
+    @Published var selectedSource: PublishLogSource = PublishLogViewModel.loadSelectedSource() {
+        didSet {
+            UserDefaults.standard.set(selectedSource.rawValue, forKey: Self.selectedSourceDefaultsKey)
+            reload()
+            restartSelectedSourceMonitoringIfNeeded()
+        }
     }
 
-    private var dispatchSource: DispatchSourceFileSystemObject?
-    private var fileDescriptor: Int32 = -1
+    private var directoryDispatchSource: DispatchSourceFileSystemObject?
+    private var selectedFileDispatchSource: DispatchSourceFileSystemObject?
+    private var directoryFileDescriptor: Int32 = -1
+    private var selectedFileDescriptor: Int32 = -1
+    private var isMonitoring = false
+
+    private static func loadSelectedSource() -> PublishLogSource {
+        guard
+            let rawValue = UserDefaults.standard.string(forKey: selectedSourceDefaultsKey),
+            let source = PublishLogSource(rawValue: rawValue)
+        else {
+            return .sshRsync
+        }
+        return source
+    }
 
     func reload() {
         logContent = selectedSource.readAll()
@@ -97,30 +131,87 @@ class PublishLogViewModel: ObservableObject {
 
     func startMonitoring() {
         stopMonitoring()
-        // Monitor the tmp directory so we catch file creation after clear/first write
-        let dirPath = NSTemporaryDirectory()
-        fileDescriptor = open(dirPath, O_EVTONLY)
-        guard fileDescriptor >= 0 else { return }
-        let source = DispatchSource.makeFileSystemObjectSource(
-            fileDescriptor: fileDescriptor,
-            eventMask: .write,
-            queue: .main
-        )
-        source.setEventHandler { [weak self] in
-            self?.reload()
-        }
-        source.setCancelHandler { [weak self] in
-            guard let self, self.fileDescriptor >= 0 else { return }
-            close(self.fileDescriptor)
-            self.fileDescriptor = -1
-        }
-        source.resume()
-        dispatchSource = source
+        isMonitoring = true
+        reload()
+        startDirectoryMonitoring()
+        startSelectedFileMonitoring()
     }
 
     func stopMonitoring() {
-        dispatchSource?.cancel()
-        dispatchSource = nil
+        isMonitoring = false
+        stopSelectedFileMonitoring()
+        stopDirectoryMonitoring()
+    }
+
+    private func restartSelectedSourceMonitoringIfNeeded() {
+        guard isMonitoring else { return }
+        startSelectedFileMonitoring()
+    }
+
+    private func startDirectoryMonitoring() {
+        guard directoryDispatchSource == nil else { return }
+        let dirPath = NSTemporaryDirectory()
+        directoryFileDescriptor = open(dirPath, O_EVTONLY)
+        guard directoryFileDescriptor >= 0 else { return }
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: directoryFileDescriptor,
+            eventMask: [.write, .delete, .rename],
+            queue: .main
+        )
+        source.setEventHandler { [weak self] in
+            guard let self else { return }
+            self.startSelectedFileMonitoring()
+            self.reload()
+        }
+        source.setCancelHandler { [weak self] in
+            guard let self, self.directoryFileDescriptor >= 0 else { return }
+            close(self.directoryFileDescriptor)
+            self.directoryFileDescriptor = -1
+        }
+        source.resume()
+        directoryDispatchSource = source
+    }
+
+    private func stopDirectoryMonitoring() {
+        directoryDispatchSource?.cancel()
+        directoryDispatchSource = nil
+    }
+
+    private func startSelectedFileMonitoring() {
+        stopSelectedFileMonitoring()
+        let logPath = selectedSource.logPath
+        guard FileManager.default.fileExists(atPath: logPath) else { return }
+
+        selectedFileDescriptor = open(logPath, O_EVTONLY)
+        guard selectedFileDescriptor >= 0 else { return }
+
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: selectedFileDescriptor,
+            eventMask: [.write, .extend, .delete, .rename, .revoke],
+            queue: .main
+        )
+        source.setEventHandler { [weak self] in
+            guard let self else { return }
+            let events = source.data
+            self.reload()
+            if events.contains(.delete) || events.contains(.rename) || events.contains(.revoke) {
+                DispatchQueue.main.async { [weak self] in
+                    self?.startSelectedFileMonitoring()
+                }
+            }
+        }
+        source.setCancelHandler { [weak self] in
+            guard let self, self.selectedFileDescriptor >= 0 else { return }
+            close(self.selectedFileDescriptor)
+            self.selectedFileDescriptor = -1
+        }
+        source.resume()
+        selectedFileDispatchSource = source
+    }
+
+    private func stopSelectedFileMonitoring() {
+        selectedFileDispatchSource?.cancel()
+        selectedFileDispatchSource = nil
     }
 }
 
@@ -268,7 +359,9 @@ struct PublishLogView: View {
             .pickerStyle(.segmented)
             .padding(.horizontal, 12)
             .padding(.top, 8)
-            .padding(.bottom, 4)
+            .padding(.bottom, 8)
+
+            Divider()
 
             if viewModel.selectedSource == .sshRsync {
                 SSHKeyWarningRow(logContent: viewModel.logContent)

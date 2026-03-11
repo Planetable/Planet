@@ -31,6 +31,10 @@ struct IPFSCommand {
 
     let arguments: [String]
 
+    private var commandDescription: String {
+        "ipfs " + arguments.joined(separator: " ")
+    }
+
     @discardableResult func run() throws -> (ret: Int, out: Data, err: Data) {
         let process = Process()
         process.executableURL = IPFSCommand.IPFSExecutablePath
@@ -64,6 +68,7 @@ struct IPFSCommand {
         }
         process.standardError = errorPipe
 
+        IPFSLogger.log("[COMMAND] \(commandDescription)")
         try process.run()
 
         process.terminationHandler = { process in
@@ -73,6 +78,12 @@ struct IPFSCommand {
 
         outputPipe.fileHandleForReading.readabilityHandler = nil
         errorPipe.fileHandleForReading.readabilityHandler = nil
+        logCompletion(
+            commandDescription: commandDescription,
+            status: Int(process.terminationStatus),
+            stdout: outputData,
+            stderr: errorData
+        )
 
         return (Int(process.terminationStatus), outputData, errorData)
     }
@@ -113,15 +124,41 @@ struct IPFSCommand {
         }
         process.standardError = errorPipe
 
+        IPFSLogger.log("[COMMAND] \(commandDescription)")
         try process.run()
 
         process.terminationHandler = { process in
             outputPipe.fileHandleForReading.readabilityHandler = nil
             errorPipe.fileHandleForReading.readabilityHandler = nil
+            IPFSLogger.log("[COMMAND] Finished (\(process.terminationStatus)): \(commandDescription)")
             completionHandler?(Int(process.terminationStatus))
         }
 
         return process
+    }
+
+    private func logCompletion(commandDescription: String, status: Int, stdout: Data, stderr: Data) {
+        let stdoutText = stdout.logFormat().trim()
+        let stderrText = stderr.logFormat().trim()
+
+        if status == 0 {
+            IPFSLogger.log("[COMMAND] Finished (\(status)): \(commandDescription)")
+            if !stdoutText.isEmpty {
+                IPFSLogger.log("[stdout] \(stdoutText)")
+            }
+            if !stderrText.isEmpty {
+                IPFSLogger.log("[stderr] \(stderrText)")
+            }
+            return
+        }
+
+        IPFSLogger.log("[ERROR] Command failed (\(status)): \(commandDescription)")
+        if !stdoutText.isEmpty {
+            IPFSLogger.log("[ERROR] [stdout] \(stdoutText)")
+        }
+        if !stderrText.isEmpty {
+            IPFSLogger.log("[ERROR] [stderr] \(stderrText)")
+        }
     }
 
     static func IPFSInit() -> IPFSCommand {

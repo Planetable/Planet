@@ -2057,55 +2057,65 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         var cid: String? = nil
         if shouldPublishIPNS {
-            // Make sure planet key is available in keystore or in keychain, abort publishing if not.
-            if try await !IPFSDaemon.shared.checkKeyExists(name: id.uuidString) {
-                try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: id.uuidString)
-            }
-            let latestCID = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
-            if latestCID.count == 0 {
-                throw PlanetError.PublishPlanetError
-            }
-            cid = latestCID
-            debugPrint("Publishing the latest CID for \(name): \(latestCID)")
-            // Send the latest CID to dWebServices.xyz if enabled
-            /*
-            if let dWebServicesEnabled = dWebServicesEnabled, dWebServicesEnabled,
-                let dWebServicesDomain = dWebServicesDomain, let dWebServicesAPIKey = dWebServicesAPIKey
-            {
-                debugPrint("dWebServices: about to update for \(dWebServicesDomain)")
-                let dWebRecord = dWebServices(domain: dWebServicesDomain, apiKey: dWebServicesAPIKey)
-                await dWebRecord.publish(cid: latestCID)
-            }
-            */
-            // Send the latest CID to Filebase if enabled
-            if let filebaseEnabled = filebaseEnabled, filebaseEnabled,
-                let filebasePinName = filebasePinName, let filebaseAPIToken = filebaseAPIToken
-            {
-                var toPin: Bool = false
-                if let existingCID = filebasePinCID {
-                    if existingCID.count == 0 || existingCID != latestCID {
+            do {
+                logIPFS("[\(name)] Starting IPFS publish")
+                // Make sure planet key is available in keystore or in keychain, abort publishing if not.
+                if try await !IPFSDaemon.shared.checkKeyExists(name: id.uuidString) {
+                    try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: id.uuidString)
+                }
+                let latestCID = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
+                if latestCID.count == 0 {
+                    logIPFS("[ERROR] [\(name)] Failed to prepare IPFS publish: empty CID")
+                    throw PlanetError.PublishPlanetError
+                }
+                cid = latestCID
+                logIPFS("[\(name)] Prepared CID \(latestCID)")
+                debugPrint("Publishing the latest CID for \(name): \(latestCID)")
+                // Send the latest CID to dWebServices.xyz if enabled
+                /*
+                if let dWebServicesEnabled = dWebServicesEnabled, dWebServicesEnabled,
+                    let dWebServicesDomain = dWebServicesDomain, let dWebServicesAPIKey = dWebServicesAPIKey
+                {
+                    debugPrint("dWebServices: about to update for \(dWebServicesDomain)")
+                    let dWebRecord = dWebServices(domain: dWebServicesDomain, apiKey: dWebServicesAPIKey)
+                    await dWebRecord.publish(cid: latestCID)
+                }
+                */
+                // Send the latest CID to Filebase if enabled
+                if let filebaseEnabled = filebaseEnabled, filebaseEnabled,
+                    let filebasePinName = filebasePinName, let filebaseAPIToken = filebaseAPIToken
+                {
+                    var toPin: Bool = false
+                    if let existingCID = filebasePinCID {
+                        if existingCID.count == 0 || existingCID != latestCID {
+                            toPin = true
+                        }
+                    }
+                    else {
                         toPin = true
                     }
-                }
-                else {
-                    toPin = true
-                }
-                if toPin {
-                    Task.detached(priority: .userInitiated) {
-                        debugPrint("Filebase: about to pin for \(filebasePinName)")
-                        let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
-                        if let requestID = await filebase.pin(cid: latestCID) {
-                            Task { @MainActor in
-                                self.filebaseRequestID = requestID
-                                self.filebasePinCID = latestCID
-                                try? self.save()
+                    if toPin {
+                        Task.detached(priority: .userInitiated) {
+                            debugPrint("Filebase: about to pin for \(filebasePinName)")
+                            let filebase = Filebase(pinName: filebasePinName, apiToken: filebaseAPIToken)
+                            if let requestID = await filebase.pin(cid: latestCID) {
+                                Task { @MainActor in
+                                    self.filebaseRequestID = requestID
+                                    self.filebasePinCID = latestCID
+                                    try? self.save()
+                                }
                             }
                         }
                     }
+                    else {
+                        debugPrint("Filebase: no need to pin for \(filebasePinName)")
+                    }
                 }
-                else {
-                    debugPrint("Filebase: no need to pin for \(filebasePinName)")
-                }
+            }
+            catch {
+                logIPFS("[ERROR] [\(name)] IPFS publish preparation failed: \(String(describing: error))")
+                openIPFSLogWindow()
+                throw error
             }
         }
 
@@ -2200,6 +2210,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
 
         if let ipnsError {
+            logIPFS("[ERROR] [\(name)] IPNS publish failed: \(String(describing: ipnsError))")
+            openIPFSLogWindow()
             throw ipnsError
         }
         if let sshRsyncError {
@@ -2235,33 +2247,43 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             }
         }
 
-        if try await !IPFSDaemon.shared.checkKeyExists(name: id.uuidString) {
-            try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: id.uuidString)
-        }
-
-        let cid: String
-        if let lastPublishedCID, !lastPublishedCID.isEmpty {
-            cid = lastPublishedCID
-        } else {
-            let latestCID = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
-            if latestCID.isEmpty {
-                throw PlanetError.PublishPlanetError
+        do {
+            logIPFS("[\(name)] Starting IPNS keepalive")
+            if try await !IPFSDaemon.shared.checkKeyExists(name: id.uuidString) {
+                try KeychainHelper.shared.importKeyFromKeychain(forPlanetKeyName: id.uuidString)
             }
-            cid = latestCID
-        }
 
-        try await publishCIDToIPNS(cid: cid)
-        try await MainActor.run {
-            self.lastPublished = Date()
-            if self.lastPublishedCID?.isEmpty != false {
-                self.lastPublishedCID = cid
+            let cid: String
+            if let lastPublishedCID, !lastPublishedCID.isEmpty {
+                cid = lastPublishedCID
+            } else {
+                let latestCID = try await IPFSDaemon.shared.addDirectory(url: publicBasePath)
+                if latestCID.isEmpty {
+                    throw PlanetError.PublishPlanetError
+                }
+                cid = latestCID
             }
-            try self.save()
+
+            try await publishCIDToIPNS(cid: cid)
+            try await MainActor.run {
+                self.lastPublished = Date()
+                if self.lastPublishedCID?.isEmpty != false {
+                    self.lastPublishedCID = cid
+                }
+                try self.save()
+            }
+            logIPFS("[\(name)] Refreshed IPNS keepalive for CID \(cid)")
+            Self.logger.info("Refreshed IPNS keepalive for planet \(self.name, privacy: .public)")
         }
-        Self.logger.info("Refreshed IPNS keepalive for planet \(self.name, privacy: .public)")
+        catch {
+            logIPFS("[ERROR] [\(name)] IPNS keepalive failed: \(String(describing: error))")
+            openIPFSLogWindow()
+            throw error
+        }
     }
 
     private func publishCIDToIPNS(cid: String) async throws {
+        logIPFS("[\(name)] Publishing CID \(cid) to IPNS")
         let result = try await IPFSDaemon.shared.api(
             path: "name/publish",
             args: [
@@ -2274,7 +2296,18 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             timeout: 180
         )
         let published = try JSONDecoder.shared.decode(IPFSPublished.self, from: result)
+        logIPFS("[\(name)] Published to \(published.name): \(cid)")
         Self.logger.info("Published planet \(published.name): \(cid)")
+    }
+
+    private func logIPFS(_ message: String) {
+        IPFSLogger.log(message)
+    }
+
+    private func openIPFSLogWindow() {
+        Task { @MainActor in
+            PublishLogWindowManager.shared.open(tab: .ipfs)
+        }
     }
 
     private func publishViaSSHRsync(destination: String) async throws {

@@ -338,6 +338,7 @@ actor IPFSDaemon {
                 outHandler: { data in
                     let log = data.logFormat()
                     Self.logger.debug("[IPFS stdout]\n\(log, privacy: .public)")
+                    IPFSLogger.log("[daemon stdout] \(log)")
                     if !didHandleReadySignal, log.contains("Daemon is ready") {
                         didHandleReadySignal = true
                         Self.logger.info("Daemon launched")
@@ -355,6 +356,7 @@ actor IPFSDaemon {
                 errHandler: { data in
                     let log = data.logFormat()
                     Self.logger.debug("[IPFS error]\n\(log, privacy: .public)")
+                    IPFSLogger.log("[ERROR] [daemon stderr] \(log)")
                 },
                 completionHandler: { ret in
                     Task.detached(priority: .utility) {
@@ -929,8 +931,10 @@ actor IPFSDaemon {
         else {
             if let errorDetails = String(data: data, encoding: .utf8) {
                 Self.logger.error("Failed to access IPFS API \(path): \(errorDetails)")
+                IPFSLogger.log("[ERROR] API \(path) failed: \(errorDetails)")
             }
             Self.logger.error("IPFS API Error: \(response)")
+            IPFSLogger.log("[ERROR] API \(path) failed: \(response)")
             throw PlanetError.IPFSAPIError
         }
         // debugPrint the response
