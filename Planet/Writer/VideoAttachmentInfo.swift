@@ -4,7 +4,11 @@ import Foundation
 struct VideoAttachmentInfo {
     let duration: String
     let resolution: String
+    let pixelWidth: Int?
+    let pixelHeight: Int?
     let codec: String
+    let colorSpace: String
+    let containsHDR: Bool
     let bitrate: String
     let frameRate: String
     let fileSize: String
@@ -14,9 +18,10 @@ struct VideoAttachmentInfo {
         let durationSeconds = await durationSeconds(for: asset)
         let videoTrack = await firstVideoTrack(for: asset)
         let fileSizeBytes = fileSizeBytes(for: url)
-        let resolutionText = await resolution(for: videoTrack)
+        let resolutionDetails = await resolutionDetails(for: videoTrack)
         let trackBitrate = await trackBitrate(for: videoTrack)
         let trackFrameRate = await trackFrameRate(for: videoTrack)
+        let colorSpaceDetails = await colorSpaceDetails(for: videoTrack)
         let durationText: String = formattedDuration(durationSeconds)
         let codecText: String = await codecName(for: videoTrack) ?? "Unknown"
         let bitrateText: String = formattedBitrate(
@@ -29,8 +34,12 @@ struct VideoAttachmentInfo {
 
         return VideoAttachmentInfo(
             duration: durationText,
-            resolution: resolutionText,
+            resolution: resolutionDetails.text,
+            pixelWidth: resolutionDetails.width,
+            pixelHeight: resolutionDetails.height,
             codec: codecText,
+            colorSpace: colorSpaceDetails.text,
+            containsHDR: colorSpaceDetails.containsHDR,
             bitrate: bitrateText,
             frameRate: frameRateText,
             fileSize: fileSizeText
@@ -60,11 +69,13 @@ struct VideoAttachmentInfo {
         return Int64(fileSize)
     }
 
-    private static func resolution(for track: AVAssetTrack?) async -> String {
+    private static func resolutionDetails(
+        for track: AVAssetTrack?
+    ) async -> (text: String, width: Int?, height: Int?) {
         guard let track,
               let naturalSize = try? await track.load(.naturalSize)
         else {
-            return "Unknown"
+            return ("Unknown", nil, nil)
         }
 
         let preferredTransform = (try? await track.load(.preferredTransform)) ?? .identity
@@ -72,10 +83,53 @@ struct VideoAttachmentInfo {
         let width = Int(abs(transformedSize.width).rounded())
         let height = Int(abs(transformedSize.height).rounded())
         guard width > 0, height > 0 else {
-            return "Unknown"
+            return ("Unknown", nil, nil)
         }
 
-        return "\(width)x\(height)"
+        return ("\(width)x\(height)", width, height)
+    }
+
+    private static func colorSpaceDetails(
+        for track: AVAssetTrack?
+    ) async -> (text: String, containsHDR: Bool) {
+        guard let track else {
+            return ("Unknown", false)
+        }
+
+        let formatDescriptions = (try? await track.load(.formatDescriptions)) ?? []
+        let extensions: NSDictionary? = formatDescriptions.first.flatMap { formatDescription in
+            guard let rawExtensions = CMFormatDescriptionGetExtensions(formatDescription) else {
+                return nil
+            }
+            return rawExtensions as NSDictionary
+        }
+
+        let colorPrimaries =
+            extensions?[kCMFormatDescriptionExtension_ColorPrimaries as String] as? String
+        let transferFunction =
+            extensions?[kCMFormatDescriptionExtension_TransferFunction as String] as? String
+        let containsHDR =
+            track.hasMediaCharacteristic(.containsHDRVideo)
+            || transferFunction == AVVideoTransferFunction_SMPTE_ST_2084_PQ
+            || transferFunction == AVVideoTransferFunction_ITU_R_2100_HLG
+
+        let primariesName = colorPrimariesName(for: colorPrimaries)
+        let transferFunctionName = hdrTransferFunctionName(for: transferFunction)
+        let details = [primariesName, transferFunctionName].compactMap { $0 }
+
+        if containsHDR {
+            if details.isEmpty {
+                return ("HDR", true)
+            } else {
+                return ("HDR (\(details.joined(separator: ", ")))", true)
+            }
+        }
+
+        if let primariesName {
+            return (primariesName, false)
+        }
+
+        return ("Unknown", false)
     }
 
     private static func formattedDuration(_ durationSeconds: Double?) -> String {
@@ -217,6 +271,30 @@ struct VideoAttachmentInfo {
         }
 
         return ByteCountFormatter.string(fromByteCount: fileSizeBytes, countStyle: .file)
+    }
+
+    private static func colorPrimariesName(for value: String?) -> String? {
+        switch value {
+        case AVVideoColorPrimaries_ITU_R_709_2:
+            return "BT.709"
+        case AVVideoColorPrimaries_ITU_R_2020:
+            return "BT.2020"
+        case AVVideoColorPrimaries_P3_D65:
+            return "P3 D65"
+        default:
+            return nil
+        }
+    }
+
+    private static func hdrTransferFunctionName(for value: String?) -> String? {
+        switch value {
+        case AVVideoTransferFunction_SMPTE_ST_2084_PQ:
+            return "PQ"
+        case AVVideoTransferFunction_ITU_R_2100_HLG:
+            return "HLG"
+        default:
+            return nil
+        }
     }
 
     private static func fourCCString(_ value: FourCharCode) -> String {

@@ -44,6 +44,7 @@ enum AttachmentType: String, Codable {
 class Attachment: Codable, Equatable, Hashable, ObservableObject {
     let name: String
     @Published var type: AttachmentType
+    @Published var videoCompressionPreset: String?
     let created: Date
 
     @Published var thumbnail: NSImage? = nil
@@ -119,6 +120,7 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
         hasher.combine(type)
+        hasher.combine(videoCompressionPreset)
         hasher.combine(draft)
         hasher.combine(created)
     }
@@ -133,12 +135,14 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
         return lhs.name == rhs.name
             && lhs.draft == rhs.draft
             && lhs.type == rhs.type
+            && lhs.videoCompressionPreset == rhs.videoCompressionPreset
             && lhs.created == rhs.created
     }
 
     enum CodingKeys: String, CodingKey {
         case name
         case type
+        case videoCompressionPreset
         case created
     }
 
@@ -146,6 +150,7 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
         type = try container.decode(AttachmentType.self, forKey: .type)
+        videoCompressionPreset = try container.decodeIfPresent(String.self, forKey: .videoCompressionPreset)
         created = try container.decode(Date.self, forKey: .created)
     }
 
@@ -153,12 +158,14 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(name, forKey: .name)
         try container.encode(type, forKey: .type)
+        try container.encodeIfPresent(videoCompressionPreset, forKey: .videoCompressionPreset)
         try container.encode(created, forKey: .created)
     }
 
     init(name: String, type: AttachmentType) {
         self.name = name
         self.type = type
+        videoCompressionPreset = nil
         created = Date()
     }
 

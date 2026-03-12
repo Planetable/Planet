@@ -17,11 +17,11 @@ struct WriterVideoView: View {
             }
             .frame(height: 270)
             VideoInfoRow(
-                videoURL: videoAttachment.path,
+                videoAttachment: videoAttachment,
                 removeAction: deleteVideo
             )
         }
-        .task(id: videoAttachment.path) {
+        .task(id: videoAttachment.created) {
             await loadPlayer()
         }
         .onDisappear {

@@ -337,6 +337,30 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         )
     }
 
+    @discardableResult
+    func replaceVideoAttachment(
+        _ attachment: Attachment,
+        withCompressedVideoAt compressedURL: URL,
+        compressionPreset: String
+    ) throws -> Attachment {
+        let oldName = attachment.name
+        let oldPath = attachment.path
+        let newAttachment = try addAttachment(path: compressedURL, type: .video)
+        newAttachment.videoCompressionPreset = compressionPreset
+
+        if oldName != newAttachment.name {
+            content = content.replacingOccurrences(of: oldName, with: newAttachment.name)
+        }
+
+        if oldPath != newAttachment.path, FileManager.default.fileExists(atPath: oldPath.path) {
+            try FileManager.default.removeItem(at: oldPath)
+        }
+
+        try renderPreview()
+        try save()
+        return newAttachment
+    }
+
     func deleteAttachment(name: String) {
         if let attachment = attachments.first(where: { $0.name == name }) {
             do {
