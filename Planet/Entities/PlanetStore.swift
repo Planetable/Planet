@@ -816,6 +816,14 @@ final class MyJSONDirectoryMonitor {
             let matchingArticle = selectedArticleList?.first(where: { $0.id == restoreID })
         {
             selectedArticle = matchingArticle
+            // Scroll the article list to reveal the restored selection.
+            // Use a delay so SwiftUI has time to populate the List.
+            let article = matchingArticle
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 300_000_000)
+                guard self.selectedArticle?.id == article.id else { return }
+                NotificationCenter.default.post(name: .scrollToArticle, object: article)
+            }
         } else if isPendingRestore, let restoreID {
             // Article not in current aggregate view (e.g. read article no longer in Unread).
             // Fall back to navigating to the article's planet.
