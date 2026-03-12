@@ -32,11 +32,11 @@ struct QuickPostView: View {
                 .padding(.leading, 10)
                 .padding(.trailing, 0)
 
-                TextEditor(text: $viewModel.content)
-                    //.font(.system(size: 14, weight: .regular, design: .default))
-                    .font(.custom("Menlo", size: 14.0))
-                    .lineSpacing(4.0)
-                    .disableAutocorrection(true)
+                QuickPostTextView(
+                    text: $viewModel.content,
+                    viewModel: viewModel,
+                    font: NSFont(name: "Menlo", size: 14.0)
+                )
                     .padding(.top, 10)
                     .padding(.bottom, 10)
                     .padding(.leading, 0)
@@ -52,14 +52,6 @@ struct QuickPostView: View {
             if viewModel.fileURLs.count > 0 {
                 Divider()
                 mediaTray()
-                    /* TODO: this part conflicts with clickable media items */
-                    /*
-                    .focusable()
-                    .onPasteCommand(
-                        of: [.fileURL, .image, .movie],
-                        perform: QuickPostViewModel.shared.processPasteItems(_:)
-                    )
-                    */
             }
 
             if let audioURL = viewModel.audioURL {
@@ -112,8 +104,7 @@ struct QuickPostView: View {
                 }
                 Spacer()
                 Button(role: .cancel) {
-                    viewModel.fileURLs = []
-                    viewModel.content = ""
+                    viewModel.cleanup()
                     dismiss()
                 } label: {
                     Text("Cancel")
@@ -247,14 +238,7 @@ struct QuickPostView: View {
         }
         .contextMenu {
             Button {
-                viewModel.fileURLs.removeAll { $0 == url }
-                if let audioURL = viewModel.audioURL, audioURL == url {
-                    viewModel.audioURL = nil
-                }
-                // Also remove the media reference from the content
-                let currentContent = viewModel.content
-                let mediaReference = url.htmlCode
-                viewModel.content = currentContent.replacingOccurrences(of: mediaReference, with: "")
+                viewModel.removeFile(url)
             } label: {
                 Label("Remove", systemImage: "trash")
             }
@@ -305,48 +289,12 @@ struct QuickPostView: View {
         panel.showsHiddenFiles = false
         let response = panel.runModal()
         guard response == .OK, panel.urls.count > 0 else { return }
-        let urls = panel.urls
-        urls.forEach { url in
-            if type == .image {
-                if url.lastPathComponent.hasSuffix(".heic") {
-                    // Convert HEIC to JPEG
-                    if let heicData = try? Data(contentsOf: url), let image = NSImage(data: heicData) {
-                        let jpegData = image.JPEGData
-                        let tempDir = FileManager.default.temporaryDirectory
-                        let jpegURL = tempDir.appendingPathComponent(UUID().uuidString).appendingPathExtension("jpg")
-                        if let jpegData = jpegData, let _ = try? jpegData.write(to: jpegURL) {
-                            viewModel.fileURLs.append(jpegURL)
-                        } else {
-                            viewModel.fileURLs.append(url)
-                        }
-                    } else {
-                        viewModel.fileURLs.append(url)
-                    }
-                }
-                else {
-                    viewModel.fileURLs.append(url)
-                }
-            } else {
-                viewModel.fileURLs.append(url)
-            }
-            if type == .audio {
-                if let existingAudioURL = viewModel.audioURL {
-                    viewModel.fileURLs.removeAll { $0 == existingAudioURL }
-                }
-                viewModel.audioURL = url
-            }
-            if type == .video {
-                viewModel.videoURL = url
-            }
-        }
+        try viewModel.addFilesFromOpenPanel(panel.urls, type: type)
     }
 
     private func saveContent() throws {
         defer {
-            viewModel.fileURLs = []
-            viewModel.content = ""
-            viewModel.audioURL = nil
-            viewModel.audioURL = nil
+            viewModel.cleanup()
         }
         // Save content as a new MyArticleModel
         guard let planet = KeyboardShortcutHelper.shared.activeMyPlanet else { return }
@@ -443,6 +391,177 @@ struct QuickPostView: View {
         catch {
             debugPrint("Failed to save quick post")
         }
+    }
+}
+
+struct QuickPostTextView: NSViewRepresentable {
+    @Binding var text: String
+    @ObservedObject var viewModel: QuickPostViewModel
+    var font: NSFont? = NSFont(name: "Menlo", size: 14)
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    func makeNSView(context: Context) -> QuickPostTextEditorContainer {
+        let textView = QuickPostTextEditorContainer(text: text, viewModel: viewModel, font: font)
+        textView.delegate = context.coordinator
+        return textView
+    }
+
+    func updateNSView(_ nsView: QuickPostTextEditorContainer, context: Context) {
+        nsView.updateText(text)
+    }
+
+    class Coordinator: NSObject, NSTextViewDelegate {
+        var parent: QuickPostTextView
+
+        init(_ parent: QuickPostTextView) {
+            self.parent = parent
+        }
+
+        func textDidBeginEditing(_ notification: Notification) {
+            guard let textView = notification.object as? QuickPostEditorTextView else {
+                return
+            }
+            parent.text = textView.string
+        }
+
+        func textDidChange(_ notification: Notification) {
+            guard let textView = notification.object as? QuickPostEditorTextView else {
+                return
+            }
+            parent.text = textView.string
+        }
+
+        func textDidEndEditing(_ notification: Notification) {
+            guard let textView = notification.object as? QuickPostEditorTextView else {
+                return
+            }
+            parent.text = textView.string
+        }
+    }
+}
+
+final class QuickPostTextEditorContainer: NSView {
+    private lazy var scrollView: NSScrollView = {
+        let scrollView = NSScrollView()
+        scrollView.drawsBackground = true
+        scrollView.borderType = .noBorder
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalRuler = false
+        scrollView.autoresizingMask = [.width, .height]
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        return scrollView
+    }()
+
+    private lazy var textView: QuickPostEditorTextView = {
+        let contentSize = scrollView.contentSize
+        let textStorage = NSTextStorage()
+
+        let layoutManager = NSLayoutManager()
+        textStorage.addLayoutManager(layoutManager)
+
+        let textContainer = NSTextContainer(containerSize: scrollView.frame.size)
+        textContainer.widthTracksTextView = true
+        textContainer.containerSize = NSSize(
+            width: contentSize.width,
+            height: CGFloat.greatestFiniteMagnitude
+        )
+
+        layoutManager.addTextContainer(textContainer)
+
+        let textView = QuickPostEditorTextView(
+            viewModel: viewModel,
+            frame: .zero,
+            textContainer: textContainer
+        )
+        textView.autoresizingMask = .width
+        textView.textContainerInset = NSSize(width: 4, height: 4)
+        textView.backgroundColor = NSColor.clear
+        textView.drawsBackground = true
+        textView.font = font
+        textView.string = text
+        textView.isEditable = true
+        textView.isHorizontallyResizable = false
+        textView.isVerticallyResizable = true
+        textView.maxSize = NSSize(
+            width: CGFloat.greatestFiniteMagnitude,
+            height: CGFloat.greatestFiniteMagnitude
+        )
+        textView.minSize = NSSize(width: 0, height: contentSize.height)
+        textView.textColor = NSColor.labelColor
+        textView.isRichText = false
+        textView.usesFontPanel = false
+        textView.allowsUndo = true
+        textView.isAutomaticQuoteSubstitutionEnabled = false
+        textView.isAutomaticDashSubstitutionEnabled = false
+        textView.isAutomaticTextReplacementEnabled = false
+        textView.enabledTextCheckingTypes = 0
+
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 4
+        textView.defaultParagraphStyle = paragraphStyle
+        textView.typingAttributes[.paragraphStyle] = paragraphStyle
+        return textView
+    }()
+
+    private let viewModel: QuickPostViewModel
+    private let font: NSFont?
+    private var text: String
+    unowned var delegate: NSTextViewDelegate?
+
+    init(text: String, viewModel: QuickPostViewModel, font: NSFont?) {
+        self.text = text
+        self.viewModel = viewModel
+        self.font = font
+        super.init(frame: .zero)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("QuickPostTextEditorContainer: required init?(coder:) not implemented")
+    }
+
+    override func viewWillDraw() {
+        super.viewWillDraw()
+        guard scrollView.superview == nil else { return }
+        addSubview(scrollView)
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor)
+        ])
+        textView.delegate = delegate
+        scrollView.documentView = textView
+    }
+
+    func updateText(_ text: String) {
+        self.text = text
+        guard textView.string != text else { return }
+        textView.string = text
+        let end = (text as NSString).length
+        textView.setSelectedRange(NSRange(location: end, length: 0))
+    }
+}
+
+final class QuickPostEditorTextView: NSTextView {
+    @ObservedObject private var viewModel: QuickPostViewModel
+
+    init(viewModel: QuickPostViewModel, frame: NSRect, textContainer: NSTextContainer?) {
+        self.viewModel = viewModel
+        super.init(frame: frame, textContainer: textContainer)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("QuickPostEditorTextView: required init?(coder:) not implemented")
+    }
+
+    override func paste(_ sender: Any?) {
+        if viewModel.processMediaPasteIfAvailable() {
+            return
+        }
+        super.paste(sender)
     }
 }
 
