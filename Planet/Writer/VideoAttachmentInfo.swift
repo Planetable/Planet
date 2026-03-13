@@ -3,6 +3,7 @@ import Foundation
 
 struct VideoAttachmentInfo {
     let duration: String
+    let durationSecondsValue: Double?
     let resolution: String
     let pixelWidth: Int?
     let pixelHeight: Int?
@@ -11,6 +12,7 @@ struct VideoAttachmentInfo {
     let containsHDR: Bool
     let bitrate: String
     let frameRate: String
+    let frameRateValue: Double?
     let fileSize: String
 
     static func load(from url: URL) async -> Self {
@@ -34,6 +36,7 @@ struct VideoAttachmentInfo {
 
         return VideoAttachmentInfo(
             duration: durationText,
+            durationSecondsValue: durationSeconds,
             resolution: resolutionDetails.text,
             pixelWidth: resolutionDetails.width,
             pixelHeight: resolutionDetails.height,
@@ -42,6 +45,7 @@ struct VideoAttachmentInfo {
             containsHDR: colorSpaceDetails.containsHDR,
             bitrate: bitrateText,
             frameRate: frameRateText,
+            frameRateValue: trackFrameRate.map(Double.init),
             fileSize: fileSizeText
         )
     }

@@ -14,6 +14,8 @@ struct VideoInfoRow: View {
     @State private var compressionTask: Task<Void, Never>?
     @State private var compressionProgressTimer: Timer?
     @State private var activeExportSession: AVAssetExportSession?
+    @State private var compressionStartedAt: Date?
+    @State private var compressionFramesPerSecond: Double?
     @State private var isCompressing: Bool = false
     @State private var isShowingCompressionOptions: Bool = false
 
@@ -66,7 +68,7 @@ struct VideoInfoRow: View {
                     ProgressView(value: compressionProgress, total: 1)
                         .progressViewStyle(.linear)
                     HStack {
-                        Text("Compressing video... \(Int((compressionProgress * 100).rounded()))%")
+                        Text(compressionStatusText)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Spacer()
@@ -149,6 +151,8 @@ struct VideoInfoRow: View {
         isShowingCompressionOptions = false
         isCompressing = true
         compressionProgress = 0
+        compressionStartedAt = nil
+        compressionFramesPerSecond = nil
 
         compressionTask = Task { @MainActor in
             var preparedExport: VideoCompressionJob.PreparedExport?
@@ -159,6 +163,7 @@ struct VideoInfoRow: View {
                 preparedExport = export
                 try Task.checkCancellation()
                 activeExportSession = export.session
+                compressionStartedAt = Date()
                 startCompressionProgressTimer(for: export.session)
 
                 try await VideoCompressionJob.export(export.session)
@@ -169,7 +174,7 @@ struct VideoInfoRow: View {
                     return
                 }
 
-                compressionProgress = 1
+                updateCompressionProgress(1)
 
                 _ = try videoAttachment.draft.replaceVideoAttachment(
                     videoAttachment,
@@ -197,7 +202,7 @@ struct VideoInfoRow: View {
         stopCompressionProgressTimer()
         let reference = CompressionProgressSessionReference(session: session)
         let timer = Timer(timeInterval: 0.1, repeats: true) { _ in
-            compressionProgress = min(max(Double(reference.session.progress), 0), 1)
+            updateCompressionProgress(min(max(Double(reference.session.progress), 0), 1))
         }
         RunLoop.main.add(timer, forMode: .common)
         compressionProgressTimer = timer
@@ -222,7 +227,62 @@ struct VideoInfoRow: View {
         activeExportSession = nil
         isCompressing = false
         compressionProgress = 0
+        compressionStartedAt = nil
+        compressionFramesPerSecond = nil
         compressionTask = nil
+    }
+
+    private var compressionStatusText: String {
+        let progressText = "\(Int((compressionProgress * 100).rounded()))%"
+        guard let compressionFramesPerSecond,
+              compressionFramesPerSecond.isFinite,
+              compressionFramesPerSecond > 0
+        else {
+            return "Compressing video... \(progressText)"
+        }
+
+        return "Compressing video... \(progressText) · \(formattedFramesPerSecond(compressionFramesPerSecond))"
+    }
+
+    private func updateCompressionProgress(_ progress: Double) {
+        compressionProgress = progress
+
+        guard
+            let compressionStartedAt,
+            let totalFrames = compressionTotalFrames,
+            totalFrames > 0
+        else {
+            compressionFramesPerSecond = nil
+            return
+        }
+
+        let elapsed = Date().timeIntervalSince(compressionStartedAt)
+        guard elapsed >= 0.25 else {
+            return
+        }
+
+        compressionFramesPerSecond = (progress * totalFrames) / elapsed
+    }
+
+    private var compressionTotalFrames: Double? {
+        guard
+            let duration = videoInfo?.durationSecondsValue,
+            let frameRate = videoInfo?.frameRateValue,
+            duration > 0,
+            frameRate > 0
+        else {
+            return nil
+        }
+
+        return duration * frameRate
+    }
+
+    private func formattedFramesPerSecond(_ framesPerSecond: Double) -> String {
+        if framesPerSecond >= 10 {
+            return String(format: "%.0f fps", framesPerSecond)
+        } else {
+            return String(format: "%.1f fps", framesPerSecond)
+        }
     }
 
     @ViewBuilder
