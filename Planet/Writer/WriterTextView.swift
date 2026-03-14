@@ -1,10 +1,420 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-private struct WriterPastedAttachmentFile {
-    let url: URL
-    let attachmentType: AttachmentType
-    let isTemporary: Bool
+@MainActor
+enum WriterPasteboardImporter {
+    private struct ImportedAttachmentFile {
+        let url: URL
+        let attachmentType: AttachmentType
+        let isTemporary: Bool
+    }
+
+    private static let supportedImagePasteboardTypes: [(type: NSPasteboard.PasteboardType, fileExtension: String)] = [
+        (NSPasteboard.PasteboardType(UTType.png.identifier), "png"),
+        (NSPasteboard.PasteboardType(UTType.jpeg.identifier), "jpg"),
+        (NSPasteboard.PasteboardType(UTType.gif.identifier), "gif"),
+        (NSPasteboard.PasteboardType(UTType.tiff.identifier), "tiff"),
+        (NSPasteboard.PasteboardType("public.heic"), "heic"),
+        (NSPasteboard.PasteboardType("public.heif"), "heif"),
+        (NSPasteboard.PasteboardType("public.webp"), "webp")
+    ]
+
+    private static let supportedVideoPasteboardTypes: [(type: NSPasteboard.PasteboardType, fileExtension: String)] = [
+        (NSPasteboard.PasteboardType(UTType.mpeg4Movie.identifier), "mp4"),
+        (NSPasteboard.PasteboardType(UTType.quickTimeMovie.identifier), "mov"),
+        (NSPasteboard.PasteboardType(UTType.movie.identifier), "mov")
+    ]
+
+    private static let supportedAudioPasteboardTypes: [(type: NSPasteboard.PasteboardType, fileExtension: String)] = [
+        (NSPasteboard.PasteboardType(UTType.mp3.identifier), "mp3"),
+        (NSPasteboard.PasteboardType(UTType.mpeg4Audio.identifier), "m4a"),
+        (NSPasteboard.PasteboardType(UTType.wav.identifier), "wav"),
+        (NSPasteboard.PasteboardType(UTType.audio.identifier), "m4a")
+    ]
+
+    private static let supportedFilePasteboardTypes: [(type: NSPasteboard.PasteboardType, fileExtension: String)] = [
+        (NSPasteboard.PasteboardType(UTType.pdf.identifier), "pdf")
+    ]
+
+    static var readablePasteboardTypes: [NSPasteboard.PasteboardType] {
+        [.fileURL, NSPasteboard.PasteboardType(UTType.image.identifier)]
+            + supportedImagePasteboardTypes.map(\.type)
+            + supportedVideoPasteboardTypes.map(\.type)
+            + supportedAudioPasteboardTypes.map(\.type)
+            + supportedFilePasteboardTypes.map(\.type)
+    }
+
+    static func canImport(returnType: NSPasteboard.PasteboardType?) -> Bool {
+        guard let returnType else { return true }
+        return readablePasteboardTypes.contains(returnType)
+    }
+
+    static func importAttachments(
+        from pasteboard: NSPasteboard,
+        into draft: DraftModel,
+        insertMarkdown: (String) -> Void,
+        synchronizeContent: (() -> Void)? = nil
+    ) throws -> Bool {
+        let importedAttachments = try importedAttachmentFiles(from: pasteboard)
+        guard !importedAttachments.isEmpty else {
+            return false
+        }
+
+        defer {
+            cleanupTemporaryFiles(importedAttachments)
+        }
+
+        try insertImportedAttachments(importedAttachments, into: draft, insertMarkdown: insertMarkdown)
+        synchronizeContent?()
+        try draft.save()
+        try draft.renderPreview()
+        return true
+    }
+
+    private static func insertImportedAttachments(
+        _ importedAttachments: [ImportedAttachmentFile],
+        into draft: DraftModel,
+        insertMarkdown: (String) -> Void
+    ) throws {
+        guard resolveExclusiveAttachmentReplacement(
+            in: importedAttachments,
+            draft: draft,
+            attachmentType: .video
+        ) else {
+            return
+        }
+        guard resolveExclusiveAttachmentReplacement(
+            in: importedAttachments,
+            draft: draft,
+            attachmentType: .audio
+        ) else {
+            return
+        }
+
+        for exclusiveType in [AttachmentType.video, .audio] {
+            if importedAttachments.contains(where: { $0.attachmentType == exclusiveType }),
+               let existingAttachment = draft.attachments.first(where: { $0.type == exclusiveType }) {
+                draft.deleteAttachment(name: existingAttachment.name)
+            }
+        }
+
+        for importedAttachment in importedAttachments {
+            let attachment = try draft.addAttachment(
+                path: importedAttachment.url,
+                type: importedAttachment.attachmentType
+            )
+            if let markdown = attachment.markdown {
+                insertMarkdown(markdown)
+            }
+        }
+    }
+
+    private static func importedAttachmentFiles(from pasteboard: NSPasteboard) throws -> [ImportedAttachmentFile] {
+        var attachments: [ImportedAttachmentFile] = []
+
+        if let fileURLs = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL] {
+            for fileURL in fileURLs {
+                guard let attachmentType = supportedAttachmentType(for: fileURL) else {
+                    continue
+                }
+                attachments.append(
+                    try makeTemporaryAttachmentFile(from: fileURL, attachmentType: attachmentType)
+                )
+            }
+        }
+
+        if let items = pasteboard.pasteboardItems {
+            for item in items where !item.types.contains(.fileURL) {
+                if let importedAttachment = try makeTemporaryAttachmentFile(from: item) {
+                    attachments.append(importedAttachment)
+                }
+            }
+        } else if attachments.isEmpty,
+                  let fallbackAttachment = try makeTemporaryAttachmentFile(from: pasteboard) {
+            attachments.append(fallbackAttachment)
+        }
+
+        return attachments
+    }
+
+    private static func supportedAttachmentType(for url: URL) -> AttachmentType? {
+        guard url.isFileURL else { return nil }
+        if let fileType = UTType(filenameExtension: url.pathExtension.lowercased()) {
+            if fileType.conforms(to: .image) {
+                return .image
+            }
+            if fileType.conforms(to: .movie) || fileType.conforms(to: .video) {
+                return .video
+            }
+            if fileType.conforms(to: .audio) {
+                return .audio
+            }
+            if fileType.conforms(to: .pdf) {
+                return .file
+            }
+        }
+
+        let attachmentType = AttachmentType.from(url)
+        switch attachmentType {
+        case .image, .video, .audio:
+            return attachmentType
+        case .file:
+            return url.pathExtension.lowercased() == "pdf" ? .file : nil
+        }
+    }
+
+    private static func makeTemporaryAttachmentFile(
+        from pasteboard: NSPasteboard
+    ) throws -> ImportedAttachmentFile? {
+        for supportedType in supportedImagePasteboardTypes {
+            if let data = pasteboard.data(forType: supportedType.type) {
+                return try makeTemporaryAttachmentFile(
+                    from: data,
+                    attachmentType: .image,
+                    fileExtension: supportedType.fileExtension
+                )
+            }
+        }
+        if let data = pasteboard.data(forType: NSPasteboard.PasteboardType(UTType.image.identifier)) {
+            return try makeTemporaryPNGImageFile(from: data)
+        }
+        for supportedType in supportedVideoPasteboardTypes {
+            if let data = pasteboard.data(forType: supportedType.type) {
+                return try makeTemporaryAttachmentFile(
+                    from: data,
+                    attachmentType: .video,
+                    fileExtension: supportedType.fileExtension
+                )
+            }
+        }
+        for supportedType in supportedAudioPasteboardTypes {
+            if let data = pasteboard.data(forType: supportedType.type) {
+                return try makeTemporaryAttachmentFile(
+                    from: data,
+                    attachmentType: .audio,
+                    fileExtension: supportedType.fileExtension
+                )
+            }
+        }
+        for supportedType in supportedFilePasteboardTypes {
+            if let data = pasteboard.data(forType: supportedType.type) {
+                return try makeTemporaryAttachmentFile(
+                    from: data,
+                    attachmentType: .file,
+                    fileExtension: supportedType.fileExtension
+                )
+            }
+        }
+        return nil
+    }
+
+    private static func makeTemporaryAttachmentFile(
+        from pasteboardItem: NSPasteboardItem
+    ) throws -> ImportedAttachmentFile? {
+        for supportedType in supportedImagePasteboardTypes {
+            if let data = pasteboardItem.data(forType: supportedType.type) {
+                return try makeTemporaryAttachmentFile(
+                    from: data,
+                    attachmentType: .image,
+                    fileExtension: supportedType.fileExtension
+                )
+            }
+        }
+        if let data = pasteboardItem.data(forType: NSPasteboard.PasteboardType(UTType.image.identifier)) {
+            return try makeTemporaryPNGImageFile(from: data)
+        }
+        for supportedType in supportedVideoPasteboardTypes {
+            if let data = pasteboardItem.data(forType: supportedType.type) {
+                return try makeTemporaryAttachmentFile(
+                    from: data,
+                    attachmentType: .video,
+                    fileExtension: supportedType.fileExtension
+                )
+            }
+        }
+        for supportedType in supportedAudioPasteboardTypes {
+            if let data = pasteboardItem.data(forType: supportedType.type) {
+                return try makeTemporaryAttachmentFile(
+                    from: data,
+                    attachmentType: .audio,
+                    fileExtension: supportedType.fileExtension
+                )
+            }
+        }
+        for supportedType in supportedFilePasteboardTypes {
+            if let data = pasteboardItem.data(forType: supportedType.type) {
+                return try makeTemporaryAttachmentFile(
+                    from: data,
+                    attachmentType: .file,
+                    fileExtension: supportedType.fileExtension
+                )
+            }
+        }
+        return nil
+    }
+
+    private static func makeTemporaryAttachmentFile(
+        from sourceURL: URL,
+        attachmentType: AttachmentType
+    ) throws -> ImportedAttachmentFile {
+        let typeIdentifier = try? sourceURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier
+        let fileExtension = resolvedFileExtension(
+            preferred: sourceURL.pathExtension,
+            typeIdentifier: typeIdentifier,
+            attachmentType: attachmentType
+        )
+        let temporaryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension(fileExtension)
+        let accessedSecurityScope = sourceURL.startAccessingSecurityScopedResource()
+        defer {
+            if accessedSecurityScope {
+                sourceURL.stopAccessingSecurityScopedResource()
+            }
+        }
+        try FileManager.default.copyItem(at: sourceURL, to: temporaryURL)
+        return ImportedAttachmentFile(
+            url: temporaryURL,
+            attachmentType: attachmentType,
+            isTemporary: true
+        )
+    }
+
+    private static func makeTemporaryAttachmentFile(
+        from data: Data,
+        attachmentType: AttachmentType,
+        fileExtension: String
+    ) throws -> ImportedAttachmentFile {
+        let temporaryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension(fileExtension)
+        try data.write(to: temporaryURL, options: .atomic)
+        return ImportedAttachmentFile(
+            url: temporaryURL,
+            attachmentType: attachmentType,
+            isTemporary: true
+        )
+    }
+
+    private static func makeTemporaryPNGImageFile(
+        from data: Data
+    ) throws -> ImportedAttachmentFile? {
+        guard let image = NSImage(data: data), let pngData = image.PNGData else {
+            return nil
+        }
+        return try makeTemporaryAttachmentFile(
+            from: pngData,
+            attachmentType: .image,
+            fileExtension: "png"
+        )
+    }
+
+    private static func resolvedFileExtension(
+        preferred: String,
+        typeIdentifier: String?,
+        attachmentType: AttachmentType
+    ) -> String {
+        if !preferred.isEmpty {
+            return preferred.lowercased()
+        }
+        if let typeIdentifier,
+           let matchedType = supportedPasteboardTypes(for: attachmentType)
+               .first(where: { $0.type.rawValue == typeIdentifier }) {
+            return matchedType.fileExtension
+        }
+
+        switch attachmentType {
+        case .video:
+            return "mov"
+        case .audio:
+            return "m4a"
+        case .file:
+            return "pdf"
+        default:
+            return "png"
+        }
+    }
+
+    private static func supportedPasteboardTypes(
+        for attachmentType: AttachmentType
+    ) -> [(type: NSPasteboard.PasteboardType, fileExtension: String)] {
+        switch attachmentType {
+        case .image:
+            return supportedImagePasteboardTypes
+        case .video:
+            return supportedVideoPasteboardTypes
+        case .audio:
+            return supportedAudioPasteboardTypes
+        case .file:
+            return supportedFilePasteboardTypes
+        }
+    }
+
+    private static func resolveExclusiveAttachmentReplacement(
+        in importedAttachments: [ImportedAttachmentFile],
+        draft: DraftModel,
+        attachmentType: AttachmentType
+    ) -> Bool {
+        let newAttachments = importedAttachments.filter { $0.attachmentType == attachmentType }
+        guard !newAttachments.isEmpty else { return true }
+        if newAttachments.count > 1 {
+            presentPasteAlert(
+                title: "Failed to Paste \(attachmentDisplayName(for: attachmentType))",
+                message: "Writer only supports one \(attachmentDisplayName(for: attachmentType).lowercased()) attachment. Paste a single \(attachmentDisplayName(for: attachmentType).lowercased()) at a time."
+            )
+            return false
+        }
+        guard let existingAttachment = draft.attachments.first(where: { $0.type == attachmentType }) else {
+            return true
+        }
+        return confirmExclusiveAttachmentReplacement(
+            attachmentType: attachmentType,
+            existingAttachmentName: existingAttachment.name
+        )
+    }
+
+    private static func confirmExclusiveAttachmentReplacement(
+        attachmentType: AttachmentType,
+        existingAttachmentName: String
+    ) -> Bool {
+        let alert = NSAlert()
+        let attachmentName = attachmentDisplayName(for: attachmentType)
+        alert.messageText = "Replace Existing \(attachmentName)?"
+        alert.informativeText =
+            "This article already has a \(attachmentName.lowercased()) attachment (\(existingAttachmentName)). Replace it with the pasted \(attachmentName.lowercased())?"
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Replace")
+        alert.addButton(withTitle: "Cancel")
+        return alert.runModal() == .alertFirstButtonReturn
+    }
+
+    private static func attachmentDisplayName(for attachmentType: AttachmentType) -> String {
+        switch attachmentType {
+        case .video:
+            return "Video"
+        case .audio:
+            return "Audio"
+        case .file:
+            return "Document"
+        default:
+            return "Attachment"
+        }
+    }
+
+    private static func presentPasteAlert(title: String, message: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
+
+    private static func cleanupTemporaryFiles(_ importedAttachments: [ImportedAttachmentFile]) {
+        for importedAttachment in importedAttachments where importedAttachment.isTemporary {
+            try? FileManager.default.removeItem(at: importedAttachment.url)
+        }
+    }
 }
 
 struct WriterTextView: NSViewRepresentable {
@@ -26,7 +436,7 @@ struct WriterTextView: NSViewRepresentable {
         NotificationCenter.default.addObserver(
             forName: .writerNotification(.insertText, for: draft),
             object: nil,
-            queue: .main
+            queue: nil
         ) { notification in
             guard let text = notification.object as? String else { return }
             textView.insertTextAtCursor(text: text)
@@ -34,7 +444,7 @@ struct WriterTextView: NSViewRepresentable {
         NotificationCenter.default.addObserver(
             forName: .writerNotification(.removeText, for: draft),
             object: nil,
-            queue: .main
+            queue: nil
         ) { notification in
             guard let text = notification.object as? String else { return }
             textView.removeTargetText(text: text)
@@ -212,27 +622,6 @@ class WriterCustomTextView: NSView {
 class WriterEditorTextView: NSTextView {
     @ObservedObject var draft: DraftModel
 
-    private static let supportedImagePasteboardTypes: [(type: NSPasteboard.PasteboardType, fileExtension: String)] = [
-        (NSPasteboard.PasteboardType(UTType.png.identifier), "png"),
-        (NSPasteboard.PasteboardType(UTType.jpeg.identifier), "jpg"),
-        (NSPasteboard.PasteboardType(UTType.gif.identifier), "gif"),
-        (NSPasteboard.PasteboardType(UTType.tiff.identifier), "tiff"),
-        (NSPasteboard.PasteboardType("public.heic"), "heic"),
-        (NSPasteboard.PasteboardType("public.heif"), "heif"),
-        (NSPasteboard.PasteboardType("public.webp"), "webp")
-    ]
-    private static let supportedVideoPasteboardTypes: [(type: NSPasteboard.PasteboardType, fileExtension: String)] = [
-        (NSPasteboard.PasteboardType(UTType.mpeg4Movie.identifier), "mp4"),
-        (NSPasteboard.PasteboardType(UTType.quickTimeMovie.identifier), "mov"),
-        (NSPasteboard.PasteboardType(UTType.movie.identifier), "mov")
-    ]
-    private static let supportedAudioPasteboardTypes: [(type: NSPasteboard.PasteboardType, fileExtension: String)] = [
-        (NSPasteboard.PasteboardType(UTType.mp3.identifier), "mp3"),
-        (NSPasteboard.PasteboardType(UTType.mpeg4Audio.identifier), "m4a"),
-        (NSPasteboard.PasteboardType(UTType.wav.identifier), "wav"),
-        (NSPasteboard.PasteboardType(UTType.audio.identifier), "m4a")
-    ]
-
     var processedURLs: [URL] = []
 
     init(draft: DraftModel, frame: NSRect, textContainer: NSTextContainer) {
@@ -252,11 +641,18 @@ class WriterEditorTextView: NSTextView {
         super.draw(dirtyRect)
     }
 
+    override func validRequestor(
+        forSendType sendType: NSPasteboard.PasteboardType?,
+        returnType: NSPasteboard.PasteboardType?
+    ) -> Any? {
+        if sendType == nil, WriterPasteboardImporter.canImport(returnType: returnType) {
+            return self
+        }
+        return super.validRequestor(forSendType: sendType, returnType: returnType)
+    }
+
     override var readablePasteboardTypes: [NSPasteboard.PasteboardType] {
-        [.string, .fileURL, NSPasteboard.PasteboardType(UTType.image.identifier)]
-            + Self.supportedImagePasteboardTypes.map { $0.type }
-            + Self.supportedVideoPasteboardTypes.map { $0.type }
-            + Self.supportedAudioPasteboardTypes.map { $0.type }
+        [.string] + WriterPasteboardImporter.readablePasteboardTypes
     }
 
     override var acceptableDragTypes: [NSPasteboard.PasteboardType] {
@@ -266,12 +662,7 @@ class WriterEditorTextView: NSTextView {
     override func paste(_ sender: Any?) {
         let pasteboard = NSPasteboard.general
         do {
-            let pastedAttachments = try pastedAttachmentFiles(from: pasteboard)
-            if !pastedAttachments.isEmpty {
-                defer {
-                    cleanupTemporaryFiles(pastedAttachments)
-                }
-                try insertPastedAttachments(pastedAttachments)
+            if try importAttachments(from: pasteboard) {
                 return
             }
         } catch {
@@ -281,6 +672,32 @@ class WriterEditorTextView: NSTextView {
         if pasteboard.availableType(from: [.string]) != nil {
             super.paste(sender)
         }
+    }
+
+    override func readSelection(from pboard: NSPasteboard) -> Bool {
+        do {
+            if try importAttachments(from: pboard) {
+                return true
+            }
+        } catch {
+            debugPrint("failed to read pasted selection into Writer: \(error)")
+        }
+        return super.readSelection(from: pboard)
+    }
+
+    override func readSelection(
+        from pboard: NSPasteboard,
+        type: NSPasteboard.PasteboardType
+    ) -> Bool {
+        do {
+            if WriterPasteboardImporter.canImport(returnType: type),
+               try importAttachments(from: pboard) {
+                return true
+            }
+        } catch {
+            debugPrint("failed to read pasted selection type into Writer: \(error)")
+        }
+        return super.readSelection(from: pboard, type: type)
     }
 
     override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
@@ -314,6 +731,23 @@ class WriterEditorTextView: NSTextView {
                 insertAttachmentMarkdown: true
             )
         }
+    }
+
+    private func importAttachments(from pasteboard: NSPasteboard) throws -> Bool {
+        try WriterPasteboardImporter.importAttachments(
+            from: pasteboard,
+            into: draft,
+            insertMarkdown: { [weak self] markdown in
+                guard let self else { return }
+                var range = self.selectedRange()
+                range.length = 0
+                self.insertText(markdown, replacementRange: range)
+            },
+            synchronizeContent: { [weak self] in
+                guard let self else { return }
+                self.draft.content = self.string
+            }
+        )
     }
 
     // MARK: - Process enter / return key event
@@ -413,306 +847,5 @@ class WriterEditorTextView: NSTextView {
             }
         }
         return extendedContent
-    }
-
-    private func insertPastedAttachments(_ pastedAttachments: [WriterPastedAttachmentFile]) throws {
-        guard resolveExclusiveAttachmentReplacement(in: pastedAttachments, attachmentType: .video) else {
-            return
-        }
-        guard resolveExclusiveAttachmentReplacement(in: pastedAttachments, attachmentType: .audio) else {
-            return
-        }
-
-        for exclusiveType in [AttachmentType.video, .audio] {
-            if pastedAttachments.contains(where: { $0.attachmentType == exclusiveType }),
-               let existingAttachment = draft.attachments.first(where: { $0.type == exclusiveType })
-            {
-                draft.deleteAttachment(name: existingAttachment.name)
-            }
-        }
-
-        for pastedAttachment in pastedAttachments {
-            let attachment = try draft.addAttachment(
-                path: pastedAttachment.url,
-                type: pastedAttachment.attachmentType
-            )
-            if let markdown = attachment.markdown {
-                var range = selectedRange()
-                range.length = 0
-                insertText(markdown, replacementRange: range)
-            }
-        }
-        draft.content = string
-        try draft.save()
-        try draft.renderPreview()
-    }
-
-    private func pastedAttachmentFiles(from pasteboard: NSPasteboard) throws -> [WriterPastedAttachmentFile] {
-        var attachments: [WriterPastedAttachmentFile] = []
-
-        if let fileURLs = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL] {
-            for fileURL in fileURLs {
-                guard let attachmentType = supportedAttachmentType(for: fileURL) else {
-                    continue
-                }
-                attachments.append(try makeTemporaryAttachmentFile(from: fileURL, attachmentType: attachmentType))
-            }
-        }
-
-        if let items = pasteboard.pasteboardItems {
-            for item in items where !item.types.contains(.fileURL) {
-                if let pastedAttachment = try makeTemporaryAttachmentFile(from: item) {
-                    attachments.append(pastedAttachment)
-                }
-            }
-        } else if attachments.isEmpty, let fallbackAttachment = try makeTemporaryAttachmentFile(from: pasteboard) {
-            attachments.append(fallbackAttachment)
-        }
-
-        return attachments
-    }
-
-    private func supportedAttachmentType(for url: URL) -> AttachmentType? {
-        guard url.isFileURL else { return nil }
-        if let fileType = UTType(filenameExtension: url.pathExtension.lowercased()) {
-            if fileType.conforms(to: .image) {
-                return .image
-            }
-            if fileType.conforms(to: .movie) || fileType.conforms(to: .video) {
-                return .video
-            }
-            if fileType.conforms(to: .audio) {
-                return .audio
-            }
-        }
-        let attachmentType = AttachmentType.from(url)
-        switch attachmentType {
-        case .image, .video, .audio:
-            return attachmentType
-        default:
-            return nil
-        }
-    }
-
-    private func makeTemporaryAttachmentFile(from pasteboard: NSPasteboard) throws -> WriterPastedAttachmentFile? {
-        for supportedType in Self.supportedImagePasteboardTypes {
-            if let data = pasteboard.data(forType: supportedType.type) {
-                return try makeTemporaryAttachmentFile(
-                    from: data,
-                    attachmentType: .image,
-                    fileExtension: supportedType.fileExtension
-                )
-            }
-        }
-        if let data = pasteboard.data(forType: NSPasteboard.PasteboardType(UTType.image.identifier)) {
-            return try makeTemporaryPNGImageFile(from: data)
-        }
-        for supportedType in Self.supportedVideoPasteboardTypes {
-            if let data = pasteboard.data(forType: supportedType.type) {
-                return try makeTemporaryAttachmentFile(
-                    from: data,
-                    attachmentType: .video,
-                    fileExtension: supportedType.fileExtension
-                )
-            }
-        }
-        for supportedType in Self.supportedAudioPasteboardTypes {
-            if let data = pasteboard.data(forType: supportedType.type) {
-                return try makeTemporaryAttachmentFile(
-                    from: data,
-                    attachmentType: .audio,
-                    fileExtension: supportedType.fileExtension
-                )
-            }
-        }
-        return nil
-    }
-
-    private func makeTemporaryAttachmentFile(from pasteboardItem: NSPasteboardItem) throws -> WriterPastedAttachmentFile? {
-        for supportedType in Self.supportedImagePasteboardTypes {
-            if let data = pasteboardItem.data(forType: supportedType.type) {
-                return try makeTemporaryAttachmentFile(
-                    from: data,
-                    attachmentType: .image,
-                    fileExtension: supportedType.fileExtension
-                )
-            }
-        }
-        if let data = pasteboardItem.data(forType: NSPasteboard.PasteboardType(UTType.image.identifier)) {
-            return try makeTemporaryPNGImageFile(from: data)
-        }
-        for supportedType in Self.supportedVideoPasteboardTypes {
-            if let data = pasteboardItem.data(forType: supportedType.type) {
-                return try makeTemporaryAttachmentFile(
-                    from: data,
-                    attachmentType: .video,
-                    fileExtension: supportedType.fileExtension
-                )
-            }
-        }
-        for supportedType in Self.supportedAudioPasteboardTypes {
-            if let data = pasteboardItem.data(forType: supportedType.type) {
-                return try makeTemporaryAttachmentFile(
-                    from: data,
-                    attachmentType: .audio,
-                    fileExtension: supportedType.fileExtension
-                )
-            }
-        }
-        return nil
-    }
-
-    private func makeTemporaryAttachmentFile(
-        from sourceURL: URL,
-        attachmentType: AttachmentType
-    ) throws -> WriterPastedAttachmentFile {
-        let typeIdentifier = try? sourceURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier
-        let fileExtension = resolvedFileExtension(
-            preferred: sourceURL.pathExtension,
-            typeIdentifier: typeIdentifier,
-            attachmentType: attachmentType
-        )
-        let temporaryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString)
-            .appendingPathExtension(fileExtension)
-        let accessedSecurityScope = sourceURL.startAccessingSecurityScopedResource()
-        defer {
-            if accessedSecurityScope {
-                sourceURL.stopAccessingSecurityScopedResource()
-            }
-        }
-        try FileManager.default.copyItem(at: sourceURL, to: temporaryURL)
-        return WriterPastedAttachmentFile(
-            url: temporaryURL,
-            attachmentType: attachmentType,
-            isTemporary: true
-        )
-    }
-
-    private func makeTemporaryAttachmentFile(
-        from data: Data,
-        attachmentType: AttachmentType,
-        fileExtension: String
-    ) throws -> WriterPastedAttachmentFile {
-        let temporaryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString)
-            .appendingPathExtension(fileExtension)
-        try data.write(to: temporaryURL, options: .atomic)
-        return WriterPastedAttachmentFile(
-            url: temporaryURL,
-            attachmentType: attachmentType,
-            isTemporary: true
-        )
-    }
-
-    private func makeTemporaryPNGImageFile(from data: Data) throws -> WriterPastedAttachmentFile? {
-        guard let image = NSImage(data: data), let pngData = image.PNGData else {
-            return nil
-        }
-        return try makeTemporaryAttachmentFile(
-            from: pngData,
-            attachmentType: .image,
-            fileExtension: "png"
-        )
-    }
-
-    private func resolvedFileExtension(
-        preferred: String,
-        typeIdentifier: String?,
-        attachmentType: AttachmentType
-    ) -> String {
-        if !preferred.isEmpty {
-            return preferred.lowercased()
-        }
-        if let typeIdentifier,
-           let matchedType = supportedPasteboardTypes(for: attachmentType).first(where: { $0.type.rawValue == typeIdentifier }) {
-            return matchedType.fileExtension
-        }
-        switch attachmentType {
-        case .video:
-            return "mov"
-        case .audio:
-            return "m4a"
-        default:
-            return "png"
-        }
-    }
-
-    private func supportedPasteboardTypes(
-        for attachmentType: AttachmentType
-    ) -> [(type: NSPasteboard.PasteboardType, fileExtension: String)] {
-        switch attachmentType {
-        case .image:
-            return Self.supportedImagePasteboardTypes
-        case .video:
-            return Self.supportedVideoPasteboardTypes
-        case .audio:
-            return Self.supportedAudioPasteboardTypes
-        default:
-            return []
-        }
-    }
-
-    private func resolveExclusiveAttachmentReplacement(
-        in pastedAttachments: [WriterPastedAttachmentFile],
-        attachmentType: AttachmentType
-    ) -> Bool {
-        let newAttachments = pastedAttachments.filter { $0.attachmentType == attachmentType }
-        guard !newAttachments.isEmpty else { return true }
-        if newAttachments.count > 1 {
-            presentPasteAlert(
-                title: "Failed to Paste \(attachmentDisplayName(for: attachmentType))",
-                message: "Writer only supports one \(attachmentDisplayName(for: attachmentType).lowercased()) attachment. Paste a single \(attachmentDisplayName(for: attachmentType).lowercased()) at a time."
-            )
-            return false
-        }
-        guard let existingAttachment = draft.attachments.first(where: { $0.type == attachmentType }) else {
-            return true
-        }
-        return confirmExclusiveAttachmentReplacement(
-            attachmentType: attachmentType,
-            existingAttachmentName: existingAttachment.name
-        )
-    }
-
-    private func confirmExclusiveAttachmentReplacement(
-        attachmentType: AttachmentType,
-        existingAttachmentName: String
-    ) -> Bool {
-        let alert = NSAlert()
-        let attachmentName = attachmentDisplayName(for: attachmentType)
-        alert.messageText = "Replace Existing \(attachmentName)?"
-        alert.informativeText =
-            "This article already has a \(attachmentName.lowercased()) attachment (\(existingAttachmentName)). Replace it with the pasted \(attachmentName.lowercased())?"
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "Replace")
-        alert.addButton(withTitle: "Cancel")
-        return alert.runModal() == .alertFirstButtonReturn
-    }
-
-    private func attachmentDisplayName(for attachmentType: AttachmentType) -> String {
-        switch attachmentType {
-        case .video:
-            return "Video"
-        case .audio:
-            return "Audio"
-        default:
-            return "Attachment"
-        }
-    }
-
-    private func presentPasteAlert(title: String, message: String) {
-        let alert = NSAlert()
-        alert.messageText = title
-        alert.informativeText = message
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "OK")
-        alert.runModal()
-    }
-
-    private func cleanupTemporaryFiles(_ pastedAttachments: [WriterPastedAttachmentFile]) {
-        for pastedAttachment in pastedAttachments where pastedAttachment.isTemporary {
-            try? FileManager.default.removeItem(at: pastedAttachment.url)
-        }
     }
 }

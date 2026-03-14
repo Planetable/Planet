@@ -174,6 +174,8 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.global(qos: .background).async {
             WebAppUpdater.shared.updateWebApp()
         }
+
+        NSApp.registerServicesMenuSendTypes([], returnTypes: WriterPasteboardImporter.readablePasteboardTypes)
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
