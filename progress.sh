@@ -236,8 +236,9 @@ colorized=$(echo "$summary" | sed \
   -e "s/\*\*\([^*]*\)\*\*/${C_CYAN}\1${C_RESET}/g" \
   -e "s/^- /  ${C_YELLOW}•${C_RESET} /")
 
-# Display with pager
+# Display with pager, then reprint so output stays in scrollback
 echo "$colorized" | less -R
+echo "$colorized"
 
 # Copy raw markdown (no color codes) to clipboard
 echo ""
