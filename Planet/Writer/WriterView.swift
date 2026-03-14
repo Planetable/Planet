@@ -57,7 +57,8 @@ struct WriterView: View {
                 date: $draft.date,
                 title: $draft.title,
                 focusTitle: _focusTitle,
-                attachments: $draft.attachments
+                attachments: $draft.attachments,
+                handleTitlePaste: handleTitlePaste
             )
 
             Divider()
@@ -323,5 +324,23 @@ struct WriterView: View {
         }
         try draft.renderPreview()
         try draft.save()
+    }
+
+    private func handleTitlePaste(_ pasteboard: NSPasteboard) -> Bool {
+        do {
+            return try WriterPasteboardImporter.importAttachments(
+                from: pasteboard,
+                into: draft,
+                insertMarkdown: { markdown in
+                    NotificationCenter.default.post(
+                        name: .writerNotification(.insertText, for: draft),
+                        object: markdown
+                    )
+                }
+            )
+        } catch {
+            debugPrint("failed to paste media into Writer title: \(error)")
+            return false
+        }
     }
 }
