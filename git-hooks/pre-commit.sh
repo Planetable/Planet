@@ -25,10 +25,13 @@ fi
 if [ "$current_line" != "$version_line" ]; then
     printf '%s\n' "$version_line" > "$version_file"
     printf 'Set CURRENT_PROJECT_VERSION to %s\n' "$build_number"
-    git add -- "$version_file"
+fi
 
-    # Partial commits can run hooks against a temporary index.
-    if [ "$current_index" != "$actual_index" ]; then
-        GIT_INDEX_FILE="$actual_index" git add -- "$version_file"
-    fi
+# Always stage the version file so a prior failed commit that wrote
+# the file but never completed still gets picked up.
+git add -- "$version_file"
+
+# Partial commits can run hooks against a temporary index.
+if [ "$current_index" != "$actual_index" ]; then
+    GIT_INDEX_FILE="$actual_index" git add -- "$version_file"
 fi
