@@ -2277,6 +2277,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             logIPFS("[\(name)] Refreshed IPNS keepalive for CID \(cid)")
             Self.logger.info("Refreshed IPNS keepalive for planet \(self.name, privacy: .public)")
         }
+        catch PlanetError.IPFSAPIError {
+            logIPFS("[WARNING] [\(name)] IPNS keepalive failed: \(PlanetError.IPFSAPIError)")
+            throw PlanetError.IPFSAPIError
+        }
         catch {
             logIPFS("[ERROR] [\(name)] IPNS keepalive failed: \(String(describing: error))")
             openIPFSLogWindow()
