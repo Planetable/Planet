@@ -1,5 +1,6 @@
 .idea
 .vscode
+.ruby-version
 *.DS_Store
 local.xcconfig
 xcuserdata
