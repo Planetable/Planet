@@ -16,7 +16,7 @@ struct FollowingArticleItemView: View {
                     Circle()
                         .fill(Color.blue)
                         .frame(width: 8, height: 8)
-                        .padding(.init(top: 6, leading: 4, bottom: 4, trailing: 4))
+                        .padding(.init(top: 4, leading: 4, bottom: 4, trailing: 4))
                         .visibility(article.read == nil ? .visible : .invisible)
                 }
                 Spacer()
