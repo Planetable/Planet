@@ -637,6 +637,21 @@ class WriterEditorTextView: NSTextView {
         fatalError("WriterEditorTextView: required init?(coder: NSCoder) not implemented")
     }
 
+    override func insertBacktab(_ sender: Any?) {
+        guard let contentView = window?.contentView else { return }
+        if let titleTextView = Self.findSubview(ofType: WriterTitleEditorTextView.self, in: contentView) {
+            window?.makeFirstResponder(titleTextView)
+        }
+    }
+
+    private static func findSubview<T: NSView>(ofType type: T.Type, in view: NSView) -> T? {
+        if let match = view as? T { return match }
+        for subview in view.subviews {
+            if let found = findSubview(ofType: type, in: subview) { return found }
+        }
+        return nil
+    }
+
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
     }

@@ -19,7 +19,6 @@ struct WriterTitleView: View {
     @Binding var tags: [String: String]
     @Binding var date: Date
     @Binding var title: String
-    @FocusState var focusTitle: Bool
     @Binding var attachments: [Attachment]
     var handleTitlePaste: (NSPasteboard) -> Bool = { _ in false }
 
@@ -28,16 +27,12 @@ struct WriterTitleView: View {
             ZStack(alignment: .leading) {
                 WriterTitleEditor(
                     text: $title,
-                    isFocused: Binding(
-                        get: { focusTitle },
-                        set: { focusTitle = $0 }
-                    ),
                     font: NSFont(name: "Menlo", size: 15),
                     importAttachments: handleTitlePaste
                 )
                 .accessibilityLabel("Title")
 
-                if title.isEmpty && !focusTitle {
+                if title.isEmpty {
                     Text("Title")
                         .font(.custom("Menlo", size: 15.0))
                         .foregroundStyle(.tertiary)
@@ -287,7 +282,6 @@ struct WriterTitleView: View {
 
 struct WriterTitleEditor: NSViewRepresentable {
     @Binding var text: String
-    @Binding var isFocused: Bool
     var font: NSFont?
     var importAttachments: (NSPasteboard) -> Bool
 
@@ -308,7 +302,6 @@ struct WriterTitleEditor: NSViewRepresentable {
     func updateNSView(_ nsView: WriterTitleEditorContainer, context: Context) {
         nsView.updateText(text)
         nsView.updatePasteHandler(importAttachments)
-        nsView.updateFocus(isFocused)
     }
 
     final class Coordinator: NSObject, NSTextViewDelegate {
@@ -318,31 +311,11 @@ struct WriterTitleEditor: NSViewRepresentable {
             self.parent = parent
         }
 
-        func textDidBeginEditing(_ notification: Notification) {
-            guard let textView = notification.object as? WriterTitleEditorTextView else {
-                return
-            }
-            parent.text = textView.string
-            if !parent.isFocused {
-                parent.isFocused = true
-            }
-        }
-
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? WriterTitleEditorTextView else {
                 return
             }
             parent.text = textView.string
-        }
-
-        func textDidEndEditing(_ notification: Notification) {
-            guard let textView = notification.object as? WriterTitleEditorTextView else {
-                return
-            }
-            parent.text = textView.string
-            if parent.isFocused {
-                parent.isFocused = false
-            }
         }
     }
 }
@@ -420,6 +393,17 @@ final class WriterTitleEditorContainer: NSView {
         fatalError("WriterTitleEditorContainer: required init?(coder:) not implemented")
     }
 
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard window != nil else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let window = self.window else { return }
+            window.makeFirstResponder(self.textView)
+            let end = (self.textView.string as NSString).length
+            self.textView.setSelectedRange(NSRange(location: end, length: 0))
+        }
+    }
+
     override func viewWillDraw() {
         super.viewWillDraw()
         guard scrollView.superview == nil else { return }
@@ -451,18 +435,6 @@ final class WriterTitleEditorContainer: NSView {
         textView.importAttachments = importAttachments
     }
 
-    func updateFocus(_ isFocused: Bool) {
-        guard isFocused else { return }
-
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            guard let window = self.window else { return }
-            guard window.firstResponder !== self.textView else { return }
-            window.makeFirstResponder(self.textView)
-            let end = (self.textView.string as NSString).length
-            self.textView.setSelectedRange(NSRange(location: end, length: 0))
-        }
-    }
 }
 
 final class WriterTitleEditorTextView: NSTextView {
@@ -520,20 +492,32 @@ final class WriterTitleEditorTextView: NSTextView {
         super.insertText(sanitized, replacementRange: replacementRange)
     }
 
+    override func insertTab(_ sender: Any?) {
+        guard let contentView = window?.contentView else { return }
+        if let editorTextView = Self.findSubview(ofType: WriterEditorTextView.self, in: contentView) {
+            window?.makeFirstResponder(editorTextView)
+        }
+    }
+
+    private static func findSubview<T: NSView>(ofType type: T.Type, in view: NSView) -> T? {
+        if let match = view as? T { return match }
+        for subview in view.subviews {
+            if let found = findSubview(ofType: type, in: subview) { return found }
+        }
+        return nil
+    }
+
     override func insertNewline(_ sender: Any?) {
-        window?.makeFirstResponder(nil)
+        insertTab(sender)
     }
 
     override func insertLineBreak(_ sender: Any?) {
-        window?.makeFirstResponder(nil)
+        insertTab(sender)
     }
 }
 
 struct WriterTitleView_Previews: PreviewProvider {
     static var previews: some View {
-        WriterTitleView(availableTags: [:], tags: .constant([:]), date: .constant(Date()), title: .constant(""),
-            attachments: .constant([]),
-            handleTitlePaste: { _ in false }
-        )
+        WriterTitleView(availableTags: [:], tags: .constant([:]), date: .constant(Date()), title: .constant(""), attachments: .constant([]), handleTitlePaste: { _ in false })
     }
 }

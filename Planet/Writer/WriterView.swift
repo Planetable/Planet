@@ -15,7 +15,6 @@ enum RightView {
 struct WriterView: View {
     @ObservedObject var draft: DraftModel
     @ObservedObject var viewModel: WriterViewModel
-    @FocusState var focusTitle: Bool
     let dragAndDrop: WriterDragAndDrop
 
     @State private var videoPlayerHeight: CGFloat = 0
@@ -56,7 +55,6 @@ struct WriterView: View {
                 tags: $draft.tags,
                 date: $draft.date,
                 title: $draft.title,
-                focusTitle: _focusTitle,
                 attachments: $draft.attachments,
                 handleTitlePaste: handleTitlePaste
             )
@@ -118,10 +116,6 @@ struct WriterView: View {
         .onAppear {
             if draft.attachments.contains(where: { $0.type == .image || $0.type == .file }) {
                 viewModel.isMediaTrayOpen = true
-            }
-            Task { @MainActor in
-                // workaround: wrap in a task to delay focusing the title a little
-                focusTitle = true
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: WriterViewModel.choosingAttachment), perform: { _ in
