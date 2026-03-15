@@ -52,7 +52,7 @@ struct FollowingArticleItemView: View {
                         Spacer()
                     }
                 }
-                .frame(height: 56)
+                .frame(height: 60, alignment: .topLeading)
                 HStack(spacing: 6) {
                     article.mediaLabels()
                 }
