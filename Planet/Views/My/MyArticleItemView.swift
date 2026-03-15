@@ -49,7 +49,7 @@ struct MyArticleItemView: View {
                         Spacer()
                     }
                 }
-                .frame(height: 60)
+                .frame(height: 60, alignment: .topLeading)
                 HStack(spacing: 6) {
                     article.mediaLabels(includeSpacers: false)
                     if article.articleType == .page {
