@@ -1,2 +1,2 @@
-- Xcode is installed under /Applications/Xcode-16.4.0.app/
+- When running xcodebuild, prefer using `/Applications/Xcode-16.4.0.app/Contents/Developer` as the developer directory (via `DEVELOPER_DIR` env var or `xcode-select`), falling back to `/Applications/Xcode.app/Contents/Developer` if unavailable.
 - Must compile for macOS 12

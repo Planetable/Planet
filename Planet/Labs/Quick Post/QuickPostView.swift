@@ -15,6 +15,17 @@ struct QuickPostView: View {
         _viewModel = StateObject(wrappedValue: QuickPostViewModel.shared)
     }
 
+    private var textAreaHeight: CGFloat {
+        let font = NSFont(name: "Menlo", size: 14.0) ?? NSFont.systemFont(ofSize: 14.0)
+        let lineHeight = ceil(font.ascender - font.descender + font.leading) + 4 // 4 = lineSpacing
+        let insets: CGFloat = 8 // textContainerInset.height * 2
+        let padding: CGFloat = 20 // SwiftUI top + bottom padding
+        let minHeight = lineHeight * 5 + insets + padding
+        let maxHeight = lineHeight * 12 + insets + padding
+        let needed = viewModel.textContentHeight + padding
+        return max(minHeight, min(maxHeight, needed))
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Upper: Avatar | Text Entry
@@ -41,7 +52,7 @@ struct QuickPostView: View {
                     .padding(.bottom, 10)
                     .padding(.leading, 0)
                     .padding(.trailing, 10)
-                    .frame(height: 160)
+                    .frame(height: textAreaHeight)
                     .onChange(of: viewModel.content) { newValue in
                         handleAutocomplete(oldValue: previousContent, newValue: newValue)
                         previousContent = newValue
@@ -104,8 +115,12 @@ struct QuickPostView: View {
                 }
                 Spacer()
                 Button(role: .cancel) {
-                    viewModel.cleanup()
-                    dismiss()
+                    if viewModel.hasContent {
+                        viewModel.showDiscardAlert = true
+                    } else {
+                        viewModel.cleanup()
+                        dismiss()
+                    }
                 } label: {
                     Text("Cancel")
                         .frame(minWidth: 50)
@@ -133,16 +148,25 @@ struct QuickPostView: View {
             }.padding(10)
                 .background(Color(NSColor.windowBackgroundColor))
         }.frame(width: 500, height: sheetHeight())
+        .alert("Discard Post?", isPresented: $viewModel.showDiscardAlert) {
+            Button("Discard", role: .destructive) {
+                viewModel.cleanup()
+                dismiss()
+            }
+            Button("Keep Editing", role: .cancel) {}
+        } message: {
+            Text("Your post will be lost if you discard it.")
+        }
     }
 
     private func sheetHeight() -> CGFloat {
         if viewModel.fileURLs.count > 0 {
             if let _ = viewModel.audioURL {
-                return 310 + 25
+                return textAreaHeight + 175
             }
-            return 310
+            return textAreaHeight + 150
         }
-        return 200
+        return textAreaHeight + 40
     }
 
     private func handleAutocomplete(oldValue: String, newValue: String) {
@@ -161,8 +185,9 @@ struct QuickPostView: View {
         let previousLine = lines[lines.count - 2]
         let trimmedPrevious = previousLine.trimmingCharacters(in: .whitespaces)
 
-        // Check if previous line is an empty list item (including todo lists)
-        if trimmedPrevious == "*" || trimmedPrevious == "-" || trimmedPrevious == "- [ ]" || trimmedPrevious == "- [x]" {
+        // Check if previous line is an empty list item (including todo lists and numbered lists)
+        let isEmptyNumberedItem = trimmedPrevious.range(of: #"^\d+\.$"#, options: .regularExpression) != nil
+        if trimmedPrevious == "*" || trimmedPrevious == "-" || trimmedPrevious == "- [ ]" || trimmedPrevious == "- [x]" || isEmptyNumberedItem {
             // Remove the empty list marker from previous line
             var updatedLines = lines
             updatedLines[lines.count - 2] = ""
@@ -187,6 +212,15 @@ struct QuickPostView: View {
             // Add "- " to the new line if not already there
             if newValue.hasSuffix("\n") {
                 viewModel.content = newValue + "- "
+            }
+        }
+        // Check if previous line starts with a numbered list (e.g., "1. ")
+        else if let match = trimmedPrevious.range(of: #"^(\d+)\. "#, options: .regularExpression) {
+            if newValue.hasSuffix("\n") {
+                let numberStr = trimmedPrevious[match].dropLast(2) // drop ". "
+                if let number = Int(numberStr) {
+                    viewModel.content = newValue + "\(number + 1). "
+                }
             }
         }
     }
@@ -432,6 +466,15 @@ struct QuickPostTextView: NSViewRepresentable {
                 return
             }
             parent.text = textView.string
+            updateContentHeight(textView)
+        }
+
+        private func updateContentHeight(_ textView: NSTextView) {
+            guard let layoutManager = textView.layoutManager,
+                  let textContainer = textView.textContainer else { return }
+            layoutManager.ensureLayout(for: textContainer)
+            let usedRect = layoutManager.usedRect(for: textContainer)
+            parent.viewModel.textContentHeight = usedRect.height + textView.textContainerInset.height * 2
         }
 
         func textDidEndEditing(_ notification: Notification) {
@@ -542,6 +585,15 @@ final class QuickPostTextEditorContainer: NSView {
         textView.string = text
         let end = (text as NSString).length
         textView.setSelectedRange(NSRange(location: end, length: 0))
+        updateContentHeight()
+    }
+
+    private func updateContentHeight() {
+        guard let layoutManager = textView.layoutManager,
+              let textContainer = textView.textContainer else { return }
+        layoutManager.ensureLayout(for: textContainer)
+        let usedRect = layoutManager.usedRect(for: textContainer)
+        viewModel.textContentHeight = usedRect.height + textView.textContainerInset.height * 2
     }
 }
 

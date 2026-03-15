@@ -54,6 +54,12 @@ class QuickPostViewModel: ObservableObject {
     @Published var allowMultipleSelection = false
 
     @Published var content: String = ""
+    @Published var textContentHeight: CGFloat = 0
+    @Published var showDiscardAlert: Bool = false
+
+    var hasContent: Bool {
+        !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !fileURLs.isEmpty
+    }
 
     @Published var heroImage: String? = nil
     @Published var fileURLs: [URL] = []
@@ -140,6 +146,7 @@ class QuickPostViewModel: ObservableObject {
         }
         temporaryFileURLs.removeAll()
         content = ""
+        textContentHeight = 0
         heroImage = nil
         fileURLs = []
         audioURL = nil
