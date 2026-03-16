@@ -10,7 +10,6 @@ import SwiftUI
 struct QuickPostView: View {
     @StateObject private var viewModel: QuickPostViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var previousContent: String = ""
     init() {
         _viewModel = StateObject(wrappedValue: QuickPostViewModel.shared)
     }
@@ -53,10 +52,6 @@ struct QuickPostView: View {
                     .padding(.leading, 0)
                     .padding(.trailing, 10)
                     .frame(height: textAreaHeight)
-                    .onChange(of: viewModel.content) { newValue in
-                        handleAutocomplete(oldValue: previousContent, newValue: newValue)
-                        previousContent = newValue
-                    }
             }
             .background(Color(NSColor.textBackgroundColor))
 
@@ -167,62 +162,6 @@ struct QuickPostView: View {
             return textAreaHeight + 150
         }
         return textAreaHeight + 40
-    }
-
-    private func handleAutocomplete(oldValue: String, newValue: String) {
-        // Only process if content increased (user added text, not deleted)
-        guard newValue.count > oldValue.count else { return }
-
-        // Check if the last added character(s) include a newline
-        let addedText = String(newValue.suffix(newValue.count - oldValue.count))
-        guard addedText.contains("\n") else { return }
-
-        // Split into lines
-        let lines = newValue.components(separatedBy: "\n")
-        guard lines.count >= 2 else { return }
-
-        // Get the previous line (the one before the newly added line)
-        let previousLine = lines[lines.count - 2]
-        let trimmedPrevious = previousLine.trimmingCharacters(in: .whitespaces)
-
-        // Check if previous line is an empty list item (including todo lists and numbered lists)
-        let isEmptyNumberedItem = trimmedPrevious.range(of: #"^\d+\.$"#, options: .regularExpression) != nil
-        if trimmedPrevious == "*" || trimmedPrevious == "-" || trimmedPrevious == "- [ ]" || trimmedPrevious == "- [x]" || isEmptyNumberedItem {
-            // Remove the empty list marker from previous line
-            var updatedLines = lines
-            updatedLines[lines.count - 2] = ""
-            viewModel.content = updatedLines.joined(separator: "\n")
-            return
-        }
-
-        // Check if previous line starts with todo list markers
-        if trimmedPrevious.hasPrefix("- [ ] ") || trimmedPrevious.hasPrefix("- [x] ") {
-            // Add "- [ ] " to the new line
-            if newValue.hasSuffix("\n") {
-                viewModel.content = newValue + "- [ ] "
-            }
-        }
-        // Check if previous line starts with list markers
-        else if trimmedPrevious.hasPrefix("* ") {
-            // Add "* " to the new line if not already there
-            if newValue.hasSuffix("\n") {
-                viewModel.content = newValue + "* "
-            }
-        } else if trimmedPrevious.hasPrefix("- ") {
-            // Add "- " to the new line if not already there
-            if newValue.hasSuffix("\n") {
-                viewModel.content = newValue + "- "
-            }
-        }
-        // Check if previous line starts with a numbered list (e.g., "1. ")
-        else if let match = trimmedPrevious.range(of: #"^(\d+)\. "#, options: .regularExpression) {
-            if newValue.hasSuffix("\n") {
-                let numberStr = trimmedPrevious[match].dropLast(2) // drop ". "
-                if let number = Int(numberStr) {
-                    viewModel.content = newValue + "\(number + 1). "
-                }
-            }
-        }
     }
 
     @ViewBuilder
@@ -626,6 +565,21 @@ final class QuickPostEditorTextView: NSTextView {
             return
         }
         super.paste(sender)
+    }
+
+    // MARK: - List autocomplete on Enter
+
+    override func keyDown(with event: NSEvent) {
+        super.keyDown(with: event)
+        switch event.keyCode {
+        case 36, 76: // Return, Enter
+            let result = MarkdownListAutocomplete.evaluate(
+                text: self.string, cursorUTF16Offset: self.selectedRange().location
+            )
+            MarkdownListAutocomplete.apply(result, to: self)
+        default:
+            break
+        }
     }
 }
 

@@ -621,11 +621,13 @@ class WriterCustomTextView: NSView {
 
 class WriterEditorTextView: NSTextView {
     @ObservedObject var draft: DraftModel
+    private let monoFont: NSFont
 
     var processedURLs: [URL] = []
 
     init(draft: DraftModel, frame: NSRect, textContainer: NSTextContainer) {
         self.draft = draft
+        self.monoFont = NSFont(name: "Menlo", size: 14) ?? .monospacedSystemFont(ofSize: 14, weight: .regular)
         super.init(frame: frame, textContainer: textContainer)
         self.isAutomaticQuoteSubstitutionEnabled = false
         self.isAutomaticDashSubstitutionEnabled = false
@@ -635,6 +637,21 @@ class WriterEditorTextView: NSTextView {
 
     required init?(coder: NSCoder) {
         fatalError("WriterEditorTextView: required init?(coder: NSCoder) not implemented")
+    }
+
+    // Always enforce the mono font in typingAttributes so that all inserted
+    // text (typing, IME, paste, programmatic) uses the correct font.
+    override var typingAttributes: [NSAttributedString.Key: Any] {
+        get {
+            var attrs = super.typingAttributes
+            attrs[.font] = monoFont
+            return attrs
+        }
+        set {
+            var attrs = newValue
+            attrs[.font] = monoFont
+            super.typingAttributes = attrs
+        }
     }
 
     override func insertBacktab(_ sender: Any?) {
@@ -770,97 +787,13 @@ class WriterEditorTextView: NSTextView {
     override func keyDown(with event: NSEvent) {
         super.keyDown(with: event)
         switch event.keyCode {
-            case 36, 76:
-                do {
-                    try processEnterOrReturnEvent()
-                } catch {
-                    debugPrint("failed to process enter / return event: \(error)")
-                }
-            default:
-                break
+        case 36, 76: // Return, Enter
+            let result = MarkdownListAutocomplete.evaluate(
+                text: self.string, cursorUTF16Offset: self.selectedRange().location
+            )
+            MarkdownListAutocomplete.apply(result, to: self)
+        default:
+            break
         }
-    }
-
-    private func processEnterOrReturnEvent() throws {
-        let selectedRange = self.selectedRange()
-        let location = selectedRange.location - 1
-        let content = NSString(string: self.string)
-        let start = getLocationOfFirstNewline(fromString: content, beforeLocation: UInt(location))
-        let end = UInt(location)
-        let range = NSRange(location: Int(start), length: Int(end - start))
-        let line = NSString(string: content.substring(with: range))
-        let regex = try NSRegularExpression(pattern: "^(\\s*)((?:(?:\\*|\\+|-|)\\s+)?)((?:\\d+\\.\\s+)?)(\\S)?", options: .anchorsMatchLines)
-        guard let result: NSTextCheckingResult = regex.firstMatch(in: line as String, range: NSRange(location: 0, length: line.length)) else { return }
-        let indent = NSString(string: line.substring(with: result.range(at: 1)))
-        let prefix = getPrefix(result: result, line: line, start: start, indent: indent, selectedRange: selectedRange, range: range)
-        guard prefix != "" else { return }
-        var targetRange = selectedRange
-        targetRange.length = 0
-        var extendedContent = NSString(format: "%@%@ ", indent, prefix)
-        extendedContent = getExtendedContent(line: line, indent: indent, prefix: prefix, extendedContent: extendedContent, range: range)
-        self.insertText(extendedContent, replacementRange: targetRange)
-    }
-
-    private func getLocationOfFirstNewline(fromString string: NSString, beforeLocation loc: UInt) -> UInt {
-        var location: UInt = loc
-        if location > string.length {
-            location = UInt(string.length)
-        }
-        var start: UInt = 0
-        string.getLineStart(&start, end: nil, contentsEnd: nil, for: NSRange(location: Int(location), length: 0))
-        return start
-    }
-
-    private func getPrefix(result: NSTextCheckingResult, line: NSString, start: UInt, indent: NSString, selectedRange: NSRange, range: NSRange) -> NSString {
-        var prefix: NSString = NSString(string: "")
-        let isUnordered = result.range(at: 2).length != 0
-        let isOrdered = result.range(at: 3).length != 0
-        let isPreviousLineEmpty = result.range(at: 4).length == 0
-        if isPreviousLineEmpty {
-            var replaceRange = NSRange(location: NSNotFound, length: 0)
-            if isUnordered {
-                replaceRange = result.range(at: 2)
-            } else if isOrdered {
-                replaceRange = result.range(at: 3)
-            }
-            if replaceRange.length > 0 {
-                replaceRange.location += Int(start)
-                if indent != "" {
-                    // keep sublevel indent after return.
-                    var targetRange = selectedRange
-                    targetRange.length = 0
-                    self.insertText(indent, replacementRange: targetRange)
-                }
-                self.shouldChangeText(in: range, replacementString: nil)
-                self.replaceCharacters(in: range, with: "")
-            }
-        } else if isUnordered {
-            var theRange = result.range(at: 2)
-            theRange.length -= 1
-            prefix = NSString(string: line.substring(with: theRange))
-        } else if isOrdered {
-            var theRange = result.range(at: 3)
-            theRange.length -= 1
-            let capturedIndex = NSString(string: line.substring(with: theRange)).integerValue
-            prefix = NSString(format: "%ld.", capturedIndex + 1)
-        }
-        return prefix
-    }
-
-    private func getExtendedContent(line: NSString, indent: NSString, prefix: NSString, extendedContent: NSString, range: NSRange) -> NSString {
-        var extendedContent = extendedContent
-        // Improvements for todo item in unordered list:
-        // "- [ ] "
-        // "- [x] "
-        // "- [X] "
-        if line.hasPrefix("- [ ] ") || line.hasPrefix("- [x] ") || line.hasPrefix("- [X] ") {
-            if line.length == "- [ ] ".count {
-                extendedContent = NSString(format: "")
-                self.replaceCharacters(in: range, with: "")
-            } else {
-                extendedContent = NSString(format: "%@%@ [ ] ", indent, prefix)
-            }
-        }
-        return extendedContent
     }
 }

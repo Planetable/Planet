@@ -1,2 +1,3 @@
 - When running xcodebuild, prefer using `/Applications/Xcode-16.4.0.app/Contents/Developer` as the developer directory (via `DEVELOPER_DIR` env var or `xcode-select`), falling back to `/Applications/Xcode.app/Contents/Developer` if unavailable.
+- When modifying Xcode project files (.xcodeproj/project.pbxproj), use the `xcodeproj` Ruby gem instead of editing the pbxproj file directly.
 - Must compile for macOS 12
