@@ -458,11 +458,20 @@ struct QuickPostTextView: NSViewRepresentable {
             guard let textView = notification.object as? QuickPostEditorTextView else {
                 return
             }
+            // Skip binding update during IME composition to avoid destroying marked text
+            guard !textView.hasMarkedText() else { return }
             parent.text = textView.string
         }
 
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? QuickPostEditorTextView else {
+                return
+            }
+            // During IME composition (marked text), only update content height
+            // but do NOT push text back to the binding — that triggers updateNSView
+            // which calls textView.string = text, destroying the composing session
+            if textView.hasMarkedText() {
+                updateContentHeight(textView)
                 return
             }
             parent.text = textView.string
@@ -581,6 +590,9 @@ final class QuickPostTextEditorContainer: NSView {
 
     func updateText(_ text: String) {
         self.text = text
+        // Never overwrite the text view while the IME is composing (marked text active)
+        // — doing so destroys the composing session and causes garbled input
+        guard !textView.hasMarkedText() else { return }
         guard textView.string != text else { return }
         textView.string = text
         let end = (text as NSString).length
