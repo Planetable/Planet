@@ -218,6 +218,8 @@ extension WriterWindow: NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
+        viewModel.clearVideoCompressionBackup()
+        viewModel.clearVideoCompressionSummary()
         Task { @MainActor in
             WriterStore.shared.closeWriterWindow(byDraftID: self.draft.id)
         }

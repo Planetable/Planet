@@ -32,7 +32,7 @@ struct WriterView: View {
     var body: some View {
         VStack(spacing: 0) {
             if let videoAttachment = draft.attachments.first(where: { $0.type == .video }) {
-                WriterVideoView(videoAttachment: videoAttachment)
+                WriterVideoView(videoAttachment: videoAttachment, viewModel: viewModel)
                     .onAppear {
                         self.videoPlayerHeight = 270
                     }
@@ -108,12 +108,24 @@ struct WriterView: View {
             try? draft.renderPreview()
         }
         .onChange(of: draft.attachments) { _ in
+            viewModel.syncVideoCompressionBackup(
+                for: draft.attachments.first(where: { $0.type == .video })
+            )
+            viewModel.syncVideoCompressionSummary(
+                for: draft.attachments.first(where: { $0.type == .video })
+            )
             if draft.attachments.contains(where: { $0.type == .image || $0.type == .file }) {
                 viewModel.isMediaTrayOpen = true
             }
             try? draft.renderPreview()
         }
         .onAppear {
+            viewModel.syncVideoCompressionBackup(
+                for: draft.attachments.first(where: { $0.type == .video })
+            )
+            viewModel.syncVideoCompressionSummary(
+                for: draft.attachments.first(where: { $0.type == .video })
+            )
             if draft.attachments.contains(where: { $0.type == .image || $0.type == .file }) {
                 viewModel.isMediaTrayOpen = true
             }

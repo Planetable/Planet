@@ -343,9 +343,22 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         withCompressedVideoAt compressedURL: URL,
         compressionPreset: String
     ) throws -> Attachment {
+        try replaceVideoAttachment(
+            attachment,
+            withVideoAt: compressedURL,
+            compressionPreset: compressionPreset
+        )
+    }
+
+    @discardableResult
+    func replaceVideoAttachment(
+        _ attachment: Attachment,
+        withVideoAt videoURL: URL,
+        compressionPreset: String?
+    ) throws -> Attachment {
         let oldName = attachment.name
         let oldPath = attachment.path
-        let newAttachment = try addAttachment(path: compressedURL, type: .video)
+        let newAttachment = try addAttachment(path: videoURL, type: .video)
         newAttachment.videoCompressionPreset = compressionPreset
 
         if oldName != newAttachment.name {

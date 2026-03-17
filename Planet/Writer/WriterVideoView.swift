@@ -3,6 +3,7 @@ import AVKit
 
 struct WriterVideoView: View {
     @ObservedObject var videoAttachment: Attachment
+    @ObservedObject var viewModel: WriterViewModel
     @State private var player: AVPlayer?
 
     var body: some View {
@@ -18,6 +19,7 @@ struct WriterVideoView: View {
             .frame(height: 270)
             VideoInfoRow(
                 videoAttachment: videoAttachment,
+                viewModel: viewModel,
                 removeAction: deleteVideo
             )
         }
@@ -35,6 +37,8 @@ struct WriterVideoView: View {
     }
 
     private func deleteVideo() {
+        viewModel.clearVideoCompressionBackup()
+        viewModel.clearVideoCompressionSummary()
         videoAttachment.draft.deleteAttachment(name: videoAttachment.name)
     }
 
