@@ -17,7 +17,7 @@ struct MyArticleItemView: View {
                         if article.pinned != nil {
                             Image(systemName: "pin.fill")
                                 .font(.caption)
-                                .foregroundColor(.accentColor)
+                                .foregroundColor(isSelected ? .white : .accentColor)
                                 .padding(.trailing, 4)
                         }
                         Text(article.title)
