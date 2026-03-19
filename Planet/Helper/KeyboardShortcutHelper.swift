@@ -16,6 +16,7 @@ class KeyboardShortcutHelper: ObservableObject {
 
     @ObservedObject private var updater: PlanetUpdater
     @ObservedObject private var serviceStore: PlanetPublishedServiceStore
+    @ObservedObject private var ipfsState: IPFSState
 
     @Published var activeWriterWindow: WriterWindow?
     @Published var activeMyPlanet: MyPlanetModel?
@@ -23,6 +24,7 @@ class KeyboardShortcutHelper: ObservableObject {
     init() {
         _updater = ObservedObject(wrappedValue: PlanetUpdater.shared)
         _serviceStore = ObservedObject(wrappedValue: PlanetPublishedServiceStore.shared)
+        _ipfsState = ObservedObject(wrappedValue: IPFSState.shared)
     }
 
     @CommandsBuilder
@@ -161,11 +163,12 @@ class KeyboardShortcutHelper: ObservableObject {
     func toolsCommands() -> some Commands {
         CommandMenu("Tools") {
             Group {
-//                Button {
-//                    PlanetStore.shared.isShowingIPFSOpen = true
-//                } label: {
-//                    Text("Open IPFS Resource")
-//                }
+                Button {
+                    PlanetStore.shared.isShowingIPFSID = true
+                } label: {
+                    Text("Show IPFS ID")
+                }
+                .disabled(!ipfsState.online)
 
                 Button {
                     PlanetAppDelegate.shared.openTemplateWindow()

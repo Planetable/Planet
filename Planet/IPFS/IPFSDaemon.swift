@@ -667,6 +667,35 @@ actor IPFSDaemon {
         throw PlanetError.IPFSAPIError
     }
 
+    func getID() async throws -> IPFSID {
+        Self.logger.info("Getting IPFS node ID")
+        do {
+            let result = try await api(path: "id")
+            do {
+                return try JSONDecoder.shared.decode(IPFSID.self, from: result)
+            }
+            catch {
+                Self.logger.error(
+                    """
+                    Failed to decode IPFS node ID: got error from API call, \
+                    result: \(result.logFormat()) \
+                    error: \(String(describing: error))
+                    """
+                )
+                throw PlanetError.IPFSAPIError
+            }
+        }
+        catch {
+            Self.logger.error(
+                """
+                Failed to get IPFS node ID: error when accessing IPFS API, \
+                cause: \(String(describing: error))
+                """
+            )
+        }
+        throw PlanetError.IPFSAPIError
+    }
+
     func resolveIPNSorDNSLink(name: String) async throws -> String {
         Self.logger.info("Resolving IPNS or DNSLink \(name)")
         do {

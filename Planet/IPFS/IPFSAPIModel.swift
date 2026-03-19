@@ -33,11 +33,15 @@ struct IPFSID: Codable {
     let id: String
     let publicKey: String
     let addresses: [String]
+    let agentVersion: String?
+    let protocols: [String]?
 
     enum CodingKeys: String, CodingKey {
         case id = "ID"
         case publicKey = "PublicKey"
         case addresses = "Addresses"
+        case agentVersion = "AgentVersion"
+        case protocols = "Protocols"
     }
 }
 

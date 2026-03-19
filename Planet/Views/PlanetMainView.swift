@@ -151,6 +151,9 @@ struct PlanetMainView: View {
         .sheet(isPresented: $planetStore.isShowingIPFSOpen) {
             IPFSOpenView()
         }
+        .sheet(isPresented: $planetStore.isShowingIPFSID) {
+            IPFSIdentitySheetView()
+        }
         .sheet(isPresented: $planetStore.isShowingOnboarding) {
             OnboardingView()
         }

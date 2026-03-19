@@ -302,6 +302,7 @@ final class MyJSONDirectoryMonitor {
     @Published var isShowingSearch: Bool = false
 
     @Published var isShowingIPFSOpen: Bool = false
+    @Published var isShowingIPFSID: Bool = false
 
     @Published var isShowingOnboarding = false
     @Published var isShowingNewOnboarding = false
