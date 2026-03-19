@@ -139,16 +139,28 @@ extension MyArticleModel {
             throw PlanetError.ImportPlanetArticlePublishingError
         }
         var selectingArticle: MyArticleModel?
-        var planetArticles: [MyArticleModel] = planet.articles
+        let existingArticles: [MyArticleModel] = await MainActor.run {
+            return planet.articles
+        }
+        let existingKeys: [String] = await MainActor.run {
+            return existingArticles.map { "\($0.title)\n\($0.content)" }
+        }
+        var planetArticles = existingArticles
+        var seenTitlesAndContent = Set(existingKeys)
         let decoder = JSONDecoder()
+
+        // Validation pass: decode and validate all articles before writing anything
+        var validatedArticles: [(url: URL, article: MyArticleModel)] = []
         for url in urls {
             let articleInfoPath = url.appendingPathComponent("article.json")
             let articleData = try Data(contentsOf: articleInfoPath)
             let articleToImport = try decoder.decode(MyArticleModel.self, from: articleData)
-            // Verify importing article is not duplicated
-            if planet.articles.first(where: { $0.title == articleToImport.title && $0.content == articleToImport.content }) != nil {
+            // Verify importing article is not duplicated (against planet and current batch)
+            let key = "\(articleToImport.title)\n\(articleToImport.content)"
+            guard !seenTitlesAndContent.contains(key) else {
                 throw PlanetError.ImportPlanetArticleError
             }
+            seenTitlesAndContent.insert(key)
             // Verify importing article has attachments
             if let attachments = articleToImport.attachments {
                 for attachment in attachments {
@@ -158,6 +170,11 @@ extension MyArticleModel {
                     }
                 }
             }
+            validatedArticles.append((url: url, article: articleToImport))
+        }
+
+        // Write pass: all validations passed, now create articles
+        for (url, articleToImport) in validatedArticles {
             let newArticleUUID = UUID()
             let newArticle = MyArticleModel(
                 id: newArticleUUID,
@@ -179,8 +196,13 @@ extension MyArticleModel {
                 navigationWeight: articleToImport.navigationWeight
             )
             newArticle.planet = planet
+            newArticle.articleType = articleToImport.articleType
             newArticle.pinned = articleToImport.pinned
             newArticle.tags = articleToImport.tags
+            newArticle.originalSiteName = articleToImport.originalSiteName
+            newArticle.originalSiteDomain = articleToImport.originalSiteDomain
+            newArticle.originalPostID = articleToImport.originalPostID
+            newArticle.originalPostDate = articleToImport.originalPostDate
             try FileManager.default.copyItem(at: url, to: newArticle.publicBasePath)
             try newArticle.save()
             try newArticle.savePublic()
