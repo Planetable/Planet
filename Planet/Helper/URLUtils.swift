@@ -285,6 +285,15 @@ extension URL {
            let pixelWidth = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.intValue,
            pixelWidth > 0
         {
+            // Retina screenshots from macOS/iOS use 144 DPI (2x) or 216 DPI (3x).
+            // For these, return the logical (point) width so they display at intended size.
+            // Everything else (72 DPI, 300 DPI print, etc.) uses raw pixel width.
+            if let dpi = (properties[kCGImagePropertyDPIWidth] as? NSNumber)?.intValue, dpi > 0 {
+                let scale = dpi / 72
+                if scale == 2 || scale == 3 {
+                    return pixelWidth / scale
+                }
+            }
             return pixelWidth
         }
 
