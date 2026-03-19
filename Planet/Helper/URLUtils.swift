@@ -7,6 +7,7 @@
 
 import Cocoa
 import Foundation
+import ImageIO
 
 struct URLUtils {
     static let applicationSupportPath = try! FileManager.default.url(
@@ -278,30 +279,27 @@ extension URL {
         }
     }
 
+    var imagePixelWidth: Int? {
+        if let imageSource = CGImageSourceCreateWithURL(self as CFURL, nil),
+           let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any],
+           let pixelWidth = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.intValue,
+           pixelWidth > 0
+        {
+            return pixelWidth
+        }
+
+        return NSImage(contentsOf: self)?
+            .representations
+            .compactMap { ($0 as? NSBitmapImageRep)?.pixelsWide }
+            .first(where: { $0 > 0 })
+    }
+
     var htmlCode: String {
         let name = self.lastPathComponent
         if isImage {
-            if let im = NSImage(contentsOf: self) {
-                let imageRep = im.representations.first as? NSBitmapImageRep
-                let width = imageRep?.pixelsWide ?? 0
-                let _ = imageRep?.pixelsHigh ?? 0
-                let pointSize = im.size
-                let pointWidth = pointSize.width
-                let _ = pointSize.height
-                var widthToUse = 0
-                if (CGFloat(width) / pointWidth) > 1 {
-                    widthToUse = Int(pointWidth)
-                }
-                else {
-                    widthToUse = width
-                }
-            if Int(widthToUse) > 0 {
+            if let width = imagePixelWidth, width > 0 {
                 return
-                    "<img width=\"\(Int(widthToUse))\" alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
-                }
-                else {
-                    return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
-                }
+                    "<img width=\"\(width)\" alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
             }
             return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
         }

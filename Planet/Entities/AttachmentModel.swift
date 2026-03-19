@@ -55,25 +55,8 @@ class Attachment: Codable, Equatable, Hashable, ObservableObject {
     var markdown: String? {
         switch type {
         case .image:
-            if let im = NSImage(contentsOf: self.path) {
-                let imageRep = im.representations.first as? NSBitmapImageRep
-                let width = imageRep?.pixelsWide ?? 0
-                let _ = imageRep?.pixelsHigh ?? 0
-                let pointSize = im.size
-                let pointWidth = pointSize.width
-                let _ = pointSize.height
-                var widthToUse = 0
-                if (CGFloat(width) / pointWidth) > 1 {
-                    widthToUse = Int(pointWidth)
-                } else {
-                    widthToUse = width
-                }
-                if Int(widthToUse) > 0 {
-                    return "<img width=\"\(Int(widthToUse))\" alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
-                } else {
-                    return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
-                }
-
+            if let width = path.imagePixelWidth, width > 0 {
+                return "<img width=\"\(width)\" alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
             }
             return "<img alt=\"\((name as NSString).deletingPathExtension)\" src=\"\(name)\">"
         case .file:
