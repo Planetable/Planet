@@ -36,10 +36,19 @@ actor IPFSDaemon {
 
         Self.logger.info("Setting up IPFS")
 
-        let repoContents = try! FileManager.default.contentsOfDirectory(
-            at: IPFSCommand.IPFSRepositoryPath,
-            includingPropertiesForKeys: nil
-        )
+        let repoContents: [URL]
+        do {
+            repoContents = try FileManager.default.contentsOfDirectory(
+                at: IPFSCommand.IPFSRepositoryPath,
+                includingPropertiesForKeys: nil
+            )
+        } catch {
+            Self.logger.error("Failed to read IPFS repo directory: \(error)")
+            await MainActor.run {
+                IPFSState.shared.reasonIPFSNotRunning = "Failed to access IPFS repository at \(IPFSCommand.IPFSRepositoryPath.path).\n\nError: \(error.localizedDescription)"
+            }
+            return
+        }
         if repoContents.isEmpty {
             Self.logger.info("Initializing IPFS config")
             if let result = try? IPFSCommand.IPFSInit().run(),

@@ -27,8 +27,11 @@ class IPFSState: ObservableObject {
     init() {
         debugPrint("IPFS State Manager Init")
         Task(priority: .userInitiated) {
+            await IPFSDaemon.shared.setupIPFS()
+            guard self.reasonIPFSNotRunning == nil else {
+                return
+            }
             do {
-                await IPFSDaemon.shared.setupIPFS()
                 try await Task.sleep(nanoseconds: 500_000_000)
                 if self.shouldAutoLaunchDaemon() {
                     try await IPFSDaemon.shared.launch()
@@ -195,7 +198,7 @@ class IPFSState: ObservableObject {
 
     @MainActor
     private func scheduleOfflineRetryIfNeeded() {
-        guard shouldAutoLaunchDaemon() else {
+        guard shouldAutoLaunchDaemon(), reasonIPFSNotRunning == nil else {
             cancelStatusRetry()
             return
         }
