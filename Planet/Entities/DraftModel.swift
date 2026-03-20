@@ -167,11 +167,14 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
 
     static func load(from directoryPath: URL, planet: MyPlanetModel) throws -> DraftModel {
         let draftId = directoryPath.lastPathComponent
+        guard let draftUUID = UUID(uuidString: draftId) else {
+            throw PlanetError.InvalidDraftIDError
+        }
         let draftPath = directoryPath.appendingPathComponent("Draft.json", isDirectory: false)
         let data = try Data(contentsOf: draftPath)
         let draft = try JSONDecoder.shared.decode(DraftModel.self, from: data)
-        if draft.id != UUID(uuidString: draftId) {
-            draft.id = UUID(uuidString: draftId)!
+        if draft.id != draftUUID {
+            draft.id = draftUUID
         }
         draft.target = .myPlanet(Unowned(planet))
         draft.attachments.forEach { attachment in

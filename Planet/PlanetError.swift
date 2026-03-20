@@ -52,6 +52,7 @@ enum PlanetError: Error {
     case WriterUnsupportedAttachmentTypeError
     case SSHRsyncPublishError(String)
     case CloudflarePagesPublishError(String)
+    case InvalidDraftIDError
     case InternalError
     case UnknownError(Error)
 }
@@ -161,6 +162,8 @@ extension PlanetError: LocalizedError {
             return message
         case .CloudflarePagesPublishError(let message):
             return message
+        case .InvalidDraftIDError:
+            return NSLocalizedString("Invalid Draft ID Error", comment: "")
         case .InternalError:
             return NSLocalizedString("Planet Internal Error", comment: "")
         case .WriterUnsupportedAttachmentTypeError:
