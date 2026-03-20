@@ -2772,15 +2772,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Task { @MainActor in
                 self.needsRebuild = false
                 self.isRebuilding = false
+                PlanetStore.shared.isRebuilding = false
                 PlanetStatusManager.shared.updateStatus()
             }
         }
-        Task { @MainActor in
+        await MainActor.run {
             PlanetStore.shared.isRebuilding = true
-            PlanetStore.shared.rebuildTasks = self.articles.count
+            PlanetStore.shared.rebuildTasks = self.articles.count + 5
             PlanetStatusManager.shared.updateStatus()
         }
         try self.copyTemplateAssets()
+        reduceRebuildTasks()
 
         // according to benchmarks, using parallel processing would take half the time to rebuild
 
@@ -2801,10 +2803,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     try await group.waitForAll()
                 }
             }
-        }
-        Task { @MainActor in
-            isRebuilding = false
-            PlanetStore.shared.isRebuilding = false
         }
         let ended = Date()
         let timeInterval = ended.timeIntervalSince(started)
@@ -2858,10 +2856,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             Task { @MainActor in
                 self.needsRebuild = false
                 self.isRebuilding = false
+                PlanetStore.shared.isRebuilding = false
                 PlanetStatusManager.shared.updateStatus()
             }
         }
-        Task { @MainActor in
+        await MainActor.run {
             PlanetStore.shared.isRebuilding = true
             PlanetStore.shared.rebuildTasks = quickRebuildTaskCount()
             PlanetStatusManager.shared.updateStatus()
@@ -2869,12 +2868,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try self.copyTemplateAssets()
         reduceRebuildTasks()
         try await self.savePublic()
-        await MainActor.run {
-            self.isRebuilding = false
-        }
-        Task { @MainActor in
-            PlanetStore.shared.isRebuilding = false
-        }
         Task {
             do {
                 try self.saveOps()
@@ -2882,10 +2875,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             catch {
                 debugPrint("failed to save ops to file: \(error)")
             }
-        }
-        Task { @MainActor in
-            PlanetStore.shared.rebuildTasks = 0
-            NotificationCenter.default.post(name: .myArticleBuilt, object: nil)
         }
         let ended = Date()
         let timeInterval = ended.timeIntervalSince(started)

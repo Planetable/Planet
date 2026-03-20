@@ -116,6 +116,7 @@ struct AppSidebarView: View {
         }
         .sheet(isPresented: $planetStore.isRebuilding) {
             RebuildProgressView()
+                .interactiveDismissDisabled()
         }
         .sheet(isPresented: $planetStore.isQuickSharing) {
             PlanetQuickShareView()

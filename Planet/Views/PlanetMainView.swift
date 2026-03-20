@@ -97,6 +97,7 @@ struct PlanetMainView: View {
         }
         .sheet(isPresented: $planetStore.isRebuilding) {
             RebuildProgressView()
+                .interactiveDismissDisabled()
         }
         .sheet(isPresented: $planetStore.isShowingWalletConnectV1QRCode) {
             WalletConnectV1QRCodeView(payload: planetStore.walletConnectV1ConnectionURL)
