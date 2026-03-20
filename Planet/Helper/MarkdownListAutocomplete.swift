@@ -86,6 +86,68 @@ enum MarkdownListAutocomplete {
         return .none
     }
 
+    /// Evaluate what autocomplete action to take **before** the newline is inserted.
+    ///
+    /// Call this from `insertNewline` **before** calling `super.insertNewline`.
+    /// The returned action can be combined with the newline into a single `insertText` call.
+    ///
+    /// - Parameters:
+    ///   - text: The full text content (before the newline is inserted).
+    ///   - cursorUTF16Offset: The cursor position in UTF-16 units (`selectedRange().location`).
+    /// - Returns: The autocomplete action to apply.
+    static func evaluateBeforeNewline(text: String, cursorUTF16Offset: Int) -> Result {
+        let ns = text as NSString
+        let cursorPos = cursorUTF16Offset
+        guard cursorPos >= 0, ns.length > 0 else { return .none }
+
+        // If cursor is at end of text after a \n, it's on an empty trailing line → no list context
+        if cursorPos >= ns.length, cursorPos > 0,
+           ns.character(at: ns.length - 1) == unichar(0x0A) {
+            return .none
+        }
+
+        // Find the line the cursor is on
+        var lineStart = 0
+        var contentsEnd = 0
+        let searchPos = min(cursorPos, ns.length - 1)
+        ns.getLineStart(&lineStart, end: nil, contentsEnd: &contentsEnd,
+                        for: NSRange(location: searchPos, length: 0))
+
+        let lineRange = NSRange(location: lineStart, length: contentsEnd - lineStart)
+        let currentLine = ns.substring(with: lineRange)
+        let trimmed = currentLine.trimmingCharacters(in: .whitespaces)
+
+        // Check if current line is an empty list marker
+        let isEmptyNumberedItem = trimmed.range(of: #"^\d+\.$"#, options: .regularExpression) != nil
+        if trimmed == "*" || trimmed == "+" || trimmed == "-"
+            || trimmed == "- [ ]" || trimmed == "- [x]" || trimmed == "- [X]"
+            || isEmptyNumberedItem {
+            return .removeEmptyMarker(utf16Range: lineRange)
+        }
+
+        // List continuation: insert prefix
+        if trimmed.hasPrefix("- [ ] ") || trimmed.hasPrefix("- [x] ") || trimmed.hasPrefix("- [X] ") {
+            return .insertPrefix("- [ ] ", atUTF16Offset: cursorPos)
+        }
+        if trimmed.hasPrefix("* ") {
+            return .insertPrefix("* ", atUTF16Offset: cursorPos)
+        }
+        if trimmed.hasPrefix("+ ") {
+            return .insertPrefix("+ ", atUTF16Offset: cursorPos)
+        }
+        if trimmed.hasPrefix("- ") {
+            return .insertPrefix("- ", atUTF16Offset: cursorPos)
+        }
+        if let match = trimmed.range(of: #"^(\d+)\. "#, options: .regularExpression) {
+            let numberStr = trimmed[match].dropLast(2)
+            if let number = Int(numberStr) {
+                return .insertPrefix("\(number + 1). ", atUTF16Offset: cursorPos)
+            }
+        }
+
+        return .none
+    }
+
     /// Apply the result to an NSTextView via `insertText`.
     @MainActor
     static func apply(_ result: Result, to textView: NSTextView) {

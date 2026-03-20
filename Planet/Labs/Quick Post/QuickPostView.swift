@@ -569,16 +569,18 @@ final class QuickPostEditorTextView: NSTextView {
 
     // MARK: - List autocomplete on Enter
 
-    override func keyDown(with event: NSEvent) {
-        super.keyDown(with: event)
-        switch event.keyCode {
-        case 36, 76: // Return, Enter
-            let result = MarkdownListAutocomplete.evaluate(
-                text: self.string, cursorUTF16Offset: self.selectedRange().location
-            )
-            MarkdownListAutocomplete.apply(result, to: self)
-        default:
-            break
+    override func insertNewline(_ sender: Any?) {
+        let result = MarkdownListAutocomplete.evaluateBeforeNewline(
+            text: self.string,
+            cursorUTF16Offset: self.selectedRange().location
+        )
+        switch result {
+        case .removeEmptyMarker(let range):
+            insertText("", replacementRange: range)
+        case .insertPrefix(let prefix, _):
+            insertText("\n" + prefix, replacementRange: self.selectedRange())
+        case .none:
+            super.insertNewline(sender)
         }
     }
 }
