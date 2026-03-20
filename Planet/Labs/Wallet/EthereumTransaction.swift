@@ -98,7 +98,7 @@ class EthereumTransaction: Codable, Identifiable {
             )
         }
         let txPath = walletPath.appendingPathComponent(id + ".json", isDirectory: false)
-        try JSONEncoder.shared.encode(self).write(to: txPath)
+        try JSONEncoder.shared.encode(self).write(to: txPath, options: .atomic)
     }
 
     func exists() -> Bool {

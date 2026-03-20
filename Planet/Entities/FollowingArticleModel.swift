@@ -316,7 +316,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
 
     func save() throws {
-        try JSONEncoder.shared.encode(self).write(to: path)
+        try JSONEncoder.shared.encode(self).write(to: path, options: .atomic)
         PlanetStore.upsertSearchSnapshotIfReady(for: self)
     }
 

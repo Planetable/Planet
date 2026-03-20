@@ -218,7 +218,7 @@ extension MyArticleModel {
                 attributes: attributes
             )
             let nftData = try JSONEncoder.shared.encode(nft)
-            try nftData.write(to: publicNFTMetadataPath)
+            try nftData.write(to: publicNFTMetadataPath, options: .atomic)
             let nftMetadataCID = self.getNFTJSONCID()
             debugPrint("NFT metadata CID: \(nftMetadataCID ?? "nil")")
             let nftMetadataCIDPath = publicBasePath.appendingPathComponent("nft.json.cid.txt")
@@ -238,12 +238,12 @@ extension MyArticleModel {
         }
 
         let articleHTML = try template.render(article: self)
-        try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
+        try articleHTML.data(using: .utf8)?.write(to: publicIndexPath, options: .atomic)
         debugPrint("HTML for \(self.title) saved to \(publicIndexPath.path)")
 
         if template.hasSimpleHTML {
             let simpleHTML = try template.render(article: self, forSimpleHTML: true)
-            try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath)
+            try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath, options: .atomic)
             debugPrint("Simple HTML for \(self.title) saved to \(publicSimplePath.path)")
         }
     }
@@ -258,14 +258,14 @@ extension MyArticleModel {
         try await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask(priority: .userInitiated) {
                 let articleHTML = try template.render(article: self)
-                try articleHTML.data(using: .utf8)?.write(to: self.publicIndexPath)
+                try articleHTML.data(using: .utf8)?.write(to: self.publicIndexPath, options: .atomic)
                 debugPrint("HTML for \(self.title) saved to \(self.publicIndexPath.path)")
             }
 
             group.addTask(priority: .userInitiated) {
                 if template.hasSimpleHTML {
                     let simpleHTML = try template.render(article: self, forSimpleHTML: true)
-                    try simpleHTML.data(using: .utf8)?.write(to: self.publicSimplePath)
+                    try simpleHTML.data(using: .utf8)?.write(to: self.publicSimplePath, options: .atomic)
                     debugPrint("Simple HTML for \(self.title) saved to \(self.publicSimplePath.path)")
                 }
             }

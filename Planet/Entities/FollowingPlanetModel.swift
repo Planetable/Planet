@@ -1611,7 +1611,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     func save() throws {
-        try JSONEncoder.shared.encode(self).write(to: infoPath)
+        try JSONEncoder.shared.encode(self).write(to: infoPath, options: .atomic)
     }
 
     func archive() {

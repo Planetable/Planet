@@ -613,7 +613,7 @@ class Template: Codable, Identifiable {
                 name: stencilTemplateName,
                 context: context
             )
-            try output.data(using: .utf8)?.write(to: articlePath)
+            try output.data(using: .utf8)?.write(to: articlePath, options: .atomic)
             debugPrint("Preview article path: \(articlePath)")
             return articlePath
         }

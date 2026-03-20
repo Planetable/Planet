@@ -465,9 +465,9 @@ extension PlanetPublishedServiceStore {
     func savePublishedFolders() throws {
         let encoder = JSONEncoder()
         let data = try encoder.encode(self.publishedFolders)
-        try data.write(to: folderHistoryURL)
+        try data.write(to: folderHistoryURL, options: .atomic)
     }
-    
+
     func loadPublishedFolderCID(byFolderID id: UUID) -> String? {
         do {
             let versions = try loadPublishedVersions(byFolderKeyName: id.uuidString)
@@ -492,7 +492,7 @@ extension PlanetPublishedServiceStore {
         guard let name = versions.first?.id.uuidString else { throw PlanetError.InternalError }
         let versionsURL = folderVersionURL.appendingPathComponent(name)
         let data = try encoder.encode(versions)
-        try data.write(to: versionsURL)
+        try data.write(to: versionsURL, options: .atomic)
     }
 
     func removePublishedVersions(byFolderKeyName name: String) {

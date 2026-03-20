@@ -17,7 +17,7 @@ extension MyArticleModel {
 
     /// Persist any changes to the model.
     func save() throws {
-        try JSONEncoder.shared.encode(self).write(to: path)
+        try JSONEncoder.shared.encode(self).write(to: path, options: .atomic)
         PlanetStore.upsertSearchSnapshotIfReady(for: self)
     }
 
@@ -102,7 +102,7 @@ extension MyArticleModel {
         processHeroImageSize()
         marks.recordEvent("HeroImageSize", for: self.title)
 
-        try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
+        try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath, options: .atomic)
 
         // MARK: - Slug copy
         processSlug()
@@ -174,7 +174,7 @@ extension MyArticleModel {
         processHeroImageSize()
         marks.recordEvent("HeroImageSize", for: self.title)
 
-        try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
+        try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath, options: .atomic)
 
         // MARK: - Slug copy
         processSlug()

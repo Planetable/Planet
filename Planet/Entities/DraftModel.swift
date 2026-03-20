@@ -418,7 +418,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             name: Self.previewTemplatePath.path,
             context: ["content_html": html]
         )
-        try output.data(using: .utf8)?.write(to: previewPath)
+        try output.data(using: .utf8)?.write(to: previewPath, options: .atomic)
 
         logger.info("Rendered preview for draft \(self.id) and saved to \(self.previewPath)")
     }
@@ -593,7 +593,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
 
     func save() throws {
-        try JSONEncoder.shared.encode(self).write(to: infoPath)
+        try JSONEncoder.shared.encode(self).write(to: infoPath, options: .atomic)
     }
 
     func delete() throws {

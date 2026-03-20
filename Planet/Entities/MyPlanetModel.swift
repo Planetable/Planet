@@ -368,7 +368,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             }
             if touched {
                 let data = try JSONSerialization.data(withJSONObject: currentSettings, options: [.prettyPrinted, .sortedKeys])
-                try data.write(to: templateSettingsPath)
+                try data.write(to: templateSettingsPath, options: .atomic)
                 debugPrint("Wrote full template settings for \(name)")
             }
             try self.copyTemplateSettings()
@@ -399,7 +399,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             }
             // Write settings
             let data = try JSONSerialization.data(withJSONObject: currentSettings, options: [.prettyPrinted, .sortedKeys])
-            try data.write(to: templateSettingsPath)
+            try data.write(to: templateSettingsPath, options: .atomic)
 
             try self.copyTemplateSettings()
         }
@@ -1725,10 +1725,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     context: context
                 )
                 if podcastOnly {
-                    try rssXML.data(using: .utf8)?.write(to: publicPodcastPath)
+                    try rssXML.data(using: .utf8)?.write(to: publicPodcastPath, options: .atomic)
                 }
                 else {
-                    try rssXML.data(using: .utf8)?.write(to: publicRSSPath)
+                    try rssXML.data(using: .utf8)?.write(to: publicRSSPath, options: .atomic)
                 }
             }
             catch {
@@ -1866,14 +1866,14 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     group.addTask(priority: .userInitiated) {
                         let pageHTML = try template.renderIndex(context: pageContext)
                         let pagePath = self.publicIndexPagePath(page: i)
-                        try pageHTML.data(using: .utf8)?.write(to: pagePath)
+                        try pageHTML.data(using: .utf8)?.write(to: pagePath, options: .atomic)
                     }
 
                     if i == 1 {
                         debugPrint("Build index.html: hasAvatar=\(self.hasAvatar())")
                         group.addTask(priority: .userInitiated) {
                             let indexHTML = try template.renderIndex(context: pageContext)
-                            try indexHTML.data(using: .utf8)?.write(to: self.publicIndexPath)
+                            try indexHTML.data(using: .utf8)?.write(to: self.publicIndexPath, options: .atomic)
                         }
                     }
                 }
@@ -1894,10 +1894,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             ]
             let pageHTML = try template.renderIndex(context: pageContext)
             let pagePath = publicIndexPagePath(page: 1)
-            try pageHTML.data(using: .utf8)?.write(to: pagePath)
+            try pageHTML.data(using: .utf8)?.write(to: pagePath, options: .atomic)
 
             let indexHTML = try template.renderIndex(context: pageContext)
-            try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
+            try indexHTML.data(using: .utf8)?.write(to: publicIndexPath, options: .atomic)
         }
         reduceRebuildTasks()
 
@@ -1938,7 +1938,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     group.addTask(priority: .userInitiated) {
                         let tagHTML = try template.renderIndex(context: tagContext)
                         let tagPath = self.publicTagPath(tag: key)
-                        try tagHTML.data(using: .utf8)?.write(to: tagPath)
+                        try tagHTML.data(using: .utf8)?.write(to: tagPath, options: .atomic)
                     }
                 }
                 if template.hasTagsHTML {
@@ -1956,7 +1956,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     ]
                     group.addTask(priority: .userInitiated) {
                         let tagsHTML = try template.renderTags(context: tagsContext)
-                        try tagsHTML.data(using: .utf8)?.write(to: self.publicTagsPath)
+                        try tagsHTML.data(using: .utf8)?.write(to: self.publicTagsPath, options: .atomic)
                     }
                 }
                 try await group.waitForAll()
@@ -1996,7 +1996,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     "archive_sections": archiveSections,
                 ]
                 let archiveHTML = try template.renderArchive(context: archiveContext)
-                try archiveHTML.data(using: .utf8)?.write(to: publicArchivePath)
+                try archiveHTML.data(using: .utf8)?.write(to: publicArchivePath, options: .atomic)
             }
         }
         else {
@@ -2006,7 +2006,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         // MARK: - Save planet.json
         let info = try JSONEncoder.shared.encode(publicPlanet)
-        try info.write(to: publicInfoPath)
+        try info.write(to: publicInfoPath, options: .atomic)
 
         // MARK: - Save robots.txt
         saveRobotsTxt()
@@ -2023,7 +2023,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         else {
             robotsTxt = ""
         }
-        try? robotsTxt.data(using: .utf8)?.write(to: publicRobotsTxtPath)
+        try? robotsTxt.data(using: .utf8)?.write(to: publicRobotsTxtPath, options: .atomic)
     }
 
     func publish() async throws {
@@ -2653,7 +2653,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 isDirectory: false
             )
             let backupPlanet = try JSONEncoder.shared.encode(backupPlanet)
-            try backupPlanet.write(to: backupPlanetInfoPath)
+            try backupPlanet.write(to: backupPlanetInfoPath, options: .atomic)
         }
         catch {
             debugPrint("Export Planet error: \(error)")
@@ -2666,7 +2666,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func save() throws {
-        try JSONEncoder.shared.encode(self).write(to: infoPath)
+        try JSONEncoder.shared.encode(self).write(to: infoPath, options: .atomic)
     }
 
     func archive() {
@@ -2713,7 +2713,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         opsLock.lock()
         defer { opsLock.unlock() }
         let opsData = try JSONEncoder.shared.encode(ops)
-        try opsData.write(to: opsPath)
+        try opsData.write(to: opsPath, options: .atomic)
     }
 
     func loadOps() throws {

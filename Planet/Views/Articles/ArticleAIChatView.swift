@@ -319,7 +319,7 @@ struct ArticleAIChatView: View {
             ArticleAIChatPersistedMessage(role: item.role, content: item.content, tokenUsage: item.tokenUsage)
         }
         guard let data = try? JSONEncoder.shared.encode(persisted) else { return }
-        try? data.write(to: chatFileURL)
+        try? data.write(to: chatFileURL, options: .atomic)
     }
 
     private var contextTitle: String {
