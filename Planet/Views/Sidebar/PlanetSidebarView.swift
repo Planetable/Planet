@@ -26,11 +26,11 @@ struct PlanetSidebarView: View {
                 List(selection: $planetStore.selectedView) {
                     Section(header: Text("Smart Feeds")) {
                         HStack(spacing: 4) {
-                            Image(systemName: "sun.max.fill")
-                                .resizable()
-                                .foregroundColor(Color.orange)
-                                .frame(width: 18, height: 18)
-                                .padding(.all, 2)
+                            smartFeedIcon {
+                                Image(systemName: "sun.max.fill")
+                                    .resizable()
+                                    .foregroundColor(Color.orange)
+                            }
                             Text("Today")
                                 .font(.body)
                                 .foregroundColor(.primary)
@@ -40,11 +40,11 @@ struct PlanetSidebarView: View {
                         .id("sidebar-today")
 
                         HStack(spacing: 4) {
-                            Image(systemName: "circle.inset.filled")
-                                .resizable()
-                                .foregroundColor(Color.blue)
-                                .frame(width: 18, height: 18)
-                                .padding(.all, 2)
+                            smartFeedIcon {
+                                Image(systemName: "circle.inset.filled")
+                                    .resizable()
+                                    .foregroundColor(Color.blue)
+                            }
                             Text("Unread")
                                 .font(.body)
                                 .foregroundColor(.primary)
@@ -54,11 +54,11 @@ struct PlanetSidebarView: View {
                         .id("sidebar-unread")
 
                         HStack(spacing: 4) {
-                            Image(systemName: "star.fill")
-                                .resizable()
-                                .renderingMode(.original)
-                                .frame(width: 18, height: 18)
-                                .padding(.all, 2)
+                            smartFeedIcon {
+                                Image(systemName: "star.fill")
+                                    .resizable()
+                                    .renderingMode(.original)
+                            }
                             Text("Starred")
                                 .font(.body)
                                 .foregroundColor(.primary)
@@ -247,5 +247,12 @@ struct PlanetSidebarView: View {
     private func toggleSidebar() {
         NSApp.keyWindow?.firstResponder?
             .tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
+    }
+
+    private func smartFeedIcon<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .frame(width: 18, height: 18)
+            .padding(.all, 2)
+            .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
     }
 }
