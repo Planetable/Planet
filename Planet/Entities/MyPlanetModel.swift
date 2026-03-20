@@ -1843,38 +1843,41 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if generateIndexPagination == true && publicPlanet.articles.count > itemsPerPage {
             let pages = Int(ceil(Double(publicPlanet.articles.count) / Double(itemsPerPage)))
             debugPrint("Rendering \(pages) pages")
-            for i in 1...pages {
-                let pageArticles = Array(
-                    publicPlanet.articles[
-                        (i - 1) * itemsPerPage..<min(i * itemsPerPage, publicPlanet.articles.count)
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                for i in 1...pages {
+                    let pageArticles = Array(
+                        publicPlanet.articles[
+                            (i - 1) * itemsPerPage..<min(i * itemsPerPage, publicPlanet.articles.count)
+                        ]
+                    )
+                    let pageContext: [String: Any] = [
+                        "planet": publicPlanet,
+                        "planet_ipns": self.ipns,
+                        "my_planet": self,
+                        "site_navigation": siteNavigation,
+                        "has_avatar": self.hasAvatar(),
+                        "og_image_url": ogImageURLString,
+                        "has_podcast": publicPlanet.hasAudioContent(),
+                        "has_podcast_cover_art": hasPodcastCoverArt,
+                        "page": i,
+                        "pages": pages,
+                        "articles": pageArticles,
                     ]
-                )
-                let pageContext: [String: Any] = [
-                    "planet": publicPlanet,
-                    "planet_ipns": self.ipns,
-                    "my_planet": self,
-                    "site_navigation": siteNavigation,
-                    "has_avatar": self.hasAvatar(),
-                    "og_image_url": ogImageURLString,
-                    "has_podcast": publicPlanet.hasAudioContent(),
-                    "has_podcast_cover_art": hasPodcastCoverArt,
-                    "page": i,
-                    "pages": pages,
-                    "articles": pageArticles,
-                ]
-                Task(priority: .userInitiated) {
-                    let pageHTML = try template.renderIndex(context: pageContext)
-                    let pagePath = publicIndexPagePath(page: i)
-                    try pageHTML.data(using: .utf8)?.write(to: pagePath)
-                }
+                    group.addTask(priority: .userInitiated) {
+                        let pageHTML = try template.renderIndex(context: pageContext)
+                        let pagePath = self.publicIndexPagePath(page: i)
+                        try pageHTML.data(using: .utf8)?.write(to: pagePath)
+                    }
 
-                if i == 1 {
-                    debugPrint("Build index.html: hasAvatar=\(self.hasAvatar())")
-                    Task(priority: .userInitiated) {
-                        let indexHTML = try template.renderIndex(context: pageContext)
-                        try indexHTML.data(using: .utf8)?.write(to: publicIndexPath)
+                    if i == 1 {
+                        debugPrint("Build index.html: hasAvatar=\(self.hasAvatar())")
+                        group.addTask(priority: .userInitiated) {
+                            let indexHTML = try template.renderIndex(context: pageContext)
+                            try indexHTML.data(using: .utf8)?.write(to: self.publicIndexPath)
+                        }
                     }
                 }
+                try await group.waitForAll()
             }
         }
         else {
@@ -1915,45 +1918,48 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     }
                 }
             }
-            for (key, value) in tagArticles {
-                let tagContext: [String: Any] = [
-                    "planet": publicPlanet,
-                    "planet_ipns": self.ipns,
-                    "my_planet": self,
-                    "site_navigation": siteNavigation,
-                    "has_avatar": self.hasAvatar(),
-                    "og_image_url": ogImageURLString,
-                    "has_podcast": publicPlanet.hasAudioContent(),
-                    "has_podcast_cover_art": hasPodcastCoverArt,
-                    "tag_key": key,
-                    "tag_value": self.tags?[key] ?? key,
-                    "current_item_type": "tags",
-                    "articles": value,
-                    "page_title": "\(self.name) - \(self.tags?[key] ?? key)",
-                ]
-                Task(priority: .userInitiated) {
-                    let tagHTML = try template.renderIndex(context: tagContext)
-                    let tagPath = publicTagPath(tag: key)
-                    try tagHTML.data(using: .utf8)?.write(to: tagPath)
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                for (key, value) in tagArticles {
+                    let tagContext: [String: Any] = [
+                        "planet": publicPlanet,
+                        "planet_ipns": self.ipns,
+                        "my_planet": self,
+                        "site_navigation": siteNavigation,
+                        "has_avatar": self.hasAvatar(),
+                        "og_image_url": ogImageURLString,
+                        "has_podcast": publicPlanet.hasAudioContent(),
+                        "has_podcast_cover_art": hasPodcastCoverArt,
+                        "tag_key": key,
+                        "tag_value": self.tags?[key] ?? key,
+                        "current_item_type": "tags",
+                        "articles": value,
+                        "page_title": "\(self.name) - \(self.tags?[key] ?? key)",
+                    ]
+                    group.addTask(priority: .userInitiated) {
+                        let tagHTML = try template.renderIndex(context: tagContext)
+                        let tagPath = self.publicTagPath(tag: key)
+                        try tagHTML.data(using: .utf8)?.write(to: tagPath)
+                    }
                 }
-            }
-            if template.hasTagsHTML {
-                let tagsContext: [String: Any] = [
-                    "planet": publicPlanet,
-                    "planet_ipns": self.ipns,
-                    "my_planet": self,
-                    "site_navigation": siteNavigation,
-                    "has_avatar": self.hasAvatar(),
-                    "og_image_url": ogImageURLString,
-                    "has_podcast": publicPlanet.hasAudioContent(),
-                    "has_podcast_cover_art": hasPodcastCoverArt,
-                    "tags": self.removeReservedTags(),
-                    "tag_articles": tagArticles,
-                ]
-                Task(priority: .userInitiated) {
-                    let tagsHTML = try template.renderTags(context: tagsContext)
-                    try tagsHTML.data(using: .utf8)?.write(to: publicTagsPath)
+                if template.hasTagsHTML {
+                    let tagsContext: [String: Any] = [
+                        "planet": publicPlanet,
+                        "planet_ipns": self.ipns,
+                        "my_planet": self,
+                        "site_navigation": siteNavigation,
+                        "has_avatar": self.hasAvatar(),
+                        "og_image_url": ogImageURLString,
+                        "has_podcast": publicPlanet.hasAudioContent(),
+                        "has_podcast_cover_art": hasPodcastCoverArt,
+                        "tags": self.removeReservedTags(),
+                        "tag_articles": tagArticles,
+                    ]
+                    group.addTask(priority: .userInitiated) {
+                        let tagsHTML = try template.renderTags(context: tagsContext)
+                        try tagsHTML.data(using: .utf8)?.write(to: self.publicTagsPath)
+                    }
                 }
+                try await group.waitForAll()
             }
         }
         else {
@@ -2767,8 +2773,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         // heaviest task is generating thumbnails
 
-        // try self.articles.forEach { try $0.savePublic(usingTasks: true) }
-
         do {
             // split the articles into groups
             let cpuCount = ProcessInfo.processInfo.activeProcessorCount
@@ -2778,7 +2782,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 try await withThrowingTaskGroup(of: Void.self) { group in
                     for article in articleGroup {
                         group.addTask(priority: .high) {
-                            try article.savePublic(usingTasks: true)
+                            try await article.savePublicConcurrently()
                         }
                     }
                     try await group.waitForAll()

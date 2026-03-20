@@ -232,35 +232,45 @@ extension MyArticleModel {
     }
 
     /// Render article HTML
-    func processArticleHTML(usingTasks: Bool = false) throws {
+    func processArticleHTML() throws {
         guard let template = planet.template else {
             throw PlanetError.MissingTemplateError
         }
 
-        if (usingTasks) {
-            Task(priority: .userInitiated) {
+        let articleHTML = try template.render(article: self)
+        try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
+        debugPrint("HTML for \(self.title) saved to \(publicIndexPath.path)")
+
+        if template.hasSimpleHTML {
+            let simpleHTML = try template.render(article: self, forSimpleHTML: true)
+            try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath)
+            debugPrint("Simple HTML for \(self.title) saved to \(publicSimplePath.path)")
+        }
+    }
+
+    /// Render article HTML concurrently (index and simple HTML in parallel).
+    /// Unlike `processArticleHTML()`, this awaits all rendering tasks before returning.
+    func processArticleHTMLConcurrently() async throws {
+        guard let template = planet.template else {
+            throw PlanetError.MissingTemplateError
+        }
+
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            group.addTask(priority: .userInitiated) {
                 let articleHTML = try template.render(article: self)
-                try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
-                debugPrint("HTML for \(self.title) saved to \(publicIndexPath.path)")
+                try articleHTML.data(using: .utf8)?.write(to: self.publicIndexPath)
+                debugPrint("HTML for \(self.title) saved to \(self.publicIndexPath.path)")
             }
 
-            Task(priority: .userInitiated) {
+            group.addTask(priority: .userInitiated) {
                 if template.hasSimpleHTML {
                     let simpleHTML = try template.render(article: self, forSimpleHTML: true)
-                    try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath)
-                    debugPrint("Simple HTML for \(self.title) saved to \(publicSimplePath.path)")
+                    try simpleHTML.data(using: .utf8)?.write(to: self.publicSimplePath)
+                    debugPrint("Simple HTML for \(self.title) saved to \(self.publicSimplePath.path)")
                 }
             }
-        } else {
-            let articleHTML = try template.render(article: self)
-            try articleHTML.data(using: .utf8)?.write(to: publicIndexPath)
-            debugPrint("HTML for \(self.title) saved to \(publicIndexPath.path)")
 
-            if template.hasSimpleHTML {
-                let simpleHTML = try template.render(article: self, forSimpleHTML: true)
-                try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath)
-                debugPrint("Simple HTML for \(self.title) saved to \(publicSimplePath.path)")
-            }
+            try await group.waitForAll()
         }
     }
 

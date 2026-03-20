@@ -52,7 +52,7 @@ extension MyArticleModel {
     // MARK: - Save to Public/:planet_id/:article_id/index.html
 
     /// Save the article into UUID/index.html along with its attachments.
-    func savePublic(usingTasks: Bool = false) throws {
+    func savePublic() throws {
         let started: Date = Date()
         var marks: OrderedDictionary<String, Date> = ["Started": started]
 
@@ -91,7 +91,7 @@ extension MyArticleModel {
 
         // MARK: - Render Markdown
 
-        try processArticleHTML(usingTasks: usingTasks)
+        try processArticleHTML()
         marks.recordEvent("ArticleHTML", for: self.title)
 
         // MARK: - Hero Grid
@@ -108,14 +108,77 @@ extension MyArticleModel {
         processSlug()
         marks.recordEvent("ArticleSlug", for: self.title)
 
-        if !usingTasks {
-            do {
-                try self.planet.saveOps()
-            }
-            catch {
-                debugPrint("failed to save ops to file: \(error)")
-            }
+        do {
+            try self.planet.saveOps()
         }
+        catch {
+            debugPrint("failed to save ops to file: \(error)")
+        }
+
+        // MARK: - Send notification when done
+        Task { @MainActor in
+            debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
+            NotificationCenter.default.post(name: .myArticleBuilt, object: self)
+        }
+    }
+
+    /// Save the article concurrently during rebuild. HTML rendering runs in parallel
+    /// and is awaited before returning, ensuring all files are written before IPFS publish.
+    func savePublicConcurrently() async throws {
+        let started: Date = Date()
+        var marks: OrderedDictionary<String, Date> = ["Started": started]
+
+        removeDSStore()
+
+        if !FileManager.default.fileExists(atPath: publicBasePath.path) {
+            try FileManager.default.createDirectory(at: publicBasePath, withIntermediateDirectories: true)
+        }
+
+        saveMarkdownInBackground()
+
+        try processContent()
+        marks.recordEvent("ContentRendered", for: self.title)
+
+        // MARK: - Cover Image `_cover.png`
+
+        try saveCoverImage()
+        savePreviewImageFromPDF()
+        marks.recordEvent("SaveCoverImage", for: self.title)
+
+        let coverImageCID: String? = getCoverImageCIDIfNeeded()
+        marks.recordEvent("CoverImageCID", for: self.title)
+
+        processAttachmentCIDIfNeeded()
+        marks.recordEvent("AttachmentCID", for: self.title)
+
+        // MARK: - Video
+
+        processVideoThumbnail()
+        marks.recordEvent("VideoThumbnail", for: self.title)
+
+        // MARK: - NFT
+
+        try processNFTMetadata(with: coverImageCID)
+        marks.recordEvent("NFTMetadata", for: self.title)
+
+        // MARK: - Render Markdown
+
+        try await processArticleHTMLConcurrently()
+        marks.recordEvent("ArticleHTML", for: self.title)
+
+        // MARK: - Hero Grid
+        processHeroGrid()
+        marks.recordEvent("HeroGrid", for: self.title)
+
+        // MARK: - Hero Image Size
+        processHeroImageSize()
+        marks.recordEvent("HeroImageSize", for: self.title)
+
+        try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath)
+
+        // MARK: - Slug copy
+        processSlug()
+        marks.recordEvent("ArticleSlug", for: self.title)
 
         // MARK: - Send notification when done
         Task { @MainActor in
