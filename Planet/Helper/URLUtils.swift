@@ -251,19 +251,20 @@ extension URL {
     func removeGPSInfo() {
         do {
             let data = try Data(contentsOf: self)
-            let source = CGImageSourceCreateWithData(data as CFData, nil)!
+            guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return }
             let count = CGImageSourceGetCount(source)
+            guard let type = CGImageSourceGetType(source) else { return }
             let mutableData = NSMutableData()
-            let destination = CGImageDestinationCreateWithData(
+            guard let destination = CGImageDestinationCreateWithData(
                 mutableData,
-                CGImageSourceGetType(source)!,
+                type,
                 count,
                 nil
-            )!
+            ) else { return }
             for i in 0..<count {
-                let image = CGImageSourceCreateImageAtIndex(source, i, nil)!
+                guard let image = CGImageSourceCreateImageAtIndex(source, i, nil) else { continue }
                 let properties =
-                    CGImageSourceCopyPropertiesAtIndex(source, i, nil) as! [CFString: Any]
+                    CGImageSourceCopyPropertiesAtIndex(source, i, nil) as? [CFString: Any] ?? [:]
                 var newProperties = properties
                 newProperties.removeValue(forKey: kCGImagePropertyGPSDictionary)
                 // newProperties.removeValue(forKey: kCGImagePropertyExifDictionary)
