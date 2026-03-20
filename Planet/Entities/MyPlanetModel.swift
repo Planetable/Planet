@@ -2027,7 +2027,25 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func publish() async throws {
+        // Guard against concurrent publishes — check and set atomically on MainActor
+        let alreadyPublishing = await MainActor.run {
+            if self.isPublishing { return true }
+            self.isPublishing = true
+            self.publishStartedAt = Date()
+            PlanetStatusManager.shared.updateStatus()
+            return false
+        }
+        if alreadyPublishing {
+            debugPrint("Planet \(name) is already publishing, skipping")
+            return
+        }
+
         if isRebuilding {
+            await MainActor.run {
+                self.isPublishing = false
+                self.publishStartedAt = nil
+                PlanetStatusManager.shared.updateStatus()
+            }
             debugPrint("Planet \(name) is being rebuilt, skipping publish")
             return
         }
@@ -2049,11 +2067,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             guard let rsyncDestination, Self.isValidSSHRsyncDestination(rsyncDestination) else {
                 throw PlanetError.InvalidSSHRsyncDestinationError
             }
-        }
-        await MainActor.run {
-            self.isPublishing = true
-            self.publishStartedAt = Date()
-            PlanetStatusManager.shared.updateStatus()
         }
         defer {
             Task { @MainActor in
