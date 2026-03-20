@@ -1,5 +1,5 @@
 - Use Xcode at `/Applications/Xcode-16.4.0.app/`, if not found, then try `/Applications/Xcode.app/`
 - Must compile for macOS 12
 - AI related features debug log `planet-ai-debug.log` can be found at `~/Library/Containers/xyz.planetable.Planet/Data/tmp/planet-ai-debug.log`
-- For broken SwiftPM/Xcode derived data under `/tmp/planet-derived` (for example missing `Sparkle.xcframework`), remove `/tmp/planet-derived`, run `xcodebuild -resolvePackageDependencies -onlyUsePackageVersionsFromResolvedFile -project Planet.xcodeproj -scheme "Planet (Planet project)" -derivedDataPath /tmp/planet-derived`, then rebuild
+- For broken SwiftPM/Xcode derived data under `/tmp/planet-derived` (for example missing `Sparkle.xcframework`), remove `/tmp/planet-derived`, run `xcodebuild -resolvePackageDependencies -onlyUsePackageVersionsFromResolvedFile -project Planet.xcodeproj -scheme "Planet" -derivedDataPath /tmp/planet-derived`, then rebuild
 - When modifying Xcode project files (.xcodeproj/project.pbxproj), use the `xcodeproj` Ruby gem instead of editing the pbxproj file directly.
