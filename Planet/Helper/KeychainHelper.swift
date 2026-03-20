@@ -34,12 +34,10 @@ class KeychainHelper: NSObject {
             kSecUseDataProtectionKeychain: true,
             kSecAttrSynchronizable: appICloudSync
         ] as [String: Any]
-        Task(priority: .utility) {
-            SecItemDelete(saveQuery as CFDictionary)
-            let status = SecItemAdd(saveQuery as CFDictionary, nil)
-            if status != errSecSuccess {
-                throw PlanetError.KeyManagerSavingKeyError
-            }
+        SecItemDelete(saveQuery as CFDictionary)
+        let status = SecItemAdd(saveQuery as CFDictionary, nil)
+        if status != errSecSuccess {
+            throw PlanetError.KeyManagerSavingKeyError
         }
     }
 
@@ -102,11 +100,9 @@ class KeychainHelper: NSObject {
             kSecAttrAccount: key,
             kSecAttrSynchronizable: appICloudSync
         ] as [String: Any]
-        Task(priority: .utility) {
-            let status = SecItemDelete(deleteQuery as CFDictionary)
-            if status != errSecSuccess {
-                throw PlanetError.KeyManagerDeletingKeyError
-            }
+        let status = SecItemDelete(deleteQuery as CFDictionary)
+        if status != errSecSuccess {
+            throw PlanetError.KeyManagerDeletingKeyError
         }
     }
     
