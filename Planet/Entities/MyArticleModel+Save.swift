@@ -27,8 +27,14 @@ extension MyArticleModel {
             self.removeSlug(slug)
         }
         PlanetStore.removeSearchSnapshotIfReady(articleID: self.id)
-        Task { @MainActor in
+        let removeArticle = {
             self.planet.articles.removeAll { $0.id == self.id }
+        }
+        if Thread.isMainThread {
+            removeArticle()
+        }
+        else {
+            DispatchQueue.main.sync(execute: removeArticle)
         }
         try? FileManager.default.removeItem(at: path)
         try? FileManager.default.removeItem(at: publicBasePath)
