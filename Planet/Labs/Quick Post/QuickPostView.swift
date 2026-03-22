@@ -485,11 +485,6 @@ final class QuickPostTextEditorContainer: NSView {
         textView.isRichText = false
         textView.usesFontPanel = false
         textView.allowsUndo = true
-        textView.isAutomaticQuoteSubstitutionEnabled = false
-        textView.isAutomaticDashSubstitutionEnabled = false
-        textView.isAutomaticTextReplacementEnabled = false
-        textView.enabledTextCheckingTypes = 0
-
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = 4
         textView.defaultParagraphStyle = paragraphStyle
@@ -548,7 +543,7 @@ final class QuickPostTextEditorContainer: NSView {
     }
 }
 
-final class QuickPostEditorTextView: NSTextView {
+final class QuickPostEditorTextView: MarkdownEditorTextView {
     @ObservedObject private var viewModel: QuickPostViewModel
 
     init(viewModel: QuickPostViewModel, frame: NSRect, textContainer: NSTextContainer?) {
@@ -567,22 +562,6 @@ final class QuickPostEditorTextView: NSTextView {
         super.paste(sender)
     }
 
-    // MARK: - List autocomplete on Enter
-
-    override func insertNewline(_ sender: Any?) {
-        let result = MarkdownListAutocomplete.evaluateBeforeNewline(
-            text: self.string,
-            cursorUTF16Offset: self.selectedRange().location
-        )
-        switch result {
-        case .removeEmptyMarker(let range):
-            insertText("", replacementRange: range)
-        case .insertPrefix(let prefix, _):
-            insertText("\n" + prefix, replacementRange: self.selectedRange())
-        case .none:
-            super.insertNewline(sender)
-        }
-    }
 }
 
 #Preview {

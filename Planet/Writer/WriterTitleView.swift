@@ -315,6 +315,7 @@ struct WriterTitleEditor: NSViewRepresentable {
             guard let textView = notification.object as? WriterTitleEditorTextView else {
                 return
             }
+            guard !textView.hasMarkedText() else { return }
             parent.text = textView.string
         }
     }
@@ -422,6 +423,7 @@ final class WriterTitleEditorContainer: NSView {
 
     func updateText(_ text: String) {
         self.text = text
+        guard !textView.hasMarkedText() else { return }
         guard textView.string != text else { return }
 
         let selection = textView.selectedRange()

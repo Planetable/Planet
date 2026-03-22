@@ -468,6 +468,7 @@ struct WriterTextView: NSViewRepresentable {
             guard let textView = notification.object as? WriterEditorTextView else {
                 return
             }
+            guard !textView.hasMarkedText() else { return }
             parent.text = textView.string
         }
 
@@ -475,9 +476,10 @@ struct WriterTextView: NSViewRepresentable {
             guard let textView = notification.object as? WriterEditorTextView else {
                 return
             }
+            selectedRanges = textView.selectedRanges
+            guard !textView.hasMarkedText() else { return }
             parent.text = textView.string
             parent.selectedRanges = textView.selectedRanges
-            selectedRanges = textView.selectedRanges
         }
 
         func textDidEndEditing(_ notification: Notification) {
@@ -588,6 +590,7 @@ class WriterCustomTextView: NSView {
 
     func updateText(_ text: String, preferredSelectedRanges: [NSValue]) {
         self.text = text
+        guard !textView.hasMarkedText() else { return }
         guard textView.string != text else {
             return
         }
@@ -619,7 +622,7 @@ class WriterCustomTextView: NSView {
     }
 }
 
-class WriterEditorTextView: NSTextView {
+class WriterEditorTextView: MarkdownEditorTextView {
     @ObservedObject var draft: DraftModel
     private let monoFont: NSFont
 
@@ -629,10 +632,6 @@ class WriterEditorTextView: NSTextView {
         self.draft = draft
         self.monoFont = NSFont(name: "Menlo", size: 14) ?? .monospacedSystemFont(ofSize: 14, weight: .regular)
         super.init(frame: frame, textContainer: textContainer)
-        self.isAutomaticQuoteSubstitutionEnabled = false
-        self.isAutomaticDashSubstitutionEnabled = false
-        self.isAutomaticTextReplacementEnabled = false
-        self.enabledTextCheckingTypes = 0
     }
 
     required init?(coder: NSCoder) {
@@ -782,20 +781,4 @@ class WriterEditorTextView: NSTextView {
         )
     }
 
-    // MARK: - List autocomplete on Enter
-
-    override func insertNewline(_ sender: Any?) {
-        let result = MarkdownListAutocomplete.evaluateBeforeNewline(
-            text: self.string,
-            cursorUTF16Offset: self.selectedRange().location
-        )
-        switch result {
-        case .removeEmptyMarker(let range):
-            insertText("", replacementRange: range)
-        case .insertPrefix(let prefix, _):
-            insertText("\n" + prefix, replacementRange: self.selectedRange())
-        case .none:
-            super.insertNewline(sender)
-        }
-    }
 }
