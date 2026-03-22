@@ -97,7 +97,10 @@ class PublishLogViewModel: ObservableObject {
     private static let selectedSourceDefaultsKey = "PublishLogView.SelectedSource"
     private static let maxVisibleBytes = 256 * 1024
     private static let reloadDebounceInterval: DispatchTimeInterval = .milliseconds(100)
-    @Published var logContent: String = ""
+    private var logContent: String = ""
+    @Published var attributedLogContent: NSAttributedString = NSAttributedString()
+    @Published var contentVersion: Int = 0
+    @Published var hasSSHKeyError: Bool = false
     @Published var selectedSource: PublishLogSource = PublishLogViewModel.loadSelectedSource() {
         didSet {
             UserDefaults.standard.set(selectedSource.rawValue, forKey: Self.selectedSourceDefaultsKey)
@@ -111,6 +114,7 @@ class PublishLogViewModel: ObservableObject {
     private var isMonitoring = false
     private var reloadWorkItem: DispatchWorkItem?
     private let ioQueue = DispatchQueue(label: "xyz.planetable.PublishLogViewModel.io", qos: .utility)
+    private static let timestampRegex = try! NSRegularExpression(pattern: "^\\[[^\\]]+\\]", options: [])
 
     private static func loadSelectedSource() -> PublishLogSource {
         guard
@@ -130,6 +134,9 @@ class PublishLogViewModel: ObservableObject {
         reloadWorkItem?.cancel()
         selectedSource.clear()
         logContent = ""
+        attributedLogContent = Self.buildAttributedString(from: "")
+        contentVersion += 1
+        hasSSHKeyError = false
     }
 
     func startMonitoring() {
@@ -211,12 +218,26 @@ class PublishLogViewModel: ObservableObject {
 
     private func loadContent(for source: PublishLogSource) {
         let logPath = source.logPath
+        let checkSSHKeyErrors = (source == .sshRsync)
         ioQueue.async { [weak self] in
             let content = Self.readRecentContent(from: logPath, maxBytes: Self.maxVisibleBytes)
+            let attributed = Self.buildAttributedString(from: content)
+            let keyError: Bool
+            if checkSSHKeyErrors {
+                keyError = content.contains("Operation not permitted")
+                    || content.contains("Permission denied")
+                    || content.contains("identity file")
+                    || content.contains("Host key verification failed")
+            } else {
+                keyError = false
+            }
             DispatchQueue.main.async {
                 guard let self, self.selectedSource == source else { return }
                 if self.logContent != content {
                     self.logContent = content
+                    self.attributedLogContent = attributed
+                    self.contentVersion += 1
+                    self.hasSSHKeyError = keyError
                 }
             }
         }
@@ -238,6 +259,55 @@ class PublishLogViewModel: ObservableObject {
         return content
     }
 
+    private static func buildAttributedString(from content: String) -> NSAttributedString {
+        let fontSize: CGFloat = 12
+        let baseFont = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+        let boldFont = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .bold)
+
+        guard !content.isEmpty else {
+            return NSAttributedString(
+                string: "No log entries yet.",
+                attributes: [.font: baseFont, .foregroundColor: NSColor.secondaryLabelColor]
+            )
+        }
+
+        let result = NSMutableAttributedString()
+        let lines = content.split(separator: "\n", omittingEmptySubsequences: false)
+
+        for line in lines {
+            let line = String(line)
+            guard !line.isEmpty else {
+                result.append(NSAttributedString(string: "\n"))
+                continue
+            }
+
+            let attrLine = NSMutableAttributedString(
+                string: line + "\n",
+                attributes: [.font: baseFont, .foregroundColor: NSColor.textColor]
+            )
+            let nsLine = line as NSString
+            let fullRange = NSRange(location: 0, length: nsLine.length)
+
+            if let match = timestampRegex.firstMatch(in: line, options: [], range: fullRange) {
+                attrLine.addAttribute(.foregroundColor, value: NSColor.placeholderTextColor, range: match.range)
+            }
+
+            if line.contains("[WARNING]") {
+                attrLine.addAttribute(.foregroundColor, value: NSColor.systemYellow, range: fullRange)
+                attrLine.addAttribute(.font, value: boldFont, range: fullRange)
+            } else if line.contains("[ERROR]") {
+                if let range = nsLine.range(of: "[ERROR]").asOptional {
+                    attrLine.addAttribute(.foregroundColor, value: NSColor.systemRed, range: range)
+                    attrLine.addAttribute(.font, value: boldFont, range: range)
+                }
+            }
+
+            result.append(attrLine)
+        }
+
+        return NSAttributedString(attributedString: result)
+    }
+
     private func ensureLogFileExists(for source: PublishLogSource) {
         let logPath = source.logPath
         let logURL = URL(fileURLWithPath: logPath, isDirectory: false)
@@ -252,8 +322,15 @@ class PublishLogViewModel: ObservableObject {
 
 
 private struct PublishLogTextView: NSViewRepresentable {
-    private static let timestampRegex = try! NSRegularExpression(pattern: "^\\[[^\\]]+\\]", options: [])
     @ObservedObject var viewModel: PublishLogViewModel
+
+    class Coordinator {
+        var lastVersion: Int = -1
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
@@ -288,64 +365,12 @@ private struct PublishLogTextView: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSScrollView, context: Context) {
         guard let textView = nsView.documentView as? NSTextView else { return }
-        let content = viewModel.logContent
-        let fontSize: CGFloat = 12
-        let baseFont = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
-        let boldFont = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .bold)
+        let currentVersion = viewModel.contentVersion
+        guard context.coordinator.lastVersion != currentVersion else { return }
+        context.coordinator.lastVersion = currentVersion
+
         let shouldAutoScroll = Self.shouldAutoScroll(nsView)
-
-        guard !content.isEmpty else {
-            guard textView.string != "No log entries yet." else { return }
-            let placeholder = NSAttributedString(
-                string: "No log entries yet.",
-                attributes: [.font: baseFont, .foregroundColor: NSColor.secondaryLabelColor]
-            )
-            textView.textStorage?.setAttributedString(placeholder)
-            return
-        }
-
-        guard textView.string != content else { return }
-
-        let result = NSMutableAttributedString()
-        let lines = content.split(separator: "\n", omittingEmptySubsequences: false)
-
-        for line in lines {
-            let line = String(line)
-            guard !line.isEmpty else {
-                result.append(NSAttributedString(string: "\n"))
-                continue
-            }
-
-            let attrLine = NSMutableAttributedString(
-                string: line + "\n",
-                attributes: [.font: baseFont, .foregroundColor: NSColor.textColor]
-            )
-            let nsLine = line as NSString
-            let fullRange = NSRange(location: 0, length: nsLine.length)
-
-            // Dim timestamps
-            if let match = Self.timestampRegex.firstMatch(in: line, options: [], range: fullRange)
-            {
-                attrLine.addAttribute(.foregroundColor, value: NSColor.placeholderTextColor, range: match.range)
-            }
-
-            // Yellow warning lines
-            if line.contains("[WARNING]") {
-                attrLine.addAttribute(.foregroundColor, value: NSColor.systemYellow, range: fullRange)
-                attrLine.addAttribute(.font, value: boldFont, range: fullRange)
-            }
-            // Red error tags
-            else if line.contains("[ERROR]") {
-                if let range = nsLine.range(of: "[ERROR]").asOptional {
-                    attrLine.addAttribute(.foregroundColor, value: NSColor.systemRed, range: range)
-                    attrLine.addAttribute(.font, value: boldFont, range: range)
-                }
-            }
-
-            result.append(attrLine)
-        }
-
-        textView.textStorage?.setAttributedString(result)
+        textView.textStorage?.setAttributedString(viewModel.attributedLogContent)
         if shouldAutoScroll {
             textView.scrollToEndOfDocument(nil)
         }
@@ -367,14 +392,7 @@ private extension NSRange {
 
 
 private struct SSHKeyWarningRow: View {
-    let logContent: String
-
-    var hasKeyError: Bool {
-        logContent.contains("Operation not permitted")
-            || logContent.contains("Permission denied")
-            || logContent.contains("identity file")
-            || logContent.contains("Host key verification failed")
-    }
+    let hasKeyError: Bool
 
     var body: some View {
         if hasKeyError {
@@ -412,7 +430,7 @@ struct PublishLogView: View {
             Divider()
 
             if viewModel.selectedSource == .sshRsync {
-                SSHKeyWarningRow(logContent: viewModel.logContent)
+                SSHKeyWarningRow(hasKeyError: viewModel.hasSSHKeyError)
             }
 
             PublishLogTextView(viewModel: viewModel)
