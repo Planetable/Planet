@@ -353,6 +353,11 @@ class IconManager: ObservableObject {
                 relativeTo: nil,
                 bookmarkDataIsStale: &isStale
             )
+            if url.path != Bundle.main.bundleURL.path {
+                debugPrint("Finder icon bookmark points to \(url.path), but app is at \(Bundle.main.bundleURL.path) — clearing")
+                clearFinderIconAccess()
+                return nil
+            }
             if isStale {
                 do {
                     let updatedBookmarkData = try url.bookmarkData(
