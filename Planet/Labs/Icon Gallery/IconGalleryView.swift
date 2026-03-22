@@ -8,6 +8,7 @@ struct IconGalleryView: View {
 
     @State private var selectedGroupName: String?
     @State private var selectedDockIcon: DockIcon?
+    @State private var showFinderAccessAlert: Bool = false
 
     static let itemSize: NSSize = NSSize(width: 135, height: 135)
     static let previewItemSize: NSSize = NSSize(width: 180, height: 180)
@@ -69,13 +70,33 @@ struct IconGalleryView: View {
 
                         Button {
                             if let selectedDockIcon {
-                                iconManager.setIcon(icon: selectedDockIcon)
+                                if !iconManager.hasFinderIconAccess && !iconManager.finderIconPromptDismissed {
+                                    showFinderAccessAlert = true
+                                } else {
+                                    iconManager.setIcon(icon: selectedDockIcon)
+                                }
                             }
                         } label: {
                             Text("Set App Icon")
                         }
                         .disabled(selectedDockIcon == nil)
                         .disabled(iconManager.activeDockIcon != nil && iconManager.activeDockIcon == selectedDockIcon)
+                        .alert("Change Finder Icon Too?", isPresented: $showFinderAccessAlert) {
+                            Button("No Thanks") {
+                                iconManager.finderIconPromptDismissed = true
+                                if let selectedDockIcon {
+                                    iconManager.setIcon(icon: selectedDockIcon)
+                                }
+                            }
+                            Button("Grant Access") {
+                                iconManager.requestFinderIconAccess()
+                                if let selectedDockIcon {
+                                    iconManager.setIcon(icon: selectedDockIcon)
+                                }
+                            }
+                        } message: {
+                            Text("Would you also like to change the app's icon in Finder? This requires granting Planet access to modify its application file.")
+                        }
                     }
                     .padding(16)
                 } else {

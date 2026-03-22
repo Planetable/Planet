@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UniformTypeIdentifiers
 
 
 private struct DockAnimationObject: Decodable {
@@ -138,12 +139,17 @@ class IconManager: ObservableObject {
     @Published private(set) var isPlayingAnimation: Bool = false
     @Published private(set) var dockIcons: [DockIcon] = []
     @Published private(set) var activeDockIcon: DockIcon?
+    @Published private(set) var hasFinderIconAccess: Bool = false
+
+    private static let finderIconBookmarkKey = "PlanetFinderIconBookmarkData"
+    private static let finderIconPromptDismissedKey = "PlanetFinderIconPromptDismissed"
 
     private var cachedPreviewIconImageSet: [String: [NSImage]] = [:]
     private var cachedIconImageSet: [String: [NSImage]] = [:]
-    
+
     init() {
         resetCache()
+        hasFinderIconAccess = UserDefaults.standard.data(forKey: Self.finderIconBookmarkKey) != nil
         dockIcons = [
             DockIcon(id: 1, groupID: 1, name: "NFT Tier 1", groupName: "NFT", packageName: "tier1", unlocked: false),
             DockIcon(id: 2, groupID: 1, name: "NFT Tier 2", groupName: "NFT", packageName: "tier2", unlocked: false),
@@ -162,6 +168,9 @@ class IconManager: ObservableObject {
                 self.setIcon(icon: icon)
             }
         }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.reapplyFinderIconIfNeeded()
+        }
     }
 
     func setIcon(icon: DockIcon) {
@@ -173,8 +182,11 @@ class IconManager: ObservableObject {
         }
         UserDefaults.standard.set(icon.packageName, forKey: "PlanetDockIconLastPackageName")
         DistributedNotificationCenter.default().post(name: Notification.Name("xyz.planetable.Planet.PlanetDockIconSyncPackageName"), object: icon.packageName)
+        if hasFinderIconAccess {
+            applyFinderIcon(withPackageName: icon.packageName)
+        }
     }
-    
+
     func resetIcon() {
         NSApp.dockTile.contentView = nil
         NSApp.dockTile.display()
@@ -183,6 +195,9 @@ class IconManager: ObservableObject {
         cachedPreviewIconImageSet.removeAll()
         UserDefaults.standard.removeObject(forKey: "PlanetDockIconLastPackageName")
         DistributedNotificationCenter.default().post(name: Notification.Name("xyz.planetable.Planet.PlanetDockIconSyncPackageName"), object: "")
+        if hasFinderIconAccess {
+            resetFinderIcon()
+        }
     }
 
     func iconSupportsAnimation(icon: DockIcon) -> Bool {
@@ -282,8 +297,126 @@ class IconManager: ObservableObject {
         DockIconPreviewView(icon: icon, size: size, previewable: previewable)
     }
 
-    // MARK: -
-    
+    // MARK: - Finder Icon
+
+    @discardableResult
+    func requestFinderIconAccess() -> Bool {
+        let panel = NSOpenPanel()
+        panel.message = "Select the Planet app to allow changing its Finder icon"
+        panel.prompt = "Grant Access"
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.applicationBundle]
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.directoryURL = Bundle.main.bundleURL.deletingLastPathComponent()
+        let response = panel.runModal()
+        guard response == .OK, let url = panel.url else { return false }
+        guard let selectedBundle = Bundle(url: url),
+              selectedBundle.bundleIdentifier == Bundle.main.bundleIdentifier else {
+            let alert = NSAlert()
+            alert.messageText = "Invalid Selection"
+            alert.informativeText = "The selected app does not match Planet. Please select the Planet app."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return false
+        }
+        do {
+            let bookmarkData = try url.bookmarkData(
+                options: .withSecurityScope,
+                includingResourceValuesForKeys: nil,
+                relativeTo: nil
+            )
+            UserDefaults.standard.set(bookmarkData, forKey: Self.finderIconBookmarkKey)
+            hasFinderIconAccess = true
+            return true
+        } catch {
+            debugPrint("failed to create Finder icon bookmark: \(error)")
+            return false
+        }
+    }
+
+    var finderIconPromptDismissed: Bool {
+        get { UserDefaults.standard.bool(forKey: Self.finderIconPromptDismissedKey) }
+        set { UserDefaults.standard.set(newValue, forKey: Self.finderIconPromptDismissedKey) }
+    }
+
+    private func resolveAppBundleURL() -> URL? {
+        guard let bookmarkData = UserDefaults.standard.data(forKey: Self.finderIconBookmarkKey) else {
+            return nil
+        }
+        do {
+            var isStale = false
+            let url = try URL(
+                resolvingBookmarkData: bookmarkData,
+                options: .withSecurityScope,
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale
+            )
+            if isStale {
+                do {
+                    let updatedBookmarkData = try url.bookmarkData(
+                        options: .withSecurityScope,
+                        includingResourceValuesForKeys: nil,
+                        relativeTo: nil
+                    )
+                    UserDefaults.standard.set(updatedBookmarkData, forKey: Self.finderIconBookmarkKey)
+                } catch {
+                    debugPrint("failed to recreate stale Finder icon bookmark: \(error)")
+                    clearFinderIconAccess()
+                    return nil
+                }
+            }
+            if url.startAccessingSecurityScopedResource() {
+                return url
+            } else {
+                debugPrint("failed to start accessing Finder icon security scoped resource")
+                clearFinderIconAccess()
+                return nil
+            }
+        } catch {
+            debugPrint("failed to resolve Finder icon bookmark: \(error)")
+            clearFinderIconAccess()
+            return nil
+        }
+    }
+
+    private func clearFinderIconAccess() {
+        UserDefaults.standard.removeObject(forKey: Self.finderIconBookmarkKey)
+        hasFinderIconAccess = false
+    }
+
+    private func applyFinderIcon(withPackageName name: String) {
+        do {
+            let location = try animationLocation(withPackageName: name)
+            let imagePath = location.appendingPathComponent("a.png")
+            guard let image = NSImage(contentsOfFile: imagePath.path) else { return }
+            setFinderIcon(image: image)
+        } catch {
+            debugPrint("failed to load icon for Finder: \(error)")
+        }
+    }
+
+    private func setFinderIcon(image: NSImage) {
+        guard let url = resolveAppBundleURL() else { return }
+        NSWorkspace.shared.setIcon(image, forFile: url.path, options: [])
+        url.stopAccessingSecurityScopedResource()
+    }
+
+    private func resetFinderIcon() {
+        guard let url = resolveAppBundleURL() else { return }
+        NSWorkspace.shared.setIcon(nil, forFile: url.path, options: [])
+        url.stopAccessingSecurityScopedResource()
+    }
+
+    private func reapplyFinderIconIfNeeded() {
+        guard hasFinderIconAccess else { return }
+        guard let iconKey = UserDefaults.standard.string(forKey: "PlanetDockIconLastPackageName") else { return }
+        applyFinderIcon(withPackageName: iconKey)
+    }
+
+    // MARK: - Private
+
     private func baseCacheURL() -> URL {
         let tempURL: URL
         if #available(macOS 13.0, *) {
