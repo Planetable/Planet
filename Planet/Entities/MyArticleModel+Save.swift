@@ -130,7 +130,7 @@ extension MyArticleModel {
 
     /// Save the article concurrently during rebuild. HTML rendering runs in parallel
     /// and is awaited before returning, ensuring all files are written before IPFS publish.
-    func savePublicConcurrently() async throws {
+    func savePublicConcurrently() throws {
         let started: Date = Date()
         var marks: OrderedDictionary<String, Date> = ["Started": started]
 
@@ -169,7 +169,7 @@ extension MyArticleModel {
 
         // MARK: - Render Markdown
 
-        try await processArticleHTMLConcurrently()
+        try processArticleHTML()
         marks.recordEvent("ArticleHTML", for: self.title)
 
         // MARK: - Hero Grid

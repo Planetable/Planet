@@ -1829,180 +1829,197 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             atPath: publicPodcastCoverArtPath.path
         )
 
-        // MARK: - Render RSS and podcast RSS
-        renderRSS(podcastOnly: false)
+        // MARK: - Render RSS, index, tags, and archive in parallel
+        let hasAvatar = self.hasAvatar()
+        let ogImageURL = ogImageURLString
+        let planetTags = self.tags
+        let reservedTagsRemoved = self.removeReservedTags()
 
-        if publicPlanet.hasAudioContent() {
-            renderRSS(podcastOnly: true)
-        }
-        reduceRebuildTasks()
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            // MARK: RSS
+            group.addTask {
+                self.renderRSS(podcastOnly: false)
+                if publicPlanet.hasAudioContent() {
+                    self.renderRSS(podcastOnly: true)
+                }
+                self.reduceRebuildTasks()
+            }
 
-        // MARK: - Render index.html and pages
-        let itemsPerPage = template.idealItemsPerPage ?? 10
-        let generateIndexPagination = template.generateIndexPagination ?? false
-        if generateIndexPagination == true && publicPlanet.articles.count > itemsPerPage {
-            let pages = Int(ceil(Double(publicPlanet.articles.count) / Double(itemsPerPage)))
-            debugPrint("Rendering \(pages) pages")
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                for i in 1...pages {
-                    let pageArticles = Array(
-                        publicPlanet.articles[
-                            (i - 1) * itemsPerPage..<min(i * itemsPerPage, publicPlanet.articles.count)
-                        ]
-                    )
+            // MARK: Index pages
+            group.addTask {
+                let itemsPerPage = template.idealItemsPerPage ?? 10
+                let generateIndexPagination = template.generateIndexPagination ?? false
+                if generateIndexPagination == true && publicPlanet.articles.count > itemsPerPage {
+                    let pages = Int(ceil(Double(publicPlanet.articles.count) / Double(itemsPerPage)))
+                    debugPrint("Rendering \(pages) pages")
+                    try await withThrowingTaskGroup(of: Void.self) { innerGroup in
+                        for i in 1...pages {
+                            let pageArticles = Array(
+                                publicPlanet.articles[
+                                    (i - 1) * itemsPerPage..<min(i * itemsPerPage, publicPlanet.articles.count)
+                                ]
+                            )
+                            let pageContext: [String: Any] = [
+                                "planet": publicPlanet,
+                                "planet_ipns": self.ipns,
+                                "my_planet": self,
+                                "site_navigation": siteNavigation,
+                                "has_avatar": hasAvatar,
+                                "og_image_url": ogImageURL,
+                                "has_podcast": publicPlanet.hasAudioContent(),
+                                "has_podcast_cover_art": hasPodcastCoverArt,
+                                "page": i,
+                                "pages": pages,
+                                "articles": pageArticles,
+                            ]
+                            innerGroup.addTask(priority: .userInitiated) {
+                                let pageHTML = try template.renderIndex(context: pageContext)
+                                let pagePath = self.publicIndexPagePath(page: i)
+                                try pageHTML.data(using: .utf8)?.write(to: pagePath, options: .atomic)
+                            }
+
+                            if i == 1 {
+                                debugPrint("Build index.html: hasAvatar=\(hasAvatar)")
+                                innerGroup.addTask(priority: .userInitiated) {
+                                    let indexHTML = try template.renderIndex(context: pageContext)
+                                    try indexHTML.data(using: .utf8)?.write(to: self.publicIndexPath, options: .atomic)
+                                }
+                            }
+                        }
+                        try await innerGroup.waitForAll()
+                    }
+                }
+                else {
                     let pageContext: [String: Any] = [
                         "planet": publicPlanet,
                         "planet_ipns": self.ipns,
                         "my_planet": self,
                         "site_navigation": siteNavigation,
-                        "has_avatar": self.hasAvatar(),
-                        "og_image_url": ogImageURLString,
+                        "has_avatar": hasAvatar,
+                        "og_image_url": ogImageURL,
                         "has_podcast": publicPlanet.hasAudioContent(),
                         "has_podcast_cover_art": hasPodcastCoverArt,
-                        "page": i,
-                        "pages": pages,
-                        "articles": pageArticles,
+                        "articles": publicPlanet.articles,
                     ]
-                    group.addTask(priority: .userInitiated) {
-                        let pageHTML = try template.renderIndex(context: pageContext)
-                        let pagePath = self.publicIndexPagePath(page: i)
-                        try pageHTML.data(using: .utf8)?.write(to: pagePath, options: .atomic)
-                    }
+                    let pageHTML = try template.renderIndex(context: pageContext)
+                    let pagePath = self.publicIndexPagePath(page: 1)
+                    try pageHTML.data(using: .utf8)?.write(to: pagePath, options: .atomic)
 
-                    if i == 1 {
-                        debugPrint("Build index.html: hasAvatar=\(self.hasAvatar())")
-                        group.addTask(priority: .userInitiated) {
-                            let indexHTML = try template.renderIndex(context: pageContext)
-                            try indexHTML.data(using: .utf8)?.write(to: self.publicIndexPath, options: .atomic)
+                    let indexHTML = try template.renderIndex(context: pageContext)
+                    try indexHTML.data(using: .utf8)?.write(to: self.publicIndexPath, options: .atomic)
+                }
+                self.reduceRebuildTasks()
+            }
+
+            // MARK: Tags
+            group.addTask {
+                if let generateTagPages = template.generateTagPages, generateTagPages {
+                    debugPrint("Generate tags for planet \(self.name)")
+                    var tagArticles: [String: [PublicArticleModel]] = [:]
+                    for article in allArticles {
+                        if let articleTags = article.tags {
+                            for (key, _) in articleTags {
+                                if MyPlanetModel.isReservedTag(key) {
+                                    continue
+                                }
+                                if tagArticles[key] == nil {
+                                    tagArticles[key] = []
+                                }
+                                tagArticles[key]?.append(article)
+                            }
                         }
                     }
-                }
-                try await group.waitForAll()
-            }
-        }
-        else {
-            let pageContext: [String: Any] = [
-                "planet": publicPlanet,
-                "planet_ipns": self.ipns,
-                "my_planet": self,
-                "site_navigation": siteNavigation,
-                "has_avatar": self.hasAvatar(),
-                "og_image_url": ogImageURLString,
-                "has_podcast": publicPlanet.hasAudioContent(),
-                "has_podcast_cover_art": hasPodcastCoverArt,
-                "articles": publicPlanet.articles,
-            ]
-            let pageHTML = try template.renderIndex(context: pageContext)
-            let pagePath = publicIndexPagePath(page: 1)
-            try pageHTML.data(using: .utf8)?.write(to: pagePath, options: .atomic)
-
-            let indexHTML = try template.renderIndex(context: pageContext)
-            try indexHTML.data(using: .utf8)?.write(to: publicIndexPath, options: .atomic)
-        }
-        reduceRebuildTasks()
-
-        // MARK: - Render tags
-        if let generateTagPages = template.generateTagPages, generateTagPages {
-            debugPrint("Generate tags for planet \(name)")
-            var tagArticles: [String: [PublicArticleModel]] = [:]
-            for article in allArticles {
-                if let articleTags = article.tags {
-                    for (key, _) in articleTags {
-                        if MyPlanetModel.isReservedTag(key) {
-                            continue
+                    try await withThrowingTaskGroup(of: Void.self) { innerGroup in
+                        for (key, value) in tagArticles {
+                            let tagContext: [String: Any] = [
+                                "planet": publicPlanet,
+                                "planet_ipns": self.ipns,
+                                "my_planet": self,
+                                "site_navigation": siteNavigation,
+                                "has_avatar": hasAvatar,
+                                "og_image_url": ogImageURL,
+                                "has_podcast": publicPlanet.hasAudioContent(),
+                                "has_podcast_cover_art": hasPodcastCoverArt,
+                                "tag_key": key,
+                                "tag_value": planetTags?[key] ?? key,
+                                "current_item_type": "tags",
+                                "articles": value,
+                                "page_title": "\(self.name) - \(planetTags?[key] ?? key)",
+                            ]
+                            innerGroup.addTask(priority: .userInitiated) {
+                                let tagHTML = try template.renderIndex(context: tagContext)
+                                let tagPath = self.publicTagPath(tag: key)
+                                try tagHTML.data(using: .utf8)?.write(to: tagPath, options: .atomic)
+                            }
                         }
-                        if tagArticles[key] == nil {
-                            tagArticles[key] = []
+                        if template.hasTagsHTML {
+                            let tagsContext: [String: Any] = [
+                                "planet": publicPlanet,
+                                "planet_ipns": self.ipns,
+                                "my_planet": self,
+                                "site_navigation": siteNavigation,
+                                "has_avatar": hasAvatar,
+                                "og_image_url": ogImageURL,
+                                "has_podcast": publicPlanet.hasAudioContent(),
+                                "has_podcast_cover_art": hasPodcastCoverArt,
+                                "tags": reservedTagsRemoved,
+                                "tag_articles": tagArticles,
+                            ]
+                            innerGroup.addTask(priority: .userInitiated) {
+                                let tagsHTML = try template.renderTags(context: tagsContext)
+                                try tagsHTML.data(using: .utf8)?.write(to: self.publicTagsPath, options: .atomic)
+                            }
                         }
-                        tagArticles[key]?.append(article)
+                        try await innerGroup.waitForAll()
                     }
                 }
+                else {
+                    debugPrint("Skip generating tags for planet \(self.name)")
+                }
+                self.reduceRebuildTasks()
             }
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                for (key, value) in tagArticles {
-                    let tagContext: [String: Any] = [
-                        "planet": publicPlanet,
-                        "planet_ipns": self.ipns,
-                        "my_planet": self,
-                        "site_navigation": siteNavigation,
-                        "has_avatar": self.hasAvatar(),
-                        "og_image_url": ogImageURLString,
-                        "has_podcast": publicPlanet.hasAudioContent(),
-                        "has_podcast_cover_art": hasPodcastCoverArt,
-                        "tag_key": key,
-                        "tag_value": self.tags?[key] ?? key,
-                        "current_item_type": "tags",
-                        "articles": value,
-                        "page_title": "\(self.name) - \(self.tags?[key] ?? key)",
-                    ]
-                    group.addTask(priority: .userInitiated) {
-                        let tagHTML = try template.renderIndex(context: tagContext)
-                        let tagPath = self.publicTagPath(tag: key)
-                        try tagHTML.data(using: .utf8)?.write(to: tagPath, options: .atomic)
-                    }
-                }
-                if template.hasTagsHTML {
-                    let tagsContext: [String: Any] = [
-                        "planet": publicPlanet,
-                        "planet_ipns": self.ipns,
-                        "my_planet": self,
-                        "site_navigation": siteNavigation,
-                        "has_avatar": self.hasAvatar(),
-                        "og_image_url": ogImageURLString,
-                        "has_podcast": publicPlanet.hasAudioContent(),
-                        "has_podcast_cover_art": hasPodcastCoverArt,
-                        "tags": self.removeReservedTags(),
-                        "tag_articles": tagArticles,
-                    ]
-                    group.addTask(priority: .userInitiated) {
-                        let tagsHTML = try template.renderTags(context: tagsContext)
-                        try tagsHTML.data(using: .utf8)?.write(to: self.publicTagsPath, options: .atomic)
-                    }
-                }
-                try await group.waitForAll()
-            }
-        }
-        else {
-            debugPrint("Skip generating tags for planet \(name)")
-        }
-        reduceRebuildTasks()
 
-        // MARK: - Render archive.html
-        if let generateArchive = template.generateArchive, generateArchive {
-            if template.hasArchiveHTML {
-                var archive: [String: [PublicArticleModel]] = [:]
-                var archiveSections: [String] = []
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "MMMM yyyy"
-                for article in allArticles {
-                    let monthYear = dateFormatter.string(from: article.created)
-                    if archive[monthYear] == nil {
-                        archive[monthYear] = []
-                        archiveSections.append(monthYear)
+            // MARK: Archive
+            group.addTask {
+                if let generateArchive = template.generateArchive, generateArchive {
+                    if template.hasArchiveHTML {
+                        var archive: [String: [PublicArticleModel]] = [:]
+                        var archiveSections: [String] = []
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateFormat = "MMMM yyyy"
+                        for article in allArticles {
+                            let monthYear = dateFormatter.string(from: article.created)
+                            if archive[monthYear] == nil {
+                                archive[monthYear] = []
+                                archiveSections.append(monthYear)
+                            }
+                            archive[monthYear]?.append(article)
+                        }
+                        let archiveContext: [String: Any] = [
+                            "planet": publicPlanet,
+                            "planet_ipns": self.ipns,
+                            "my_planet": self,
+                            "site_navigation": siteNavigation,
+                            "has_avatar": hasAvatar,
+                            "og_image_url": ogImageURL,
+                            "has_podcast": publicPlanet.hasAudioContent(),
+                            "has_podcast_cover_art": hasPodcastCoverArt,
+                            "articles": allArticles,
+                            "archive": archive,
+                            "archive_sections": archiveSections,
+                        ]
+                        let archiveHTML = try template.renderArchive(context: archiveContext)
+                        try archiveHTML.data(using: .utf8)?.write(to: self.publicArchivePath, options: .atomic)
                     }
-                    archive[monthYear]?.append(article)
                 }
-                let archiveContext: [String: Any] = [
-                    "planet": publicPlanet,
-                    "planet_ipns": self.ipns,
-                    "my_planet": self,
-                    "site_navigation": siteNavigation,
-                    "has_avatar": self.hasAvatar(),
-                    "og_image_url": ogImageURLString,
-                    "has_podcast": publicPlanet.hasAudioContent(),
-                    "has_podcast_cover_art": hasPodcastCoverArt,
-                    "articles": allArticles,
-                    "archive": archive,
-                    "archive_sections": archiveSections,
-                ]
-                let archiveHTML = try template.renderArchive(context: archiveContext)
-                try archiveHTML.data(using: .utf8)?.write(to: publicArchivePath, options: .atomic)
+                else {
+                    debugPrint("Skip generating archive for planet \(self.name)")
+                }
+                self.reduceRebuildTasks()
             }
+
+            try await group.waitForAll()
         }
-        else {
-            debugPrint("Skip generating archive for planet \(name)")
-        }
-        reduceRebuildTasks()
 
         // MARK: - Save planet.json
         let info = try JSONEncoder.shared.encode(publicPlanet)
@@ -2789,19 +2806,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         // heaviest task is generating thumbnails
 
         do {
-            // split the articles into groups
-            let cpuCount = ProcessInfo.processInfo.activeProcessorCount
-            let articleGroups = self.articles.chunked(into: cpuCount > 8 ? 8 : cpuCount)
-            for articleGroup in articleGroups {
-                /* TaskGroup */
-                try await withThrowingTaskGroup(of: Void.self) { group in
-                    for article in articleGroup {
-                        group.addTask(priority: .high) {
-                            try await article.savePublicConcurrently()
-                        }
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                for article in self.articles {
+                    group.addTask(priority: .high) {
+                        try article.savePublicConcurrently()
                     }
-                    try await group.waitForAll()
                 }
+                try await group.waitForAll()
             }
         }
         let ended = Date()

@@ -999,7 +999,7 @@ extension MyPlanetModel {
                         )
                         if changed {
                             debugPrint("Aggregation: updating \(article.id) from \(site)")
-                            try await existingArticle.savePublicConcurrently()
+                            try existingArticle.savePublicConcurrently()
                             try existingArticle.save()
                             result.updated += 1
                         }
@@ -1070,7 +1070,7 @@ extension MyPlanetModel {
                         newArticle.attachments = remoteAttachments
                         newArticle.cids = article.cids
                         try newArticle.save()
-                        try await newArticle.savePublicConcurrently()
+                        try newArticle.savePublicConcurrently()
                         newArticles.append(newArticle)
                         existingArticlesByOriginalPostID[articleKey] = newArticle
                         result.added += 1
@@ -1198,7 +1198,7 @@ extension MyPlanetModel {
                                 "Aggregation: failed to fetch social image from \(articleURL)"
                             )
                         }
-                        try await newArticle.savePublicConcurrently()
+                        try newArticle.savePublicConcurrently()
                         newArticles.append(newArticle)
                         existingArticlesByOriginalPostID[articleKey] = newArticle
                         result.added += 1

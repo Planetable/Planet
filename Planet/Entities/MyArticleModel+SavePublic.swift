@@ -248,32 +248,6 @@ extension MyArticleModel {
         }
     }
 
-    /// Render article HTML concurrently (index and simple HTML in parallel).
-    /// Unlike `processArticleHTML()`, this awaits all rendering tasks before returning.
-    func processArticleHTMLConcurrently() async throws {
-        guard let template = planet.template else {
-            throw PlanetError.MissingTemplateError
-        }
-
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            group.addTask(priority: .userInitiated) {
-                let articleHTML = try template.render(article: self)
-                try articleHTML.data(using: .utf8)?.write(to: self.publicIndexPath, options: .atomic)
-                debugPrint("HTML for \(self.title) saved to \(self.publicIndexPath.path)")
-            }
-
-            group.addTask(priority: .userInitiated) {
-                if template.hasSimpleHTML {
-                    let simpleHTML = try template.render(article: self, forSimpleHTML: true)
-                    try simpleHTML.data(using: .utf8)?.write(to: self.publicSimplePath, options: .atomic)
-                    debugPrint("Simple HTML for \(self.title) saved to \(self.publicSimplePath.path)")
-                }
-            }
-
-            try await group.waitForAll()
-        }
-    }
-
     /// Process hero grid
     func processHeroGrid() {
         if self.hasHeroImage() || self.hasVideoContent() {
