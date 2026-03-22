@@ -95,6 +95,8 @@ class PublishLogWindowManager: NSObject, NSWindowDelegate {
 class PublishLogViewModel: ObservableObject {
     static let shared = PublishLogViewModel()
     private static let selectedSourceDefaultsKey = "PublishLogView.SelectedSource"
+    private static let maxVisibleBytes = 256 * 1024
+    private static let reloadDebounceInterval: DispatchTimeInterval = .milliseconds(100)
     @Published var logContent: String = ""
     @Published var selectedSource: PublishLogSource = PublishLogViewModel.loadSelectedSource() {
         didSet {
@@ -104,11 +106,11 @@ class PublishLogViewModel: ObservableObject {
         }
     }
 
-    private var directoryDispatchSource: DispatchSourceFileSystemObject?
     private var selectedFileDispatchSource: DispatchSourceFileSystemObject?
-    private var directoryFileDescriptor: Int32 = -1
     private var selectedFileDescriptor: Int32 = -1
     private var isMonitoring = false
+    private var reloadWorkItem: DispatchWorkItem?
+    private let ioQueue = DispatchQueue(label: "xyz.planetable.PublishLogViewModel.io", qos: .utility)
 
     private static func loadSelectedSource() -> PublishLogSource {
         guard
@@ -121,10 +123,11 @@ class PublishLogViewModel: ObservableObject {
     }
 
     func reload() {
-        logContent = selectedSource.readAll()
+        scheduleReload(immediate: true)
     }
 
     func clear() {
+        reloadWorkItem?.cancel()
         selectedSource.clear()
         logContent = ""
     }
@@ -133,54 +136,27 @@ class PublishLogViewModel: ObservableObject {
         stopMonitoring()
         isMonitoring = true
         reload()
-        startDirectoryMonitoring()
         startSelectedFileMonitoring()
     }
 
     func stopMonitoring() {
         isMonitoring = false
+        reloadWorkItem?.cancel()
         stopSelectedFileMonitoring()
-        stopDirectoryMonitoring()
     }
 
     private func restartSelectedSourceMonitoringIfNeeded() {
         guard isMonitoring else { return }
+        ensureLogFileExists(for: selectedSource)
         startSelectedFileMonitoring()
-    }
-
-    private func startDirectoryMonitoring() {
-        guard directoryDispatchSource == nil else { return }
-        let dirPath = NSTemporaryDirectory()
-        directoryFileDescriptor = open(dirPath, O_EVTONLY)
-        guard directoryFileDescriptor >= 0 else { return }
-        let source = DispatchSource.makeFileSystemObjectSource(
-            fileDescriptor: directoryFileDescriptor,
-            eventMask: [.write, .delete, .rename],
-            queue: .main
-        )
-        source.setEventHandler { [weak self] in
-            guard let self else { return }
-            self.startSelectedFileMonitoring()
-            self.reload()
-        }
-        source.setCancelHandler { [weak self] in
-            guard let self, self.directoryFileDescriptor >= 0 else { return }
-            close(self.directoryFileDescriptor)
-            self.directoryFileDescriptor = -1
-        }
-        source.resume()
-        directoryDispatchSource = source
-    }
-
-    private func stopDirectoryMonitoring() {
-        directoryDispatchSource?.cancel()
-        directoryDispatchSource = nil
+        scheduleReload(immediate: true)
     }
 
     private func startSelectedFileMonitoring() {
         stopSelectedFileMonitoring()
-        let logPath = selectedSource.logPath
-        guard FileManager.default.fileExists(atPath: logPath) else { return }
+        let monitoredSource = selectedSource
+        let logPath = monitoredSource.logPath
+        ensureLogFileExists(for: monitoredSource)
 
         selectedFileDescriptor = open(logPath, O_EVTONLY)
         guard selectedFileDescriptor >= 0 else { return }
@@ -192,12 +168,17 @@ class PublishLogViewModel: ObservableObject {
         )
         source.setEventHandler { [weak self] in
             guard let self else { return }
+            guard self.selectedSource == monitoredSource else { return }
             let events = source.data
-            self.reload()
             if events.contains(.delete) || events.contains(.rename) || events.contains(.revoke) {
                 DispatchQueue.main.async { [weak self] in
+                    self?.ensureLogFileExists(for: monitoredSource)
+                    self?.stopSelectedFileMonitoring()
                     self?.startSelectedFileMonitoring()
+                    self?.scheduleReload(immediate: true)
                 }
+            } else {
+                self.scheduleReload()
             }
         }
         source.setCancelHandler { [weak self] in
@@ -213,10 +194,65 @@ class PublishLogViewModel: ObservableObject {
         selectedFileDispatchSource?.cancel()
         selectedFileDispatchSource = nil
     }
+
+    private func scheduleReload(immediate: Bool = false) {
+        reloadWorkItem?.cancel()
+        let source = selectedSource
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.loadContent(for: source)
+        }
+        reloadWorkItem = workItem
+        if immediate {
+            DispatchQueue.main.async(execute: workItem)
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.reloadDebounceInterval, execute: workItem)
+        }
+    }
+
+    private func loadContent(for source: PublishLogSource) {
+        let logPath = source.logPath
+        ioQueue.async { [weak self] in
+            let content = Self.readRecentContent(from: logPath, maxBytes: Self.maxVisibleBytes)
+            DispatchQueue.main.async {
+                guard let self, self.selectedSource == source else { return }
+                if self.logContent != content {
+                    self.logContent = content
+                }
+            }
+        }
+    }
+
+    private static func readRecentContent(from path: String, maxBytes: Int) -> String {
+        guard let handle = FileHandle(forReadingAtPath: path) else { return "" }
+        defer { handle.closeFile() }
+
+        let fileSize = handle.seekToEndOfFile()
+        let startOffset = fileSize > UInt64(maxBytes) ? fileSize - UInt64(maxBytes) : 0
+        handle.seek(toFileOffset: startOffset)
+
+        let data = handle.readDataToEndOfFile()
+        var content = String(decoding: data, as: UTF8.self)
+        if startOffset > 0, let newlineIndex = content.firstIndex(of: "\n") {
+            content.removeSubrange(content.startIndex...newlineIndex)
+        }
+        return content
+    }
+
+    private func ensureLogFileExists(for source: PublishLogSource) {
+        let logPath = source.logPath
+        let logURL = URL(fileURLWithPath: logPath, isDirectory: false)
+        let directoryURL = logURL.deletingLastPathComponent()
+
+        try? FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
+        if !FileManager.default.fileExists(atPath: logPath) {
+            FileManager.default.createFile(atPath: logPath, contents: nil)
+        }
+    }
 }
 
 
 private struct PublishLogTextView: NSViewRepresentable {
+    private static let timestampRegex = try! NSRegularExpression(pattern: "^\\[[^\\]]+\\]", options: [])
     @ObservedObject var viewModel: PublishLogViewModel
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -256,8 +292,10 @@ private struct PublishLogTextView: NSViewRepresentable {
         let fontSize: CGFloat = 12
         let baseFont = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
         let boldFont = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .bold)
+        let shouldAutoScroll = Self.shouldAutoScroll(nsView)
 
         guard !content.isEmpty else {
+            guard textView.string != "No log entries yet." else { return }
             let placeholder = NSAttributedString(
                 string: "No log entries yet.",
                 attributes: [.font: baseFont, .foregroundColor: NSColor.secondaryLabelColor]
@@ -266,10 +304,13 @@ private struct PublishLogTextView: NSViewRepresentable {
             return
         }
 
+        guard textView.string != content else { return }
+
         let result = NSMutableAttributedString()
-        let lines = content.components(separatedBy: "\n")
+        let lines = content.split(separator: "\n", omittingEmptySubsequences: false)
 
         for line in lines {
+            let line = String(line)
             guard !line.isEmpty else {
                 result.append(NSAttributedString(string: "\n"))
                 continue
@@ -283,8 +324,7 @@ private struct PublishLogTextView: NSViewRepresentable {
             let fullRange = NSRange(location: 0, length: nsLine.length)
 
             // Dim timestamps
-            if let regex = try? NSRegularExpression(pattern: "^\\[[^\\]]+\\]", options: []),
-               let match = regex.firstMatch(in: line, options: [], range: fullRange)
+            if let match = Self.timestampRegex.firstMatch(in: line, options: [], range: fullRange)
             {
                 attrLine.addAttribute(.foregroundColor, value: NSColor.placeholderTextColor, range: match.range)
             }
@@ -306,7 +346,15 @@ private struct PublishLogTextView: NSViewRepresentable {
         }
 
         textView.textStorage?.setAttributedString(result)
-        textView.scrollToEndOfDocument(nil)
+        if shouldAutoScroll {
+            textView.scrollToEndOfDocument(nil)
+        }
+    }
+
+    private static func shouldAutoScroll(_ scrollView: NSScrollView) -> Bool {
+        guard let documentView = scrollView.documentView else { return true }
+        let visibleRect = scrollView.contentView.documentVisibleRect
+        return documentView.bounds.maxY - visibleRect.maxY < 80
     }
 }
 
