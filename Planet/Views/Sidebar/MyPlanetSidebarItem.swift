@@ -37,7 +37,7 @@ struct MyPlanetSidebarItem: View {
                         PlanetStore.shared.alert(title: "Failed to launch writer")
                     }
                 } label: {
-                    Text("New Article")
+                    Label("New Article", systemImage: "square.and.pencil")
                 }
 
                 Button {
@@ -46,7 +46,7 @@ struct MyPlanetSidebarItem: View {
                         PlanetStore.shared.isEditingPlanet = true
                     }
                 } label: {
-                    Text("Edit Planet")
+                    Label("Edit Planet", systemImage: "gearshape")
                 }
 
                 Divider()

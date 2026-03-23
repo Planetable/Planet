@@ -1028,6 +1028,28 @@ struct MyPlanetEditView: View {
                                 .frame(alignment: .leading)
                             Spacer()
                         }
+
+                        HStack {
+                            HStack {
+                                Text("UUID")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+
+                            Text(planet.id.uuidString)
+                                .font(.system(size: 11, design: .monospaced))
+                                .textSelection(.enabled)
+
+                            Spacer()
+
+                            Button {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(planet.id.uuidString, forType: .string)
+                            } label: {
+                                Image(systemName: "doc.on.doc")
+                            }
+                            .help("Copy UUID to clipboard")
+                        }
                     }
                     .padding(16)
                     .tabItem {
