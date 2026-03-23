@@ -22,7 +22,7 @@ class MarkdownEditorTextView: NSTextView {
         )
         switch result {
         case .removeEmptyMarker(let range):
-            insertText("", replacementRange: range)
+            insertText("\n", replacementRange: range)
         case .insertPrefix(let prefix, _):
             insertText("\n" + prefix, replacementRange: self.selectedRange())
         case .none:
