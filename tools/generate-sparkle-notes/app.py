@@ -6,7 +6,7 @@ import subprocess
 import threading
 import time
 
-from flask import Flask, abort, jsonify, redirect, url_for
+from flask import Flask, abort, jsonify, redirect, request, url_for
 from jinja2 import BaseLoader, Environment
 
 app = Flask(__name__)
@@ -131,6 +131,29 @@ def markdown_to_html(md_text):
     return '\n'.join(html_lines)
 
 
+def search_notes(query):
+    """Search tag names and note contents across all channels. Returns [(channel, tag, snippet)]."""
+    results = []
+    q = query.lower()
+    for ch in CHANNELS:
+        for tag_name in get_tags_for_channel(ch):
+            match_tag = q in tag_name.lower()
+            snippet = None
+            if notes_exist(ch, tag_name):
+                content = read_notes(ch, tag_name)
+                if q in content.lower():
+                    for line in content.split('\n'):
+                        if q in line.lower():
+                            snippet = line
+                            break
+                elif not match_tag:
+                    continue
+            elif not match_tag:
+                continue
+            results.append((ch, tag_name, get_tag_date(tag_name), snippet))
+    return results
+
+
 # ---------------------------------------------------------------------------
 # Claude invocation
 # ---------------------------------------------------------------------------
@@ -183,67 +206,98 @@ def generate_notes_with_claude(commits, prev_tag, tag):
 _jinja = Environment(loader=BaseLoader(), autoescape=True)
 
 _STYLE = """
+    :root {
+      --color-text: #333;
+      --color-text-secondary: #666;
+      --color-text-muted: #888;
+      --color-bg: #fff;
+      --color-bg-sidebar: #f5f5f7;
+      --color-bg-hover: #e8e8ed;
+      --color-border: #ddd;
+      --color-border-light: #f0f0f0;
+      --color-accent: #007aff;
+      --color-accent-hover: #005ec4;
+      --color-green: #34c759;
+      --color-orange: #ff9f0a;
+      --color-error: #c00;
+      --color-highlight: #fef3cd;
+      --color-btn-secondary-bg: #f5f5f7;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-      display: flex; height: 100vh; color: #333; background: #fff;
+      display: flex; height: 100vh; color: var(--color-text); background: var(--color-bg);
     }
     .sidebar {
-      width: 200px; background: #f5f5f7; border-right: 1px solid #ddd;
+      width: 200px; background: var(--color-bg-sidebar); border-right: 1px solid var(--color-border);
       padding: 20px; flex-shrink: 0;
     }
     .sidebar h2 {
       font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
-      color: #888; margin-bottom: 12px;
+      color: var(--color-text-muted); margin-bottom: 12px;
     }
     .sidebar a {
       display: block; padding: 8px 12px; border-radius: 6px;
-      text-decoration: none; color: #333; margin-bottom: 4px; font-size: 14px;
+      text-decoration: none; color: var(--color-text); margin-bottom: 4px; font-size: 14px;
     }
-    .sidebar a:hover { background: #e8e8ed; }
-    .sidebar a.active { background: #007aff; color: #fff; }
+    .sidebar a:hover { background: var(--color-bg-hover); }
+    .sidebar a.active { background: var(--color-accent); color: #fff; }
     .content { flex: 1; overflow-y: auto; padding: 24px; }
     .tag-list { list-style: none; }
-    .tag-list li { border-bottom: 1px solid #f0f0f0; }
+    .tag-list li { border-bottom: 1px solid var(--color-border-light); }
     .tag-list li a {
       display: flex; align-items: center; gap: 8px;
-      padding: 10px 12px; text-decoration: none; color: #333; font-size: 14px;
+      padding: 10px 12px; text-decoration: none; color: var(--color-text); font-size: 14px;
     }
-    .tag-list li a:hover { background: #f5f5f7; }
+    .tag-list li a:hover { background: var(--color-bg-sidebar); }
     .dot {
       width: 8px; height: 8px; border-radius: 50%;
-      background: #34c759; flex-shrink: 0;
+      background: var(--color-green); flex-shrink: 0;
     }
     .dot.empty { background: transparent; }
-    .dot.pending { background: #ff9f0a; animation: pulse 1.2s ease-in-out infinite; }
+    .dot.pending { background: var(--color-orange); animation: pulse 1.2s ease-in-out infinite; }
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .tag-date { color: #888; margin-left: auto; font-size: 12px; }
-    .meta { color: #666; font-size: 13px; margin-bottom: 16px; line-height: 1.6; }
+    .tag-date { color: var(--color-text-muted); margin-left: auto; font-size: 12px; }
+    .meta { color: var(--color-text-secondary); font-size: 13px; margin-bottom: 16px; line-height: 1.6; }
     .notes { max-width: 720px; line-height: 1.7; font-size: 14px; }
     .notes ul { padding-left: 20px; margin: 8px 0; }
     .notes li { margin-bottom: 6px; }
     .btn {
-      display: inline-block; padding: 8px 18px; background: #007aff;
+      display: inline-block; padding: 8px 18px; background: var(--color-accent);
       color: #fff; border: none; border-radius: 6px; cursor: pointer;
       font-size: 13px; text-decoration: none;
     }
-    .btn:hover { background: #005ec4; }
-    .btn.secondary { background: #f5f5f7; color: #333; border: 1px solid #ddd; }
-    .btn.secondary:hover { background: #e8e8ed; }
-    .loading { display: none; align-items: center; gap: 10px; font-size: 13px; color: #666; }
+    .btn:hover { background: var(--color-accent-hover); }
+    .btn.secondary { background: var(--color-btn-secondary-bg); color: var(--color-text); border: 1px solid var(--color-border); }
+    .btn.secondary:hover { background: var(--color-bg-hover); }
+    .loading { display: none; align-items: center; gap: 10px; font-size: 13px; color: var(--color-text-secondary); }
     .loading.active { display: flex; }
     .spinner {
-      width: 16px; height: 16px; border: 2px solid #ddd;
-      border-top-color: #007aff; border-radius: 50%;
+      width: 16px; height: 16px; border: 2px solid var(--color-border);
+      border-top-color: var(--color-accent); border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     h1 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-    .empty-state { color: #888; font-size: 14px; margin-top: 40px; }
+    .empty-state { color: var(--color-text-muted); font-size: 14px; margin-top: 40px; }
+    .search-box {
+      width: 100%; padding: 6px 10px; border: 1px solid var(--color-border); border-radius: 6px;
+      font-size: 13px; margin-bottom: 16px; outline: none;
+    }
+    .search-box:focus { border-color: var(--color-accent); }
+    .search-result { border-bottom: 1px solid var(--color-border-light); padding: 10px 0; }
+    .search-result a { text-decoration: none; color: var(--color-accent); font-size: 14px; }
+    .search-result .snippet { color: var(--color-text-secondary); font-size: 12px; margin-top: 4px; }
+    .search-result .snippet mark { background: var(--color-highlight); border-radius: 2px; }
+    .search-result .tag-channel { color: var(--color-text-muted); font-size: 12px; }
 """
 
 _SIDEBAR = """
   <div class="sidebar">
+    <form action="/search" method="get">
+      <input id="search-input" class="search-box" type="text" name="q" placeholder="Search notes..." value="{{ query|default('') }}" autofocus>
+    </form>
+    <script>var _s=document.getElementById('search-input');if(_s&&_s.value)requestAnimationFrame(function(){_s.selectionStart=_s.selectionEnd=_s.value.length})</script>
     <h2>Channels</h2>
     {% for ch in channels %}
     <a href="/channel/{{ ch }}" class="{{ 'active' if ch == active_channel else '' }}">{{ ch }}</a>
@@ -335,7 +389,7 @@ _TPL_TAG = _jinja.from_string(
           '<div style="margin-top:16px"><button class="btn secondary" onclick="regenerateNotes()">Regenerate</button></div>';
       } catch (e) {
         document.getElementById('notes-area').innerHTML =
-          '<p style="color:#c00">Error: ' + e.message + '</p>' +
+          '<p style="color:var(--color-error)">Error: ' + e.message + '</p>' +
           '<button class="btn" style="margin-top:8px" onclick="generateNotes()">Retry</button>';
       }
       document.getElementById('loading').classList.remove('active');
@@ -367,6 +421,34 @@ _TPL_TAG = _jinja.from_string(
 )
 
 
+_TPL_SEARCH = _jinja.from_string(
+    '<!DOCTYPE html><html><head><meta charset="utf-8">'
+    '<title>Search — Sparkle Release Notes</title>'
+    '<style>' + _STYLE + '</style></head><body>'
+    + _SIDEBAR +
+    """
+  <div class="content">
+    <h1>Search: {{ query }}</h1>
+    {% if results %}
+    <p style="color:#888; font-size:13px; margin-bottom:16px;">{{ results|length }} result{{ 's' if results|length != 1 else '' }}</p>
+    {% for ch, tag, date, snippet in results %}
+    <div class="search-result">
+      <a href="/channel/{{ ch }}/tag/{{ tag }}">{{ tag }}</a>
+      <span class="tag-channel">{{ ch }}</span>
+      <span class="tag-date" style="margin-left:8px;">{{ date }}</span>
+      {% if snippet %}
+      <div class="snippet">{{ snippet | safe }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="empty-state">No results found.</p>
+    {% endif %}
+  </div>
+</body></html>"""
+)
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -374,6 +456,38 @@ _TPL_TAG = _jinja.from_string(
 @app.route('/')
 def index():
     return redirect(url_for('channel', channel_name=CHANNELS[0]))
+
+
+@app.route('/search')
+def search():
+    query = request.args.get('q', '').strip()
+    if not query:
+        return redirect(url_for('index'))
+    results = search_notes(query)
+    # Highlight matching text in snippets
+    from markupsafe import escape as html_escape
+    highlighted = []
+    for ch, tag_name, date, snippet in results:
+        if snippet:
+            # Strip markdown formatting, then HTML-escape, then highlight
+            clean = re.sub(r'\*\*(.+?)\*\*', r'\1', snippet)
+            clean = clean.lstrip('- ')
+            safe = str(html_escape(clean))
+            safe = re.sub(
+                re.escape(str(html_escape(query))),
+                lambda m: f'<mark>{m.group()}</mark>',
+                safe,
+                flags=re.IGNORECASE,
+            )
+            highlighted.append((ch, tag_name, date, safe))
+        else:
+            highlighted.append((ch, tag_name, date, None))
+    return _TPL_SEARCH.render(
+        channels=CHANNELS,
+        active_channel=None,
+        query=query,
+        results=highlighted,
+    )
 
 
 @app.route('/channel/<channel_name>')
