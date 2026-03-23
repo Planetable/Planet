@@ -260,6 +260,13 @@ class PlanetAPIController: NSObject, ObservableObject {
         builder.delete("v0", "planets", "my", "**") { req async throws -> Response in
             return try await self.routeDeletePlanetArticle(fromRequest: req)
         }
+
+        //MARK: GET /v0/search
+        //MARK: Search My Planets and articles -
+        /// Return APISearchResponse with matching planets and articles
+        builder.get("v0", "search") { req async throws -> Response in
+            return try await self.routeSearch(fromRequest: req)
+        }
     }
 
     private func configure(_ app: Application) throws {
@@ -709,6 +716,51 @@ class PlanetAPIController: NSObject, ObservableObject {
             _ = try draft.saveToArticle()
         }
         return try self.createResponse(from: article, status: .accepted)
+    }
+
+    private func routeSearch(fromRequest req: Request) async throws -> Response {
+        guard let query = req.query[String.self, at: "q"],
+              !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw Abort(.badRequest, reason: "Missing or empty search query. Use ?q=<term>.")
+        }
+        let searchText = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let matchingPlanets: [APISearchResultPlanet] = await MainActor.run {
+            PlanetStore.shared.myPlanets
+                .filter { planet in
+                    planet.name.range(of: searchText, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+                    || planet.about.range(of: searchText, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+                }
+                .map { planet in
+                    APISearchResultPlanet(
+                        id: planet.id,
+                        name: planet.name,
+                        about: planet.about,
+                        created: planet.created,
+                        updated: planet.updated
+                    )
+                }
+        }
+
+        let allResults = await PlanetStore.shared.searchAllArticles(text: searchText)
+        let matchingArticles: [APISearchResultArticle] = allResults
+            .filter { $0.planetKind == .my }
+            .map { result in
+                APISearchResultArticle(
+                    articleID: result.articleID,
+                    articleCreated: result.articleCreated,
+                    title: result.title,
+                    preview: result.preview,
+                    planetID: result.planetID,
+                    planetName: result.planetName
+                )
+            }
+
+        let response = APISearchResponse(
+            planets: matchingPlanets,
+            articles: matchingArticles
+        )
+        return try self.createResponse(from: response, status: .ok)
     }
 
     private func routeDeletePlanetArticle(fromRequest req: Request) async throws -> Response {

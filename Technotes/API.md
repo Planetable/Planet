@@ -231,3 +231,36 @@ Returns:
     ...
 }
 ```
+
+
+### Search My Planets and articles: ```GET /v0/search?q=<term>```
+
+Searches across My Planets (by name and about) and their articles (by title, slug, tags, attachments, and content). Case-insensitive and diacritics-insensitive.
+
+```
+curl -X GET http://localhost:8086/v0/search?q=hello
+```
+Returns:
+```
+{
+    "planets": [
+        {
+            "id": "12345678-312A-466D-979A-9BEC7D0F450A",
+            "name": "Hello World Blog",
+            "about": "Say hi to planet",
+            "created": "2024-01-15T10:30:00Z",
+            "updated": "2024-06-20T14:22:00Z"
+        }
+    ],
+    "articles": [
+        {
+            "articleID": "12345678-1234-466D-979A-9BEC7D0F450A",
+            "articleCreated": "2024-06-19T09:15:00Z",
+            "title": "Hello from Planet",
+            "preview": "this is a hello world post about...",
+            "planetID": "12345678-312A-466D-979A-9BEC7D0F450A",
+            "planetName": "Hello World Blog"
+        }
+    ]
+}
+```

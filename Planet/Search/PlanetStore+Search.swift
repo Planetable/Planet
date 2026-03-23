@@ -72,16 +72,30 @@ struct SearchArticleSnapshot: Sendable {
             return nil
         }
 
-        let start = normalizedText.index(
+        var start = normalizedText.index(
             match.lowerBound,
             offsetBy: -searchPreviewLeadingContext,
             limitedBy: normalizedText.startIndex
         ) ?? normalizedText.startIndex
-        let end = normalizedText.index(
+        var end = normalizedText.index(
             match.upperBound,
             offsetBy: searchPreviewTrailingContext,
             limitedBy: normalizedText.endIndex
         ) ?? normalizedText.endIndex
+
+        // Snap to word boundaries to avoid cutting words in half
+        if start > normalizedText.startIndex,
+           normalizedText[normalizedText.index(before: start)] != " " {
+            if let nextSpace = normalizedText[start...].firstIndex(of: " ") {
+                start = normalizedText.index(after: nextSpace)
+            }
+        }
+        if end < normalizedText.endIndex,
+           normalizedText[end] != " " {
+            if let prevSpace = normalizedText[start..<end].lastIndex(of: " ") {
+                end = prevSpace
+            }
+        }
 
         var snippet = String(normalizedText[start..<end])
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -101,7 +115,13 @@ struct SearchArticleSnapshot: Sendable {
             return normalizedText
         }
 
-        let end = normalizedText.index(normalizedText.startIndex, offsetBy: maxLength)
+        var end = normalizedText.index(normalizedText.startIndex, offsetBy: maxLength)
+        // Snap to word boundary to avoid cutting words in half
+        if normalizedText[end] != " " {
+            if let prevSpace = normalizedText[..<end].lastIndex(of: " ") {
+                end = prevSpace
+            }
+        }
         return String(normalizedText[..<end]).trimmingCharacters(in: .whitespacesAndNewlines) + "…"
     }
 
