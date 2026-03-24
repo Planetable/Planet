@@ -399,9 +399,6 @@ extension PlanetStore {
         let snapshots = cachedSearchSnapshots
 
         embeddingRebuildTask?.cancel()
-        embeddingRebuildTask = Task.detached(priority: .utility) {
-            SearchEmbedding.shared.rebuildEmbeddings(snapshots: snapshots)
-        }
 
         pendingIndexUpdates += 1
         SearchDatabase.writeQueue.async {
@@ -412,6 +409,13 @@ extension PlanetStore {
             Task { @MainActor in
                 PlanetStore.shared.pendingIndexUpdates -= 1
                 PlanetStore.shared.searchIndexBuiltOnce = true
+                // Start embedding rebuild after the index is fully populated
+                // so the EXISTS guard in each vector INSERT always finds the
+                // article row instead of silently dropping the embedding.
+                PlanetStore.shared.embeddingRebuildTask?.cancel()
+                PlanetStore.shared.embeddingRebuildTask = Task.detached(priority: .utility) {
+                    SearchEmbedding.shared.rebuildEmbeddings(snapshots: snapshots)
+                }
             }
         }
     }

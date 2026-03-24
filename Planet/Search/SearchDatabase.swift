@@ -116,8 +116,11 @@ final class SearchDatabase: Sendable {
     static let writeQueue = DispatchQueue(label: "xyz.planetable.SearchMutations", qos: .utility)
 
     /// Shared hash function for content-change detection.
-    static func contentHash(title: String, content: String) -> String {
-        let combined = title + "\n" + content
+    static func contentHash(title: String, content: String, tags: String = "", slug: String = "") -> String {
+        var combined = title + "\n" + content
+        if !tags.isEmpty || !slug.isEmpty {
+            combined += "\n" + tags + "\n" + slug
+        }
         var hash: UInt64 = 5381
         for byte in combined.utf8 {
             let b: UInt64 = numericCast(byte)

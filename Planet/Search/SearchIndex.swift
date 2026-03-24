@@ -41,7 +41,13 @@ final class SearchIndex: Sendable {
 
     /// Insert or update a snapshot within an existing transaction.
     private static func upsertInTransaction(_ db: Database, snapshot: SearchArticleSnapshot) throws {
-        let contentHash = SearchDatabase.contentHash(title: snapshot.title, content: snapshot.content)
+        let tags = snapshot.tags.joined(separator: ",")
+        let contentHash = SearchDatabase.contentHash(
+            title: snapshot.title,
+            content: snapshot.content,
+            tags: tags,
+            slug: snapshot.slug ?? ""
+        )
 
         let existingHash = try String.fetchOne(
             db,
@@ -53,7 +59,6 @@ final class SearchIndex: Sendable {
             return
         }
 
-        let tags = snapshot.tags.joined(separator: ",")
         let attachments = snapshot.attachments.joined(separator: ",")
         let planetKind: Int = snapshot.planetKind == .my ? 0 : 1
 
