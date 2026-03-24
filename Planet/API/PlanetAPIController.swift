@@ -742,19 +742,25 @@ class PlanetAPIController: NSObject, ObservableObject {
                 }
         }
 
+        let searchLimit = req.query[Int.self, at: "limit"] ?? 20
+
         let allResults = await PlanetStore.shared.searchAllArticles(text: searchText)
-        let matchingArticles: [APISearchResultArticle] = allResults
-            .filter { $0.planetKind == .my }
-            .map { result in
-                APISearchResultArticle(
-                    articleID: result.articleID,
-                    articleCreated: result.articleCreated,
-                    title: result.title,
-                    preview: result.preview,
-                    planetID: result.planetID,
-                    planetName: result.planetName
-                )
-            }
+        let matchingArticles: [APISearchResultArticle] = Array(
+            allResults
+                .filter { $0.planetKind == .my }
+                .prefix(max(1, min(200, searchLimit)))
+                .map { result in
+                    APISearchResultArticle(
+                        articleID: result.articleID,
+                        articleCreated: result.articleCreated,
+                        title: result.title,
+                        preview: result.preview,
+                        planetID: result.planetID,
+                        planetName: result.planetName,
+                        relevanceScore: result.relevanceScore
+                    )
+                }
+        )
 
         let response = APISearchResponse(
             planets: matchingPlanets,

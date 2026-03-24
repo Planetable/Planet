@@ -825,6 +825,8 @@ struct ArticleAIChatView: View {
             return "Applying planet edits"
         case "shell":
             return "Running shell command"
+        case "search_articles":
+            return "Searching articles"
         default:
             return "Running \(toolName)"
         }
@@ -901,6 +903,16 @@ struct ArticleAIChatView: View {
             if let timeout = intValue(from: arguments["timeout_seconds"]) {
                 parts.append("Timeout: \(timeout)s.")
             }
+        case "search_articles":
+            if let query = stringValue(from: arguments["query"]) {
+                parts.append("Query: \(truncateInline(query, maxLength: 96)).")
+            }
+            if let limit = intValue(from: arguments["limit"]) {
+                parts.append("Limit: \(limit).")
+            }
+            if let planetID = stringValue(from: arguments["planet_id"]) {
+                parts.append("Planet: \(shortIdentifier(planetID)).")
+            }
         default:
             let keys = Array(arguments.keys).sorted()
             if !keys.isEmpty {
@@ -968,6 +980,12 @@ struct ArticleAIChatView: View {
                 return "Shell finished with output."
             }
             return "Shell finished cleanly."
+        case "search_articles":
+            let total = intValue(from: payload["total_matches"]) ?? 0
+            if let results = payload["results"] as? [[String: Any]] {
+                return "Found \(total) match(es), returning \(results.count)."
+            }
+            return "Search completed (\(total) matches)."
         default:
             return "Tool response received."
         }
@@ -1837,6 +1855,31 @@ struct ArticleAIChatView: View {
                     ],
                 ],
             ],
+            [
+                "type": "function",
+                "function": [
+                    "name": "search_articles",
+                    "description": "Search across all articles by keyword or topic. Returns matching articles with titles, previews, relevance scores, and article IDs that can be passed to read_article.",
+                    "parameters": [
+                        "type": "object",
+                        "properties": [
+                            "query": [
+                                "type": "string",
+                                "description": "Search query. Supports phrases in quotes and -negation.",
+                            ],
+                            "limit": [
+                                "type": "integer",
+                                "description": "Max results to return. Default 10, max 50.",
+                            ],
+                            "planet_id": [
+                                "type": "string",
+                                "description": "Optional. Restrict search to a specific planet by UUID.",
+                            ],
+                        ],
+                        "required": ["query"],
+                    ],
+                ],
+            ],
         ]
     }
 
@@ -1853,6 +1896,8 @@ struct ArticleAIChatView: View {
             return runWritePlanetTool(arguments: arguments)
         case "shell":
             return runShellTool(arguments: arguments)
+        case "search_articles":
+            return await runSearchArticlesTool(arguments: arguments)
         default:
             debugLog("unknown tool requested: \(toolCall.name)")
             return toolResult([
@@ -2170,6 +2215,51 @@ struct ArticleAIChatView: View {
                 "error": "Shell execution failed: \(error.localizedDescription)",
             ])
         }
+    }
+
+    private func runSearchArticlesTool(arguments: [String: Any]) async -> String {
+        guard let query = stringValue(from: arguments["query"]) else {
+            return toolResult([
+                "ok": false,
+                "error": "Missing required `query`.",
+            ])
+        }
+
+        let limit = min(50, max(1, intValue(from: arguments["limit"]) ?? 10))
+        let planetIDFilter = stringValue(from: arguments["planet_id"])
+        debugLog("runSearchArticlesTool query=\(query), limit=\(limit), planet_id=\(planetIDFilter ?? "nil")")
+
+        let allResults = await PlanetStore.shared.searchAllArticles(text: query)
+
+        var filtered = allResults
+        if let planetIDString = planetIDFilter,
+           let planetUUID = UUID(uuidString: planetIDString) {
+            filtered = filtered.filter { $0.planetID == planetUUID }
+        }
+
+        let limited = Array(filtered.prefix(limit))
+
+        let resultDicts: [[String: Any]] = limited.map { result in
+            var dict: [String: Any] = [
+                "article_id": result.articleID.uuidString,
+                "title": result.title,
+                "preview": result.preview,
+                "planet_name": result.planetName,
+                "planet_id": result.planetID.uuidString,
+            ]
+            if let score = result.relevanceScore {
+                dict["relevance_score"] = round(score * 1000) / 1000
+            }
+            return dict
+        }
+
+        debugLog("runSearchArticlesTool found \(limited.count) results")
+        return toolResult([
+            "ok": true,
+            "query": query,
+            "total_matches": filtered.count,
+            "results": resultDicts,
+        ])
     }
 
     @MainActor

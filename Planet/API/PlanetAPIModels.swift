@@ -38,6 +38,7 @@ struct APISearchResultArticle: Content {
     let preview: String
     let planetID: UUID
     let planetName: String
+    let relevanceScore: Double?
 }
 
 

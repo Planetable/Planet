@@ -244,41 +244,13 @@ private func buildSearchSnapshots(
 
     for planet in myPlanets {
         for article in planet.articles {
-            snapshots.append(
-                SearchArticleSnapshot(
-                    articleID: article.id,
-                    articleCreated: article.created,
-                    title: article.title,
-                    content: article.content,
-                    previewText: article.summary,
-                    slug: article.slug,
-                    tags: article.tags.map { Array($0.keys) } ?? [],
-                    attachments: article.attachments ?? [],
-                    planetID: planet.id,
-                    planetName: planet.name,
-                    planetKind: .my
-                )
-            )
+            snapshots.append(SearchArticleSnapshot(article: article))
         }
     }
 
     for planet in followingPlanets {
         for article in planet.articles {
-            snapshots.append(
-                SearchArticleSnapshot(
-                    articleID: article.id,
-                    articleCreated: article.created,
-                    title: article.title,
-                    content: article.content,
-                    previewText: article.summary,
-                    slug: nil,
-                    tags: [],
-                    attachments: article.attachments ?? [],
-                    planetID: planet.id,
-                    planetName: planet.name,
-                    planetKind: .following
-                )
-            )
+            snapshots.append(SearchArticleSnapshot(article: article))
         }
     }
 
@@ -299,8 +271,19 @@ extension PlanetStore {
         guard isSharedReady else {
             return
         }
+        let snapshot = SearchArticleSnapshot(article: article)
+        Task.detached(priority: .utility) {
+            SearchEmbedding.shared.embedArticle(snapshot: snapshot)
+        }
         Task { @MainActor in
             PlanetStore.shared.upsertSearchSnapshot(for: article)
+            PlanetStore.shared.pendingIndexUpdates += 1
+            SearchDatabase.writeQueue.async {
+                SearchIndex.shared.upsert(snapshot: snapshot)
+                Task { @MainActor in
+                    PlanetStore.shared.pendingIndexUpdates -= 1
+                }
+            }
         }
     }
 
@@ -308,8 +291,19 @@ extension PlanetStore {
         guard isSharedReady else {
             return
         }
+        let snapshot = SearchArticleSnapshot(article: article)
+        Task.detached(priority: .utility) {
+            SearchEmbedding.shared.embedArticle(snapshot: snapshot)
+        }
         Task { @MainActor in
             PlanetStore.shared.upsertSearchSnapshot(for: article)
+            PlanetStore.shared.pendingIndexUpdates += 1
+            SearchDatabase.writeQueue.async {
+                SearchIndex.shared.upsert(snapshot: snapshot)
+                Task { @MainActor in
+                    PlanetStore.shared.pendingIndexUpdates -= 1
+                }
+            }
         }
     }
 
@@ -317,8 +311,18 @@ extension PlanetStore {
         guard isSharedReady else {
             return
         }
+        Task.detached(priority: .utility) {
+            SearchEmbedding.shared.removeEmbedding(articleID: articleID)
+        }
         Task { @MainActor in
             PlanetStore.shared.removeSearchSnapshot(articleID: articleID)
+            PlanetStore.shared.pendingIndexUpdates += 1
+            SearchDatabase.writeQueue.async {
+                SearchIndex.shared.remove(articleID: articleID)
+                Task { @MainActor in
+                    PlanetStore.shared.pendingIndexUpdates -= 1
+                }
+            }
         }
     }
 
@@ -333,6 +337,43 @@ extension PlanetStore {
 
         if cachedSearchSnapshots.isEmpty {
             rebuildSearchSnapshots()
+        }
+
+        // Fall back to in-memory search only on cold start (index never built).
+        // Once built, use the (slightly stale) index so queries stay ranked and fast.
+        if pendingIndexUpdates > 0, !searchIndexBuiltOnce {
+            return await searchSnapshots(cachedSearchSnapshots, matching: query)
+        }
+
+        // withTaskGroup child tasks inherit cancellation but run off MainActor,
+        // so typeahead cancellation propagates and search runs in background.
+        let (bm25Results, vectorResults) = await withTaskGroup(
+            of: (bm25: [SearchResult], vector: [SearchResult]).self,
+            returning: ([SearchResult], [SearchResult]).self
+        ) { group in
+            group.addTask { (SearchIndex.shared.search(query: query), []) }
+            group.addTask { ([], SearchEmbedding.shared.search(query: query)) }
+
+            var bm25: [SearchResult] = []
+            var vector: [SearchResult] = []
+            for await result in group {
+                if Task.isCancelled {
+                    group.cancelAll()
+                    return ([], [])
+                }
+                if !result.bm25.isEmpty { bm25 = result.bm25 }
+                if !result.vector.isEmpty { vector = result.vector }
+            }
+            return (bm25, vector)
+        }
+
+        guard !Task.isCancelled else { return [] }
+
+        if !bm25Results.isEmpty || !vectorResults.isEmpty {
+            return HybridSearch.fuse(
+                bm25Results: bm25Results,
+                vectorResults: vectorResults
+            )
         }
 
         return await searchSnapshots(cachedSearchSnapshots, matching: query)
@@ -355,6 +396,24 @@ extension PlanetStore {
             myPlanets: myPlanets,
             followingPlanets: followingPlanets
         )
+        let snapshots = cachedSearchSnapshots
+
+        embeddingRebuildTask?.cancel()
+        embeddingRebuildTask = Task.detached(priority: .utility) {
+            SearchEmbedding.shared.rebuildEmbeddings(snapshots: snapshots)
+        }
+
+        pendingIndexUpdates += 1
+        SearchDatabase.writeQueue.async {
+            SearchIndex.shared.rebuild(snapshots: snapshots)
+            // Clean up orphaned vectors now that the articles table is fully
+            // populated — safe because we're on the serial writeQueue.
+            SearchEmbedding.shared.cleanupStaleEmbeddings()
+            Task { @MainActor in
+                PlanetStore.shared.pendingIndexUpdates -= 1
+                PlanetStore.shared.searchIndexBuiltOnce = true
+            }
+        }
     }
 
     func upsertSearchSnapshot(for article: MyArticleModel) {

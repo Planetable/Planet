@@ -1,5 +1,5 @@
 //
-//  PublishLogView.swift
+//  AppLogView.swift
 //  Planet
 //
 
@@ -7,13 +7,16 @@ import SwiftUI
 import AppKit
 
 
-enum PublishLogSource: String, CaseIterable {
+enum AppLogSource: String, CaseIterable {
+    case planet = "Planet"
     case ipfs = "IPFS"
     case sshRsync = "SSH Rsync"
     case cloudflarePages = "Cloudflare Pages"
 
     var logPath: String {
         switch self {
+        case .planet:
+            return PlanetLogger.logPath
         case .ipfs:
             return IPFSLogger.logPath
         case .sshRsync:
@@ -25,6 +28,8 @@ enum PublishLogSource: String, CaseIterable {
 
     func readAll() -> String {
         switch self {
+        case .planet:
+            return PlanetLogger.readAll()
         case .ipfs:
             return IPFSLogger.readAll()
         case .sshRsync:
@@ -36,6 +41,8 @@ enum PublishLogSource: String, CaseIterable {
 
     func clear() {
         switch self {
+        case .planet:
+            PlanetLogger.clear()
         case .ipfs:
             IPFSLogger.clear()
         case .sshRsync:
@@ -47,14 +54,14 @@ enum PublishLogSource: String, CaseIterable {
 }
 
 
-class PublishLogWindowManager: NSObject, NSWindowDelegate {
-    static let shared = PublishLogWindowManager()
+class AppLogWindowManager: NSObject, NSWindowDelegate {
+    static let shared = AppLogWindowManager()
 
     private var window: NSWindow?
 
-    func open(tab: PublishLogSource? = nil) {
+    func open(tab: AppLogSource? = nil) {
         if let tab {
-            PublishLogViewModel.shared.selectedSource = tab
+            AppLogViewModel.shared.selectedSource = tab
         }
         if let window {
             reload()
@@ -62,7 +69,7 @@ class PublishLogWindowManager: NSObject, NSWindowDelegate {
             NSApp.activate(ignoringOtherApps: true)
             return
         }
-        let viewModel = PublishLogViewModel.shared
+        let viewModel = AppLogViewModel.shared
         viewModel.reload()
         let w = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 560, height: 400),
@@ -73,7 +80,7 @@ class PublishLogWindowManager: NSObject, NSWindowDelegate {
         w.isReleasedWhenClosed = false
         w.title = "Log"
         w.minSize = NSSize(width: 400, height: 240)
-        w.contentView = NSHostingView(rootView: PublishLogView(viewModel: viewModel))
+        w.contentView = NSHostingView(rootView: AppLogView(viewModel: viewModel))
         w.center()
         w.setFrameAutosaveName("PublishLogWindow")
         w.delegate = self
@@ -83,7 +90,7 @@ class PublishLogWindowManager: NSObject, NSWindowDelegate {
     }
 
     func reload() {
-        PublishLogViewModel.shared.reload()
+        AppLogViewModel.shared.reload()
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -92,16 +99,16 @@ class PublishLogWindowManager: NSObject, NSWindowDelegate {
 }
 
 
-class PublishLogViewModel: ObservableObject {
-    static let shared = PublishLogViewModel()
-    private static let selectedSourceDefaultsKey = "PublishLogView.SelectedSource"
+class AppLogViewModel: ObservableObject {
+    static let shared = AppLogViewModel()
+    private static let selectedSourceDefaultsKey = "AppLogView.SelectedSource"
     private static let maxVisibleBytes = 256 * 1024
     private static let reloadDebounceInterval: DispatchTimeInterval = .milliseconds(100)
     private var logContent: String = ""
     @Published var attributedLogContent: NSAttributedString = NSAttributedString()
     @Published var contentVersion: Int = 0
     @Published var hasSSHKeyError: Bool = false
-    @Published var selectedSource: PublishLogSource = PublishLogViewModel.loadSelectedSource() {
+    @Published var selectedSource: AppLogSource = AppLogViewModel.loadSelectedSource() {
         didSet {
             UserDefaults.standard.set(selectedSource.rawValue, forKey: Self.selectedSourceDefaultsKey)
             reload()
@@ -113,13 +120,13 @@ class PublishLogViewModel: ObservableObject {
     private var selectedFileDescriptor: Int32 = -1
     private var isMonitoring = false
     private var reloadWorkItem: DispatchWorkItem?
-    private let ioQueue = DispatchQueue(label: "xyz.planetable.PublishLogViewModel.io", qos: .utility)
+    private let ioQueue = DispatchQueue(label: "xyz.planetable.AppLogViewModel.io", qos: .utility)
     private static let timestampRegex = try! NSRegularExpression(pattern: "^\\[[^\\]]+\\]", options: [])
 
-    private static func loadSelectedSource() -> PublishLogSource {
+    private static func loadSelectedSource() -> AppLogSource {
         guard
             let rawValue = UserDefaults.standard.string(forKey: selectedSourceDefaultsKey),
-            let source = PublishLogSource(rawValue: rawValue)
+            let source = AppLogSource(rawValue: rawValue)
         else {
             return .sshRsync
         }
@@ -216,7 +223,7 @@ class PublishLogViewModel: ObservableObject {
         }
     }
 
-    private func loadContent(for source: PublishLogSource) {
+    private func loadContent(for source: AppLogSource) {
         let logPath = source.logPath
         let checkSSHKeyErrors = (source == .sshRsync)
         ioQueue.async { [weak self] in
@@ -308,7 +315,7 @@ class PublishLogViewModel: ObservableObject {
         return NSAttributedString(attributedString: result)
     }
 
-    private func ensureLogFileExists(for source: PublishLogSource) {
+    private func ensureLogFileExists(for source: AppLogSource) {
         let logPath = source.logPath
         let logURL = URL(fileURLWithPath: logPath, isDirectory: false)
         let directoryURL = logURL.deletingLastPathComponent()
@@ -321,8 +328,8 @@ class PublishLogViewModel: ObservableObject {
 }
 
 
-private struct PublishLogTextView: NSViewRepresentable {
-    @ObservedObject var viewModel: PublishLogViewModel
+private struct AppLogTextView: NSViewRepresentable {
+    @ObservedObject var viewModel: AppLogViewModel
 
     class Coordinator {
         var lastVersion: Int = -1
@@ -412,13 +419,13 @@ private struct SSHKeyWarningRow: View {
 }
 
 
-struct PublishLogView: View {
-    @ObservedObject fileprivate var viewModel: PublishLogViewModel
+struct AppLogView: View {
+    @ObservedObject fileprivate var viewModel: AppLogViewModel
 
     var body: some View {
         VStack(spacing: 0) {
             Picker("", selection: $viewModel.selectedSource) {
-                ForEach(PublishLogSource.allCases, id: \.self) { source in
+                ForEach(AppLogSource.allCases, id: \.self) { source in
                     Text(source.rawValue).tag(source)
                 }
             }
@@ -433,7 +440,7 @@ struct PublishLogView: View {
                 SSHKeyWarningRow(hasKeyError: viewModel.hasSSHKeyError)
             }
 
-            PublishLogTextView(viewModel: viewModel)
+            AppLogTextView(viewModel: viewModel)
         }
         .frame(minWidth: 400, minHeight: 240)
             .onAppear { viewModel.startMonitoring() }

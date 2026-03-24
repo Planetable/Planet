@@ -195,7 +195,7 @@ class KeyboardShortcutHelper: ObservableObject {
                 apiConsoleMenus()
 
                 Button {
-                    PublishLogWindowManager.shared.open()
+                    AppLogWindowManager.shared.open()
                 } label: {
                     Text("Log")
                 }
