@@ -43,6 +43,13 @@ final class SearchEmbedding: Sendable {
     func embedArticle(snapshot: SearchArticleSnapshot) {
         guard let db else { return }
         let articleID = snapshot.articleID.uuidString
+        let tags = snapshot.tags.joined(separator: ",")
+        let articleContentHash = SearchDatabase.contentHash(
+            title: snapshot.title,
+            content: snapshot.content,
+            tags: tags,
+            slug: snapshot.slug ?? ""
+        )
         let contentHash = SearchDatabase.contentHash(title: snapshot.title, content: snapshot.content)
 
         do {
@@ -62,20 +69,24 @@ final class SearchEmbedding: Sendable {
             }
 
             let blob = vectorToBlob(vector)
-            // Per-article saves always carry the latest content, so the upsert is
-            // unconditional.  The EXISTS guard prevents writing an orphaned vector
-            // if the article was concurrently removed from the search index.
+            // The EXISTS guard prevents writing an orphaned vector if the article
+            // was concurrently removed, and the content_hash check prevents a stale
+            // embedding from overwriting a fresher one when multiple embedArticle
+            // calls for the same article execute out of order.
             try db.write { db in
                 try db.execute(
                     sql: """
                         INSERT INTO vectors (article_id, embedding, content_hash)
                         SELECT ?, ?, ?
-                        WHERE EXISTS (SELECT 1 FROM articles WHERE article_id = ?)
+                        WHERE EXISTS (
+                            SELECT 1 FROM articles
+                            WHERE article_id = ? AND content_hash = ?
+                        )
                         ON CONFLICT(article_id) DO UPDATE SET
                             embedding = excluded.embedding,
                             content_hash = excluded.content_hash
                         """,
-                    arguments: [articleID, blob, contentHash, articleID]
+                    arguments: [articleID, blob, contentHash, articleID, articleContentHash]
                 )
             }
         } catch {
