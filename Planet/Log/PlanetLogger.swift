@@ -51,7 +51,12 @@ enum PlanetLogger {
 
     static func clear() {
         queue.async {
-            try? FileManager.default.removeItem(at: logURL)
+            // Truncate instead of deleting so the file inode stays the same
+            // and DispatchSource file monitoring continues to work.
+            if let handle = try? FileHandle(forWritingTo: logURL) {
+                handle.truncateFile(atOffset: 0)
+                handle.closeFile()
+            }
         }
     }
 

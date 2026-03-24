@@ -747,7 +747,6 @@ class PlanetAPIController: NSObject, ObservableObject {
         let allResults = await PlanetStore.shared.searchAllArticles(text: searchText)
         let matchingArticles: [APISearchResultArticle] = Array(
             allResults
-                .filter { $0.planetKind == .my }
                 .prefix(max(1, min(200, searchLimit)))
                 .map { result in
                     APISearchResultArticle(
@@ -757,7 +756,11 @@ class PlanetAPIController: NSObject, ObservableObject {
                         preview: result.preview,
                         planetID: result.planetID,
                         planetName: result.planetName,
-                        relevanceScore: result.relevanceScore
+                        relevanceScore: result.relevanceScore,
+                        bm25Score: result.bm25Score,
+                        vectorScore: result.vectorScore,
+                        source: result.bm25Score != nil && result.vectorScore != nil ? "both"
+                            : result.bm25Score != nil ? "bm25" : result.vectorScore != nil ? "vector" : "fallback"
                     )
                 }
         )

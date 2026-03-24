@@ -39,6 +39,9 @@ struct APISearchResultArticle: Content {
     let planetID: UUID
     let planetName: String
     let relevanceScore: Double?
+    let bm25Score: Double?
+    let vectorScore: Double?
+    let source: String
 }
 
 

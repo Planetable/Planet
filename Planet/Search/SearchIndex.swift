@@ -5,6 +5,7 @@
 
 import Foundation
 import GRDB
+import NaturalLanguage
 import os
 
 final class SearchIndex: Sendable {
@@ -62,6 +63,14 @@ final class SearchIndex: Sendable {
         let attachments = snapshot.attachments.joined(separator: ",")
         let planetKind: Int = snapshot.planetKind == .my ? 0 : 1
 
+        // Check if this is an insert or update so we can sync FTS manually.
+        let existingRowID = try Int64.fetchOne(
+            db,
+            sql: "SELECT rowid FROM articles WHERE article_id = ?",
+            arguments: [snapshot.articleID.uuidString]
+        )
+
+        // Store original text in the articles table (clean for display).
         try db.execute(
             sql: """
                 INSERT INTO articles (article_id, planet_id, planet_name, planet_kind,
@@ -96,6 +105,27 @@ final class SearchIndex: Sendable {
                 contentHash,
             ]
         )
+
+        // Sync FTS with NLTokenizer-segmented content for CJK matching.
+        guard let rowID = try Int64.fetchOne(
+            db,
+            sql: "SELECT rowid FROM articles WHERE article_id = ?",
+            arguments: [snapshot.articleID.uuidString]
+        ) else { return }
+
+        let ftsTitle = SearchDatabase.tokenizeForFTS(snapshot.title)
+        let ftsContent = SearchDatabase.tokenizeForFTS(snapshot.content)
+
+        if existingRowID != nil {
+            try db.execute(
+                sql: "DELETE FROM articles_fts WHERE rowid = ?",
+                arguments: [rowID]
+            )
+        }
+        try db.execute(
+            sql: "INSERT INTO articles_fts(rowid, title, content, tags, slug) VALUES (?, ?, ?, ?, ?)",
+            arguments: [rowID, ftsTitle, ftsContent, tags, snapshot.slug]
+        )
     }
 
     @discardableResult
@@ -103,6 +133,13 @@ final class SearchIndex: Sendable {
         guard let db else { return false }
         do {
             try db.write { db in
+                if let rowID = try Int64.fetchOne(
+                    db,
+                    sql: "SELECT rowid FROM articles WHERE article_id = ?",
+                    arguments: [articleID.uuidString]
+                ) {
+                    try db.execute(sql: "DELETE FROM articles_fts WHERE rowid = ?", arguments: [rowID])
+                }
                 try db.execute(
                     sql: "DELETE FROM articles WHERE article_id = ?",
                     arguments: [articleID.uuidString]
@@ -149,6 +186,18 @@ final class SearchIndex: Sendable {
                 let staleIDs = existing.filter { !currentIDs.contains($0) }
                 if !staleIDs.isEmpty {
                     let placeholders = staleIDs.map { _ in "?" }.joined(separator: ",")
+                    let staleRowIDs = try Int64.fetchAll(
+                        db,
+                        sql: "SELECT rowid FROM articles WHERE article_id IN (\(placeholders))",
+                        arguments: StatementArguments(staleIDs)
+                    )
+                    if !staleRowIDs.isEmpty {
+                        let ftsPlaceholders = staleRowIDs.map { _ in "?" }.joined(separator: ",")
+                        try db.execute(
+                            sql: "DELETE FROM articles_fts WHERE rowid IN (\(ftsPlaceholders))",
+                            arguments: StatementArguments(staleRowIDs.map { $0 })
+                        )
+                    }
                     try db.execute(
                         sql: "DELETE FROM articles WHERE article_id IN (\(placeholders))",
                         arguments: StatementArguments(staleIDs)
@@ -172,19 +221,23 @@ final class SearchIndex: Sendable {
     func search(query: String, limit: Int = 200) -> [SearchResult] {
         guard let db else { return [] }
         let ftsQuery = sanitizeFTSQuery(query)
+        PlanetLogger.log("BM25: query='\(query)' ftsQuery='\(ftsQuery)'", level: .info)
         guard !ftsQuery.isEmpty else { return [] }
 
         // Try the query as-is. If it fails (e.g. unclosed quotes in passthrough mode),
         // retry with a forcibly sanitized version that strips FTS syntax.
         if let results = executeFTSQuery(db: db, ftsQuery: ftsQuery, rawQuery: query, limit: limit) {
+            PlanetLogger.log("BM25: returned \(results.count) results", level: .info)
             return results
         }
 
         let fallbackQuery = forceSanitize(query)
         guard !fallbackQuery.isEmpty, fallbackQuery != ftsQuery else { return [] }
 
-        logger.info("FTS query failed, retrying with sanitized: \(fallbackQuery)")
-        return executeFTSQuery(db: db, ftsQuery: fallbackQuery, rawQuery: query, limit: limit) ?? []
+        PlanetLogger.log("BM25: retrying with fallback='\(fallbackQuery)'", level: .info)
+        let results = executeFTSQuery(db: db, ftsQuery: fallbackQuery, rawQuery: query, limit: limit) ?? []
+        PlanetLogger.log("BM25: fallback returned \(results.count) results", level: .info)
+        return results
     }
 
     private func executeFTSQuery(
@@ -195,6 +248,14 @@ final class SearchIndex: Sendable {
     ) -> [SearchResult]? {
         do {
             return try db.read { db in
+                // Debug: count how many rows match
+                let matchCount = try Int.fetchOne(
+                    db,
+                    sql: "SELECT count(*) FROM articles_fts WHERE articles_fts MATCH ?",
+                    arguments: [ftsQuery]
+                ) ?? 0
+                PlanetLogger.log("BM25: MATCH '\(ftsQuery)' → \(matchCount) rows", level: .info)
+
                 let rows = try Row.fetchAll(
                     db,
                     sql: """
@@ -223,7 +284,7 @@ final class SearchIndex: Sendable {
                           let planetIDString = row["planet_id"] as? String,
                           let planetID = UUID(uuidString: planetIDString),
                           let planetName = row["planet_name"] as? String,
-                          let planetKindInt = row["planet_kind"] as? Int,
+                          let planetKindRaw = row["planet_kind"] as? Int64,
                           let title = row["title"] as? String,
                           let content = row["content"] as? String,
                           let createdAt = row["created_at"] as? Double,
@@ -232,7 +293,7 @@ final class SearchIndex: Sendable {
                         return nil
                     }
 
-                    let planetKind: PlanetKind = planetKindInt == 0 ? .my : .following
+                    let planetKind: PlanetKind = planetKindRaw == 0 ? .my : .following
                     let created = Date(timeIntervalSinceReferenceDate: createdAt)
                     let preview = row["preview_text"] as? String
                     let snippet = Self.makeSnippet(
@@ -275,6 +336,8 @@ final class SearchIndex: Sendable {
                 parts.append("\"\(cleaned)\"*")
             }
         }
+        // A query with only operators (e.g. "or not") is invalid FTS5.
+        guard parts.contains(where: { !Self.ftsOperators.contains($0) }) else { return "" }
         return parts.joined(separator: " ")
     }
 
@@ -286,30 +349,71 @@ final class SearchIndex: Sendable {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return "" }
 
-        // If the user typed explicit FTS5 syntax, pass through as-is.
+        // If the user typed explicit FTS5 syntax AND there are actual word
+        // characters, pass through as-is. Bare punctuation like `"`, `*`, or `-`
+        // alone is not a valid FTS5 query.
         let hasFTSSyntax = trimmed.contains("\"")
             || trimmed.contains("*")
             || trimmed.hasPrefix("-")
             || trimmed.contains(" -")
 
-        if hasFTSSyntax {
+        let hasWordChars = trimmed.unicodeScalars.contains(where: CharacterSet.alphanumerics.contains)
+
+        if hasFTSSyntax && hasWordChars {
             return trimmed
         }
 
-        // Split into words. Recognize boolean operators case-insensitively
-        // and uppercase them for FTS5. Non-operator words become prefix terms.
-        let words = trimmed.split(whereSeparator: \.isWhitespace)
+        // Pre-tokenize with NLTokenizer so CJK words become separate AND
+        // terms rather than a phrase.  Consecutive single-char CJK tokens
+        // are merged into bigrams because NLTokenizer may segment query text
+        // differently from document text (e.g. query "持币" → [持, 币] but
+        // indexed "持币人数" → [持币人, 数]).  Merging gives "持币"* which
+        // prefix-matches the indexed token "持币人".
+        let nlTokenizer = NLTokenizer(unit: .word)
+        nlTokenizer.string = trimmed
+        var rawTokens: [String] = []
+        nlTokenizer.enumerateTokens(in: trimmed.startIndex..<trimmed.endIndex) { range, _ in
+            rawTokens.append(String(trimmed[range]))
+            return true
+        }
+
+        // Merge consecutive single-char CJK tokens into bigrams.
+        var tokens: [String] = []
+        var singleCharRun: [String] = []
+        func flushRun() {
+            if singleCharRun.count >= 2 {
+                for j in 0..<(singleCharRun.count - 1) {
+                    tokens.append(singleCharRun[j] + singleCharRun[j + 1])
+                }
+            } else if singleCharRun.count == 1 {
+                tokens.append(singleCharRun[0])
+            }
+            singleCharRun.removeAll()
+        }
+        for token in rawTokens {
+            if token.count == 1, token.unicodeScalars.allSatisfy(Self.isCJK) {
+                singleCharRun.append(token)
+            } else {
+                flushRun()
+                tokens.append(token)
+            }
+        }
+        flushRun()
+
         var parts: [String] = []
-        for word in words {
-            let upper = word.uppercased()
+        for token in tokens {
+            let upper = token.uppercased()
             if Self.ftsOperators.contains(upper) {
                 parts.append(upper)
             } else {
-                let cleaned = word.replacingOccurrences(of: "\"", with: "")
+                let cleaned = token.replacingOccurrences(of: "\"", with: "")
                 guard !cleaned.isEmpty else { continue }
                 parts.append("\"\(cleaned)\"*")
             }
         }
+
+        // A query with only operators (e.g. "or not") is invalid FTS5.
+        guard parts.contains(where: { !Self.ftsOperators.contains($0) }) else { return "" }
 
         return parts.joined(separator: " ")
     }
@@ -402,12 +506,13 @@ final class SearchIndex: Sendable {
                 start = normalized.index(after: nextSpace)
             }
         }
-        if end < normalized.endIndex, normalized[end] != " " {
+        if start < end, end < normalized.endIndex, normalized[end] != " " {
             if let prevSpace = normalized[start..<end].lastIndex(of: " ") {
                 end = prevSpace
             }
         }
 
+        if start > end { start = end }
         var snippet = String(normalized[start..<end])
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -432,5 +537,16 @@ final class SearchIndex: Sendable {
             }
         }
         return String(normalized[..<end]).trimmingCharacters(in: .whitespacesAndNewlines) + "…"
+    }
+
+    private static func isCJK(_ scalar: Unicode.Scalar) -> Bool {
+        let v = scalar.value
+        return (0x4E00...0x9FFF).contains(v)
+            || (0x3400...0x4DBF).contains(v)
+            || (0x20000...0x2A6DF).contains(v)
+            || (0x2A700...0x2B73F).contains(v)
+            || (0x2B740...0x2B81F).contains(v)
+            || (0xF900...0xFAFF).contains(v)
+            || (0x2F800...0x2FA1F).contains(v)
     }
 }

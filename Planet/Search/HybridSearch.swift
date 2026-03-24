@@ -28,12 +28,15 @@ enum HybridSearch {
         limit: Int = 200
     ) -> [SearchResult] {
         var scores: [UUID: Double] = [:]
+        var bm25Scores: [UUID: Double] = [:]
+        var vectorScores: [UUID: Double] = [:]
         var bestResult: [UUID: SearchResult] = [:]
 
         // Score BM25 results
         for (rank, result) in bm25Results.enumerated() {
             let score = bm25Weight / (k + Double(rank + 1))
             scores[result.articleID, default: 0] += score
+            bm25Scores[result.articleID] = score
             bestResult[result.articleID] = result
         }
 
@@ -41,6 +44,7 @@ enum HybridSearch {
         for (rank, result) in vectorResults.enumerated() {
             let score = vectorWeight / (k + Double(rank + 1))
             scores[result.articleID, default: 0] += score
+            vectorScores[result.articleID] = score
             // Keep the result with the better preview (prefer BM25's keyword-aware snippet)
             if bestResult[result.articleID] == nil {
                 bestResult[result.articleID] = result
@@ -58,7 +62,9 @@ enum HybridSearch {
                 planetID: result.planetID,
                 planetName: result.planetName,
                 planetKind: result.planetKind,
-                relevanceScore: score
+                relevanceScore: score,
+                bm25Score: bm25Scores[articleID],
+                vectorScore: vectorScores[articleID]
             )
         }
 

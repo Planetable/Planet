@@ -136,7 +136,6 @@ final class MyJSONDirectoryMonitor {
     private var selectedViewRefreshTask: Task<Void, Never>?
     private var pendingArticleRestoreID: UUID?
     private var pendingSidebarScroll = false
-    var searchSnapshotRebuildTask: Task<Void, Never>?
     var cachedSearchSnapshots: [SearchArticleSnapshot] = []
     var pendingIndexUpdates: Int = 0
     var searchIndexBuiltOnce = false
@@ -144,7 +143,6 @@ final class MyJSONDirectoryMonitor {
 
     @Published var myPlanets: [MyPlanetModel] = [] {
         didSet {
-            scheduleSearchSnapshotRebuild()
             updateTotalStarredCount()
             let planets = myPlanets
             Task.detached {
@@ -158,7 +156,6 @@ final class MyJSONDirectoryMonitor {
 
     @Published var followingPlanets: [FollowingPlanetModel] = [] {
         didSet {
-            scheduleSearchSnapshotRebuild()
             updateTotalUnreadCount()
             updateTotalTodayCount()
             updateTotalStarredCount()

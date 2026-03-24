@@ -47,7 +47,10 @@ enum IPFSLogger {
 
     static func clear() {
         queue.async {
-            try? FileManager.default.removeItem(at: logURL)
+            if let handle = try? FileHandle(forWritingTo: logURL) {
+                handle.truncateFile(atOffset: 0)
+                handle.closeFile()
+            }
         }
     }
 }

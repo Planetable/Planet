@@ -85,11 +85,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var podcastCoverArt: NSImage? = nil
 
     @Published var drafts: [DraftModel]! = nil
-    @Published var articles: [MyArticleModel]! = nil {
-        didSet {
-            PlanetStore.requestSearchSnapshotRebuild()
-        }
-    }
+    @Published var articles: [MyArticleModel]! = nil
 
     // Protects the in-memory ops cache from parallel article rebuild tasks.
     private let opsLock = NSLock()

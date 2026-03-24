@@ -35,10 +35,6 @@ final class SearchEmbedding: Sendable {
         if probedLanguages.contains(language) { return nil }
         probedLanguages.insert(language)
         guard let model = NLEmbedding.sentenceEmbedding(for: language) else {
-            logger.info("NLEmbedding sentence model not available for \(language.rawValue)")
-            PlanetLogger.log(
-                "NLEmbedding sentence model not available for \(language.rawValue)", level: .info
-            )
             return nil
         }
         cachedModels[language] = model
@@ -51,6 +47,15 @@ final class SearchEmbedding: Sendable {
 
     // MARK: - Language Detection
 
+    /// Normalize language variants that share the same NLEmbedding model.
+    /// For example, zh-Hant and zh-Hans use the same sentence embedding model,
+    /// so we normalize to zh-Hans to ensure vectors indexed as zh-Hans are
+    /// matched by queries detected as zh-Hant and vice versa.
+    private func normalizeLanguage(_ language: NLLanguage) -> NLLanguage {
+        if language == .traditionalChinese { return .simplifiedChinese }
+        return language
+    }
+
     /// Detect the dominant language of article text. Returns `nil` if confidence
     /// is too low or no sentence embedding model is available for the language.
     private func detectLanguage(title: String, content: String) -> NLLanguage? {
@@ -61,21 +66,28 @@ final class SearchEmbedding: Sendable {
         let hypotheses = recognizer.languageHypotheses(withMaximum: 1)
         let confidence = hypotheses[dominant] ?? 0
         guard confidence >= 0.3 else { return nil }
-        guard sentenceEmbedding(for: dominant) != nil else { return nil }
-        return dominant
+        let normalized = normalizeLanguage(dominant)
+        guard sentenceEmbedding(for: normalized) != nil else { return nil }
+        return normalized
     }
 
-    /// Detect the language of a search query. Uses a higher confidence threshold
-    /// than article detection because short queries are harder to classify.
+    /// Detect the language of a search query.
     private func detectQueryLanguage(_ query: String) -> NLLanguage? {
         let recognizer = NLLanguageRecognizer()
         recognizer.processString(query)
         guard let dominant = recognizer.dominantLanguage else { return nil }
         let hypotheses = recognizer.languageHypotheses(withMaximum: 1)
         let confidence = hypotheses[dominant] ?? 0
-        guard confidence >= 0.5 else { return nil }
-        guard sentenceEmbedding(for: dominant) != nil else { return nil }
-        return dominant
+        // CJK scripts are unambiguous — if the recognizer identifies Chinese/Japanese/Korean,
+        // trust it even at low confidence. Latin-script languages need higher confidence
+        // to distinguish between e.g. English, French, German.
+        let isCJK = [NLLanguage.simplifiedChinese, .traditionalChinese, .japanese, .korean]
+            .contains(dominant)
+        let threshold: Double = isCJK ? 0.2 : 0.5
+        guard confidence >= threshold else { return nil }
+        let normalized = normalizeLanguage(dominant)
+        guard sentenceEmbedding(for: normalized) != nil else { return nil }
+        return normalized
     }
 
     // MARK: - Embedding
@@ -105,8 +117,10 @@ final class SearchEmbedding: Sendable {
                 return (row["content_hash"] as? String, row["language"] as? String)
             }
 
-            // Re-embed if content changed or language is NULL (pre-migration row).
-            guard existing.hash != contentHash || existing.language == nil else { return }
+            // Re-embed if content changed, language is NULL (pre-migration row),
+            // or language tag needs normalization (e.g. zh-Hant → zh-Hans).
+            let needsLanguageNorm = existing.language == NLLanguage.traditionalChinese.rawValue
+            guard existing.hash != contentHash || existing.language == nil || needsLanguageNorm else { return }
 
             guard let language = detectLanguage(title: snapshot.title, content: snapshot.content)
             else {
@@ -351,7 +365,7 @@ final class SearchEmbedding: Sendable {
                       let planetIDString = row["planet_id"] as? String,
                       let planetID = UUID(uuidString: planetIDString),
                       let planetName = row["planet_name"] as? String,
-                      let planetKindInt = row["planet_kind"] as? Int,
+                      let planetKindRaw = row["planet_kind"] as? Int64,
                       let title = row["title"] as? String,
                       let content = row["content"] as? String,
                       let createdAt = row["created_at"] as? Double,
@@ -360,7 +374,7 @@ final class SearchEmbedding: Sendable {
                     return nil
                 }
 
-                let planetKind: PlanetKind = planetKindInt == 0 ? .my : .following
+                let planetKind: PlanetKind = planetKindRaw == 0 ? .my : .following
                 let created = Date(timeIntervalSinceReferenceDate: createdAt)
                 let preview = row["preview_text"] as? String
                 let snippet = SearchIndex.makeSnippet(

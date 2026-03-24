@@ -90,13 +90,14 @@ struct SearchArticleSnapshot: Sendable {
                 start = normalizedText.index(after: nextSpace)
             }
         }
-        if end < normalizedText.endIndex,
+        if start < end, end < normalizedText.endIndex,
            normalizedText[end] != " " {
             if let prevSpace = normalizedText[start..<end].lastIndex(of: " ") {
                 end = prevSpace
             }
         }
 
+        if start > end { start = end }
         var snippet = String(normalizedText[start..<end])
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -258,15 +259,6 @@ private func buildSearchSnapshots(
 }
 
 extension PlanetStore {
-    nonisolated static func requestSearchSnapshotRebuild() {
-        guard isSharedReady else {
-            return
-        }
-        Task { @MainActor in
-            PlanetStore.shared.scheduleSearchSnapshotRebuild()
-        }
-    }
-
     nonisolated static func upsertSearchSnapshotIfReady(for article: MyArticleModel) {
         guard isSharedReady else {
             return
@@ -274,7 +266,6 @@ extension PlanetStore {
         let snapshot = SearchArticleSnapshot(article: article)
         Task { @MainActor in
             PlanetStore.shared.upsertSearchSnapshot(for: article)
-            PlanetStore.shared.embeddingRebuildTask?.cancel()
             PlanetStore.shared.pendingIndexUpdates += 1
             SearchDatabase.writeQueue.async {
                 SearchIndex.shared.upsert(snapshot: snapshot)
@@ -297,7 +288,6 @@ extension PlanetStore {
         let snapshot = SearchArticleSnapshot(article: article)
         Task { @MainActor in
             PlanetStore.shared.upsertSearchSnapshot(for: article)
-            PlanetStore.shared.embeddingRebuildTask?.cancel()
             PlanetStore.shared.pendingIndexUpdates += 1
             SearchDatabase.writeQueue.async {
                 SearchIndex.shared.upsert(snapshot: snapshot)
@@ -335,9 +325,6 @@ extension PlanetStore {
         guard !query.isEmpty else {
             return []
         }
-
-        let pendingRebuildTask = searchSnapshotRebuildTask
-        await pendingRebuildTask?.value
 
         if cachedSearchSnapshots.isEmpty {
             rebuildSearchSnapshots()
@@ -381,18 +368,6 @@ extension PlanetStore {
         }
 
         return await searchSnapshots(cachedSearchSnapshots, matching: query)
-    }
-
-    func scheduleSearchSnapshotRebuild() {
-        searchSnapshotRebuildTask?.cancel()
-        searchSnapshotRebuildTask = Task { @MainActor in
-            await Task.yield()
-            guard !Task.isCancelled else {
-                return
-            }
-            rebuildSearchSnapshots()
-            searchSnapshotRebuildTask = nil
-        }
     }
 
     func rebuildSearchSnapshots() {

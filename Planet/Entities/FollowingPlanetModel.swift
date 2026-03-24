@@ -41,7 +41,6 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     @Published var articles: [FollowingArticleModel]! = nil {
         didSet {
             rebuildUnreadMetadata()
-            PlanetStore.requestSearchSnapshotRebuild()
         }
     }
     @Published private(set) var unreadCount: Int = 0

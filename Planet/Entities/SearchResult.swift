@@ -21,6 +21,8 @@ struct SearchResult: Hashable, Sendable {
     let planetName: String
     let planetKind: PlanetKind
     let relevanceScore: Double?
+    let bm25Score: Double?
+    let vectorScore: Double?
 
     init(
         articleID: UUID,
@@ -30,7 +32,9 @@ struct SearchResult: Hashable, Sendable {
         planetID: UUID,
         planetName: String,
         planetKind: PlanetKind,
-        relevanceScore: Double? = nil
+        relevanceScore: Double? = nil,
+        bm25Score: Double? = nil,
+        vectorScore: Double? = nil
     ) {
         self.articleID = articleID
         self.articleCreated = articleCreated
@@ -40,5 +44,7 @@ struct SearchResult: Hashable, Sendable {
         self.planetName = planetName
         self.planetKind = planetKind
         self.relevanceScore = relevanceScore
+        self.bm25Score = bm25Score
+        self.vectorScore = vectorScore
     }
 }
