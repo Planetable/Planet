@@ -23,19 +23,19 @@ BM25 and vector search run concurrently via `async let` + `Task.detached`. Resul
 
 | File | Role |
 |------|------|
-| `Planet/Search/SearchDatabase.swift` | Shared `DatabasePool`, schema migrations, content hash |
-| `Planet/Search/SearchIndex.swift` | FTS5 indexing, BM25 search, query sanitization, snippet extraction |
-| `Planet/Search/SearchEmbedding.swift` | NLEmbedding vectors, cosine similarity search |
+| `Planet/Search/SearchDatabase.swift` | Shared `DatabasePool`, schema versioning, CJK tokenization, content hash |
+| `Planet/Search/SearchIndex.swift` | FTS5 indexing with manual FTS sync, BM25 search, query sanitization, snippet extraction |
+| `Planet/Search/SearchEmbedding.swift` | NLEmbedding vectors, multi-language support, cosine similarity search |
 | `Planet/Search/HybridSearch.swift` | Reciprocal Rank Fusion of BM25 + vector results |
 | `Planet/Search/PlanetStore+Search.swift` | Lifecycle hooks, search entry point, in-memory fallback |
-| `Planet/Entities/SearchResult.swift` | `SearchResult` struct with optional `relevanceScore` |
+| `Planet/Entities/SearchResult.swift` | `SearchResult` struct with optional `relevanceScore`, `bm25Score`, `vectorScore` |
 
 ## Dependencies
 
 | Dependency | What | License |
 |-----------|------|---------|
 | [GRDB.swift](https://github.com/groue/GRDB.swift) 7.5+ | SQLite wrapper with FTS5 and `DatabasePool` | MIT |
-| `NaturalLanguage.framework` | Apple's on-device `NLEmbedding` for sentence vectors | macOS system framework |
+| `NaturalLanguage.framework` | Apple's on-device `NLEmbedding` for sentence vectors, `NLTokenizer` for CJK word segmentation, `NLLanguageRecognizer` for language detection | macOS system framework |
 
 No network calls, no model downloads, no API keys. Everything runs on-device.
 
@@ -43,9 +43,19 @@ No network calls, no model downloads, no API keys. Everything runs on-device.
 
 Single SQLite file at `~/.config/Planet/search.sqlite`, opened as a `DatabasePool` in WAL mode.
 
+### Schema Versioning
+
+Instead of incremental migrations, the search database uses a simple integer version check. A `schema_version` table stores the current version. On startup, `ensureSchema()` compares the stored version against `schemaVersion` in the code:
+
+- **Match:** no action needed.
+- **Mismatch:** all data tables are dropped and recreated. The next startup rebuild repopulates everything.
+- **Drop failure** (e.g. FTS table references a missing custom tokenizer from a prior schema): the entire database file is deleted and recreated from scratch.
+
+Bump `schemaVersion` whenever the schema or indexing strategy changes. This is safe because all search data is machine-generated from the article source of truth.
+
 ### Tables
 
-**`articles`** — content table mirroring article metadata for search.
+**`articles`** — content table mirroring article metadata for search. Stores clean, original text for display.
 
 | Column | Type | Notes |
 |--------|------|-------|
@@ -54,27 +64,26 @@ Single SQLite file at `~/.config/Planet/search.sqlite`, opened as a `DatabasePoo
 | `planet_id` | TEXT NOT NULL | UUID string |
 | `planet_name` | TEXT NOT NULL | |
 | `planet_kind` | INTEGER NOT NULL | 0 = my, 1 = following |
-| `title` | TEXT NOT NULL | |
-| `content` | TEXT NOT NULL | Full markdown body |
+| `title` | TEXT NOT NULL | Original, unsegmented |
+| `content` | TEXT NOT NULL | Full markdown body, original |
 | `preview_text` | TEXT | Article summary, nullable |
 | `slug` | TEXT | |
 | `tags` | TEXT | Comma-separated |
 | `attachments` | TEXT | Comma-separated |
 | `created_at` | REAL NOT NULL | `timeIntervalSinceReferenceDate` |
-| `content_hash` | TEXT NOT NULL | DJB2 hash of `title + "\n" + content` — skip re-index when unchanged |
+| `content_hash` | TEXT NOT NULL | DJB2 hash of `title + "\n" + content + tags + slug` — skip re-index when unchanged |
 
-**`articles_fts`** — FTS5 virtual table for full-text search.
+**`articles_fts`** — standalone FTS5 virtual table for full-text search.
 
 ```sql
 CREATE VIRTUAL TABLE articles_fts USING fts5(
     title, content, tags, slug,
-    content='articles',
     content_rowid='rowid',
     tokenize='unicode61 remove_diacritics 2'
 )
 ```
 
-Kept in sync via `AFTER INSERT/UPDATE/DELETE` triggers on `articles`. Column order matters for `bm25()` weight arguments.
+This is a **standalone** FTS table (no `content='articles'`), not an external content table. Content is manually synced during upsert/remove so that FTS receives NLTokenizer-segmented CJK text while the `articles` table retains clean original text for display. Column order matters for `bm25()` weight arguments.
 
 **`vectors`** — embedding storage for semantic search.
 
@@ -82,22 +91,49 @@ Kept in sync via `AFTER INSERT/UPDATE/DELETE` triggers on `articles`. Column ord
 |--------|------|-------|
 | `article_id` | TEXT PRIMARY KEY | UUID string, references `articles.article_id` |
 | `embedding` | BLOB NOT NULL | 512 x Float32 = 2048 bytes per article |
-| `content_hash` | TEXT NOT NULL | Same hash as `articles.content_hash` |
-| `language` | TEXT | BCP 47 language tag (e.g. `en`, `zh-Hans`, `fr`). NULL for pre-migration rows. Indexed. |
+| `content_hash` | TEXT NOT NULL | DJB2 hash of `title + "\n" + content` (without tags/slug) |
+| `language` | TEXT | BCP 47 language tag (e.g. `en`, `zh-Hans`). Indexed. |
 
-### Migration
+## CJK Search Support
 
-All tables, triggers, and virtual tables are created in a single `v1_create_tables` migration inside `SearchDatabase.migrate()`. This runs once during `SearchDatabase.init()`, before either `SearchIndex` or `SearchEmbedding` is accessed. This guarantees table existence regardless of singleton initialization order.
+FTS5's default `unicode61` tokenizer doesn't perform Chinese/Japanese/Korean word segmentation — it treats runs of CJK characters as single tokens. To support CJK search, the indexing pipeline appends NLTokenizer-segmented words to the FTS content.
 
-A `v2_add_language` migration adds the `language TEXT` column and index to the `vectors` table. Existing rows get `language = NULL`; the next `rebuildEmbeddings` call re-detects language and populates the column.
+### Indexing
+
+`SearchDatabase.tokenizeForFTS()` processes text containing CJK characters:
+
+1. Runs `NLTokenizer(unit: .word)` over the text
+2. Collects all tokens containing CJK ideographs
+3. Appends them space-separated after the original text
+
+Example: `"以下为昨日摘要"` → `"以下为昨日摘要 以下 为 昨日 摘要"`
+
+The original text is preserved (so `unicode61` also indexes whatever tokens it can extract), and the appended words provide granular CJK matching. Only the FTS table receives this augmented text; the `articles` table stores the original.
+
+### Query Processing
+
+`sanitizeFTSQuery()` pre-tokenizes CJK queries with NLTokenizer so that CJK words become separate AND terms rather than a phrase:
+
+1. Runs `NLTokenizer(unit: .word)` over the query
+2. Merges consecutive single-character CJK tokens into bigrams (because NLTokenizer may segment differently at query time vs index time due to context differences)
+3. Each resulting token becomes a `"token"*` prefix term
+
+Example: `"昨日持币"` → NLTokenizer: `[昨日, 持, 币]` → merge single chars: `[昨日, 持币]` → FTS query: `"昨日"* "持币"*`
+
+### Why Not a Custom FTS5 Tokenizer?
+
+FTS5's prefix matching (`*`) operates on whole tokens, not character substrings. A custom tokenizer that segments `持币人数` as `持币人` + `数` would not match the query token `持币` via prefix — FTS5 requires the query to produce an exact token or a token that is a prefix of an indexed token as output by the tokenizer. Since NLTokenizer segments differently depending on surrounding context, the same characters produce different tokens at index time vs query time. The standalone FTS approach with appended tokens avoids this fundamental limitation.
 
 ## SearchIndex — BM25 Full-Text Search
 
 ### Indexing
 
-`SearchIndex.upsert(snapshot:)` checks the `content_hash` — if unchanged, skips the write entirely. Otherwise performs an `INSERT ... ON CONFLICT DO UPDATE` which fires the FTS5 sync triggers.
+`SearchIndex.upsert(snapshot:)` checks the `content_hash` — if unchanged, skips the write entirely. Otherwise:
 
-`SearchIndex.rebuild(snapshots:)` runs the full clear + re-insert in a **single `db.write` transaction**. This means concurrent `db.read` calls (from search) see either the complete old index or the complete new index — never a partially rebuilt state. WAL snapshot isolation guarantees this.
+1. Inserts/updates the `articles` table with original text
+2. Manually syncs the `articles_fts` table with NLTokenizer-augmented text (delete old FTS row if updating, then insert new)
+
+`SearchIndex.rebuild(snapshots:)` runs a diff-based sync in batches of 500 articles per transaction, then deletes stale rows. Both `articles` and `articles_fts` are kept in sync.
 
 ### Search
 
@@ -118,7 +154,11 @@ Results are ordered by BM25 rank (lower = better match, negated to positive for 
 
 ### Query Sanitization
 
-Plain queries are transformed for type-ahead: each word becomes `"word"*` (quoted prefix match with implicit AND). FTS5 syntax is passed through when detected — users can type `"exact phrase"`, `prefix*`, `-negation`, or `term1 OR term2`.
+Plain queries are transformed for type-ahead: each word becomes `"word"*` (quoted prefix match with implicit AND). CJK words are pre-tokenized with NLTokenizer and single-char runs are merged into bigrams.
+
+FTS5 syntax is passed through when detected (and the query contains alphanumeric characters) — users can type `"exact phrase"`, `prefix*`, `-negation`, or `term1 OR term2`. Bare punctuation (`"`, `*`, `-`) without word characters is rejected to prevent FTS5 syntax errors. Operator-only queries (`or not`, `and`) are also rejected.
+
+If the primary query fails (e.g. malformed FTS5 syntax that passed the passthrough check), a `forceSanitize` fallback strips all FTS syntax and retries with clean prefix terms.
 
 ### Snippet Extraction
 
@@ -126,22 +166,27 @@ Plain queries are transformed for type-ahead: each word becomes `"word"*` (quote
 
 ## SearchEmbedding — Vector Semantic Search
 
+### Language Handling
+
+Each article's language is detected via `NLLanguageRecognizer` on the article text (title + first 1000 chars of content). Key behaviors:
+
+- **Confidence threshold:** 0.3 for articles, 0.2 for CJK queries (CJK scripts are unambiguous), 0.5 for Latin-script queries
+- **Language normalization:** `zh-Hant` (Traditional Chinese) is normalized to `zh-Hans` (Simplified Chinese) since Apple uses the same NLEmbedding model for both
+- **Re-embedding trigger:** Articles with `zh-Hant` language tags are re-embedded to normalize to `zh-Hans`
+- **Model caching:** Sentence embedding models are cached per-language with NSLock. Each language is probed once; if no model is available, the language is skipped permanently for the session
+
 ### Embedding Generation
 
-Uses `NLEmbedding.sentenceEmbedding(for:)` from Apple's NaturalLanguage framework with per-article language detection. The language is detected via `NLLanguageRecognizer` on the article text; if the detected language has no available sentence embedding model (or confidence is below 0.3), the article is skipped and remains searchable via BM25 only. Models are cached per-language in a dictionary with NSLock for thread safety.
-
-Input is `title + ". " + content` (truncated to 2000 chars). Returns a 512-dimensional `[Double]` vector, stored as `[Float32]` blob (2048 bytes per article). The detected language is stored as a BCP 47 tag in the `vectors.language` column.
+Uses `NLEmbedding.sentenceEmbedding(for:)` from Apple's NaturalLanguage framework. Input is `title + ". " + content` (truncated to 2000 chars). Returns a 512-dimensional `[Double]` vector, stored as `[Float32]` blob (2048 bytes per article).
 
 ### Search — Two-Phase
 
-1. **Phase 1:** Load only `article_id` + `embedding` blob from `vectors` table. Compute cosine similarity against the query embedding in memory. Filter by minimum threshold (0.3). Sort and keep top-K.
+1. **Phase 1:** Stream `article_id` + `embedding` blob from `vectors` table via cursor, filtered by `WHERE language = ?`. Compute cosine similarity against the query embedding. Filter by minimum threshold (0.3). Sort and keep top-K with bounded memory (compact at 2× limit).
 2. **Phase 2:** Fetch full metadata (`title`, `content`, `preview_text`, etc.) from `articles` table only for the top-K article IDs.
-
-This avoids loading megabytes of article content for articles that will be discarded by the similarity threshold.
 
 ### Cosine Similarity
 
-Standard dot-product / (norm_a * norm_b). Computed via vDSP-accelerated dot products on `[Float]` arrays. At query time, only vectors matching the detected query language are loaded, so the scan set is typically smaller than the full corpus.
+Standard dot-product / (norm_a * norm_b). Computed via vDSP-accelerated dot products on `[Float]` arrays.
 
 ## HybridSearch — Reciprocal Rank Fusion
 
@@ -155,7 +200,7 @@ Each result list contributes a score per article:
 score(article) = Σ weight / (k + rank)
 ```
 
-Where `k = 60`, BM25 weight = 1.5, vector weight = 1.0. Articles appearing in both lists get the sum of their contributions. BM25's keyword-aware snippet is preferred when an article appears in both.
+Where `k = 60`, BM25 weight = 1.5, vector weight = 1.0. Articles appearing in both lists get the sum of their contributions. BM25's keyword-aware snippet is preferred when an article appears in both. Per-source scores (`bm25Score`, `vectorScore`) are tracked and passed through to the result.
 
 ## Lifecycle Integration
 
@@ -178,10 +223,6 @@ Where `k = 60`, BM25 weight = 1.5, vector weight = 1.0. Articles appearing in bo
 1. Enqueues FTS + embedding removal on the serial write queue
 2. Removes from in-memory cache on MainActor
 
-### Planet Change
-
-`myPlanets.didSet` and `followingPlanets.didSet` trigger `rebuildSearchSnapshots()` which enqueues a full index rebuild.
-
 ## Write Ordering
 
 All index mutations — upsert, remove, and full rebuild — are dispatched to `SearchDatabase.writeQueue`, a serial `DispatchQueue`. This guarantees FIFO execution: a removal dispatched after a rebuild always executes after the rebuild completes, preventing deleted articles from being silently re-inserted.
@@ -202,6 +243,10 @@ The rebuild reads `cachedSearchSnapshots` from MainActor at **execution time** (
 
 All index mutations go through `SearchDatabase.writeQueue` (serial DispatchQueue, `.utility` QoS) for FIFO ordering. Within each mutation, `DatabasePool.write` provides transactional guarantees. All reads go through `DatabasePool.read` which allows concurrent readers via WAL snapshots. A read never sees a partially committed write transaction.
 
+## Log Viewer
+
+The in-app log viewer (`AppLogView`) monitors log files using `DispatchSource.makeFileSystemObjectSource` for real-time streaming. All four loggers (Planet, IPFS, SSH Rsync, Cloudflare Pages) use `truncateFile(atOffset: 0)` for their `clear()` method instead of `removeItem` — this preserves the file inode so the DispatchSource file descriptor remains valid and continues receiving write events after clearing.
+
 ## AI Tool — `search_articles`
 
 Added to the AI chat tool definitions in `ArticleAIChatView.swift`. Allows the AI assistant to discover articles by searching.
@@ -217,7 +262,7 @@ Added to the AI chat tool definitions in `ArticleAIChatView.swift`. Allows the A
 
 **Endpoint:** `GET /v0/search?q=<query>&limit=<n>`
 
-Enhanced to use hybrid search and return `relevance_score` in the response. The `limit` parameter (default 20, max 200) controls article result count. Planet matching is unchanged (substring on name/about). Response remains backward-compatible — `relevance_score` is an added field.
+Uses hybrid search and returns scoring details in the response. The `limit` parameter (default 20, max 200) controls article result count. Planet matching is unchanged (substring on name/about). Results include both My and Following planet articles.
 
 **Response shape:**
 ```json
@@ -233,24 +278,33 @@ Enhanced to use hybrid search and return `relevance_score` in the response. The 
       "preview": "...",
       "planetID": "...",
       "planetName": "...",
-      "relevanceScore": 0.024
+      "relevanceScore": 0.024,
+      "bm25Score": 0.024,
+      "vectorScore": null,
+      "source": "bm25"
     }
   ]
 }
 ```
 
+The `source` field indicates where the result came from: `"bm25"`, `"vector"`, `"both"`, or `"fallback"`.
+
 ## Logging
 
-All search infrastructure errors and lifecycle events are logged through `PlanetLogger` (to `/tmp/planet.log`), visible in the app's Log window under the "Planet" tab. Also logged via `os.Logger` for Console.app.
+All search infrastructure errors and lifecycle events are logged through `PlanetLogger` (to `tmp/planet.log` in the app sandbox), visible in the app's Log window under the "Planet" tab. Also logged via `os.Logger` for Console.app.
 
 ## Content Hash
 
-Both `articles.content_hash` and `vectors.content_hash` use the same DJB2 hash (`SearchDatabase.contentHash(title:content:)`). This is a fast, non-cryptographic hash used solely to skip redundant writes when content hasn't changed. It's not used for security purposes.
+Both `articles.content_hash` and `vectors.content_hash` use the same DJB2 hash (`SearchDatabase.contentHash(title:content:)`). The articles table hash includes tags and slug; the vectors table hash covers only title and content. This is a fast, non-cryptographic hash used solely to skip redundant writes when content hasn't changed.
 
 ## Known Tradeoffs
 
-1. **Embedding rebuild is not a single transaction.** Each article's embedding is computed by NLEmbedding (CPU-intensive) and written individually. During rebuild, vector search may return incomplete results. FTS search is unaffected and covers keyword queries correctly during this window.
+1. **Standalone FTS table requires manual sync.** Because FTS stores NLTokenizer-augmented text while the articles table stores clean original text, the FTS table cannot use external content (`content='articles'`) with triggers. Instead, `SearchIndex.upsertInTransaction` manually syncs FTS rows during insert/update, and `remove`/`rebuild` clean up FTS rows explicitly.
 
-2. **Language detection drives embedding model selection.** Each article's language is detected via `NLLanguageRecognizer` and embedded with the matching `NLEmbedding.sentenceEmbedding(for:)` model. Different language models produce vectors in different vector spaces, so query-time vector search filters by `WHERE language = ?` to compare only same-model embeddings. Languages without an available sentence embedding model fall back to BM25 keyword search. On first use, the system probes and logs which languages have models available on the current system.
+2. **NLTokenizer context sensitivity.** NLTokenizer may segment the same CJK characters differently depending on surrounding context (e.g. `持币人数` → `持币人 + 数` but `持币` alone → `持 + 币`). The query sanitizer mitigates this by merging consecutive single-character CJK tokens into bigrams.
 
-3. **Brute-force cosine similarity.** All vectors are loaded and compared sequentially. This is fast for typical Planet usage (hundreds to low-thousands of articles) but would need an ANN index (e.g. sqlite-vec) for tens of thousands.
+3. **Embedding rebuild is not a single transaction.** Each article's embedding is computed by NLEmbedding (CPU-intensive) and written individually. During rebuild, vector search may return incomplete results. FTS search is unaffected and covers keyword queries correctly during this window.
+
+4. **Language detection drives embedding model selection.** Different language models produce vectors in different vector spaces, so query-time vector search filters by `WHERE language = ?`. Languages without an available sentence embedding model fall back to BM25 keyword search.
+
+5. **Brute-force cosine similarity.** All vectors for the query language are loaded and compared sequentially. This is fast for typical Planet usage (hundreds to low-thousands of articles) but would need an ANN index (e.g. sqlite-vec) for tens of thousands.
