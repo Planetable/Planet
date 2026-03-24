@@ -175,10 +175,6 @@ class Template: Codable, Identifiable {
             logger.error("Template directory \(directoryName) has no blog.html")
             return nil
         }
-        guard FileManager.default.fileExists(atPath: template.assetsPath.path) else {
-            logger.error("Template directory \(directoryName) has no assets directory")
-            return nil
-        }
         return template
     }
 
