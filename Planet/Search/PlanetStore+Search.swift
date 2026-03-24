@@ -272,9 +272,6 @@ extension PlanetStore {
             return
         }
         let snapshot = SearchArticleSnapshot(article: article)
-        Task.detached(priority: .utility) {
-            SearchEmbedding.shared.embedArticle(snapshot: snapshot)
-        }
         Task { @MainActor in
             PlanetStore.shared.upsertSearchSnapshot(for: article)
             PlanetStore.shared.pendingIndexUpdates += 1
@@ -282,6 +279,11 @@ extension PlanetStore {
                 SearchIndex.shared.upsert(snapshot: snapshot)
                 Task { @MainActor in
                     PlanetStore.shared.pendingIndexUpdates -= 1
+                }
+                // Embed AFTER the article row exists in the articles table,
+                // mirroring the sequencing in rebuildSearchSnapshots().
+                Task.detached(priority: .utility) {
+                    SearchEmbedding.shared.embedArticle(snapshot: snapshot)
                 }
             }
         }
@@ -292,9 +294,6 @@ extension PlanetStore {
             return
         }
         let snapshot = SearchArticleSnapshot(article: article)
-        Task.detached(priority: .utility) {
-            SearchEmbedding.shared.embedArticle(snapshot: snapshot)
-        }
         Task { @MainActor in
             PlanetStore.shared.upsertSearchSnapshot(for: article)
             PlanetStore.shared.pendingIndexUpdates += 1
@@ -302,6 +301,11 @@ extension PlanetStore {
                 SearchIndex.shared.upsert(snapshot: snapshot)
                 Task { @MainActor in
                     PlanetStore.shared.pendingIndexUpdates -= 1
+                }
+                // Embed AFTER the article row exists in the articles table,
+                // mirroring the sequencing in rebuildSearchSnapshots().
+                Task.detached(priority: .utility) {
+                    SearchEmbedding.shared.embedArticle(snapshot: snapshot)
                 }
             }
         }
