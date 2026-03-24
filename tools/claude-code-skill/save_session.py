@@ -38,14 +38,14 @@ def api_post(url, data):
         return json.loads(resp.read())
 
 
-def article_exists(base_url, planet_id, title):
-    """Check if an article with this title already exists in the planet."""
+def find_article(base_url, planet_id, title):
+    """Find an article by title in the planet. Returns article ID or None."""
     url = f'{base_url}/v0/search?{urllib.parse.urlencode({"q": title})}'
     results = api_get(url)
     for a in results.get('articles', []):
         if a.get('title') == title and a.get('planetID') == planet_id:
-            return True
-    return False
+            return a.get('articleID')
+    return None
 
 
 def create_article(base_url, planet_id, title, content, date=None):
@@ -55,6 +55,12 @@ def create_article(base_url, planet_id, title, content, date=None):
     if date:
         data['date'] = date
     return api_post(url, data)
+
+
+def update_article(base_url, planet_id, article_id, content):
+    """Update an existing article's content."""
+    url = f'{base_url}/v0/planets/my/{planet_id}/articles/{article_id}'
+    return api_post(url, {'content': content})
 
 
 def main():
@@ -75,12 +81,13 @@ def main():
         print(f'No planet configured for {cwd}', file=sys.stderr)
         sys.exit(1)
 
-    if article_exists(base_url, planet_id, title):
-        print(f'Article already exists: {title}')
-        return
-
-    result = create_article(base_url, planet_id, title, summary_html, date)
-    print(f'Created: {result.get("title")} (id: {result.get("id")})')
+    article_id = find_article(base_url, planet_id, title)
+    if article_id:
+        result = update_article(base_url, planet_id, article_id, summary_html)
+        print(f'Updated: {result.get("title")} (id: {article_id})')
+    else:
+        result = create_article(base_url, planet_id, title, summary_html, date)
+        print(f'Created: {result.get("title")} (id: {result.get("id")})')
 
 
 if __name__ == '__main__':

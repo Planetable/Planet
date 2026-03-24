@@ -59,6 +59,8 @@ python3 tools/claude-code-skill/save_session.py "$TITLE" "$SUMMARY"
 
 The script reads `tools/claude-code-skill/config.json` to find the Planet server and planet ID for the current project.
 
+The script will create a new article or update an existing one if the title matches.
+
 ## 4. Confirm
 
-Tell the user the article was created with the title and a link hint: the article is viewable in the Planet app.
+Tell the user the article was created or updated, with the title. The article is viewable in the Planet app.
