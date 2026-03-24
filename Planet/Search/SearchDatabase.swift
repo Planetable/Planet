@@ -107,6 +107,11 @@ final class SearchDatabase: Sendable {
                 """)
         }
 
+        migrator.registerMigration("v2_add_language") { db in
+            try db.execute(sql: "ALTER TABLE vectors ADD COLUMN language TEXT")
+            try db.execute(sql: "CREATE INDEX IF NOT EXISTS idx_vectors_language ON vectors(language)")
+        }
+
         try migrator.migrate(pool)
     }
 

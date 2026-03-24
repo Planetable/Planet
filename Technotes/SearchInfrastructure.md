@@ -83,10 +83,13 @@ Kept in sync via `AFTER INSERT/UPDATE/DELETE` triggers on `articles`. Column ord
 | `article_id` | TEXT PRIMARY KEY | UUID string, references `articles.article_id` |
 | `embedding` | BLOB NOT NULL | 512 x Float32 = 2048 bytes per article |
 | `content_hash` | TEXT NOT NULL | Same hash as `articles.content_hash` |
+| `language` | TEXT | BCP 47 language tag (e.g. `en`, `zh-Hans`, `fr`). NULL for pre-migration rows. Indexed. |
 
 ### Migration
 
 All tables, triggers, and virtual tables are created in a single `v1_create_tables` migration inside `SearchDatabase.migrate()`. This runs once during `SearchDatabase.init()`, before either `SearchIndex` or `SearchEmbedding` is accessed. This guarantees table existence regardless of singleton initialization order.
+
+A `v2_add_language` migration adds the `language TEXT` column and index to the `vectors` table. Existing rows get `language = NULL`; the next `rebuildEmbeddings` call re-detects language and populates the column.
 
 ## SearchIndex — BM25 Full-Text Search
 
@@ -125,7 +128,9 @@ Plain queries are transformed for type-ahead: each word becomes `"word"*` (quote
 
 ### Embedding Generation
 
-Uses `NLEmbedding.sentenceEmbedding(for: .english)` from Apple's NaturalLanguage framework. Input is `title + ". " + content` (truncated to 2000 chars). Returns a 512-dimensional `[Double]` vector, stored as `[Float32]` blob (2048 bytes per article).
+Uses `NLEmbedding.sentenceEmbedding(for:)` from Apple's NaturalLanguage framework with per-article language detection. The language is detected via `NLLanguageRecognizer` on the article text; if the detected language has no available sentence embedding model (or confidence is below 0.3), the article is skipped and remains searchable via BM25 only. Models are cached per-language in a dictionary with NSLock for thread safety.
+
+Input is `title + ". " + content` (truncated to 2000 chars). Returns a 512-dimensional `[Double]` vector, stored as `[Float32]` blob (2048 bytes per article). The detected language is stored as a BCP 47 tag in the `vectors.language` column.
 
 ### Search — Two-Phase
 
@@ -136,7 +141,7 @@ This avoids loading megabytes of article content for articles that will be disca
 
 ### Cosine Similarity
 
-Standard dot-product / (norm_a * norm_b). Computed in plain Swift over `[Double]` arrays. For thousands of 512-dim vectors this is fast (< 10ms).
+Standard dot-product / (norm_a * norm_b). Computed via vDSP-accelerated dot products on `[Float]` arrays. At query time, only vectors matching the detected query language are loaded, so the scan set is typically smaller than the full corpus.
 
 ## HybridSearch — Reciprocal Rank Fusion
 
@@ -246,6 +251,6 @@ Both `articles.content_hash` and `vectors.content_hash` use the same DJB2 hash (
 
 1. **Embedding rebuild is not a single transaction.** Each article's embedding is computed by NLEmbedding (CPU-intensive) and written individually. During rebuild, vector search may return incomplete results. FTS search is unaffected and covers keyword queries correctly during this window.
 
-2. **NLEmbedding is English-only by default.** `NLEmbedding.sentenceEmbedding(for: .english)` provides the built-in macOS sentence embedding model. Non-English content will have lower-quality semantic matching but still works via BM25 keyword search.
+2. **Language detection drives embedding model selection.** Each article's language is detected via `NLLanguageRecognizer` and embedded with the matching `NLEmbedding.sentenceEmbedding(for:)` model. Different language models produce vectors in different vector spaces, so query-time vector search filters by `WHERE language = ?` to compare only same-model embeddings. Languages without an available sentence embedding model fall back to BM25 keyword search. On first use, the system probes and logs which languages have models available on the current system.
 
 3. **Brute-force cosine similarity.** All vectors are loaded and compared sequentially. This is fast for typical Planet usage (hundreds to low-thousands of articles) but would need an ANN index (e.g. sqlite-vec) for tens of thousands.

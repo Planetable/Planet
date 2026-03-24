@@ -15,33 +15,74 @@ final class SearchEmbedding: Sendable {
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "SearchEmbedding")
     private var db: DatabasePool? { SearchDatabase.shared.pool }
 
-    /// Cached sentence embedding model. Loaded once on first use.
-    /// `nonisolated(unsafe)` because NLEmbedding is thread-safe but not marked Sendable.
-    nonisolated(unsafe) private var cachedModel: NLEmbedding?
-    nonisolated(unsafe) private var modelLoaded = false
+    /// Per-language sentence embedding models, lazily loaded on first use.
+    /// `nonisolated(unsafe)` because access is guarded by modelLock/vectorLock.
+    nonisolated(unsafe) private var cachedModels: [NLLanguage: NLEmbedding] = [:]
+    /// Languages we've already tried to load (avoids repeated lookups for unavailable models).
+    nonisolated(unsafe) private var probedLanguages: Set<NLLanguage> = []
     private let modelLock = NSLock()
+    /// Serializes NLEmbedding.vector(for:) calls — NLEmbedding is not thread-safe.
+    private let vectorLock = NSLock()
 
     private init() {
         // Tables are created by SearchDatabase.migrate() — accessed via `db` property.
     }
 
-    private func sentenceEmbedding() -> NLEmbedding? {
+    private func sentenceEmbedding(for language: NLLanguage) -> NLEmbedding? {
         modelLock.lock()
         defer { modelLock.unlock() }
-        if modelLoaded { return cachedModel }
-        cachedModel = NLEmbedding.sentenceEmbedding(for: .english)
-        modelLoaded = true
-        if cachedModel == nil {
-            logger.warning("NLEmbedding.sentenceEmbedding not available")
-            PlanetLogger.log("NLEmbedding.sentenceEmbedding not available", level: .warning)
+        if let cached = cachedModels[language] { return cached }
+        if probedLanguages.contains(language) { return nil }
+        probedLanguages.insert(language)
+        guard let model = NLEmbedding.sentenceEmbedding(for: language) else {
+            logger.info("NLEmbedding sentence model not available for \(language.rawValue)")
+            PlanetLogger.log(
+                "NLEmbedding sentence model not available for \(language.rawValue)", level: .info
+            )
+            return nil
         }
-        return cachedModel
+        cachedModels[language] = model
+        logger.info("NLEmbedding sentence model loaded for \(language.rawValue)")
+        PlanetLogger.log(
+            "NLEmbedding sentence model loaded for \(language.rawValue)", level: .info
+        )
+        return model
+    }
+
+    // MARK: - Language Detection
+
+    /// Detect the dominant language of article text. Returns `nil` if confidence
+    /// is too low or no sentence embedding model is available for the language.
+    private func detectLanguage(title: String, content: String) -> NLLanguage? {
+        let recognizer = NLLanguageRecognizer()
+        let sample = title + ". " + String(content.prefix(1000))
+        recognizer.processString(sample)
+        guard let dominant = recognizer.dominantLanguage else { return nil }
+        let hypotheses = recognizer.languageHypotheses(withMaximum: 1)
+        let confidence = hypotheses[dominant] ?? 0
+        guard confidence >= 0.3 else { return nil }
+        guard sentenceEmbedding(for: dominant) != nil else { return nil }
+        return dominant
+    }
+
+    /// Detect the language of a search query. Uses a higher confidence threshold
+    /// than article detection because short queries are harder to classify.
+    private func detectQueryLanguage(_ query: String) -> NLLanguage? {
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(query)
+        guard let dominant = recognizer.dominantLanguage else { return nil }
+        let hypotheses = recognizer.languageHypotheses(withMaximum: 1)
+        let confidence = hypotheses[dominant] ?? 0
+        guard confidence >= 0.5 else { return nil }
+        guard sentenceEmbedding(for: dominant) != nil else { return nil }
+        return dominant
     }
 
     // MARK: - Embedding
 
     func embedArticle(snapshot: SearchArticleSnapshot) {
         guard let db else { return }
+
         let articleID = snapshot.articleID.uuidString
         let tags = snapshot.tags.joined(separator: ",")
         let articleContentHash = SearchDatabase.contentHash(
@@ -53,22 +94,35 @@ final class SearchEmbedding: Sendable {
         let contentHash = SearchDatabase.contentHash(title: snapshot.title, content: snapshot.content)
 
         do {
-            let existingHash = try db.read { db -> String? in
-                try String.fetchOne(
-                    db,
-                    sql: "SELECT content_hash FROM vectors WHERE article_id = ?",
-                    arguments: [articleID]
-                )
+            let existing = try db.read { db -> (hash: String?, language: String?) in
+                guard
+                    let row = try Row.fetchOne(
+                        db,
+                        sql: "SELECT content_hash, language FROM vectors WHERE article_id = ?",
+                        arguments: [articleID]
+                    )
+                else { return (nil, nil) }
+                return (row["content_hash"] as? String, row["language"] as? String)
             }
 
-            guard existingHash != contentHash else { return }
+            // Re-embed if content changed or language is NULL (pre-migration row).
+            guard existing.hash != contentHash || existing.language == nil else { return }
 
-            guard let vector = generateEmbedding(title: snapshot.title, content: snapshot.content)
+            guard let language = detectLanguage(title: snapshot.title, content: snapshot.content)
+            else {
+                return  // no embedding model for this language — article is BM25-only
+            }
+
+            guard
+                let vector = generateEmbedding(
+                    title: snapshot.title, content: snapshot.content, language: language
+                )
             else {
                 return
             }
 
             let blob = vectorToBlob(vector)
+            let langTag = language.rawValue
             // The EXISTS guard prevents writing an orphaned vector if the article
             // was concurrently removed, and the content_hash check prevents a stale
             // embedding from overwriting a fresher one when multiple embedArticle
@@ -76,17 +130,18 @@ final class SearchEmbedding: Sendable {
             try db.write { db in
                 try db.execute(
                     sql: """
-                        INSERT INTO vectors (article_id, embedding, content_hash)
-                        SELECT ?, ?, ?
+                        INSERT INTO vectors (article_id, embedding, content_hash, language)
+                        SELECT ?, ?, ?, ?
                         WHERE EXISTS (
                             SELECT 1 FROM articles
                             WHERE article_id = ? AND content_hash = ?
                         )
                         ON CONFLICT(article_id) DO UPDATE SET
                             embedding = excluded.embedding,
-                            content_hash = excluded.content_hash
+                            content_hash = excluded.content_hash,
+                            language = excluded.language
                         """,
-                    arguments: [articleID, blob, contentHash, articleID, articleContentHash]
+                    arguments: [articleID, blob, contentHash, langTag, articleID, articleContentHash]
                 )
             }
         } catch {
@@ -120,51 +175,72 @@ final class SearchEmbedding: Sendable {
             }
 
             let articleID = snapshot.articleID.uuidString
-            let contentHash = SearchDatabase.contentHash(title: snapshot.title, content: snapshot.content)
+            let contentHash = SearchDatabase.contentHash(
+                title: snapshot.title, content: snapshot.content
+            )
 
-            let existingHash: String?
+            let existing: (hash: String?, language: String?)
             do {
-                existingHash = try db?.read { db in
-                    try String.fetchOne(
-                        db,
-                        sql: "SELECT content_hash FROM vectors WHERE article_id = ?",
-                        arguments: [articleID]
-                    )
-                }
+                existing =
+                    try db?.read { db -> (hash: String?, language: String?) in
+                        guard
+                            let row = try Row.fetchOne(
+                                db,
+                                sql:
+                                    "SELECT content_hash, language FROM vectors WHERE article_id = ?",
+                                arguments: [articleID]
+                            )
+                        else { return (nil, nil) }
+                        return (row["content_hash"] as? String, row["language"] as? String)
+                    } ?? (nil, nil)
             } catch {
                 continue
             }
 
-            // Already up to date — skip.
-            if existingHash == contentHash { continue }
+            // Already up to date — skip (but re-embed if language is NULL from pre-migration).
+            if existing.hash == contentHash && existing.language != nil { continue }
+
+            guard let language = detectLanguage(title: snapshot.title, content: snapshot.content)
+            else {
+                continue  // no embedding model for this language
+            }
 
             // Generate and write with compare-and-swap.
             // CAS prevents overwriting a concurrent per-article save that may
             // insert an embedding between our read above and the write below.
-            guard let vector = generateEmbedding(title: snapshot.title, content: snapshot.content)
+            guard
+                let vector = generateEmbedding(
+                    title: snapshot.title, content: snapshot.content, language: language
+                )
             else {
                 continue
             }
 
             let blob = vectorToBlob(vector)
+            let langTag = language.rawValue
             do {
                 try db?.write { db in
                     try db.execute(
                         sql: """
-                            INSERT INTO vectors (article_id, embedding, content_hash)
-                            SELECT ?, ?, ?
+                            INSERT INTO vectors (article_id, embedding, content_hash, language)
+                            SELECT ?, ?, ?, ?
                             WHERE EXISTS (SELECT 1 FROM articles WHERE article_id = ?)
                             ON CONFLICT(article_id) DO UPDATE SET
                                 embedding = excluded.embedding,
-                                content_hash = excluded.content_hash
+                                content_hash = excluded.content_hash,
+                                language = excluded.language
                             WHERE vectors.content_hash IS ?
                             """,
-                        arguments: [articleID, blob, contentHash, articleID, existingHash]
+                        arguments: [
+                            articleID, blob, contentHash, langTag, articleID, existing.hash,
+                        ]
                     )
                 }
             } catch {
                 logger.error("rebuildEmbeddings write failed: \(error.localizedDescription)")
-                PlanetLogger.log("rebuildEmbeddings write failed: \(error.localizedDescription)", level: .error)
+                PlanetLogger.log(
+                    "rebuildEmbeddings write failed: \(error.localizedDescription)", level: .error
+                )
             }
         }
 
@@ -173,7 +249,9 @@ final class SearchEmbedding: Sendable {
         // populated — see PlanetStore.rebuildSearchSnapshots().
         let elapsed = String(format: "%.2f", CFAbsoluteTimeGetCurrent() - start)
         logger.info("Rebuilt embeddings for \(snapshots.count) articles in \(elapsed)s")
-        PlanetLogger.log("Rebuilt embeddings for \(snapshots.count) articles in \(elapsed)s", level: .info)
+        PlanetLogger.log(
+            "Rebuilt embeddings for \(snapshots.count) articles in \(elapsed)s", level: .info
+        )
     }
 
     // MARK: - Vector Search
@@ -182,7 +260,12 @@ final class SearchEmbedding: Sendable {
         guard let db else { return [] }
         guard !Task.isCancelled else { return [] }
 
-        guard let queryVectorDouble = generateQueryEmbedding(query) else {
+        guard let queryLanguage = detectQueryLanguage(query) else {
+            return []  // can't determine language — BM25 covers the query
+        }
+        guard
+            let queryVectorDouble = generateQueryEmbedding(query, language: queryLanguage)
+        else {
             return []
         }
         let queryVector = queryVectorDouble.map { Float($0) }
@@ -191,11 +274,12 @@ final class SearchEmbedding: Sendable {
 
         do {
             // Phase 1: Stream embeddings via cursor with bounded memory.
-            // Join on article_id only (not content_hash) because the embedding and
-            // FTS lanes update independently; a temporary hash mismatch is expected.
+            // Filter by language so we only compare vectors from the same model
+            // (different language models produce incompatible vector spaces).
             var topK: [(articleID: String, similarity: Double)] = []
             var minSimilarity: Float = 0.3  // also serves as the absolute threshold
 
+            let langTag = queryLanguage.rawValue
             try db.read { db in
                 let cursor = try Row.fetchCursor(
                     db,
@@ -203,7 +287,9 @@ final class SearchEmbedding: Sendable {
                         SELECT v.article_id, v.embedding
                         FROM vectors v
                         JOIN articles a ON a.article_id = v.article_id
-                        """
+                        WHERE v.language = ?
+                        """,
+                    arguments: [langTag]
                 )
 
                 var index = 0
@@ -306,8 +392,10 @@ final class SearchEmbedding: Sendable {
 
     // MARK: - NLEmbedding
 
-    private func generateEmbedding(title: String, content: String) -> [Double]? {
-        guard let embedding = sentenceEmbedding() else { return nil }
+    private func generateEmbedding(
+        title: String, content: String, language: NLLanguage
+    ) -> [Double]? {
+        guard let embedding = sentenceEmbedding(for: language) else { return nil }
 
         let maxContentLength = 2000
         let truncatedContent = content.count > maxContentLength
@@ -315,12 +403,18 @@ final class SearchEmbedding: Sendable {
             : content
         let text = title + ". " + truncatedContent
 
-        return embedding.vector(for: text)
+        vectorLock.lock()
+        let result = embedding.vector(for: text)
+        vectorLock.unlock()
+        return result
     }
 
-    private func generateQueryEmbedding(_ query: String) -> [Double]? {
-        guard let embedding = sentenceEmbedding() else { return nil }
-        return embedding.vector(for: query)
+    private func generateQueryEmbedding(_ query: String, language: NLLanguage) -> [Double]? {
+        guard let embedding = sentenceEmbedding(for: language) else { return nil }
+        vectorLock.lock()
+        let result = embedding.vector(for: query)
+        vectorLock.unlock()
+        return result
     }
 
     // MARK: - Vector Math
