@@ -1,0 +1,5 @@
+config.py
+*.pyc
+*.pyo
+insider/*.md
+release/*.md
