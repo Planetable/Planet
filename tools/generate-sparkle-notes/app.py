@@ -85,6 +85,11 @@ def get_tag_date(tag):
     return _tag_dates_cache.get(tag) or git('log', '-1', '--format=%cs', tag)
 
 
+def get_tag_iso_date(tag):
+    """Return tag creation date in ISO 8601 format."""
+    return git('tag', '-l', '--format=%(creatordate:iso-strict)', tag)
+
+
 # ---------------------------------------------------------------------------
 # Notes helpers
 # ---------------------------------------------------------------------------
@@ -628,7 +633,132 @@ def enqueue_missing():
 
 
 # ---------------------------------------------------------------------------
-# Startup — runs for both `flask run` and `python app.py`
+# Planet article sync
+# ---------------------------------------------------------------------------
+
+_planet_queue = queue.Queue()
+_NUM_PLANET_WORKERS = 2
+
+
+def _find_article_by_title(client, planet_id, tag_name):
+    """Find an article with the tag name as title in the given planet. Returns article ID or None."""
+    results = client.search(tag_name)
+    for a in results.get('articles', []):
+        if a.get('title') == tag_name and a.get('planetID') == planet_id:
+            return a.get('articleID')
+    return None
+
+
+def _planet_sync_worker():
+    """Worker that checks/creates articles in Planet for each tag."""
+    from planet import PlanetClient
+    try:
+        import config
+    except ImportError:
+        return
+    client = PlanetClient(config.PLANET_SERVER)
+    while True:
+        channel, tag_name = _planet_queue.get()
+        try:
+            planet_id = config.PLANET_CHANNELS.get(channel)
+            if not planet_id:
+                continue
+            if _find_article_by_title(client, planet_id, tag_name):
+                continue
+            if not notes_exist(channel, tag_name):
+                continue
+            content = read_notes(channel, tag_name)
+            html = markdown_to_html(content)
+            date = get_tag_iso_date(tag_name)
+            client.create_article(planet_id, title=tag_name, content=html, date=date)
+            log.info('Created Planet article: %s (date: %s)', tag_name, date)
+        except Exception:
+            log.exception('Failed to sync %s to Planet', tag_name)
+        finally:
+            _planet_queue.task_done()
+
+
+def fix_article_dates():
+    """One-off: update existing Planet articles with correct tag creation dates."""
+    from planet import PlanetClient
+    try:
+        import config
+    except ImportError:
+        return
+    client = PlanetClient(config.PLANET_SERVER)
+    fixed = 0
+    for ch in CHANNELS:
+        planet_id = config.PLANET_CHANNELS.get(ch)
+        if not planet_id:
+            continue
+        for tag_name in get_tags_for_channel(ch):
+            article_id = _find_article_by_title(client, planet_id, tag_name)
+            if not article_id:
+                continue
+            date = get_tag_iso_date(tag_name)
+            if not date:
+                continue
+            try:
+                client.update_article(planet_id, article_id, date=date)
+                fixed += 1
+                log.info('Fixed date for %s -> %s', tag_name, date)
+            except Exception:
+                log.exception('Failed to fix date for %s', tag_name)
+    log.info('Fixed dates for %d articles', fixed)
+
+
+def check_planet_sync():
+    """One-off: report which tags are missing articles in Planet."""
+    from planet import PlanetClient
+    try:
+        import config
+    except ImportError:
+        return
+    client = PlanetClient(config.PLANET_SERVER)
+    missing = []
+    found = 0
+    for ch in CHANNELS:
+        planet_id = config.PLANET_CHANNELS.get(ch)
+        if not planet_id:
+            continue
+        tags = get_tags_for_channel(ch)
+        for i, tag_name in enumerate(tags):
+            if _find_article_by_title(client, planet_id, tag_name):
+                found += 1
+                print(f'  OK  {tag_name}', flush=True)
+            else:
+                has_notes = notes_exist(ch, tag_name)
+                missing.append((ch, tag_name, has_notes))
+                print(f'  MISSING  {tag_name} (notes: {has_notes})', flush=True)
+    print(f'\nFound: {found}, Missing: {len(missing)}', flush=True)
+    if missing:
+        print('\nMissing tags:')
+        for ch, tag_name, has_notes in missing:
+            print(f'  {ch}/{tag_name} (notes: {has_notes})')
+
+
+def enqueue_planet_sync():
+    """Queue tags with notes for Planet article sync."""
+    try:
+        import config
+        if not getattr(config, 'PLANET_SERVER', None) or not getattr(config, 'PLANET_CHANNELS', None):
+            return
+    except ImportError:
+        return
+    for ch in CHANNELS:
+        planet_id = config.PLANET_CHANNELS.get(ch)
+        if not planet_id:
+            continue
+        for tag_name in get_tags_for_channel(ch):
+            if notes_exist(ch, tag_name):
+                _planet_queue.put((ch, tag_name))
+    remaining = _planet_queue.qsize()
+    if remaining:
+        log.info('Queued %d tags for Planet sync', remaining)
+
+
+# ---------------------------------------------------------------------------
+# Startup
 # ---------------------------------------------------------------------------
 
 logging.basicConfig(
@@ -637,12 +767,37 @@ logging.basicConfig(
     datefmt='%H:%M:%S',
 )
 
-for _ch in CHANNELS:
-    os.makedirs(os.path.join(APP_DIR, _ch), exist_ok=True)
+_CLI_COMMANDS = {'fix-dates', 'check-sync'}
 
-for _i in range(_NUM_WORKERS):
-    threading.Thread(target=_worker, daemon=True).start()
-enqueue_missing()
+
+def _is_cli():
+    import sys
+    return len(sys.argv) > 1 and sys.argv[1] in _CLI_COMMANDS
+
+
+# Only start background workers when running as a server
+if not _is_cli():
+    for _ch in CHANNELS:
+        os.makedirs(os.path.join(APP_DIR, _ch), exist_ok=True)
+
+    for _i in range(_NUM_WORKERS):
+        threading.Thread(target=_worker, daemon=True).start()
+    enqueue_missing()
+
+    try:
+        import config as _cfg
+        if getattr(_cfg, 'PLANET_SERVER', None) and getattr(_cfg, 'PLANET_CHANNELS', None):
+            for _i in range(_NUM_PLANET_WORKERS):
+                threading.Thread(target=_planet_sync_worker, daemon=True).start()
+            enqueue_planet_sync()
+    except ImportError:
+        pass
 
 if __name__ == '__main__':
-    app.run(debug=True, port=6323, use_reloader=False)
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == 'fix-dates':
+        fix_article_dates()
+    elif len(sys.argv) > 1 and sys.argv[1] == 'check-sync':
+        check_planet_sync()
+    else:
+        app.run(debug=True, port=6323, use_reloader=False)
