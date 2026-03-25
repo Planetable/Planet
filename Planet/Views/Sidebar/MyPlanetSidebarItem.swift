@@ -422,6 +422,13 @@ struct MyPlanetSidebarItem: View {
 
         Button {
             NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(planet.id.uuidString, forType: .string)
+        } label: {
+            Text("Copy UUID")
+        }
+
+        Button {
+            NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(planet.ipns, forType: .string)
         } label: {
             Text("Copy IPNS")
