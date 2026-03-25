@@ -1638,10 +1638,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         if !FileManager.default.fileExists(atPath: publicBasePath.path) {
             try FileManager.default.createDirectory(at: publicBasePath, withIntermediateDirectories: true)
         }
-        if FileManager.default.fileExists(atPath: publicAssetsPath.path) {
-            try FileManager.default.removeItem(at: publicAssetsPath)
+        if FileManager.default.fileExists(atPath: template.assetsPath.path) {
+            if FileManager.default.fileExists(atPath: publicAssetsPath.path) {
+                try FileManager.default.removeItem(at: publicAssetsPath)
+            }
+            try FileManager.default.copyItem(at: template.assetsPath, to: publicAssetsPath)
         }
-        try FileManager.default.copyItem(at: template.assetsPath, to: publicAssetsPath)
         if FileManager.default.fileExists(atPath: avatarPath.path), !FileManager.default.fileExists(atPath: publicAvatarPath.path) {
             try FileManager.default.copyItem(at: avatarPath, to: publicAvatarPath)
         }
