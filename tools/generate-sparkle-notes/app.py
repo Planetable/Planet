@@ -23,6 +23,11 @@ _generating = set()  # tags currently queued or being generated
 _NUM_WORKERS = 2
 _planet_enabled = False
 
+GH_REPO = 'Planetable/Planet'
+_gh_queue = queue.Queue()
+_gh_synced = set()
+_NUM_GH_WORKERS = 2
+
 # Tags cache: { channel: (timestamp, [tags]) }
 _tags_cache = {}
 # Tag dates cache: { tag: "YYYY-MM-DD" }
@@ -41,6 +46,14 @@ def git(*args):
         capture_output=True, text=True,
     )
     return result.stdout.strip()
+
+
+def gh(*args):
+    result = subprocess.run(
+        ['gh', *args],
+        capture_output=True, text=True,
+    )
+    return result
 
 
 def get_tags_for_channel(channel):
@@ -91,6 +104,26 @@ def get_tag_date(tag):
 def get_tag_iso_date(tag):
     """Return tag creation date in ISO 8601 format."""
     return git('tag', '-l', '--format=%(creatordate:iso-strict)', tag)
+
+
+def gh_release_body_is_empty(tag):
+    """True if a GitHub release exists for *tag* and its body is empty."""
+    result = gh('release', 'view', tag, '--repo', GH_REPO, '--json', 'body', '-q', '.body')
+    if result.returncode != 0:
+        return False
+    return result.stdout.strip() == ''
+
+
+def gh_update_release_notes(channel, tag):
+    """Push the local .md notes to a GitHub release. Returns True on success."""
+    path = notes_path(channel, tag)
+    if not os.path.isfile(path):
+        return False
+    result = gh('release', 'edit', tag, '--repo', GH_REPO, '--notes-file', path)
+    if result.returncode != 0:
+        log.warning('gh release edit failed for %s: %s', tag, result.stderr.strip())
+        return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -606,6 +639,8 @@ def _worker():
             if _planet_enabled:
                 _planet_synced.add(tag_name)
                 _planet_queue.put((channel, tag_name))
+            _gh_synced.add(tag_name)
+            _gh_queue.put((channel, tag_name))
         except Exception:
             log.exception('Failed to generate notes for %s', tag_name)
         finally:
@@ -774,6 +809,62 @@ def enqueue_planet_sync():
         log.info('Queued %d tags for Planet sync', queued)
 
 
+# ---------------------------------------------------------------------------
+# GitHub release sync
+# ---------------------------------------------------------------------------
+
+def _gh_sync_worker():
+    """Worker that pushes release notes to empty GitHub releases."""
+    while True:
+        channel, tag_name = _gh_queue.get()
+        try:
+            if not notes_exist(channel, tag_name):
+                continue
+            if not gh_release_body_is_empty(tag_name):
+                continue
+            if gh_update_release_notes(channel, tag_name):
+                log.info('Pushed notes to GitHub release: %s', tag_name)
+            else:
+                log.warning('Failed to push notes to GitHub release: %s', tag_name)
+        except Exception:
+            log.exception('Failed to sync %s to GitHub', tag_name)
+        finally:
+            _gh_queue.task_done()
+
+
+def enqueue_gh_sync():
+    """Queue tags with notes for GitHub release sync (skips already-queued tags)."""
+    queued = 0
+    for ch in CHANNELS:
+        for tag_name in get_tags_for_channel(ch):
+            if notes_exist(ch, tag_name) and tag_name not in _gh_synced:
+                _gh_synced.add(tag_name)
+                _gh_queue.put((ch, tag_name))
+                queued += 1
+    if queued:
+        log.info('Queued %d tags for GitHub sync', queued)
+
+
+def sync_gh():
+    """One-off: push all existing .md notes to empty GitHub releases."""
+    synced = 0
+    skipped = 0
+    for ch in CHANNELS:
+        for tag_name in get_tags_for_channel(ch):
+            if not notes_exist(ch, tag_name):
+                continue
+            if not gh_release_body_is_empty(tag_name):
+                skipped += 1
+                print(f'  SKIP  {tag_name} (no release or body not empty)', flush=True)
+                continue
+            if gh_update_release_notes(ch, tag_name):
+                synced += 1
+                print(f'  OK    {tag_name}', flush=True)
+            else:
+                print(f'  FAIL  {tag_name}', flush=True)
+    print(f'\nSynced: {synced}, Skipped: {skipped}', flush=True)
+
+
 def _periodic_refresh():
     """Periodically discover new tags, generate notes, and sync to Planet."""
     while True:
@@ -784,6 +875,7 @@ def _periodic_refresh():
             _tags_cache.clear()
             enqueue_missing()
             enqueue_planet_sync()
+            enqueue_gh_sync()
         except Exception:
             log.exception('Error during periodic refresh')
 
@@ -798,7 +890,7 @@ logging.basicConfig(
     datefmt='%H:%M:%S',
 )
 
-_CLI_COMMANDS = {'fix-dates', 'check-sync'}
+_CLI_COMMANDS = {'fix-dates', 'check-sync', 'sync-gh'}
 
 
 def _is_cli():
@@ -825,6 +917,10 @@ if not _is_cli():
     except ImportError:
         pass
 
+    for _i in range(_NUM_GH_WORKERS):
+        threading.Thread(target=_gh_sync_worker, daemon=True).start()
+    enqueue_gh_sync()
+
     threading.Thread(target=_periodic_refresh, daemon=True).start()
     log.info('Periodic refresh enabled every %ds', _REFRESH_INTERVAL)
 
@@ -834,5 +930,7 @@ if __name__ == '__main__':
         fix_article_dates()
     elif len(sys.argv) > 1 and sys.argv[1] == 'check-sync':
         check_planet_sync()
+    elif len(sys.argv) > 1 and sys.argv[1] == 'sync-gh':
+        sync_gh()
     else:
         app.run(debug=True, port=6323, use_reloader=False)
