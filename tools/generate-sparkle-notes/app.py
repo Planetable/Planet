@@ -18,8 +18,10 @@ CHANNELS = ['release', 'insider']
 
 # Background generation queue: items are (channel, tag) tuples.
 _gen_queue = queue.Queue()
-_generating = {}  # tag -> True while being generated
+_generating_lock = threading.Lock()
+_generating = set()  # tags currently queued or being generated
 _NUM_WORKERS = 2
+_planet_enabled = False
 
 # Tags cache: { channel: (timestamp, [tags]) }
 _tags_cache = {}
@@ -27,6 +29,7 @@ _tags_cache = {}
 _tag_dates_cache = {}
 _tag_dates_ts = 0.0
 _TAGS_TTL = 60
+_REFRESH_INTERVAL = 300  # re-discover new tags every 5 minutes
 
 # ---------------------------------------------------------------------------
 # Git helpers
@@ -504,7 +507,8 @@ def channel(channel_name):
     for t in tags:
         date = get_tag_date(t)
         has_notes = notes_exist(channel_name, t)
-        is_pending = t in _generating
+        with _generating_lock:
+            is_pending = t in _generating
         tag_info.append((t, date, has_notes, is_pending))
     return _TPL_CHANNEL.render(
         channels=CHANNELS,
@@ -529,7 +533,8 @@ def tag(channel_name, tag_name):
     if notes_exist(channel_name, tag_name):
         notes_html = markdown_to_html(read_notes(channel_name, tag_name))
 
-    is_pending = tag_name in _generating
+    with _generating_lock:
+        is_pending = tag_name in _generating
 
     return _TPL_TAG.render(
         channels=CHANNELS,
@@ -563,7 +568,7 @@ def generate(channel_name, tag_name):
 def tag_status(channel_name, tag_name):
     return jsonify(
         has_notes=notes_exist(channel_name, tag_name),
-        pending=tag_name in _generating,
+        pending=tag_name in _generating,  # GIL-atomic read, lock not needed for single check
     )
 
 
@@ -598,10 +603,14 @@ def _worker():
                 notes = generate_notes_with_claude(commits, prev_tag, tag_name)
                 write_notes(channel, tag_name, notes)
                 log.info('Done: %s', tag_name)
+            if _planet_enabled:
+                _planet_synced.add(tag_name)
+                _planet_queue.put((channel, tag_name))
         except Exception:
             log.exception('Failed to generate notes for %s', tag_name)
         finally:
-            _generating.pop(tag_name, None)
+            with _generating_lock:
+                _generating.discard(tag_name)
             _gen_queue.task_done()
 
 
@@ -622,14 +631,19 @@ def _cleanup_empty_notes():
 def enqueue_missing():
     """Delete empty .md files, then queue all tags without notes."""
     _cleanup_empty_notes()
+    queued = 0
     for ch in CHANNELS:
         for tag_name in get_tags_for_channel(ch):
-            if not notes_exist(ch, tag_name):
-                _generating[tag_name] = True
-                _gen_queue.put((ch, tag_name))
-    remaining = _gen_queue.qsize()
-    if remaining:
-        log.info('Queued %d tags for background generation', remaining)
+            if notes_exist(ch, tag_name):
+                continue
+            with _generating_lock:
+                if tag_name in _generating:
+                    continue
+                _generating.add(tag_name)
+            _gen_queue.put((ch, tag_name))
+            queued += 1
+    if queued:
+        log.info('Queued %d tags for background generation', queued)
 
 
 # ---------------------------------------------------------------------------
@@ -637,6 +651,7 @@ def enqueue_missing():
 # ---------------------------------------------------------------------------
 
 _planet_queue = queue.Queue()
+_planet_synced = set()  # tags already queued for planet sync
 _NUM_PLANET_WORKERS = 2
 
 
@@ -738,23 +753,39 @@ def check_planet_sync():
 
 
 def enqueue_planet_sync():
-    """Queue tags with notes for Planet article sync."""
+    """Queue tags with notes for Planet article sync (skips already-queued tags)."""
     try:
         import config
         if not getattr(config, 'PLANET_SERVER', None) or not getattr(config, 'PLANET_CHANNELS', None):
             return
     except ImportError:
         return
+    queued = 0
     for ch in CHANNELS:
         planet_id = config.PLANET_CHANNELS.get(ch)
         if not planet_id:
             continue
         for tag_name in get_tags_for_channel(ch):
-            if notes_exist(ch, tag_name):
+            if notes_exist(ch, tag_name) and tag_name not in _planet_synced:
+                _planet_synced.add(tag_name)
                 _planet_queue.put((ch, tag_name))
-    remaining = _planet_queue.qsize()
-    if remaining:
-        log.info('Queued %d tags for Planet sync', remaining)
+                queued += 1
+    if queued:
+        log.info('Queued %d tags for Planet sync', queued)
+
+
+def _periodic_refresh():
+    """Periodically discover new tags, generate notes, and sync to Planet."""
+    while True:
+        time.sleep(_REFRESH_INTERVAL)
+        try:
+            log.info('Periodic refresh: checking for new tags')
+            # Clear tags cache so fresh tags are fetched from git
+            _tags_cache.clear()
+            enqueue_missing()
+            enqueue_planet_sync()
+        except Exception:
+            log.exception('Error during periodic refresh')
 
 
 # ---------------------------------------------------------------------------
@@ -787,11 +818,15 @@ if not _is_cli():
     try:
         import config as _cfg
         if getattr(_cfg, 'PLANET_SERVER', None) and getattr(_cfg, 'PLANET_CHANNELS', None):
+            _planet_enabled = True
             for _i in range(_NUM_PLANET_WORKERS):
                 threading.Thread(target=_planet_sync_worker, daemon=True).start()
             enqueue_planet_sync()
     except ImportError:
         pass
+
+    threading.Thread(target=_periodic_refresh, daemon=True).start()
+    log.info('Periodic refresh enabled every %ds', _REFRESH_INTERVAL)
 
 if __name__ == '__main__':
     import sys
