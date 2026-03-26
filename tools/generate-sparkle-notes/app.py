@@ -687,7 +687,24 @@ def enqueue_missing():
 
 _planet_queue = queue.Queue()
 _planet_synced = set()  # tags already queued for planet sync
+_PLANET_CACHE_FILE = os.path.join(APP_DIR, '.planet_synced')
 _NUM_PLANET_WORKERS = 2
+
+
+def _load_planet_cache():
+    """Load previously synced tag names from disk into _planet_synced."""
+    if os.path.isfile(_PLANET_CACHE_FILE):
+        with open(_PLANET_CACHE_FILE) as f:
+            for line in f:
+                tag = line.strip()
+                if tag:
+                    _planet_synced.add(tag)
+
+
+def _save_planet_tag(tag_name):
+    """Append a confirmed-synced tag to the cache file."""
+    with open(_PLANET_CACHE_FILE, 'a') as f:
+        f.write(tag_name + '\n')
 
 
 def _find_article_by_title(client, planet_id, tag_name):
@@ -714,6 +731,7 @@ def _planet_sync_worker():
             if not planet_id:
                 continue
             if _find_article_by_title(client, planet_id, tag_name):
+                _save_planet_tag(tag_name)
                 continue
             if not notes_exist(channel, tag_name):
                 continue
@@ -721,6 +739,7 @@ def _planet_sync_worker():
             html = markdown_to_html(content)
             date = get_tag_iso_date(tag_name)
             client.create_article(planet_id, title=tag_name, content=html, date=date)
+            _save_planet_tag(tag_name)
             log.info('Created Planet article: %s (date: %s)', tag_name, date)
         except Exception:
             log.exception('Failed to sync %s to Planet', tag_name)
@@ -911,6 +930,8 @@ if not _is_cli():
         import config as _cfg
         if getattr(_cfg, 'PLANET_SERVER', None) and getattr(_cfg, 'PLANET_CHANNELS', None):
             _planet_enabled = True
+            _load_planet_cache()
+            log.info('Loaded %d cached Planet-synced tags', len(_planet_synced))
             for _i in range(_NUM_PLANET_WORKERS):
                 threading.Thread(target=_planet_sync_worker, daemon=True).start()
             enqueue_planet_sync()
