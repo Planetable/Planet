@@ -255,6 +255,8 @@ final class MyJSONDirectoryMonitor {
     @Published var isConfiguringMint = false
     @Published var isConfiguringAggregation = false
     @Published var isShowingMyArticleSettings = false
+    @Published var isShowingRelatedArticles = false
+    @Published var relatedArticleSource: ArticleModel? = nil
 
     @Published var isShowingDeleteMyArticleConfirmation = false
     @Published var deletingMyArticle: MyArticleModel?

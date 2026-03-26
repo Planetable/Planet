@@ -512,6 +512,7 @@
 		6AFCF7E42B7353FE002299BA /* DequeModule in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7E32B7353FE002299BA /* DequeModule */; };
 		6AFCF7E62B7353FE002299BA /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFCF7E52B7353FE002299BA /* OrderedCollections */; };
 		6AFCF7E72B737371002299BA /* TemplateMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC889412B71D4200090D355 /* TemplateMonitor.swift */; };
+		71C58E70CF3E3F8A86F9ADF4 /* RelatedArticlesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CE71A58A58525049CC222C6 /* RelatedArticlesView.swift */; };
 		7211413A9B3CC77620629D22 /* ViewUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721143C73AEAD5F0C049DF86 /* ViewUtils.swift */; };
 		7211421E15A5A630DF93A519 /* MyPlanetInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721144D264DD084A74B49BF8 /* MyPlanetInfoView.swift */; };
 		72114265702BCDF356C98046 /* FollowingPlanetAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721140CF1813A5B4340B90F3 /* FollowingPlanetAvatarView.swift */; };
@@ -789,6 +790,7 @@
 		342A67E3EAD082AA10974830 /* NaturalLanguage.framework */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.framework; name = NaturalLanguage.framework; path = System/Library/Frameworks/NaturalLanguage.framework; sourceTree = SDKROOT; };
 		44BF4852CA45DC20EE145C58 /* SearchIndex.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchIndex.swift; sourceTree = "<group>"; };
 		5274E7C86A55DA0BB03CE7EF /* CloudflarePagesLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudflarePagesLogger.swift; sourceTree = "<group>"; };
+		5CE71A58A58525049CC222C6 /* RelatedArticlesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RelatedArticlesView.swift; sourceTree = "<group>"; };
 		6A03269B2C81C49100FEDD55 /* MyPlanetDonationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetDonationSettingsView.swift; sourceTree = "<group>"; };
 		6A03269E2C81DF2000FEDD55 /* String+EthereumChecksumAddress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+EthereumChecksumAddress.swift"; sourceTree = "<group>"; };
 		6A0624D12876BF130014DDDD /* MigrationProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationProgressView.swift; sourceTree = "<group>"; };
@@ -1631,6 +1633,7 @@
 				7F734B8BCC1EF5CD62FD9670 /* HybridSearch.swift */,
 				CB6EC2B7EEF3EF83DA342363 /* SearchDatabase.swift */,
 				C5461C37C5F0484513C22072 /* PlanetStore+Spotlight.swift */,
+				5CE71A58A58525049CC222C6 /* RelatedArticlesView.swift */,
 			);
 			path = Search;
 			sourceTree = "<group>";
@@ -2483,6 +2486,7 @@
 				8F33EB5B385321311DA2AF54 /* AppLogView.swift in Sources */,
 				A14E34849B8C45E69780141C /* SearchDatabase.swift in Sources */,
 				4506F49AF8AF108D865ABC9E /* PlanetStore+Spotlight.swift in Sources */,
+				71C58E70CF3E3F8A86F9ADF4 /* RelatedArticlesView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

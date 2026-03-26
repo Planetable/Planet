@@ -404,6 +404,139 @@ final class SearchEmbedding: Sendable {
         }
     }
 
+    // MARK: - Find Related Articles
+
+    /// Find articles semantically similar to the given article using stored embeddings.
+    func findRelated(articleID: UUID, limit: Int = 10) -> [SearchResult] {
+        guard let db else { return [] }
+        guard !Task.isCancelled else { return [] }
+
+        let sourceID = articleID.uuidString
+
+        do {
+            // Phase 0: Read source article's embedding and language.
+            guard let sourceRow = try db.read({ db in
+                try Row.fetchOne(
+                    db,
+                    sql: "SELECT embedding, language FROM vectors WHERE article_id = ?",
+                    arguments: [sourceID]
+                )
+            }),
+            let sourceBlob = sourceRow["embedding"] as? Data,
+            let langTag = sourceRow["language"] as? String
+            else {
+                return []
+            }
+
+            let sourceVector = blobToFloatVector(sourceBlob)
+            guard !sourceVector.isEmpty else { return [] }
+            guard !Task.isCancelled else { return [] }
+
+            // Phase 1: Stream same-language embeddings, compute cosine similarity.
+            var topK: [(articleID: String, similarity: Double)] = []
+            var minSimilarity: Float = 0.5
+
+            try db.read { db in
+                let cursor = try Row.fetchCursor(
+                    db,
+                    sql: """
+                        SELECT v.article_id, v.embedding
+                        FROM vectors v
+                        JOIN articles a ON a.article_id = v.article_id
+                        WHERE v.language = ? AND v.article_id != ?
+                        """,
+                    arguments: [langTag, sourceID]
+                )
+
+                var index = 0
+                while let row = try cursor.next() {
+                    if index % 64 == 0, Task.isCancelled { return }
+                    index += 1
+
+                    guard let candidateID = row["article_id"] as? String,
+                          let blob = row["embedding"] as? Data
+                    else { continue }
+
+                    let candidateVector = blobToFloatVector(blob)
+                    guard candidateVector.count == sourceVector.count else { continue }
+
+                    let similarity = cosineSimilarityFloat(sourceVector, candidateVector)
+                    guard similarity > minSimilarity else { continue }
+
+                    topK.append((candidateID, Double(similarity)))
+
+                    if topK.count >= limit * 2 {
+                        topK.sort { $0.similarity > $1.similarity }
+                        topK.removeSubrange(limit...)
+                        minSimilarity = Float(topK.last?.similarity ?? 0.5)
+                    }
+                }
+            }
+
+            guard !topK.isEmpty, !Task.isCancelled else { return [] }
+
+            topK.sort { $0.similarity > $1.similarity }
+            if topK.count > limit { topK.removeSubrange(limit...) }
+
+            // Phase 2: Fetch metadata for top-K.
+            let topIDs = topK.map(\.articleID)
+            let similarityByID = Dictionary(
+                uniqueKeysWithValues: topK.map { ($0.articleID, $0.similarity) }
+            )
+            let placeholders = topIDs.map { _ in "?" }.joined(separator: ",")
+
+            let metadataRows = try db.read { db in
+                try Row.fetchAll(
+                    db,
+                    sql: """
+                        SELECT article_id, planet_id, planet_name, planet_kind,
+                               title, content, preview_text, created_at
+                        FROM articles
+                        WHERE article_id IN (\(placeholders))
+                        """,
+                    arguments: StatementArguments(topIDs)
+                )
+            }
+
+            var results: [SearchResult] = metadataRows.compactMap { row -> SearchResult? in
+                guard let articleIDString = row["article_id"] as? String,
+                      let aid = UUID(uuidString: articleIDString),
+                      let planetIDString = row["planet_id"] as? String,
+                      let planetID = UUID(uuidString: planetIDString),
+                      let planetName = row["planet_name"] as? String,
+                      let planetKindRaw = row["planet_kind"] as? Int64,
+                      let title = row["title"] as? String,
+                      let content = row["content"] as? String,
+                      let createdAt = row["created_at"] as? Double,
+                      let similarity = similarityByID[articleIDString]
+                else { return nil }
+
+                let planetKind: PlanetKind = planetKindRaw == 0 ? .my : .following
+                let created = Date(timeIntervalSinceReferenceDate: createdAt)
+                let preview = row["preview_text"] as? String
+                let snippet = SearchIndex.makeSnippet(
+                    content: content, previewText: preview, query: ""
+                )
+
+                return SearchResult(
+                    articleID: aid, articleCreated: created,
+                    title: title, preview: snippet,
+                    planetID: planetID, planetName: planetName,
+                    planetKind: planetKind, relevanceScore: similarity
+                )
+            }
+
+            results.sort { ($0.relevanceScore ?? 0) > ($1.relevanceScore ?? 0) }
+            return results
+        } catch {
+            logger.error("findRelated failed: \(error.localizedDescription)")
+            PlanetLogger.log(
+                "findRelated failed: \(error.localizedDescription)", level: .error
+            )
+            return []
+        }
+    }
+
     // MARK: - NLEmbedding
 
     private func generateEmbedding(

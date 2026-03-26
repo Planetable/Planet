@@ -96,6 +96,15 @@ struct FollowingArticleItemView: View {
                         Text("Remove Star")
                     }
                 }
+                Divider()
+                Button {
+                    PlanetStore.shared.relatedArticleSource = article
+                    PlanetStore.shared.isShowingRelatedArticles = true
+                } label: {
+                    Image(systemName: "doc.text.magnifyingglass")
+                    Text("Find Related Articles")
+                }
+                Divider()
                 Button {
                     if let url = article.browserURL {
                         NSPasteboard.general.clearContents()

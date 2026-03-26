@@ -219,6 +219,8 @@ struct MyArticleGridView: View {
                 }
             }
 
+            Divider()
+
             Button {
                 isDeleting = true
             } label: {

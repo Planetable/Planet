@@ -149,6 +149,9 @@ struct PlanetMainView: View {
         .sheet(isPresented: $planetStore.isShowingSearch) {
             SearchView()
         }
+        .sheet(isPresented: $planetStore.isShowingRelatedArticles) {
+            RelatedArticlesView()
+        }
         .sheet(isPresented: $planetStore.isShowingIPFSOpen) {
             IPFSOpenView()
         }

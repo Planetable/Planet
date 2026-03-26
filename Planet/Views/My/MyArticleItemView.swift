@@ -111,7 +111,13 @@ struct MyArticleItemView: View {
                         Image(systemName: "gear")
                         Text("Settings")
                     }
-
+                    Button {
+                        PlanetStore.shared.relatedArticleSource = article
+                        PlanetStore.shared.isShowingRelatedArticles = true
+                    } label: {
+                        Image(systemName: "doc.text.magnifyingglass")
+                        Text("Find Related Articles")
+                    }
                     Divider()
                 }
                 else {
