@@ -5,6 +5,7 @@
 //  Created by Xin Liu on 11/5/23.
 //
 
+import Dispatch
 import Foundation
 
 /// Sub processes to be executed from MyArticleModel.savePublic()
@@ -232,20 +233,39 @@ extension MyArticleModel {
     }
 
     /// Render article HTML
-    func processArticleHTML() throws {
+    func processArticleHTML() throws -> ArticleHTMLPerfBreakdown {
         guard let template = planet.template else {
             throw PlanetError.MissingTemplateError
         }
 
-        let articleHTML = try template.render(article: self)
+        let totalStartedAt = DispatchTime.now().uptimeNanoseconds
+
+        var mainRenderPerf = ArticleTemplateRenderPerfBreakdown()
+        let articleHTML = try template.render(article: self, perf: &mainRenderPerf)
+        let mainWriteStartedAt = DispatchTime.now().uptimeNanoseconds
         try articleHTML.data(using: .utf8)?.write(to: publicIndexPath, options: .atomic)
+        let mainWriteDuration = DispatchTime.now().uptimeNanoseconds - mainWriteStartedAt
         debugPrint("HTML for \(self.title) saved to \(publicIndexPath.path)")
 
+        var simpleRenderPerf: ArticleTemplateRenderPerfBreakdown? = nil
+        var simpleWriteDuration: UInt64? = nil
         if template.hasSimpleHTML {
-            let simpleHTML = try template.render(article: self, forSimpleHTML: true)
+            var perf = ArticleTemplateRenderPerfBreakdown()
+            let simpleHTML = try template.render(article: self, forSimpleHTML: true, perf: &perf)
+            let simpleWriteStartedAt = DispatchTime.now().uptimeNanoseconds
             try simpleHTML.data(using: .utf8)?.write(to: publicSimplePath, options: .atomic)
+            simpleWriteDuration = DispatchTime.now().uptimeNanoseconds - simpleWriteStartedAt
+            simpleRenderPerf = perf
             debugPrint("Simple HTML for \(self.title) saved to \(publicSimplePath.path)")
         }
+
+        return ArticleHTMLPerfBreakdown(
+            mainRender: mainRenderPerf,
+            mainWriteDuration: mainWriteDuration,
+            simpleRender: simpleRenderPerf,
+            simpleWriteDuration: simpleWriteDuration,
+            totalDuration: DispatchTime.now().uptimeNanoseconds - totalStartedAt
+        )
     }
 
     /// Process hero grid
@@ -296,7 +316,7 @@ extension MyArticleModel {
         }
         saveMarkdownInBackground()
         try processContent()
-        try processArticleHTML()
+        _ = try processArticleHTML()
     }
 
     /// Complete the remaining savePublic work that was skipped by `savePublicMinimal()`:
@@ -321,5 +341,55 @@ extension MyArticleModel {
             debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
             NotificationCenter.default.post(name: .myArticleBuilt, object: self)
         }
+    }
+}
+
+struct ArticleHTMLPerfBreakdown {
+    let mainRender: ArticleTemplateRenderPerfBreakdown
+    let mainWriteDuration: UInt64
+    let simpleRender: ArticleTemplateRenderPerfBreakdown?
+    let simpleWriteDuration: UInt64?
+    let totalDuration: UInt64
+
+    func perfFields() -> [String] {
+        var fields = [
+            "article_html_total_breakdown_ms=\(PerfLogger.milliseconds(totalDuration))",
+            "article_html_main_markdown_ms=\(PerfLogger.milliseconds(mainRender.markdownDuration))",
+            "article_html_main_about_ms=\(PerfLogger.milliseconds(mainRender.aboutDuration))",
+            "article_html_main_context_ms=\(PerfLogger.milliseconds(mainRender.contextDuration))",
+            "article_html_main_context_has_podcast_ms=\(PerfLogger.milliseconds(mainRender.contextHasPodcastDuration))",
+            "article_html_main_context_public_planet_ms=\(PerfLogger.milliseconds(mainRender.contextPublicPlanetDuration))",
+            "article_html_main_context_site_navigation_ms=\(PerfLogger.milliseconds(mainRender.contextSiteNavigationDuration))",
+            "article_html_main_context_has_avatar_ms=\(PerfLogger.milliseconds(mainRender.contextHasAvatarDuration))",
+            "article_html_main_context_user_settings_ms=\(PerfLogger.milliseconds(mainRender.contextUserSettingsDuration))",
+            "article_html_main_context_public_article_ms=\(PerfLogger.milliseconds(mainRender.contextPublicArticleDuration))",
+            "article_html_main_context_style_css_hash_ms=\(PerfLogger.milliseconds(mainRender.contextStyleCSSHashDuration))",
+            "article_html_main_custom_code_ms=\(PerfLogger.milliseconds(mainRender.customCodeDuration))",
+            "article_html_main_stencil_ms=\(PerfLogger.milliseconds(mainRender.stencilDuration))",
+            "article_html_main_write_ms=\(PerfLogger.milliseconds(mainWriteDuration))",
+            "article_html_simple_enabled=\(simpleRender == nil ? 0 : 1)",
+        ]
+
+        if let simpleRender {
+            fields.append(contentsOf: [
+                "article_html_simple_markdown_ms=\(PerfLogger.milliseconds(simpleRender.markdownDuration))",
+                "article_html_simple_about_ms=\(PerfLogger.milliseconds(simpleRender.aboutDuration))",
+                "article_html_simple_context_ms=\(PerfLogger.milliseconds(simpleRender.contextDuration))",
+                "article_html_simple_context_has_podcast_ms=\(PerfLogger.milliseconds(simpleRender.contextHasPodcastDuration))",
+                "article_html_simple_context_public_planet_ms=\(PerfLogger.milliseconds(simpleRender.contextPublicPlanetDuration))",
+                "article_html_simple_context_site_navigation_ms=\(PerfLogger.milliseconds(simpleRender.contextSiteNavigationDuration))",
+                "article_html_simple_context_has_avatar_ms=\(PerfLogger.milliseconds(simpleRender.contextHasAvatarDuration))",
+                "article_html_simple_context_user_settings_ms=\(PerfLogger.milliseconds(simpleRender.contextUserSettingsDuration))",
+                "article_html_simple_context_public_article_ms=\(PerfLogger.milliseconds(simpleRender.contextPublicArticleDuration))",
+                "article_html_simple_context_style_css_hash_ms=\(PerfLogger.milliseconds(simpleRender.contextStyleCSSHashDuration))",
+                "article_html_simple_custom_code_ms=\(PerfLogger.milliseconds(simpleRender.customCodeDuration))",
+                "article_html_simple_stencil_ms=\(PerfLogger.milliseconds(simpleRender.stencilDuration))",
+            ])
+        }
+        if let simpleWriteDuration {
+            fields.append("article_html_simple_write_ms=\(PerfLogger.milliseconds(simpleWriteDuration))")
+        }
+
+        return fields
     }
 }

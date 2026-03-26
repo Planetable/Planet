@@ -6,9 +6,9 @@
 //
 
 import AVKit
+import Dispatch
 import Foundation
 import SwiftUI
-import OrderedCollections
 import UniformTypeIdentifiers
 
 
@@ -59,132 +59,98 @@ extension MyArticleModel {
 
     /// Save the article into UUID/index.html along with its attachments.
     func savePublic() throws {
-        let started: Date = Date()
-        var marks: OrderedDictionary<String, Date> = ["Started": started]
-
-        removeDSStore()
-
-        if !FileManager.default.fileExists(atPath: publicBasePath.path) {
-            try FileManager.default.createDirectory(at: publicBasePath, withIntermediateDirectories: true)
-        }
-
-        saveMarkdownInBackground()
-
-        try processContent()
-        marks.recordEvent("ContentRendered", for: self.title)
-
-        // MARK: - Cover Image `_cover.png`
-
-        try saveCoverImage()
-        savePreviewImageFromPDF()
-        marks.recordEvent("SaveCoverImage", for: self.title)
-
-        let coverImageCID: String? = getCoverImageCIDIfNeeded()
-        marks.recordEvent("CoverImageCID", for: self.title)
-
-        processAttachmentCIDIfNeeded()
-        marks.recordEvent("AttachmentCID", for: self.title)
-
-        // MARK: - Video
-
-        processVideoThumbnail()
-        marks.recordEvent("VideoThumbnail", for: self.title)
-
-        // MARK: - NFT
-
-        try processNFTMetadata(with: coverImageCID)
-        marks.recordEvent("NFTMetadata", for: self.title)
-
-        // MARK: - Render Markdown
-
-        try processArticleHTML()
-        marks.recordEvent("ArticleHTML", for: self.title)
-
-        // MARK: - Hero Grid
-        processHeroGrid()
-        marks.recordEvent("HeroGrid", for: self.title)
-
-        // MARK: - Hero Image Size
-        processHeroImageSize()
-        marks.recordEvent("HeroImageSize", for: self.title)
-
-        try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath, options: .atomic)
-
-        // MARK: - Slug copy
-        processSlug()
-        marks.recordEvent("ArticleSlug", for: self.title)
-
-        do {
-            try self.planet.saveOps()
-        }
-        catch {
-            debugPrint("failed to save ops to file: \(error)")
-        }
-
-        // MARK: - Send notification when done
-        Task { @MainActor in
-            debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
-            NotificationCenter.default.post(name: .myArticleBuilt, object: self)
-        }
+        try savePublicInternal(saveOpsAfterwards: true)
     }
 
     /// Save the article concurrently during rebuild. HTML rendering runs in parallel
     /// and is awaited before returning, ensuring all files are written before IPFS publish.
     func savePublicConcurrently() throws {
-        let started: Date = Date()
-        var marks: OrderedDictionary<String, Date> = ["Started": started]
+        try savePublicInternal(saveOpsAfterwards: false)
+    }
 
-        removeDSStore()
+    private func savePublicInternal(saveOpsAfterwards: Bool) throws {
+        var perfTrace = ArticlePerfTrace(
+            planetID: self.planet.id,
+            articleID: self.id,
+            articleTitle: self.title,
+            enabled: self.planet.isRebuilding
+        )
 
-        if !FileManager.default.fileExists(atPath: publicBasePath.path) {
-            try FileManager.default.createDirectory(at: publicBasePath, withIntermediateDirectories: true)
+        do {
+            removeDSStore()
+
+            if !FileManager.default.fileExists(atPath: publicBasePath.path) {
+                try FileManager.default.createDirectory(
+                    at: publicBasePath,
+                    withIntermediateDirectories: true
+                )
+            }
+
+            saveMarkdownInBackground()
+
+            try processContent()
+            perfTrace.recordStep(field: "content_rendered_ms", label: "ContentRendered")
+
+            // MARK: - Cover Image `_cover.png`
+
+            try saveCoverImage()
+            savePreviewImageFromPDF()
+            perfTrace.recordStep(field: "save_cover_image_ms", label: "SaveCoverImage")
+
+            let coverImageCID: String? = getCoverImageCIDIfNeeded()
+            perfTrace.recordStep(field: "cover_image_cid_ms", label: "CoverImageCID")
+
+            processAttachmentCIDIfNeeded()
+            perfTrace.recordStep(field: "attachment_cid_ms", label: "AttachmentCID")
+
+            // MARK: - Video
+
+            processVideoThumbnail()
+            perfTrace.recordStep(field: "video_thumbnail_ms", label: "VideoThumbnail")
+
+            // MARK: - NFT
+
+            try processNFTMetadata(with: coverImageCID)
+            perfTrace.recordStep(field: "nft_metadata_ms", label: "NFTMetadata")
+
+            // MARK: - Render Markdown
+
+            let articleHTMLPerf = try processArticleHTML()
+            perfTrace.recordStep(
+                field: "article_html_ms",
+                label: "ArticleHTML",
+                extraFields: articleHTMLPerf.perfFields()
+            )
+
+            // MARK: - Hero Grid
+            processHeroGrid()
+            perfTrace.recordStep(field: "hero_grid_ms", label: "HeroGrid")
+
+            // MARK: - Hero Image Size
+            processHeroImageSize()
+            perfTrace.recordStep(field: "hero_image_size_ms", label: "HeroImageSize")
+
+            try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath, options: .atomic)
+
+            // MARK: - Slug copy
+            processSlug()
+            perfTrace.recordStep(field: "article_slug_ms", label: "ArticleSlug")
+
+            if saveOpsAfterwards {
+                do {
+                    try self.planet.saveOps()
+                }
+                catch {
+                    debugPrint("failed to save ops to file: \(error)")
+                }
+            }
+        }
+        catch {
+            perfTrace.finish(result: "failure", error: error)
+            throw error
         }
 
-        saveMarkdownInBackground()
-
-        try processContent()
-        marks.recordEvent("ContentRendered", for: self.title)
-
-        // MARK: - Cover Image `_cover.png`
-
-        try saveCoverImage()
-        savePreviewImageFromPDF()
-        marks.recordEvent("SaveCoverImage", for: self.title)
-
-        let coverImageCID: String? = getCoverImageCIDIfNeeded()
-        marks.recordEvent("CoverImageCID", for: self.title)
-
-        processAttachmentCIDIfNeeded()
-        marks.recordEvent("AttachmentCID", for: self.title)
-
-        // MARK: - Video
-
-        processVideoThumbnail()
-        marks.recordEvent("VideoThumbnail", for: self.title)
-
-        // MARK: - NFT
-
-        try processNFTMetadata(with: coverImageCID)
-        marks.recordEvent("NFTMetadata", for: self.title)
-
-        // MARK: - Render Markdown
-
-        try processArticleHTML()
-        marks.recordEvent("ArticleHTML", for: self.title)
-
-        // MARK: - Hero Grid
-        processHeroGrid()
-        marks.recordEvent("HeroGrid", for: self.title)
-
-        // MARK: - Hero Image Size
-        processHeroImageSize()
-        marks.recordEvent("HeroImageSize", for: self.title)
-
-        try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath, options: .atomic)
-
-        // MARK: - Slug copy
-        processSlug()
-        marks.recordEvent("ArticleSlug", for: self.title)
+        perfTrace.finish(result: "success")
 
         // MARK: - Send notification when done
         Task { @MainActor in
@@ -705,13 +671,56 @@ extension MyArticleModel {
     }
 }
 
-extension OrderedDictionary where Key == String, Value == Date {
-    fileprivate mutating func recordEvent(_ event: String, for title: String) {
-        let previousEventTime = self.values.last ?? Date()
-        let currentTime = Date()
-        self[event] = currentTime
+private struct ArticlePerfTrace {
+    private let planetID: UUID
+    private let articleID: UUID
+    private let articleTitle: String
+    private let enabled: Bool
+    private let startedAt: UInt64
+    private var previousEventAt: UInt64
+    private var stepFields: [String] = []
+
+    init(planetID: UUID, articleID: UUID, articleTitle: String, enabled: Bool) {
+        let startedAt = DispatchTime.now().uptimeNanoseconds
+        self.planetID = planetID
+        self.articleID = articleID
+        self.articleTitle = articleTitle
+        self.enabled = enabled
+        self.startedAt = startedAt
+        self.previousEventAt = startedAt
+    }
+
+    mutating func recordStep(field: String, label: String, extraFields: [String] = []) {
+        let currentTime = DispatchTime.now().uptimeNanoseconds
+        let elapsed = currentTime - previousEventAt
+        previousEventAt = currentTime
         debugPrint(
-            "\(event) for \(title) took: \(String(format: "%.3f", currentTime.timeIntervalSince(previousEventTime))) seconds"
+            "\(label) for \(articleTitle) took: \(String(format: "%.3f", Double(elapsed) / 1_000_000_000)) seconds"
         )
+        guard enabled else {
+            return
+        }
+        stepFields.append("\(field)=\(PerfLogger.milliseconds(elapsed))")
+        stepFields.append(contentsOf: extraFields)
+    }
+
+    mutating func finish(result: String, error: Error? = nil) {
+        guard enabled else {
+            return
+        }
+        let total = DispatchTime.now().uptimeNanoseconds - startedAt
+        var fields: [String] = [
+            "scope=article_rebuild",
+            "planet_id=\(planetID.uuidString)",
+            "article_id=\(articleID.uuidString)",
+            "article_title=\(PerfLogger.quoted(articleTitle))",
+            "result=\(result)",
+            "total_ms=\(PerfLogger.milliseconds(total))",
+        ]
+        fields.append(contentsOf: stepFields)
+        if let error {
+            fields.append("error=\(PerfLogger.quoted(String(describing: error)))")
+        }
+        PerfLogger.record(fields)
     }
 }

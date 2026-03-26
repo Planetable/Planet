@@ -14,6 +14,22 @@ class CustomColor {
     var g: Double
     var b: Double
 
+    static func supportsHexFilterComputation(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized: String
+        if trimmed.hasPrefix("#") {
+            normalized = String(trimmed.dropFirst())
+        }
+        else {
+            normalized = trimmed
+        }
+        guard normalized.count == 6 else {
+            return false
+        }
+        let hexCharacters = CharacterSet(charactersIn: "0123456789abcdefABCDEF")
+        return normalized.unicodeScalars.allSatisfy { hexCharacters.contains($0) }
+    }
+
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         if hex.count == 6 {

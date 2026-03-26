@@ -66,3 +66,69 @@ enum PlanetLogger {
         case error = "ERROR"
     }
 }
+
+enum PerfLogger {
+    private static let logURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        .appendingPathComponent("perf.log", isDirectory: false)
+    private static let queue = DispatchQueue(label: "xyz.planetable.PerfLogger")
+    private static let formatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    static func log(_ message: String) {
+        queue.async {
+            let normalized = message.replacingOccurrences(of: "\r\n", with: "\n")
+            let lines = normalized.split(separator: "\n", omittingEmptySubsequences: false)
+            guard !lines.isEmpty else { return }
+
+            let timestamp = formatter.string(from: Date())
+            let payload = lines.map { "[\(timestamp)] \($0)" }.joined(separator: "\n") + "\n"
+            guard let data = payload.data(using: .utf8) else { return }
+
+            if !FileManager.default.fileExists(atPath: logURL.path) {
+                _ = FileManager.default.createFile(atPath: logURL.path, contents: nil)
+            }
+
+            if let handle = try? FileHandle(forWritingTo: logURL) {
+                handle.seekToEndOfFile()
+                handle.write(data)
+                handle.closeFile()
+            }
+        }
+    }
+
+    static var logPath: String { logURL.path }
+
+    static func readAll() -> String {
+        guard let data = try? Data(contentsOf: logURL) else { return "" }
+        return String(data: data, encoding: .utf8) ?? ""
+    }
+
+    static func clear() {
+        queue.async {
+            if let handle = try? FileHandle(forWritingTo: logURL) {
+                handle.truncateFile(atOffset: 0)
+                handle.closeFile()
+            }
+        }
+    }
+
+    static func record(_ fields: [String]) {
+        log(fields.joined(separator: " "))
+    }
+
+    static func quoted(_ value: String?) -> String {
+        let sanitized = (value ?? "")
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\n", with: "\\n")
+        return "\"\(sanitized)\""
+    }
+
+    static func milliseconds(_ nanoseconds: UInt64) -> String {
+        String(format: "%.3f", Double(nanoseconds) / 1_000_000)
+    }
+}
