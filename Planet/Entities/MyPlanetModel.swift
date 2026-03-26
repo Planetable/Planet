@@ -2706,6 +2706,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func delete() throws {
+        PlanetStore.removeSpotlightItems(forPlanetID: id)
         try FileManager.default.removeItem(at: basePath)
         try FileManager.default.removeItem(at: publicBasePath)
         Task(priority: .utility) {

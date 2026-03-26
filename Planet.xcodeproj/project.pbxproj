@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		0C84F068A74BE01EAE71C0CC /* SSHRsyncLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E9E61088FF7A043F46E188 /* SSHRsyncLogger.swift */; };
+		121D7A3F81067B6B1DD56B18 /* CoreSpotlight.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CCA533E0D21FAAEEEB5CE71 /* CoreSpotlight.framework */; };
+		19D7E699A0AB68835C7AF72C /* CoreSpotlight.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CCA533E0D21FAAEEEB5CE71 /* CoreSpotlight.framework */; };
 		1E3377015D2C28BB632C1C0D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = DB98A5B7842272F2A63A4413 /* GRDB */; };
 		22469B1224CD5FA5E45FCA19 /* MarkdownListAutocomplete.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F69959854C6EF5023293BA /* MarkdownListAutocomplete.swift */; };
 		298FFEDEEA23D8BB63C18E24 /* HybridSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F734B8BCC1EF5CD62FD9670 /* HybridSearch.swift */; };
@@ -355,6 +357,7 @@
 		2AFDF8AA2A3A1E8500386B9A /* ASMediaView in Frameworks */ = {isa = PBXBuildFile; productRef = 2AFDF8A92A3A1E8500386B9A /* ASMediaView */; };
 		2AFFD51B28AD760400EDB020 /* HelpLinkButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */; };
 		341E5891B8924C1EE584CD58 /* MarkdownEditorTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03E9DC5C055F824D215A8981 /* MarkdownEditorTextView.swift */; };
+		4506F49AF8AF108D865ABC9E /* PlanetStore+Spotlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5461C37C5F0484513C22072 /* PlanetStore+Spotlight.swift */; };
 		5267EF31EEDD58B99CEB86DA /* MarkdownListAutocomplete.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F69959854C6EF5023293BA /* MarkdownListAutocomplete.swift */; };
 		5F244DE6913A63FF00000004 /* BuildFile in Sources */ = {isa = PBXBuildFile; };
 		5F244DE6913A63FF00000005 /* BuildFile in Sources */ = {isa = PBXBuildFile; };
@@ -558,6 +561,7 @@
 		BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BB99C7062847AC9F001836B2 /* Sparkle */; };
 		BBAE651B28987A31007E1818 /* HTMLEntities in Frameworks */ = {isa = PBXBuildFile; productRef = BBAE651A28987A31007E1818 /* HTMLEntities */; };
 		BBC831AB2836239300CE1F67 /* PlanetSiteTemplates in Frameworks */ = {isa = PBXBuildFile; productRef = BBC831AA2836239300CE1F67 /* PlanetSiteTemplates */; };
+		BF9F577F9FFA8A77F474CF1A /* PlanetStore+Spotlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5461C37C5F0484513C22072 /* PlanetStore+Spotlight.swift */; };
 		C1A2B3D4E5F6A7B8C9D0E1F3 /* SleepPreventer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F6A7B8C9D0E1F2 /* SleepPreventer.swift */; };
 		C1A2B3D4E5F6A7B8C9D0E1F4 /* SleepPreventer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F6A7B8C9D0E1F2 /* SleepPreventer.swift */; };
 		CD1BD67C0C95FD5A19DF5E11 /* IPFSLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E2EF7C3F97DE6E2D15B60D /* IPFSLogger.swift */; };
@@ -781,6 +785,7 @@
 		2AFB897329BA35D6003D893E /* PlanetKeyManager+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlanetKeyManager+Extension.swift"; sourceTree = "<group>"; };
 		2AFB897529BA3ED8003D893E /* PlanetKeyManagerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetKeyManagerModel.swift; sourceTree = "<group>"; };
 		2AFFD51A28AD760400EDB020 /* HelpLinkButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpLinkButton.swift; sourceTree = "<group>"; };
+		2CCA533E0D21FAAEEEB5CE71 /* CoreSpotlight.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreSpotlight.framework; path = System/Library/Frameworks/CoreSpotlight.framework; sourceTree = SDKROOT; };
 		342A67E3EAD082AA10974830 /* NaturalLanguage.framework */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.framework; name = NaturalLanguage.framework; path = System/Library/Frameworks/NaturalLanguage.framework; sourceTree = SDKROOT; };
 		44BF4852CA45DC20EE145C58 /* SearchIndex.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchIndex.swift; sourceTree = "<group>"; };
 		5274E7C86A55DA0BB03CE7EF /* CloudflarePagesLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudflarePagesLogger.swift; sourceTree = "<group>"; };
@@ -917,6 +922,7 @@
 		BBC60A1A2803931C007A42D0 /* Planet v5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v5.xcdatamodel"; sourceTree = "<group>"; };
 		BBC831AC2837075600CE1F67 /* Planet v7.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v7.xcdatamodel"; sourceTree = "<group>"; };
 		C1A2B3D4E5F6A7B8C9D0E1F2 /* SleepPreventer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepPreventer.swift; sourceTree = "<group>"; };
+		C5461C37C5F0484513C22072 /* PlanetStore+Spotlight.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "PlanetStore+Spotlight.swift"; sourceTree = "<group>"; };
 		C8E2EF7C3F97DE6E2D15B60D /* IPFSLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IPFSLogger.swift; sourceTree = "<group>"; };
 		CB6EC2B7EEF3EF83DA342363 /* SearchDatabase.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchDatabase.swift; sourceTree = "<group>"; };
 		CF0A0001303909CF00000000 /* CloudflarePages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflarePages.swift; sourceTree = "<group>"; };
@@ -969,6 +975,7 @@
 				2A95E6C12A19A48C001288B8 /* WalletConnectNetworking in Frameworks */,
 				6AFCF7E62B7353FE002299BA /* OrderedCollections in Frameworks */,
 				2A95E6D32A19A48C001288B8 /* Web3 in Frameworks */,
+				19D7E699A0AB68835C7AF72C /* CoreSpotlight.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1005,6 +1012,7 @@
 				6AB6E513291527B800F17328 /* WalletConnectNetworking in Frameworks */,
 				1E3377015D2C28BB632C1C0D /* GRDB in Frameworks */,
 				2A3A4708418DE6238CAFCE5B /* NaturalLanguage.framework in Frameworks */,
+				121D7A3F81067B6B1DD56B18 /* CoreSpotlight.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1622,6 +1630,7 @@
 				776E9594BE16BBA78335B7E6 /* SearchEmbedding.swift */,
 				7F734B8BCC1EF5CD62FD9670 /* HybridSearch.swift */,
 				CB6EC2B7EEF3EF83DA342363 /* SearchDatabase.swift */,
+				C5461C37C5F0484513C22072 /* PlanetStore+Spotlight.swift */,
 			);
 			path = Search;
 			sourceTree = "<group>";
@@ -1631,6 +1640,7 @@
 			children = (
 				6A9C210F29792464005A815E /* AVKit.framework */,
 				342A67E3EAD082AA10974830 /* NaturalLanguage.framework */,
+				2CCA533E0D21FAAEEEB5CE71 /* CoreSpotlight.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -2228,6 +2238,7 @@
 				2A1B9CF62D942F9800EF5488 /* ScheduledTasksManager.swift in Sources */,
 				C1A2B3D4E5F6A7B8C9D0E1F3 /* SleepPreventer.swift in Sources */,
 				6AADD6C72AF8809600898A6E /* MyArticleModel+SavePublic.swift in Sources */,
+				BF9F577F9FFA8A77F474CF1A /* PlanetStore+Spotlight.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2471,6 +2482,7 @@
 				E3BBC4243AE66C481C0EE03E /* PlanetLogger.swift in Sources */,
 				8F33EB5B385321311DA2AF54 /* AppLogView.swift in Sources */,
 				A14E34849B8C45E69780141C /* SearchDatabase.swift in Sources */,
+				4506F49AF8AF108D865ABC9E /* PlanetStore+Spotlight.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

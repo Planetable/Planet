@@ -1631,6 +1631,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
     }
 
     func delete() {
+        PlanetStore.removeSpotlightItems(forPlanetID: id)
         try? FileManager.default.removeItem(at: basePath)
     }
 

@@ -264,6 +264,7 @@ extension PlanetStore {
             return
         }
         let snapshot = SearchArticleSnapshot(article: article)
+        PlanetStore.upsertSpotlightItem(for: snapshot)
         Task { @MainActor in
             PlanetStore.shared.upsertSearchSnapshot(for: article)
             PlanetStore.shared.pendingIndexUpdates += 1
@@ -286,6 +287,7 @@ extension PlanetStore {
             return
         }
         let snapshot = SearchArticleSnapshot(article: article)
+        PlanetStore.upsertSpotlightItem(for: snapshot)
         Task { @MainActor in
             PlanetStore.shared.upsertSearchSnapshot(for: article)
             PlanetStore.shared.pendingIndexUpdates += 1
@@ -307,6 +309,7 @@ extension PlanetStore {
         guard isSharedReady else {
             return
         }
+        PlanetStore.removeSpotlightItem(articleID: articleID)
         Task { @MainActor in
             PlanetStore.shared.removeSearchSnapshot(articleID: articleID)
             PlanetStore.shared.pendingIndexUpdates += 1
@@ -376,6 +379,8 @@ extension PlanetStore {
             followingPlanets: followingPlanets
         )
         let snapshots = cachedSearchSnapshots
+
+        rebuildSpotlightIndex()
 
         embeddingRebuildTask?.cancel()
 
