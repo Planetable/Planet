@@ -282,4 +282,44 @@ extension MyArticleModel {
             try? FileManager.default.copyItem(at: publicBasePath, to: publicSlugBasePath)
         }
     }
+
+    // MARK: - Split Save for Quick Post
+
+    /// Minimal save: only renders index.html so ArticleView can display the article immediately.
+    /// Call `savePublicDeferred()` afterward to complete cover images, CIDs, hero grids, etc.
+    func savePublicMinimal() throws {
+        removeDSStore()
+        if !FileManager.default.fileExists(atPath: publicBasePath.path) {
+            try FileManager.default.createDirectory(
+                at: publicBasePath, withIntermediateDirectories: true
+            )
+        }
+        saveMarkdownInBackground()
+        try processContent()
+        try processArticleHTML()
+    }
+
+    /// Complete the remaining savePublic work that was skipped by `savePublicMinimal()`:
+    /// cover images, CIDs, NFT metadata, hero grid, hero image size, slug copy, article.json, and ops.
+    func savePublicDeferred() throws {
+        try saveCoverImage()
+        savePreviewImageFromPDF()
+        let coverImageCID: String? = getCoverImageCIDIfNeeded()
+        processAttachmentCIDIfNeeded()
+        processVideoThumbnail()
+        try processNFTMetadata(with: coverImageCID)
+        processHeroGrid()
+        processHeroImageSize()
+        try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath, options: .atomic)
+        processSlug()
+        do {
+            try self.planet.saveOps()
+        } catch {
+            debugPrint("failed to save ops to file: \(error)")
+        }
+        Task { @MainActor in
+            debugPrint("Sending notification: myArticleBuilt \(self.id) \(self.title)")
+            NotificationCenter.default.post(name: .myArticleBuilt, object: self)
+        }
+    }
 }

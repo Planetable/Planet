@@ -310,12 +310,23 @@ struct QuickPostView: View {
 
         do {
             try article.save()
-            try article.savePublic()
+            try article.savePublicMinimal()
             try planet.copyTemplateAssets()
             planet.updated = Date()
             try planet.save()
 
+            // Heavy work (CIDs, cover images, hero grids, etc.) + publish in background
             Task(priority: .userInitiated) {
+                do {
+                    try article.savePublicDeferred()
+                } catch {
+                    Task { @MainActor in
+                        PlanetStore.shared.isShowingAlert = true
+                        PlanetStore.shared.alertTitle = "Failed to Prepare Article for Publishing"
+                        PlanetStore.shared.alertMessage = error.localizedDescription
+                    }
+                    return
+                }
                 try await planet.savePublic()
                 try await planet.publish()
                 Task(priority: .background) {
@@ -323,41 +334,31 @@ struct QuickPostView: View {
                 }
             }
 
+            // UI update: set list + selection directly to avoid nil-selection flash.
+            // Don't call refreshSelectedArticles() — it sets selectedArticle = nil
+            // causing WebView to load noSelectionURL. planet.articles already includes
+            // the new article from the append above.
             Task { @MainActor in
-                PlanetStore.shared.selectedView = .myPlanet(planet)
-                PlanetStore.shared.refreshSelectedArticles()
-                // wrap it to delay the state change
+                let store = PlanetStore.shared
+                store.selectedView = .myPlanet(planet)
+                store.selectedArticleList = planet.articles
+                store.navigationTitle = planet.name
+                store.navigationSubtitle = planet.navigationSubtitle()
+
                 if planet.templateName == "Croptop" {
-                    Task { @MainActor in
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            // Croptop needs a delay here when it loads from the local gateway
-                            if PlanetStore.shared.selectedArticle == article {
-                                NotificationCenter.default.post(name: .loadArticle, object: nil)
-                            }
-                            else {
-                                PlanetStore.shared.selectedArticle = article
-                            }
-                            Task(priority: .userInitiated) {
-                                NotificationCenter.default.post(
-                                    name: .scrollToArticle,
-                                    object: article
-                                )
-                            }
-                        }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        store.selectedArticle = article
+                        NotificationCenter.default.post(
+                            name: .scrollToArticle,
+                            object: article
+                        )
                     }
-                }
-                else {
-                    Task { @MainActor in
-                        if PlanetStore.shared.selectedArticle == article {
-                            NotificationCenter.default.post(name: .loadArticle, object: nil)
-                        }
-                        else {
-                            PlanetStore.shared.selectedArticle = article
-                        }
-                        Task(priority: .userInitiated) {
-                            NotificationCenter.default.post(name: .scrollToArticle, object: article)
-                        }
-                    }
+                } else {
+                    store.selectedArticle = article
+                    NotificationCenter.default.post(
+                        name: .scrollToArticle,
+                        object: article
+                    )
                 }
             }
         }
