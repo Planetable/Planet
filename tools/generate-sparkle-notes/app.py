@@ -6,6 +6,8 @@ import subprocess
 import threading
 import time
 
+import redis
+
 from flask import Flask, abort, jsonify, redirect, request, url_for
 from jinja2 import BaseLoader, Environment
 
@@ -36,6 +38,9 @@ _tag_dates_cache = {}
 _tag_dates_ts = 0.0
 _TAGS_TTL = 60
 _REFRESH_INTERVAL = 300  # re-discover new tags every 5 minutes
+
+_redis = redis.Redis()
+_LOCK_TTL = 300  # 5 min TTL — auto-expires if process crashes
 
 # ---------------------------------------------------------------------------
 # Git helpers
@@ -628,20 +633,30 @@ def _worker():
         try:
             if notes_exist(channel, tag_name):
                 continue
-            prev_tag = get_previous_tag(tag_name)
-            commits = get_commits_between(prev_tag, tag_name)
-            if not commits:
-                write_notes(channel, tag_name, '- No changes in this release.\n')
-            else:
-                log.info('Generating notes for %s', tag_name)
-                notes = generate_notes_with_claude(commits, prev_tag, tag_name)
-                write_notes(channel, tag_name, notes)
-                log.info('Done: %s', tag_name)
-            if _planet_enabled:
-                _planet_synced.add(tag_name)
-                _planet_queue.put((channel, tag_name))
-            _gh_synced.add(tag_name)
-            _gh_queue.put((channel, tag_name))
+            lock = _redis.lock(f'gennotes:{tag_name}', timeout=_LOCK_TTL)
+            if not lock.acquire(blocking=False):
+                log.debug('Skipping %s: another process holds the lock', tag_name)
+                continue
+            try:
+                # Re-check after acquiring lock — another process may have finished
+                if notes_exist(channel, tag_name):
+                    continue
+                prev_tag = get_previous_tag(tag_name)
+                commits = get_commits_between(prev_tag, tag_name)
+                if not commits:
+                    write_notes(channel, tag_name, '- No changes in this release.\n')
+                else:
+                    log.info('Generating notes for %s', tag_name)
+                    notes = generate_notes_with_claude(commits, prev_tag, tag_name)
+                    write_notes(channel, tag_name, notes)
+                    log.info('Done: %s', tag_name)
+                if _planet_enabled:
+                    _planet_synced.add(tag_name)
+                    _planet_queue.put((channel, tag_name))
+                _gh_synced.add(tag_name)
+                _gh_queue.put((channel, tag_name))
+            finally:
+                lock.release()
         except Exception:
             log.exception('Failed to generate notes for %s', tag_name)
         finally:
@@ -936,8 +951,14 @@ def _is_cli():
     return len(sys.argv) > 1 and sys.argv[1] in _CLI_COMMANDS
 
 
+def _is_reloader_parent():
+    """True when running in werkzeug reloader's parent (monitor) process."""
+    debug = os.environ.get('FLASK_DEBUG', '').lower() in ('1', 'true', 'yes')
+    return debug and os.environ.get('WERKZEUG_RUN_MAIN') != 'true'
+
+
 # Only start background workers when running as a server
-if not _is_cli():
+if not _is_cli() and not _is_reloader_parent():
     for _ch in CHANNELS:
         os.makedirs(os.path.join(APP_DIR, _ch), exist_ok=True)
 
