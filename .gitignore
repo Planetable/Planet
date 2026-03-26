@@ -1,4 +1,5 @@
 .idea
+.claude
 .vscode
 .ruby-version
 *.DS_Store
