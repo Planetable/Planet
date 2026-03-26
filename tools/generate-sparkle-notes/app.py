@@ -27,6 +27,7 @@ GH_REPO = 'Planetable/Planet'
 _gh_queue = queue.Queue()
 _gh_synced = set()
 _NUM_GH_WORKERS = 2
+_GH_CACHE_FILE = os.path.join(APP_DIR, '.gh_synced')
 
 # Tags cache: { channel: (timestamp, [tags]) }
 _tags_cache = {}
@@ -832,6 +833,22 @@ def enqueue_planet_sync():
 # GitHub release sync
 # ---------------------------------------------------------------------------
 
+def _load_gh_cache():
+    """Load previously synced tag names from disk into _gh_synced."""
+    if os.path.isfile(_GH_CACHE_FILE):
+        with open(_GH_CACHE_FILE) as f:
+            for line in f:
+                tag = line.strip()
+                if tag:
+                    _gh_synced.add(tag)
+
+
+def _save_gh_tag(tag_name):
+    """Append a confirmed-synced tag to the cache file."""
+    with open(_GH_CACHE_FILE, 'a') as f:
+        f.write(tag_name + '\n')
+
+
 def _gh_sync_worker():
     """Worker that pushes release notes to empty GitHub releases."""
     while True:
@@ -840,8 +857,10 @@ def _gh_sync_worker():
             if not notes_exist(channel, tag_name):
                 continue
             if not gh_release_body_is_empty(tag_name):
+                _save_gh_tag(tag_name)
                 continue
             if gh_update_release_notes(channel, tag_name):
+                _save_gh_tag(tag_name)
                 log.info('Pushed notes to GitHub release: %s', tag_name)
             else:
                 log.warning('Failed to push notes to GitHub release: %s', tag_name)
@@ -903,11 +922,11 @@ def _periodic_refresh():
 # Startup
 # ---------------------------------------------------------------------------
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s %(levelname)s %(message)s',
-    datefmt='%H:%M:%S',
-)
+_handler = logging.StreamHandler()
+_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%H:%M:%S'))
+log.addHandler(_handler)
+log.setLevel(logging.INFO)
+log.propagate = False
 
 _CLI_COMMANDS = {'fix-dates', 'check-sync', 'sync-gh'}
 
@@ -938,6 +957,8 @@ if not _is_cli():
     except ImportError:
         pass
 
+    _load_gh_cache()
+    log.info('Loaded %d cached GitHub-synced tags', len(_gh_synced))
     for _i in range(_NUM_GH_WORKERS):
         threading.Thread(target=_gh_sync_worker, daemon=True).start()
     enqueue_gh_sync()
