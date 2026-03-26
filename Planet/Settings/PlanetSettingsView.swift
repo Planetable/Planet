@@ -31,7 +31,7 @@ struct PlanetSettingsView: View {
                     Label("AI", systemImage: "sparkles")
                 }
                 .tag(PlanetSettingsTab.ai)
-                .frame(width: 580, height: 360)
+                .frame(width: 580, height: 420)
 
             PlanetSettingsPlanetsView()
                 .tabItem {

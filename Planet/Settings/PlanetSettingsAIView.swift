@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
 struct PlanetSettingsAIView: View {
     @State private var aiAPIBase: String = UserDefaults.standard.string(forKey: .settingsAIAPIBase) ?? ""
     @State private var aiAPIToken: String = ""
@@ -24,6 +28,8 @@ struct PlanetSettingsAIView: View {
     @State private var modelStatus: ModelStatus = .idle
     @State private var checkTask: Task<Void, Never>? = nil
     @State private var preferredModelCheckTask: Task<Void, Never>? = nil
+    @State private var onDeviceAIState: StatusIndicatorState = .idle
+    @State private var onDeviceAILabel: String = "Checking…"
 
     private var filteredModelIDs: [String] {
         let query = aiPreferredModel.trimmingCharacters(in: .whitespaces)
@@ -132,6 +138,14 @@ struct PlanetSettingsAIView: View {
                 .padding(.top, 4)
             }
 
+            Section {
+                HStack(spacing: 8) {
+                    StatusIndicatorView(state: onDeviceAIState)
+                    onDeviceAIStatusLabel
+                }
+                .padding(.top, 4)
+            }
+
             Spacer()
         }
         .padding()
@@ -145,6 +159,7 @@ struct PlanetSettingsAIView: View {
                 aiAPIToken = ""
             }
             scheduleCheck()
+            checkOnDeviceAI()
         }
     }
 
@@ -180,6 +195,23 @@ struct PlanetSettingsAIView: View {
         case .error(let message):
             Text(message)
                 .foregroundStyle(.red)
+        }
+    }
+
+    @ViewBuilder
+    private var onDeviceAIStatusLabel: some View {
+        switch onDeviceAIState {
+        case .success:
+            Text(onDeviceAILabel)
+        case .warning:
+            Text(onDeviceAILabel)
+                .foregroundStyle(.orange)
+        case .error:
+            Text(onDeviceAILabel)
+                .foregroundStyle(.red)
+        default:
+            Text(onDeviceAILabel)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -255,6 +287,46 @@ struct PlanetSettingsAIView: View {
         } catch {
             await MainActor.run { setModelStatus(.error(error.localizedDescription)) }
         }
+    }
+
+    private func checkOnDeviceAI() {
+        #if canImport(FoundationModels)
+        if #available(macOS 26.0, *) {
+            let model = SystemLanguageModel.default
+            switch model.availability {
+            case .available:
+                onDeviceAIState = .success
+                onDeviceAILabel = "Apple Intelligence model available"
+            case .notAvailable(let reason):
+                switch reason {
+                case .deviceNotEligible:
+                    onDeviceAIState = .error
+                    onDeviceAILabel = "On-device AI is not available because this device is not eligible"
+                case .modelNotReady:
+                    onDeviceAIState = .warning
+                    onDeviceAILabel = "On-device AI is not available because the model is not ready"
+                case .appleIntelligenceNotEnabled:
+                    onDeviceAIState = .warning
+                    onDeviceAILabel = "On-device AI is not available because Apple Intelligence is not enabled"
+                case .geographicalRestriction:
+                    onDeviceAIState = .error
+                    onDeviceAILabel = "On-device AI is not available due to geographical restrictions"
+                @unknown default:
+                    onDeviceAIState = .warning
+                    onDeviceAILabel = "On-device AI is not available"
+                }
+            @unknown default:
+                onDeviceAIState = .warning
+                onDeviceAILabel = "On-device AI availability is unknown"
+            }
+        } else {
+            onDeviceAIState = .idle
+            onDeviceAILabel = "On-device AI is not available because this Mac is not running macOS 26 or later"
+        }
+        #else
+        onDeviceAIState = .idle
+        onDeviceAILabel = "On-device AI is not available because this build lacks the macOS 26 SDK"
+        #endif
     }
 }
 
