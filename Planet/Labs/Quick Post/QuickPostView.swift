@@ -422,7 +422,10 @@ struct QuickPostTextView: NSViewRepresentable {
                   let textContainer = textView.textContainer else { return }
             layoutManager.ensureLayout(for: textContainer)
             let usedRect = layoutManager.usedRect(for: textContainer)
-            parent.viewModel.textContentHeight = usedRect.height + textView.textContainerInset.height * 2
+            let height = usedRect.height + textView.textContainerInset.height * 2
+            DispatchQueue.main.async {
+                self.parent.viewModel.textContentHeight = height
+            }
         }
 
         func textDidEndEditing(_ notification: Notification) {
@@ -539,7 +542,10 @@ final class QuickPostTextEditorContainer: NSView {
               let textContainer = textView.textContainer else { return }
         layoutManager.ensureLayout(for: textContainer)
         let usedRect = layoutManager.usedRect(for: textContainer)
-        viewModel.textContentHeight = usedRect.height + textView.textContainerInset.height * 2
+        let height = usedRect.height + textView.textContainerInset.height * 2
+        DispatchQueue.main.async { [weak self] in
+            self?.viewModel.textContentHeight = height
+        }
     }
 }
 
