@@ -1448,6 +1448,13 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         await MainActor.run {
             articles.sort { $0.created > $1.created }
         }
+
+        // Batch-reindex Spotlight once after all article updates instead of per-article.
+        await MainActor.run {
+            Task {
+                _ = await PlanetStore.shared.reindexSpotlightItems(forPlanetID: self.id)
+            }
+        }
     }
 
     func sendNotification(for newArticles: [FollowingArticleModel]) {
