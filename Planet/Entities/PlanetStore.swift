@@ -140,6 +140,8 @@ final class MyJSONDirectoryMonitor {
     var pendingIndexUpdates: Int = 0
     var searchIndexBuiltOnce = false
     var embeddingRebuildTask: Task<Void, Never>?
+    var spotlightRebuildTask: Task<Bool, Never>?
+    var spotlightLaunchMarkerLogged = false
 
     @Published var myPlanets: [MyPlanetModel] = [] {
         didSet {

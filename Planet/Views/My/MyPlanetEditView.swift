@@ -1100,11 +1100,13 @@ struct MyPlanetEditView: View {
                             return
                         }
                         let snapshot = desiredSnapshot()
-                        let hasChanges = avatarChanged || snapshot != currentSnapshot()
+                        let previousSnapshot = currentSnapshot()
+                        let hasChanges = avatarChanged || snapshot != previousSnapshot
                         guard hasChanges else {
                             dismiss()
                             return
                         }
+                        let planetNameChanged = snapshot.name != previousSnapshot.name
                         let resaveAvatar =
                             (planet.saveRoundAvatar ?? false) != snapshot.saveRoundAvatar
                             && snapshot.saveRoundAvatar
@@ -1112,6 +1114,11 @@ struct MyPlanetEditView: View {
                         apply(snapshot)
                         Task {
                             try planet.save()
+                            if planetNameChanged {
+                                _ = await PlanetStore.shared.reindexSpotlightItems(
+                                    forPlanetID: planet.id
+                                )
+                            }
                             if resaveAvatar {
                                 Task.detached {
                                     do {

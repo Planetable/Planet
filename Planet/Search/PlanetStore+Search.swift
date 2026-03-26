@@ -287,7 +287,8 @@ extension PlanetStore {
             return
         }
         let snapshot = SearchArticleSnapshot(article: article)
-        PlanetStore.upsertSpotlightItem(for: snapshot)
+        // Skip per-article Spotlight indexing for following articles — batch reindex
+        // happens once after updateArticles() completes via reindexSpotlightItems().
         Task { @MainActor in
             PlanetStore.shared.upsertSearchSnapshot(for: article)
             PlanetStore.shared.pendingIndexUpdates += 1
@@ -380,7 +381,7 @@ extension PlanetStore {
         )
         let snapshots = cachedSearchSnapshots
 
-        rebuildSpotlightIndex()
+        ensureSpotlightIndexReadyOnLaunch()
 
         embeddingRebuildTask?.cancel()
 
@@ -414,6 +415,11 @@ extension PlanetStore {
 
     func removeSearchSnapshot(articleID: UUID) {
         cachedSearchSnapshots.removeAll(where: { $0.articleID == articleID })
+    }
+
+    func replaceSearchSnapshots(forPlanetID planetID: UUID, with snapshots: [SearchArticleSnapshot]) {
+        cachedSearchSnapshots.removeAll(where: { $0.planetID == planetID })
+        cachedSearchSnapshots.append(contentsOf: snapshots)
     }
 
     private func upsertSearchSnapshot(_ snapshot: SearchArticleSnapshot) {
