@@ -31,6 +31,8 @@ enum CloudflarePagesLogger {
                 handle.write(data)
                 handle.closeFile()
             }
+
+            LogFileTrimmer.trimIfNeeded(at: logURL)
         }
     }
 

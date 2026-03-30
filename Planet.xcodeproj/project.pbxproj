@@ -577,6 +577,7 @@
 		D7A100042F6AFA1100AA0001 /* VideoInfoRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A100062F6AFA1100AA0001 /* VideoInfoRow.swift */; };
 		D7A100072F6AFA1100AA0001 /* VideoCompressionJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A100092F6AFA1100AA0001 /* VideoCompressionJob.swift */; };
 		D7A100082F6AFA1100AA0001 /* VideoCompressionJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A100092F6AFA1100AA0001 /* VideoCompressionJob.swift */; };
+		D818B49153068C9B82AFADAF /* LogFileTrimmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F48E1A8579386F42C53FD73 /* LogFileTrimmer.swift */; };
 		E3BBC4243AE66C481C0EE03E /* PlanetLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59E62B0E2A71B9B4135B005 /* PlanetLogger.swift */; };
 		E8B4FE3D2A8D144E00C01E94 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E8B4FE3F2A8D144E00C01E94 /* Localizable.strings */; };
 		E8B4FE422A8D146100C01E94 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = E8B4FE442A8D146100C01E94 /* InfoPlist.strings */; };
@@ -877,6 +878,7 @@
 		6AF47B0127D8149A00F34724 /* Planet v2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Planet v2.xcdatamodel"; sourceTree = "<group>"; };
 		6AF54DA12F602EC300DCF858 /* ChatInputField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatInputField.swift; sourceTree = "<group>"; };
 		6AF8B0272C42BD400007E2AE /* ArticleListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleListViewModel.swift; sourceTree = "<group>"; };
+		6F48E1A8579386F42C53FD73 /* LogFileTrimmer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LogFileTrimmer.swift; sourceTree = "<group>"; };
 		7211403BD64F1D6E5B14D69E /* WriterVideoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WriterVideoView.swift; sourceTree = "<group>"; };
 		7211404DFC1B4D23F84EA279 /* PlanetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlanetError.swift; sourceTree = "<group>"; };
 		721140CF1813A5B4340B90F3 /* FollowingPlanetAvatarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowingPlanetAvatarView.swift; sourceTree = "<group>"; };
@@ -1428,6 +1430,7 @@
 				5274E7C86A55DA0BB03CE7EF /* CloudflarePagesLogger.swift */,
 				E59E62B0E2A71B9B4135B005 /* PlanetLogger.swift */,
 				196AB5BD526941A7FAB5D1AD /* AppLogView.swift */,
+				6F48E1A8579386F42C53FD73 /* LogFileTrimmer.swift */,
 			);
 			name = Log;
 			path = Log;
@@ -2487,6 +2490,7 @@
 				A14E34849B8C45E69780141C /* SearchDatabase.swift in Sources */,
 				4506F49AF8AF108D865ABC9E /* PlanetStore+Spotlight.swift in Sources */,
 				71C58E70CF3E3F8A86F9ADF4 /* RelatedArticlesView.swift in Sources */,
+				D818B49153068C9B82AFADAF /* LogFileTrimmer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

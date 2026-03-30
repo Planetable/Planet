@@ -31,6 +31,8 @@ enum SSHRsyncLogger {
                 handle.write(data)
                 handle.closeFile()
             }
+
+            LogFileTrimmer.trimIfNeeded(at: logURL)
         }
     }
 

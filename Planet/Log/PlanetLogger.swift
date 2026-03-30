@@ -35,6 +35,8 @@ enum PlanetLogger {
                 handle.write(data)
                 handle.closeFile()
             }
+
+            LogFileTrimmer.trimIfNeeded(at: logURL)
         }
     }
 
@@ -96,6 +98,8 @@ enum PerfLogger {
                 handle.write(data)
                 handle.closeFile()
             }
+
+            LogFileTrimmer.trimIfNeeded(at: logURL)
         }
     }
 
