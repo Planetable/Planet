@@ -111,8 +111,11 @@ class AppLogViewModel: ObservableObject {
     @Published var selectedSource: AppLogSource = AppLogViewModel.loadSelectedSource() {
         didSet {
             UserDefaults.standard.set(selectedSource.rawValue, forKey: Self.selectedSourceDefaultsKey)
-            reload()
-            restartSelectedSourceMonitoringIfNeeded()
+            if isMonitoring {
+                restartSelectedSourceMonitoringIfNeeded()
+            } else {
+                reload()
+            }
         }
     }
 
@@ -195,10 +198,11 @@ class AppLogViewModel: ObservableObject {
                 self.scheduleReload()
             }
         }
-        source.setCancelHandler { [weak self] in
-            guard let self, self.selectedFileDescriptor >= 0 else { return }
-            close(self.selectedFileDescriptor)
-            self.selectedFileDescriptor = -1
+        let fdToClose = selectedFileDescriptor
+        source.setCancelHandler {
+            if fdToClose >= 0 {
+                close(fdToClose)
+            }
         }
         source.resume()
         selectedFileDispatchSource = source
@@ -207,6 +211,7 @@ class AppLogViewModel: ObservableObject {
     private func stopSelectedFileMonitoring() {
         selectedFileDispatchSource?.cancel()
         selectedFileDispatchSource = nil
+        selectedFileDescriptor = -1
     }
 
     private func scheduleReload(immediate: Bool = false) {
