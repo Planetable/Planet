@@ -1,5 +1,9 @@
 import SwiftUI
 
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
 
 struct PlanetRebuildView: View {
     @ObservedObject var planet: MyPlanetModel
@@ -229,6 +233,7 @@ struct ArticleView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject private var ipfsState = IPFSState.shared
     @AppStorage(String.settingsAIIsReady) private var settingsAIIsReady: Bool = false
+    @State private var isOnDeviceAIAvailable: Bool = false
 
     @State private var url: URL = Self.noSelectionURL
     @State private var isShowingAnalyticsPopover: Bool = false
@@ -273,6 +278,7 @@ struct ArticleView: View {
         .onAppear {
             syncSelectedArticlePresentation()
             refreshAIChatResponseCount()
+            checkOnDeviceAIAvailability()
         }
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
@@ -304,7 +310,7 @@ struct ArticleView: View {
                     toolbarAttachmentsView(article: article)
                 }
 
-                if settingsAIIsReady, planetStore.selectedArticle != nil {
+                if (settingsAIIsReady || isOnDeviceAIAvailable), planetStore.selectedArticle != nil {
                     Button {
                         isShowingAIChat = true
                     } label: {
@@ -390,16 +396,37 @@ struct ArticleView: View {
         return nil
     }
 
+    private func checkOnDeviceAIAvailability() {
+        #if canImport(FoundationModels)
+        if #available(macOS 26.0, *) {
+            let model = SystemLanguageModel.default
+            if case .available = model.availability {
+                isOnDeviceAIAvailable = true
+                return
+            }
+        }
+        #endif
+        isOnDeviceAIAvailable = false
+    }
+
     private func refreshAIChatResponseCount() {
         guard let article = planetStore.selectedArticle,
             let chatFileURL = chatFileURL(for: article),
-            let data = try? Data(contentsOf: chatFileURL),
-            let persisted = try? JSONDecoder.shared.decode([ArticleAIChatPersistedMessage].self, from: data)
+            let data = try? Data(contentsOf: chatFileURL)
         else {
             aiChatResponseCount = 0
             return
         }
-        aiChatResponseCount = persisted.filter { $0.role == "assistant" }.count
+        let persistedMessages: [ArticleAIChatPersistedMessage]
+        if let envelope = try? JSONDecoder.shared.decode(ArticleAIChatPersistedData.self, from: data) {
+            persistedMessages = envelope.messages
+        } else if let legacy = try? JSONDecoder.shared.decode([ArticleAIChatPersistedMessage].self, from: data) {
+            persistedMessages = legacy
+        } else {
+            aiChatResponseCount = 0
+            return
+        }
+        aiChatResponseCount = persistedMessages.filter { $0.role == "assistant" }.count
     }
 
     private func canTip(planet: FollowingPlanetModel) -> String? {

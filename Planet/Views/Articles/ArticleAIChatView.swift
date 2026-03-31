@@ -9,6 +9,10 @@ import Darwin
 import Foundation
 import SwiftUI
 
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
 private struct ArticleAIChatMessage: Identifiable {
     let id: UUID
     let role: String
@@ -27,6 +31,11 @@ struct ArticleAIChatPersistedMessage: Codable {
     let role: String
     let content: String
     let tokenUsage: String?
+}
+
+struct ArticleAIChatPersistedData: Codable {
+    var provider: String?
+    var messages: [ArticleAIChatPersistedMessage]
 }
 
 private struct ArticleAIToolCall {
@@ -68,7 +77,7 @@ private struct ArticleAIToolFailureDetail {
     let resultPreview: String
 }
 
-private enum ArticleAIDebugLogger {
+enum ArticleAIDebugLogger {
     private static let logURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         .appendingPathComponent("planet-ai-debug.log", isDirectory: false)
     private static let queue = DispatchQueue(label: "xyz.planetable.ArticleAIDebugLogger")
@@ -97,6 +106,12 @@ private enum ArticleAIDebugLogger {
     }
 }
 
+private enum AIProvider: String, CaseIterable, Identifiable {
+    case remote = "Remote"
+    case onDevice = "On-Device"
+    var id: String { rawValue }
+}
+
 struct ArticleAIChatView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var article: ArticleModel
@@ -109,9 +124,58 @@ struct ArticleAIChatView: View {
     @State private var shouldAnimateScroll: Bool = false
     @State private var chatFontSize: CGFloat = 14
     @State private var toolProgressText: String? = nil
+    @State private var selectedProvider: AIProvider = .remote
+    @State private var isRemoteAvailable: Bool = false
+    @State private var isOnDeviceAvailable: Bool = false
+    @State private var onDeviceSession: AnyObject? = nil
+    @State private var isShowingClearConfirm: Bool = false
 
     private var canSendMessage: Bool {
         !isSending && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var remoteModelName: String {
+        UserDefaults.standard.string(forKey: .settingsAIPreferredModel) ?? "claude-sonnet-4-6"
+    }
+
+    private var remoteHostname: String {
+        guard let base = UserDefaults.standard.string(forKey: .settingsAIAPIBase),
+              let url = URL(string: base),
+              let host = url.host else {
+            return "Remote"
+        }
+        return host
+    }
+
+    private var remoteProviderLabel: String {
+        remoteModelName
+    }
+
+    private var singleProviderLabel: String {
+        if isRemoteAvailable {
+            return "\(remoteModelName) @ \(remoteHostname)"
+        }
+        if isOnDeviceAvailable {
+            return "Apple Intelligence (On-Device)"
+        }
+        return ""
+    }
+
+    private func checkProviderAvailability() {
+        isRemoteAvailable = UserDefaults.standard.bool(forKey: .settingsAIIsReady)
+        #if canImport(FoundationModels)
+        if #available(macOS 26.0, *) {
+            let model = SystemLanguageModel.default
+            if case .available = model.availability {
+                isOnDeviceAvailable = true
+            }
+        }
+        #endif
+        if isOnDeviceAvailable && !isRemoteAvailable {
+            selectedProvider = .onDevice
+        } else if isRemoteAvailable && !isOnDeviceAvailable {
+            selectedProvider = .remote
+        }
     }
 
     var body: some View {
@@ -120,10 +184,35 @@ struct ArticleAIChatView: View {
                 Label("AI Research Chat", systemImage: "sparkles")
                     .font(.headline)
                 Spacer()
+                if isRemoteAvailable && isOnDeviceAvailable {
+                    Picker("", selection: $selectedProvider) {
+                        Text(remoteProviderLabel).tag(AIProvider.remote)
+                        Text("On-Device").tag(AIProvider.onDevice)
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 240)
+                } else {
+                    Text(singleProviderLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
                 if isSending {
                     ProgressView()
                         .controlSize(.small)
                 }
+                Button {
+                    isShowingClearConfirm = true
+                } label: {
+                    Image(systemName: "trash")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 14, height: 14, alignment: .center)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .disabled(messages.isEmpty || isSending)
+                .help("Clear Chat History")
                 ControlGroup {
                     Button {
                         chatFontSize = max(12, chatFontSize - 1)
@@ -262,9 +351,18 @@ struct ArticleAIChatView: View {
             }
         }
         .frame(width: 720, height: 520)
+        .alert("Clear Chat History", isPresented: $isShowingClearConfirm) {
+            Button("Clear", role: .destructive) {
+                clearChat()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will remove all messages for this article. This action cannot be undone.")
+        }
         .onAppear {
             debugLog("---- AI chat opened ----")
             debugLog("contextTitle=\(contextTitle), articleType=\(String(describing: type(of: article))), articleID=\(article.id.uuidString)")
+            checkProviderAvailability()
             loadPersistedChat()
             prepareInitialContextIfNeeded()
             Task { @MainActor in
@@ -294,7 +392,16 @@ struct ArticleAIChatView: View {
     private func loadPersistedChat() {
         guard let chatFileURL = chatFileURL else { return }
         guard let data = try? Data(contentsOf: chatFileURL) else { return }
-        guard let persisted = try? JSONDecoder.shared.decode([ArticleAIChatPersistedMessage].self, from: data) else {
+
+        let persisted: [ArticleAIChatPersistedMessage]
+        if let envelope = try? JSONDecoder.shared.decode(ArticleAIChatPersistedData.self, from: data) {
+            persisted = envelope.messages
+            if let provider = envelope.provider, let restored = AIProvider(rawValue: provider) {
+                selectedProvider = restored
+            }
+        } else if let legacy = try? JSONDecoder.shared.decode([ArticleAIChatPersistedMessage].self, from: data) {
+            persisted = legacy
+        } else {
             return
         }
 
@@ -315,11 +422,24 @@ struct ArticleAIChatView: View {
 
     private func persistChat() {
         guard let chatFileURL = chatFileURL else { return }
-        let persisted = messages.map { item in
+        let persistedMessages = messages.map { item in
             ArticleAIChatPersistedMessage(role: item.role, content: item.content, tokenUsage: item.tokenUsage)
         }
-        guard let data = try? JSONEncoder.shared.encode(persisted) else { return }
+        let envelope = ArticleAIChatPersistedData(provider: selectedProvider.rawValue, messages: persistedMessages)
+        guard let data = try? JSONEncoder.shared.encode(envelope) else { return }
         try? data.write(to: chatFileURL, options: .atomic)
+    }
+
+    private func clearChat() {
+        messages = []
+        apiMessages = []
+        errorText = nil
+        toolProgressText = nil
+        onDeviceSession = nil
+        if let chatFileURL = chatFileURL {
+            try? FileManager.default.removeItem(at: chatFileURL)
+        }
+        prepareInitialContextIfNeeded()
     }
 
     private var contextTitle: String {
@@ -391,6 +511,14 @@ struct ArticleAIChatView: View {
         toolProgressText = nil
         let streamingMessageID = UUID()
 
+        if selectedProvider == .onDevice {
+            sendOnDeviceMessage(prompt: prompt, streamingMessageID: streamingMessageID)
+        } else {
+            sendRemoteMessage(streamingMessageID: streamingMessageID)
+        }
+    }
+
+    private func sendRemoteMessage(streamingMessageID: UUID) {
         Task {
             do {
                 let reply = try await requestReply(
@@ -434,6 +562,66 @@ struct ArticleAIChatView: View {
                     isSending = false
                 }
             }
+        }
+    }
+
+    private func sendOnDeviceMessage(prompt: String, streamingMessageID: UUID) {
+        #if canImport(FoundationModels)
+        if #available(macOS 26.0, *) {
+            Task {
+                do {
+                    let session: LanguageModelSession
+                    if let existing = onDeviceSession as? LanguageModelSession {
+                        session = existing
+                    } else {
+                        let instructions = systemPrompt + "\n\n" + onDeviceArticleContextMessage()
+                        let planetID = (article as? MyArticleModel)?.planet.id
+                        let (tools, _) = await MainActor.run {
+                            OnDeviceToolFactory.makeTools(articleID: article.id, planetID: planetID)
+                        }
+                        session = LanguageModelSession(tools: tools, instructions: instructions)
+                        onDeviceSession = session
+                    }
+                    let response = try await session.respond(to: prompt)
+                    let finalText = response.content
+                    let transcriptEntries = response.transcriptEntries
+                    debugLog("on-device reply received textLength=\(finalText.count), transcriptEntries=\(transcriptEntries.count)")
+                    for entry in transcriptEntries {
+                        debugLog("on-device transcript entry: \(entry)")
+                    }
+                    await MainActor.run {
+                        updateAssistantStreamingMessage(
+                            id: streamingMessageID,
+                            content: finalText,
+                            tokenUsage: "On-Device",
+                            createIfMissing: true
+                        )
+                        apiMessages.append(["role": "assistant", "content": finalText])
+                        persistChat()
+                        toolProgressText = nil
+                        isSending = false
+                    }
+                } catch {
+                    debugLogError("sendOnDeviceMessage failed", error: error)
+                    await MainActor.run {
+                        if let index = messages.firstIndex(where: { $0.id == streamingMessageID }) {
+                            let isEmpty = messages[index].content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            if isEmpty {
+                                messages.remove(at: index)
+                            }
+                        }
+                        errorText = error.localizedDescription
+                        toolProgressText = nil
+                        isSending = false
+                    }
+                }
+            }
+            return
+        }
+        #endif
+        Task { @MainActor in
+            errorText = "On-device AI is not available"
+            isSending = false
         }
     }
 
@@ -3153,6 +3341,15 @@ struct ArticleAIChatView: View {
 
     private func currentArticleContextMessage() -> String {
         articleContextMessage(title: article.title, content: article.content)
+    }
+
+    private func onDeviceArticleContextMessage() -> String {
+        let maxContentLength = 2000
+        var content = article.content
+        if content.count > maxContentLength {
+            content = String(content.prefix(maxContentLength)) + "\n\n[Content truncated. Use read_article tool to see the full article.]"
+        }
+        return articleContextMessage(title: article.title, content: content)
     }
 
     private func refreshArticleContextAfterWriteIfNeeded(
