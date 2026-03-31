@@ -86,7 +86,7 @@ extension MyArticleModel {
                 )
             }
 
-            saveMarkdownInBackground()
+            saveMarkdown()
 
             try processContent()
             perfTrace.recordStep(field: "content_rendered_ms", label: "ContentRendered")
@@ -604,7 +604,7 @@ extension MyArticleModel {
     }
 
     // MARK: - Save Markdown content to article.md
-    func saveMarkdown() async {
+    func saveMarkdown() {
         let markdownPath = publicBasePath.appendingPathComponent("article.md")
         if FileManager.default.fileExists(atPath: markdownPath.path) {
             do {

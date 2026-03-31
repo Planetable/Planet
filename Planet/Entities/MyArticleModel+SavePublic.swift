@@ -10,13 +10,6 @@ import Foundation
 
 /// Sub processes to be executed from MyArticleModel.savePublic()
 extension MyArticleModel {
-    /// Save article.md with a background thread
-    func saveMarkdownInBackground() {
-        Task(priority: .background) {
-            await self.saveMarkdown()
-        }
-    }
-
     /// Render markdown to HTML if contentRendered is nil
     func processContent() throws {
         guard self.content.count > 0, self.contentRendered == nil else { return }
@@ -314,7 +307,7 @@ extension MyArticleModel {
                 at: publicBasePath, withIntermediateDirectories: true
             )
         }
-        saveMarkdownInBackground()
+        saveMarkdown()
         try processContent()
         _ = try processArticleHTML()
     }
