@@ -297,7 +297,7 @@ struct PlanetSettingsAIView: View {
             case .available:
                 onDeviceAIState = .success
                 onDeviceAILabel = "Apple Intelligence model available"
-            case .notAvailable(let reason):
+            case .unavailable(let reason):
                 switch reason {
                 case .deviceNotEligible:
                     onDeviceAIState = .error
@@ -308,9 +308,6 @@ struct PlanetSettingsAIView: View {
                 case .appleIntelligenceNotEnabled:
                     onDeviceAIState = .warning
                     onDeviceAILabel = "On-device AI is not available because Apple Intelligence is not enabled"
-                case .geographicalRestriction:
-                    onDeviceAIState = .error
-                    onDeviceAILabel = "On-device AI is not available due to geographical restrictions"
                 @unknown default:
                     onDeviceAIState = .warning
                     onDeviceAILabel = "On-device AI is not available"
