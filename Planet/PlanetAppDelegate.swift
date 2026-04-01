@@ -226,7 +226,7 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
                             Task { @MainActor in
                                 PlanetStore.shared.selectedArticle = article
                             }
-                            NSWorkspace.shared.open(URL(string: "planet://")!)
+                            NSApp.activate(ignoringOtherApps: true)
                             return
                         }
                     }
@@ -236,7 +236,7 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
                     let planetId = response.notification.request.identifier
                     if let following = PlanetStore.shared.followingPlanets.first(where: { $0.id.uuidString == planetId }) {
                         PlanetStore.shared.selectedView = .followingPlanet(following)
-                        NSWorkspace.shared.open(URL(string: "planet://")!)
+                        NSApp.activate(ignoringOtherApps: true)
                     }
                 }
             default:
