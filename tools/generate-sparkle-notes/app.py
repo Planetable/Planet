@@ -241,9 +241,13 @@ def generate_notes_with_claude(commits, prev_tag, tag):
         log.warning('claude stderr for %s: %s', tag, result.stderr.strip())
     if result.returncode != 0:
         log.error('claude exited %d for %s', result.returncode, tag)
+        raise RuntimeError(f'claude exited {result.returncode} for {tag}')
     log.info('claude output for %s:\n%s', tag, result.stdout.strip())
     raw = result.stdout.strip()
-    return '\n'.join(line for line in raw.split('\n') if line.startswith('- '))
+    notes = '\n'.join(line for line in raw.split('\n') if line.startswith('- '))
+    if not notes:
+        raise RuntimeError(f'claude returned no usable notes for {tag}')
+    return notes
 
 
 # ---------------------------------------------------------------------------
@@ -597,7 +601,11 @@ def generate(channel_name, tag_name):
     if not commits:
         notes = '- No changes in this release.\n'
     else:
-        notes = generate_notes_with_claude(commits, prev_tag, tag_name)
+        try:
+            notes = generate_notes_with_claude(commits, prev_tag, tag_name)
+        except Exception as exc:
+            log.exception('Failed to generate notes for %s', tag_name)
+            return jsonify(error=str(exc)), 502
 
     write_notes(channel_name, tag_name, notes)
     return jsonify(html=markdown_to_html(notes))
