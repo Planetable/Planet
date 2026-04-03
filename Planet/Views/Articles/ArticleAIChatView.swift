@@ -319,6 +319,9 @@ struct ArticleAIChatView: View {
                         }
                     }
                 }
+                .environment(\.openURL, OpenURLAction { url in
+                    handleChatLink(url)
+                })
             }
 
             Divider()
@@ -496,6 +499,33 @@ struct ArticleAIChatView: View {
         content
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
+    }
+
+    private func handleChatLink(_ url: URL) -> OpenURLAction.Result {
+        guard url.scheme?.lowercased() == "planet" else {
+            return .systemAction(url)
+        }
+        guard url.host?.lowercased() == "article" else {
+            return .systemAction(url)
+        }
+
+        let pathComponents = url.pathComponents.filter { $0 != "/" }
+        guard pathComponents.count == 3,
+            let planetKind = PlanetKind(rawValue: pathComponents[0]),
+            let planetID = UUID(uuidString: pathComponents[1]),
+            let articleID = UUID(uuidString: pathComponents[2])
+        else {
+            return .systemAction(url)
+        }
+
+        Task { @MainActor in
+            await openChatLinkedArticle(
+                planetKind: planetKind,
+                planetID: planetID,
+                articleID: articleID
+            )
+        }
+        return .handled
     }
 
     private func sendMessage() {
@@ -1889,7 +1919,7 @@ struct ArticleAIChatView: View {
 
     private func modelSupportsToolUse(_ model: String) -> Bool {
         let modelName = model.lowercased()
-        return modelName.contains("sonnet") || modelName.contains("opus")
+        return modelName.contains("sonnet") || modelName.contains("opus") || modelName.contains("gemma")
     }
 
     private func modelNeedsOpenAIStreamUsageOption(_ model: String) -> Bool {
@@ -2434,6 +2464,12 @@ struct ArticleAIChatView: View {
                 "preview": result.preview,
                 "planet_name": result.planetName,
                 "planet_id": result.planetID.uuidString,
+                "planet_kind": result.planetKind.rawValue,
+                "chat_link": articleChatLink(
+                    planetKind: result.planetKind,
+                    planetID: result.planetID,
+                    articleID: result.articleID
+                ),
             ]
             if let score = result.relevanceScore {
                 dict["relevance_score"] = round(score * 1000) / 1000
@@ -2544,6 +2580,96 @@ struct ArticleAIChatView: View {
                 return
             }
         }
+        for planet in PlanetStore.shared.followingPlanets {
+            if let followingArticle = planet.articles.first(where: { $0.id == articleID }) {
+                PlanetStore.shared.selectedArticle = followingArticle
+                return
+            }
+        }
+    }
+
+    private func articleChatLink(planetKind: PlanetKind, planetID: UUID, articleID: UUID) -> String {
+        "planet://article/\(planetKind.rawValue)/\(planetID.uuidString)/\(articleID.uuidString)"
+    }
+
+    @MainActor
+    private func restoreChatLinkedArticleSelectionAndScroll(
+        targetArticleID: UUID,
+        targetPlanetID: UUID,
+        isMyPlanet: Bool,
+        fallbackArticle: ArticleModel
+    ) async {
+        let retryDelays: [UInt64] = [80_000_000, 180_000_000, 320_000_000]
+
+        for delay in retryDelays {
+            try? await Task.sleep(nanoseconds: delay)
+
+            if isMyPlanet {
+                guard case .myPlanet(let selectedPlanet) = PlanetStore.shared.selectedView,
+                    selectedPlanet.id == targetPlanetID
+                else {
+                    continue
+                }
+            } else {
+                guard case .followingPlanet(let selectedPlanet) = PlanetStore.shared.selectedView,
+                    selectedPlanet.id == targetPlanetID
+                else {
+                    continue
+                }
+            }
+
+            if let selectedArticle = PlanetStore.shared.selectedArticleList?.first(where: { $0.id == targetArticleID }) {
+                PlanetStore.shared.selectedArticle = selectedArticle
+                NotificationCenter.default.post(name: .scrollToArticle, object: selectedArticle)
+                try? await Task.sleep(nanoseconds: 120_000_000)
+                NotificationCenter.default.post(name: .scrollToArticle, object: selectedArticle)
+                return
+            }
+        }
+
+        PlanetStore.shared.selectedArticle = fallbackArticle
+        NotificationCenter.default.post(name: .scrollToArticle, object: fallbackArticle)
+        try? await Task.sleep(nanoseconds: 120_000_000)
+        NotificationCenter.default.post(name: .scrollToArticle, object: fallbackArticle)
+    }
+
+    @MainActor
+    private func openChatLinkedArticle(
+        planetKind: PlanetKind,
+        planetID: UUID,
+        articleID: UUID
+    ) async {
+        switch planetKind {
+        case .my:
+            guard let planet = PlanetStore.shared.myPlanets.first(where: { $0.id == planetID }),
+                let linkedArticle = planet.articles.first(where: { $0.id == articleID })
+            else {
+                return
+            }
+            PlanetStore.shared.selectedView = .myPlanet(planet)
+            NotificationCenter.default.post(name: .scrollToSidebarItem, object: "sidebar-my-\(planet.id.uuidString)")
+            await restoreChatLinkedArticleSelectionAndScroll(
+                targetArticleID: articleID,
+                targetPlanetID: planetID,
+                isMyPlanet: true,
+                fallbackArticle: linkedArticle
+            )
+        case .following:
+            guard let planet = PlanetStore.shared.followingPlanets.first(where: { $0.id == planetID }),
+                let linkedArticle = planet.articles.first(where: { $0.id == articleID })
+            else {
+                return
+            }
+            PlanetStore.shared.selectedView = .followingPlanet(planet)
+            NotificationCenter.default.post(name: .scrollToSidebarItem, object: "sidebar-following-\(planet.id.uuidString)")
+            await restoreChatLinkedArticleSelectionAndScroll(
+                targetArticleID: articleID,
+                targetPlanetID: planetID,
+                isMyPlanet: false,
+                fallbackArticle: linkedArticle
+            )
+        }
+        dismiss()
     }
 
     private func encodeToDictionary<T: Encodable>(_ value: T) throws -> [String: Any] {
@@ -3319,6 +3445,7 @@ struct ArticleAIChatView: View {
         No small talk, no preambles like "here is", and do not ask follow-up questions at the end.
         If tools are available, use them when needed to read or update article/planet models or run shell commands.
         For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
+        When search_articles returns matches, present each article title as a Markdown link using the exact chat_link value from the tool output.
         For write_article content generation, append to existing content by default; only replace full content when the user explicitly asks, by setting replace_content=true.
         If generated content starts with a Markdown H1 heading (# Title), put that heading text into changes.title and omit the H1 line from changes.content.
         """

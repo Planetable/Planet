@@ -396,7 +396,16 @@ struct SearchArticlesTool: Tool {
         }
 
         let lines = limited.map { result in
-            "- \(result.title) (planet: \(result.planetName), id: \(result.articleID.uuidString))\n  \(result.preview)"
+            let chatLink = "planet://article/\(result.planetKind.rawValue)/\(result.planetID.uuidString)/\(result.articleID.uuidString)"
+            return """
+            - title: \(result.title)
+              planet: \(result.planetName)
+              planet_kind: \(result.planetKind.rawValue)
+              planet_id: \(result.planetID.uuidString)
+              article_id: \(result.articleID.uuidString)
+              chat_link: \(chatLink)
+              preview: \(result.preview)
+            """
         }
         return "Found \(filtered.count) result(s):\n\(lines.joined(separator: "\n"))"
     }
