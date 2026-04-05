@@ -1138,10 +1138,44 @@ struct ArticleAIChatView: View {
         )
     }
 
+    private static let latexSymbolMap: [(pattern: String, replacement: String)] = [
+        (#"$\approx$"#, "≈"),
+        (#"$\rightarrow$"#, "→"),
+        (#"$\leftarrow$"#, "←"),
+        (#"$\leftrightarrow$"#, "↔"),
+        (#"$\Rightarrow$"#, "⇒"),
+        (#"$\Leftarrow$"#, "⇐"),
+        (#"$\uparrow$"#, "↑"),
+        (#"$\downarrow$"#, "↓"),
+        (#"$\times$"#, "×"),
+        (#"$\div$"#, "÷"),
+        (#"$\pm$"#, "±"),
+        (#"$\neq$"#, "≠"),
+        (#"$\leq$"#, "≤"),
+        (#"$\geq$"#, "≥"),
+        (#"$\infty$"#, "∞"),
+        (#"$\alpha$"#, "α"),
+        (#"$\beta$"#, "β"),
+        (#"$\gamma$"#, "γ"),
+        (#"$\delta$"#, "δ"),
+        (#"$\pi$"#, "π"),
+        (#"$\sum$"#, "∑"),
+        (#"$\prod$"#, "∏"),
+        (#"$\sqrt$"#, "√"),
+        (#"$\degree$"#, "°"),
+        (#"$\cdot$"#, "·"),
+        (#"$\ldots$"#, "…"),
+        (#"$\sim$"#, "∼"),
+    ]
+
     private func normalizedMessageContent(_ content: String) -> String {
-        content
+        var result = content
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
+        for entry in Self.latexSymbolMap {
+            result = result.replacingOccurrences(of: entry.pattern, with: entry.replacement)
+        }
+        return result
     }
 
     private func assistantMessageBlocks(_ content: String) -> [ArticleAIMessageBlock] {
