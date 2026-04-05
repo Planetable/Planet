@@ -613,6 +613,7 @@ struct ArticleAIChatView: View {
                         chatMessageContent(for: message)
                             .font(.system(size: chatFontSize))
                             .lineSpacing(5)
+                            .foregroundStyle(message.isToolActivity ? .secondary : .primary)
                             .textSelection(.enabled)
                             .frame(
                                 maxWidth: message.role == "user" ? nil : .infinity,
