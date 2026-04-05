@@ -494,7 +494,7 @@ struct VideoInfoRow: View {
         return nil
     }
 
-    private static func makeCompressionBackup(for sourceURL: URL) throws -> URL {
+    nonisolated private static func makeCompressionBackup(for sourceURL: URL) throws -> URL {
         let backupDirectory = FileManager.default.temporaryDirectory
             .appendingPathComponent("PlanetVideoCompressionBackup", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

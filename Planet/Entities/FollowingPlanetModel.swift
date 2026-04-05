@@ -1451,7 +1451,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
         // Batch-reindex Spotlight once after all article updates instead of per-article.
         await MainActor.run {
-            Task {
+            _ = Task {
                 _ = await PlanetStore.shared.reindexSpotlightItems(forPlanetID: self.id)
             }
         }

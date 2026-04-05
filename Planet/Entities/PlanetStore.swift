@@ -271,7 +271,6 @@ final class MyJSONDirectoryMonitor {
     @Published var followingPlanetLink: String = ""
     @Published var isShowingPlanetInfo = false
     @Published var isShowingPlanetAvatarPicker: Bool = false
-    @Published var isMigrating = false
     @Published var isRebuilding = false
     @Published var rebuildTasks: Int = 0
     @Published var isQuickSharing = false  // use in macOS 12 only.

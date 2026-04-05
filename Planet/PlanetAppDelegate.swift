@@ -129,28 +129,6 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
 
         setupNotification()
 
-        let saver = Saver.shared
-        if saver.isMigrationNeeded() {
-            Task { @MainActor in
-                PlanetStore.shared.isMigrating = true
-            }
-            var migrationErrors: Int = 0
-            migrationErrors = migrationErrors + saver.savePlanets()
-            migrationErrors = migrationErrors + saver.migratePublic()
-            migrationErrors = migrationErrors + saver.migrateTemplates()
-            if migrationErrors == 0 {
-                saver.setMigrationDoneFlag(flag: true)
-                Task { @MainActor in
-                    try PlanetStore.shared.load()
-                    try TemplateStore.shared.load()
-                }
-            }
-            Task { @MainActor in
-                try await Task.sleep(nanoseconds: 1_000_000_000)
-                PlanetStore.shared.isMigrating = false
-            }
-        }
-
         // Prevent computer sleep if the setting is enabled (default: true)
         if UserDefaults.standard.object(forKey: String.settingsPreventSleep) == nil || UserDefaults.standard.bool(forKey: String.settingsPreventSleep) {
             SleepPreventer.shared.enable()

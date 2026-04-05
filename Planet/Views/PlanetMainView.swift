@@ -92,9 +92,6 @@ struct PlanetMainView: View {
                 MyPlanetTemplateSettingsView(planet: planet)
             }
         }
-        .sheet(isPresented: $planetStore.isMigrating) {
-            MigrationProgressView()
-        }
         .sheet(isPresented: $planetStore.isRebuilding) {
             RebuildProgressView()
                 .interactiveDismissDisabled()
