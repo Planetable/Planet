@@ -1434,30 +1434,42 @@ struct ArticleAIChatView: View {
 
     private func sendRemoteMessage(streamingMessageID: UUID) {
         Task {
+            let streamingRef = MutableIDRef(streamingMessageID)
             do {
                 let reply = try await requestReply(
                     messages: apiMessages,
                     onToolSuccessMessage: { summary in
                         await MainActor.run {
-                            appendToolActivityMessage(summary)
+                            self.appendToolActivityMessage(summary)
                         }
                     },
                     onAssistantTextUpdate: { partialText in
                         await MainActor.run {
-                            updateAssistantStreamingMessage(
-                                id: streamingMessageID,
+                            self.updateAssistantStreamingMessage(
+                                id: streamingRef.id,
                                 content: partialText,
                                 tokenUsage: nil,
                                 createIfMissing: true,
                                 removeWhenEmpty: true
                             )
                         }
+                    },
+                    onIntermediateResponse: { text in
+                        await MainActor.run {
+                            self.updateAssistantStreamingMessage(
+                                id: streamingRef.id,
+                                content: text,
+                                tokenUsage: nil,
+                                createIfMissing: true
+                            )
+                            streamingRef.id = UUID()
+                        }
                     }
                 )
                 debugLog("assistant reply received textLength=\(reply.text.count), tokenUsage=\(reply.tokenUsage ?? "nil"), messagesCount=\(reply.messages.count)")
                 await MainActor.run {
                     updateAssistantStreamingMessage(
-                        id: streamingMessageID,
+                        id: streamingRef.id,
                         content: reply.text,
                         tokenUsage: reply.tokenUsage,
                         createIfMissing: true
@@ -1470,7 +1482,7 @@ struct ArticleAIChatView: View {
             } catch {
                 debugLogError("sendMessage requestReply failed", error: error)
                 await MainActor.run {
-                    if let index = messages.firstIndex(where: { $0.id == streamingMessageID }) {
+                    if let index = messages.firstIndex(where: { $0.id == streamingRef.id }) {
                         let isEmpty = messages[index].content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                         if isEmpty {
                             messages.remove(at: index)
@@ -1603,7 +1615,8 @@ struct ArticleAIChatView: View {
     private func requestReply(
         messages: [[String: Any]],
         onToolSuccessMessage: ((String) async -> Void)? = nil,
-        onAssistantTextUpdate: ((String) async -> Void)? = nil
+        onAssistantTextUpdate: ((String) async -> Void)? = nil,
+        onIntermediateResponse: ((String) async -> Void)? = nil
     ) async throws -> ArticleAIReplyResult {
         let base = UserDefaults.standard.string(forKey: .settingsAIAPIBase)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -1635,7 +1648,7 @@ struct ArticleAIChatView: View {
         var seenMutationNotices: Set<String> = []
         var totalToolCallsExecuted = 0
         var didUseToolsInResponse = false
-        let maxToolSteps = 8
+        let maxToolSteps = 32
         for step in 0..<maxToolSteps {
             if didUseToolsInResponse {
                 updateToolProgress(
@@ -1681,8 +1694,15 @@ struct ArticleAIChatView: View {
                 return ArticleAIReplyResult(text: finalText, tokenUsage: finalTokenUsage, messages: workingMessages)
             }
 
-            if let onAssistantTextUpdate {
-                await onAssistantTextUpdate("")
+            let intermediateText = completion.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !intermediateText.isEmpty {
+                if let onIntermediateResponse {
+                    await onIntermediateResponse(completion.text)
+                }
+            } else {
+                if let onAssistantTextUpdate {
+                    await onAssistantTextUpdate("")
+                }
             }
 
             didUseToolsInResponse = true
@@ -3375,6 +3395,11 @@ struct ArticleAIChatView: View {
         init(_ value: Value) {
             self.value = value
         }
+    }
+
+    private final class MutableIDRef: @unchecked Sendable {
+        var id: UUID
+        init(_ id: UUID) { self.id = id }
     }
 
     @MainActor
