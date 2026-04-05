@@ -13,29 +13,40 @@ import SwiftUI
 import FoundationModels
 #endif
 
-private struct ArticleAIChatMessage: Identifiable {
+private struct ArticleAIChatMessage: Identifiable, Equatable {
     let id: UUID
     let role: String
     let content: String
     let tokenUsage: String?
+    let isToolActivity: Bool
 
-    init(id: UUID = UUID(), role: String, content: String, tokenUsage: String?) {
+    init(
+        id: UUID = UUID(),
+        role: String,
+        content: String,
+        tokenUsage: String?,
+        isToolActivity: Bool = false
+    ) {
         self.id = id
         self.role = role
         self.content = content
         self.tokenUsage = tokenUsage
+        self.isToolActivity = isToolActivity
     }
 }
 
 struct ArticleAIChatPersistedMessage: Codable {
+    let id: UUID?
     let role: String
     let content: String
     let tokenUsage: String?
+    let isToolActivity: Bool?
 }
 
 struct ArticleAIChatPersistedData: Codable {
     var provider: String?
     var messages: [ArticleAIChatPersistedMessage]
+    var scrollTargetMessageID: String?
 }
 
 private struct ArticleAIToolCall {
@@ -64,6 +75,8 @@ private struct ArticleAIReplyResult {
 }
 
 private struct ArticleAIStreamToolCallState {
+    var sequence: Int = 0
+    var sourceIndex: Int = 0
     var id: String = ""
     var name: String = ""
     var arguments: String = ""
@@ -75,6 +88,115 @@ private struct ArticleAIToolFailureDetail {
     let error: String
     let argumentsPreview: String
     let resultPreview: String
+}
+
+private enum ArticleAIListPlanetArticlesSortBy: String, Sendable {
+    case createdAt = "created_at"
+    case title
+}
+
+private enum ArticleAIListPlanetArticlesSortOrder: String, Sendable {
+    case desc = "DESC"
+    case asc = "ASC"
+}
+
+private struct ArticleAIListPlanetArticleSnapshot: Sendable {
+    let articleID: UUID
+    let title: String
+    let createdAt: Date
+}
+
+private struct ArticleAIListPlanetSnapshot: Sendable {
+    let planetID: UUID
+    let planetName: String
+    let planetKind: PlanetKind
+    let articles: [ArticleAIListPlanetArticleSnapshot]
+}
+
+private struct ArticleAIReadableArticleSnapshot {
+    let articleID: UUID
+    let planetID: UUID
+    let planetKind: PlanetKind
+    let path: String
+    let articleJSON: [String: Any]
+}
+
+private enum ArticleAIMessageBlock: Equatable {
+    case markdown(String)
+    case heading(ArticleAIMarkdownHeading)
+    case separator
+    case table(ArticleAIMarkdownTable)
+}
+
+private enum ArticleAIMessageBlockKind {
+    case markdown
+    case heading
+    case separator
+    case table
+}
+
+private struct ArticleAIMarkdownHeading: Equatable {
+    let level: Int
+    let content: String
+}
+
+private struct ArticleAIFontTagFragment {
+    let text: String
+    let color: Color?
+}
+
+private struct ArticleAIMarkdownTable: Equatable {
+    let headers: [String]
+    let alignments: [ArticleAIMarkdownTableAlignment]
+    let rows: [[String]]
+}
+
+private enum ArticleAIMarkdownTableAlignment: Equatable {
+    case leading
+    case center
+    case trailing
+
+    var textAlignment: TextAlignment {
+        switch self {
+        case .leading:
+            return .leading
+        case .center:
+            return .center
+        case .trailing:
+            return .trailing
+        }
+    }
+
+    var frameAlignment: Alignment {
+        switch self {
+        case .leading:
+            return .leading
+        case .center:
+            return .center
+        case .trailing:
+            return .trailing
+        }
+    }
+}
+
+private func makeArticleAITableCodeBackgroundColor() -> Color {
+    let light = NSColor(
+        calibratedRed: CGFloat(248) / CGFloat(255),
+        green: CGFloat(248) / CGFloat(255),
+        blue: CGFloat(248) / CGFloat(255),
+        alpha: CGFloat(1)
+    )
+    let dark = NSColor(
+        calibratedRed: CGFloat(43) / CGFloat(255),
+        green: CGFloat(43) / CGFloat(255),
+        blue: CGFloat(45) / CGFloat(255),
+        alpha: CGFloat(1)
+    )
+    let dynamic = NSColor(name: nil) { appearance -> NSColor in
+        let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        return isDark ? dark : light
+    }
+    return Color(dynamic)
 }
 
 enum ArticleAIDebugLogger {
@@ -129,6 +251,9 @@ struct ArticleAIChatView: View {
     @State private var isOnDeviceAvailable: Bool = false
     @State private var onDeviceSession: AnyObject? = nil
     @State private var isShowingClearConfirm: Bool = false
+    @State private var blockCache: [UUID: [ArticleAIMessageBlock]] = [:]
+    @State private var scrolledMessageID: UUID? = nil
+    @State private var pendingScrollTarget: UUID? = nil
 
     private var canSendMessage: Bool {
         !isSending && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -247,69 +372,19 @@ struct ArticleAIChatView: View {
 
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Context loaded from: \(contextTitle)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                        ForEach(messages) { message in
-                            HStack(alignment: .top) {
-                                Text(message.role == "assistant" ? "AI" : "You")
-                                    .font(.system(size: chatFontSize))
-                                    .lineSpacing(5)
-                                    .foregroundStyle(.secondary)
-                                    .padding(.top, message.role == "assistant" ? 0 : 8)
-                                    .frame(width: 34, alignment: .trailing)
-                                VStack(alignment: .leading, spacing: 6) {
-                                    chatMessageContent(for: message)
-                                        .font(.system(size: chatFontSize))
-                                        .lineSpacing(5)
-                                        .textSelection(.enabled)
-                                        .frame(maxWidth: message.role == "user" ? nil : .infinity, alignment: .leading)
-                                    if message.role == "assistant", let tokenUsage = message.tokenUsage {
-                                        Text(tokenUsage)
-                                            .font(.footnote)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                                .padding(message.role == "user" ? 8 : 0)
-                                .background(
-                                    message.role == "user"
-                                        ? Color("BorderColor").opacity(0.5)
-                                        : Color.clear
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .id(message.id)
-                        }
-
-                        if isSending, let toolProgressText = toolProgressText {
-                            HStack(alignment: .top) {
-                                Text("AI")
-                                    .font(.system(size: chatFontSize))
-                                    .lineSpacing(5)
-                                    .foregroundStyle(.secondary)
-                                    .frame(width: 34, alignment: .trailing)
-                                Text(toolProgressText)
-                                    .font(.system(size: chatFontSize))
-                                    .lineSpacing(5)
-                                    .foregroundStyle(.secondary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }
-
-                        if let errorText = errorText {
-                            Text(errorText)
-                                .font(.caption)
-                                .foregroundStyle(.red)
-                        }
-                    }
-                    .padding(12)
+                    chatMessageList
+                        .padding(12)
                 }
+                .applyScrollPositionTracking(id: $scrolledMessageID)
                 .onChange(of: messages.count) { _ in
-                    if let lastID = messages.last?.id {
+                    if let targetID = pendingScrollTarget {
+                        pendingScrollTarget = nil
+                        if #available(macOS 14.0, *) {
+                            scrolledMessageID = targetID
+                        } else {
+                            proxy.scrollTo(targetID, anchor: .top)
+                        }
+                    } else if let lastID = messages.last?.id {
                         if shouldAnimateScroll {
                             withAnimation {
                                 proxy.scrollTo(lastID, anchor: .bottom)
@@ -372,6 +447,9 @@ struct ArticleAIChatView: View {
                 shouldAnimateScroll = true
             }
         }
+        .onDisappear {
+            saveScrollPosition()
+        }
     }
 
     private func prepareInitialContextIfNeeded() {
@@ -397,8 +475,10 @@ struct ArticleAIChatView: View {
         guard let data = try? Data(contentsOf: chatFileURL) else { return }
 
         let persisted: [ArticleAIChatPersistedMessage]
+        var savedScrollTarget: String? = nil
         if let envelope = try? JSONDecoder.shared.decode(ArticleAIChatPersistedData.self, from: data) {
             persisted = envelope.messages
+            savedScrollTarget = envelope.scrollTargetMessageID
             if let provider = envelope.provider, let restored = AIProvider(rawValue: provider) {
                 selectedProvider = restored
             }
@@ -409,14 +489,34 @@ struct ArticleAIChatView: View {
         }
 
         messages = persisted.map { item in
-            ArticleAIChatMessage(role: item.role, content: item.content, tokenUsage: item.tokenUsage)
+            ArticleAIChatMessage(
+                id: item.id ?? UUID(),
+                role: item.role,
+                content: item.content,
+                tokenUsage: item.tokenUsage,
+                isToolActivity: item.isToolActivity ?? false
+            )
         }
-        let persistedAPIMessages: [[String: Any]] = persisted.map { item in
-            [
-                "role": item.role,
-                "content": item.content,
-            ]
+
+        // Pre-populate block cache so view rendering hits cache immediately
+        for message in messages where isAssistantStyleMessage(message) {
+            blockCache[message.id] = assistantMessageBlocks(message.content)
         }
+
+        if let scrollIDString = savedScrollTarget,
+            let scrollUUID = UUID(uuidString: scrollIDString),
+            messages.contains(where: { $0.id == scrollUUID })
+        {
+            pendingScrollTarget = scrollUUID
+        }
+        let persistedAPIMessages: [[String: Any]] = persisted
+            .filter { ($0.isToolActivity ?? false) == false }
+            .map { item in
+                [
+                    "role": item.role,
+                    "content": item.content,
+                ]
+            }
         apiMessages = [
             ["role": "system", "content": systemPrompt as Any],
             ["role": "user", "content": currentArticleContextMessage() as Any],
@@ -426,16 +526,37 @@ struct ArticleAIChatView: View {
     private func persistChat() {
         guard let chatFileURL = chatFileURL else { return }
         let persistedMessages = messages.map { item in
-            ArticleAIChatPersistedMessage(role: item.role, content: item.content, tokenUsage: item.tokenUsage)
+            ArticleAIChatPersistedMessage(
+                id: item.id,
+                role: item.role,
+                content: item.content,
+                tokenUsage: item.tokenUsage,
+                isToolActivity: item.isToolActivity
+            )
         }
-        let envelope = ArticleAIChatPersistedData(provider: selectedProvider.rawValue, messages: persistedMessages)
+        let scrollTarget = topVisibleMessageID()?.uuidString
+        let envelope = ArticleAIChatPersistedData(
+            provider: selectedProvider.rawValue,
+            messages: persistedMessages,
+            scrollTargetMessageID: scrollTarget
+        )
         guard let data = try? JSONEncoder.shared.encode(envelope) else { return }
         try? data.write(to: chatFileURL, options: .atomic)
+    }
+
+    private func topVisibleMessageID() -> UUID? {
+        scrolledMessageID
+    }
+
+    private func saveScrollPosition() {
+        persistChat()
     }
 
     private func clearChat() {
         messages = []
         apiMessages = []
+        blockCache.removeAll()
+        scrolledMessageID = nil
         errorText = nil
         toolProgressText = nil
         onDeviceSession = nil
@@ -473,14 +594,83 @@ struct ArticleAIChatView: View {
         return content
     }
 
+    private var chatMessageList: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Context loaded from: \(contextTitle)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            ForEach(messages) { message in
+                HStack(alignment: .top) {
+                    Text(isAssistantStyleMessage(message) ? "AI" : "You")
+                        .font(.system(size: chatFontSize))
+                        .lineSpacing(5)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, isAssistantStyleMessage(message) ? 0 : 8)
+                        .frame(width: 34, alignment: .trailing)
+                    VStack(alignment: .leading, spacing: 6) {
+                        chatMessageContent(for: message)
+                            .font(.system(size: chatFontSize))
+                            .lineSpacing(5)
+                            .textSelection(.enabled)
+                            .frame(
+                                maxWidth: message.role == "user" ? nil : .infinity,
+                                alignment: .leading
+                            )
+                        if message.role == "assistant",
+                            !message.isToolActivity,
+                            let tokenUsage = message.tokenUsage
+                        {
+                            Text(tokenUsage)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(message.role == "user" ? 8 : 0)
+                    .background(
+                        message.role == "user"
+                            ? Color("BorderColor").opacity(0.5)
+                            : Color.clear
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .id(message.id)
+            }
+
+            if isSending, let toolProgressText = toolProgressText {
+                HStack(alignment: .top) {
+                    Text("AI")
+                        .font(.system(size: chatFontSize))
+                        .lineSpacing(5)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 34, alignment: .trailing)
+                    Text(toolProgressText)
+                        .font(.system(size: chatFontSize))
+                        .lineSpacing(5)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+
+            if let errorText = errorText {
+                Text(errorText)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+        }
+        .applyScrollTargetLayout()
+    }
+
+    private func isAssistantStyleMessage(_ message: ArticleAIChatMessage) -> Bool {
+        message.role == "assistant" || message.isToolActivity
+    }
+
     @ViewBuilder
     private func chatMessageContent(for message: ArticleAIChatMessage) -> some View {
-        if message.role == "assistant",
-            let attributed = attributedAssistantMessage(message.content)
-        {
-            Text(attributed)
-                .fixedSize(horizontal: false, vertical: true)
-                .multilineTextAlignment(.leading)
+        if isAssistantStyleMessage(message) {
+            assistantMessageContent(message)
         } else {
             Text(verbatim: normalizedMessageContent(message.content))
                 .fixedSize(horizontal: false, vertical: true)
@@ -488,17 +678,711 @@ struct ArticleAIChatView: View {
         }
     }
 
+    @ViewBuilder
+    private func assistantMessageContent(_ message: ArticleAIChatMessage) -> some View {
+        let blocks: [ArticleAIMessageBlock] = {
+            if let cached = blockCache[message.id] {
+                return cached
+            }
+            let parsed = assistantMessageBlocks(message.content)
+            DispatchQueue.main.async {
+                blockCache[message.id] = parsed
+            }
+            return parsed
+        }()
+
+        if blocks.count == 1 {
+            assistantMessageBlockView(blocks[0])
+        } else {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(blocks.indices), id: \.self) { index in
+                    assistantMessageBlockView(blocks[index])
+                        .padding(
+                            .top,
+                            assistantMessageBlockSpacing(
+                                before: blocks[index],
+                                previous: index > 0 ? blocks[index - 1] : nil
+                            )
+                        )
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func assistantMessageBlockView(_ block: ArticleAIMessageBlock) -> some View {
+        switch block {
+        case .markdown(let markdown):
+            assistantMarkdownText(markdown)
+        case .heading(let heading):
+            assistantMarkdownHeadingView(heading)
+        case .separator:
+            assistantMarkdownSeparatorView()
+        case .table(let table):
+            assistantMarkdownTableView(table)
+        }
+    }
+
+    private func assistantMessageBlockSpacing(
+        before block: ArticleAIMessageBlock,
+        previous: ArticleAIMessageBlock?
+    ) -> CGFloat {
+        guard let previous else {
+            return 0
+        }
+
+        let previousKind = assistantMessageBlockKind(previous)
+        let currentKind = assistantMessageBlockKind(block)
+
+        switch (previousKind, currentKind) {
+        // After heading: keep content visually attached
+        case (.heading, .heading):
+            return 8
+        case (.heading, .separator):
+            return 16
+        case (.heading, .table):
+            return 14
+        case (.heading, _):
+            return 10
+        // Separator: symmetric breathing room
+        case (.separator, _):
+            return 16
+        case (_, .separator):
+            return 16
+        // Before heading: clear section break
+        case (_, .heading):
+            return 20
+        // Table adjacency
+        case (.table, .table):
+            return 16
+        case (.markdown, .table), (.table, .markdown):
+            return 14
+        // Paragraph to paragraph
+        default:
+            return 12
+        }
+    }
+
+    private func assistantMessageBlockKind(_ block: ArticleAIMessageBlock) -> ArticleAIMessageBlockKind {
+        switch block {
+        case .markdown:
+            return .markdown
+        case .heading:
+            return .heading
+        case .separator:
+            return .separator
+        case .table:
+            return .table
+        }
+    }
+
+    @ViewBuilder
+    private func assistantMarkdownText(_ content: String) -> some View {
+        if let attributed = attributedAssistantMessage(content) {
+            Text(attributed)
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
+        } else {
+            Text(verbatim: normalizedMessageContent(content))
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
+        }
+    }
+
+    @ViewBuilder
+    private func assistantMarkdownHeadingView(_ heading: ArticleAIMarkdownHeading) -> some View {
+        let font = assistantMarkdownHeadingFont(level: heading.level)
+
+        if let attributed = attributedAssistantMessage(heading.content) {
+            Text(attributed)
+                .font(font)
+                .fontWeight(.semibold)
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            Text(verbatim: heading.content)
+                .font(font)
+                .fontWeight(.semibold)
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func assistantMarkdownHeadingFont(level: Int) -> Font {
+        switch level {
+        case 1:
+            return .system(size: 24, weight: .semibold)
+        case 2:
+            return .system(size: 20, weight: .semibold)
+        case 3:
+            return .system(size: 18, weight: .semibold)
+        case 4:
+            return .system(size: 16, weight: .semibold)
+        case 5:
+            return .system(size: 14, weight: .semibold)
+        default:
+            return .system(size: 13, weight: .semibold)
+        }
+    }
+
+    private func assistantMarkdownSeparatorView() -> some View {
+        Rectangle()
+            .fill(Color("BorderColor"))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: 3)
+    }
+
+    private func assistantMarkdownTableView(_ table: ArticleAIMarkdownTable) -> some View {
+        let borderColor = Color("BorderColor")
+        let headerBackground = makeArticleAITableCodeBackgroundColor()
+        let evenRowBackground = makeArticleAITableCodeBackgroundColor()
+        let oddRowBackground = Color(NSColor.textBackgroundColor)
+        let cornerRadius: CGFloat = 5
+
+        return VStack(spacing: 0) {
+            assistantMarkdownTableRow(
+                table.headers,
+                alignments: table.alignments,
+                isHeader: true
+            )
+            .background(headerBackground)
+
+            if !table.rows.isEmpty {
+                Rectangle()
+                    .fill(borderColor)
+                    .frame(height: 1)
+            }
+
+            ForEach(Array(table.rows.enumerated()), id: \.offset) { index, row in
+                assistantMarkdownTableRow(
+                    row,
+                    alignments: table.alignments,
+                    isHeader: false
+                )
+                .background(index.isMultiple(of: 2) ? evenRowBackground : oddRowBackground)
+
+                if index < table.rows.count - 1 {
+                    Rectangle()
+                        .fill(borderColor)
+                        .frame(height: 1)
+                }
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .stroke(borderColor, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func assistantMarkdownTableRow(
+        _ cells: [String],
+        alignments: [ArticleAIMarkdownTableAlignment],
+        isHeader: Bool
+    ) -> some View {
+        let borderColor = Color("BorderColor")
+
+        return HStack(spacing: 0) {
+            ForEach(Array(cells.enumerated()), id: \.offset) { index, cell in
+                assistantMarkdownTableCell(
+                    cell,
+                    alignment: index < alignments.count ? alignments[index] : .leading,
+                    isHeader: isHeader
+                )
+
+                if index < cells.count - 1 {
+                    Rectangle()
+                        .fill(borderColor)
+                        .frame(width: 1)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func assistantMarkdownTableCell(
+        _ content: String,
+        alignment: ArticleAIMarkdownTableAlignment,
+        isHeader: Bool
+    ) -> some View {
+        let textView: Text = {
+            if let attributed = attributedAssistantTableCellMessage(content) {
+                return isHeader ? Text(attributed).fontWeight(.semibold) : Text(attributed)
+            } else {
+                return isHeader
+                    ? Text(verbatim: content).fontWeight(.semibold)
+                    : Text(verbatim: content)
+            }
+        }()
+
+        textView
+            .multilineTextAlignment(alignment.textAlignment)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: alignment.frameAlignment)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+    }
+
+    private func attributedAssistantTableCellMessage(_ content: String) -> AttributedString? {
+        guard let fragments = fontTagFragments(in: content) else {
+            return attributedAssistantMessage(content)
+        }
+
+        var combined = AttributedString()
+        for fragment in fragments {
+            var attributed = attributedAssistantMessage(fragment.text) ?? AttributedString(fragment.text)
+            if let color = fragment.color {
+                attributed.foregroundColor = color
+            }
+            combined += attributed
+        }
+        return combined
+    }
+
+    private static var attributedStringCache: [String: AttributedString] = [:]
+
     private func attributedAssistantMessage(_ content: String) -> AttributedString? {
         let normalized = normalizedMessageContent(content)
+        if let cached = Self.attributedStringCache[normalized] {
+            return cached
+        }
         var options = AttributedString.MarkdownParsingOptions()
         options.interpretedSyntax = .inlineOnlyPreservingWhitespace
-        return try? AttributedString(markdown: normalized, options: options)
+        guard let result = try? AttributedString(markdown: normalized, options: options) else {
+            return nil
+        }
+        Self.attributedStringCache[normalized] = result
+        return result
+    }
+
+    private func fontTagFragments(in content: String) -> [ArticleAIFontTagFragment]? {
+        guard content.localizedCaseInsensitiveContains("<font") else {
+            return nil
+        }
+
+        let pattern = #"<font\s+color\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))\s*>(.*?)</font>"#
+        guard let regex = try? NSRegularExpression(
+            pattern: pattern,
+            options: [.caseInsensitive, .dotMatchesLineSeparators]
+        ) else {
+            return nil
+        }
+
+        let fullRange = NSRange(content.startIndex..<content.endIndex, in: content)
+        let matches = regex.matches(in: content, options: [], range: fullRange)
+        guard !matches.isEmpty else {
+            return nil
+        }
+
+        var fragments: [ArticleAIFontTagFragment] = []
+        var currentLocation = 0
+
+        for match in matches {
+            let matchRange = match.range
+            guard matchRange.location != NSNotFound else {
+                continue
+            }
+
+            if matchRange.location > currentLocation,
+                let plainRange = Range(
+                    NSRange(location: currentLocation, length: matchRange.location - currentLocation),
+                    in: content
+                )
+            {
+                fragments.append(
+                    ArticleAIFontTagFragment(
+                        text: String(content[plainRange]),
+                        color: nil
+                    )
+                )
+            }
+
+            let colorValue =
+                firstMatchingCapture(in: match, source: content, ranges: [1, 2, 3]) ?? ""
+            let innerText = firstMatchingCapture(in: match, source: content, ranges: [4]) ?? ""
+            fragments.append(
+                ArticleAIFontTagFragment(
+                    text: innerText,
+                    color: colorFromFontTag(colorValue)
+                )
+            )
+
+            currentLocation = matchRange.location + matchRange.length
+        }
+
+        if currentLocation < fullRange.location + fullRange.length,
+            let trailingRange = Range(
+                NSRange(
+                    location: currentLocation,
+                    length: fullRange.location + fullRange.length - currentLocation
+                ),
+                in: content
+            )
+        {
+            fragments.append(
+                ArticleAIFontTagFragment(
+                    text: String(content[trailingRange]),
+                    color: nil
+                )
+            )
+        }
+
+        return fragments
+    }
+
+    private func firstMatchingCapture(
+        in match: NSTextCheckingResult,
+        source: String,
+        ranges: [Int]
+    ) -> String? {
+        for rangeIndex in ranges {
+            guard rangeIndex < match.numberOfRanges else {
+                continue
+            }
+            let range = match.range(at: rangeIndex)
+            guard range.location != NSNotFound,
+                let stringRange = Range(range, in: source)
+            else {
+                continue
+            }
+            return String(source[stringRange])
+        }
+        return nil
+    }
+
+    private func colorFromFontTag(_ value: String) -> Color? {
+        let normalized = value
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        guard !normalized.isEmpty else {
+            return nil
+        }
+
+        if let nsColor = nsColorFromHexString(normalized) {
+            return Color(nsColor)
+        }
+
+        switch normalized {
+        case "red":
+            return .red
+        case "green":
+            return .green
+        case "blue":
+            return .blue
+        case "orange":
+            return .orange
+        case "yellow":
+            return .yellow
+        case "pink":
+            return .pink
+        case "purple":
+            return .purple
+        case "primary":
+            return .primary
+        case "secondary":
+            return .secondary
+        case "gray", "grey":
+            return .gray
+        case "black":
+            return .black
+        case "white":
+            return .white
+        default:
+            return nil
+        }
+    }
+
+    private func nsColorFromHexString(_ value: String) -> NSColor? {
+        let hex = value.hasPrefix("#") ? String(value.dropFirst()) : value
+        let expandedHex: String
+
+        switch hex.count {
+        case 3:
+            expandedHex = hex.map { "\($0)\($0)" }.joined()
+        case 6, 8:
+            expandedHex = hex
+        default:
+            return nil
+        }
+
+        guard let rawValue = UInt64(expandedHex, radix: 16) else {
+            return nil
+        }
+
+        let red: CGFloat
+        let green: CGFloat
+        let blue: CGFloat
+        let alpha: CGFloat
+
+        if expandedHex.count == 8 {
+            red = CGFloat((rawValue & 0xFF00_0000) >> 24) / 255
+            green = CGFloat((rawValue & 0x00FF_0000) >> 16) / 255
+            blue = CGFloat((rawValue & 0x0000_FF00) >> 8) / 255
+            alpha = CGFloat(rawValue & 0x0000_00FF) / 255
+        } else {
+            red = CGFloat((rawValue & 0xFF00_00) >> 16) / 255
+            green = CGFloat((rawValue & 0x00FF_00) >> 8) / 255
+            blue = CGFloat(rawValue & 0x0000_FF) / 255
+            alpha = 1
+        }
+
+        return NSColor(
+            calibratedRed: red,
+            green: green,
+            blue: blue,
+            alpha: alpha
+        )
     }
 
     private func normalizedMessageContent(_ content: String) -> String {
         content
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
+    }
+
+    private func assistantMessageBlocks(_ content: String) -> [ArticleAIMessageBlock] {
+        let normalized = normalizedMessageContent(content)
+        let lines = normalized.components(separatedBy: "\n")
+        var blocks: [ArticleAIMessageBlock] = []
+        var markdownBuffer: [String] = []
+        var index = 0
+        var isInsideCodeFence = false
+
+        func flushMarkdownBuffer() {
+            // Drop leading and trailing empty lines to avoid phantom spacing
+            while let first = markdownBuffer.first,
+                first.trimmingCharacters(in: .whitespaces).isEmpty
+            {
+                markdownBuffer.removeFirst()
+            }
+            while let last = markdownBuffer.last,
+                last.trimmingCharacters(in: .whitespaces).isEmpty
+            {
+                markdownBuffer.removeLast()
+            }
+
+            let markdown = markdownBuffer.joined(separator: "\n")
+            markdownBuffer.removeAll(keepingCapacity: true)
+
+            guard !markdown.isEmpty else {
+                return
+            }
+            blocks.append(.markdown(markdown))
+        }
+
+        while index < lines.count {
+            let line = lines[index]
+            if isMarkdownCodeFenceDelimiter(line) {
+                markdownBuffer.append(line)
+                isInsideCodeFence.toggle()
+                index += 1
+                continue
+            }
+
+            if !isInsideCodeFence,
+                let heading = parseMarkdownHeading(line)
+            {
+                flushMarkdownBuffer()
+                blocks.append(.heading(heading))
+                index += 1
+                continue
+            }
+
+            if !isInsideCodeFence, isMarkdownSeparator(line) {
+                flushMarkdownBuffer()
+                blocks.append(.separator)
+                index += 1
+                continue
+            }
+
+            if !isInsideCodeFence,
+                let tableParseResult = parseMarkdownTable(lines: lines, startIndex: index)
+            {
+                flushMarkdownBuffer()
+                blocks.append(.table(tableParseResult.table))
+                index = tableParseResult.nextIndex
+                continue
+            }
+
+            markdownBuffer.append(line)
+            index += 1
+        }
+
+        flushMarkdownBuffer()
+
+        if blocks.isEmpty {
+            return [.markdown(normalized)]
+        }
+        return blocks
+    }
+
+    private func parseMarkdownHeading(_ line: String) -> ArticleAIMarkdownHeading? {
+        let trimmedLeading = line.trimmingCharacters(in: .whitespaces)
+        guard trimmedLeading.hasPrefix("#") else {
+            return nil
+        }
+
+        let level = trimmedLeading.prefix(while: { $0 == "#" }).count
+        guard (1...6).contains(level) else {
+            return nil
+        }
+
+        let contentStartIndex = trimmedLeading.index(trimmedLeading.startIndex, offsetBy: level)
+        let remaining = trimmedLeading[contentStartIndex...]
+        guard remaining.isEmpty || remaining.first?.isWhitespace == true else {
+            return nil
+        }
+
+        var content = String(remaining).trimmingCharacters(in: .whitespaces)
+        if let trailingHashesRange = content.range(
+            of: #"\s+#+\s*$"#,
+            options: .regularExpression
+        ) {
+            content.removeSubrange(trailingHashesRange)
+            content = content.trimmingCharacters(in: .whitespaces)
+        }
+
+        return ArticleAIMarkdownHeading(level: level, content: content)
+    }
+
+    private func isMarkdownSeparator(_ line: String) -> Bool {
+        line.trimmingCharacters(in: .whitespaces) == "---"
+    }
+
+    private func parseMarkdownTable(
+        lines: [String],
+        startIndex: Int
+    ) -> (table: ArticleAIMarkdownTable, nextIndex: Int)? {
+        guard startIndex + 1 < lines.count else {
+            return nil
+        }
+
+        guard let headerCells = parseMarkdownTableRow(lines[startIndex]),
+            headerCells.count >= 2,
+            let alignments = parseMarkdownTableSeparator(
+                lines[startIndex + 1],
+                expectedColumnCount: headerCells.count
+            )
+        else {
+            return nil
+        }
+
+        var rows: [[String]] = []
+        var nextIndex = startIndex + 2
+
+        while nextIndex < lines.count {
+            let line = lines[nextIndex]
+            if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                break
+            }
+
+            guard let row = parseMarkdownTableRow(line),
+                row.count == headerCells.count
+            else {
+                break
+            }
+
+            rows.append(row)
+            nextIndex += 1
+        }
+
+        return (
+            ArticleAIMarkdownTable(
+                headers: headerCells,
+                alignments: alignments,
+                rows: rows
+            ),
+            nextIndex
+        )
+    }
+
+    private func parseMarkdownTableRow(_ line: String) -> [String]? {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        guard trimmed.contains("|") else {
+            return nil
+        }
+
+        var content = trimmed
+        if content.hasPrefix("|") {
+            content.removeFirst()
+        }
+        if content.hasSuffix("|") {
+            content.removeLast()
+        }
+
+        var cells: [String] = []
+        var currentCell = ""
+        var isEscaping = false
+
+        for character in content {
+            if isEscaping {
+                currentCell.append(character)
+                isEscaping = false
+                continue
+            }
+
+            if character == "\\" {
+                isEscaping = true
+                continue
+            }
+
+            if character == "|" {
+                cells.append(currentCell.trimmingCharacters(in: .whitespaces))
+                currentCell = ""
+            } else {
+                currentCell.append(character)
+            }
+        }
+
+        if isEscaping {
+            currentCell.append("\\")
+        }
+
+        cells.append(currentCell.trimmingCharacters(in: .whitespaces))
+        return cells.count >= 2 ? cells : nil
+    }
+
+    private func parseMarkdownTableSeparator(
+        _ line: String,
+        expectedColumnCount: Int
+    ) -> [ArticleAIMarkdownTableAlignment]? {
+        guard let cells = parseMarkdownTableRow(line),
+            cells.count == expectedColumnCount
+        else {
+            return nil
+        }
+
+        let alignments = cells.compactMap { cell -> ArticleAIMarkdownTableAlignment? in
+            let trimmed = cell.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else {
+                return nil
+            }
+
+            let dashCount = trimmed.filter { $0 == "-" }.count
+            let normalized = trimmed.replacingOccurrences(of: ":", with: "")
+            guard dashCount >= 3, !normalized.isEmpty, normalized.allSatisfy({ $0 == "-" }) else {
+                return nil
+            }
+
+            if trimmed.hasPrefix(":"), trimmed.hasSuffix(":") {
+                return .center
+            }
+            if trimmed.hasSuffix(":") {
+                return .trailing
+            }
+            return .leading
+        }
+
+        return alignments.count == expectedColumnCount ? alignments : nil
+    }
+
+    private func isMarkdownCodeFenceDelimiter(_ line: String) -> Bool {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        return trimmed.hasPrefix("```") || trimmed.hasPrefix("~~~")
     }
 
     private func handleChatLink(_ url: URL) -> OpenURLAction.Result {
@@ -553,6 +1437,11 @@ struct ArticleAIChatView: View {
             do {
                 let reply = try await requestReply(
                     messages: apiMessages,
+                    onToolSuccessMessage: { summary in
+                        await MainActor.run {
+                            appendToolActivityMessage(summary)
+                        }
+                    },
                     onAssistantTextUpdate: { partialText in
                         await MainActor.run {
                             updateAssistantStreamingMessage(
@@ -668,6 +1557,7 @@ struct ArticleAIChatView: View {
         if let index = messages.firstIndex(where: { $0.id == id }) {
             if removeWhenEmpty && trimmed.isEmpty {
                 messages.remove(at: index)
+                blockCache.removeValue(forKey: id)
                 return
             }
             messages[index] = ArticleAIChatMessage(
@@ -676,6 +1566,7 @@ struct ArticleAIChatView: View {
                 content: content,
                 tokenUsage: tokenUsage
             )
+            blockCache.removeValue(forKey: id)
             return
         }
 
@@ -692,8 +1583,26 @@ struct ArticleAIChatView: View {
         )
     }
 
+    @MainActor
+    private func appendToolActivityMessage(_ content: String) {
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return
+        }
+        messages.append(
+            ArticleAIChatMessage(
+                role: "assistant",
+                content: trimmed,
+                tokenUsage: nil,
+                isToolActivity: true
+            )
+        )
+        persistChat()
+    }
+
     private func requestReply(
         messages: [[String: Any]],
+        onToolSuccessMessage: ((String) async -> Void)? = nil,
         onAssistantTextUpdate: ((String) async -> Void)? = nil
     ) async throws -> ArticleAIReplyResult {
         let base = UserDefaults.standard.string(forKey: .settingsAIAPIBase)?
@@ -725,7 +1634,6 @@ struct ArticleAIChatView: View {
         var mutationNotices: [String] = []
         var seenMutationNotices: Set<String> = []
         var totalToolCallsExecuted = 0
-        var recentToolRuns: [String] = []
         var didUseToolsInResponse = false
         let maxToolSteps = 8
         for step in 0..<maxToolSteps {
@@ -733,8 +1641,7 @@ struct ArticleAIChatView: View {
                 updateToolProgress(
                     thinkingProgressText(
                         round: step + 1,
-                        maxRounds: maxToolSteps,
-                        recentToolRuns: recentToolRuns
+                        maxRounds: maxToolSteps
                     )
                 )
             }
@@ -803,17 +1710,6 @@ struct ArticleAIChatView: View {
                 let toolResult = await executeToolCall(toolCall)
                 let toolSucceeded = toolResultSucceeded(toolResult)
                 totalToolCallsExecuted += 1
-                let completionTag: String = {
-                    if let toolSucceeded {
-                        return toolSucceeded ? "ok" : "failed"
-                    } else {
-                        return "done"
-                    }
-                }()
-                recentToolRuns.append("\(friendlyToolLabel(for: toolCall.name)) [\(completionTag)]")
-                if recentToolRuns.count > 3 {
-                    recentToolRuns.removeFirst(recentToolRuns.count - 3)
-                }
                 updateToolProgress(
                     toolCompletionProgressText(
                         toolCall: toolCall,
@@ -826,6 +1722,14 @@ struct ArticleAIChatView: View {
                     )
                 )
                 debugLog("tool result name=\(toolCall.name), id=\(toolCall.id), result=\(truncate(toolResult, maxLength: 2000))")
+                if toolSucceeded == true,
+                    let toolRunMessage = successfulToolRunMessage(
+                        toolName: toolCall.name,
+                        toolResult: toolResult
+                    )
+                {
+                    await onToolSuccessMessage?(toolRunMessage)
+                }
                 if let mutationNotice = mutationNoticeFromToolResult(
                     toolName: toolCall.name,
                     toolResult: toolResult
@@ -941,7 +1845,7 @@ struct ArticleAIChatView: View {
         toolProgressText = text
     }
 
-    private func thinkingProgressText(round: Int, maxRounds: Int, recentToolRuns: [String]) -> String {
+    private func thinkingProgressText(round: Int, maxRounds: Int) -> String {
         let spinnerFrames = ["|", "/", "-", "\\"]
         let playfulMessages = [
             "reticulating splines",
@@ -954,13 +1858,10 @@ struct ArticleAIChatView: View {
         let spinner = spinnerFrames[(max(0, round - 1)) % spinnerFrames.count]
         let playful = playfulMessages.randomElement() ?? "warming up"
 
-        var lines = [
+        let lines = [
             "[\(spinner)] \(playful)...",
             "Round \(round)/\(maxRounds)",
         ]
-        if !recentToolRuns.isEmpty {
-            lines.append("Ran: \(recentToolRuns.joined(separator: " -> "))")
-        }
         return lines.joined(separator: "\n")
     }
 
@@ -1022,9 +1923,6 @@ struct ArticleAIChatView: View {
             "Round \(round), action \(toolIndex + 1)/\(totalTools): \(friendlyToolLabel(for: toolCall.name)) \(statusText).",
             "Tool actions finished so far: \(totalExecuted).",
         ]
-        if let summary = summarizeToolResult(toolName: toolCall.name, toolResult: toolResult) {
-            lines.append(summary)
-        }
         if toolSucceeded == false {
             lines.append("Adjusting the plan and continuing...")
         }
@@ -1045,6 +1943,8 @@ struct ArticleAIChatView: View {
             return "Running shell command"
         case "search_articles":
             return "Searching articles"
+        case "list_planet_articles":
+            return "Listing planet articles"
         default:
             return "Running \(toolName)"
         }
@@ -1131,6 +2031,25 @@ struct ArticleAIChatView: View {
             if let planetID = stringValue(from: arguments["planet_id"]) {
                 parts.append("Planet: \(shortIdentifier(planetID)).")
             }
+        case "list_planet_articles":
+            if let planetID = stringValue(from: arguments["planet_id"]) {
+                parts.append("Planet: \(shortIdentifier(planetID)).")
+            }
+            if let limit = intValue(from: arguments["limit"]) {
+                parts.append("Limit: \(limit).")
+            }
+            if let offset = intValue(from: arguments["offset"]) {
+                parts.append("Offset: \(offset).")
+            }
+            if let sortBy = stringValue(from: arguments["sort_by"]) {
+                parts.append("Sort by: \(sortBy).")
+            }
+            if let sortOrder = stringValue(from: arguments["sort_order"]) {
+                parts.append("Order: \(sortOrder).")
+            }
+            if let titleFilter = stringValue(from: arguments["title_filter"]) {
+                parts.append("Title filter: \(truncateInline(titleFilter, maxLength: 96)).")
+            }
         default:
             let keys = Array(arguments.keys).sorted()
             if !keys.isEmpty {
@@ -1204,9 +2123,23 @@ struct ArticleAIChatView: View {
                 return "Found \(total) match(es), returning \(results.count)."
             }
             return "Search completed (\(total) matches)."
+        case "list_planet_articles":
+            let total = intValue(from: payload["total_matches"]) ?? 0
+            let totalArticles = intValue(from: payload["total_articles"]) ?? 0
+            if let results = payload["results"] as? [[String: Any]] {
+                return "Listed \(results.count) of \(total) filtered article(s) from \(totalArticles) total."
+            }
+            return "Article listing completed (\(total) filtered from \(totalArticles) total)."
         default:
             return "Tool response received."
         }
+    }
+
+    private func successfulToolRunMessage(toolName: String, toolResult: String) -> String? {
+        if let summary = summarizeToolResult(toolName: toolName, toolResult: toolResult) {
+            return "Ran: \(summary)"
+        }
+        return "Ran: \(friendlyToolLabel(for: toolName))."
     }
 
     private func inferredChangeKeys(
@@ -1320,6 +2253,8 @@ struct ArticleAIChatView: View {
         var streamedText = ""
         var streamedUsage: [String: Any]? = nil
         var openAIToolCallStates: [Int: ArticleAIStreamToolCallState] = [:]
+        var completedOpenAIToolCallStates: [ArticleAIStreamToolCallState] = []
+        var nextOpenAIToolCallSequence = 0
         var anthropicToolOrder: [String] = []
         var anthropicToolNames: [String: String] = [:]
         var anthropicToolInputs: [String: Any] = [:]
@@ -1425,6 +2360,84 @@ struct ArticleAIChatView: View {
                     )
                 }
             }
+        }
+
+        func makeOpenAIToolCallState(index: Int) -> ArticleAIStreamToolCallState {
+            let sequence = nextOpenAIToolCallSequence
+            nextOpenAIToolCallSequence += 1
+            return ArticleAIStreamToolCallState(
+                sequence: sequence,
+                sourceIndex: index
+            )
+        }
+
+        func openAIToolCallStateHasContent(_ state: ArticleAIStreamToolCallState) -> Bool {
+            !state.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || !state.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || !state.arguments.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+
+        func openAIToolCallArgumentsLookComplete(_ arguments: String) -> Bool {
+            let trimmed = arguments.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty, let data = trimmed.data(using: .utf8) else {
+                return false
+            }
+            return (try? JSONSerialization.jsonObject(with: data)) != nil
+        }
+
+        func openAIToolCallArgumentsLookStandalone(_ argumentsPart: String) -> Bool {
+            guard let first = argumentsPart.trimmingCharacters(in: .whitespacesAndNewlines).first else {
+                return false
+            }
+            return first == "{" || first == "["
+        }
+
+        func shouldStartNewOpenAIToolCall(
+            existingState: ArticleAIStreamToolCallState,
+            callIDPart: String?,
+            namePart: String,
+            argumentsPart: String
+        ) -> Bool {
+            guard openAIToolCallStateHasContent(existingState) else {
+                return false
+            }
+
+            let trimmedCallIDPart = callIDPart?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let trimmedNamePart = namePart.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedExistingName = existingState.name.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            guard openAIToolCallArgumentsLookComplete(existingState.arguments) else {
+                return false
+            }
+
+            if !trimmedCallIDPart.isEmpty,
+                !existingState.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                trimmedCallIDPart != existingState.id
+            {
+                return true
+            }
+
+            if !trimmedNamePart.isEmpty,
+                !trimmedExistingName.isEmpty,
+                trimmedNamePart == trimmedExistingName
+            {
+                return true
+            }
+
+            if openAIToolCallArgumentsLookStandalone(argumentsPart) {
+                return true
+            }
+
+            return false
+        }
+
+        func finalizeOpenAIToolCallState(index: Int) {
+            guard let state = openAIToolCallStates.removeValue(forKey: index),
+                openAIToolCallStateHasContent(state)
+            else {
+                return
+            }
+            completedOpenAIToolCallStates.append(state)
         }
 
         func flushPendingEvent() async {
@@ -1577,16 +2590,37 @@ struct ArticleAIChatView: View {
                 if let deltaToolCalls = delta["tool_calls"] as? [[String: Any]] {
                     for (fallbackIndex, deltaToolCall) in deltaToolCalls.enumerated() {
                         let index = intValue(from: deltaToolCall["index"]) ?? fallbackIndex
-                        var state = openAIToolCallStates[index] ?? ArticleAIStreamToolCallState()
+                        let callIDPart = stringValue(from: deltaToolCall["id"])
+                        let function = deltaToolCall["function"] as? [String: Any]
+                        let namePart = stringValue(from: function?["name"]) ?? ""
+                        let argumentsPart = stringValue(from: function?["arguments"]) ?? ""
+                        let existingState = openAIToolCallStates[index] ?? makeOpenAIToolCallState(index: index)
+                        var state = existingState
 
-                        if let callID = deltaToolCall["id"] as? String, !callID.isEmpty {
+                        if shouldStartNewOpenAIToolCall(
+                            existingState: existingState,
+                            callIDPart: callIDPart,
+                            namePart: namePart,
+                            argumentsPart: argumentsPart
+                        ) {
+                            debugLog(
+                                "sse openai tool call boundary index=\(index), previousName=\(truncate(existingState.name, maxLength: 120)), nextName=\(truncate(namePart, maxLength: 120)), previousArgsLength=\(existingState.arguments.count), nextArgsLength=\(argumentsPart.count)"
+                            )
+                            finalizeOpenAIToolCallState(index: index)
+                            state = makeOpenAIToolCallState(index: index)
+                            if namePart.isEmpty {
+                                state.name = existingState.name
+                            }
+                        }
+
+                        if let callID = callIDPart, !callID.isEmpty {
                             state.id = callID
                         }
-                        if let function = deltaToolCall["function"] as? [String: Any] {
-                            if let namePart = function["name"] as? String, !namePart.isEmpty {
+                        if function != nil {
+                            if !namePart.isEmpty {
                                 state.name += namePart
                             }
-                            if let argumentsPart = function["arguments"] as? String, !argumentsPart.isEmpty {
+                            if !argumentsPart.isEmpty {
                                 state.arguments += argumentsPart
                             }
                         }
@@ -1608,7 +2642,7 @@ struct ArticleAIChatView: View {
                 if let toolCalls = message["tool_calls"] as? [[String: Any]] {
                     for (index, toolCall) in toolCalls.enumerated() {
                         guard let function = toolCall["function"] as? [String: Any] else { continue }
-                        var state = openAIToolCallStates[index] ?? ArticleAIStreamToolCallState()
+                        var state = openAIToolCallStates[index] ?? makeOpenAIToolCallState(index: index)
                         if let callID = toolCall["id"] as? String, !callID.isEmpty {
                             state.id = callID
                         }
@@ -1684,16 +2718,34 @@ struct ArticleAIChatView: View {
             }
         }
 
-        let openAIToolCalls = openAIToolCallStates
-            .sorted(by: { $0.key < $1.key })
-            .compactMap { (_, state) -> [String: Any]? in
+        let orderedOpenAIToolCallStates = (completedOpenAIToolCallStates + Array(openAIToolCallStates.values))
+            .sorted {
+                if $0.sequence != $1.sequence {
+                    return $0.sequence < $1.sequence
+                }
+                if $0.sourceIndex != $1.sourceIndex {
+                    return $0.sourceIndex < $1.sourceIndex
+                }
+                return $0.id < $1.id
+            }
+        var usedOpenAIToolCallIDs: Set<String> = []
+        let openAIToolCalls = orderedOpenAIToolCallStates
+            .compactMap { state -> [String: Any]? in
                 let name = state.name.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !name.isEmpty else {
                     return nil
                 }
-                let callID = state.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    ? UUID().uuidString
-                    : state.id
+                let trimmedCallID = state.id.trimmingCharacters(in: .whitespacesAndNewlines)
+                let callIDSeed = trimmedCallID.isEmpty ? UUID().uuidString : trimmedCallID
+                let callID: String = {
+                    if !usedOpenAIToolCallIDs.contains(callIDSeed) {
+                        usedOpenAIToolCallIDs.insert(callIDSeed)
+                        return callIDSeed
+                    }
+                    let generated = UUID().uuidString
+                    usedOpenAIToolCallIDs.insert(generated)
+                    return generated
+                }()
                 let arguments = state.arguments.trimmingCharacters(in: .whitespacesAndNewlines)
                 return [
                     "id": callID,
@@ -1957,20 +3009,20 @@ struct ArticleAIChatView: View {
     private var aiToolDefinitions: [[String: Any]] {
         [
             [
-                "type": "function",
-                "function": [
-                    "name": "read_article",
-                    "description": "Read a MyArticleModel as JSON. Defaults to the currently opened article.",
-                    "parameters": [
-                        "type": "object",
-                        "properties": [
-                            "article_id": [
-                                "type": "string",
-                                "description": "Optional UUID of the MyArticleModel to read.",
-                            ],
-                            "fields": [
-                                "type": "array",
-                                "items": [
+                    "type": "function",
+                    "function": [
+                        "name": "read_article",
+                    "description": "Read any loaded article as JSON, including MyArticleModel and FollowingArticleModel. Defaults to the currently opened article.",
+                        "parameters": [
+                            "type": "object",
+                            "properties": [
+                                "article_id": [
+                                    "type": "string",
+                                "description": "Optional UUID of the article to read.",
+                                ],
+                                "fields": [
+                                    "type": "array",
+                                    "items": [
                                     "type": "string",
                                 ],
                                 "description": "Optional subset of top-level JSON fields to return.",
@@ -2098,6 +3150,43 @@ struct ArticleAIChatView: View {
                     ],
                 ],
             ],
+            [
+                "type": "function",
+                "function": [
+                    "name": "list_planet_articles",
+                    "description": "List articles for a specific planet using structural retrieval instead of keyword relevance. Supports pagination, sorting, and optional title filtering while preserving the requested sort order.",
+                    "parameters": [
+                        "type": "object",
+                        "properties": [
+                            "planet_id": [
+                                "type": "string",
+                                "description": "Required UUID of the planet whose loaded articles should be listed.",
+                            ],
+                            "limit": [
+                                "type": "integer",
+                                "description": "Max results to return. Default 10, min 1, max 50.",
+                            ],
+                            "offset": [
+                                "type": "integer",
+                                "description": "Zero-based offset for pagination. Default 0.",
+                            ],
+                            "sort_by": [
+                                "type": "string",
+                                "description": "Optional sort field. Use created_at or title. Defaults to created_at.",
+                            ],
+                            "sort_order": [
+                                "type": "string",
+                                "description": "Optional sort order. Use DESC or ASC. Defaults to DESC.",
+                            ],
+                            "title_filter": [
+                                "type": "string",
+                                "description": "Optional title filter. Use /pattern/ for regex mode, otherwise a case-insensitive substring match.",
+                            ],
+                        ],
+                        "required": ["planet_id"],
+                    ],
+                ],
+            ],
         ]
     }
 
@@ -2116,6 +3205,8 @@ struct ArticleAIChatView: View {
             return runShellTool(arguments: arguments)
         case "search_articles":
             return await runSearchArticlesTool(arguments: arguments)
+        case "list_planet_articles":
+            return await runListPlanetArticlesTool(arguments: arguments)
         default:
             debugLog("unknown tool requested: \(toolCall.name)")
             return toolResult([
@@ -2150,34 +3241,30 @@ struct ArticleAIChatView: View {
     private func runReadArticleTool(arguments: [String: Any]) -> String {
         let articleID = stringValue(from: arguments["article_id"])
         debugLog("runReadArticleTool articleID=\(articleID ?? "nil"), fields=\(stringArrayValue(from: arguments["fields"]) ?? [])")
-        guard let myArticle = resolveMyArticle(articleID: articleID) else {
+        let fields = stringArrayValue(from: arguments["fields"])
+        guard let articleSnapshot = resolveReadableArticleSnapshot(articleID: articleID, fields: fields) else {
             return toolResult([
                 "ok": false,
                 "error": articleID == nil
-                    ? "No MyArticleModel is currently selected."
-                    : "MyArticleModel not found for article_id: \(articleID!)",
+                    ? "No article is currently selected."
+                    : "Article not found for article_id: \(articleID!)",
             ])
         }
 
-        do {
-            let full = try encodeToDictionary(myArticle)
-            let fields = stringArrayValue(from: arguments["fields"])
-            let filtered = filter(dictionary: full, fields: fields)
-            debugLog("runReadArticleTool success articleID=\(myArticle.id.uuidString), keys=\(filtered.keys.sorted())")
-            return toolResult([
-                "ok": true,
-                "article_id": myArticle.id.uuidString,
-                "planet_id": myArticle.planet.id.uuidString,
-                "path": myArticle.path.path,
-                "article": filtered,
-            ])
-        } catch {
-            debugLogError("runReadArticleTool failed", error: error)
-            return toolResult([
-                "ok": false,
-                "error": "Failed to encode article: \(error.localizedDescription)",
-            ])
-        }
+        debugLog("runReadArticleTool success articleID=\(articleSnapshot.articleID.uuidString), planetKind=\(articleSnapshot.planetKind.rawValue), keys=\(articleSnapshot.articleJSON.keys.sorted())")
+        return toolResult([
+            "ok": true,
+            "article_id": articleSnapshot.articleID.uuidString,
+            "planet_id": articleSnapshot.planetID.uuidString,
+            "planet_kind": articleSnapshot.planetKind.rawValue,
+            "chat_link": articleChatLink(
+                planetKind: articleSnapshot.planetKind,
+                planetID: articleSnapshot.planetID,
+                articleID: articleSnapshot.articleID
+            ),
+            "path": articleSnapshot.path,
+            "article": articleSnapshot.articleJSON,
+        ])
     }
 
     @MainActor
@@ -2486,6 +3573,101 @@ struct ArticleAIChatView: View {
         ])
     }
 
+    private func runListPlanetArticlesTool(arguments: [String: Any]) async -> String {
+        guard let planetIDValue = stringValue(from: arguments["planet_id"]) else {
+            return toolResult([
+                "ok": false,
+                "error": "Missing required `planet_id`.",
+            ])
+        }
+        guard let planetUUID = UUID(uuidString: planetIDValue) else {
+            return toolResult([
+                "ok": false,
+                "error": "Invalid `planet_id`. Expected a UUID string.",
+            ])
+        }
+
+        let limit = min(50, max(1, intValue(from: arguments["limit"]) ?? 10))
+        let offset = max(0, intValue(from: arguments["offset"]) ?? 0)
+        let sortBy = normalizedListPlanetArticlesSortBy(from: arguments["sort_by"])
+        let sortOrder = normalizedListPlanetArticlesSortOrder(from: arguments["sort_order"])
+        let titleFilter = stringValue(from: arguments["title_filter"])
+        debugLog(
+            "runListPlanetArticlesTool planet_id=\(planetIDValue), limit=\(limit), offset=\(offset), sort_by=\(sortBy.rawValue), sort_order=\(sortOrder.rawValue), title_filter=\(titleFilter ?? "nil")"
+        )
+
+        let titleMatcher: ((String) -> Bool)?
+        do {
+            titleMatcher = try makeListPlanetArticlesTitleMatcher(titleFilter: titleFilter)
+        } catch {
+            debugLogError("runListPlanetArticlesTool invalid regex", error: error)
+            return toolResult([
+                "ok": false,
+                "error": "Invalid `title_filter` regex: \(error.localizedDescription)",
+            ])
+        }
+
+        guard let planetSnapshot = await MainActor.run(
+            resultType: ArticleAIListPlanetSnapshot?.self,
+            body: { resolvePlanetArticleListSnapshot(planetID: planetUUID) }
+        ) else {
+            return toolResult([
+                "ok": false,
+                "error": "Planet not found for planet_id: \(planetIDValue)",
+            ])
+        }
+
+        let totalArticles = planetSnapshot.articles.count
+        let filteredArticles = planetSnapshot.articles.filter { article in
+            guard let titleMatcher else {
+                return true
+            }
+            return titleMatcher(article.title)
+        }
+        let sortedArticles = filteredArticles.sorted { lhs, rhs in
+            compareListPlanetArticles(
+                lhs,
+                rhs,
+                sortBy: sortBy,
+                sortOrder: sortOrder
+            )
+        }
+        let pagedArticles = Array(sortedArticles.dropFirst(offset).prefix(limit))
+
+        let results: [[String: Any]] = pagedArticles.map { article in
+            [
+                "article_id": article.articleID.uuidString,
+                "title": article.title,
+                "created_at": listPlanetArticlesDateString(from: article.createdAt),
+                "chat_link": articleChatLink(
+                    planetKind: planetSnapshot.planetKind,
+                    planetID: planetSnapshot.planetID,
+                    articleID: article.articleID
+                ),
+            ]
+        }
+        let hasMore = offset + results.count < filteredArticles.count
+        debugLog(
+            "runListPlanetArticlesTool total_articles=\(totalArticles), total_matches=\(filteredArticles.count), returned=\(results.count), has_more=\(hasMore)"
+        )
+
+        return toolResult([
+            "ok": true,
+            "planet_id": planetSnapshot.planetID.uuidString,
+            "planet_name": planetSnapshot.planetName,
+            "planet_kind": planetSnapshot.planetKind.rawValue,
+            "total_articles": totalArticles,
+            "total_matches": filteredArticles.count,
+            "offset": offset,
+            "limit": limit,
+            "sort_by": sortBy.rawValue,
+            "sort_order": sortOrder.rawValue,
+            "title_filter": titleFilter ?? NSNull(),
+            "has_more": hasMore,
+            "results": results,
+        ])
+    }
+
     @MainActor
     private func resolveMyArticle(articleID: String?) -> MyArticleModel? {
         if let articleID = articleID {
@@ -2510,6 +3692,84 @@ struct ArticleAIChatView: View {
     }
 
     @MainActor
+    private func resolveReadableArticleSnapshot(
+        articleID: String?,
+        fields: [String]?
+    ) -> ArticleAIReadableArticleSnapshot? {
+        if let myArticle = resolveMyArticle(articleID: articleID) {
+            return makeReadableArticleSnapshot(
+                articleID: myArticle.id,
+                planetID: myArticle.planet.id,
+                planetKind: .my,
+                path: myArticle.path.path,
+                article: myArticle,
+                fields: fields
+            )
+        }
+
+        if let followingArticle = resolveFollowingArticle(articleID: articleID) {
+            return makeReadableArticleSnapshot(
+                articleID: followingArticle.id,
+                planetID: followingArticle.planet.id,
+                planetKind: .following,
+                path: followingArticle.path.path,
+                article: followingArticle,
+                fields: fields
+            )
+        }
+
+        return nil
+    }
+
+    @MainActor
+    private func resolveFollowingArticle(articleID: String?) -> FollowingArticleModel? {
+        if let articleID = articleID {
+            guard let articleUUID = UUID(uuidString: articleID) else {
+                return nil
+            }
+            for planet in PlanetStore.shared.followingPlanets {
+                if let found = planet.articles.first(where: { $0.id == articleUUID }) {
+                    return found
+                }
+            }
+            return nil
+        }
+
+        if let followingArticle = article as? FollowingArticleModel {
+            return followingArticle
+        }
+        if let selectedFollowingArticle = PlanetStore.shared.selectedArticle as? FollowingArticleModel {
+            return selectedFollowingArticle
+        }
+        return nil
+    }
+
+    @MainActor
+    private func makeReadableArticleSnapshot<T: Encodable>(
+        articleID: UUID,
+        planetID: UUID,
+        planetKind: PlanetKind,
+        path: String,
+        article: T,
+        fields: [String]?
+    ) -> ArticleAIReadableArticleSnapshot? {
+        do {
+            let full = try encodeToDictionary(article)
+            let filtered = filter(dictionary: full, fields: fields)
+            return ArticleAIReadableArticleSnapshot(
+                articleID: articleID,
+                planetID: planetID,
+                planetKind: planetKind,
+                path: path,
+                articleJSON: filtered
+            )
+        } catch {
+            debugLogError("makeReadableArticleSnapshot failed", error: error)
+            return nil
+        }
+    }
+
+    @MainActor
     private func resolveMyPlanet(planetID: String?) -> MyPlanetModel? {
         if let planetID = planetID {
             guard let planetUUID = UUID(uuidString: planetID) else {
@@ -2528,6 +3788,41 @@ struct ArticleAIChatView: View {
             return PlanetStore.shared.myPlanets.first(where: { $0.id == selectedPlanet.id }) ?? selectedPlanet
         }
         return PlanetStore.shared.myPlanets.first
+    }
+
+    @MainActor
+    private func resolvePlanetArticleListSnapshot(planetID: UUID) -> ArticleAIListPlanetSnapshot? {
+        if let planet = PlanetStore.shared.myPlanets.first(where: { $0.id == planetID }) {
+            let articles = (planet.articles ?? []).map { article in
+                ArticleAIListPlanetArticleSnapshot(
+                    articleID: article.id,
+                    title: article.title,
+                    createdAt: article.created
+                )
+            }
+            return ArticleAIListPlanetSnapshot(
+                planetID: planet.id,
+                planetName: planet.name,
+                planetKind: .my,
+                articles: articles
+            )
+        }
+        if let planet = PlanetStore.shared.followingPlanets.first(where: { $0.id == planetID }) {
+            let articles = (planet.articles ?? []).map { article in
+                ArticleAIListPlanetArticleSnapshot(
+                    articleID: article.id,
+                    title: article.title,
+                    createdAt: article.created
+                )
+            }
+            return ArticleAIListPlanetSnapshot(
+                planetID: planet.id,
+                planetName: planet.name,
+                planetKind: .following,
+                articles: articles
+            )
+        }
+        return nil
     }
 
     @MainActor
@@ -3193,6 +4488,82 @@ struct ArticleAIChatView: View {
         return nil
     }
 
+    private func normalizedListPlanetArticlesSortBy(from value: Any?) -> ArticleAIListPlanetArticlesSortBy {
+        guard let value = stringValue(from: value)?.lowercased() else {
+            return .createdAt
+        }
+        return ArticleAIListPlanetArticlesSortBy(rawValue: value) ?? .createdAt
+    }
+
+    private func normalizedListPlanetArticlesSortOrder(from value: Any?) -> ArticleAIListPlanetArticlesSortOrder {
+        guard let value = stringValue(from: value)?.uppercased() else {
+            return .desc
+        }
+        return ArticleAIListPlanetArticlesSortOrder(rawValue: value) ?? .desc
+    }
+
+    private func makeListPlanetArticlesTitleMatcher(titleFilter: String?) throws -> ((String) -> Bool)? {
+        guard let titleFilter else {
+            return nil
+        }
+        if titleFilter.count >= 2, titleFilter.hasPrefix("/"), titleFilter.hasSuffix("/") {
+            let start = titleFilter.index(after: titleFilter.startIndex)
+            let end = titleFilter.index(before: titleFilter.endIndex)
+            let pattern = String(titleFilter[start..<end])
+            let regex = try NSRegularExpression(pattern: pattern)
+            return { title in
+                let range = NSRange(title.startIndex..<title.endIndex, in: title)
+                return regex.firstMatch(in: title, options: [], range: range) != nil
+            }
+        }
+        return { title in
+            title.range(of: titleFilter, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+        }
+    }
+
+    private func compareListPlanetArticles(
+        _ lhs: ArticleAIListPlanetArticleSnapshot,
+        _ rhs: ArticleAIListPlanetArticleSnapshot,
+        sortBy: ArticleAIListPlanetArticlesSortBy,
+        sortOrder: ArticleAIListPlanetArticlesSortOrder
+    ) -> Bool {
+        switch sortBy {
+        case .createdAt:
+            if lhs.createdAt != rhs.createdAt {
+                switch sortOrder {
+                case .desc:
+                    return lhs.createdAt > rhs.createdAt
+                case .asc:
+                    return lhs.createdAt < rhs.createdAt
+                }
+            }
+        case .title:
+            let comparison = lhs.title.compare(
+                rhs.title,
+                options: [.caseInsensitive],
+                range: nil,
+                locale: .current
+            )
+            if comparison != .orderedSame {
+                switch sortOrder {
+                case .desc:
+                    return comparison == .orderedDescending
+                case .asc:
+                    return comparison == .orderedAscending
+                }
+            }
+        }
+
+        if lhs.createdAt != rhs.createdAt {
+            return lhs.createdAt > rhs.createdAt
+        }
+        return lhs.articleID.uuidString < rhs.articleID.uuidString
+    }
+
+    private func listPlanetArticlesDateString(from date: Date) -> String {
+        Self.listPlanetArticlesDateFormatter.string(from: date)
+    }
+
     private func stringArrayValue(from value: Any?) -> [String]? {
         if let array = value as? [String] {
             return array
@@ -3445,7 +4816,7 @@ struct ArticleAIChatView: View {
         No small talk, no preambles like "here is", and do not ask follow-up questions at the end.
         If tools are available, use them when needed to read or update article/planet models or run shell commands.
         For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
-        When search_articles returns matches, present each article title as a Markdown link using the exact chat_link value from the tool output.
+        When search_articles or list_planet_articles returns matches, present each article title as a Markdown link using the exact chat_link value from the tool output.
         For write_article content generation, append to existing content by default; only replace full content when the user explicitly asks, by setting replace_content=true.
         If generated content starts with a Markdown H1 heading (# Title), put that heading text into changes.title and omit the H1 line from changes.content.
         """
@@ -3704,5 +5075,32 @@ struct ArticleAIChatView: View {
         }
         let index = text.index(text.startIndex, offsetBy: maxLength)
         return String(text[..<index]) + "\n...[truncated]"
+    }
+
+    private static let listPlanetArticlesDateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
+
+}
+
+private extension View {
+    @ViewBuilder
+    func applyScrollPositionTracking(id: Binding<UUID?>) -> some View {
+        if #available(macOS 14.0, *) {
+            self.scrollPosition(id: id, anchor: .top)
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func applyScrollTargetLayout() -> some View {
+        if #available(macOS 14.0, *) {
+            self.scrollTargetLayout()
+        } else {
+            self
+        }
     }
 }
