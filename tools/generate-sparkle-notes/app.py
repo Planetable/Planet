@@ -88,6 +88,25 @@ def get_commits_between(prev_tag, tag):
     return git('log', '--oneline', '--no-merges', tag)
 
 
+def _filter_user_facing_commits(commits):
+    """Remove commits that only touch files under tools/ directories."""
+    if not commits:
+        return commits
+    lines = []
+    for line in commits.split('\n'):
+        if not line.strip():
+            continue
+        sha = line.split()[0]
+        files = git('diff-tree', '--no-commit-id', '--name-only', '-r', sha)
+        if not files:
+            lines.append(line)
+            continue
+        # Keep the commit if any changed file is outside tools/
+        if any(not f.startswith('tools/') for f in files.split('\n') if f):
+            lines.append(line)
+    return '\n'.join(lines)
+
+
 def _refresh_tag_dates():
     global _tag_dates_ts
     now = time.monotonic()
@@ -221,6 +240,7 @@ def generate_notes_with_claude(commits, prev_tag, tag):
         "- Tone: concise, confident, informative. Written for end users.\n"
         "- Name features, UI elements, and behaviors specifically.\n"
         "- Do NOT include commit hashes, author names, or issue numbers.\n"
+        "- Only include end-user-facing changes. Skip anything related to CI, build scripts, developer tooling, or internal infrastructure.\n"
         "- Do NOT wrap output in markdown code fences.\n"
         "- Do NOT include any preamble, commentary, or explanation. ONLY output lines starting with '- '.\n\n"
         "Example style:\n"
@@ -597,7 +617,7 @@ def generate(channel_name, tag_name):
         abort(404)
 
     prev_tag = get_previous_tag(tag_name)
-    commits = get_commits_between(prev_tag, tag_name)
+    commits = _filter_user_facing_commits(get_commits_between(prev_tag, tag_name))
     if not commits:
         notes = '- No changes in this release.\n'
     else:
@@ -650,7 +670,7 @@ def _worker():
                 if notes_exist(channel, tag_name):
                     continue
                 prev_tag = get_previous_tag(tag_name)
-                commits = get_commits_between(prev_tag, tag_name)
+                commits = _filter_user_facing_commits(get_commits_between(prev_tag, tag_name))
                 if not commits:
                     write_notes(channel, tag_name, '- No changes in this release.\n')
                 else:
