@@ -240,7 +240,6 @@ struct ArticleView: View {
     @State private var selectedAttachment: String? = nil
 
     @State private var isSharing: Bool = false
-    @State private var isShowingAIChat: Bool = false
     @State private var aiChatResponseCount: Int = 0
 
     @State private var sharingItem: URL?
@@ -310,9 +309,9 @@ struct ArticleView: View {
                     toolbarAttachmentsView(article: article)
                 }
 
-                if (settingsAIIsReady || isOnDeviceAIAvailable), planetStore.selectedArticle != nil {
+                if (settingsAIIsReady || isOnDeviceAIAvailable), let article = planetStore.selectedArticle {
                     Button {
-                        isShowingAIChat = true
+                        ArticleAIChatWindowManager.shared.open(for: article)
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "sparkles")
@@ -368,16 +367,6 @@ struct ArticleView: View {
                     )
                     .help("Share Selected Article")
                 }
-            }
-        }
-        .sheet(isPresented: $isShowingAIChat, onDismiss: {
-            refreshAIChatResponseCount()
-        }) {
-            if let article = planetStore.selectedArticle {
-                ArticleAIChatView(article: article)
-            } else {
-                Text("No article selected")
-                    .frame(width: 420, height: 260)
             }
         }
     }

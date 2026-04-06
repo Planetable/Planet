@@ -235,7 +235,6 @@ private enum AIProvider: String, CaseIterable, Identifiable {
 }
 
 struct ArticleAIChatView: View {
-    @Environment(\.dismiss) private var dismiss
     @ObservedObject var article: ArticleModel
 
     @State private var messages: [ArticleAIChatMessage] = []
@@ -356,7 +355,7 @@ struct ArticleAIChatView: View {
                 }
                 .frame(width: 74)
                 Button {
-                    dismiss()
+                    NSApp.keyWindow?.close()
                 } label: {
                     Image(systemName: "xmark.circle")
                         .resizable()
@@ -428,7 +427,7 @@ struct ArticleAIChatView: View {
                 .background(Color(NSColor.windowBackgroundColor))
             }
         }
-        .frame(width: 720, height: 520)
+        .frame(minWidth: 480, minHeight: 360)
         .alert("Clear Chat History", isPresented: $isShowingClearConfirm) {
             Button("Clear", role: .destructive) {
                 clearChat()
@@ -4024,7 +4023,7 @@ struct ArticleAIChatView: View {
                 fallbackArticle: linkedArticle
             )
         }
-        dismiss()
+        NSApp.keyWindow?.close()
     }
 
     private func encodeToDictionary<T: Encodable>(_ value: T) throws -> [String: Any] {
