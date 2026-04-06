@@ -333,7 +333,7 @@ struct ArticleView: View {
                 }
 
                 if let followingArticle = planetStore.selectedArticle as? FollowingArticleModel,
-                    followingArticle.hasLocalContent
+                    followingArticle.supportsReaderView
                 {
                     Button {
                         showLocalRendered.toggle()
@@ -540,7 +540,7 @@ struct ArticleView: View {
             sharingItem = myArticle.browserURL?.absoluteURL
             currentItemLink = myArticle.link
         } else if let followingArticle = planetStore.selectedArticle as? FollowingArticleModel {
-            if showLocalRendered, followingArticle.hasLocalContent,
+            if showLocalRendered, followingArticle.supportsReaderView,
                 let localURL = try? followingArticle.renderLocalPreview(fontSize: CGFloat(readerFontSize))
             {
                 url = localURL

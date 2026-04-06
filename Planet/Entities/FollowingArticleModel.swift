@@ -22,8 +22,8 @@ class FollowingArticleModel: ArticleModel, Codable {
 
     lazy var localPreviewPath = planet.articlesPath.appendingPathComponent("\(id.uuidString)-local.html", isDirectory: false)
 
-    var hasLocalContent: Bool {
-        !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    var supportsReaderView: Bool {
+        planet.planetType == .dns || planet.planetType == .dnslink
     }
 
     func renderLocalPreview(fontSize: CGFloat = 14) throws -> URL {
