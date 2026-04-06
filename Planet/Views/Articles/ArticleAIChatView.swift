@@ -271,7 +271,10 @@ struct ArticleAIChatView: View {
     @State private var isSending: Bool = false
     @State private var errorText: String? = nil
     @State private var shouldAnimateScroll: Bool = false
-    @State private var chatFontSize: CGFloat = 14
+    @State private var chatFontSize: CGFloat = {
+        let stored = UserDefaults.standard.double(forKey: .settingsAIChatFontSize)
+        return stored >= 12 && stored <= 20 ? CGFloat(stored) : 14
+    }()
     @State private var toolProgressText: String? = nil
     @State private var selectedProvider: AIProvider = .remote
     @State private var isRemoteAvailable: Bool = false
@@ -281,6 +284,7 @@ struct ArticleAIChatView: View {
     @State private var blockCache: [UUID: [ArticleAIMessageBlock]] = [:]
     @State private var scrolledMessageID: UUID? = nil
     @State private var pendingScrollTarget: UUID? = nil
+    @State private var fontSizeKeyMonitor: Any? = nil
 
     private var canSendMessage: Bool {
         !isSending && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -354,6 +358,7 @@ struct ArticleAIChatView: View {
                         .padding(.bottom, 20)
                         .padding(.top, 16)
                 }
+                .background(Color(NSColor.textBackgroundColor))
                 .applyScrollPositionTracking(id: $scrolledMessageID)
                 .onChange(of: messages.count) { _ in
                     if let targetID = pendingScrollTarget {
@@ -432,14 +437,40 @@ struct ArticleAIChatView: View {
             Task { @MainActor in
                 shouldAnimateScroll = true
             }
+            fontSizeKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                guard event.modifierFlags.contains(.command),
+                      !event.modifierFlags.contains(.shift),
+                      !event.modifierFlags.contains(.option),
+                      let window = event.window,
+                      window == NSApp.keyWindow,
+                      window is PlanetAIChatWindow || window.delegate is ArticleAIChatWindowController
+                else { return event }
+                switch event.charactersIgnoringModifiers {
+                case "+", "=":
+                    chatFontSize = min(20, chatFontSize + 1)
+                    syncToolbarState()
+                    return nil
+                case "-":
+                    chatFontSize = max(12, chatFontSize - 1)
+                    syncToolbarState()
+                    return nil
+                default:
+                    return event
+                }
+            }
         }
         .onDisappear {
             saveScrollPosition()
+            if let monitor = fontSizeKeyMonitor {
+                NSEvent.removeMonitor(monitor)
+                fontSizeKeyMonitor = nil
+            }
         }
         .onChange(of: selectedProvider) { _ in
             syncToolbarState()
         }
         .onChange(of: chatFontSize) { _ in
+            UserDefaults.standard.set(Double(chatFontSize), forKey: .settingsAIChatFontSize)
             syncToolbarState()
         }
         .onChange(of: isSending) { _ in
@@ -535,7 +566,7 @@ struct ArticleAIChatView: View {
                 Image(systemName: "textformat.size.smaller")
             }
             .disabled(chatFontSize <= 12)
-            .help("Decrease Font Size")
+            .help("Decrease Font Size (⌘-)")
 
             Button {
                 chatFontSize = min(20, chatFontSize + 1)
@@ -543,7 +574,7 @@ struct ArticleAIChatView: View {
                 Image(systemName: "textformat.size.larger")
             }
             .disabled(chatFontSize >= 20)
-            .help("Increase Font Size")
+            .help("Increase Font Size (⌘+)")
         }
         .frame(width: useToolbarStyle ? nil : 74)
     }

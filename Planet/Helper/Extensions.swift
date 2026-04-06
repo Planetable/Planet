@@ -33,6 +33,7 @@ extension String {
     static let settingsAIPreferredModel: String = "PlanetSettingsAIPreferredModelKey"
     static let settingsAIIsReady: String = "PlanetSettingsAIIsReadyKey"
     static let settingsAILastChatSessionID: String = "PlanetSettingsAILastChatSessionIDKey"
+    static let settingsAIChatFontSize: String = "PlanetSettingsAIChatFontSizeKey"
     static let settingsPreventSleep: String = "PlanetSettingsPreventSleepKey"
 
     func sanitized() -> String {
