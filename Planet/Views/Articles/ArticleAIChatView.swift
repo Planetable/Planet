@@ -373,6 +373,7 @@ struct ArticleAIChatView: View {
                 ScrollView {
                     chatMessageList
                         .padding(12)
+                        .padding(.bottom, 20)
                 }
                 .applyScrollPositionTracking(id: $scrolledMessageID)
                 .onChange(of: messages.count) { _ in
@@ -404,7 +405,8 @@ struct ArticleAIChatView: View {
                 ChatInputField(
                     text: $inputText,
                     fontSize: chatFontSize,
-                    isDisabled: isSending
+                    isDisabled: isSending,
+                    focusOnAppear: true
                 )
 
                 Divider()
