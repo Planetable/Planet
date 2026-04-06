@@ -378,13 +378,15 @@ struct FeedUtils {
                     return nil
                 }
                 let description = item.description ?? ""
+                let contentEncoded = item.content?.contentEncoded ?? ""
+                let bestContent = contentEncoded.count >= description.count ? contentEncoded : description
                 let created = item.pubDate ?? Date()
                 return PublicArticleModel(
                     id: UUID(),
                     link: sanitizedLink,
                     title: title,
-                    content: description,
-                    contentRendered: description,
+                    content: bestContent,
+                    contentRendered: bestContent,
                     created: created,
                     hasVideo: false,
                     videoFilename: nil,
