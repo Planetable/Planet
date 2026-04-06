@@ -241,7 +241,10 @@ struct ArticleView: View {
 
     @State private var isSharing: Bool = false
     @State private var aiChatResponseCount: Int = 0
+    @AppStorage(String.settingsPreferReaderView) private var showLocalRendered: Bool = false
+    @AppStorage(String.settingsReaderFontSize) private var readerFontSize: Double = 14
 
+    @State private var readerFontSizeKeyMonitor: Any? = nil
     @State private var sharingItem: URL?
     @State private var currentItemHost: String? = nil
     @State private var currentItemLink: String? = nil
@@ -278,6 +281,10 @@ struct ArticleView: View {
             syncSelectedArticlePresentation()
             refreshAIChatResponseCount()
             checkOnDeviceAIAvailability()
+            installReaderFontSizeKeyMonitor()
+        }
+        .onDisappear {
+            removeReaderFontSizeKeyMonitor()
         }
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
@@ -323,6 +330,18 @@ struct ArticleView: View {
                         }
                     }
                     .help("Chat with AI about this article")
+                }
+
+                if let followingArticle = planetStore.selectedArticle as? FollowingArticleModel,
+                    followingArticle.hasLocalContent
+                {
+                    Button {
+                        showLocalRendered.toggle()
+                        syncSelectedArticlePresentation()
+                    } label: {
+                        Image(systemName: showLocalRendered ? "globe" : "doc.richtext")
+                    }
+                    .help(showLocalRendered ? "Show Original Website" : "Show Reader View")
                 }
 
                 if let article = planetStore.selectedArticle as? MyArticleModel, !article.isAggregated() {
@@ -396,6 +415,50 @@ struct ArticleView: View {
         }
         #endif
         isOnDeviceAIAvailable = false
+    }
+
+    private func installReaderFontSizeKeyMonitor() {
+        guard readerFontSizeKeyMonitor == nil else { return }
+        readerFontSizeKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [self] event in
+            guard event.modifierFlags.contains(.command),
+                !event.modifierFlags.contains(.shift),
+                !event.modifierFlags.contains(.option),
+                showLocalRendered,
+                planetStore.selectedArticle is FollowingArticleModel
+            else { return event }
+            switch event.charactersIgnoringModifiers {
+            case "+", "=":
+                readerFontSize = min(24, readerFontSize + 1)
+                NotificationCenter.default.post(
+                    name: .readerFontSizeChanged,
+                    object: NSNumber(value: Int(readerFontSize))
+                )
+                return nil
+            case "-":
+                readerFontSize = max(10, readerFontSize - 1)
+                NotificationCenter.default.post(
+                    name: .readerFontSizeChanged,
+                    object: NSNumber(value: Int(readerFontSize))
+                )
+                return nil
+            case "0":
+                readerFontSize = 14
+                NotificationCenter.default.post(
+                    name: .readerFontSizeChanged,
+                    object: NSNumber(value: 14)
+                )
+                return nil
+            default:
+                return event
+            }
+        }
+    }
+
+    private func removeReaderFontSizeKeyMonitor() {
+        if let monitor = readerFontSizeKeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            readerFontSizeKeyMonitor = nil
+        }
     }
 
     private func refreshAIChatResponseCount() {
@@ -477,7 +540,11 @@ struct ArticleView: View {
             sharingItem = myArticle.browserURL?.absoluteURL
             currentItemLink = myArticle.link
         } else if let followingArticle = planetStore.selectedArticle as? FollowingArticleModel {
-            if let webviewURL = followingArticle.webviewURL {
+            if showLocalRendered, followingArticle.hasLocalContent,
+                let localURL = try? followingArticle.renderLocalPreview(fontSize: CGFloat(readerFontSize))
+            {
+                url = localURL
+            } else if let webviewURL = followingArticle.webviewURL {
                 url = webviewURL
             } else {
                 debugPrint("Failed to switch selected article - branch A")

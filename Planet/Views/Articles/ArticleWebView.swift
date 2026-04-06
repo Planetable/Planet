@@ -64,6 +64,23 @@ struct ArticleWebView: NSViewRepresentable {
 
             observerTokens.append(
                 NotificationCenter.default.addObserver(
+                    forName: .readerFontSizeChanged,
+                    object: nil,
+                    queue: .main
+                ) { [weak self] notification in
+                    guard let webView = self?.webView,
+                        let fontSize = notification.object as? NSNumber
+                    else {
+                        return
+                    }
+                    webView.evaluateJavaScript(
+                        "document.body.style.fontSize = '\(fontSize.intValue)px';"
+                    )
+                }
+            )
+
+            observerTokens.append(
+                NotificationCenter.default.addObserver(
                     forName: .downloadArticleAttachment,
                     object: nil,
                     queue: .main

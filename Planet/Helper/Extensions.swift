@@ -35,6 +35,8 @@ extension String {
     static let settingsAILastChatSessionID: String = "PlanetSettingsAILastChatSessionIDKey"
     static let settingsAIChatFontSize: String = "PlanetSettingsAIChatFontSizeKey"
     static let settingsPreventSleep: String = "PlanetSettingsPreventSleepKey"
+    static let settingsPreferReaderView: String = "PlanetSettingsPreferReaderViewKey"
+    static let settingsReaderFontSize: String = "PlanetSettingsReaderFontSizeKey"
 
     func sanitized() -> String {
         // Reference: https://superuser.com/a/358861
@@ -179,6 +181,7 @@ extension Notification.Name {
 
     static let copiedIPNS = Notification.Name("PlanetCopiedIPNSNotification")
 
+    static let readerFontSizeChanged = Notification.Name("PlanetReaderFontSizeChangedNotification")
     static let scrollToTopArticleList = Notification.Name("PlanetScrollToTopArticleListNotification")
     static let scrollToArticle = Notification.Name("PlanetScrollToArticleNotification")
     static let scrollToSidebarItem = Notification.Name("PlanetScrollToSidebarItemNotification")

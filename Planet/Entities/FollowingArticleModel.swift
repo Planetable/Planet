@@ -19,6 +19,95 @@ class FollowingArticleModel: ArticleModel, Codable {
     unowned var planet: FollowingPlanetModel! = nil
 
     lazy var path = planet.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
+
+    lazy var localPreviewPath = planet.articlesPath.appendingPathComponent("\(id.uuidString)-local.html", isDirectory: false)
+
+    var hasLocalContent: Bool {
+        !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    func renderLocalPreview(fontSize: CGFloat = 14) throws -> URL {
+        guard let templateURL = Bundle.main.url(forResource: "WriterBasic", withExtension: "html") else {
+            throw PlanetError.RenderMarkdownError
+        }
+        var template = try String(contentsOf: templateURL, encoding: .utf8)
+
+        var bodyHTML: String
+        if planet.planetType == .planet || planet.planetType == .ens || planet.planetType == .dotbit {
+            bodyHTML = CMarkRenderer.renderMarkdownHTML(markdown: content) ?? content
+        } else {
+            bodyHTML = content
+        }
+
+        // Resolve relative URLs to absolute using the article's original base URL
+        if let baseURL = browserURL ?? webviewURL,
+            let doc = try? SwiftSoup.parseBodyFragment(bodyHTML, baseURL.absoluteString)
+        {
+            let attrs: [(String, String)] = [("img", "src"), ("a", "href"), ("source", "src"), ("video", "src"), ("audio", "src"), ("iframe", "src")]
+            for (tag, attr) in attrs {
+                if let elements = try? doc.select("\(tag)[\(attr)]") {
+                    for element in elements {
+                        guard let value = try? element.attr(attr),
+                            !value.isEmpty,
+                            !value.hasPrefix("http://"),
+                            !value.hasPrefix("https://"),
+                            !value.hasPrefix("data:"),
+                            !value.hasPrefix("mailto:"),
+                            !value.hasPrefix("#")
+                        else { continue }
+                        if let resolved = URL(string: value, relativeTo: baseURL)?.absoluteString {
+                            try? element.attr(attr, resolved)
+                        }
+                    }
+                }
+            }
+            if let result = try? doc.body()?.html() {
+                bodyHTML = result
+            }
+        }
+
+        // Inject font size into body style
+        template = template.replacingOccurrences(
+            of: "font-size: 14px;",
+            with: "font-size: \(Int(fontSize))px;"
+        )
+
+        let escapedTitle = title
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .short
+        let dateString = dateFormatter.string(from: created)
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+
+        var footerHTML = ""
+        let linkPart: String
+        if let originalURL = browserURL ?? webviewURL {
+            let urlString = originalURL.absoluteString
+                .replacingOccurrences(of: "&", with: "&amp;")
+                .replacingOccurrences(of: "<", with: "&lt;")
+                .replacingOccurrences(of: ">", with: "&gt;")
+                .replacingOccurrences(of: "\"", with: "&quot;")
+            linkPart = "<a href=\"\(urlString)\">Open in Browser</a>"
+        } else {
+            linkPart = ""
+        }
+        footerHTML = """
+            <div style="margin-top: 2em; padding-top: 1em; border-top: 1px solid var(--border-color); \
+            font-size: 0.9em; display: flex; justify-content: space-between; align-items: baseline;">\
+            \(linkPart)<span style="color: var(--foreground-secondary-color);">\(dateString)</span></div>
+            """
+
+        let fullHTML = "<h1>\(escapedTitle)</h1>\n\(bodyHTML)\n\(footerHTML)"
+        template = template.replacingOccurrences(of: "{{ content_html }}", with: fullHTML)
+        try template.write(to: localPreviewPath, atomically: true, encoding: .utf8)
+        return localPreviewPath
+    }
+
     var webviewURL: URL? {
         debugPrint("Generating webviewURL: planet.type: \(planet.planetType) planet.link: \(planet.link) article.link: \(link)")
         switch planet.planetType {
