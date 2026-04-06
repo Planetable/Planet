@@ -134,11 +134,12 @@ struct PlanetAIChatSessionsSplitView: View {
 
 struct PlanetAIChatSessionSidebar: View {
     @EnvironmentObject var store: PlanetAIChatSessionStore
+    @State private var sessionToDelete: PlanetAIChatSession? = nil
 
     var body: some View {
         List(selection: $store.selectedSessionID) {
             ForEach(store.sessions) { session in
-                PlanetAIChatSessionSidebarRow(session: session)
+                PlanetAIChatSessionSidebarRow(session: session, sessionToDelete: $sessionToDelete)
                     .tag(session.id)
                     .contextMenu {
                         Button("New Session") {
@@ -146,7 +147,7 @@ struct PlanetAIChatSessionSidebar: View {
                         }
 
                         Button("Delete Session", role: .destructive) {
-                            store.deleteSession(session)
+                            sessionToDelete = session
                         }
                         .disabled(store.sessions.count <= 1)
                     }
@@ -161,12 +162,29 @@ struct PlanetAIChatSessionSidebar: View {
             idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN,
             maxHeight: .infinity
         )
+        .alert("Delete Session", isPresented: Binding<Bool>(
+            get: { sessionToDelete != nil },
+            set: { if !$0 { sessionToDelete = nil } }
+        )) {
+            Button("Delete", role: .destructive) {
+                if let session = sessionToDelete {
+                    store.deleteSession(session)
+                    sessionToDelete = nil
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                sessionToDelete = nil
+            }
+        } message: {
+            Text("This will remove all messages for this session. This action cannot be undone.")
+        }
     }
 }
 
 private struct PlanetAIChatSessionSidebarRow: View {
     @EnvironmentObject var store: PlanetAIChatSessionStore
     let session: PlanetAIChatSession
+    @Binding var sessionToDelete: PlanetAIChatSession?
 
     var body: some View {
         HStack(spacing: 8) {
@@ -176,7 +194,7 @@ private struct PlanetAIChatSessionSidebarRow: View {
             Spacer(minLength: 0)
 
             Button(role: .destructive) {
-                store.deleteSession(session)
+                sessionToDelete = session
             } label: {
                 Image(systemName: "trash")
                     .foregroundColor(.secondary)

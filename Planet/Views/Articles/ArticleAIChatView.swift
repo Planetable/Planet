@@ -765,7 +765,6 @@ struct ArticleAIChatView: View {
                             .font(.system(size: chatFontSize))
                             .lineSpacing(5)
                             .foregroundStyle(message.isToolActivity ? .secondary : .primary)
-                            .textSelection(.enabled)
                             .frame(
                                 maxWidth: message.role == "user" ? nil : .infinity,
                                 alignment: .leading
@@ -844,6 +843,7 @@ struct ArticleAIChatView: View {
             assistantMessageContent(message)
         } else {
             Text(verbatim: normalizedMessageContent(message.content))
+                .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
                 .multilineTextAlignment(.leading)
         }
@@ -863,11 +863,11 @@ struct ArticleAIChatView: View {
         }()
 
         if blocks.count == 1 {
-            assistantMessageBlockView(blocks[0])
+            assistantMessageBlockView(blocks[0], isSecondaryStyle: message.isToolActivity)
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(blocks.indices), id: \.self) { index in
-                    assistantMessageBlockView(blocks[index])
+                    assistantMessageBlockView(blocks[index], isSecondaryStyle: message.isToolActivity)
                         .padding(
                             .top,
                             assistantMessageBlockSpacing(
@@ -881,10 +881,13 @@ struct ArticleAIChatView: View {
     }
 
     @ViewBuilder
-    private func assistantMessageBlockView(_ block: ArticleAIMessageBlock) -> some View {
+    private func assistantMessageBlockView(
+        _ block: ArticleAIMessageBlock,
+        isSecondaryStyle: Bool
+    ) -> some View {
         switch block {
         case .markdown(let markdown):
-            assistantMarkdownText(markdown)
+            assistantMarkdownText(markdown, isSecondaryStyle: isSecondaryStyle)
         case .heading(let heading):
             assistantMarkdownHeadingView(heading)
         case .separator:
@@ -948,15 +951,32 @@ struct ArticleAIChatView: View {
     }
 
     @ViewBuilder
-    private func assistantMarkdownText(_ content: String) -> some View {
+    private func assistantMarkdownText(_ content: String, isSecondaryStyle: Bool) -> some View {
         if let attributed = attributedAssistantMessage(content) {
-            Text(attributed)
-                .fixedSize(horizontal: false, vertical: true)
-                .multilineTextAlignment(.leading)
+            if attributedAssistantMessageHasLink(attributed) {
+                ArticleAISelectableAttributedText(
+                    attributed: styledNSAttributedAssistantMessage(
+                        attributed,
+                        font: NSFont.systemFont(ofSize: chatFontSize),
+                        textColor: isSecondaryStyle ? NSColor.secondaryLabelColor : NSColor.labelColor,
+                        alignment: .left,
+                        lineSpacing: 5
+                    )
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                Text(attributed)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         } else {
             Text(verbatim: normalizedMessageContent(content))
+                .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
                 .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -968,6 +988,7 @@ struct ArticleAIChatView: View {
             Text(attributed)
                 .font(font)
                 .fontWeight(.semibold)
+                .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -975,6 +996,7 @@ struct ArticleAIChatView: View {
             Text(verbatim: heading.content)
                 .font(font)
                 .fontWeight(.semibold)
+                .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -1091,6 +1113,7 @@ struct ArticleAIChatView: View {
         }()
 
         textView
+            .textSelection(.enabled)
             .multilineTextAlignment(alignment.textAlignment)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: alignment.frameAlignment)
@@ -1127,6 +1150,69 @@ struct ArticleAIChatView: View {
             return nil
         }
         Self.attributedStringCache[normalized] = result
+        return result
+    }
+
+    private func attributedAssistantMessageHasLink(_ attributed: AttributedString) -> Bool {
+        attributed.runs.contains { run in
+            run.link != nil
+        }
+    }
+
+    private func styledNSAttributedAssistantMessage(
+        _ attributed: AttributedString,
+        font: NSFont,
+        textColor: NSColor,
+        alignment: NSTextAlignment,
+        lineSpacing: CGFloat
+    ) -> NSAttributedString {
+        let styled = NSMutableAttributedString(attributedString: NSAttributedString(attributed))
+        let range = NSRange(location: 0, length: styled.length)
+        guard range.length > 0 else {
+            return styled
+        }
+
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = alignment
+        paragraphStyle.lineSpacing = lineSpacing
+        paragraphStyle.lineBreakMode = .byWordWrapping
+
+        styled.addAttribute(.font, value: font, range: range)
+        styled.addAttribute(.foregroundColor, value: textColor, range: range)
+        styled.addAttribute(.paragraphStyle, value: paragraphStyle, range: range)
+
+        let inlinePresentationIntentKey = NSAttributedString.Key("NSInlinePresentationIntent")
+        styled.enumerateAttribute(inlinePresentationIntentKey, in: range) { value, range, _ in
+            let rawIntent: Int
+            if let number = value as? NSNumber {
+                rawIntent = number.intValue
+            } else if let intent = value as? Int {
+                rawIntent = intent
+            } else {
+                return
+            }
+
+            let styledFont = fontByApplyingInlinePresentationIntent(rawIntent, to: font)
+            styled.addAttribute(.font, value: styledFont, range: range)
+        }
+
+        return styled
+    }
+
+    private func fontByApplyingInlinePresentationIntent(_ rawIntent: Int, to font: NSFont) -> NSFont {
+        var result = font
+        let fontManager = NSFontManager.shared
+
+        if rawIntent & 4 != 0 {
+            result = NSFont.monospacedSystemFont(ofSize: font.pointSize, weight: .regular)
+        }
+        if rawIntent & 2 != 0 {
+            result = fontManager.convert(result, toHaveTrait: .boldFontMask)
+        }
+        if rawIntent & 1 != 0 {
+            result = fontManager.convert(result, toHaveTrait: .italicFontMask)
+        }
+
         return result
     }
 
@@ -1786,27 +1872,27 @@ struct ArticleAIChatView: View {
                 blockCache.removeValue(forKey: id)
                 return
             }
+            blockCache[id] = assistantMessageBlocks(content)
             messages[index] = ArticleAIChatMessage(
                 id: id,
                 role: "assistant",
                 content: content,
                 tokenUsage: tokenUsage
             )
-            blockCache.removeValue(forKey: id)
             return
         }
 
         guard createIfMissing, !trimmed.isEmpty else {
             return
         }
-        messages.append(
-            ArticleAIChatMessage(
-                id: id,
-                role: "assistant",
-                content: content,
-                tokenUsage: tokenUsage
-            )
+        let newMessage = ArticleAIChatMessage(
+            id: id,
+            role: "assistant",
+            content: content,
+            tokenUsage: tokenUsage
         )
+        blockCache[id] = assistantMessageBlocks(content)
+        messages.append(newMessage)
     }
 
     @MainActor
@@ -2495,6 +2581,8 @@ struct ArticleAIChatView: View {
         var failedChunkCount = 0
         var dataLineCount = 0
         var deltaCallbackCount = 0
+        var lastTextDeltaCallbackTime: CFAbsoluteTime = 0
+        let textDeltaThrottleInterval: CFAbsoluteTime = 0.08
         var ignoredChunkWithoutChoicesCount = 0
 
         debugLog("sse parser start fallbackModel=\(fallbackModel)")
@@ -2584,6 +2672,11 @@ struct ArticleAIChatView: View {
             }
             streamedText += text
             if let onTextDelta {
+                let now = CFAbsoluteTimeGetCurrent()
+                guard now - lastTextDeltaCallbackTime >= textDeltaThrottleInterval else {
+                    return
+                }
+                lastTextDeltaCallbackTime = now
                 await onTextDelta(streamedText)
                 deltaCallbackCount += 1
                 if deltaCallbackCount <= 3 || deltaCallbackCount % 25 == 0 {
@@ -5389,6 +5482,278 @@ private extension View {
             self.scrollTargetLayout()
         } else {
             self
+        }
+    }
+}
+
+private struct ArticleAISelectableAttributedText: View {
+    let attributed: NSAttributedString
+
+    @State private var measuredHeight: CGFloat = 1
+
+    var body: some View {
+        ArticleAISelectableAttributedTextView(attributed: attributed, measuredHeight: $measuredHeight)
+            .frame(minHeight: measuredHeight, maxHeight: measuredHeight)
+    }
+}
+
+private struct ArticleAISelectableAttributedTextView: NSViewRepresentable {
+    let attributed: NSAttributedString
+    @Binding var measuredHeight: CGFloat
+
+    @Environment(\.openURL) private var openURL
+
+    func makeNSView(context: Context) -> ArticleAISelectableTextContainer {
+        ArticleAISelectableTextContainer()
+    }
+
+    func updateNSView(_ nsView: ArticleAISelectableTextContainer, context: Context) {
+        nsView.onOpenLink = { url in
+            openURL(url)
+        }
+        nsView.onHeightChange = { newHeight in
+            guard abs(measuredHeight - newHeight) > 0.5 else { return }
+            DispatchQueue.main.async {
+                measuredHeight = newHeight
+            }
+        }
+        nsView.updateAttributedString(attributed)
+    }
+}
+
+private final class ArticleAISelectableTextContainer: NSView {
+    let textView: ArticleAILinkOnlyTextView
+
+    var onHeightChange: ((CGFloat) -> Void)?
+    var onOpenLink: ((URL) -> Void)? {
+        didSet {
+            textView.onOpenLink = onOpenLink
+        }
+    }
+
+    private var lastReportedHeight: CGFloat = 1
+    private var currentAttributedString = NSAttributedString()
+
+    override var isFlipped: Bool {
+        true
+    }
+
+    override init(frame frameRect: NSRect) {
+        let textStorage = NSTextStorage()
+        let layoutManager = NSLayoutManager()
+        textStorage.addLayoutManager(layoutManager)
+
+        let textContainer = NSTextContainer(size: .zero)
+        textContainer.lineFragmentPadding = 0
+        textContainer.widthTracksTextView = false
+        textContainer.containerSize = NSSize(width: 1, height: CGFloat.greatestFiniteMagnitude)
+        layoutManager.addTextContainer(textContainer)
+
+        let textView = ArticleAILinkOnlyTextView(frame: .zero, textContainer: textContainer)
+        textView.drawsBackground = false
+        textView.backgroundColor = .clear
+        textView.isEditable = false
+        textView.isSelectable = false
+        textView.isRichText = true
+        textView.importsGraphics = false
+        textView.allowsUndo = false
+        textView.isHorizontallyResizable = false
+        textView.isVerticallyResizable = false
+        textView.textContainerInset = .zero
+        textView.autoresizingMask = []
+        textView.linkTextAttributes = [
+            .foregroundColor: NSColor.linkColor,
+            .underlineStyle: NSUnderlineStyle.single.rawValue,
+        ]
+        self.textView = textView
+
+        super.init(frame: frameRect)
+
+        addSubview(textView)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("ArticleAISelectableTextContainer: required init?(coder:) not implemented")
+    }
+
+    override func layout() {
+        super.layout()
+        updateLayout()
+    }
+
+    override var intrinsicContentSize: NSSize {
+        NSSize(width: NSView.noIntrinsicMetric, height: lastReportedHeight)
+    }
+
+    func updateAttributedString(_ attributed: NSAttributedString) {
+        guard currentAttributedString != attributed else {
+            updateLayout()
+            return
+        }
+
+        currentAttributedString = attributed
+        textView.textStorage?.setAttributedString(attributed)
+        window?.invalidateCursorRects(for: textView)
+        updateLayout()
+    }
+
+    private func updateLayout() {
+        guard let textContainer = textView.textContainer,
+              let layoutManager = textView.layoutManager
+        else {
+            return
+        }
+
+        let width = max(bounds.width, 1)
+        textContainer.containerSize = NSSize(width: width, height: CGFloat.greatestFiniteMagnitude)
+        layoutManager.ensureLayout(for: textContainer)
+
+        let usedRect = layoutManager.usedRect(for: textContainer)
+        let height = max(ceil(usedRect.height), 1)
+        textView.frame = NSRect(x: 0, y: 0, width: width, height: height)
+
+        guard abs(lastReportedHeight - height) > 0.5 else {
+            return
+        }
+
+        lastReportedHeight = height
+        invalidateIntrinsicContentSize()
+        onHeightChange?(height)
+    }
+}
+
+private final class ArticleAILinkOnlyTextView: NSTextView {
+    var onOpenLink: ((URL) -> Void)?
+    private var linkTrackingArea: NSTrackingArea?
+
+    override var acceptsFirstResponder: Bool {
+        false
+    }
+
+    override func updateTrackingAreas() {
+        if let linkTrackingArea {
+            removeTrackingArea(linkTrackingArea)
+        }
+
+        let trackingArea = NSTrackingArea(
+            rect: .zero,
+            options: [.activeInKeyWindow, .inVisibleRect, .mouseMoved, .mouseEnteredAndExited, .cursorUpdate],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(trackingArea)
+        linkTrackingArea = trackingArea
+
+        super.updateTrackingAreas()
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        guard link(at: point) != nil else {
+            return nil
+        }
+        return self
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        updateCursor(for: convert(event.locationInWindow, from: nil))
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        updateCursor(for: convert(event.locationInWindow, from: nil))
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        NSCursor.arrow.set()
+    }
+
+    override func cursorUpdate(with event: NSEvent) {
+        updateCursor(for: convert(event.locationInWindow, from: nil))
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        guard let url = link(at: point) else {
+            return
+        }
+        onOpenLink?(url)
+    }
+
+    override func resetCursorRects() {
+        super.resetCursorRects()
+
+        guard let layoutManager = layoutManager,
+              let textContainer = textContainer,
+              let textStorage = textStorage
+        else {
+            return
+        }
+
+        let selectedGlyphRange = NSRange(location: NSNotFound, length: 0)
+        let fullRange = NSRange(location: 0, length: textStorage.length)
+
+        textStorage.enumerateAttribute(.link, in: fullRange) { value, range, _ in
+            guard value != nil else {
+                return
+            }
+
+            let glyphRange = layoutManager.glyphRange(forCharacterRange: range, actualCharacterRange: nil)
+            layoutManager.enumerateEnclosingRects(
+                forGlyphRange: glyphRange,
+                withinSelectedGlyphRange: selectedGlyphRange,
+                in: textContainer
+            ) { rect, _ in
+                self.addCursorRect(rect, cursor: .pointingHand)
+            }
+        }
+    }
+
+    private func link(at point: NSPoint) -> URL? {
+        guard let layoutManager = layoutManager,
+              let textContainer = textContainer,
+              let textStorage = textStorage
+        else {
+            return nil
+        }
+
+        let glyphRange = layoutManager.glyphRange(for: textContainer)
+        guard glyphRange.length > 0 else {
+            return nil
+        }
+
+        let glyphIndex = layoutManager.glyphIndex(for: point, in: textContainer)
+        guard glyphIndex < NSMaxRange(glyphRange) else {
+            return nil
+        }
+
+        let glyphRect = layoutManager.boundingRect(
+            forGlyphRange: NSRange(location: glyphIndex, length: 1),
+            in: textContainer
+        )
+        guard glyphRect.insetBy(dx: -1, dy: -1).contains(point) else {
+            return nil
+        }
+
+        let characterIndex = layoutManager.characterIndexForGlyph(at: glyphIndex)
+        guard characterIndex < textStorage.length else {
+            return nil
+        }
+
+        let linkValue = textStorage.attribute(.link, at: characterIndex, effectiveRange: nil)
+        if let url = linkValue as? URL {
+            return url
+        }
+        if let string = linkValue as? String {
+            return URL(string: string)
+        }
+        return nil
+    }
+
+    private func updateCursor(for point: NSPoint) {
+        if link(at: point) != nil {
+            NSCursor.pointingHand.set()
+        } else {
+            NSCursor.arrow.set()
         }
     }
 }
