@@ -7,9 +7,15 @@
 
 import SwiftUI
 
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
 struct PlanetSidebarView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @StateObject var ipfsState = IPFSState.shared
+    @AppStorage(String.settingsAIIsReady) private var settingsAIIsReady: Bool = false
+    @State private var isOnDeviceAIAvailable: Bool = false
 
     let timer1m = Timer.publish(every: 60, on: .current, in: .common).autoconnect()
     let timer3m = Timer.publish(every: 180, on: .current, in: .common).autoconnect()
@@ -179,12 +185,17 @@ struct PlanetSidebarView: View {
         }
         .task {
             await ipfsState.updateStatus()
+            checkOnDeviceAIAvailability()
         }
         .frame(minWidth: 220, idealWidth: UserDefaults.standard.double(forKey: "sidebarWidth") > 0 ? UserDefaults.standard.double(forKey: "sidebarWidth") : 220) // See https://github.com/Planetable/Planet/issues/393
         .toolbar {
             Button(action: toggleSidebar) {
                 Image(systemName: "sidebar.left")
                     .help("Toggle Sidebar")
+            }
+
+            if settingsAIIsReady || isOnDeviceAIAvailable {
+                PlanetAIChatToolbarButton()
             }
 
             if #available(macOS 14.0, *) {
@@ -244,9 +255,33 @@ struct PlanetSidebarView: View {
         }
     }
 
+    private struct PlanetAIChatToolbarButton: View {
+        var body: some View {
+            Button {
+                PlanetAppDelegate.shared.openPlanetAIChatWindow()
+            } label: {
+                Image(systemName: "sparkles")
+            }
+            .help("Planet AI Chat")
+        }
+    }
+
     private func toggleSidebar() {
         NSApp.keyWindow?.firstResponder?
             .tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
+    }
+
+    private func checkOnDeviceAIAvailability() {
+        #if canImport(FoundationModels)
+        if #available(macOS 26.0, *) {
+            let model = SystemLanguageModel.default
+            if case .available = model.availability {
+                isOnDeviceAIAvailable = true
+                return
+            }
+        }
+        #endif
+        isOnDeviceAIAvailable = false
     }
 
     private func smartFeedIcon<Content: View>(@ViewBuilder content: () -> Content) -> some View {

@@ -6,6 +6,7 @@
 //
 
 import Darwin
+import Combine
 import Foundation
 import SwiftUI
 
@@ -234,9 +235,36 @@ private enum AIProvider: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-struct ArticleAIChatView: View {
-    @ObservedObject var article: ArticleModel
+private struct AIChatToolbarStateKey: EnvironmentKey {
+    static let defaultValue: AIChatToolbarState? = nil
+}
 
+extension EnvironmentValues {
+    var aiChatToolbarState: AIChatToolbarState? {
+        get { self[AIChatToolbarStateKey.self] }
+        set { self[AIChatToolbarStateKey.self] = newValue }
+    }
+}
+
+struct ArticleAIChatView: View {
+    private let articleRef: ArticleModel?
+    let isPlanetWideMode: Bool
+    let sessionID: UUID?
+
+    init(article: ArticleModel) {
+        self.articleRef = article
+        self.isPlanetWideMode = false
+        self.sessionID = nil
+    }
+
+    init(planetWide: Bool = true, sessionID: UUID? = nil) {
+        self.articleRef = nil
+        self.isPlanetWideMode = true
+        self.sessionID = sessionID
+    }
+
+    @Environment(\.planetAIChatSessionStore) private var sessionStore
+    @Environment(\.aiChatToolbarState) private var toolbarState
     @State private var messages: [ArticleAIChatMessage] = []
     @State private var apiMessages: [[String: Any]] = []
     @State private var inputText: String = ""
@@ -256,6 +284,15 @@ struct ArticleAIChatView: View {
 
     private var canSendMessage: Bool {
         !isSending && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var shouldShowInlineHeader: Bool {
+        !isPlanetWideMode && toolbarState == nil
+    }
+
+    private var toolbarCommandPublisher: AnyPublisher<AIChatToolbarCommand, Never> {
+        toolbarState?.commands.eraseToAnyPublisher()
+            ?? Empty<AIChatToolbarCommand, Never>(completeImmediately: false).eraseToAnyPublisher()
     }
 
     private var remoteModelName: String {
@@ -304,76 +341,18 @@ struct ArticleAIChatView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Label("AI Research Chat", systemImage: "sparkles")
-                    .font(.headline)
-                Spacer()
-                if isRemoteAvailable && isOnDeviceAvailable {
-                    Picker("", selection: $selectedProvider) {
-                        Text(remoteProviderLabel).tag(AIProvider.remote)
-                        Text("On-Device").tag(AIProvider.onDevice)
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    .frame(width: 240)
-                } else {
-                    Text(singleProviderLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                if isSending {
-                    ProgressView()
-                        .controlSize(.small)
-                }
-                Button {
-                    isShowingClearConfirm = true
-                } label: {
-                    Image(systemName: "trash")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 14, height: 14, alignment: .center)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .disabled(messages.isEmpty || isSending)
-                .help("Clear Chat History")
-                ControlGroup {
-                    Button {
-                        chatFontSize = max(12, chatFontSize - 1)
-                    } label: {
-                        Image(systemName: "textformat.size.smaller")
-                    }
-                    .disabled(chatFontSize <= 12)
-                    .help("Decrease Font Size")
-                    Button {
-                        chatFontSize = min(20, chatFontSize + 1)
-                    } label: {
-                        Image(systemName: "textformat.size.larger")
-                    }
-                    .disabled(chatFontSize >= 20)
-                    .help("Increase Font Size")
-                }
-                .frame(width: 74)
-                Button {
-                    NSApp.keyWindow?.close()
-                } label: {
-                    Image(systemName: "xmark.circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 16, height: 16, alignment: .center)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .keyboardShortcut(.escape, modifiers: [])
+            if shouldShowInlineHeader {
+                inlineHeaderView
+                Divider()
             }
-            .padding(12)
-
-            Divider()
 
             ScrollViewReader { proxy in
                 ScrollView {
                     chatMessageList
-                        .padding(12)
+                        .padding(.leading, 12)
+                        .padding(.trailing, 12)
                         .padding(.bottom, 20)
+                        .padding(.top, 16)
                 }
                 .applyScrollPositionTracking(id: $scrolledMessageID)
                 .onChange(of: messages.count) { _ in
@@ -406,7 +385,8 @@ struct ArticleAIChatView: View {
                     text: $inputText,
                     fontSize: chatFontSize,
                     isDisabled: isSending,
-                    focusOnAppear: true
+                    focusOnAppear: true,
+                    placeholder: isPlanetWideMode ? "Ask about your planets and articles\u{2026}" : "Ask about this article\u{2026}"
                 )
 
                 Divider()
@@ -436,14 +416,19 @@ struct ArticleAIChatView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will remove all messages for this article. This action cannot be undone.")
+            Text(isPlanetWideMode ? "This will remove all messages for this session. This action cannot be undone." : "This will remove all messages for this article. This action cannot be undone.")
         }
         .onAppear {
             debugLog("---- AI chat opened ----")
-            debugLog("contextTitle=\(contextTitle), articleType=\(String(describing: type(of: article))), articleID=\(article.id.uuidString)")
+            if let articleRef = articleRef {
+                debugLog("contextTitle=\(contextTitle), articleType=\(String(describing: type(of: articleRef))), articleID=\(articleRef.id.uuidString)")
+            } else {
+                debugLog("contextTitle=\(contextTitle), planetWideMode=true")
+            }
             checkProviderAvailability()
             loadPersistedChat()
             prepareInitialContextIfNeeded()
+            syncToolbarState()
             Task { @MainActor in
                 shouldAnimateScroll = true
             }
@@ -451,21 +436,164 @@ struct ArticleAIChatView: View {
         .onDisappear {
             saveScrollPosition()
         }
+        .onChange(of: selectedProvider) { _ in
+            syncToolbarState()
+        }
+        .onChange(of: chatFontSize) { _ in
+            syncToolbarState()
+        }
+        .onChange(of: isSending) { _ in
+            syncToolbarState()
+        }
+        .onChange(of: messages.count) { _ in
+            syncToolbarState()
+        }
+        .onChange(of: isRemoteAvailable) { _ in
+            syncToolbarState()
+        }
+        .onChange(of: isOnDeviceAvailable) { _ in
+            syncToolbarState()
+        }
+        .onReceive(toolbarCommandPublisher) { command in
+            switch command {
+            case .selectProvider(let rawValue):
+                guard let provider = AIProvider(rawValue: rawValue) else { return }
+                selectedProvider = provider
+            case .clearHistory:
+                isShowingClearConfirm = true
+            case .decreaseFont:
+                chatFontSize = max(12, chatFontSize - 1)
+            case .increaseFont:
+                chatFontSize = min(20, chatFontSize + 1)
+            }
+            syncToolbarState()
+        }
+    }
+
+    private var inlineHeaderView: some View {
+        HStack {
+            chatTitleView
+            Spacer()
+            providerControlView
+            Spacer()
+            clearChatButtonView(useToolbarStyle: false)
+            fontSizeControlView(useToolbarStyle: false)
+            closeChatButtonView(useToolbarStyle: false)
+        }
+        .padding(12)
+    }
+
+    private var chatTitleView: some View {
+        Label(isPlanetWideMode ? "Planet AI Chat" : "AI Research Chat", systemImage: "sparkles")
+            .font(.headline)
+            .lineLimit(1)
+            .layoutPriority(1)
+    }
+
+    @ViewBuilder
+    private var providerControlView: some View {
+        if isRemoteAvailable && isOnDeviceAvailable {
+            Picker("", selection: $selectedProvider) {
+                Text(remoteProviderLabel).tag(AIProvider.remote)
+                Text("On-Device").tag(AIProvider.onDevice)
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .frame(width: 240)
+        } else {
+            Text(singleProviderLabel)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    private func clearChatButtonView(useToolbarStyle: Bool) -> some View {
+        Button {
+            isShowingClearConfirm = true
+        } label: {
+            if useToolbarStyle {
+                Image(systemName: "trash")
+            } else {
+                Image(systemName: "trash")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 14, height: 14, alignment: .center)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .disabled(messages.isEmpty || isSending)
+        .help("Clear Chat History")
+    }
+
+    @ViewBuilder
+    private func fontSizeControlView(useToolbarStyle: Bool) -> some View {
+        ControlGroup {
+            Button {
+                chatFontSize = max(12, chatFontSize - 1)
+            } label: {
+                Image(systemName: "textformat.size.smaller")
+            }
+            .disabled(chatFontSize <= 12)
+            .help("Decrease Font Size")
+
+            Button {
+                chatFontSize = min(20, chatFontSize + 1)
+            } label: {
+                Image(systemName: "textformat.size.larger")
+            }
+            .disabled(chatFontSize >= 20)
+            .help("Increase Font Size")
+        }
+        .frame(width: useToolbarStyle ? nil : 74)
+    }
+
+    @ViewBuilder
+    private func closeChatButtonView(useToolbarStyle: Bool) -> some View {
+        Button {
+            NSApp.keyWindow?.close()
+        } label: {
+            if useToolbarStyle {
+                Image(systemName: "xmark.circle")
+            } else {
+                Image(systemName: "xmark.circle")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16, alignment: .center)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .keyboardShortcut(.escape, modifiers: [])
     }
 
     private func prepareInitialContextIfNeeded() {
         guard apiMessages.isEmpty else { return }
-        apiMessages = [
-            ["role": "system", "content": systemPrompt as Any],
-            ["role": "user", "content": currentArticleContextMessage() as Any],
-        ]
+        if isPlanetWideMode {
+            apiMessages = [
+                ["role": "system", "content": systemPrompt as Any],
+                ["role": "user", "content": planetSummaryContextMessage() as Any],
+            ]
+        } else {
+            apiMessages = [
+                ["role": "system", "content": systemPrompt as Any],
+                ["role": "user", "content": currentArticleContextMessage() as Any],
+            ]
+        }
     }
 
     private var chatFileURL: URL? {
-        if let myArticle = article as? MyArticleModel {
+        if isPlanetWideMode {
+            if let sessionID = sessionID {
+                let dir = URLUtils.repoPath().appendingPathComponent("planet-ai-sessions", isDirectory: true)
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                return dir.appendingPathComponent("\(sessionID.uuidString).json")
+            }
+            return URLUtils.repoPath().appendingPathComponent("planet-ai-chat.json")
+        }
+        if let myArticle = articleRef as? MyArticleModel {
             return myArticle.path.deletingLastPathComponent().appendingPathComponent("\(myArticle.id.uuidString)-chats.json")
         }
-        if let followingArticle = article as? FollowingArticleModel {
+        if let followingArticle = articleRef as? FollowingArticleModel {
             return followingArticle.path.deletingLastPathComponent().appendingPathComponent("\(followingArticle.id.uuidString)-chats.json")
         }
         return nil
@@ -518,9 +646,10 @@ struct ArticleAIChatView: View {
                     "content": item.content,
                 ]
             }
+        let contextMessage: String = isPlanetWideMode ? planetSummaryContextMessage() : currentArticleContextMessage()
         apiMessages = [
             ["role": "system", "content": systemPrompt as Any],
-            ["role": "user", "content": currentArticleContextMessage() as Any],
+            ["role": "user", "content": contextMessage as Any],
         ] + persistedAPIMessages
     }
 
@@ -553,6 +682,20 @@ struct ArticleAIChatView: View {
         persistChat()
     }
 
+    private func syncToolbarState() {
+        guard let toolbarState else { return }
+        toolbarState.title = isPlanetWideMode ? "Planet AI Chat" : "AI Research Chat"
+        toolbarState.selectedProviderRawValue = selectedProvider.rawValue
+        toolbarState.isRemoteAvailable = isRemoteAvailable
+        toolbarState.isOnDeviceAvailable = isOnDeviceAvailable
+        toolbarState.remoteProviderLabel = remoteProviderLabel
+        toolbarState.singleProviderLabel = singleProviderLabel
+        toolbarState.isSending = isSending
+        toolbarState.canClearHistory = !messages.isEmpty && !isSending
+        toolbarState.canDecreaseFont = chatFontSize > 12
+        toolbarState.canIncreaseFont = chatFontSize < 20
+    }
+
     private func clearChat() {
         messages = []
         apiMessages = []
@@ -565,9 +708,16 @@ struct ArticleAIChatView: View {
             try? FileManager.default.removeItem(at: chatFileURL)
         }
         prepareInitialContextIfNeeded()
+        syncToolbarState()
     }
 
     private var contextTitle: String {
+        if isPlanetWideMode {
+            return "Your Planet Library"
+        }
+        guard let article = articleRef else {
+            return "Unknown"
+        }
         let title = article.title.trimmingCharacters(in: .whitespacesAndNewlines)
         if !title.isEmpty {
             return title
@@ -597,7 +747,7 @@ struct ArticleAIChatView: View {
 
     private var chatMessageList: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Context loaded from: \(contextTitle)")
+            Text(isPlanetWideMode ? "Context: \(contextTitle)" : "Context loaded from: \(contextTitle)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -641,18 +791,20 @@ struct ArticleAIChatView: View {
                 .id(message.id)
             }
 
-            if isSending, let toolProgressText = toolProgressText {
+            if isSending {
                 HStack(alignment: .top) {
                     Text("AI")
                         .font(.system(size: chatFontSize))
                         .lineSpacing(5)
                         .foregroundStyle(.secondary)
                         .frame(width: 34, alignment: .trailing)
-                    Text(toolProgressText)
-                        .font(.system(size: chatFontSize))
-                        .lineSpacing(5)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    TimelineView(.periodic(from: .now, by: 0.14)) { context in
+                        Text("\(sendingAnimationFrame(for: context.date)) \(sendingStatusText)")
+                            .font(.system(size: chatFontSize, design: .monospaced))
+                            .lineSpacing(5)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
             }
 
@@ -663,6 +815,23 @@ struct ArticleAIChatView: View {
             }
         }
         .applyScrollTargetLayout()
+    }
+
+    private var sendingStatusText: String {
+        guard let toolProgressText else {
+            return "Thinking..."
+        }
+        return toolProgressText.replacingOccurrences(
+            of: #"^\[[^\]]+\]\s+"#,
+            with: "",
+            options: .regularExpression
+        )
+    }
+
+    private func sendingAnimationFrame(for date: Date) -> String {
+        let frames = ["[|]", "[/]", "[-]", "[\\]"]
+        let index = Int((date.timeIntervalSinceReferenceDate * 8).rounded(.down)) % frames.count
+        return frames[index]
     }
 
     private func isAssistantStyleMessage(_ message: ArticleAIChatMessage) -> Bool {
@@ -1456,6 +1625,9 @@ struct ArticleAIChatView: View {
         errorText = nil
         messages.append(ArticleAIChatMessage(role: "user", content: prompt, tokenUsage: nil))
         apiMessages.append(["role": "user", "content": prompt])
+        if let sessionID = sessionID {
+            sessionStore?.updateSessionTitle(sessionID, firstMessage: prompt)
+        }
         persistChat()
         isSending = true
         toolProgressText = nil
@@ -1541,10 +1713,16 @@ struct ArticleAIChatView: View {
                     if let existing = onDeviceSession as? LanguageModelSession {
                         session = existing
                     } else {
-                        let instructions = systemPrompt + "\n\n" + onDeviceArticleContextMessage()
-                        let planetID = (article as? MyArticleModel)?.planet.id
+                        let instructions: String
+                        if isPlanetWideMode {
+                            instructions = systemPrompt + "\n\n" + planetSummaryContextMessage()
+                        } else {
+                            instructions = systemPrompt + "\n\n" + onDeviceArticleContextMessage()
+                        }
+                        let articleID = articleRef?.id
+                        let planetID = (articleRef as? MyArticleModel)?.planet.id
                         let (tools, _) = await MainActor.run {
-                            OnDeviceToolFactory.makeTools(articleID: article.id, planetID: planetID)
+                            OnDeviceToolFactory.makeTools(articleID: articleID, planetID: planetID)
                         }
                         session = LanguageModelSession(tools: tools, instructions: instructions)
                         onDeviceSession = session
@@ -1902,20 +2080,18 @@ struct ArticleAIChatView: View {
     }
 
     private func thinkingProgressText(round: Int, maxRounds: Int) -> String {
-        let spinnerFrames = ["|", "/", "-", "\\"]
         let playfulMessages = [
-            "reticulating splines",
-            "untangling cosmic paperclips",
-            "feeding bytes to tiny gremlins",
-            "warming up the idea engine",
-            "rehearsing dramatic keyboard clacks",
-            "tuning the thought antenna",
+            "Reticulating splines",
+            "Untangling cosmic paperclips",
+            "Feeding bytes to tiny gremlins",
+            "Warming up the idea engine",
+            "Rehearsing dramatic keyboard clacks",
+            "Tuning the thought antenna",
         ]
-        let spinner = spinnerFrames[(max(0, round - 1)) % spinnerFrames.count]
         let playful = playfulMessages.randomElement() ?? "warming up"
 
         let lines = [
-            "[\(spinner)] \(playful)...",
+            "\(playful)...",
             "Round \(round)/\(maxRounds)",
         ]
         return lines.joined(separator: "\n")
@@ -3743,7 +3919,7 @@ struct ArticleAIChatView: View {
             return nil
         }
 
-        if let myArticle = article as? MyArticleModel {
+        if let myArticle = articleRef as? MyArticleModel {
             return myArticle
         }
         if let selectedMyArticle = PlanetStore.shared.selectedArticle as? MyArticleModel {
@@ -3796,7 +3972,7 @@ struct ArticleAIChatView: View {
             return nil
         }
 
-        if let followingArticle = article as? FollowingArticleModel {
+        if let followingArticle = articleRef as? FollowingArticleModel {
             return followingArticle
         }
         if let selectedFollowingArticle = PlanetStore.shared.selectedArticle as? FollowingArticleModel {
@@ -3839,7 +4015,7 @@ struct ArticleAIChatView: View {
             return PlanetStore.shared.myPlanets.first(where: { $0.id == planetUUID })
         }
 
-        if let myArticle = article as? MyArticleModel {
+        if let myArticle = articleRef as? MyArticleModel {
             return PlanetStore.shared.myPlanets.first(where: { $0.id == myArticle.planet.id }) ?? myArticle.planet
         }
         if let selectedMyArticle = PlanetStore.shared.selectedArticle as? MyArticleModel {
@@ -4025,7 +4201,7 @@ struct ArticleAIChatView: View {
                 fallbackArticle: linkedArticle
             )
         }
-        NSApp.keyWindow?.close()
+        // Keep the chat window open after navigating to a linked article
     }
 
     private func encodeToDictionary<T: Encodable>(_ value: T) throws -> [String: Any] {
@@ -4871,7 +5047,20 @@ struct ArticleAIChatView: View {
     }
 
     private var systemPrompt: String {
-        """
+        if isPlanetWideMode {
+            return """
+            You are a useful research assistant with access to the user's entire Planet library.
+            Return only essential information.
+            No small talk, no preambles like "here is", and do not ask follow-up questions at the end.
+            If tools are available, use them when needed to read or update article/planet models or run shell commands.
+            Use search_articles to find content across all planets, and list_planet_articles to browse a specific planet's articles.
+            For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
+            When search_articles or list_planet_articles returns matches, present each article title as a Markdown link using the exact chat_link value from the tool output.
+            For write_article content generation, append to existing content by default; only replace full content when the user explicitly asks, by setting replace_content=true.
+            If generated content starts with a Markdown H1 heading (# Title), put that heading text into changes.title and omit the H1 line from changes.content.
+            """
+        }
+        return """
         You are a useful research assistant.
         Return only essential information.
         No small talk, no preambles like "here is", and do not ask follow-up questions at the end.
@@ -4899,10 +5088,12 @@ struct ArticleAIChatView: View {
     }
 
     private func currentArticleContextMessage() -> String {
-        articleContextMessage(title: article.title, content: article.content)
+        guard let article = articleRef else { return "" }
+        return articleContextMessage(title: article.title, content: article.content)
     }
 
     private func onDeviceArticleContextMessage() -> String {
+        guard let article = articleRef else { return "" }
         let maxContentLength = 2000
         var content = article.content
         if content.count > maxContentLength {
@@ -4911,11 +5102,47 @@ struct ArticleAIChatView: View {
         return articleContextMessage(title: article.title, content: content)
     }
 
+    @MainActor
+    private func planetSummaryContextMessage() -> String {
+        var lines: [String] = []
+        lines.append("You have access to the user's Planet library containing the following planets:")
+        lines.append("")
+
+        let myPlanets = PlanetStore.shared.myPlanets
+        if !myPlanets.isEmpty {
+            lines.append("My Planets:")
+            for planet in myPlanets {
+                let count = (planet.articles ?? []).count
+                lines.append("- \"\(planet.name)\" (planet_id: \(planet.id.uuidString), \(count) article\(count == 1 ? "" : "s"))")
+            }
+            lines.append("")
+        }
+
+        let followingPlanets = PlanetStore.shared.followingPlanets
+        if !followingPlanets.isEmpty {
+            lines.append("Following Planets:")
+            for planet in followingPlanets {
+                let count = planet.articles.count
+                lines.append("- \"\(planet.name)\" (planet_id: \(planet.id.uuidString), \(count) article\(count == 1 ? "" : "s"))")
+            }
+            lines.append("")
+        }
+
+        if myPlanets.isEmpty && followingPlanets.isEmpty {
+            lines.append("No planets found in the library.")
+            lines.append("")
+        }
+
+        lines.append("Use search_articles to find content across all planets, or list_planet_articles to browse a specific planet's articles.")
+        return lines.joined(separator: "\n")
+    }
+
     private func refreshArticleContextAfterWriteIfNeeded(
         toolName: String,
         toolResult: String,
         workingMessages: inout [[String: Any]]
     ) {
+        guard !isPlanetWideMode else { return }
         guard toolName == "write_article" else {
             return
         }

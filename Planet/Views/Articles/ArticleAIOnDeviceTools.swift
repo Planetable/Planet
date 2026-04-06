@@ -69,10 +69,10 @@ struct SearchArticlesArguments: Sendable {
 
 @MainActor
 final class OnDeviceToolContext: Sendable {
-    let articleID: UUID
+    let articleID: UUID?
     let planetID: UUID?
 
-    init(articleID: UUID, planetID: UUID?) {
+    init(articleID: UUID?, planetID: UUID?) {
         self.articleID = articleID
         self.planetID = planetID
     }
@@ -86,9 +86,11 @@ final class OnDeviceToolContext: Sendable {
             }
             // Fall through to default if UUID didn't match — on-device model may hallucinate IDs
         }
-        for planet in PlanetStore.shared.myPlanets {
-            if let found = (planet.articles ?? []).first(where: { $0.id == self.articleID }) {
-                return found
+        if let selfArticleID = self.articleID {
+            for planet in PlanetStore.shared.myPlanets {
+                if let found = (planet.articles ?? []).first(where: { $0.id == selfArticleID }) {
+                    return found
+                }
             }
         }
         return PlanetStore.shared.selectedArticle as? MyArticleModel
@@ -425,7 +427,7 @@ private final class OnDeviceUncheckedSendableBox<Value>: @unchecked Sendable {
 @available(macOS 26.0, *)
 enum OnDeviceToolFactory {
     @MainActor
-    static func makeTools(articleID: UUID, planetID: UUID?) -> (tools: [any Tool], context: OnDeviceToolContext) {
+    static func makeTools(articleID: UUID?, planetID: UUID?) -> (tools: [any Tool], context: OnDeviceToolContext) {
         let context = OnDeviceToolContext(articleID: articleID, planetID: planetID)
         let tools: [any Tool] = [
             ReadArticleTool(context: context),

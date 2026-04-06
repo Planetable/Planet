@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0AA0B181DEC749A0DB6E8A6E /* PlanetAIChatWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E399FD48A62B607DCEF8C76D /* PlanetAIChatWindowController.swift */; };
 		0C84F068A74BE01EAE71C0CC /* SSHRsyncLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E9E61088FF7A043F46E188 /* SSHRsyncLogger.swift */; };
 		1146089D2A363BCED55577FE /* ArticleAIChatWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FC7068AED51E597CAF528AA /* ArticleAIChatWindowManager.swift */; };
 		121D7A3F81067B6B1DD56B18 /* CoreSpotlight.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CCA533E0D21FAAEEEB5CE71 /* CoreSpotlight.framework */; };
@@ -548,6 +549,7 @@
 		8F33EB5B385321311DA2AF54 /* AppLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196AB5BD526941A7FAB5D1AD /* AppLogView.swift */; };
 		9F283A9A8EA2592CEC565037 /* SearchIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44BF4852CA45DC20EE145C58 /* SearchIndex.swift */; };
 		A14E34849B8C45E69780141C /* SearchDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB6EC2B7EEF3EF83DA342363 /* SearchDatabase.swift */; };
+		A8E3461C94DD9CF45659CC72 /* PlanetAIChatSessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C06A60D631FAB5EEF3BAF8C /* PlanetAIChatSessionsView.swift */; };
 		BB6FC66D28423AF80072C3A1 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = BB6FC66C28423AF80072C3A1 /* SwiftSoup */; };
 		BB7FC8752898C70A00359802 /* libcmark_gfm in Frameworks */ = {isa = PBXBuildFile; productRef = BB7FC8742898C70A00359802 /* libcmark_gfm */; };
 		BB99C7072847AC9F001836B2 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BB99C7062847AC9F001836B2 /* Sparkle */; };
@@ -781,6 +783,7 @@
 		2CCA533E0D21FAAEEEB5CE71 /* CoreSpotlight.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreSpotlight.framework; path = System/Library/Frameworks/CoreSpotlight.framework; sourceTree = SDKROOT; };
 		342A67E3EAD082AA10974830 /* NaturalLanguage.framework */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.framework; name = NaturalLanguage.framework; path = System/Library/Frameworks/NaturalLanguage.framework; sourceTree = SDKROOT; };
 		44BF4852CA45DC20EE145C58 /* SearchIndex.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchIndex.swift; sourceTree = "<group>"; };
+		4C06A60D631FAB5EEF3BAF8C /* PlanetAIChatSessionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlanetAIChatSessionsView.swift; sourceTree = "<group>"; };
 		5274E7C86A55DA0BB03CE7EF /* CloudflarePagesLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudflarePagesLogger.swift; sourceTree = "<group>"; };
 		5CE71A58A58525049CC222C6 /* RelatedArticlesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RelatedArticlesView.swift; sourceTree = "<group>"; };
 		6A03269B2C81C49100FEDD55 /* MyPlanetDonationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetDonationSettingsView.swift; sourceTree = "<group>"; };
@@ -915,6 +918,7 @@
 		D7A100052F6AFA1100AA0001 /* VideoAttachmentInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoAttachmentInfo.swift; sourceTree = "<group>"; };
 		D7A100062F6AFA1100AA0001 /* VideoInfoRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInfoRow.swift; sourceTree = "<group>"; };
 		D7A100092F6AFA1100AA0001 /* VideoCompressionJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCompressionJob.swift; sourceTree = "<group>"; };
+		E399FD48A62B607DCEF8C76D /* PlanetAIChatWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PlanetAIChatWindowController.swift; path = PlanetAIChatWindowController.swift; sourceTree = "<group>"; };
 		E59E62B0E2A71B9B4135B005 /* PlanetLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlanetLogger.swift; sourceTree = "<group>"; };
 		E8B4FE3E2A8D144E00C01E94 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		E8B4FE432A8D146100C01E94 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
@@ -1437,6 +1441,8 @@
 				2AEEBF5328C0758000A0A092 /* ArticleWebViewModel.swift */,
 				0B14374A86131144DC199477 /* ArticleAIOnDeviceTools.swift */,
 				6FC7068AED51E597CAF528AA /* ArticleAIChatWindowManager.swift */,
+				4C06A60D631FAB5EEF3BAF8C /* PlanetAIChatSessionsView.swift */,
+				E399FD48A62B607DCEF8C76D /* PlanetAIChatWindowController.swift */,
 			);
 			path = Articles;
 			sourceTree = "<group>";
@@ -2443,6 +2449,8 @@
 				D818B49153068C9B82AFADAF /* LogFileTrimmer.swift in Sources */,
 				7682AC6BFB25793BEC575A8C /* ArticleAIOnDeviceTools.swift in Sources */,
 				1146089D2A363BCED55577FE /* ArticleAIChatWindowManager.swift in Sources */,
+				A8E3461C94DD9CF45659CC72 /* PlanetAIChatSessionsView.swift in Sources */,
+				0AA0B181DEC749A0DB6E8A6E /* PlanetAIChatWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

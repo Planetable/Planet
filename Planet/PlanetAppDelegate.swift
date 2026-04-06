@@ -13,6 +13,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     static let shared = PlanetAppDelegate()
 
     var templateWindowController: TBWindowController?
+    @MainActor var planetAIChatWindowController: PlanetAIChatWindowController?
     var downloadsWindowController: PlanetDownloadsWindowController?
     var publishedFoldersDashboardWindowController: PFDashboardWindowController?
     var keyManagerWindowController: PlanetKeyManagerWindowController?
@@ -27,6 +28,16 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     // Reference: https://developer.apple.com/forums/thread/673822
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first else { return }
+        if url.absoluteString == "planet://Template" {
+            Task { @MainActor in
+                openTemplateWindow()
+                NSApp.activate(ignoringOtherApps: true)
+            }
+            return
+        }
+        if url.isPlanetWindowGroupLink {
+            return
+        }
         if url.absoluteString.hasPrefix("planet://") {
             let link = url.absoluteString.replacingOccurrences(of: "planet://", with: "")
             Task { @MainActor in
@@ -237,6 +248,14 @@ extension PlanetAppDelegate: UNUserNotificationCenterDelegate {
 // MARK: - Window Controllers
 
 extension PlanetAppDelegate {
+    @MainActor
+    func openPlanetAIChatWindow() {
+        if planetAIChatWindowController == nil {
+            planetAIChatWindowController = PlanetAIChatWindowController()
+        }
+        planetAIChatWindowController?.showWindow(nil)
+    }
+
     func openDownloadsWindow() {
         if downloadsWindowController == nil {
             downloadsWindowController = PlanetDownloadsWindowController()

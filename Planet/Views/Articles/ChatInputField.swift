@@ -5,6 +5,7 @@ struct ChatInputField: View {
     let fontSize: CGFloat
     let isDisabled: Bool
     var focusOnAppear: Bool = false
+    var placeholder: String = "Ask about this article\u{2026}"
 
     private let contentInset: CGFloat = 10
     private let placeholderTopInset: CGFloat = 12
@@ -16,6 +17,7 @@ struct ChatInputField: View {
                 fontSize: fontSize,
                 isDisabled: isDisabled,
                 focusOnAppear: focusOnAppear,
+                placeholder: placeholder,
                 contentInset: contentInset,
                 placeholderTopInset: placeholderTopInset
             )
@@ -35,7 +37,7 @@ struct ChatInputField: View {
                 .disabled(isDisabled)
 
             if text.isEmpty {
-                Text("Ask about this article…")
+                Text(placeholder)
                     .font(.system(size: fontSize))
                     .foregroundStyle(.secondary)
                     .padding(.leading, contentInset * 1.8)
@@ -54,6 +56,7 @@ private struct FocusableChatInput: View {
     let fontSize: CGFloat
     let isDisabled: Bool
     let focusOnAppear: Bool
+    let placeholder: String
     let contentInset: CGFloat
     let placeholderTopInset: CGFloat
 
@@ -71,7 +74,7 @@ private struct FocusableChatInput: View {
                 .focused($isFocused)
 
             if text.isEmpty {
-                Text("Ask about this article…")
+                Text(placeholder)
                     .font(.system(size: fontSize))
                     .foregroundStyle(.secondary)
                     .padding(.leading, contentInset * 1.8)
