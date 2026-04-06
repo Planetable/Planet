@@ -1984,6 +1984,10 @@ struct ArticleAIChatView: View {
                 )
                 guard !finalText.isEmpty else {
                     debugLog("completion has no tool calls and empty text")
+                    if didUseToolsInResponse && step < maxToolSteps - 1 {
+                        debugLog("retrying after empty post-tool response, step=\(step + 1)")
+                        continue
+                    }
                     throw NSError(domain: "ArticleAIChat", code: 6, userInfo: [NSLocalizedDescriptionKey: "AI response did not include content"])
                 }
                 if var last = workingMessages.last {
@@ -2569,6 +2573,7 @@ struct ArticleAIChatView: View {
         var streamedModel: String? = nil
         var streamedRole = "assistant"
         var streamedText = ""
+        var streamedReasoning = ""
         var streamedUsage: [String: Any]? = nil
         var openAIToolCallStates: [Int: ArticleAIStreamToolCallState] = [:]
         var completedOpenAIToolCallStates: [ArticleAIStreamToolCallState] = []
@@ -2912,6 +2917,20 @@ struct ArticleAIChatView: View {
                     }
                 }
 
+                if let reasoningText = (delta["reasoning"] as? String) ?? (delta["reasoning_content"] as? String),
+                    !reasoningText.isEmpty
+                {
+                    streamedReasoning += reasoningText
+                    if streamedText.isEmpty, let onTextDelta {
+                        let now = CFAbsoluteTimeGetCurrent()
+                        if now - lastTextDeltaCallbackTime >= textDeltaThrottleInterval {
+                            lastTextDeltaCallbackTime = now
+                            await onTextDelta(streamedReasoning)
+                            deltaCallbackCount += 1
+                        }
+                    }
+                }
+
                 if let deltaToolCalls = delta["tool_calls"] as? [[String: Any]] {
                     for (fallbackIndex, deltaToolCall) in deltaToolCalls.enumerated() {
                         let index = intValue(from: deltaToolCall["index"]) ?? fallbackIndex
@@ -3027,7 +3046,7 @@ struct ArticleAIChatView: View {
         }
 
         await flushPendingEvent()
-        debugLog("sse stream complete sawStreamPayload=\(sawStreamPayload), rawLines=\(rawLines.count), dataLines=\(dataLineCount), events=\(streamEventCount), parsedChunks=\(parsedChunkCount), failedChunks=\(failedChunkCount), textLength=\(streamedText.count)")
+        debugLog("sse stream complete sawStreamPayload=\(sawStreamPayload), rawLines=\(rawLines.count), dataLines=\(dataLineCount), events=\(streamEventCount), parsedChunks=\(parsedChunkCount), failedChunks=\(failedChunkCount), textLength=\(streamedText.count), reasoningLength=\(streamedReasoning.count)")
 
         if !sawStreamPayload {
             let rawBody = rawLines.joined(separator: "\n")
@@ -3081,6 +3100,11 @@ struct ArticleAIChatView: View {
                     ],
                 ]
             }
+
+        if streamedText.isEmpty && !streamedReasoning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            streamedText = streamedReasoning
+            debugLog("sse using reasoning as fallback content, reasoningLength=\(streamedText.count)")
+        }
 
         var assistantMessage: [String: Any] = [
             "role": streamedRole,
