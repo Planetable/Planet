@@ -30,6 +30,33 @@ struct PlanetSettingsAIView: View {
     @State private var preferredModelCheckTask: Task<Void, Never>? = nil
     @State private var onDeviceAIState: StatusIndicatorState = .idle
     @State private var onDeviceAILabel: String = "Checking…"
+    @State private var ollamaDetected: Bool = false
+
+    private var hasInsecureHTTPError: Bool {
+        let base = aiAPIBase.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !base.isEmpty,
+              let url = URL(string: base),
+              url.scheme?.lowercased() == "http"
+        else { return false }
+        do {
+            _ = try AIEndpointSecurityPolicy.modelsURL(base: base)
+            return false
+        } catch {
+            return error.localizedDescription == AIEndpointSecurityPolicy.insecureHTTPErrorDescription
+        }
+    }
+
+    private var isUsingOllama: Bool {
+        let base = aiAPIBase.lowercased()
+        return base.contains(":11434") && (
+            base.hasPrefix("http://localhost:") ||
+            base.hasPrefix("http://127.") ||
+            base.hasPrefix("http://0.0.0.0:") ||
+            base.hasPrefix("http://10.") ||
+            base.hasPrefix("http://100.") ||
+            base.hasPrefix("http://192.168.")
+        )
+    }
 
     private var filteredModelIDs: [String] {
         let query = aiPreferredModel.trimmingCharacters(in: .whitespaces)
@@ -50,11 +77,29 @@ struct PlanetSettingsAIView: View {
                         UserDefaults.standard.set(newValue, forKey: .settingsAIAPIBase)
                         scheduleCheck()
                     }
-                Text(AIEndpointSecurityPolicy.insecureHTTPErrorDescription)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 1)
-                    .padding(.bottom, 8)
+                if hasInsecureHTTPError {
+                    Text(AIEndpointSecurityPolicy.insecureHTTPErrorDescription)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .padding(.top, 1)
+                        .padding(.bottom, 8)
+                }
+
+                if ollamaDetected {
+                    HStack(spacing: 8) {
+                        StatusIndicatorView(state: .success)
+                        if isUsingOllama {
+                            Text("Using Ollama")
+                        } else {
+                            Text("Ollama detected on localhost")
+                            Spacer()
+                            Button("Use Ollama") {
+                                aiAPIBase = "http://localhost:11434/v1"
+                            }
+                        }
+                    }
+                    .padding(.bottom, 4)
+                }
             }
 
             Section {
@@ -160,6 +205,7 @@ struct PlanetSettingsAIView: View {
             }
             scheduleCheck()
             checkOnDeviceAI()
+            checkOllama()
         }
     }
 
@@ -286,6 +332,22 @@ struct PlanetSettingsAIView: View {
             }
         } catch {
             await MainActor.run { setModelStatus(.error(error.localizedDescription)) }
+        }
+    }
+
+    private func checkOllama() {
+        Task {
+            let url = URL(string: "http://localhost:11434/api/tags")!
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 2
+            do {
+                let (_, response) = try await URLSession.shared.data(for: request)
+                if let http = response as? HTTPURLResponse, http.statusCode == 200 {
+                    await MainActor.run { ollamaDetected = true }
+                }
+            } catch {
+                await MainActor.run { ollamaDetected = false }
+            }
         }
     }
 
