@@ -209,7 +209,7 @@ struct ReadArticleTool: Tool {
     let context: OnDeviceToolContext
 
     var name: String { "read_article" }
-    var description: String { "Read the current article or a specific article by UUID. Returns article properties as JSON." }
+    var description: String { "Read the current article or a specific article by UUID. Returns article properties as JSON, including chat_link metadata for linking in responses." }
 
     func call(arguments: ReadArticleArguments) async throws -> String {
         onDeviceToolLog("read_article called articleID=\(arguments.articleID ?? "nil"), fields=\(arguments.fields ?? [])")
@@ -218,7 +218,11 @@ struct ReadArticleTool: Tool {
                 return "Error: Article not found."
             }
             let full = try context.encodeToDictionary(myArticle)
-            let filtered = context.filter(dictionary: full, fields: arguments.fields)
+            var filtered = context.filter(dictionary: full, fields: arguments.fields)
+            filtered["article_id"] = myArticle.id.uuidString
+            filtered["planet_id"] = myArticle.planet.id.uuidString
+            filtered["planet_kind"] = PlanetKind.my.rawValue
+            filtered["chat_link"] = "planet://article/\(PlanetKind.my.rawValue)/\(myArticle.planet.id.uuidString)/\(myArticle.id.uuidString)"
             let data = try JSONSerialization.data(withJSONObject: filtered, options: [.prettyPrinted, .sortedKeys])
             return String(data: data, encoding: .utf8) ?? "Error: Failed to encode article."
         }

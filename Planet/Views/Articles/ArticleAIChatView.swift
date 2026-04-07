@@ -3720,6 +3720,12 @@ struct ArticleAIChatView: View {
                 "ok": true,
                 "article_id": myArticle.id.uuidString,
                 "planet_id": refreshed.planet.id.uuidString,
+                "planet_kind": PlanetKind.my.rawValue,
+                "chat_link": articleChatLink(
+                    planetKind: .my,
+                    planetID: refreshed.planet.id,
+                    articleID: myArticle.id
+                ),
                 "path": refreshed.path.path,
                 "updated_fields": Array(changes.keys).sorted(),
                 "save_public_triggered": didSavePublic,
@@ -5203,6 +5209,8 @@ struct ArticleAIChatView: View {
             If tools are available, use them when needed to read or update article/planet models or run shell commands.
             Use search_articles to find content across all planets, and list_planet_articles to browse a specific planet's articles.
             For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
+            Whenever you mention or summarize article content from the Planet library, include a Markdown link for every referenced article.
+            Use the exact chat_link value from article context or tool output, and if you do not have a chat_link yet, call a tool that returns one before answering. Never invent links.
             When search_articles or list_planet_articles returns matches, present each article title as a Markdown link using the exact chat_link value from the tool output.
             For write_article content generation, append to existing content by default; only replace full content when the user explicitly asks, by setting replace_content=true.
             If generated content starts with a Markdown H1 heading (# Title), put that heading text into changes.title and omit the H1 line from changes.content.
@@ -5214,6 +5222,8 @@ struct ArticleAIChatView: View {
         No small talk, no preambles like "here is", and do not ask follow-up questions at the end.
         If tools are available, use them when needed to read or update article/planet models or run shell commands.
         For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
+        Whenever you mention or summarize article content from the Planet library, include a Markdown link for every referenced article.
+        Use the exact chat_link value from article context or tool output, and if you do not have a chat_link yet, call a tool that returns one before answering. Never invent links.
         When search_articles or list_planet_articles returns matches, present each article title as a Markdown link using the exact chat_link value from the tool output.
         For write_article content generation, append to existing content by default; only replace full content when the user explicitly asks, by setting replace_content=true.
         If generated content starts with a Markdown H1 heading (# Title), put that heading text into changes.title and omit the H1 line from changes.content.
@@ -5224,20 +5234,86 @@ struct ArticleAIChatView: View {
         "You are helping with the following article."
     }
 
-    private func articleContextMessage(title: String, content: String) -> String {
-        """
-        \(articleContextPrefix)
+    private func articleContextMessage(
+        title: String,
+        content: String,
+        articleID: UUID? = nil,
+        planetID: UUID? = nil,
+        planetKind: PlanetKind? = nil,
+        chatLink: String? = nil
+    ) -> String {
+        var lines: [String] = [
+            articleContextPrefix,
+            ""
+        ]
 
-        Title: \(title)
+        if let articleID {
+            lines.append("Article ID: \(articleID.uuidString)")
+        }
+        if let planetID {
+            lines.append("Planet ID: \(planetID.uuidString)")
+        }
+        if let planetKind {
+            lines.append("Planet Kind: \(planetKind.rawValue)")
+        }
+        if let chatLink {
+            lines.append("Chat Link: \(chatLink)")
+        }
+        if lines.last != "" {
+            lines.append("")
+        }
 
-        Content:
-        \(content)
-        """
+        lines.append("Title: \(title)")
+        lines.append("")
+        lines.append("Content:")
+        lines.append(content)
+        return lines.joined(separator: "\n")
+    }
+
+    private func articleContextMetadata(for article: ArticleModel) -> (
+        articleID: UUID,
+        planetID: UUID,
+        planetKind: PlanetKind,
+        chatLink: String
+    )? {
+        if let myArticle = article as? MyArticleModel {
+            return (
+                articleID: myArticle.id,
+                planetID: myArticle.planet.id,
+                planetKind: .my,
+                chatLink: articleChatLink(
+                    planetKind: .my,
+                    planetID: myArticle.planet.id,
+                    articleID: myArticle.id
+                )
+            )
+        }
+        if let followingArticle = article as? FollowingArticleModel {
+            return (
+                articleID: followingArticle.id,
+                planetID: followingArticle.planet.id,
+                planetKind: .following,
+                chatLink: articleChatLink(
+                    planetKind: .following,
+                    planetID: followingArticle.planet.id,
+                    articleID: followingArticle.id
+                )
+            )
+        }
+        return nil
     }
 
     private func currentArticleContextMessage() -> String {
         guard let article = articleRef else { return "" }
-        return articleContextMessage(title: article.title, content: article.content)
+        let metadata = articleContextMetadata(for: article)
+        return articleContextMessage(
+            title: article.title,
+            content: article.content,
+            articleID: metadata?.articleID,
+            planetID: metadata?.planetID,
+            planetKind: metadata?.planetKind,
+            chatLink: metadata?.chatLink
+        )
     }
 
     private func onDeviceArticleContextMessage() -> String {
@@ -5247,7 +5323,15 @@ struct ArticleAIChatView: View {
         if content.count > maxContentLength {
             content = String(content.prefix(maxContentLength)) + "\n\n[Content truncated. Use read_article tool to see the full article.]"
         }
-        return articleContextMessage(title: article.title, content: content)
+        let metadata = articleContextMetadata(for: article)
+        return articleContextMessage(
+            title: article.title,
+            content: content,
+            articleID: metadata?.articleID,
+            planetID: metadata?.planetID,
+            planetKind: metadata?.planetKind,
+            chatLink: metadata?.chatLink
+        )
     }
 
     @MainActor
@@ -5322,9 +5406,31 @@ struct ArticleAIChatView: View {
 
         let refreshedTitle = (articlePayload["title"] as? String) ?? ""
         let refreshedContent = (articlePayload["content"] as? String) ?? ""
+        let articleID = stringValue(from: payload["article_id"]).flatMap(UUID.init(uuidString:))
+        let planetID = stringValue(from: payload["planet_id"]).flatMap(UUID.init(uuidString:))
+        var planetKind = stringValue(from: payload["planet_kind"]).flatMap(PlanetKind.init(rawValue:))
+        if planetKind == nil, articleID != nil, planetID != nil {
+            planetKind = .my
+        }
+        var chatLink = stringValue(from: payload["chat_link"])
+        if chatLink == nil,
+            let articleID,
+            let planetID,
+            let planetKind
+        {
+            chatLink = articleChatLink(
+                planetKind: planetKind,
+                planetID: planetID,
+                articleID: articleID
+            )
+        }
         let refreshedContext = articleContextMessage(
             title: refreshedTitle,
-            content: refreshedContent
+            content: refreshedContent,
+            articleID: articleID,
+            planetID: planetID,
+            planetKind: planetKind,
+            chatLink: chatLink
         )
         debugLog("refreshing chat article context from write_article updatedFields=\(Array(updatedFields).sorted())")
         return refreshedContext
