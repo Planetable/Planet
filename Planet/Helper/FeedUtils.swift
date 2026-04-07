@@ -288,7 +288,7 @@ struct FeedUtils {
             }
         }
         let content = item.contentHtml ?? ""
-        let created = item.datePublished ?? Date()
+        let created = item.datePublished ?? item.dateModified ?? Date()
         return PublicArticleModel(
             id: UUID(),
             link: sanitizedLink,
@@ -339,7 +339,8 @@ struct FeedUtils {
                     return nil
                 }
                 let content = entry.content?.value ?? ""
-                let created = entry.published ?? Date()
+                // GitHub releases feeds expose entry timestamps via <updated> without <published>.
+                let created = entry.published ?? entry.updated ?? Date()
                 return PublicArticleModel(
                     id: UUID(),
                     link: sanitizedLink,
