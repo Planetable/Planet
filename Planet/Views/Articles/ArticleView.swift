@@ -242,7 +242,7 @@ struct ArticleView: View {
 
     @State private var isSharing: Bool = false
     @State private var aiChatResponseCount: Int = 0
-    @AppStorage(String.settingsPreferReaderView) private var showLocalRendered: Bool = false
+    @State private var showLocalRendered: Bool = false
     @AppStorage(String.settingsReaderFontSize) private var readerFontSize: Double = 14
 
     @State private var readerFontSizeKeyMonitor: Any? = nil
@@ -270,12 +270,14 @@ struct ArticleView: View {
             Color(NSColor.textBackgroundColor)
         )
         .onChange(of: planetStore.selectedArticle) { _ in
+            syncReaderViewPreference()
             syncSelectedArticlePresentation()
             refreshAIChatResponseCount()
             detectSpeechLanguage()
         }
         .onChange(of: planetStore.selectedView) { _ in
             if planetStore.selectedArticle == nil {
+                syncReaderViewPreference()
                 syncSelectedArticlePresentation()
             }
             refreshAIChatResponseCount()
@@ -284,6 +286,7 @@ struct ArticleView: View {
             handleIPFSOnlineChange(online)
         }
         .onAppear {
+            syncReaderViewPreference()
             syncSelectedArticlePresentation()
             refreshAIChatResponseCount()
             checkOnDeviceAIAvailability()
@@ -341,24 +344,26 @@ struct ArticleView: View {
                     .help("Chat with AI about this article")
                 }
 
-                if let followingArticle = planetStore.selectedArticle as? FollowingArticleModel,
-                    followingArticle.supportsReaderView
-                {
-                    Button {
-                        showLocalRendered.toggle()
-                        syncSelectedArticlePresentation()
-                    } label: {
-                        Image(systemName: showLocalRendered ? "globe" : "doc.richtext")
+                if let followingArticle = planetStore.selectedArticle as? FollowingArticleModel {
+                    if followingArticle.supportsReaderView {
+                        Button {
+                            setReaderViewEnabled(!showLocalRendered, for: followingArticle.planet)
+                            syncSelectedArticlePresentation()
+                        } label: {
+                            Image(systemName: showLocalRendered ? "globe" : "doc.richtext")
+                        }
+                        .help(showLocalRendered ? "Show Original Website" : "Show Reader View")
                     }
-                    .help(showLocalRendered ? "Show Original Website" : "Show Reader View")
 
-                    Button {
-                        toggleSpeechPlayback(for: followingArticle)
-                    } label: {
-                        Image(systemName: speechPlayerViewModel.isSpeaking ? "speaker.wave.2.fill" : "speaker.wave.2")
+                    if followingArticle.supportsReadAloud {
+                        Button {
+                            toggleSpeechPlayback(for: followingArticle)
+                        } label: {
+                            Image(systemName: speechPlayerViewModel.isSpeaking ? "speaker.wave.2.fill" : "speaker.wave.2")
+                        }
+                        .disabled(detectedSpeechLanguage == nil)
+                        .help(speechPlaybackHelpText())
                     }
-                    .disabled(detectedSpeechLanguage == nil)
-                    .help(speechPlaybackHelpText())
                 }
 
                 if let article = planetStore.selectedArticle as? MyArticleModel, !article.isAggregated() {
@@ -440,7 +445,7 @@ struct ArticleView: View {
         detectedSpeechLanguage = nil
         isDetectingSpeechLanguage = false
         guard let followingArticle = planetStore.selectedArticle as? FollowingArticleModel,
-            followingArticle.supportsReaderView
+            followingArticle.supportsReadAloud
         else { return }
         let text = followingArticle.title + " " + followingArticle.content
         isDetectingSpeechLanguage = true
@@ -477,6 +482,31 @@ struct ArticleView: View {
             return "Checking Read Aloud Availability"
         }
         return "Read Aloud Unavailable"
+    }
+
+    private func syncReaderViewPreference() {
+        guard let followingArticle = planetStore.selectedArticle as? FollowingArticleModel,
+            followingArticle.supportsReaderView
+        else {
+            showLocalRendered = false
+            return
+        }
+        showLocalRendered = preferredReaderView(for: followingArticle.planet)
+    }
+
+    private func preferredReaderView(for planet: FollowingPlanetModel) -> Bool {
+        let key = String.settingsPreferReaderView(forFollowingPlanetID: planet.id)
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: key) != nil {
+            return defaults.bool(forKey: key)
+        }
+        return defaults.bool(forKey: String.settingsPreferReaderView)
+    }
+
+    private func setReaderViewEnabled(_ enabled: Bool, for planet: FollowingPlanetModel) {
+        let key = String.settingsPreferReaderView(forFollowingPlanetID: planet.id)
+        UserDefaults.standard.set(enabled, forKey: key)
+        showLocalRendered = enabled
     }
 
     private func installReaderFontSizeKeyMonitor() {

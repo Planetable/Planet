@@ -38,6 +38,9 @@ extension String {
     static let settingsPreferReaderView: String = "PlanetSettingsPreferReaderViewKey"
     static let settingsReaderFontSize: String = "PlanetSettingsReaderFontSizeKey"
     static let settingsSpeechVoicePerLanguage: String = "PlanetSettingsSpeechVoicePerLanguageKey"
+    static func settingsPreferReaderView(forFollowingPlanetID planetID: UUID) -> String {
+        "\(settingsPreferReaderView).following.\(planetID.uuidString)"
+    }
 
     func sanitized() -> String {
         // Reference: https://superuser.com/a/358861

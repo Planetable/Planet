@@ -23,6 +23,10 @@ class FollowingArticleModel: ArticleModel, Codable {
     lazy var localPreviewPath = planet.articlesPath.appendingPathComponent("\(id.uuidString)-local.html", isDirectory: false)
 
     var supportsReaderView: Bool {
+        planet.planetType == .dns
+    }
+
+    var supportsReadAloud: Bool {
         planet.planetType == .dns || planet.planetType == .dnslink
     }
 
