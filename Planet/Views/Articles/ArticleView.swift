@@ -232,6 +232,7 @@ struct ArticleView: View {
     static let noSelectionURL = Bundle.main.url(forResource: "NoSelection.html", withExtension: "")!
     @EnvironmentObject var planetStore: PlanetStore
     @ObservedObject private var ipfsState = IPFSState.shared
+    @ObservedObject private var speechPlayerViewModel = ArticleSpeechPlayerViewModel.shared
     @AppStorage(String.settingsAIIsReady) private var settingsAIIsReady: Bool = false
     @State private var isOnDeviceAIAvailable: Bool = false
 
@@ -245,6 +246,9 @@ struct ArticleView: View {
     @AppStorage(String.settingsReaderFontSize) private var readerFontSize: Double = 14
 
     @State private var readerFontSizeKeyMonitor: Any? = nil
+    @State private var detectedSpeechLanguage: String? = nil
+    @State private var isDetectingSpeechLanguage: Bool = false
+    @State private var speechLanguageDetectionTask: Task<Void, Never>? = nil
     @State private var sharingItem: URL?
     @State private var currentItemHost: String? = nil
     @State private var currentItemLink: String? = nil
@@ -253,6 +257,7 @@ struct ArticleView: View {
         VStack(spacing: 0) {
             ArticleWebView(url: $url)
             ArticleAudioPlayer()
+            ArticleSpeechPlayer()
             if let article = planetStore.selectedArticle, let myArticle = article as? MyArticleModel, let planet = myArticle.planet {
                 PlanetRebuildView(planet: planet)
             }
@@ -267,6 +272,7 @@ struct ArticleView: View {
         .onChange(of: planetStore.selectedArticle) { _ in
             syncSelectedArticlePresentation()
             refreshAIChatResponseCount()
+            detectSpeechLanguage()
         }
         .onChange(of: planetStore.selectedView) { _ in
             if planetStore.selectedArticle == nil {
@@ -282,8 +288,11 @@ struct ArticleView: View {
             refreshAIChatResponseCount()
             checkOnDeviceAIAvailability()
             installReaderFontSizeKeyMonitor()
+            detectSpeechLanguage()
         }
         .onDisappear {
+            speechLanguageDetectionTask?.cancel()
+            speechLanguageDetectionTask = nil
             removeReaderFontSizeKeyMonitor()
         }
         .toolbar {
@@ -342,6 +351,14 @@ struct ArticleView: View {
                         Image(systemName: showLocalRendered ? "globe" : "doc.richtext")
                     }
                     .help(showLocalRendered ? "Show Original Website" : "Show Reader View")
+
+                    Button {
+                        toggleSpeechPlayback(for: followingArticle)
+                    } label: {
+                        Image(systemName: speechPlayerViewModel.isSpeaking ? "speaker.wave.2.fill" : "speaker.wave.2")
+                    }
+                    .disabled(detectedSpeechLanguage == nil)
+                    .help(speechPlaybackHelpText())
                 }
 
                 if let article = planetStore.selectedArticle as? MyArticleModel, !article.isAggregated() {
@@ -415,6 +432,51 @@ struct ArticleView: View {
         }
         #endif
         isOnDeviceAIAvailable = false
+    }
+
+    private func detectSpeechLanguage() {
+        speechLanguageDetectionTask?.cancel()
+        speechLanguageDetectionTask = nil
+        detectedSpeechLanguage = nil
+        isDetectingSpeechLanguage = false
+        guard let followingArticle = planetStore.selectedArticle as? FollowingArticleModel,
+            followingArticle.supportsReaderView
+        else { return }
+        let text = followingArticle.title + " " + followingArticle.content
+        isDetectingSpeechLanguage = true
+        speechLanguageDetectionTask = Task.detached(priority: .utility) {
+            let lang = ArticleSpeechPlayerViewModel.detectLanguage(of: text)
+            let supported = lang.map { ArticleSpeechPlayerViewModel.hasVoices(forLanguage: $0) } ?? false
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                detectedSpeechLanguage = supported ? lang : nil
+                isDetectingSpeechLanguage = false
+                speechLanguageDetectionTask = nil
+            }
+        }
+    }
+
+    private func toggleSpeechPlayback(for article: FollowingArticleModel) {
+        guard let language = detectedSpeechLanguage else { return }
+        if speechPlayerViewModel.isSpeaking {
+            speechPlayerViewModel.stop()
+        } else {
+            let text = ArticleSpeechPlayerViewModel.extractPlainText(from: article)
+            speechPlayerViewModel.speak(text: text, title: article.title, language: language)
+        }
+    }
+
+    private func speechPlaybackHelpText() -> String {
+        if speechPlayerViewModel.isSpeaking {
+            return "Stop Reading Aloud"
+        }
+        if detectedSpeechLanguage != nil {
+            return "Read Aloud"
+        }
+        if isDetectingSpeechLanguage {
+            return "Checking Read Aloud Availability"
+        }
+        return "Read Aloud Unavailable"
     }
 
     private func installReaderFontSizeKeyMonitor() {

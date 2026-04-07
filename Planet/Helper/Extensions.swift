@@ -37,6 +37,7 @@ extension String {
     static let settingsPreventSleep: String = "PlanetSettingsPreventSleepKey"
     static let settingsPreferReaderView: String = "PlanetSettingsPreferReaderViewKey"
     static let settingsReaderFontSize: String = "PlanetSettingsReaderFontSizeKey"
+    static let settingsSpeechVoicePerLanguage: String = "PlanetSettingsSpeechVoicePerLanguageKey"
 
     func sanitized() -> String {
         // Reference: https://superuser.com/a/358861
