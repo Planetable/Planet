@@ -20,19 +20,22 @@ private struct ArticleAIChatMessage: Identifiable, Equatable {
     let content: String
     let tokenUsage: String?
     let isToolActivity: Bool
+    let isReasoningResponse: Bool
 
     init(
         id: UUID = UUID(),
         role: String,
         content: String,
         tokenUsage: String?,
-        isToolActivity: Bool = false
+        isToolActivity: Bool = false,
+        isReasoningResponse: Bool = false
     ) {
         self.id = id
         self.role = role
         self.content = content
         self.tokenUsage = tokenUsage
         self.isToolActivity = isToolActivity
+        self.isReasoningResponse = isReasoningResponse
     }
 }
 
@@ -42,6 +45,7 @@ struct ArticleAIChatPersistedMessage: Codable {
     let content: String
     let tokenUsage: String?
     let isToolActivity: Bool?
+    let isReasoningResponse: Bool?
 }
 
 struct ArticleAIChatPersistedData: Codable {
@@ -67,12 +71,14 @@ private struct ArticleAICompletionStep {
     let tokenUsage: String?
     let toolCalls: [ArticleAIToolCall]
     let toolResultStyle: ArticleAIToolResultMessageStyle
+    let isReasoningResponse: Bool
 }
 
 private struct ArticleAIReplyResult {
     let text: String
     let tokenUsage: String?
     let messages: [[String: Any]]
+    let isReasoningResponse: Bool
 }
 
 private struct ArticleAIStreamToolCallState {
@@ -285,6 +291,10 @@ struct ArticleAIChatView: View {
     @State private var scrolledMessageID: UUID? = nil
     @State private var pendingScrollTarget: UUID? = nil
     @State private var fontSizeKeyMonitor: Any? = nil
+    @State private var copiedPromptMessageID: UUID? = nil
+    @State private var copiedPromptFlashMessageID: UUID? = nil
+    @State private var copiedPromptFeedbackToken: UUID? = nil
+    @State private var expandedReasoningMessageIDs: Set<UUID> = []
 
     private var canSendMessage: Bool {
         !isSending && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -654,7 +664,8 @@ struct ArticleAIChatView: View {
                 role: item.role,
                 content: item.content,
                 tokenUsage: item.tokenUsage,
-                isToolActivity: item.isToolActivity ?? false
+                isToolActivity: item.isToolActivity ?? false,
+                isReasoningResponse: item.isReasoningResponse ?? false
             )
         }
 
@@ -692,7 +703,8 @@ struct ArticleAIChatView: View {
                 role: item.role,
                 content: item.content,
                 tokenUsage: item.tokenUsage,
-                isToolActivity: item.isToolActivity
+                isToolActivity: item.isToolActivity,
+                isReasoningResponse: item.isReasoningResponse
             )
         }
         let scrollTarget = topVisibleMessageID()?.uuidString
@@ -731,6 +743,7 @@ struct ArticleAIChatView: View {
         messages = []
         apiMessages = []
         blockCache.removeAll()
+        expandedReasoningMessageIDs.removeAll()
         scrolledMessageID = nil
         errorText = nil
         toolProgressText = nil
@@ -792,21 +805,40 @@ struct ArticleAIChatView: View {
                         .padding(.top, isAssistantStyleMessage(message) ? 0 : 8)
                         .frame(width: 34, alignment: .trailing)
                     VStack(alignment: .leading, spacing: 6) {
-                        chatMessageContent(for: message)
-                            .font(.system(size: chatFontSize))
-                            .lineSpacing(5)
-                            .foregroundStyle(message.isToolActivity ? .secondary : .primary)
-                            .frame(
-                                maxWidth: message.role == "user" ? nil : .infinity,
-                                alignment: .leading
-                            )
-                        if message.role == "assistant",
-                            !message.isToolActivity,
-                            let tokenUsage = message.tokenUsage
-                        {
-                            Text(tokenUsage)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
+                        if message.isReasoningResponse {
+                            Button {
+                                toggleReasoningMessageExpansion(for: message)
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: isReasoningMessageCollapsed(message) ? "chevron.right" : "chevron.down")
+                                        .font(.caption2.weight(.semibold))
+                                    Text(isReasoningMessageCollapsed(message) ? "Show Reasoning" : "Hide Reasoning")
+                                        .font(.caption)
+                                }
+                            }
+                            .buttonStyle(.borderless)
+                            .foregroundStyle(.secondary)
+                            .help(isReasoningMessageCollapsed(message) ? "Expand reasoning message" : "Collapse reasoning message")
+                            .padding(.top, 2)
+                        }
+
+                        if !isReasoningMessageCollapsed(message) {
+                            chatMessageContent(for: message)
+                                .font(.system(size: chatFontSize))
+                                .lineSpacing(5)
+                                .foregroundStyle(usesSecondaryAssistantStyle(message) ? .secondary : .primary)
+                                .frame(
+                                    maxWidth: message.role == "user" ? nil : .infinity,
+                                    alignment: .leading
+                                )
+                            if message.role == "assistant",
+                                !message.isToolActivity,
+                                let tokenUsage = message.tokenUsage
+                            {
+                                Text(tokenUsage)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                     .padding(message.role == "user" ? 8 : 0)
@@ -816,6 +848,34 @@ struct ArticleAIChatView: View {
                             : Color.clear
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                    if message.role == "user" {
+                        Button {
+                            copyPromptToPasteboard(message)
+                        } label: {
+                            Label(
+                                copiedPromptMessageID == message.id ? "Copied" : "Copy",
+                                systemImage: copiedPromptMessageID == message.id ? "checkmark" : "doc.on.doc"
+                            )
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule()
+                                        .fill(
+                                            Color.accentColor.opacity(
+                                                copiedPromptFlashMessageID == message.id
+                                                    ? 0.18
+                                                    : (copiedPromptMessageID == message.id ? 0.08 : 0)
+                                            )
+                                        )
+                                )
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.secondary)
+                        .help("Copy prompt")
+                        .padding(.top, 8)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .id(message.id)
@@ -868,6 +928,52 @@ struct ArticleAIChatView: View {
         message.role == "assistant" || message.isToolActivity
     }
 
+    private func usesSecondaryAssistantStyle(_ message: ArticleAIChatMessage) -> Bool {
+        message.isToolActivity || message.isReasoningResponse
+    }
+
+    private func isReasoningMessageCollapsed(_ message: ArticleAIChatMessage) -> Bool {
+        message.isReasoningResponse && !expandedReasoningMessageIDs.contains(message.id)
+    }
+
+    private func toggleReasoningMessageExpansion(for message: ArticleAIChatMessage) {
+        guard message.isReasoningResponse else { return }
+        withAnimation(.easeInOut(duration: 0.18)) {
+            if expandedReasoningMessageIDs.contains(message.id) {
+                expandedReasoningMessageIDs.remove(message.id)
+            } else {
+                expandedReasoningMessageIDs.insert(message.id)
+            }
+        }
+    }
+
+    private func copyPromptToPasteboard(_ message: ArticleAIChatMessage) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(message.content, forType: .string)
+
+        let feedbackToken = UUID()
+        copiedPromptFeedbackToken = feedbackToken
+
+        withAnimation(.easeOut(duration: 0.12)) {
+            copiedPromptMessageID = message.id
+            copiedPromptFlashMessageID = message.id
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+            guard copiedPromptFeedbackToken == feedbackToken else { return }
+            withAnimation(.easeOut(duration: 0.4)) {
+                copiedPromptFlashMessageID = nil
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            guard copiedPromptFeedbackToken == feedbackToken else { return }
+            withAnimation(.easeOut(duration: 0.2)) {
+                copiedPromptMessageID = nil
+            }
+        }
+    }
+
     @ViewBuilder
     private func chatMessageContent(for message: ArticleAIChatMessage) -> some View {
         if isAssistantStyleMessage(message) {
@@ -894,11 +1000,11 @@ struct ArticleAIChatView: View {
         }()
 
         if blocks.count == 1 {
-            assistantMessageBlockView(blocks[0], isSecondaryStyle: message.isToolActivity)
+            assistantMessageBlockView(blocks[0], isSecondaryStyle: usesSecondaryAssistantStyle(message))
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(blocks.indices), id: \.self) { index in
-                    assistantMessageBlockView(blocks[index], isSecondaryStyle: message.isToolActivity)
+                    assistantMessageBlockView(blocks[index], isSecondaryStyle: usesSecondaryAssistantStyle(message))
                         .padding(
                             .top,
                             assistantMessageBlockSpacing(
@@ -1768,23 +1874,25 @@ struct ArticleAIChatView: View {
                             self.appendToolActivityMessage(summary)
                         }
                     },
-                    onAssistantTextUpdate: { partialText in
+                    onAssistantTextUpdate: { partialText, isReasoningResponse in
                         await MainActor.run {
                             self.updateAssistantStreamingMessage(
                                 id: streamingRef.id,
                                 content: partialText,
                                 tokenUsage: nil,
+                                isReasoningResponse: isReasoningResponse,
                                 createIfMissing: true,
                                 removeWhenEmpty: true
                             )
                         }
                     },
-                    onIntermediateResponse: { text in
+                    onIntermediateResponse: { text, isReasoningResponse in
                         await MainActor.run {
                             self.updateAssistantStreamingMessage(
                                 id: streamingRef.id,
                                 content: text,
                                 tokenUsage: nil,
+                                isReasoningResponse: isReasoningResponse,
                                 createIfMissing: true
                             )
                             streamingRef.id = UUID()
@@ -1797,6 +1905,7 @@ struct ArticleAIChatView: View {
                         id: streamingRef.id,
                         content: reply.text,
                         tokenUsage: reply.tokenUsage,
+                        isReasoningResponse: reply.isReasoningResponse,
                         createIfMissing: true
                     )
                     apiMessages = reply.messages
@@ -1892,6 +2001,7 @@ struct ArticleAIChatView: View {
         id: UUID,
         content: String,
         tokenUsage: String?,
+        isReasoningResponse: Bool = false,
         createIfMissing: Bool = false,
         removeWhenEmpty: Bool = false
     ) {
@@ -1908,7 +2018,8 @@ struct ArticleAIChatView: View {
                 id: id,
                 role: "assistant",
                 content: content,
-                tokenUsage: tokenUsage
+                tokenUsage: tokenUsage,
+                isReasoningResponse: isReasoningResponse
             )
             return
         }
@@ -1920,7 +2031,8 @@ struct ArticleAIChatView: View {
             id: id,
             role: "assistant",
             content: content,
-            tokenUsage: tokenUsage
+            tokenUsage: tokenUsage,
+            isReasoningResponse: isReasoningResponse
         )
         blockCache[id] = assistantMessageBlocks(content)
         messages.append(newMessage)
@@ -1946,8 +2058,8 @@ struct ArticleAIChatView: View {
     private func requestReply(
         messages: [[String: Any]],
         onToolSuccessMessage: ((String) async -> Void)? = nil,
-        onAssistantTextUpdate: ((String) async -> Void)? = nil,
-        onIntermediateResponse: ((String) async -> Void)? = nil
+        onAssistantTextUpdate: ((String, Bool) async -> Void)? = nil,
+        onIntermediateResponse: ((String, Bool) async -> Void)? = nil
     ) async throws -> ArticleAIReplyResult {
         let base = UserDefaults.standard.string(forKey: .settingsAIAPIBase)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -2026,17 +2138,22 @@ struct ArticleAIChatView: View {
                     workingMessages[workingMessages.count - 1] = last
                 }
                 updateToolProgress(nil)
-                return ArticleAIReplyResult(text: finalText, tokenUsage: finalTokenUsage, messages: workingMessages)
+                return ArticleAIReplyResult(
+                    text: finalText,
+                    tokenUsage: finalTokenUsage,
+                    messages: workingMessages,
+                    isReasoningResponse: completion.isReasoningResponse
+                )
             }
 
             let intermediateText = completion.text.trimmingCharacters(in: .whitespacesAndNewlines)
             if !intermediateText.isEmpty {
                 if let onIntermediateResponse {
-                    await onIntermediateResponse(completion.text)
+                    await onIntermediateResponse(completion.text, completion.isReasoningResponse)
                 }
             } else {
                 if let onAssistantTextUpdate {
-                    await onAssistantTextUpdate("")
+                    await onAssistantTextUpdate("", false)
                 }
             }
 
@@ -2131,7 +2248,8 @@ struct ArticleAIChatView: View {
                     return ArticleAIReplyResult(
                         text: finalLocalMessage,
                         tokenUsage: finalTokenUsage,
-                        messages: workingMessages
+                        messages: workingMessages,
+                        isReasoningResponse: false
                     )
                 }
 
@@ -2168,7 +2286,8 @@ struct ArticleAIChatView: View {
                 return ArticleAIReplyResult(
                     text: finalFailureMessage,
                     tokenUsage: finalTokenUsage,
-                    messages: workingMessages
+                    messages: workingMessages,
+                    isReasoningResponse: false
                 )
             }
         }
@@ -2191,7 +2310,8 @@ struct ArticleAIChatView: View {
         return ArticleAIReplyResult(
             text: finalFailureMessage,
             tokenUsage: finalTokenUsage,
-            messages: workingMessages
+            messages: workingMessages,
+            isReasoningResponse: false
         )
     }
 
@@ -2546,7 +2666,7 @@ struct ArticleAIChatView: View {
         token: String?,
         messages: [[String: Any]],
         toolsEnabled: Bool,
-        onTextDelta: ((String) async -> Void)? = nil
+        onTextDelta: ((String, Bool) async -> Void)? = nil
     ) async throws -> ArticleAICompletionStep {
         debugLog("requestCompletion start model=\(model), toolsEnabled=\(toolsEnabled), messages=\(messages.count)")
         var request = URLRequest(url: url)
@@ -2595,7 +2715,7 @@ struct ArticleAIChatView: View {
     private func parseCompletionStepFromStreamingBytes(
         bytes: URLSession.AsyncBytes,
         fallbackModel: String,
-        onTextDelta: ((String) async -> Void)?
+        onTextDelta: ((String, Bool) async -> Void)?
     ) async throws -> ArticleAICompletionStep {
         var rawLines: [String] = []
         var pendingEventDataLines: [String] = []
@@ -2713,7 +2833,7 @@ struct ArticleAIChatView: View {
                     return
                 }
                 lastTextDeltaCallbackTime = now
-                await onTextDelta(streamedText)
+                await onTextDelta(streamedText, false)
                 deltaCallbackCount += 1
                 if deltaCallbackCount <= 3 || deltaCallbackCount % 25 == 0 {
                     debugLog(
@@ -2956,7 +3076,7 @@ struct ArticleAIChatView: View {
                         let now = CFAbsoluteTimeGetCurrent()
                         if now - lastTextDeltaCallbackTime >= textDeltaThrottleInterval {
                             lastTextDeltaCallbackTime = now
-                            await onTextDelta(streamedReasoning)
+                            await onTextDelta(streamedReasoning, true)
                             deltaCallbackCount += 1
                         }
                     }
@@ -3011,7 +3131,7 @@ struct ArticleAIChatView: View {
                 if !messageText.isEmpty {
                     streamedText = messageText
                     if let onTextDelta {
-                        await onTextDelta(streamedText)
+                        await onTextDelta(streamedText, false)
                     }
                 }
                 if let toolCalls = message["tool_calls"] as? [[String: Any]] {
@@ -3132,7 +3252,9 @@ struct ArticleAIChatView: View {
                 ]
             }
 
-        if streamedText.isEmpty && !streamedReasoning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        let isReasoningResponse =
+            streamedText.isEmpty && !streamedReasoning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        if isReasoningResponse {
             streamedText = streamedReasoning
             debugLog("sse using reasoning as fallback content, reasoningLength=\(streamedText.count)")
         }
@@ -3140,6 +3262,9 @@ struct ArticleAIChatView: View {
         var assistantMessage: [String: Any] = [
             "role": streamedRole,
         ]
+        if isReasoningResponse {
+            assistantMessage["planet_reasoning_fallback"] = true
+        }
         if !openAIToolCalls.isEmpty {
             assistantMessage["content"] = streamedText
             assistantMessage["tool_calls"] = openAIToolCalls
@@ -3266,7 +3391,8 @@ struct ArticleAIChatView: View {
             text: text,
             tokenUsage: tokenUsage,
             toolCalls: toolCalls,
-            toolResultStyle: toolResultStyle
+            toolResultStyle: toolResultStyle,
+            isReasoningResponse: (assistantMessage["planet_reasoning_fallback"] as? Bool) ?? false
         )
     }
 
