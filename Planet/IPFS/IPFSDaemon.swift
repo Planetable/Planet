@@ -1007,15 +1007,6 @@ extension IPFSDaemon {
             ],
         ],  // Pinnable
         [
-            "ID": "12D3KooWDaGQ3Fu3iLgFxrrg5Vfef9z5L3DQZoyqFxQJbKKPnCc8",
-            "Addrs": [
-                "/ip4/143.198.18.166/tcp/4001",
-                "/ip6/2604:a880:800:10::735:7001/tcp/4001",
-                "/ip4/143.198.18.166/udp/4001/quic",
-                "/ip6/2604:a880:800:10::735:7001/udp/4001/quic",
-            ],
-        ],  // eth.sucks
-        [
             "ID": "12D3KooWJ6MTkNM8Bu8DzNiRm1GY3Wqh8U8Pp1zRWap6xY3MvsNw",
             "Addrs": [
                 "/dnsaddr/node-1.ipfs.bit.site"
