@@ -101,6 +101,7 @@ struct NewOnboardingView: View {
                         Image(systemName: "sparkles")
                         Text("Follow Featured")
                     }
+                    .modifier(CapsuleOnMacOS26())
 
                     Spacer()
 
@@ -135,7 +136,9 @@ struct NewOnboardingView: View {
                     } label: {
                         Text("OK")
                         .frame(minWidth: 50)
-                    }.buttonStyle(.borderedProminent)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .modifier(CapsuleOnMacOS26())
                 }.padding(10)
             }
 
@@ -189,6 +192,16 @@ struct NewOnboardingView: View {
             }.frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+struct CapsuleOnMacOS26: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            content.buttonBorderShape(.capsule)
+        } else {
+            content
+        }
     }
 }
 
