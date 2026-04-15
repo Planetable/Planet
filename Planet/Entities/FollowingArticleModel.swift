@@ -60,7 +60,7 @@ class FollowingArticleModel: ArticleModel, Codable {
                             !value.hasPrefix("#")
                         else { continue }
                         if let resolved = URL(string: value, relativeTo: baseURL)?.absoluteString {
-                            try? element.attr(attr, resolved)
+                            _ = try? element.attr(attr, resolved)
                         }
                     }
                 }
