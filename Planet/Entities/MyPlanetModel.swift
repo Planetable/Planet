@@ -2834,7 +2834,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     private func openIPFSLogWindow() {
         Task { @MainActor in
-            AppLogWindowManager.shared.open(tab: .ipfs)
+            AppLogWindowManager.shared.openOnError(tab: .ipfs)
         }
     }
 
@@ -2899,7 +2899,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                         "SSH rsync publish failed for planet \(self.name, privacy: .public): \(message, privacy: .public)"
                     )
                     Task { @MainActor in
-                        AppLogWindowManager.shared.open(tab: .sshRsync)
+                        AppLogWindowManager.shared.openOnError(tab: .sshRsync)
                     }
                     finish(.failure(PlanetError.SSHRsyncPublishError(message)))
                     return
@@ -2918,7 +2918,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             catch {
                 SSHRsyncLogger.log("[ERROR] [\(self.name)] Failed to launch rsync: \(error.localizedDescription)")
                 Task { @MainActor in
-                    AppLogWindowManager.shared.open(tab: .sshRsync)
+                    AppLogWindowManager.shared.openOnError(tab: .sshRsync)
                 }
                 finish(.failure(error))
             }
@@ -2960,7 +2960,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 "Cloudflare Pages publish failed for planet \(self.name, privacy: .public): \(error.localizedDescription, privacy: .public)"
             )
             Task { @MainActor in
-                AppLogWindowManager.shared.open(tab: .cloudflarePages)
+                AppLogWindowManager.shared.openOnError(tab: .cloudflarePages)
             }
             throw error
         }

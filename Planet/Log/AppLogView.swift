@@ -89,6 +89,11 @@ class AppLogWindowManager: NSObject, NSWindowDelegate {
         window = w
     }
 
+    func openOnError(tab: AppLogSource) {
+        guard UserDefaults.standard.bool(forKey: .settingsOpenLogOnError) else { return }
+        open(tab: tab)
+    }
+
     func reload() {
         AppLogViewModel.shared.reload()
     }

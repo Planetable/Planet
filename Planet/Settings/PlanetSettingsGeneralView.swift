@@ -45,6 +45,8 @@ struct PlanetSettingsGeneralView: View {
 
     @AppStorage(String.settingsWarnBeforeQuitIfPublishing) private var warnBeforeQuitIfPublishing = false
 
+    @AppStorage(String.settingsOpenLogOnError) private var openLogOnError = false
+
     @AppStorage(String.settingsPreventSleep) private var preventSleep = true
 
     var body: some View {
@@ -120,6 +122,16 @@ struct PlanetSettingsGeneralView: View {
                         }
                         PlanetSettingsDescriptionRow(
                             "Warn before quitting Planet when there are publishing tasks in progress."
+                        )
+                    }
+
+                    VStack(alignment: .leading, spacing: PlanetSettingsSharedLayout.descriptionSpacing) {
+                        PlanetSettingsControlRow {
+                            Toggle("Pop up log window when a publishing error occurs", isOn: $openLogOnError)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        PlanetSettingsDescriptionRow(
+                            "When enabled, Planet automatically opens the relevant log window after a publishing error. Off by default."
                         )
                     }
 
