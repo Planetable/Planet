@@ -1,0 +1,7 @@
+interface:
+  display_name: "/save-session"
+  short_description: "Save the current Codex session into Planet"
+  default_prompt: "Use $save-session to save the current Codex session summary as a Planet article for this project."
+
+policy:
+  allow_implicit_invocation: false
