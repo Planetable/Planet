@@ -1,4 +1,4 @@
-- When running xcodebuild, prefer using `/Applications/Xcode-16.4.0.app/Contents/Developer` as the developer directory (via `DEVELOPER_DIR` env var or `xcode-select`), falling back to `/Applications/Xcode.app/Contents/Developer` if unavailable.
+- When running xcodebuild, prefer using `/Applications/Xcode.app/Contents/Developer` as the developer directory (via `DEVELOPER_DIR` env var or `xcode-select`), falling back to `/Applications/Xcode-16.4.0.app/Contents/Developer`.
 - When modifying Xcode project files (.xcodeproj/project.pbxproj), use the `xcodeproj` Ruby gem instead of editing the pbxproj file directly. The project folder uses `rbenv`.
 - Must compile for macOS 12. Use `#available` / `@available` to adopt newer APIs (e.g. macOS 13, 14, 26) while maintaining macOS 12 compatibility, with graceful fallbacks for older versions.
 - AI related features debug log `planet-ai-debug.log` can be found at `~/Library/Containers/xyz.planetable.Planet/Data/tmp/planet-ai-debug.log`
