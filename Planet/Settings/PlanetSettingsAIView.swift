@@ -31,6 +31,7 @@ struct PlanetSettingsAIView: View {
     @State private var onDeviceAIState: StatusIndicatorState = .idle
     @State private var onDeviceAILabel: String = "Checking…"
     @State private var ollamaDetected: Bool = false
+    @State private var lmStudioDetected: Bool = false
 
     private var hasInsecureHTTPError: Bool {
         let base = aiAPIBase.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -49,6 +50,18 @@ struct PlanetSettingsAIView: View {
     private var isUsingOllama: Bool {
         let base = aiAPIBase.lowercased()
         return base.contains(":11434") && (
+            base.hasPrefix("http://localhost:") ||
+            base.hasPrefix("http://127.") ||
+            base.hasPrefix("http://0.0.0.0:") ||
+            base.hasPrefix("http://10.") ||
+            base.hasPrefix("http://100.") ||
+            base.hasPrefix("http://192.168.")
+        )
+    }
+
+    private var isUsingLMStudio: Bool {
+        let base = aiAPIBase.lowercased()
+        return base.contains(":1234") && (
             base.hasPrefix("http://localhost:") ||
             base.hasPrefix("http://127.") ||
             base.hasPrefix("http://0.0.0.0:") ||
@@ -95,6 +108,22 @@ struct PlanetSettingsAIView: View {
                             Spacer()
                             Button("Use Ollama") {
                                 aiAPIBase = "http://localhost:11434/v1"
+                            }
+                        }
+                    }
+                    .padding(.bottom, 4)
+                }
+
+                if lmStudioDetected {
+                    HStack(spacing: 8) {
+                        StatusIndicatorView(state: .success)
+                        if isUsingLMStudio {
+                            Text("Using LM Studio")
+                        } else {
+                            Text("LM Studio detected on localhost")
+                            Spacer()
+                            Button("Use LM Studio") {
+                                aiAPIBase = "http://localhost:1234/v1"
                             }
                         }
                     }
@@ -206,6 +235,7 @@ struct PlanetSettingsAIView: View {
             scheduleCheck()
             checkOnDeviceAI()
             checkOllama()
+            checkLMStudio()
         }
     }
 
@@ -347,6 +377,22 @@ struct PlanetSettingsAIView: View {
                 }
             } catch {
                 await MainActor.run { ollamaDetected = false }
+            }
+        }
+    }
+
+    private func checkLMStudio() {
+        Task {
+            let url = URL(string: "http://localhost:1234/v1/models")!
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 2
+            do {
+                let (_, response) = try await URLSession.shared.data(for: request)
+                if let http = response as? HTTPURLResponse, http.statusCode == 200 {
+                    await MainActor.run { lmStudioDetected = true }
+                }
+            } catch {
+                await MainActor.run { lmStudioDetected = false }
             }
         }
     }
