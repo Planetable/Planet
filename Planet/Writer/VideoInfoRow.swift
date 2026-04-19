@@ -11,6 +11,14 @@ private enum CompressionStorageDecision {
     case compressWithBackup
 }
 
+private struct CompressionStorageAssessment {
+    let decision: CompressionStorageDecision
+    let videoSizeBytes: Int64?
+    let requiredCapacityBytes: Int64?
+    let requiredCapacityWithBackupBytes: Int64?
+    let availableCapacityBytes: Int64?
+}
+
 struct VideoInfoRow: View {
     @ObservedObject var videoAttachment: Attachment
     @ObservedObject var viewModel: WriterViewModel
@@ -24,6 +32,7 @@ struct VideoInfoRow: View {
     @State private var compressionStartedAt: Date?
     @State private var compressionFramesPerSecond: Double?
     @State private var lastLoggedCompressionProgressStep: Int = -1
+    @State private var presentableCompressionOptions: [VideoCompressionJob.Option] = []
     @State private var isCompressing: Bool = false
     @State private var isShowingCompressionOptions: Bool = false
 
@@ -161,19 +170,30 @@ struct VideoInfoRow: View {
 
     @MainActor
     private func openCompressionOptions() {
-        let assessment = compressionStorageDecision(for: videoAttachment.path)
-        logStorageAssessment(assessment, context: "openCompressionOptions")
-        guard assessment.decision != .blocked else {
+        let assessments = availableCompressionOptions.map {
+            ($0, compressionStorageAssessment(for: videoAttachment.path, option: $0))
+        }
+        let feasibleOptions = assessments.compactMap { option, assessment in
+            assessment.decision == .blocked ? nil : option
+        }
+        presentableCompressionOptions = feasibleOptions
+        guard !feasibleOptions.isEmpty else {
+            let blockingAssessment = assessments
+                .map(\.1)
+                .min { lhs, rhs in
+                    (lhs.requiredCapacityBytes ?? .max) < (rhs.requiredCapacityBytes ?? .max)
+                } ?? compressionStorageAssessment(for: videoAttachment.path, option: nil)
+            logStorageAssessment(blockingAssessment, context: "openCompressionOptions")
             log("compression options blocked because temporary disk space is insufficient")
             showInsufficientDiskSpaceAlert(
-                videoSizeBytes: assessment.videoSizeBytes,
-                availableCapacityBytes: assessment.availableCapacityBytes
+                requiredCapacityBytes: blockingAssessment.requiredCapacityBytes,
+                availableCapacityBytes: blockingAssessment.availableCapacityBytes
             )
             return
         }
 
         log(
-            "showing compression options availableOptions=\(availableCompressionOptions.map(\.id).joined(separator: ",")) videoInfoLoaded=\(videoInfo != nil)"
+            "showing compression options availableOptions=\(feasibleOptions.map(\.id).joined(separator: ",")) videoInfoLoaded=\(videoInfo != nil)"
         )
         isShowingCompressionOptions = true
     }
@@ -185,13 +205,13 @@ struct VideoInfoRow: View {
             return
         }
 
-        let assessment = compressionStorageDecision(for: videoAttachment.path)
+        let assessment = compressionStorageAssessment(for: videoAttachment.path, option: option)
         logStorageAssessment(assessment, context: "startCompression")
         guard assessment.decision != .blocked else {
             isShowingCompressionOptions = false
             log("compression blocked before starting export")
             showInsufficientDiskSpaceAlert(
-                videoSizeBytes: assessment.videoSizeBytes,
+                requiredCapacityBytes: assessment.requiredCapacityBytes,
                 availableCapacityBytes: assessment.availableCapacityBytes
             )
             return
@@ -455,7 +475,7 @@ struct VideoInfoRow: View {
             }
 
             VStack(spacing: 10) {
-                ForEach(availableCompressionOptions) { option in
+                ForEach(presentableCompressionOptions) { option in
                     Button {
                         startCompression(using: option)
                     } label: {
@@ -479,27 +499,63 @@ struct VideoInfoRow: View {
         .frame(width: 360)
     }
 
-    private func compressionStorageDecision(
-        for sourceURL: URL
-    ) -> (decision: CompressionStorageDecision, videoSizeBytes: Int64?, availableCapacityBytes: Int64?) {
-        guard let videoSizeBytes = fileSizeBytes(for: sourceURL), videoSizeBytes > 0 else {
-            return (.compressWithoutBackup, nil, temporaryDirectoryAvailableCapacityBytes())
+    private func compressionStorageAssessment(
+        for sourceURL: URL,
+        option: VideoCompressionJob.Option?
+    ) -> CompressionStorageAssessment {
+        let videoSizeBytes = fileSizeBytes(for: sourceURL)
+        let requiredCapacityBytes =
+            option?.estimatedMultipassTemporaryCapacityBytes(
+                durationSeconds: videoInfo?.durationSecondsValue,
+                sourceFileSizeBytes: videoSizeBytes
+            )
+            ?? videoSizeBytes?.multipliedReportingOverflow(by: 2).partialValue
+        let requiredCapacityWithBackupBytes: Int64?
+        if let requiredCapacityBytes, let videoSizeBytes {
+            let sum = requiredCapacityBytes.addingReportingOverflow(videoSizeBytes)
+            requiredCapacityWithBackupBytes = sum.overflow ? Int64.max : sum.partialValue
+        } else {
+            requiredCapacityWithBackupBytes = nil
         }
 
         guard let availableCapacityBytes = temporaryDirectoryAvailableCapacityBytes() else {
-            return (.compressWithoutBackup, videoSizeBytes, nil)
+            return CompressionStorageAssessment(
+                decision: .compressWithoutBackup,
+                videoSizeBytes: videoSizeBytes,
+                requiredCapacityBytes: requiredCapacityBytes,
+                requiredCapacityWithBackupBytes: requiredCapacityWithBackupBytes,
+                availableCapacityBytes: nil
+            )
         }
 
-        if availableCapacityBytes < videoSizeBytes {
-            return (.blocked, videoSizeBytes, availableCapacityBytes)
+        if let requiredCapacityBytes, availableCapacityBytes < requiredCapacityBytes {
+            return CompressionStorageAssessment(
+                decision: .blocked,
+                videoSizeBytes: videoSizeBytes,
+                requiredCapacityBytes: requiredCapacityBytes,
+                requiredCapacityWithBackupBytes: requiredCapacityWithBackupBytes,
+                availableCapacityBytes: availableCapacityBytes
+            )
         }
 
-        let tenTimesVideoSize = videoSizeBytes.multipliedReportingOverflow(by: 10)
-        if !tenTimesVideoSize.overflow, availableCapacityBytes >= tenTimesVideoSize.partialValue {
-            return (.compressWithBackup, videoSizeBytes, availableCapacityBytes)
+        if let requiredCapacityWithBackupBytes,
+           availableCapacityBytes >= requiredCapacityWithBackupBytes {
+            return CompressionStorageAssessment(
+                decision: .compressWithBackup,
+                videoSizeBytes: videoSizeBytes,
+                requiredCapacityBytes: requiredCapacityBytes,
+                requiredCapacityWithBackupBytes: requiredCapacityWithBackupBytes,
+                availableCapacityBytes: availableCapacityBytes
+            )
         }
 
-        return (.compressWithoutBackup, videoSizeBytes, availableCapacityBytes)
+        return CompressionStorageAssessment(
+            decision: .compressWithoutBackup,
+            videoSizeBytes: videoSizeBytes,
+            requiredCapacityBytes: requiredCapacityBytes,
+            requiredCapacityWithBackupBytes: requiredCapacityWithBackupBytes,
+            availableCapacityBytes: availableCapacityBytes
+        )
     }
 
     private func fileSizeBytes(for url: URL) -> Int64? {
@@ -567,14 +623,14 @@ struct VideoInfoRow: View {
     }
 
     private func showInsufficientDiskSpaceAlert(
-        videoSizeBytes: Int64?,
+        requiredCapacityBytes: Int64?,
         availableCapacityBytes: Int64?
     ) {
         let message: String
-        if let videoSizeBytes, let availableCapacityBytes {
-            message = "Planet needs at least \(formattedByteCount(videoSizeBytes)) of free temporary disk space to compress this video. Only \(formattedByteCount(availableCapacityBytes)) is currently available."
+        if let requiredCapacityBytes, let availableCapacityBytes {
+            message = "Planet needs at least \(formattedByteCount(requiredCapacityBytes)) of free temporary disk space to compress this video. Only \(formattedByteCount(availableCapacityBytes)) is currently available."
         } else {
-            message = "Planet needs at least as much free temporary disk space as the source video size to compress this video."
+            message = "Planet needs more free temporary disk space to compress this video."
         }
 
         PlanetStore.shared.alert(
@@ -674,11 +730,11 @@ struct VideoInfoRow: View {
     }
 
     private func logStorageAssessment(
-        _ assessment: (decision: CompressionStorageDecision, videoSizeBytes: Int64?, availableCapacityBytes: Int64?),
+        _ assessment: CompressionStorageAssessment,
         context: String
     ) {
         log(
-            "\(context) decision=\(describeStorageDecision(assessment.decision)) videoSizeBytes=\(formatBytes(assessment.videoSizeBytes)) availableCapacityBytes=\(formatBytes(assessment.availableCapacityBytes))"
+            "\(context) decision=\(describeStorageDecision(assessment.decision)) videoSizeBytes=\(formatBytes(assessment.videoSizeBytes)) requiredCapacityBytes=\(formatBytes(assessment.requiredCapacityBytes)) requiredCapacityWithBackupBytes=\(formatBytes(assessment.requiredCapacityWithBackupBytes)) availableCapacityBytes=\(formatBytes(assessment.availableCapacityBytes))"
         )
     }
 

@@ -51,6 +51,26 @@ private func videoCompressionFormatString(_ value: String?) -> String {
     value ?? "nil"
 }
 
+private func videoCompressionFormatBitrate(_ value: Double?) -> String {
+    guard let value, value > 0 else {
+        return "nil"
+    }
+    if value >= 1_000_000 {
+        return String(format: "%.3fMbps", value / 1_000_000)
+    }
+    if value >= 1_000 {
+        return String(format: "%.1fKbps", value / 1_000)
+    }
+    return String(format: "%.0fbps", value)
+}
+
+private func videoCompressionFormatBitrate(_ value: Int64?) -> String {
+    guard let value else {
+        return "nil"
+    }
+    return videoCompressionFormatBitrate(Double(value))
+}
+
 private func videoCompressionDescribeError(_ error: Error) -> String {
     let nsError = error as NSError
     return "domain=\(nsError.domain) code=\(nsError.code) description=\(nsError.localizedDescription)"
@@ -136,6 +156,20 @@ struct VideoCompressionJob {
             usesHEVC ? AVAssetExportPresetHEVCHighestQuality : AVAssetExportPresetHighestQuality
         }
 
+        fileprivate var targetVideoBitrate: Int64 {
+            switch self {
+            case .h264FitInside1080p, .h265FitInside1080p:
+                return 7_000_000
+            case .h264FitInside720p, .h265FitInside720p:
+                return 4_000_000
+            case .h264FitInside480p, .h265FitInside480p:
+                return 2_000_000
+            }
+        }
+
+        private static let containerOverheadMultiplier = 1.03
+        private static let conservativeAudioBitrateBudget: Int64 = 192_000
+
         fileprivate var landscapeBoundingSize: CGSize {
             switch self {
             case .h264FitInside1080p, .h265FitInside1080p:
@@ -181,9 +215,71 @@ struct VideoCompressionJob {
             return max(2, roundedDown)
         }
 
-        var debugDescription: String {
-            "id=\(id) title=\(title) preset=\(exportPresetName) usesHEVC=\(usesHEVC) boundingSize=\(videoCompressionFormatSize(landscapeBoundingSize))"
+        fileprivate func audioBitrateBudget(sourceAudioBitrate: Double?) -> Int64 {
+            let fallbackAudioBitrate: Int64 = 128_000
+            guard let sourceAudioBitrate, sourceAudioBitrate > 0 else {
+                return fallbackAudioBitrate
+            }
+
+            let rounded = Int64(sourceAudioBitrate.rounded())
+            return min(max(rounded, 96_000), 192_000)
         }
+
+        fileprivate func fileLengthLimit(
+            duration: CMTime,
+            sourceAudioBitrate: Double?
+        ) -> Int64? {
+            let durationSeconds = CMTimeGetSeconds(duration)
+            guard durationSeconds.isFinite, durationSeconds > 0 else {
+                return nil
+            }
+
+            let totalBitrate = targetVideoBitrate + audioBitrateBudget(
+                sourceAudioBitrate: sourceAudioBitrate
+            )
+            return Int64(
+                ceil(durationSeconds * Double(totalBitrate) / 8 * Self.containerOverheadMultiplier)
+            )
+        }
+
+        func estimatedMultipassTemporaryCapacityBytes(
+            durationSeconds: Double?,
+            sourceFileSizeBytes: Int64?
+        ) -> Int64? {
+            let outputBudgetBytes = estimatedOutputBudgetBytes(durationSeconds: durationSeconds)
+            let exportUnitBytes = [sourceFileSizeBytes, outputBudgetBytes]
+                .compactMap { $0 }
+                .max()
+
+            guard let exportUnitBytes, exportUnitBytes > 0 else {
+                return nil
+            }
+
+            let doubled = exportUnitBytes.multipliedReportingOverflow(by: 2)
+            return doubled.overflow ? Int64.max : doubled.partialValue
+        }
+
+        private func estimatedOutputBudgetBytes(durationSeconds: Double?) -> Int64? {
+            guard let durationSeconds, durationSeconds.isFinite, durationSeconds > 0 else {
+                return nil
+            }
+
+            let totalBitrate = targetVideoBitrate + audioBitrateBudget(
+                sourceAudioBitrate: Double(Self.conservativeAudioBitrateBudget)
+            )
+            return Int64(
+                ceil(durationSeconds * Double(totalBitrate) / 8 * Self.containerOverheadMultiplier)
+            )
+        }
+
+        var debugDescription: String {
+            "id=\(id) title=\(title) preset=\(exportPresetName) usesHEVC=\(usesHEVC) boundingSize=\(videoCompressionFormatSize(landscapeBoundingSize)) targetVideoBitrate=\(videoCompressionFormatBitrate(targetVideoBitrate))"
+        }
+    }
+
+    private struct PreparedVideoComposition {
+        let composition: AVMutableVideoComposition
+        let duration: CMTime
     }
 
     struct PreparedExport {
@@ -244,10 +340,31 @@ struct VideoCompressionJob {
             session.outputURL = outputURL
             session.outputFileType = outputFileType
             session.shouldOptimizeForNetworkUse = true
-            session.videoComposition = try await makeVideoComposition(for: asset)
+            session.canPerformMultiplePassesOverSourceMediaData = true
+            session.directoryForTemporaryFiles = FileManager.default.temporaryDirectory
+
+            let preparedVideoComposition = try await makeVideoComposition(for: asset)
+            session.videoComposition = preparedVideoComposition.composition
+
+            let sourceAudioBitrate = await estimatedAudioBitrate(for: asset)
+            let targetVideoBitrate = option.targetVideoBitrate
+            let audioBitrateBudget = option.audioBitrateBudget(
+                sourceAudioBitrate: sourceAudioBitrate
+            )
+            let fileLengthLimit = option.fileLengthLimit(
+                duration: preparedVideoComposition.duration,
+                sourceAudioBitrate: sourceAudioBitrate
+            )
+            if let fileLengthLimit {
+                session.fileLengthLimit = fileLengthLimit
+            }
 
             VideoLogger.log(
-                "[VideoCompressionJob] prepareExport ready outputURL=\(outputURL.path) outputFileType=\(outputFileType.rawValue) renderSize=\(videoCompressionFormatSize(session.videoComposition?.renderSize ?? .zero)) frameDurationSeconds=\(videoCompressionFormatSeconds(session.videoComposition?.frameDuration ?? .invalid)) optimizeForNetworkUse=\(session.shouldOptimizeForNetworkUse)"
+                "[VideoCompressionJob] configured bitrate budget targetVideoBitrate=\(videoCompressionFormatBitrate(targetVideoBitrate)) sourceAudioBitrate=\(videoCompressionFormatBitrate(sourceAudioBitrate)) audioBitrateBudget=\(videoCompressionFormatBitrate(audioBitrateBudget)) fileLengthLimitBytes=\(videoCompressionFormatBytes(fileLengthLimit)) multiplePasses=\(session.canPerformMultiplePassesOverSourceMediaData)"
+            )
+
+            VideoLogger.log(
+                "[VideoCompressionJob] prepareExport ready outputURL=\(outputURL.path) outputFileType=\(outputFileType.rawValue) renderSize=\(videoCompressionFormatSize(session.videoComposition?.renderSize ?? .zero)) frameDurationSeconds=\(videoCompressionFormatSeconds(session.videoComposition?.frameDuration ?? .invalid)) optimizeForNetworkUse=\(session.shouldOptimizeForNetworkUse) fileLengthLimitBytes=\(videoCompressionFormatBytes(fileLengthLimit))"
             )
 
             return PreparedExport(session: session, outputURL: outputURL)
@@ -298,7 +415,7 @@ struct VideoCompressionJob {
         }
     }
 
-    private func makeVideoComposition(for asset: AVAsset) async throws -> AVMutableVideoComposition {
+    private func makeVideoComposition(for asset: AVAsset) async throws -> PreparedVideoComposition {
         guard let videoTrack = try await asset.loadTracks(withMediaType: .video).first else {
             VideoLogger.log(
                 "[VideoCompressionJob] asset has no readable video track source=\(sourceURL.path)"
@@ -363,7 +480,10 @@ struct VideoCompressionJob {
         VideoLogger.log(
             "[VideoCompressionJob] video composition prepared renderSize=\(videoCompressionFormatSize(renderSize)) frameDurationSeconds=\(videoCompressionFormatSeconds(videoComposition.frameDuration)) transform=\(videoCompressionFormatTransform(transform)) instructionDurationSeconds=\(videoCompressionFormatSeconds(duration))"
         )
-        return videoComposition
+        return PreparedVideoComposition(
+            composition: videoComposition,
+            duration: duration
+        )
     }
 
     private func preferredOutputFileType(for session: AVAssetExportSession) throws -> AVFileType {
@@ -424,6 +544,17 @@ struct VideoCompressionJob {
         default:
             return "mov"
         }
+    }
+
+    private func estimatedAudioBitrate(for asset: AVAsset) async -> Double? {
+        guard let audioTrack = try? await asset.loadTracks(withMediaType: .audio).first,
+              let estimatedDataRate = try? await audioTrack.load(.estimatedDataRate),
+              estimatedDataRate > 0
+        else {
+            return nil
+        }
+
+        return Double(estimatedDataRate)
     }
 
     private func scaledTransform(
