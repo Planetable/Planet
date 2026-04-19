@@ -5,6 +5,57 @@ private struct ExportSessionReference: @unchecked Sendable {
     let session: AVAssetExportSession
 }
 
+private func videoCompressionFileSizeBytes(at url: URL) -> Int64? {
+    guard let fileSize = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize else {
+        return nil
+    }
+    return Int64(fileSize)
+}
+
+private func videoCompressionFormatBytes(_ value: Int64?) -> String {
+    guard let value else {
+        return "nil"
+    }
+    return "\(value)"
+}
+
+private func videoCompressionFormatSeconds(_ time: CMTime) -> String {
+    let seconds = CMTimeGetSeconds(time)
+    guard seconds.isFinite else {
+        return "indefinite"
+    }
+    return String(format: "%.3f", seconds)
+}
+
+private func videoCompressionFormatSize(_ size: CGSize) -> String {
+    String(format: "%.0fx%.0f", size.width, size.height)
+}
+
+private func videoCompressionFormatTransform(_ transform: CGAffineTransform) -> String {
+    String(
+        format: "[a=%.3f,b=%.3f,c=%.3f,d=%.3f,tx=%.3f,ty=%.3f]",
+        transform.a,
+        transform.b,
+        transform.c,
+        transform.d,
+        transform.tx,
+        transform.ty
+    )
+}
+
+private func videoCompressionFormatFileType(_ fileType: AVFileType?) -> String {
+    fileType?.rawValue ?? "nil"
+}
+
+private func videoCompressionFormatString(_ value: String?) -> String {
+    value ?? "nil"
+}
+
+private func videoCompressionDescribeError(_ error: Error) -> String {
+    let nsError = error as NSError
+    return "domain=\(nsError.domain) code=\(nsError.code) description=\(nsError.localizedDescription)"
+}
+
 struct VideoCompressionJob {
     private struct SourceColorProperties {
         let colorPrimaries: String?
@@ -36,6 +87,10 @@ struct VideoCompressionJob {
             videoComposition.colorPrimaries = colorPrimaries
             videoComposition.colorTransferFunction = colorTransferFunction
             videoComposition.colorYCbCrMatrix = colorYCbCrMatrix
+        }
+
+        var debugDescription: String {
+            "containsHDR=\(containsHDR) colorPrimaries=\(videoCompressionFormatString(colorPrimaries)) colorTransferFunction=\(videoCompressionFormatString(colorTransferFunction)) colorYCbCrMatrix=\(videoCompressionFormatString(colorYCbCrMatrix))"
         }
     }
 
@@ -125,6 +180,10 @@ struct VideoCompressionJob {
             let roundedDown = floor(value / 2) * 2
             return max(2, roundedDown)
         }
+
+        var debugDescription: String {
+            "id=\(id) title=\(title) preset=\(exportPresetName) usesHEVC=\(usesHEVC) boundingSize=\(videoCompressionFormatSize(landscapeBoundingSize))"
+        }
     }
 
     struct PreparedExport {
@@ -163,36 +222,73 @@ struct VideoCompressionJob {
     let option: Option
 
     func prepareExport() async throws -> PreparedExport {
-        let asset = AVURLAsset(url: sourceURL)
-        guard let session = AVAssetExportSession(asset: asset, presetName: option.exportPresetName) else {
-            throw CompressionError.exportSessionUnavailable
+        VideoLogger.log(
+            "[VideoCompressionJob] prepareExport start source=\(sourceURL.path) sourceSizeBytes=\(videoCompressionFormatBytes(videoCompressionFileSizeBytes(at: sourceURL))) option={\(option.debugDescription)}"
+        )
+
+        do {
+            let asset = AVURLAsset(url: sourceURL)
+            guard let session = AVAssetExportSession(asset: asset, presetName: option.exportPresetName) else {
+                VideoLogger.log(
+                    "[VideoCompressionJob] prepareExport could not create AVAssetExportSession source=\(sourceURL.path) preset=\(option.exportPresetName)"
+                )
+                throw CompressionError.exportSessionUnavailable
+            }
+
+            VideoLogger.log(
+                "[VideoCompressionJob] export session created preset=\(option.exportPresetName) supportedFileTypes=\(session.supportedFileTypes.map(\.rawValue).joined(separator: ","))"
+            )
+
+            let outputFileType = try preferredOutputFileType(for: session)
+            let outputURL = try makeOutputURL(for: outputFileType)
+            session.outputURL = outputURL
+            session.outputFileType = outputFileType
+            session.shouldOptimizeForNetworkUse = true
+            session.videoComposition = try await makeVideoComposition(for: asset)
+
+            VideoLogger.log(
+                "[VideoCompressionJob] prepareExport ready outputURL=\(outputURL.path) outputFileType=\(outputFileType.rawValue) renderSize=\(videoCompressionFormatSize(session.videoComposition?.renderSize ?? .zero)) frameDurationSeconds=\(videoCompressionFormatSeconds(session.videoComposition?.frameDuration ?? .invalid)) optimizeForNetworkUse=\(session.shouldOptimizeForNetworkUse)"
+            )
+
+            return PreparedExport(session: session, outputURL: outputURL)
+        } catch {
+            VideoLogger.log(
+                "[VideoCompressionJob] prepareExport failed source=\(sourceURL.path) option=\(option.id) error=\(videoCompressionDescribeError(error))"
+            )
+            throw error
         }
-
-        let outputFileType = try preferredOutputFileType(for: session)
-        let outputURL = try makeOutputURL(for: outputFileType)
-        session.outputURL = outputURL
-        session.outputFileType = outputFileType
-        session.shouldOptimizeForNetworkUse = true
-        session.videoComposition = try await makeVideoComposition(for: asset)
-
-        return PreparedExport(session: session, outputURL: outputURL)
     }
 
     static func export(_ session: AVAssetExportSession) async throws {
+        VideoLogger.log(
+            "[VideoCompressionJob] export start outputURL=\(session.outputURL?.path ?? "nil") outputFileType=\(videoCompressionFormatFileType(session.outputFileType)) progress=\(String(format: "%.3f", session.progress))"
+        )
         let reference = ExportSessionReference(session: session)
         try await withCheckedThrowingContinuation { continuation in
             reference.session.exportAsynchronously {
                 switch reference.session.status {
                 case .completed:
+                    VideoLogger.log(
+                        "[VideoCompressionJob] export completed outputURL=\(reference.session.outputURL?.path ?? "nil") progress=\(String(format: "%.3f", reference.session.progress))"
+                    )
                     continuation.resume()
                 case .cancelled:
+                    VideoLogger.log(
+                        "[VideoCompressionJob] export cancelled outputURL=\(reference.session.outputURL?.path ?? "nil") progress=\(String(format: "%.3f", reference.session.progress))"
+                    )
                     continuation.resume(throwing: CancellationError())
                 case .failed:
+                    VideoLogger.log(
+                        "[VideoCompressionJob] export failed outputURL=\(reference.session.outputURL?.path ?? "nil") progress=\(String(format: "%.3f", reference.session.progress)) error=\(videoCompressionDescribeError(reference.session.error ?? CompressionError.exportFailed(nil)))"
+                    )
                     continuation.resume(
                         throwing: reference.session.error
                         ?? CompressionError.exportFailed(nil)
                     )
                 default:
+                    VideoLogger.log(
+                        "[VideoCompressionJob] export ended unexpectedly status=\(reference.session.status.rawValue) outputURL=\(reference.session.outputURL?.path ?? "nil") progress=\(String(format: "%.3f", reference.session.progress)) error=\(videoCompressionDescribeError(reference.session.error ?? CompressionError.exportFailed(nil)))"
+                    )
                     continuation.resume(
                         throwing: reference.session.error
                         ?? CompressionError.exportFailed(nil)
@@ -204,6 +300,9 @@ struct VideoCompressionJob {
 
     private func makeVideoComposition(for asset: AVAsset) async throws -> AVMutableVideoComposition {
         guard let videoTrack = try await asset.loadTracks(withMediaType: .video).first else {
+            VideoLogger.log(
+                "[VideoCompressionJob] asset has no readable video track source=\(sourceURL.path)"
+            )
             throw CompressionError.invalidVideoTrack
         }
 
@@ -213,6 +312,9 @@ struct VideoCompressionJob {
             formatDescriptions: formatDescriptions
         )
         if sourceColorProperties.containsHDR && !option.usesHEVC {
+            VideoLogger.log(
+                "[VideoCompressionJob] rejecting non-HEVC preset for HDR source source=\(sourceURL.path) option=\(option.id)"
+            )
             throw CompressionError.hdrRequiresHEVC
         }
 
@@ -222,11 +324,18 @@ struct VideoCompressionJob {
         let sourceBounds = CGRect(origin: .zero, size: naturalSize).applying(preferredTransform)
         let sourceSize = CGSize(width: abs(sourceBounds.width), height: abs(sourceBounds.height))
         guard sourceSize.width > 0, sourceSize.height > 0 else {
+            VideoLogger.log(
+                "[VideoCompressionJob] invalid transformed video size source=\(sourceURL.path) naturalSize=\(videoCompressionFormatSize(naturalSize)) preferredTransform=\(videoCompressionFormatTransform(preferredTransform))"
+            )
             throw CompressionError.invalidVideoTrack
         }
 
         let renderSize = option.renderSize(for: sourceSize)
         let frameRate = (try? await videoTrack.load(.nominalFrameRate)) ?? 0
+
+        VideoLogger.log(
+            "[VideoCompressionJob] source track details source=\(sourceURL.path) durationSeconds=\(videoCompressionFormatSeconds(duration)) naturalSize=\(videoCompressionFormatSize(naturalSize)) transformedSize=\(videoCompressionFormatSize(sourceSize)) nominalFrameRate=\(String(format: "%.3f", frameRate)) preferredTransform=\(videoCompressionFormatTransform(preferredTransform)) colorProperties={\(sourceColorProperties.debugDescription)} option=\(option.id)"
+        )
 
         let videoComposition = AVMutableVideoComposition()
         videoComposition.renderSize = renderSize
@@ -236,13 +345,14 @@ struct VideoCompressionJob {
         )
         sourceColorProperties.apply(to: videoComposition)
 
+        let transform = scaledTransform(
+            naturalSize: naturalSize,
+            preferredTransform: preferredTransform,
+            renderSize: renderSize
+        )
         let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoTrack)
         layerInstruction.setTransform(
-            scaledTransform(
-                naturalSize: naturalSize,
-                preferredTransform: preferredTransform,
-                renderSize: renderSize
-            ),
+            transform,
             at: .zero
         )
 
@@ -250,6 +360,9 @@ struct VideoCompressionJob {
         instruction.timeRange = CMTimeRange(start: .zero, duration: duration)
         instruction.layerInstructions = [layerInstruction]
         videoComposition.instructions = [instruction]
+        VideoLogger.log(
+            "[VideoCompressionJob] video composition prepared renderSize=\(videoCompressionFormatSize(renderSize)) frameDurationSeconds=\(videoCompressionFormatSeconds(videoComposition.frameDuration)) transform=\(videoCompressionFormatTransform(transform)) instructionDurationSeconds=\(videoCompressionFormatSeconds(duration))"
+        )
         return videoComposition
     }
 
@@ -264,12 +377,23 @@ struct VideoCompressionJob {
             preferredTypes = [.mov, .mp4, .m4v]
         }
 
+        VideoLogger.log(
+            "[VideoCompressionJob] resolving output file type sourceExtension=\(sourceURL.pathExtension.lowercased()) preferredTypes=\(preferredTypes.map(\.rawValue).joined(separator: ",")) supportedFileTypes=\(session.supportedFileTypes.map(\.rawValue).joined(separator: ","))"
+        )
+
         if let outputFileType = preferredTypes.first(where: session.supportedFileTypes.contains) {
+            VideoLogger.log(
+                "[VideoCompressionJob] selected output file type=\(outputFileType.rawValue)"
+            )
             return outputFileType
         }
         if let outputFileType = session.supportedFileTypes.first {
+            VideoLogger.log(
+                "[VideoCompressionJob] selected fallback output file type=\(outputFileType.rawValue)"
+            )
             return outputFileType
         }
+        VideoLogger.log("[VideoCompressionJob] output file type unavailable")
         throw CompressionError.outputFileTypeUnavailable
     }
 
@@ -281,10 +405,14 @@ struct VideoCompressionJob {
             withIntermediateDirectories: true
         )
 
-        let fileName = sourceURL.deletingPathExtension().lastPathComponent
-        return temporaryDirectory
+        let fileName = UUID().uuidString.lowercased()
+        let outputURL = temporaryDirectory
             .appendingPathComponent(fileName, isDirectory: false)
             .appendingPathExtension(fileExtension(for: fileType))
+        VideoLogger.log(
+            "[VideoCompressionJob] created temporary export directory=\(temporaryDirectory.path) outputURL=\(outputURL.path)"
+        )
+        return outputURL
     }
 
     private func fileExtension(for fileType: AVFileType) -> String {

@@ -23,6 +23,7 @@ struct VideoInfoRow: View {
     @State private var activeExportSession: AVAssetExportSession?
     @State private var compressionStartedAt: Date?
     @State private var compressionFramesPerSecond: Double?
+    @State private var lastLoggedCompressionProgressStep: Int = -1
     @State private var isCompressing: Bool = false
     @State private var isShowingCompressionOptions: Bool = false
 
@@ -161,7 +162,9 @@ struct VideoInfoRow: View {
     @MainActor
     private func openCompressionOptions() {
         let assessment = compressionStorageDecision(for: videoAttachment.path)
+        logStorageAssessment(assessment, context: "openCompressionOptions")
         guard assessment.decision != .blocked else {
+            log("compression options blocked because temporary disk space is insufficient")
             showInsufficientDiskSpaceAlert(
                 videoSizeBytes: assessment.videoSizeBytes,
                 availableCapacityBytes: assessment.availableCapacityBytes
@@ -169,18 +172,24 @@ struct VideoInfoRow: View {
             return
         }
 
+        log(
+            "showing compression options availableOptions=\(availableCompressionOptions.map(\.id).joined(separator: ",")) videoInfoLoaded=\(videoInfo != nil)"
+        )
         isShowingCompressionOptions = true
     }
 
     @MainActor
     private func startCompression(using option: VideoCompressionJob.Option) {
         guard !isCompressing else {
+            log("ignoring compression request because a compression task is already active")
             return
         }
 
         let assessment = compressionStorageDecision(for: videoAttachment.path)
+        logStorageAssessment(assessment, context: "startCompression")
         guard assessment.decision != .blocked else {
             isShowingCompressionOptions = false
+            log("compression blocked before starting export")
             showInsufficientDiskSpaceAlert(
                 videoSizeBytes: assessment.videoSizeBytes,
                 availableCapacityBytes: assessment.availableCapacityBytes
@@ -193,7 +202,11 @@ struct VideoInfoRow: View {
         compressionProgress = 0
         compressionStartedAt = nil
         compressionFramesPerSecond = nil
+        lastLoggedCompressionProgressStep = -1
         viewModel.clearVideoCompressionSummary()
+        log(
+            "compression requested option={\(option.debugDescription)} sourcePath=\(videoAttachment.path.path) sourceSizeBytes=\(formatBytes(fileSizeBytes(for: videoAttachment.path)))"
+        )
 
         compressionTask = Task { @MainActor in
             var preparedExport: VideoCompressionJob.PreparedExport?
@@ -206,19 +219,25 @@ struct VideoInfoRow: View {
                 let export = try await job.prepareExport()
                 preparedExport = export
                 if assessment.decision == .compressWithBackup {
+                    log("creating temporary backup for sourcePath=\(sourceURL.path)")
                     backupURL = try await Task.detached {
                         try VideoInfoRow.makeCompressionBackup(for: sourceURL)
                     }.value
+                    log("temporary backup created backupPath=\(backupURL?.path ?? "nil")")
                 }
                 try Task.checkCancellation()
                 activeExportSession = export.session
                 let startedAt = Date()
                 compressionStartedAt = startedAt
+                log(
+                    "starting export outputPath=\(export.outputURL.path) outputFileType=\(export.session.outputFileType?.rawValue ?? "nil") backupPath=\(backupURL?.path ?? "nil")"
+                )
                 startCompressionProgressTimer(for: export.session)
 
                 try await VideoCompressionJob.export(export.session)
 
                 guard !Task.isCancelled else {
+                    log("compression task was cancelled after export completed; cleaning up temporary files")
                     if let backupURL {
                         cleanupCompressionBackup(at: backupURL)
                     }
@@ -252,15 +271,24 @@ struct VideoInfoRow: View {
                         compressedAttachmentName: newAttachment.name
                     )
                 }
+                log(
+                    "compression succeeded newAttachmentName=\(newAttachment.name) compressedPath=\(newAttachment.path.path) originalSizeBytes=\(formatBytes(originalSizeBytes)) compressedSizeBytes=\(formatBytes(compressedSizeBytes)) elapsedSeconds=\(String(format: "%.3f", elapsedTime)) averageFPS=\(formatFramesPerSecond(averageFramesPerSecond)) backupRetained=\(backupURL != nil)"
+                )
                 export.cleanupTemporaryFiles()
                 resetCompressionState()
             } catch is CancellationError {
+                log(
+                    "compression cancelled sourcePath=\(sourceURL.path) backupPath=\(backupURL?.path ?? "nil") temporaryOutputPath=\(preparedExport?.outputURL.path ?? "nil")"
+                )
                 if let backupURL {
                     cleanupCompressionBackup(at: backupURL)
                 }
                 preparedExport?.cleanupTemporaryFiles()
                 resetCompressionState()
             } catch {
+                log(
+                    "compression failed sourcePath=\(sourceURL.path) backupPath=\(backupURL?.path ?? "nil") temporaryOutputPath=\(preparedExport?.outputURL.path ?? "nil") error=\(describeError(error))"
+                )
                 if let backupURL {
                     cleanupCompressionBackup(at: backupURL)
                 }
@@ -277,6 +305,7 @@ struct VideoInfoRow: View {
     @MainActor
     private func startCompressionProgressTimer(for session: AVAssetExportSession) {
         stopCompressionProgressTimer()
+        log("starting compression progress timer outputPath=\(session.outputURL?.path ?? "nil")")
         let reference = CompressionProgressSessionReference(session: session)
         let timer = Timer(timeInterval: 0.1, repeats: true) { _ in
             updateCompressionProgress(min(max(Double(reference.session.progress), 0), 1))
@@ -293,6 +322,12 @@ struct VideoInfoRow: View {
 
     @MainActor
     private func cancelCompression() {
+        guard activeExportSession != nil || compressionTask != nil else {
+            return
+        }
+        log(
+            "cancel requested progress=\(String(format: "%.3f", compressionProgress)) outputPath=\(activeExportSession?.outputURL?.path ?? "nil")"
+        )
         activeExportSession?.cancelExport()
         compressionTask?.cancel()
         resetCompressionState()
@@ -306,16 +341,19 @@ struct VideoInfoRow: View {
         compressionProgress = 0
         compressionStartedAt = nil
         compressionFramesPerSecond = nil
+        lastLoggedCompressionProgressStep = -1
         compressionTask = nil
     }
 
     @MainActor
     private func revertToOriginal() {
         guard let backup = viewModel.matchingVideoCompressionBackup(for: videoAttachment) else {
+            log("revert requested but no backup is available")
             return
         }
 
         do {
+            log("reverting to original backupPath=\(backup.originalVideoURL.path)")
             _ = try videoAttachment.draft.replaceVideoAttachment(
                 videoAttachment,
                 withVideoAt: backup.originalVideoURL,
@@ -323,7 +361,9 @@ struct VideoInfoRow: View {
             )
             viewModel.clearVideoCompressionSummary()
             viewModel.clearVideoCompressionBackup()
+            log("revert to original succeeded")
         } catch {
+            log("revert to original failed error=\(describeError(error))")
             PlanetStore.shared.alert(
                 title: "Failed to Revert Video",
                 message: error.localizedDescription
@@ -352,6 +392,7 @@ struct VideoInfoRow: View {
             totalFrames > 0
         else {
             compressionFramesPerSecond = nil
+            logCompressionProgressIfNeeded(progress)
             return
         }
 
@@ -361,6 +402,7 @@ struct VideoInfoRow: View {
         }
 
         compressionFramesPerSecond = (progress * totalFrames) / elapsed
+        logCompressionProgressIfNeeded(progress)
     }
 
     private var compressionTotalFrames: Double? {
@@ -508,11 +550,20 @@ struct VideoInfoRow: View {
             isDirectory: false
         )
         try FileManager.default.copyItem(at: sourceURL, to: backupURL)
+        VideoLogger.log(
+            "[VideoInfoRow] created compression backup sourcePath=\(sourceURL.path) backupPath=\(backupURL.path)"
+        )
         return backupURL
     }
 
     private func cleanupCompressionBackup(at backupURL: URL) {
-        try? FileManager.default.removeItem(at: backupURL.deletingLastPathComponent())
+        let directoryURL = backupURL.deletingLastPathComponent()
+        do {
+            try FileManager.default.removeItem(at: directoryURL)
+            log("removed temporary backup directory path=\(directoryURL.path)")
+        } catch {
+            log("failed to remove temporary backup directory path=\(directoryURL.path) error=\(describeError(error))")
+        }
     }
 
     private func showInsufficientDiskSpaceAlert(
@@ -608,9 +659,89 @@ struct VideoInfoRow: View {
         let info = await VideoAttachmentInfo.load(from: videoAttachment.path)
 
         guard !Task.isCancelled else {
+            log("loadVideoInfo cancelled before metadata could be applied")
             return
         }
 
         videoInfo = info
+        log("loaded video metadata \(describeVideoInfo(info))")
+    }
+
+    private func log(_ message: String) {
+        VideoLogger.log(
+            "[VideoInfoRow] draftID=\(videoAttachment.draft.id.uuidString) attachmentName=\(videoAttachment.name) path=\(videoAttachment.path.path) \(message)"
+        )
+    }
+
+    private func logStorageAssessment(
+        _ assessment: (decision: CompressionStorageDecision, videoSizeBytes: Int64?, availableCapacityBytes: Int64?),
+        context: String
+    ) {
+        log(
+            "\(context) decision=\(describeStorageDecision(assessment.decision)) videoSizeBytes=\(formatBytes(assessment.videoSizeBytes)) availableCapacityBytes=\(formatBytes(assessment.availableCapacityBytes))"
+        )
+    }
+
+    private func logCompressionProgressIfNeeded(_ progress: Double) {
+        let boundedProgress = min(max(progress, 0), 1)
+        let progressStep = Int((boundedProgress * 100).rounded(.down) / 5) * 5
+        guard
+            progressStep > lastLoggedCompressionProgressStep
+                || (boundedProgress >= 1 && lastLoggedCompressionProgressStep < 100)
+        else {
+            return
+        }
+
+        lastLoggedCompressionProgressStep = progressStep
+        log(
+            "compression progress percent=\(progressStep) rawProgress=\(String(format: "%.3f", boundedProgress)) currentFPS=\(formatFramesPerSecond(compressionFramesPerSecond))"
+        )
+    }
+
+    private func describeStorageDecision(_ decision: CompressionStorageDecision) -> String {
+        switch decision {
+        case .blocked:
+            return "blocked"
+        case .compressWithoutBackup:
+            return "compressWithoutBackup"
+        case .compressWithBackup:
+            return "compressWithBackup"
+        }
+    }
+
+    private func formatBytes(_ value: Int64?) -> String {
+        guard let value else {
+            return "nil"
+        }
+        return "\(value)"
+    }
+
+    private func formatFramesPerSecond(_ value: Double?) -> String {
+        guard let value, value.isFinite else {
+            return "nil"
+        }
+        return String(format: "%.3f", value)
+    }
+
+    private func describeError(_ error: Error) -> String {
+        let nsError = error as NSError
+        return "domain=\(nsError.domain) code=\(nsError.code) description=\(nsError.localizedDescription)"
+    }
+
+    private func describeVideoInfo(_ info: VideoAttachmentInfo) -> String {
+        [
+            "duration=\(info.duration)",
+            "resolution=\(info.resolution)",
+            "codec=\(info.codec)",
+            "colorSpace=\(info.colorSpace)",
+            "bitrate=\(info.bitrate)",
+            "frameRate=\(info.frameRate)",
+            "fileSize=\(info.fileSize)",
+            "pixelWidth=\(info.pixelWidth.map(String.init) ?? "nil")",
+            "pixelHeight=\(info.pixelHeight.map(String.init) ?? "nil")",
+            "containsHDR=\(info.containsHDR)",
+            "availableOptions=\(availableCompressionOptions.map(\.id).joined(separator: ","))",
+        ]
+        .joined(separator: " ")
     }
 }

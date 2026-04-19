@@ -368,7 +368,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             content = content.replacingOccurrences(of: oldName, with: newAttachment.name)
         }
 
-        if oldPath != newAttachment.path, FileManager.default.fileExists(atPath: oldPath.path) {
+        if oldPath != newAttachment.path,
+           !DraftModel.fileURLsReferenceSameItem(oldPath, newAttachment.path),
+           FileManager.default.fileExists(atPath: oldPath.path) {
             try FileManager.default.removeItem(at: oldPath)
         }
 
@@ -631,6 +633,19 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     }
 
     // MARK: -
+
+    private static func fileURLsReferenceSameItem(_ lhs: URL, _ rhs: URL) -> Bool {
+        guard
+            let lhsIdentifier = try? lhs.resourceValues(forKeys: [.fileResourceIdentifierKey])
+                .fileResourceIdentifier,
+            let rhsIdentifier = try? rhs.resourceValues(forKeys: [.fileResourceIdentifierKey])
+                .fileResourceIdentifier
+        else {
+            return false
+        }
+
+        return (lhsIdentifier as AnyObject).isEqual(rhsIdentifier)
+    }
 
     private func processAttachment(
         forFileName name: String,
