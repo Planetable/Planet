@@ -32,7 +32,6 @@ struct VideoInfoRow: View {
     @State private var compressionStartedAt: Date?
     @State private var compressionFramesPerSecond: Double?
     @State private var lastLoggedCompressionProgressStep: Int = -1
-    @State private var presentableCompressionOptions: [VideoCompressionJob.Option] = []
     @State private var isCompressing: Bool = false
     @State private var isShowingCompressionOptions: Bool = false
 
@@ -159,13 +158,19 @@ struct VideoInfoRow: View {
         isCompressing
             || videoAttachment.videoCompressionPreset != nil
             || videoInfo == nil
-            || availableCompressionOptions.isEmpty
+            || feasibleCompressionOptions.isEmpty
     }
 
     private var compressButtonHelpText: String {
         videoAttachment.videoCompressionPreset != nil
             ? "This video has already been compressed."
             : "Compress this video."
+    }
+
+    private var feasibleCompressionOptions: [VideoCompressionJob.Option] {
+        availableCompressionOptions.filter {
+            compressionStorageAssessment(for: videoAttachment.path, option: $0).decision != .blocked
+        }
     }
 
     @MainActor
@@ -176,7 +181,6 @@ struct VideoInfoRow: View {
         let feasibleOptions = assessments.compactMap { option, assessment in
             assessment.decision == .blocked ? nil : option
         }
-        presentableCompressionOptions = feasibleOptions
         guard !feasibleOptions.isEmpty else {
             let blockingAssessment = assessments
                 .map(\.1)
@@ -475,7 +479,7 @@ struct VideoInfoRow: View {
             }
 
             VStack(spacing: 10) {
-                ForEach(presentableCompressionOptions) { option in
+                ForEach(feasibleCompressionOptions) { option in
                     Button {
                         startCompression(using: option)
                     } label: {
