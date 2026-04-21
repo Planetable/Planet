@@ -133,6 +133,7 @@ private enum ArticleAIMessageBlock: Equatable {
     case heading(ArticleAIMarkdownHeading)
     case separator
     case table(ArticleAIMarkdownTable)
+    case codeBlock(ArticleAIMarkdownCodeBlock)
 }
 
 private enum ArticleAIMessageBlockKind {
@@ -140,10 +141,16 @@ private enum ArticleAIMessageBlockKind {
     case heading
     case separator
     case table
+    case codeBlock
 }
 
 private struct ArticleAIMarkdownHeading: Equatable {
     let level: Int
+    let content: String
+}
+
+private struct ArticleAIMarkdownCodeBlock: Equatable {
+    let language: String?
     let content: String
 }
 
@@ -411,14 +418,25 @@ struct ArticleAIChatView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Button("Send") {
-                        sendMessage()
+                    if #available(macOS 26.0, *) {
+                        Button("Send") {
+                            sendMessage()
+                        }
+                        .frame(minWidth: 56)
+                        .disabled(!canSendMessage)
+                        .keyboardShortcut(.return, modifiers: [.command])
+                        .buttonStyle(.borderedProminent)
+                        .buttonBorderShape(.capsule)
+                    } else {
+                        Button("Send") {
+                            sendMessage()
+                        }
+                        .frame(minWidth: 56)
+                        .disabled(!canSendMessage)
+                        .keyboardShortcut(.return, modifiers: [.command])
+                        .buttonStyle(.borderedProminent)
+                        .buttonBorderShape(.roundedRectangle)
                     }
-                    .frame(minWidth: 56)
-                    .disabled(!canSendMessage)
-                    .keyboardShortcut(.return, modifiers: [.command])
-                    .buttonStyle(.borderedProminent)
-                    .buttonBorderShape(.roundedRectangle)
                 }
                 .padding(10)
                 .background(Color(NSColor.windowBackgroundColor))
@@ -1031,6 +1049,8 @@ struct ArticleAIChatView: View {
             assistantMarkdownSeparatorView()
         case .table(let table):
             assistantMarkdownTableView(table)
+        case .codeBlock(let codeBlock):
+            assistantMarkdownCodeBlockView(codeBlock)
         }
     }
 
@@ -1053,6 +1073,8 @@ struct ArticleAIChatView: View {
             return 16
         case (.heading, .table):
             return 14
+        case (.heading, .codeBlock):
+            return 14
         case (.heading, _):
             return 10
         // Separator: symmetric breathing room
@@ -1068,6 +1090,12 @@ struct ArticleAIChatView: View {
             return 16
         case (.markdown, .table), (.table, .markdown):
             return 14
+        case (.markdown, .codeBlock), (.codeBlock, .markdown):
+            return 14
+        case (.table, .codeBlock), (.codeBlock, .table):
+            return 14
+        case (.codeBlock, .codeBlock):
+            return 16
         // Paragraph to paragraph
         default:
             return 12
@@ -1084,6 +1112,8 @@ struct ArticleAIChatView: View {
             return .separator
         case .table:
             return .table
+        case .codeBlock:
+            return .codeBlock
         }
     }
 
@@ -1162,6 +1192,48 @@ struct ArticleAIChatView: View {
             .fill(Color("BorderColor"))
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(height: 3)
+    }
+
+    @ViewBuilder
+    private func assistantMarkdownCodeBlockView(_ codeBlock: ArticleAIMarkdownCodeBlock) -> some View {
+        let borderColor = Color("BorderColor")
+        let background = makeArticleAITableCodeBackgroundColor()
+        let cornerRadius: CGFloat = 8
+        let codeFontSize = max(chatFontSize - 1, 11)
+        let language = normalizedCodeBlockLanguageLabel(codeBlock.language)
+
+        VStack(alignment: .leading, spacing: 0) {
+            if let language {
+                Text(language)
+                    .font(.system(size: max(chatFontSize - 3, 10), weight: .semibold, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 10)
+                    .padding(.bottom, 6)
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                Text(verbatim: codeBlock.content)
+                    .font(.system(size: codeFontSize, design: .monospaced))
+                    .lineSpacing(3)
+                    .textSelection(.enabled)
+                    .fixedSize()
+                    .multilineTextAlignment(.leading)
+                    .padding(.horizontal, 12)
+                    .padding(.top, language == nil ? 12 : 0)
+                    .padding(.bottom, 12)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .background(background)
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .stroke(borderColor, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.08), radius: 1, x: 0, y: 1)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func assistantMarkdownTableView(_ table: ArticleAIMarkdownTable) -> some View {
@@ -1578,7 +1650,6 @@ struct ArticleAIChatView: View {
         var blocks: [ArticleAIMessageBlock] = []
         var markdownBuffer: [String] = []
         var index = 0
-        var isInsideCodeFence = false
 
         func flushMarkdownBuffer() {
             // Drop leading and trailing empty lines to avoid phantom spacing
@@ -1603,16 +1674,16 @@ struct ArticleAIChatView: View {
         }
 
         while index < lines.count {
-            let line = lines[index]
-            if isMarkdownCodeFenceDelimiter(line) {
-                markdownBuffer.append(line)
-                isInsideCodeFence.toggle()
-                index += 1
+            if let codeFenceParseResult = parseMarkdownCodeFence(lines: lines, startIndex: index) {
+                flushMarkdownBuffer()
+                blocks.append(.codeBlock(codeFenceParseResult.codeBlock))
+                index = codeFenceParseResult.nextIndex
                 continue
             }
 
-            if !isInsideCodeFence,
-                let heading = parseMarkdownHeading(line)
+            let line = lines[index]
+
+            if let heading = parseMarkdownHeading(line)
             {
                 flushMarkdownBuffer()
                 blocks.append(.heading(heading))
@@ -1620,15 +1691,14 @@ struct ArticleAIChatView: View {
                 continue
             }
 
-            if !isInsideCodeFence, isMarkdownSeparator(line) {
+            if isMarkdownSeparator(line) {
                 flushMarkdownBuffer()
                 blocks.append(.separator)
                 index += 1
                 continue
             }
 
-            if !isInsideCodeFence,
-                let tableParseResult = parseMarkdownTable(lines: lines, startIndex: index)
+            if let tableParseResult = parseMarkdownTable(lines: lines, startIndex: index)
             {
                 flushMarkdownBuffer()
                 blocks.append(.table(tableParseResult.table))
@@ -1808,9 +1878,100 @@ struct ArticleAIChatView: View {
         return alignments.count == expectedColumnCount ? alignments : nil
     }
 
-    private func isMarkdownCodeFenceDelimiter(_ line: String) -> Bool {
-        let trimmed = line.trimmingCharacters(in: .whitespaces)
-        return trimmed.hasPrefix("```") || trimmed.hasPrefix("~~~")
+    private func parseMarkdownCodeFence(
+        lines: [String],
+        startIndex: Int
+    ) -> (codeBlock: ArticleAIMarkdownCodeBlock, nextIndex: Int)? {
+        guard let openingFence = parseMarkdownCodeFenceOpening(lines[startIndex]) else {
+            return nil
+        }
+
+        var codeLines: [String] = []
+        var nextIndex = startIndex + 1
+
+        while nextIndex < lines.count {
+            let line = lines[nextIndex]
+            if isMarkdownCodeFenceClosing(line, matching: openingFence) {
+                nextIndex += 1
+                return (
+                    ArticleAIMarkdownCodeBlock(
+                        language: openingFence.language,
+                        content: codeLines.joined(separator: "\n")
+                    ),
+                    nextIndex
+                )
+            }
+
+            if openingFence.indentation.isEmpty {
+                codeLines.append(line)
+            } else if line.hasPrefix(openingFence.indentation) {
+                codeLines.append(String(line.dropFirst(openingFence.indentation.count)))
+            } else {
+                codeLines.append(line)
+            }
+            nextIndex += 1
+        }
+
+        return (
+            ArticleAIMarkdownCodeBlock(
+                language: openingFence.language,
+                content: codeLines.joined(separator: "\n")
+            ),
+            nextIndex
+        )
+    }
+
+    private func parseMarkdownCodeFenceOpening(_ line: String) -> (marker: Character, count: Int, indentation: String, language: String?)? {
+        let indentation = String(line.prefix { $0 == " " || $0 == "\t" })
+        let trimmedLeading = line.dropFirst(indentation.count)
+        guard let marker = trimmedLeading.first, marker == "`" || marker == "~" else {
+            return nil
+        }
+
+        let fenceCount = trimmedLeading.prefix(while: { $0 == marker }).count
+        guard fenceCount >= 3 else {
+            return nil
+        }
+
+        let suffix = trimmedLeading.dropFirst(fenceCount).trimmingCharacters(in: .whitespaces)
+        let language = suffix.isEmpty ? nil : suffix
+        return (marker, fenceCount, indentation, language)
+    }
+
+    private func isMarkdownCodeFenceClosing(
+        _ line: String,
+        matching openingFence: (marker: Character, count: Int, indentation: String, language: String?)
+    ) -> Bool {
+        guard line.hasPrefix(openingFence.indentation) else {
+            return false
+        }
+
+        let remainder = line.dropFirst(openingFence.indentation.count)
+        guard !remainder.isEmpty else {
+            return false
+        }
+
+        let fenceLength = remainder.prefix(while: { $0 == openingFence.marker }).count
+        guard fenceLength >= openingFence.count else {
+            return false
+        }
+
+        let trailing = remainder.dropFirst(fenceLength)
+        return trailing.allSatisfy(\.isWhitespace)
+    }
+
+    private func normalizedCodeBlockLanguageLabel(_ language: String?) -> String? {
+        guard let language else {
+            return nil
+        }
+        let trimmed = language.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return nil
+        }
+        if let firstToken = trimmed.split(whereSeparator: \.isWhitespace).first, !firstToken.isEmpty {
+            return String(firstToken)
+        }
+        return trimmed
     }
 
     private func handleChatLink(_ url: URL) -> OpenURLAction.Result {
@@ -2416,6 +2577,8 @@ struct ArticleAIChatView: View {
             return "Running shell command"
         case "search_articles":
             return "Searching articles"
+        case "grep":
+            return "Searching repo text"
         case "list_planet_articles":
             return "Listing planet articles"
         default:
@@ -2493,6 +2656,22 @@ struct ArticleAIChatView: View {
             }
             if let timeout = intValue(from: arguments["timeout_seconds"]) {
                 parts.append("Timeout: \(timeout)s.")
+            }
+        case "grep":
+            if let pattern = stringValue(from: arguments["pattern"]) {
+                parts.append("Pattern: \(truncateInline(pattern, maxLength: 96)).")
+            }
+            if let path = stringValue(from: arguments["path"]) {
+                parts.append("Path: \(path).")
+            }
+            if let literal = boolValue(from: arguments["literal"]) {
+                parts.append(literal ? "Mode: literal." : "Mode: regex.")
+            }
+            if let caseSensitive = boolValue(from: arguments["case_sensitive"]) {
+                parts.append(caseSensitive ? "Case: sensitive." : "Case: insensitive.")
+            }
+            if let maxResults = intValue(from: arguments["max_results"]) {
+                parts.append("Limit: \(maxResults).")
             }
         case "search_articles":
             if let query = stringValue(from: arguments["query"]) {
@@ -2590,6 +2769,14 @@ struct ArticleAIChatView: View {
                 return "Shell finished with output."
             }
             return "Shell finished cleanly."
+        case "grep":
+            let total = intValue(from: payload["total_matches"]) ?? 0
+            let filesScanned = intValue(from: payload["files_scanned"]) ?? 0
+            let truncated = (payload["truncated"] as? Bool) ?? false
+            if truncated {
+                return "Found \(total) match(es) before hitting the result limit across \(filesScanned) file(s)."
+            }
+            return "Found \(total) match(es) across \(filesScanned) file(s)."
         case "search_articles":
             let total = intValue(from: payload["total_matches"]) ?? 0
             if let results = payload["results"] as? [[String: Any]] {
@@ -3659,6 +3846,39 @@ struct ArticleAIChatView: View {
             [
                 "type": "function",
                 "function": [
+                    "name": "grep",
+                    "description": "Search text files in the Planet repo for an exact string or regex. Prefer this for exact repo/file-content lookups.",
+                    "parameters": [
+                        "type": "object",
+                        "properties": [
+                            "pattern": [
+                                "type": "string",
+                                "description": "Required search pattern. Literal matching is used by default.",
+                            ],
+                            "path": [
+                                "type": "string",
+                                "description": "Optional relative file or directory under the Planet repo root to search. Defaults to the repo root.",
+                            ],
+                            "literal": [
+                                "type": "boolean",
+                                "description": "Optional. Treat pattern as literal text. Defaults to true.",
+                            ],
+                            "case_sensitive": [
+                                "type": "boolean",
+                                "description": "Optional. Case-sensitive matching. Defaults to false.",
+                            ],
+                            "max_results": [
+                                "type": "integer",
+                                "description": "Optional. Maximum matches to return. Default 20, max 200.",
+                            ],
+                        ],
+                        "required": ["pattern"],
+                    ],
+                ],
+            ],
+            [
+                "type": "function",
+                "function": [
                     "name": "list_planet_articles",
                     "description": "List articles for a specific planet using structural retrieval instead of keyword relevance. Supports pagination, sorting, and optional title filtering while preserving the requested sort order.",
                     "parameters": [
@@ -3711,6 +3931,8 @@ struct ArticleAIChatView: View {
             return runShellTool(arguments: arguments)
         case "search_articles":
             return await runSearchArticlesTool(arguments: arguments)
+        case "grep":
+            return runGrepTool(arguments: arguments)
         case "list_planet_articles":
             return await runListPlanetArticlesTool(arguments: arguments)
         default:
@@ -4035,6 +4257,41 @@ struct ArticleAIChatView: View {
             return toolResult([
                 "ok": false,
                 "error": "Shell execution failed: \(error.localizedDescription)",
+            ])
+        }
+    }
+
+    private func runGrepTool(arguments: [String: Any]) -> String {
+        guard let pattern = stringValue(from: arguments["pattern"]) else {
+            return toolResult([
+                "ok": false,
+                "error": "Missing required `pattern`.",
+            ])
+        }
+
+        let request = ArticleAIRepoGrepRequest(
+            pattern: pattern,
+            path: stringValue(from: arguments["path"]),
+            literal: boolValue(from: arguments["literal"]) ?? true,
+            caseSensitive: boolValue(from: arguments["case_sensitive"]) ?? false,
+            maxResults: intValue(from: arguments["max_results"]) ?? 20
+        )
+        let repoRoot = URLUtils.repoPath().standardizedFileURL
+        debugLog(
+            "runGrepTool pattern=\(pattern), path=\(request.path ?? "nil"), literal=\(request.literal), caseSensitive=\(request.caseSensitive), maxResults=\(request.maxResults)"
+        )
+
+        do {
+            let result = try ArticleAIRepoGrep.search(request: request, repoRoot: repoRoot)
+            debugLog(
+                "runGrepTool completed matches=\(result.totalMatches), filesScanned=\(result.filesScanned), truncated=\(result.truncated)"
+            )
+            return toolResult(result.jsonObject)
+        } catch {
+            debugLogError("runGrepTool failed", error: error)
+            return toolResult([
+                "ok": false,
+                "error": "Grep failed: \(error.localizedDescription)",
             ])
         }
     }
@@ -5332,8 +5589,8 @@ struct ArticleAIChatView: View {
             You are a useful research assistant with access to the user's entire Planet library.
             Return only essential information.
             No small talk, no preambles like "here is", and do not ask follow-up questions at the end.
-            If tools are available, use them when needed to read or update article/planet models or run shell commands.
-            Use search_articles to find content across all planets, and list_planet_articles to browse a specific planet's articles.
+            If tools are available, use them when needed to read or update article/planet models, search repo text, or run shell commands.
+            Use search_articles to find content across all planets, list_planet_articles to browse a specific planet's articles, and grep for exact string matches in repo files.
             For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
             Whenever you mention or summarize article content from the Planet library, include a Markdown link for every referenced article.
             Use the exact chat_link value from article context or tool output, and if you do not have a chat_link yet, call a tool that returns one before answering. Never invent links.
@@ -5346,7 +5603,8 @@ struct ArticleAIChatView: View {
         You are a useful research assistant.
         Return only essential information.
         No small talk, no preambles like "here is", and do not ask follow-up questions at the end.
-        If tools are available, use them when needed to read or update article/planet models or run shell commands.
+        If tools are available, use them when needed to read or update article/planet models, search repo text, or run shell commands.
+        Use grep for exact string matches in repo files.
         For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
         Whenever you mention or summarize article content from the Planet library, include a Markdown link for every referenced article.
         Use the exact chat_link value from article context or tool output, and if you do not have a chat_link yet, call a tool that returns one before answering. Never invent links.
@@ -5491,7 +5749,7 @@ struct ArticleAIChatView: View {
             lines.append("")
         }
 
-        lines.append("Use search_articles to find content across all planets, or list_planet_articles to browse a specific planet's articles.")
+        lines.append("Use search_articles to find content across all planets, list_planet_articles to browse a specific planet's articles, and grep for exact string matches in repo files.")
         return lines.joined(separator: "\n")
     }
 

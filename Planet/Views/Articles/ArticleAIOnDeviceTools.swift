@@ -5,9 +5,380 @@
 //  Created with AI assistance on 3/31/26.
 //
 
+import Foundation
+
+struct ArticleAIRepoGrepRequest {
+    let pattern: String
+    let path: String?
+    let literal: Bool
+    let caseSensitive: Bool
+    let maxResults: Int
+}
+
+struct ArticleAIRepoGrepMatch {
+    let path: String
+    let line: Int
+    let column: Int
+    let text: String
+
+    var jsonObject: [String: Any] {
+        [
+            "path": path,
+            "line": line,
+            "column": column,
+            "text": text,
+        ]
+    }
+}
+
+struct ArticleAIRepoGrepResult {
+    let pattern: String
+    let searchRoot: String
+    let literal: Bool
+    let caseSensitive: Bool
+    let filesScanned: Int
+    let totalMatches: Int
+    let truncated: Bool
+    let matches: [ArticleAIRepoGrepMatch]
+
+    var jsonObject: [String: Any] {
+        [
+            "ok": true,
+            "pattern": pattern,
+            "search_root": searchRoot,
+            "literal": literal,
+            "case_sensitive": caseSensitive,
+            "files_scanned": filesScanned,
+            "total_matches": totalMatches,
+            "returned_matches": matches.count,
+            "truncated": truncated,
+            "matches": matches.map { $0.jsonObject },
+        ]
+    }
+
+    func jsonString() -> String {
+        guard JSONSerialization.isValidJSONObject(jsonObject),
+            let data = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys]),
+            let text = String(data: data, encoding: .utf8)
+        else {
+            return #"{"ok":false,"error":"Failed to encode grep result."}"#
+        }
+        return text
+    }
+}
+
+private struct ArticleAIRepoGrepError: LocalizedError {
+    let message: String
+
+    var errorDescription: String? {
+        message
+    }
+}
+
+enum ArticleAIRepoGrep {
+    private static let maxFileSizeBytes = 2_000_000
+    private static let maxPreviewLength = 400
+
+    static func search(request: ArticleAIRepoGrepRequest, repoRoot: URL) throws -> ArticleAIRepoGrepResult {
+        let pattern = request.pattern.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !pattern.isEmpty else {
+            throw ArticleAIRepoGrepError(message: "Missing required `pattern`.")
+        }
+
+        let resolvedRepoRoot = repoRoot.standardizedFileURL.resolvingSymlinksInPath()
+        let searchRoot = try resolveSearchRoot(input: request.path, repoRoot: resolvedRepoRoot)
+        let maxResults = min(200, max(1, request.maxResults))
+        let regex: NSRegularExpression?
+        if request.literal {
+            regex = nil
+        } else {
+            do {
+                regex = try NSRegularExpression(
+                    pattern: pattern,
+                    options: request.caseSensitive ? [] : [.caseInsensitive]
+                )
+            } catch {
+                throw ArticleAIRepoGrepError(message: "Invalid regex pattern: \(error.localizedDescription)")
+            }
+        }
+
+        var filesScanned = 0
+        var matches: [ArticleAIRepoGrepMatch] = []
+        var truncated = false
+        let fileManager = FileManager.default
+
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: searchRoot.path, isDirectory: &isDirectory) else {
+            throw ArticleAIRepoGrepError(message: "Path does not exist: \(searchRoot.path)")
+        }
+
+        if isDirectory.boolValue {
+            let resourceKeys: Set<URLResourceKey> = [
+                .isDirectoryKey,
+                .isRegularFileKey,
+                .isSymbolicLinkKey,
+                .fileSizeKey,
+            ]
+            guard let enumerator = fileManager.enumerator(
+                at: searchRoot,
+                includingPropertiesForKeys: Array(resourceKeys),
+                options: [.skipsHiddenFiles, .skipsPackageDescendants]
+            ) else {
+                throw ArticleAIRepoGrepError(message: "Failed to enumerate files under \(searchRoot.path)")
+            }
+
+            while let fileURL = enumerator.nextObject() as? URL {
+                if matches.count >= maxResults {
+                    truncated = true
+                    break
+                }
+
+                let resourceValues = try? fileURL.resourceValues(forKeys: resourceKeys)
+                if resourceValues?.isDirectory == true {
+                    if fileURL.lastPathComponent == ".git" {
+                        enumerator.skipDescendants()
+                    }
+                    continue
+                }
+                if resourceValues?.isSymbolicLink == true {
+                    continue
+                }
+                guard resourceValues?.isRegularFile == true else {
+                    continue
+                }
+                if let fileSize = resourceValues?.fileSize, fileSize > maxFileSizeBytes {
+                    continue
+                }
+                if searchFile(
+                    fileURL,
+                    repoRoot: resolvedRepoRoot,
+                    pattern: pattern,
+                    literal: request.literal,
+                    caseSensitive: request.caseSensitive,
+                    regex: regex,
+                    maxResults: maxResults,
+                    matches: &matches
+                ) {
+                    filesScanned += 1
+                }
+            }
+        } else {
+            if searchFile(
+                searchRoot,
+                repoRoot: resolvedRepoRoot,
+                pattern: pattern,
+                literal: request.literal,
+                caseSensitive: request.caseSensitive,
+                regex: regex,
+                maxResults: maxResults,
+                matches: &matches
+            ) {
+                filesScanned += 1
+            }
+        }
+
+        if matches.count >= maxResults {
+            truncated = true
+        }
+
+        return ArticleAIRepoGrepResult(
+            pattern: pattern,
+            searchRoot: searchRoot.path,
+            literal: request.literal,
+            caseSensitive: request.caseSensitive,
+            filesScanned: filesScanned,
+            totalMatches: matches.count,
+            truncated: truncated,
+            matches: matches
+        )
+    }
+
+    private static func resolveSearchRoot(input: String?, repoRoot: URL) throws -> URL {
+        guard let input, !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return repoRoot
+        }
+
+        let candidate: URL
+        if input.hasPrefix("/") {
+            candidate = URL(fileURLWithPath: input)
+        } else {
+            candidate = repoRoot.appendingPathComponent(input)
+        }
+        let resolved = candidate.standardizedFileURL.resolvingSymlinksInPath()
+        let repoRootPath = repoRoot.path
+        let resolvedPath = resolved.path
+        let insideRoot = resolvedPath == repoRootPath || resolvedPath.hasPrefix(repoRootPath + "/")
+        guard insideRoot else {
+            throw ArticleAIRepoGrepError(message: "`path` must stay under \(repoRootPath)")
+        }
+        guard FileManager.default.fileExists(atPath: resolvedPath) else {
+            throw ArticleAIRepoGrepError(message: "Path does not exist: \(resolvedPath)")
+        }
+        return resolved
+    }
+
+    @discardableResult
+    private static func searchFile(
+        _ fileURL: URL,
+        repoRoot: URL,
+        pattern: String,
+        literal: Bool,
+        caseSensitive: Bool,
+        regex: NSRegularExpression?,
+        maxResults: Int,
+        matches: inout [ArticleAIRepoGrepMatch]
+    ) -> Bool {
+        guard let text = loadSearchableText(from: fileURL) else {
+            return false
+        }
+
+        let remaining = maxResults - matches.count
+        guard remaining > 0 else {
+            return true
+        }
+
+        let relativePath = makeRelativePath(fileURL, repoRoot: repoRoot)
+        var lineNumber = 0
+        var localMatches: [ArticleAIRepoGrepMatch] = []
+        text.enumerateLines { line, stop in
+            if localMatches.count >= remaining {
+                stop = true
+                return
+            }
+
+            lineNumber += 1
+            let remainingForLine = remaining - localMatches.count
+            guard remainingForLine > 0 else {
+                stop = true
+                return
+            }
+
+            let columns = matchColumns(
+                in: line,
+                pattern: pattern,
+                literal: literal,
+                caseSensitive: caseSensitive,
+                regex: regex,
+                limit: remainingForLine
+            )
+            guard !columns.isEmpty else {
+                return
+            }
+
+            let preview = truncatedPreview(for: line)
+            for column in columns {
+                localMatches.append(
+                    ArticleAIRepoGrepMatch(
+                        path: relativePath,
+                        line: lineNumber,
+                        column: column,
+                        text: preview
+                    )
+                )
+            }
+
+            if localMatches.count >= remaining {
+                stop = true
+            }
+        }
+        matches.append(contentsOf: localMatches)
+        return true
+    }
+
+    private static func makeRelativePath(_ fileURL: URL, repoRoot: URL) -> String {
+        let rootPath = repoRoot.path
+        let filePath = fileURL.standardizedFileURL.resolvingSymlinksInPath().path
+        if filePath == rootPath {
+            return fileURL.lastPathComponent
+        }
+        if filePath.hasPrefix(rootPath + "/") {
+            return String(filePath.dropFirst(rootPath.count + 1))
+        }
+        return fileURL.lastPathComponent
+    }
+
+    private static func loadSearchableText(from fileURL: URL) -> String? {
+        guard let data = try? Data(contentsOf: fileURL, options: [.mappedIfSafe]) else {
+            return nil
+        }
+        guard !isProbablyBinary(data) else {
+            return nil
+        }
+        if let text = String(data: data, encoding: .utf8) {
+            return text
+        }
+        if let text = String(data: data, encoding: .utf16) {
+            return text
+        }
+        if let text = String(data: data, encoding: .utf16LittleEndian) {
+            return text
+        }
+        if let text = String(data: data, encoding: .utf16BigEndian) {
+            return text
+        }
+        return nil
+    }
+
+    private static func isProbablyBinary(_ data: Data) -> Bool {
+        let prefix = data.prefix(1024)
+        return prefix.contains(0)
+    }
+
+    private static func matchColumns(
+        in line: String,
+        pattern: String,
+        literal: Bool,
+        caseSensitive: Bool,
+        regex: NSRegularExpression?,
+        limit: Int
+    ) -> [Int] {
+        guard limit > 0 else {
+            return []
+        }
+
+        if literal {
+            let options: String.CompareOptions = caseSensitive ? [] : [.caseInsensitive]
+            var columns: [Int] = []
+            var searchStart = line.startIndex
+
+            while searchStart < line.endIndex,
+                columns.count < limit,
+                let range = line.range(of: pattern, options: options, range: searchStart..<line.endIndex)
+            {
+                columns.append(line.distance(from: line.startIndex, to: range.lowerBound) + 1)
+                searchStart = range.isEmpty ? line.index(after: searchStart) : range.upperBound
+            }
+
+            return columns
+        }
+
+        let searchRange = NSRange(line.startIndex..<line.endIndex, in: line)
+        var columns: [Int] = []
+        regex?.enumerateMatches(in: line, options: [], range: searchRange) { match, _, stop in
+            guard let match,
+                let range = Range(match.range, in: line)
+            else {
+                return
+            }
+
+            columns.append(line.distance(from: line.startIndex, to: range.lowerBound) + 1)
+            if columns.count >= limit {
+                stop.pointee = true
+            }
+        }
+        return columns
+    }
+
+    private static func truncatedPreview(for line: String) -> String {
+        if line.count <= maxPreviewLength {
+            return line
+        }
+        return String(line.prefix(maxPreviewLength)) + "..."
+    }
+}
+
 #if canImport(FoundationModels)
 
-import Foundation
 import FoundationModels
 
 // MARK: - Tool Argument Types
@@ -63,6 +434,21 @@ struct SearchArticlesArguments: Sendable {
     var limit: Int?
     @Guide(description: "Optional UUID of a planet to restrict search to.")
     var planetID: String?
+}
+
+@available(macOS 26.0, *)
+@Generable(description: "Arguments for grep-style repo search")
+struct GrepArguments: Sendable {
+    @Guide(description: "Required search pattern. Literal matching is used by default.")
+    var pattern: String
+    @Guide(description: "Optional relative file or directory under the Planet repo root to search. Defaults to the repo root.")
+    var path: String?
+    @Guide(description: "Optional. Treat pattern as literal text. Defaults to true.")
+    var literal: Bool?
+    @Guide(description: "Optional. Case-sensitive matching. Defaults to false.")
+    var caseSensitive: Bool?
+    @Guide(description: "Optional. Maximum matches to return. Defaults to 20, max 200.")
+    var maxResults: Int?
 }
 
 // MARK: - Tool Context
@@ -417,6 +803,47 @@ struct SearchArticlesTool: Tool {
     }
 }
 
+// MARK: - Grep Tool
+
+@available(macOS 26.0, *)
+struct GrepTool: Tool {
+    var name: String { "grep" }
+    var description: String { "Search text files in the Planet repo for an exact string or regex. Prefer this for exact repo/file-content lookups." }
+
+    func call(arguments: GrepArguments) async throws -> String {
+        let request = ArticleAIRepoGrepRequest(
+            pattern: arguments.pattern,
+            path: arguments.path,
+            literal: arguments.literal ?? true,
+            caseSensitive: arguments.caseSensitive ?? false,
+            maxResults: arguments.maxResults ?? 20
+        )
+        onDeviceToolLog(
+            "grep called pattern=\(arguments.pattern), path=\(arguments.path ?? "nil"), literal=\(arguments.literal ?? true), caseSensitive=\(arguments.caseSensitive ?? false), maxResults=\(arguments.maxResults ?? 20)"
+        )
+        do {
+            let result = try ArticleAIRepoGrep.search(request: request, repoRoot: URLUtils.repoPath())
+            onDeviceToolLog(
+                "grep result matches=\(result.totalMatches), filesScanned=\(result.filesScanned), truncated=\(result.truncated)"
+            )
+            return result.jsonString()
+        } catch {
+            onDeviceToolLog("grep failed: \(error.localizedDescription)")
+            let payload: [String: Any] = [
+                "ok": false,
+                "error": error.localizedDescription,
+            ]
+            guard JSONSerialization.isValidJSONObject(payload),
+                let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]),
+                let text = String(data: data, encoding: .utf8)
+            else {
+                return #"{"ok":false,"error":"Failed to encode grep error."}"#
+            }
+            return text
+        }
+    }
+}
+
 // MARK: - Helper
 
 private final class OnDeviceUncheckedSendableBox<Value>: @unchecked Sendable {
@@ -439,6 +866,7 @@ enum OnDeviceToolFactory {
             ReadPlanetTool(context: context),
             WritePlanetTool(context: context),
             SearchArticlesTool(),
+            GrepTool(),
         ]
         return (tools, context)
     }
