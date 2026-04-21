@@ -1,15 +1,16 @@
+import SwiftSoup
 import SwiftUI
 import UniformTypeIdentifiers
 
 class ArticleListDropDelegate: DropDelegate {
     private enum TextImportDropError: LocalizedError {
-        case multipleTextFiles
+        case multipleTextFilesWithAttachments
         case targetPlanetRequired
 
         var errorDescription: String? {
             switch self {
-            case .multipleTextFiles:
-                return "Drop a single Markdown or text file at a time."
+            case .multipleTextFilesWithAttachments:
+                return "Drop either a single Markdown or text file with attachments, or multiple Markdown/text files by themselves to import them as separate articles."
             case .targetPlanetRequired:
                 return "Select one of your planets before dropping a Markdown or text file."
             }
@@ -69,6 +70,147 @@ class ArticleListDropDelegate: DropDelegate {
         return ImportedTextDocument(title: "", content: content)
     }
 
+    private static func sortedFileURLs(_ urls: [URL]) -> [URL] {
+        urls.sorted {
+            let lhsName = $0.lastPathComponent
+            let rhsName = $1.lastPathComponent
+            let comparison = lhsName.localizedStandardCompare(rhsName)
+            if comparison == .orderedSame {
+                return $0.standardizedFileURL.path < $1.standardizedFileURL.path
+            }
+            return comparison == .orderedAscending
+        }
+    }
+
+    private static func resolvedImportedTitle(for document: ImportedTextDocument, sourceURL: URL) -> String {
+        let extractedTitle = document.title.trim()
+        if !extractedTitle.isEmpty {
+            return extractedTitle
+        }
+
+        let fallbackTitle = sourceURL.deletingPathExtension().lastPathComponent.sanitized().trim()
+        return fallbackTitle.isEmpty ? "Untitled" : fallbackTitle
+    }
+
+    private static func importedArticleDate(for url: URL, fallbackOffset: Int) -> Date {
+        if let resourceValues = try? url.resourceValues(forKeys: [.contentModificationDateKey, .creationDateKey]),
+           let importedDate = resourceValues.contentModificationDate ?? resourceValues.creationDate
+        {
+            return importedDate
+        }
+        return Date().addingTimeInterval(TimeInterval(-fallbackOffset))
+    }
+
+    private static func configureImportedArticle(_ article: MyArticleModel) {
+        guard let contentHTML = CMarkRenderer.renderMarkdownHTML(markdown: article.content) else {
+            return
+        }
+        article.contentRendered = contentHTML
+        if let soup = try? SwiftSoup.parseBodyFragment(contentHTML),
+           let summary = try? soup.text()
+        {
+            if summary.count > 280 {
+                article.summary = String(summary.prefix(280)) + "..."
+            } else {
+                article.summary = summary
+            }
+        }
+    }
+
+    @MainActor
+    private static func importTextDocuments(_ textDocumentURLs: [URL], to planet: MyPlanetModel) throws {
+        let sortedURLs = sortedFileURLs(textDocumentURLs)
+        var importedArticles: [MyArticleModel] = []
+        var duplicateCount = 0
+
+        let existingKeys: Set<[String]> = Set(
+            (planet.articles ?? []).map { [$0.title, $0.content] }
+        )
+
+        for (index, url) in sortedURLs.enumerated() {
+            let document = try loadTextDocument(from: url)
+            let title = resolvedImportedTitle(for: document, sourceURL: url)
+            if existingKeys.contains([title, document.content]) {
+                duplicateCount += 1
+                continue
+            }
+            let article = try MyArticleModel.compose(
+                link: nil,
+                date: importedArticleDate(for: url, fallbackOffset: index),
+                title: title,
+                content: document.content,
+                summary: nil,
+                planet: planet
+            )
+            configureImportedArticle(article)
+            try article.save()
+            try article.savePublic()
+            importedArticles.append(article)
+        }
+
+        guard !importedArticles.isEmpty else {
+            if duplicateCount > 0 {
+                showDuplicatesSkippedAlert(count: duplicateCount)
+            }
+            return
+        }
+
+        let updatedArticles = ((planet.articles ?? []) + importedArticles).sorted(by: MyArticleModel.reorder)
+        planet.articles = updatedArticles
+        planet.tags = planet.consolidateTags()
+        planet.updated = Date()
+        try planet.copyTemplateAssets()
+        try planet.save()
+
+        let selectedArticleList: [ArticleModel] = updatedArticles
+        PlanetStore.shared.selectedArticleList = selectedArticleList
+        PlanetStore.shared.navigationTitle = planet.name
+        PlanetStore.shared.navigationSubtitle = planet.navigationSubtitle()
+        ArticleListViewModel.shared.articles = filteredArticles(
+            selectedArticleList,
+            filter: ArticleListViewModel.shared.filter
+        )
+
+        if let selectedImportedArticle = importedArticles.sorted(by: MyArticleModel.reorder).first,
+           let matchingArticle = PlanetStore.shared.selectedArticleList?.first(where: {
+               $0.id == selectedImportedArticle.id
+           })
+        {
+            PlanetStore.shared.selectedArticle = matchingArticle
+            NotificationCenter.default.post(name: .scrollToArticle, object: matchingArticle)
+        }
+
+        Task(priority: .userInitiated) {
+            do {
+                try await planet.savePublic()
+                try await Task.sleep(nanoseconds: 500_000_000)
+                try await planet.publish()
+
+                for article in importedArticles {
+                    await article.prewarm()
+                }
+            } catch {
+                print("During batch importing articles into \(planet.name), an error occurred: \(error)")
+            }
+        }
+
+        if duplicateCount > 0 {
+            showDuplicatesSkippedAlert(count: duplicateCount)
+        }
+    }
+
+    @MainActor
+    private static func showDuplicatesSkippedAlert(count: Int) {
+        let alert = NSAlert()
+        alert.messageText = "\(count) Duplicate \(count == 1 ? "Article" : "Articles") Skipped"
+        alert.informativeText = count == 1
+            ? "1 file was not imported because its title and content matched an existing article."
+            : "\(count) files were not imported because their title and content matched existing articles."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
+
     private static func extractLeadingMarkdownH1(from content: String) -> (title: String, content: String)? {
         let normalizedContent = content
             .replacingOccurrences(of: "\r\n", with: "\n")
@@ -109,29 +251,46 @@ class ArticleListDropDelegate: DropDelegate {
     }
 
     @MainActor
-    private static func handleTextDocumentDrop(_ fileURLs: [URL]) throws -> Bool {
-        let textDocumentURLs = fileURLs.filter { isImportableTextFile($0) }
+    private static func handleTextDocumentDrop(_ fileURLs: [URL]) async throws -> Bool {
+        let textDocumentURLs = sortedFileURLs(fileURLs.filter { isImportableTextFile($0) })
         guard !textDocumentURLs.isEmpty else {
             return false
-        }
-        guard textDocumentURLs.count == 1 else {
-            throw TextImportDropError.multipleTextFiles
         }
         guard case .myPlanet(let planet)? = PlanetStore.shared.selectedView else {
             throw TextImportDropError.targetPlanetRequired
         }
 
-        let textDocumentURL = textDocumentURLs[0]
-        let attachmentURLs = fileURLs.filter { $0 != textDocumentURL }
-        try withSecurityScopedAccess(to: fileURLs) {
-            let document = try loadTextDocument(from: textDocumentURL)
-            try WriterStore.shared.newArticle(
-                for: planet,
-                initialTitle: document.title,
-                initialContent: document.content,
-                attachmentURLs: attachmentURLs,
-                forceNewDraft: true
-            )
+        let attachmentURLs = fileURLs.filter { !textDocumentURLs.contains($0) }
+        if textDocumentURLs.count == 1 {
+            try withSecurityScopedAccess(to: fileURLs) {
+                let textDocumentURL = textDocumentURLs[0]
+                let document = try loadTextDocument(from: textDocumentURL)
+                try WriterStore.shared.newArticle(
+                    for: planet,
+                    initialTitle: resolvedImportedTitle(for: document, sourceURL: textDocumentURL),
+                    initialContent: document.content,
+                    attachmentURLs: attachmentURLs,
+                    forceNewDraft: true
+                )
+            }
+        } else {
+            guard attachmentURLs.isEmpty else {
+                throw TextImportDropError.multipleTextFilesWithAttachments
+            }
+            // Yield so AppKit can finish dismissing the drag visuals before the modal alert blocks the main thread.
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            let confirm = NSAlert()
+            confirm.messageText = "Import \(textDocumentURLs.count) Files?"
+            confirm.informativeText = "Each Markdown or text file will be imported as a separate article."
+            confirm.alertStyle = .informational
+            confirm.addButton(withTitle: "Import")
+            confirm.addButton(withTitle: "Cancel")
+            guard confirm.runModal() == .alertFirstButtonReturn else {
+                return true
+            }
+            try withSecurityScopedAccess(to: textDocumentURLs) {
+                try importTextDocuments(textDocumentURLs, to: planet)
+            }
         }
         return true
     }
@@ -140,7 +299,7 @@ class ArticleListDropDelegate: DropDelegate {
         Task { @MainActor in
             do {
                 let fileURLs = await Self.droppedFileURLs(from: info)
-                if try Self.handleTextDocumentDrop(fileURLs) {
+                if try await Self.handleTextDocumentDrop(fileURLs) {
                     if #available(macOS 14.0, *) {
                         NSApp.activate()
                     } else {
@@ -168,6 +327,75 @@ class ArticleListDropDelegate: DropDelegate {
             }
         }
         return true
+    }
+}
+
+
+private func filteredArticles(_ articles: [ArticleModel], filter: ListViewFilter) -> [ArticleModel] {
+    switch filter {
+    case .all:
+        return articles
+    case .pages:
+        return articles.filter {
+            if let myArticle = $0 as? MyArticleModel {
+                return myArticle.articleType == .page
+            }
+            return false
+        }
+    case .videos:
+        return articles.filter {
+            if let myArticle = $0 as? MyArticleModel {
+                return myArticle.videoFilename != nil
+            }
+            if let followingArticle = $0 as? FollowingArticleModel {
+                return followingArticle.videoFilename != nil
+            }
+            return false
+        }
+    case .audios:
+        return articles.filter {
+            if let myArticle = $0 as? MyArticleModel {
+                return myArticle.audioFilename != nil
+            }
+            if let followingArticle = $0 as? FollowingArticleModel {
+                return followingArticle.audioFilename != nil
+            }
+            return false
+        }
+    case .nav:
+        return articles.filter {
+            if let myArticle = $0 as? MyArticleModel,
+                let isIncludedInNavigation = myArticle.isIncludedInNavigation
+            {
+                return isIncludedInNavigation
+            }
+            return false
+        }
+    case .unread:
+        return articles.filter {
+            if let followingArticle = $0 as? FollowingArticleModel {
+                return followingArticle.read == nil
+            }
+            return false
+        }
+    case .starred:
+        return articles.filter { $0.starred != nil }
+    case .star:
+        return articles.filter { $0.starred != nil && $0.starType == .star }
+    case .plan:
+        return articles.filter { $0.starred != nil && $0.starType == .plan }
+    case .todo:
+        return articles.filter { $0.starred != nil && $0.starType == .todo }
+    case .done:
+        return articles.filter { $0.starred != nil && $0.starType == .done }
+    case .sparkles:
+        return articles.filter { $0.starred != nil && $0.starType == .sparkles }
+    case .heart:
+        return articles.filter { $0.starred != nil && $0.starType == .heart }
+    case .question:
+        return articles.filter { $0.starred != nil && $0.starType == .question }
+    case .paperplane:
+        return articles.filter { $0.starred != nil && $0.starType == .paperplane }
     }
 }
 
@@ -233,71 +461,7 @@ struct ArticleListView: View {
     }
 
     private func filterArticles(_ articles: [ArticleModel]) -> [ArticleModel]? {
-        switch viewModel.filter {
-        case .all:
-            return articles
-        case .pages:
-            return articles.filter {
-                if let myArticle = $0 as? MyArticleModel {
-                    return myArticle.articleType == .page
-                }
-                return false
-            }
-        case .videos:
-            return articles.filter {
-                if let myArticle = $0 as? MyArticleModel {
-                    return myArticle.videoFilename != nil
-                }
-                if let followingArticle = $0 as? FollowingArticleModel {
-                    return followingArticle.videoFilename != nil
-                }
-                return false
-            }
-        case .audios:
-            return articles.filter {
-                if let myArticle = $0 as? MyArticleModel {
-                    return myArticle.audioFilename != nil
-                }
-                if let followingArticle = $0 as? FollowingArticleModel {
-                    return followingArticle.audioFilename != nil
-                }
-                return false
-            }
-        case .nav:
-            return articles.filter {
-                if let myArticle = $0 as? MyArticleModel,
-                    let isIncludedInNavigation = myArticle.isIncludedInNavigation
-                {
-                    return isIncludedInNavigation
-                }
-                return false
-            }
-        case .unread:
-            return articles.filter {
-                if let followingArticle = $0 as? FollowingArticleModel {
-                    return followingArticle.read == nil
-                }
-                return false
-            }
-        case .starred:
-            return articles.filter { $0.starred != nil }
-        case .star:
-            return articles.filter { $0.starred != nil && $0.starType == .star }
-        case .plan:
-            return articles.filter { $0.starred != nil && $0.starType == .plan }
-        case .todo:
-            return articles.filter { $0.starred != nil && $0.starType == .todo }
-        case .done:
-            return articles.filter { $0.starred != nil && $0.starType == .done }
-        case .sparkles:
-            return articles.filter { $0.starred != nil && $0.starType == .sparkles }
-        case .heart:
-            return articles.filter { $0.starred != nil && $0.starType == .heart }
-        case .question:
-            return articles.filter { $0.starred != nil && $0.starType == .question }
-        case .paperplane:
-            return articles.filter { $0.starred != nil && $0.starType == .paperplane }
-        }
+        filteredArticles(articles, filter: viewModel.filter)
     }
 
     @ViewBuilder
