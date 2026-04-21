@@ -316,6 +316,11 @@ struct ArticleAIChatView: View {
             ?? Empty<AIChatToolbarCommand, Never>(completeImmediately: false).eraseToAnyPublisher()
     }
 
+    private var sessionCommandPublisher: AnyPublisher<PlanetAIChatSessionCommand, Never> {
+        sessionStore?.commands.eraseToAnyPublisher()
+            ?? Empty<PlanetAIChatSessionCommand, Never>(completeImmediately: false).eraseToAnyPublisher()
+    }
+
     private var remoteModelName: String {
         UserDefaults.standard.string(forKey: .settingsAIPreferredModel) ?? "claude-sonnet-4-6"
     }
@@ -526,6 +531,13 @@ struct ArticleAIChatView: View {
                 chatFontSize = min(20, chatFontSize + 1)
             }
             syncToolbarState()
+        }
+        .onReceive(sessionCommandPublisher) { command in
+            switch command {
+            case .resetSession(let resetSessionID):
+                guard sessionID == resetSessionID else { return }
+                clearChat(removePersistedFile: false)
+            }
         }
     }
 
@@ -757,7 +769,7 @@ struct ArticleAIChatView: View {
         toolbarState.canIncreaseFont = chatFontSize < 20
     }
 
-    private func clearChat() {
+    private func clearChat(removePersistedFile: Bool = true) {
         messages = []
         apiMessages = []
         blockCache.removeAll()
@@ -766,7 +778,7 @@ struct ArticleAIChatView: View {
         errorText = nil
         toolProgressText = nil
         onDeviceSession = nil
-        if let chatFileURL = chatFileURL {
+        if removePersistedFile, let chatFileURL = chatFileURL {
             try? FileManager.default.removeItem(at: chatFileURL)
         }
         prepareInitialContextIfNeeded()

@@ -1,21 +1,29 @@
+import Combine
 import SwiftUI
 
 struct PlanetAIChatSession: Codable, Identifiable, Equatable {
+    static let defaultTitle = "New Session"
+
     let id: UUID
     var title: String
     let createdAt: Date
 
-    init(id: UUID = UUID(), title: String = "New Session", createdAt: Date = Date()) {
+    init(id: UUID = UUID(), title: String = PlanetAIChatSession.defaultTitle, createdAt: Date = Date()) {
         self.id = id
         self.title = title
         self.createdAt = createdAt
     }
 }
 
+enum PlanetAIChatSessionCommand {
+    case resetSession(UUID)
+}
+
 @MainActor
 class PlanetAIChatSessionStore: ObservableObject {
     static let shared = PlanetAIChatSessionStore()
 
+    let commands = PassthroughSubject<PlanetAIChatSessionCommand, Never>()
     @Published var sessions: [PlanetAIChatSession] = []
     @Published var selectedSessionID: UUID? {
         didSet {
@@ -72,9 +80,19 @@ class PlanetAIChatSessionStore: ObservableObject {
         save()
     }
 
+    func clearSession(_ session: PlanetAIChatSession) {
+        guard let index = sessions.firstIndex(where: { $0.id == session.id }) else { return }
+
+        sessions[index].title = PlanetAIChatSession.defaultTitle
+        let chatFile = sessionsDirectory.appendingPathComponent("\(session.id.uuidString).json")
+        try? FileManager.default.removeItem(at: chatFile)
+        save()
+        commands.send(.resetSession(session.id))
+    }
+
     func updateSessionTitle(_ sessionID: UUID, firstMessage: String) {
         guard let index = sessions.firstIndex(where: { $0.id == sessionID }),
-              sessions[index].title == "New Session"
+              sessions[index].title == PlanetAIChatSession.defaultTitle
         else { return }
         let trimmed = firstMessage.trimmingCharacters(in: .whitespacesAndNewlines)
         let title = trimmed.count > 40 ? String(trimmed.prefix(40)) + "\u{2026}" : trimmed
@@ -136,6 +154,25 @@ struct PlanetAIChatSessionSidebar: View {
     @EnvironmentObject var store: PlanetAIChatSessionStore
     @State private var sessionToDelete: PlanetAIChatSession? = nil
 
+    private var isClearingOnlySession: Bool {
+        store.sessions.count == 1
+    }
+
+    private var deleteAlertTitle: String {
+        isClearingOnlySession ? "Do you want to clear this only session?" : "Delete Session"
+    }
+
+    private var deleteAlertActionTitle: String {
+        isClearingOnlySession ? "Clear" : "Delete"
+    }
+
+    private var deleteAlertMessage: String {
+        if isClearingOnlySession {
+            return "This will remove all messages for this session and rename it to \"\(PlanetAIChatSession.defaultTitle)\"."
+        }
+        return "This will remove all messages for this session. This action cannot be undone."
+    }
+
     var body: some View {
         List(selection: $store.selectedSessionID) {
             ForEach(store.sessions) { session in
@@ -149,7 +186,6 @@ struct PlanetAIChatSessionSidebar: View {
                         Button("Delete Session", role: .destructive) {
                             sessionToDelete = session
                         }
-                        .disabled(store.sessions.count <= 1)
                     }
             }
         }
@@ -162,13 +198,17 @@ struct PlanetAIChatSessionSidebar: View {
             idealHeight: PlanetUI.WINDOW_CONTENT_HEIGHT_MIN,
             maxHeight: .infinity
         )
-        .alert("Delete Session", isPresented: Binding<Bool>(
+        .alert(deleteAlertTitle, isPresented: Binding<Bool>(
             get: { sessionToDelete != nil },
             set: { if !$0 { sessionToDelete = nil } }
         )) {
-            Button("Delete", role: .destructive) {
+            Button(deleteAlertActionTitle, role: .destructive) {
                 if let session = sessionToDelete {
-                    store.deleteSession(session)
+                    if isClearingOnlySession {
+                        store.clearSession(session)
+                    } else {
+                        store.deleteSession(session)
+                    }
                     sessionToDelete = nil
                 }
             }
@@ -176,7 +216,7 @@ struct PlanetAIChatSessionSidebar: View {
                 sessionToDelete = nil
             }
         } message: {
-            Text("This will remove all messages for this session. This action cannot be undone.")
+            Text(deleteAlertMessage)
         }
     }
 }
@@ -200,7 +240,6 @@ private struct PlanetAIChatSessionSidebarRow: View {
                     .foregroundColor(.secondary)
             }
             .buttonStyle(.borderless)
-            .disabled(store.sessions.count <= 1)
             .help("Delete Session")
         }
         .padding(.vertical, 2)
