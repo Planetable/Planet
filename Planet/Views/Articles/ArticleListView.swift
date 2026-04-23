@@ -3,6 +3,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 class ArticleListDropDelegate: DropDelegate {
+    private static let dragAlertPresentationDelay: UInt64 = 500_000_000
+
     private enum TextImportDropError: LocalizedError {
         case multipleTextFilesWithAttachments
         case targetPlanetRequired
@@ -278,7 +280,7 @@ class ArticleListDropDelegate: DropDelegate {
                 throw TextImportDropError.multipleTextFilesWithAttachments
             }
             // Yield so AppKit can finish dismissing the drag visuals before the modal alert blocks the main thread.
-            try? await Task.sleep(nanoseconds: 600_000_000)
+            try? await Task.sleep(nanoseconds: dragAlertPresentationDelay)
             let confirm = NSAlert()
             confirm.messageText = "Import \(textDocumentURLs.count) Files?"
             confirm.informativeText = "Each Markdown or text file will be imported as a separate article."
@@ -318,6 +320,8 @@ class ArticleListDropDelegate: DropDelegate {
                     NSApp.activate(ignoringOtherApps: true)
                 }
             } catch {
+                // Give AppKit time to clear drag visuals before the modal alert appears.
+                try? await Task.sleep(nanoseconds: Self.dragAlertPresentationDelay)
                 let alert = NSAlert()
                 alert.messageText = "Failed to Create Post"
                 alert.informativeText = error.localizedDescription
