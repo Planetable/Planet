@@ -248,10 +248,9 @@ struct MyPlanetSidebarItem: View {
             }
         }
         .confirmationDialog(
-            Text(
-                "Are you sure you want to archive this planet? Archived planets will not be auto published. You can later unarchive it from settings."
-            ),
-            isPresented: $isShowingArchiveConfirmation
+            Text("Archive Planet"),
+            isPresented: $isShowingArchiveConfirmation,
+            titleVisibility: .visible
         ) {
             Button {
                 planet.archive()
@@ -265,10 +264,15 @@ struct MyPlanetSidebarItem: View {
             } label: {
                 Text("Archive")
             }
+        } message: {
+            Text(
+                "Are you sure you want to archive this planet? Archived planets will not be auto published. You can later unarchive it from settings."
+            )
         }
         .confirmationDialog(
-            Text("Are you sure you want to delete \(planet.name)? This action cannot be undone."),
-            isPresented: $isShowingDeleteConfirmation
+            Text("Delete Planet"),
+            isPresented: $isShowingDeleteConfirmation,
+            titleVisibility: .visible
         ) {
             Button(role: .destructive) {
                 try? planet.delete()
@@ -281,10 +285,13 @@ struct MyPlanetSidebarItem: View {
             } label: {
                 Text("Delete")
             }
+        } message: {
+            Text("Are you sure you want to delete \(planet.name)? This action cannot be undone.")
         }
         .confirmationDialog(
-            Text("Are you sure you want to delete this article?"),
-            isPresented: $planetStore.isShowingDeleteMyArticleConfirmation
+            Text("Delete Article"),
+            isPresented: $planetStore.isShowingDeleteMyArticleConfirmation,
+            titleVisibility: .visible
         ) {
             Button(role: .destructive) {
                 if let article = planetStore.deletingMyArticle, let planet = article.planet {
@@ -322,6 +329,8 @@ struct MyPlanetSidebarItem: View {
             } label: {
                 Text("Delete")
             }
+        } message: {
+            Text("Are you sure you want to delete this article?")
         }
     }
 

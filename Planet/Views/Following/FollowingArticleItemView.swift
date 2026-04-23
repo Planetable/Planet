@@ -141,10 +141,9 @@ struct FollowingArticleItemView: View {
             }
         }
         .confirmationDialog(
-            Text(
-                "Are you sure you want to delete this article? This action will remove it from your feed. However, if the article is still available on the source, it will reappear in your feed the next time you refresh it."
-            ),
-            isPresented: $isShowingDeleteConfirmation
+            Text("Delete Article"),
+            isPresented: $isShowingDeleteConfirmation,
+            titleVisibility: .visible
         ) {
             Button(role: .destructive) {
                 Task { @MainActor in
@@ -162,6 +161,10 @@ struct FollowingArticleItemView: View {
             } label: {
                 Text("Delete")
             }
+        } message: {
+            Text(
+                "Are you sure you want to delete this article? This action will remove it from your feed. However, if the article is still available on the source, it will reappear in your feed the next time you refresh it."
+            )
         }
     }
 }

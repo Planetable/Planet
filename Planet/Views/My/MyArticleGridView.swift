@@ -72,8 +72,9 @@ struct MyArticleGridView: View {
             )
         )
         .confirmationDialog(
-            "Are you sure you want to delete this post?\n\n\(article.title)\n\nThis action cannot be undone.",
-            isPresented: $isDeleting
+            Text("Delete Post"),
+            isPresented: $isDeleting,
+            titleVisibility: .visible
         ) {
             Button("Delete", role: .destructive) {
                 ASMediaManager.shared.deactivateView(byID: article.id)
@@ -90,6 +91,8 @@ struct MyArticleGridView: View {
                 }
             }
             Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to delete this post?\n\n\(article.title)\n\nThis action cannot be undone.")
         }
         .contextMenu {
             Button {
