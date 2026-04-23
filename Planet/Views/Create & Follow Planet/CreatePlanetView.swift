@@ -53,19 +53,23 @@ struct CreatePlanetView: View {
                 }
 
                 if PlanetStore.app == .planet {
-                    Picker(selection: $templateName) {
-                        ForEach(TemplateStore.shared.templates) { template in
-                            Text(template.name)
-                                .tag(template.name)
+                    HStack {
+                        Picker(selection: $templateName) {
+                            ForEach(TemplateStore.shared.templates) { template in
+                                Text(template.name)
+                                    .tag(template.name)
+                            }
+                        } label: {
+                            HStack {
+                                Text("Template")
+                                Spacer()
+                            }
+                            .frame(width: 70)
                         }
-                    } label: {
-                        HStack {
-                            Text("Template")
-                            Spacer()
-                        }
-                        .frame(width: 70)
+                        .pickerStyle(.menu)
+
+                        Spacer()
                     }
-                    .pickerStyle(.menu)
                 }
 
                 Spacer()
