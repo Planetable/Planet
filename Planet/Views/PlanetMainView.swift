@@ -7,6 +7,33 @@
 
 import SwiftUI
 
+@MainActor
+final class PlanetMainWindowFocus {
+    static let shared = PlanetMainWindowFocus()
+
+    weak var window: NSWindow?
+
+    private init() {}
+}
+
+private struct PlanetMainWindowReader: NSViewRepresentable {
+    func makeNSView(context: Context) -> PlanetMainWindowReaderView {
+        PlanetMainWindowReaderView()
+    }
+
+    func updateNSView(_ nsView: PlanetMainWindowReaderView, context: Context) {
+        if let window = nsView.window {
+            PlanetMainWindowFocus.shared.window = window
+        }
+    }
+}
+
+private final class PlanetMainWindowReaderView: NSView {
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        PlanetMainWindowFocus.shared.window = window
+    }
+}
 
 struct PlanetMainView: View {
     @EnvironmentObject var planetStore: PlanetStore
@@ -26,6 +53,7 @@ struct PlanetMainView: View {
             ArticleView()
                 .edgesIgnoringSafeArea(.vertical)
         }
+        .background(PlanetMainWindowReader())
         .alert(isPresented: $planetStore.isShowingAlert) {
             Alert(
                 title: Text(planetStore.alertTitle),

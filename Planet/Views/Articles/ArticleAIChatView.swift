@@ -4750,7 +4750,62 @@ struct ArticleAIChatView: View {
                 fallbackArticle: linkedArticle
             )
         }
-        // Keep the chat window open after navigating to a linked article
+        // Keep the chat window open after navigating to a linked article,
+        // but return focus to the main window so the article is visible.
+        focusMainPlanetWindow()
+    }
+
+    @MainActor
+    private func focusMainPlanetWindow() {
+        guard let mainWindow = mainPlanetWindow() else {
+            debugLog("focusMainPlanetWindow skipped: main Planet window not found")
+            return
+        }
+        focus(window: mainWindow)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            focus(window: mainWindow)
+        }
+    }
+
+    @MainActor
+    private func mainPlanetWindow() -> NSWindow? {
+        if let window = PlanetMainWindowFocus.shared.window {
+            return window
+        }
+
+        let candidateWindows = NSApp.windows.filter { window in
+            guard window.delegate is ArticleAIChatWindowController == false,
+                window is PlanetAIChatWindow == false,
+                window.windowController is ArticleAIChatWindowController == false,
+                window.windowController is PlanetAIChatWindowController == false
+            else {
+                return false
+            }
+            return true
+        }
+
+        if let window = candidateWindows.first(where: { $0.identifier?.rawValue == "planetMainWindow" }) {
+            return window
+        }
+
+        if let window = candidateWindows.first(where: { $0.className == "SwiftUI.AppKitWindow" }) {
+            return window
+        }
+
+        return candidateWindows.first(where: { $0.title == "Planet" })
+    }
+
+    @MainActor
+    private func focus(window: NSWindow) {
+        if window.isMiniaturized {
+            window.deminiaturize(nil)
+        }
+        if #available(macOS 14.0, *) {
+            NSApp.activate()
+        } else {
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        window.makeKeyAndOrderFront(nil)
     }
 
     private func encodeToDictionary<T: Encodable>(_ value: T) throws -> [String: Any] {
