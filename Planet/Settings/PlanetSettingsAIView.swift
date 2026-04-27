@@ -12,6 +12,10 @@ import FoundationModels
 #endif
 
 struct PlanetSettingsAIView: View {
+    private enum Layout {
+        static let secondaryRowLeadingInset: CGFloat = 8
+    }
+
     @State private var aiAPIBase: String = UserDefaults.standard.string(forKey: .settingsAIAPIBase) ?? ""
     @State private var aiAPIToken: String = ""
     @State private var isShowingToken: Bool = false
@@ -84,140 +88,183 @@ struct PlanetSettingsAIView: View {
     var body: some View {
         Form {
             Section {
-                TextField("API Base URL", text: $aiAPIBase)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: aiAPIBase) { newValue in
-                        UserDefaults.standard.set(newValue, forKey: .settingsAIAPIBase)
-                        scheduleCheck()
-                    }
-                if hasInsecureHTTPError {
-                    Text(AIEndpointSecurityPolicy.insecureHTTPErrorDescription)
-                        .font(.footnote)
-                        .foregroundStyle(.red)
-                        .padding(.top, 1)
-                        .padding(.bottom, 8)
-                }
+                PlanetSettingsContainer {
+                    VStack(alignment: .leading, spacing: PlanetSettingsSharedLayout.descriptionSpacing) {
+                        PlanetSettingsRow("API Base URL") {
+                            TextField("", text: $aiAPIBase)
+                                .textFieldStyle(.roundedBorder)
+                                .accessibilityLabel("API Base URL")
+                                .onChange(of: aiAPIBase) { newValue in
+                                    UserDefaults.standard.set(newValue, forKey: .settingsAIAPIBase)
+                                    scheduleCheck()
+                                }
+                        }
 
-                if ollamaDetected {
-                    HStack(spacing: 8) {
-                        StatusIndicatorView(state: .success)
-                        if isUsingOllama {
-                            Text("Using Ollama")
-                        } else {
-                            Text("Ollama detected on localhost")
-                            Spacer()
-                            Button("Use Ollama") {
-                                aiAPIBase = "http://localhost:11434/v1"
+                        if hasInsecureHTTPError {
+                            PlanetSettingsControlRow(alignment: .top) {
+                                Text(AIEndpointSecurityPolicy.insecureHTTPErrorDescription)
+                                    .font(.footnote)
+                                    .foregroundStyle(.red)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
                         }
-                    }
-                    .padding(.bottom, 4)
-                }
 
-                if lmStudioDetected {
-                    HStack(spacing: 8) {
-                        StatusIndicatorView(state: .success)
-                        if isUsingLMStudio {
-                            Text("Using LM Studio")
-                        } else {
-                            Text("LM Studio detected on localhost")
-                            Spacer()
-                            Button("Use LM Studio") {
-                                aiAPIBase = "http://localhost:1234/v1"
-                            }
-                        }
-                    }
-                    .padding(.bottom, 4)
-                }
-            }
-
-            Section {
-                ZStack {
-                    TextField("API Token", text: $aiAPIToken)
-                        .opacity(isShowingToken ? 1.0 : 0.0)
-                    SecureField("API Token", text: $aiAPIToken)
-                        .opacity(!isShowingToken ? 1.0 : 0.0)
-                    HStack {
-                        Spacer()
-                        Button {
-                            isShowingToken.toggle()
-                        } label: {
-                            Image(systemName: !isShowingToken ? "eye.slash" : "eye")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 14, height: 14, alignment: .center)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.horizontal, 8)
-                }
-                .textFieldStyle(.roundedBorder)
-                .onChange(of: aiAPIToken) { newValue in
-                    Task { @MainActor in
-                        do {
-                            if newValue.isEmpty {
-                                try KeychainHelper.shared.delete(forKey: .settingsAIAPIToken)
-                            } else {
-                                try KeychainHelper.shared.saveValue(newValue, forKey: .settingsAIAPIToken)
-                            }
-                        } catch {
-                            debugPrint("failed to save AI API token: \(error)")
-                        }
-                    }
-                    scheduleCheck()
-                }
-            }
-
-            Section {
-                TextField("Preferred Model", text: $aiPreferredModel)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($isModelFieldFocused)
-                    .onChange(of: aiPreferredModel) { newValue in
-                        UserDefaults.standard.set(newValue, forKey: .settingsAIPreferredModel)
-                        schedulePreferredModelCheck()
-                    }
-
-                if showSuggestions {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 0) {
-                            ForEach(filteredModelIDs, id: \.self) { modelID in
-                                Text(modelID)
-                                    .font(.system(.body, design: .monospaced))
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 5)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        aiPreferredModel = modelID
-                                        isModelFieldFocused = false
+                        if ollamaDetected {
+                            PlanetSettingsControlRow {
+                                HStack(spacing: 8) {
+                                    StatusIndicatorView(state: .success)
+                                    if isUsingOllama {
+                                        Text("Using Ollama")
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    } else {
+                                        Text("Ollama detected on localhost")
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        Spacer()
+                                        Button("Use Ollama") {
+                                            aiAPIBase = "http://localhost:11434/v1"
+                                        }
                                     }
-                                if modelID != filteredModelIDs.last {
-                                    Divider()
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.leading, Layout.secondaryRowLeadingInset)
+                            }
+                        }
+
+                        if lmStudioDetected {
+                            PlanetSettingsControlRow {
+                                HStack(spacing: 8) {
+                                    StatusIndicatorView(state: .success)
+                                    if isUsingLMStudio {
+                                        Text("Using LM Studio")
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    } else {
+                                        Text("LM Studio detected on localhost")
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        Spacer()
+                                        Button("Use LM Studio") {
+                                            aiAPIBase = "http://localhost:1234/v1"
+                                        }
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.leading, Layout.secondaryRowLeadingInset)
+                            }
+                        }
+                    }
+
+                    PlanetSettingsRow("API Token") {
+                        ZStack {
+                            TextField("", text: $aiAPIToken)
+                                .opacity(isShowingToken ? 1.0 : 0.0)
+                                .accessibilityHidden(!isShowingToken)
+                            SecureField("", text: $aiAPIToken)
+                                .opacity(!isShowingToken ? 1.0 : 0.0)
+                                .accessibilityHidden(isShowingToken)
+                            HStack {
+                                Spacer()
+                                Button {
+                                    isShowingToken.toggle()
+                                } label: {
+                                    Label(
+                                        isShowingToken ? "Hide API Token" : "Show API Token",
+                                        systemImage: !isShowingToken ? "eye.slash" : "eye"
+                                    )
+                                    .labelStyle(.iconOnly)
+                                    .font(.system(size: 14))
+                                    .frame(width: 14, height: 14, alignment: .center)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            .padding(.horizontal, 8)
+                        }
+                        .textFieldStyle(.roundedBorder)
+                        .accessibilityLabel("API Token")
+                        .onChange(of: aiAPIToken) { newValue in
+                            Task { @MainActor in
+                                do {
+                                    if newValue.isEmpty {
+                                        try KeychainHelper.shared.delete(forKey: .settingsAIAPIToken)
+                                    } else {
+                                        try KeychainHelper.shared.saveValue(newValue, forKey: .settingsAIAPIToken)
+                                    }
+                                } catch {
+                                    debugPrint("failed to save AI API token: \(error)")
                                 }
                             }
+                            scheduleCheck()
                         }
                     }
-                    .frame(maxHeight: 160)
-                    .background(Color(NSColor.controlBackgroundColor))
-                    .cornerRadius(6)
-                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
-                }
-            }
 
-            Section {
-                HStack(spacing: 8) {
-                    StatusIndicatorView(state: statusIndicatorState)
-                    statusLabel
-                }
-                .padding(.top, 4)
-            }
+                    VStack(alignment: .leading, spacing: PlanetSettingsSharedLayout.descriptionSpacing) {
+                        PlanetSettingsRow("Preferred Model") {
+                            TextField("", text: $aiPreferredModel)
+                                .textFieldStyle(.roundedBorder)
+                                .accessibilityLabel("Preferred Model")
+                                .focused($isModelFieldFocused)
+                                .onChange(of: aiPreferredModel) { newValue in
+                                    UserDefaults.standard.set(newValue, forKey: .settingsAIPreferredModel)
+                                    schedulePreferredModelCheck()
+                                }
+                        }
 
-            Section {
-                HStack(spacing: 8) {
-                    StatusIndicatorView(state: onDeviceAIState)
-                    onDeviceAIStatusLabel
+                        if showSuggestions {
+                            PlanetSettingsControlRow(alignment: .top) {
+                                ScrollView {
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        ForEach(filteredModelIDs, id: \.self) { modelID in
+                                            Button {
+                                                aiPreferredModel = modelID
+                                                isModelFieldFocused = false
+                                            } label: {
+                                                Text(modelID)
+                                                    .font(.system(.body, design: .monospaced))
+                                                    .padding(.horizontal, 4)
+                                                    .padding(.vertical, 5)
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                                    .contentShape(Rectangle())
+                                            }
+                                            .buttonStyle(.plain)
+                                            if modelID != filteredModelIDs.last {
+                                                Divider()
+                                            }
+                                        }
+                                    }
+                                }
+                                .frame(maxHeight: 160)
+                                .background(Color(NSColor.controlBackgroundColor))
+                                .cornerRadius(6)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                                )
+                                .padding(.leading, Layout.secondaryRowLeadingInset)
+                            }
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: PlanetSettingsSharedLayout.descriptionSpacing) {
+                        PlanetSettingsControlRow(alignment: .top) {
+                            HStack(spacing: 8) {
+                                StatusIndicatorView(state: statusIndicatorState)
+                                statusLabel
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(.leading, Layout.secondaryRowLeadingInset)
+                        }
+
+                        PlanetSettingsControlRow(alignment: .top) {
+                            HStack(alignment: .top, spacing: 8) {
+                                StatusIndicatorView(state: onDeviceAIState)
+                                onDeviceAIStatusLabel
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(.leading, Layout.secondaryRowLeadingInset)
+                        }
+                    }
+                    .padding(.top, 4)
                 }
-                .padding(.top, 4)
             }
 
             Spacer()

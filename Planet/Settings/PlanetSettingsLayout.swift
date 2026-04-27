@@ -12,8 +12,8 @@ enum PlanetSettingsSharedLayout {
     static let sectionSpacing: CGFloat = 24
     static let descriptionSpacing: CGFloat = 6
     static let buttonSpacing: CGFloat = 12
-    static let horizontalPadding: CGFloat = 20
-    static let verticalPadding: CGFloat = 20
+    static let horizontalPadding: CGFloat = 0
+    static let verticalPadding: CGFloat = 0
 }
 
 struct PlanetSettingsContainer<Content: View>: View {
@@ -56,6 +56,9 @@ struct PlanetSettingsRow<Content: View>: View {
     var body: some View {
         HStack(alignment: alignment, spacing: PlanetSettingsSharedLayout.columnSpacing) {
             Text(title)
+                .multilineTextAlignment(.trailing)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(width: PlanetSettingsSharedLayout.labelWidth, alignment: .trailing)
             content
                 .frame(maxWidth: .infinity, alignment: .leading)
