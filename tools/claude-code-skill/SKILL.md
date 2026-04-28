@@ -46,7 +46,7 @@ Be concise. Focus on what matters for future review. Omit sections if they don't
 
 ## 3. Save to Planet
 
-Run the save script. The title and summary must be passed as arguments. Use a heredoc for the summary to handle HTML safely:
+Run the save script. The title, summary, and session ID must be passed as arguments. Use `$TERM_SESSION_ID` as the session identifier — it is stable for the entire terminal session. Use a heredoc for the summary to handle HTML safely:
 
 ```bash
 TITLE="<the title>"
@@ -54,12 +54,12 @@ SUMMARY=$(cat <<'HTMLEOF'
 <the summary HTML>
 HTMLEOF
 )
-python3 tools/claude-code-skill/save_session.py "$TITLE" "$SUMMARY"
+python3 tools/claude-code-skill/save_session.py "$TITLE" "$SUMMARY" "$TERM_SESSION_ID"
 ```
 
 The script reads `tools/claude-code-skill/config.json` to find the Planet server and planet ID for the current project.
 
-The script will create a new article or update an existing one if the title matches.
+The script embeds the session ID in the article content and uses it to find existing articles from the same session. This means multiple `/save-session` calls in the same session update the same article, even if the title changes.
 
 ## 4. Confirm
 

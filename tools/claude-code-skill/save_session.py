@@ -38,14 +38,25 @@ def api_post(url, data):
         return json.loads(resp.read())
 
 
-def find_article(base_url, planet_id, title):
-    """Find an article by title in the planet. Returns article ID or None."""
-    url = f'{base_url}/v0/search?{urllib.parse.urlencode({"q": title})}'
+def find_article_by_session(base_url, planet_id, session_id):
+    """Find an article by session ID marker in content. Returns article ID or None."""
+    marker = f'claude-session:{session_id}'
+    url = f'{base_url}/v0/search?{urllib.parse.urlencode({"q": marker})}'
     results = api_get(url)
     for a in results.get('articles', []):
-        if a.get('title') == title and a.get('planetID') == planet_id:
-            return a.get('articleID')
+        if a.get('planetID') == planet_id:
+            article_id = a.get('articleID')
+            detail_url = f'{base_url}/v0/planets/my/{planet_id}/articles/{article_id}'
+            detail = api_get(detail_url)
+            if marker in detail.get('content', ''):
+                return article_id
     return None
+
+
+def stamp_content(content, session_id):
+    """Append a hidden session ID marker to the content."""
+    marker = f'<!-- claude-session:{session_id} -->'
+    return f'{content}\n{marker}'
 
 
 def create_article(base_url, planet_id, title, content, date=None):
@@ -57,20 +68,21 @@ def create_article(base_url, planet_id, title, content, date=None):
     return api_post(url, data)
 
 
-def update_article(base_url, planet_id, article_id, content):
-    """Update an existing article's content."""
+def update_article(base_url, planet_id, article_id, title, content):
+    """Update an existing article's title and content."""
     url = f'{base_url}/v0/planets/my/{planet_id}/articles/{article_id}'
-    return api_post(url, {'content': content})
+    return api_post(url, {'title': title, 'content': content})
 
 
 def main():
-    if len(sys.argv) < 3:
-        print('Usage: save_session.py <title> <summary_html> [date]', file=sys.stderr)
+    if len(sys.argv) < 4:
+        print('Usage: save_session.py <title> <summary_html> <session_id> [date]', file=sys.stderr)
         sys.exit(1)
 
     title = sys.argv[1]
     summary_html = sys.argv[2]
-    date = sys.argv[3] if len(sys.argv) > 3 else None
+    session_id = sys.argv[3]
+    date = sys.argv[4] if len(sys.argv) > 4 else None
 
     config = load_config()
     base_url = config['planet_server']
@@ -81,12 +93,13 @@ def main():
         print(f'No planet configured for {cwd}', file=sys.stderr)
         sys.exit(1)
 
-    article_id = find_article(base_url, planet_id, title)
+    content = stamp_content(summary_html, session_id)
+    article_id = find_article_by_session(base_url, planet_id, session_id)
     if article_id:
-        result = update_article(base_url, planet_id, article_id, summary_html)
+        result = update_article(base_url, planet_id, article_id, title, content)
         print(f'Updated: {result.get("title")} (id: {article_id})')
     else:
-        result = create_article(base_url, planet_id, title, summary_html, date)
+        result = create_article(base_url, planet_id, title, content, date)
         print(f'Created: {result.get("title")} (id: {result.get("id")})')
 
 
