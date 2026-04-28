@@ -2939,6 +2939,8 @@ struct ArticleAIChatView: View {
         var lastTextDeltaCallbackTime: CFAbsoluteTime = 0
         let textDeltaThrottleInterval: CFAbsoluteTime = 0.08
         var ignoredChunkWithoutChoicesCount = 0
+        let gemmaThinkingPrefix = "thought\n<channel|>"
+        var gemmaThinkingPrefixResolved = false
 
         debugLog("sse parser start fallbackModel=\(fallbackModel)")
 
@@ -3026,6 +3028,21 @@ struct ArticleAIChatView: View {
                 return
             }
             streamedText += text
+
+            if !gemmaThinkingPrefixResolved {
+                if gemmaThinkingPrefix.hasPrefix(streamedText) {
+                    return
+                }
+                gemmaThinkingPrefixResolved = true
+                if streamedText.hasPrefix(gemmaThinkingPrefix) {
+                    streamedText = String(streamedText.dropFirst(gemmaThinkingPrefix.count))
+                    debugLog("sse stripped Gemma thinking prefix during streaming, remainingLength=\(streamedText.count)")
+                    guard !streamedText.isEmpty else {
+                        return
+                    }
+                }
+            }
+
             if let onTextDelta {
                 let now = CFAbsoluteTimeGetCurrent()
                 guard now - lastTextDeltaCallbackTime >= textDeltaThrottleInterval else {
@@ -3451,8 +3468,15 @@ struct ArticleAIChatView: View {
                 ]
             }
 
+        if streamedText.hasPrefix(gemmaThinkingPrefix) {
+            streamedText = String(streamedText.dropFirst(gemmaThinkingPrefix.count))
+            debugLog("sse stripped Gemma thinking prefix (post-stream), remainingLength=\(streamedText.count)")
+        }
+
+        let hasToolCalls = !openAIToolCalls.isEmpty || !anthropicToolOrder.isEmpty
         let isReasoningResponse =
-            streamedText.isEmpty && !streamedReasoning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            !hasToolCalls && streamedText.isEmpty
+                && !streamedReasoning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         if isReasoningResponse {
             streamedText = streamedReasoning
             debugLog("sse using reasoning as fallback content, reasoningLength=\(streamedText.count)")
