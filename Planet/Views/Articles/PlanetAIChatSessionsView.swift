@@ -110,7 +110,7 @@ class PlanetAIChatSessionStore: ObservableObject {
             return
         }
 
-        selectedSessionID = sessions.first?.id
+        selectedSessionID = sessions.last?.id
         saveSelectedSessionID()
     }
 
@@ -175,7 +175,7 @@ struct PlanetAIChatSessionSidebar: View {
 
     var body: some View {
         List(selection: $store.selectedSessionID) {
-            ForEach(store.sessions) { session in
+            ForEach(store.sessions.sorted(by: { $0.createdAt > $1.createdAt })) { session in
                 PlanetAIChatSessionSidebarRow(session: session, sessionToDelete: $sessionToDelete)
                     .tag(session.id)
                     .contextMenu {
