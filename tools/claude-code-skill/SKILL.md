@@ -46,15 +46,16 @@ Be concise. Focus on what matters for future review. Omit sections if they don't
 
 ## 3. Save to Planet
 
-Run the save script. The title, summary, and session ID must be passed as arguments. Use `$TERM_SESSION_ID` as the session identifier — it is stable for the entire terminal session. Use a heredoc for the summary to handle HTML safely:
+Run the save script. The title, summary, and session ID must be passed as arguments. The current Claude Code session ID is: ${CLAUDE_SESSION_ID}. Pass this value as a literal string (not as a shell variable). Use a heredoc for the summary to handle HTML safely:
 
 ```bash
 TITLE="<the title>"
+SESSION_ID="<the Claude Code session ID shown above>"
 SUMMARY=$(cat <<'HTMLEOF'
 <the summary HTML>
 HTMLEOF
 )
-python3 tools/claude-code-skill/save_session.py "$TITLE" "$SUMMARY" "$TERM_SESSION_ID"
+python3 tools/claude-code-skill/save_session.py "$TITLE" "$SUMMARY" "$SESSION_ID"
 ```
 
 The script reads `tools/claude-code-skill/config.json` to find the Planet server and planet ID for the current project.
