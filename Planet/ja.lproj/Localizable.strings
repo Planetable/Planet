@@ -309,6 +309,8 @@
 "Copy IPNS" = "IPNSをコピー";
 "Show IPNS and CID" = "IPNSとCIDを表示";
 "Share via AirDrop" = "AirDropで共有";
+"Export Article" = "記事をエクスポート";
+"Export Post" = "投稿をエクスポート";
 "Archive Planet" = "Planetをアーカイブ";
 "Save as Planet Data File" = "Planetデータファイルとして保存";
 "Delete Planet" = "Planetを削除";

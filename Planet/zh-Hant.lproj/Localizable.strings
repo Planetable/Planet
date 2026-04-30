@@ -309,6 +309,8 @@
 "Copy IPNS" = "複製 IPNS";
 "Show IPNS and CID" = "顯示 IPNS 和 CID";
 "Share via AirDrop" = "透過 AirDrop 分享";
+"Export Article" = "匯出文章";
+"Export Post" = "匯出貼文";
 "Archive Planet" = "封存網站";
 "Save as Planet Data File" = "儲存為 Planet 資料檔案";
 "Delete Planet" = "刪除網站";

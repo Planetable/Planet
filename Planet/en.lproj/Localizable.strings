@@ -309,6 +309,8 @@
 "Copy IPNS" = "";
 "Show IPNS and CID" = "";
 "Share via AirDrop" = "";
+"Export Article" = "Export Article";
+"Export Post" = "Export Post";
 "Archive Planet" = "";
 "Save as Planet Data File" = "";
 "Delete Planet" = "";
