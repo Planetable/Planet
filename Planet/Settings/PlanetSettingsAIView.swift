@@ -166,7 +166,7 @@ struct PlanetSettingsAIView: View {
                                     isShowingToken.toggle()
                                 } label: {
                                     Label(
-                                        isShowingToken ? "Hide API Token" : "Show API Token",
+                                        isShowingToken ? L10n("Hide API Token") : L10n("Show API Token"),
                                         systemImage: !isShowingToken ? "eye.slash" : "eye"
                                     )
                                     .labelStyle(.iconOnly)
@@ -392,11 +392,11 @@ struct PlanetSettingsAIView: View {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let http = response as? HTTPURLResponse else {
-                await MainActor.run { setModelStatus(.error("Invalid response")) }
+                await MainActor.run { setModelStatus(.error(L10n("Invalid response"))) }
                 return
             }
             guard http.statusCode == 200 else {
-                await MainActor.run { setModelStatus(.error("HTTP \(http.statusCode)")) }
+                await MainActor.run { setModelStatus(.error(L10n("HTTP %d", http.statusCode))) }
                 return
             }
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]

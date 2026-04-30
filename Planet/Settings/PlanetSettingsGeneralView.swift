@@ -207,8 +207,10 @@ struct PlanetSettingsGeneralView: View {
             let alert = NSAlert()
             alert.messageText = L10n("Existing Planet Library Found")
             alert.alertStyle = .warning
-            alert.informativeText =
-                "Would you like to use new library location at: \(url.path), current database including following planets will be replaced with contents at this location."
+            alert.informativeText = L10n(
+                "Would you like to use new library location at: %@, current database including following planets will be replaced with contents at this location.",
+                url.path
+            )
             alert.addButton(withTitle: L10n("Cancel"))
             alert.addButton(withTitle: L10n("Continue & Update"))
             let result = alert.runModal()

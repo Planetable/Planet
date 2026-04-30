@@ -144,7 +144,7 @@ struct MintSettings: View {
             }
             else if key.hasPrefix("label:") {
                 HStack {
-                    Text(key.replacingOccurrences(of: "label:", with: ""))
+                    Text(L10n(key.replacingOccurrences(of: "label:", with: "")))
                         .font(.body)
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -158,7 +158,7 @@ struct MintSettings: View {
                         // You can get more logo images from:
                         // https://cryptologos.cc/ethereum
                         cryptoLogo(key)
-                        Text("\(settings[key]?.name ?? key)")
+                        Text(L10n(settings[key]?.name ?? key))
                         Spacer()
                     }
                     .frame(width: CONTROL_CAPTION_WIDTH)
@@ -177,7 +177,7 @@ struct MintSettings: View {
                         .frame(width: CONTROL_CAPTION_WIDTH + 10)
 
                         Text(
-                            description
+                            L10n(description)
                         )
                         .font(.footnote)
                         .foregroundColor(.secondary)

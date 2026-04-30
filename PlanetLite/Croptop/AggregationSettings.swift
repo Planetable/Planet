@@ -88,7 +88,7 @@ struct AggregationSettings: View {
 
                         HStack {
                             Text(
-                                "Reuse post IDs from the sources if you trust the sources. The can keep IDs in URL consistent."
+                                "Reuse post IDs from the sources if you trust them. This can keep post IDs in URLs consistent."
                             )
                             .lineLimit(4)
                             .font(.footnote)

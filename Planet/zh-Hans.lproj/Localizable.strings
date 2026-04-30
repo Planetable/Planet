@@ -158,20 +158,20 @@
 "More" = "更多";
 "Toggle Inspector View" = "切换检查器视图";
 "Connected with %@" = "连接于 %@";
-"Failed to Change Library Location" = "更改库位置失败";
+"Failed to Change Library Location" = "更改数据文件位置失败";
 "Change" = "更改";
 "Reset" = "重置";
 "Public Gateway" = "公共网关";
 "Ethereum Network" = "Ethereum 网络";
 "Unknown Chain ID" = "未知链 ID";
-"Choose Library Location" = "选择库位置";
+"Choose Library Location" = "选择数据文件位置";
 "Choose" = "选择";
-"Existing Planet Library Found" = "数据文件已存在";
-"Continue & Update" = "继续更新";
+"Existing Planet Library Found" = "找到现有 Planet 数据文件";
+"Continue & Update" = "继续并更新";
 "General" = "通用";
-"Planets" = "归档";
-"Archived My Planet" = "归档我的网站";
-"Archived Following Planet" = "归档以下网站";
+"Planets" = "网站";
+"Archived My Planet" = "已归档的个人网站";
+"Archived Following Planet" = "已归档的关注网站";
 "Unarchive" = "取消归档";
 "Enable Public API" = "启用公共 API";
 "Require Authentication" = "需要身份验证";
@@ -379,18 +379,18 @@
 
 "Are you sure you want to unfollow this planet?" = "确定要取消关注这个 Planet 吗？";
 
-"Here are your archived Planets. Archived planets are not auto published or updated. You can unarchive them from here." = "这里是你归档的 Planet。归档的 Planet 不会自动发布或更新。你可以在这里取消归档。";
+"Here are your archived Planets. Archived planets are not auto published or updated. You can unarchive them from here." = "这些是已归档的网站。已归档的网站不会自动发布或更新。你可以在这里取消归档。";
 
 
 "Are you sure you want to delete %@? This action cannot be undone." = "确定要删除 %@ 吗？此操作无法撤销。";
 
 "Are you sure you want to delete this post?\n\n%@?\n\nThis action cannot be undone." = "确定要删除这篇帖子吗？\n\n%@\n\n此操作无法撤销。";
 
-"Would you like to use new library location at" = "是否要使用新的文件库位置";
+"Would you like to use new library location at" = "是否要使用新的数据文件位置：";
 
-"current database including following planets will be replaced with contents at this location" = "当前数据库（包括以下网站）将替换为该位置的内容";
+"current database including following planets will be replaced with contents at this location" = "当前数据库（包括关注的网站）将被此位置中的内容替换。";
 
-"When you tip a creator, transactions will be sent to the selected Ethereum network." = "向内容创作者打赏时，交易会发送到所选的 Ethereum 网络。";
+"When you tip a creator, transactions will be sent to the selected Ethereum network." = "打赏创作者时，交易会发送到所选的 Ethereum 网络。";
 
 "Are you sure you want to archive this planet? Archived planets will not be auto updated. You can later unarchive it from settings." = "确定要归档这个 Planet 吗？归档的 Planet 不会自动更新。之后可以在设置中取消归档。";
 
@@ -582,9 +582,9 @@
 "Planet Internal Error" = "Planet 内部错误";
 "Play Audio" = "播放音频";
 "Please enter an integer" = "请输入整数";
-"Pop up log window when a publishing error occurs" = "发布错误时弹出日志窗口";
+"Pop up log window when a publishing error occurs" = "发布错误时显示日志窗口";
 "Preferred Model" = "首选模型";
-"Prevent computer sleep when the app is running" = "应用运行时防止电脑睡眠";
+"Prevent computer sleep when the app is running" = "应用运行时防止电脑进入睡眠状态";
 "Preview" = "预览";
 "Previously Used Tags" = "以前使用过的标签";
 "Prewarm new post on public gateways" = "在公共网关预热新帖子";
@@ -665,7 +665,7 @@
 "Using Ollama" = "正在使用 Ollama";
 "Visit Juicebox Project" = "访问 Juicebox 项目";
 "Wait" = "等待";
-"Warn before quit" = "退出前警告";
+"Warn before quit" = "退出前显示警告";
 "Welcome to your websites on your Mac" = "欢迎来到 Mac 上的个人网站";
 "Would you also like to change the app's icon in Finder? This requires granting Planet access to modify its application file." = "是否也要更改 Finder 中的应用图标？这需要授予 Planet 修改其应用文件的权限。";
 "Writer Unsupported Attachment Type Error" = "编辑器不支持的附件类型错误";
@@ -926,3 +926,22 @@
 "Audio" = "音频";
 "Document" = "文档";
 "Attachment" = "附件";
+"Hide API Token" = "隐藏 API 令牌";
+"HTTP %d" = "HTTP %d";
+"HTTP AI endpoints are only allowed for localhost, 127.0.0.0/8, 10.0.0.0/8, 100.0.0.0/8, and 192.168.0.0/16. Use HTTPS for other hosts." = "AI 的 HTTP 端点仅允许用于 localhost、127.0.0.0/8、10.0.0.0/8、100.0.0.0/8 和 192.168.0.0/16。其他主机请使用 HTTPS。";
+"IPFS Public Gateway" = "IPFS 公共网关";
+"Invalid response" = "响应无效";
+"Invalid URL" = "URL 无效";
+"Show API Token" = "显示 API 令牌";
+"Warn before quitting Planet when there are publishing tasks in progress." = "有发布任务正在进行时，退出 Planet 前显示警告。";
+"When enabled, Planet automatically opens the relevant log window after a publishing error. Off by default." = "启用后，Planet 会在发布错误后自动打开相关日志窗口。默认关闭。";
+"Would you like to use new library location at: %@, current database including following planets will be replaced with contents at this location." = "是否要使用新的数据文件位置：%@？当前数据库（包括关注的 Planet）将被此位置中的内容替换。";
+"Advanced" = "高级";
+"Aggregate Now" = "立即聚合";
+"Contract address of the collection." = "合集的合约地址。";
+"If you want to use a different RPC endpoint, please enter it below." = "如果要使用其他 RPC 端点，请在下方输入。";
+"Monetization" = "变现";
+"Please enter the sites you wish to aggregate, listing one per line. You can use ENS (Ethereum Name Service) or IPNS (InterPlanetary Name System) addresses. If you want to aggregate RSS, Atom, or JSON feeds, provide the full URL." = "请输入要聚合的站点，每行一个。你可以使用 ENS（Ethereum Name Service）或 IPNS（InterPlanetary Name System）地址。如果要聚合 RSS、Atom 或 JSON Feed，请提供完整 URL。";
+"Reuse post IDs from the sources if you trust them. This can keep post IDs in URLs consistent." = "如果信任来源，可以复用来源中的帖子 ID。这样可让 URL 中的帖子 ID 保持一致。";
+"Sites" = "站点";
+"Trust and reuse original IDs" = "信任来源并复用原始 ID";

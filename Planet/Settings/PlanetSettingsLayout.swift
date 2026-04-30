@@ -55,7 +55,7 @@ struct PlanetSettingsRow<Content: View>: View {
 
     var body: some View {
         HStack(alignment: alignment, spacing: PlanetSettingsSharedLayout.columnSpacing) {
-            Text(title)
+            Text(L10n(title))
                 .multilineTextAlignment(.trailing)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
@@ -99,7 +99,7 @@ struct PlanetSettingsDescriptionRow: View {
 
     var body: some View {
         PlanetSettingsControlRow(alignment: .top) {
-            Text(text)
+            Text(L10n(text))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)

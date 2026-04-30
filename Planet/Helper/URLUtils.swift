@@ -117,8 +117,9 @@ struct AIEndpointSecurityPolicy {
         (network: 0xC0A80000, mask: 0xFFFF0000),
     ]
 
-    static let insecureHTTPErrorDescription =
+    static let insecureHTTPErrorDescription = L10n(
         "HTTP AI endpoints are only allowed for localhost, 127.0.0.0/8, 10.0.0.0/8, 100.0.0.0/8, and 192.168.0.0/16. Use HTTPS for other hosts."
+    )
 
     static func modelsURL(base: String) throws -> URL {
         try endpointURL(base: base, pathComponents: ["models"])
@@ -131,13 +132,13 @@ struct AIEndpointSecurityPolicy {
     private static func endpointURL(base: String, pathComponents: [String]) throws -> URL {
         let trimmedBase = base.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let baseURL = URL(string: trimmedBase) else {
-            throw validationError("Invalid URL")
+            throw validationError(L10n("Invalid URL"))
         }
         guard let scheme = baseURL.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
-            throw validationError("Invalid URL")
+            throw validationError(L10n("Invalid URL"))
         }
         guard let host = baseURL.host?.lowercased(), !host.isEmpty else {
-            throw validationError("Invalid URL")
+            throw validationError(L10n("Invalid URL"))
         }
         if scheme == "http" && !isAllowedInsecureHost(host) {
             throw validationError(insecureHTTPErrorDescription)
