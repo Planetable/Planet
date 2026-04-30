@@ -128,7 +128,7 @@ struct MyArticleItemView: View {
                     }
                 }
 
-                Menu("Star") {
+                Menu("Add Star") {
                     ArticleSetStarView(article: article)
                 }
                 if article.starred != nil {

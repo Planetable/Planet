@@ -82,7 +82,7 @@ struct FollowingArticleItemView: View {
                 } label: {
                     Text("Delete Article")
                 }
-                Menu("Star") {
+                Menu("Add Star") {
                     ArticleSetStarView(article: article)
                 }
                 if article.starred != nil {
