@@ -1,0 +1,416 @@
+/*
+  Localizable.strings
+  Planet
+  
+*/
+
+"Planet" = "Planet";
+
+// MARK: - Menu
+
+"Writer" = "エディタ";
+"Tools" = "ツール";
+"Template Browser" = "テンプレートブラウザ";
+"Downloads" = "ダウンロード";
+"Publish My Planets" = "自分のPlanetを公開";
+"Update Following Planets" = "フォロー中のPlanetを更新";
+"Reload Planets" = "Planetを再読み込み";
+"Failed to Rebuild Planet" = "Planetの再構築に失敗";
+"Rebuild Planet" = "Planetを再構築";
+"Import Planet" = "Planetをインポート";
+"Insert from iPhone or iPad" = "iPhoneまたはiPadから挿入";
+"Library Location" = "ライブラリの場所";
+"Choose Planet Data" = "Planetデータを選択";
+
+// MARK: - PlanetSidebarView
+
+"Smart Feeds" = "スマートフィード";
+"Today" = "今日";
+"Unread" = "未読";
+"Starred" = "スター付き";
+"My Planets" = "自分のPlanet";
+"Following Planets" = "フォロー中のPlanet";
+"Offline" = "オフライン";
+"Online" = "オンライン";
+"Create Planet" = "Planetを作成";
+"Follow Planet" = "Planetをフォロー";
+
+// MARK: - Article List
+
+"articles" = "記事";
+"total" = "合計";
+"unread" = "未読";
+"fetched today" = "今日取得";
+"Show All" = "すべて表示";
+"Show Pages" = "ページを表示";
+"Show Navigation Items" = "ナビゲーション項目を表示";
+"Show Unread" = "未読を表示";
+"Show All Starred" = "スター付きをすべて表示";
+"No Articles" = "記事はありません";
+"No Pages" = "ページはありません";
+"No Navigation Items" = "ナビゲーション項目はありません";
+"No Unread Articles" = "未読の記事はありません";
+"No Starred Articles" = "スター付きの記事はありません";
+"No Items with Plan Type" = "計画タイプの項目はありません";
+"No Items with To Do Type" = "To Doタイプの項目はありません";
+"No Items with Done Type" = "完了タイプの項目はありません";
+"No Items with Sparkles Type" = "きらめきタイプの項目はありません";
+"No Items with Heart Type" = "ハートタイプの項目はありません";
+"No Items with Question Type" = "質問タイプの項目はありません";
+"No Items with Paperplane Type" = "紙飛行機タイプの項目はありません";
+"Mark as Read" = "既読にする";
+"Mark as Unread" = "未読にする";
+"Delete Article" = "記事を削除";
+"Remove Star" = "スターを外す";
+"Star" = "スター";
+"Sparkles" = "きらめき";
+"Heart" = "ハート";
+"Question" = "質問";
+"Paperplane" = "紙飛行機";
+"Plan" = "計画";
+"To Do" = "To Do";
+"Done" = "完了";
+
+"Copy Public Link" = "公開リンクをコピー";
+"Open in Browser" = "ブラウザで開く";
+"Copy Link" = "リンクをコピー";
+"Failed to Create Post" = "投稿の作成に失敗";
+"More Actions" = "その他の操作";
+"Displays available actions" = "利用可能な操作を表示します";
+"Publishing" = "公開中";
+"Folder is missing" = "フォルダが見つかりません";
+"Open in Public Gateway" = "パブリックゲートウェイで開く";
+"Open in Local Gateway" = "ローカルゲートウェイで開く";
+"Reveal in Finder" = "Finderに表示";
+"Publish" = "公開";
+"Backup Folder Key" = "フォルダキーをバックアップ";
+"Remove" = "削除";
+"Add Folder" = "フォルダを追加";
+"Dashboard" = "ダッシュボード";
+"Check for Updates" = "アップデートを確認";
+"Updating" = "更新中";
+"Disconnect Wallet" = "ウォレットを切断";
+"Connect Wallet" = "ウォレットを接続";
+"Connect Wallet V2" = "ウォレットV2を接続";
+
+"Send" = "送信";
+"Insert Emoji" = "絵文字を挿入";
+"Attach Photo" = "写真を添付";
+"Attach Video" = "ビデオを添付";
+"Attach Audio" = "オーディオを添付";
+"Remove Attachments" = "添付ファイルを削除";
+"Failed to import planet" = "Planetのインポートに失敗";
+"Published Folders" = "公開済みフォルダ";
+"Options" = "オプション";
+"Automatically Publish" = "自動公開";
+"Nostalgia" = "ノスタルジア";
+"Published" = "公開済み";
+"Date" = "日付";
+"Amount" = "金額";
+"Recipient" = "受取人";
+
+// MARK: - Key Manager
+
+"Key Manager" = "キーマネージャ";
+"Sync" = "同期";
+"Sync with Keychain" = "キーチェーンと同期";
+"Reload" = "再読み込み";
+"Reload Planet Keys" = "Planetキーを再読み込み";
+"Import" = "インポート";
+"Import Planet Key" = "Planetキーをインポート";
+"Export" = "エクスポート";
+"Export Planet Key" = "Planetキーをエクスポート";
+"Keystore Status" = "キーストアの状態";
+"In Keystore" = "キーストア内";
+"Not in Keystore" = "キーストア外";
+"Keychain Status" = "キーチェーンの状態";
+"In Keychain" = "キーチェーン内";
+"Not in Keychain" = "キーチェーン外";
+"Key Name" = "キー名";
+"Key ID" = "キーID";
+
+"Time" = "時刻";
+"Now" = "今";
+"Set" = "設定";
+
+// MARK: - Icon Gallery
+
+"Change App Icon" = "アプリアイコンを変更";
+
+// MARK: - Published Folders
+
+"Publish Folder" = "フォルダを公開";
+"Remove Folder" = "フォルダを削除";
+"Published Folders Dashboard" = "公開済みフォルダのダッシュボード";
+"Never Published" = "未公開";
+"Last Published" = "前回の公開";
+"No Published Folder Selected" = "公開済みフォルダが選択されていません";
+
+"Folder is in publishing progress, please try again later." = "フォルダを公開中です。後でもう一度お試しください。";
+"Folder Published" = "フォルダを公開しました";
+"Folder content hasn't changed since last publish." = "前回の公開以降、フォルダの内容は変更されていません。";
+"Failed to Publish Folder" = "フォルダの公開に失敗";
+"Failed to Remove Folder" = "フォルダの削除に失敗";
+"Toggle Sidebar" = "サイドバーを切り替え";
+"Backward" = "戻る";
+"Forward" = "進む";
+"Home" = "ホーム";
+"More" = "その他";
+"Toggle Inspector View" = "インスペクタ表示を切り替え";
+"Connected with %@" = "接続済み: %@";
+"Failed to Change Library Location" = "ライブラリの場所の変更に失敗";
+"Change" = "変更";
+"Reset" = "リセット";
+"Public Gateway" = "パブリックゲートウェイ";
+"Ethereum Network" = "Ethereumネットワーク";
+"Unknown Chain ID" = "不明なチェーンID";
+"Choose Library Location" = "ライブラリの場所を選択";
+"Choose" = "選択";
+"Existing Planet Library Found" = "既存のPlanetライブラリが見つかりました";
+"Continue & Update" = "続行して更新";
+"General" = "一般";
+"Planets" = "Planet";
+"Archived My Planet" = "アーカイブした自分のPlanet";
+"Archived Following Planet" = "アーカイブしたフォロー中のPlanet";
+"Unarchive" = "アーカイブ解除";
+"Enable Public API" = "パブリックAPIを有効にする";
+"Require Authentication" = "認証を要求";
+"API Key" = "APIキー";
+"API Server Port" = "APIサーバポート";
+"API Server Username" = "APIサーバユーザー名";
+"API Server Passcode" = "APIサーバパスコード";
+"Failed to create planet" = "Planetの作成に失敗";
+"Enable custom code inside <head></head>" = "<head></head>内のカスタムコードを有効にする";
+"Head" = "head";
+"Body Start" = "body先頭";
+"Body End" = "body末尾";
+"Enable custom code after the start of <body>" = "<body>開始直後のカスタムコードを有効にする";
+"Enable custom code before </body>" = "</body>直前のカスタムコードを有効にする";
+"Clear" = "クリア";
+"Follow" = "フォロー";
+"New Planet" = "新規Planet";
+"New Site" = "新規サイト";
+"Name" = "名前";
+"Create" = "作成";
+"Failed to follow planet" = "Planetのフォローに失敗";
+"This ENS has no contenthash." = "このENSにはcontenthashがありません。";
+"Unable to follow planet" = "Planetをフォローできません";
+"Following %@" = "%@をフォロー中";
+"Failed to send article:" = "記事の送信に失敗しました:";
+"Failed to delete article:" = "記事の削除に失敗しました:";
+"Save Draft" = "下書きを保存";
+"Delete Draft" = "下書きを削除";
+"Failed to Access to Folder" = "フォルダへのアクセスに失敗";
+"Choose attachments to publish" = "公開する添付ファイルを選択";
+"Choose Folder to Publish" = "公開するフォルダを選択";
+"Failed to Add Folder" = "フォルダの追加に失敗";
+"Selected folder has already been added." = "選択したフォルダはすでに追加されています。";
+"Failed to Export Folder Key" = "フォルダキーのエクスポートに失敗";
+"Folder key doesn't exist, please make sure this folder has been successfully published." = "フォルダキーが存在しません。このフォルダが正常に公開されていることを確認してください。";
+"Choose Directory to Save Folder Key" = "フォルダキーを保存するディレクトリを選択";
+"Choose location to save planet key" = "Planetキーの保存先を選択";
+"Choose key file to import" = "インポートするキーファイルを選択";
+"Failed to Import Planet Key" = "Planetキーのインポートに失敗";
+"Failed to Export Planet Key" = "Planetキーのエクスポートに失敗";
+"Failed to Sync Planet Key to Keychain" = "Planetキーをキーチェーンに同期できませんでした";
+"Article Slug Issue" = "記事スラッグの問題";
+"Failed to Export Planet" = "Planetのエクスポートに失敗";
+"There is already an exported Planet in the destination." = "保存先にはすでにエクスポート済みのPlanetがあります。";
+"We do not recommend override your backup." = "バックアップの上書きはおすすめしません。";
+"Please choose another destination, or rename your previous backup." = "別の保存先を選択するか、以前のバックアップ名を変更してください。";
+"The slug is already used by" = "このスラッグはすでに使用されています:";
+"Please choose a different slug" = "別のスラッグを選択してください";
+"Please try again." = "もう一度お試しください。";
+"Failed to Start AirDrop Service" = "AirDropサービスの開始に失敗";
+"Cover Art" = "カバーアート";
+"Language" = "言語";
+"Podcast contains explicit contents" = "Podcastに成人向けコンテンツが含まれています";
+"Categories" = "カテゴリ";
+"more" = "その他";
+
+// Errors
+"Persistence Error" = "永続化エラー";
+"Network Error" = "ネットワークエラー";
+"IPFS Error" = "IPFSエラー";
+"Ethereum Error" = "Ethereumエラー";
+"Planet Feed Error"= "Planetフィードエラー";
+"Planet Exists Error"= "Planetがすでに存在します";
+"Planet Not Exists Error"= "Planetが存在しません";
+"Missing Template Error"= "テンプレートが見つかりません";
+"Missing Planet Key Error"= "Planetキーが見つかりません";
+"Avatar Error"= "アバターエラー";
+"Podcast Cover Art Error"= "Podcastカバーアートエラー";
+"Import Planet Error"= "Planetインポートエラー";
+"Export Planet Error"= "Planetエクスポートエラー";
+"File Exists Error"= "ファイルがすでに存在します";
+"Follow Local Planet Error"= "ローカルPlanetのフォローエラー";
+"Follow Planet Verify Error"= "Planetフォロー確認エラー";
+"Invalid Planet URL Error"= "無効なPlanet URLエラー";
+"ENS No Content Hash Error"= "ENSにcontenthashがありません";
+"DotBit No DWeb Record Error"= "DotBitにDWebレコードがありません";
+"DotBit IPNS Resolve Error"= "DotBit IPNS解決エラー";
+"Render Markdown Error"= "Markdownレンダリングエラー";
+"Published Service Folder Unchanged Error"= "公開サービスフォルダに変更はありません";
+"Published Service Folder Permission Error"= "公開サービスフォルダの権限エラー";
+"Move Publishing Planet Article Error"= "公開中Planet記事の移動エラー";
+"Wallet Connect V2 Project ID Missing Error"= "Wallet Connect V2のプロジェクトIDが見つかりません";
+"Public API Error"= "パブリックAPIエラー";
+"Key Manager Saving Key Error"= "キーマネージャのキー保存エラー";
+"Key Manager Loading Key Error"= "キーマネージャのキー読み込みエラー";
+"Key Manager Deleting Key Error"= "キーマネージャのキー削除エラー";
+"Key Manager Generating Key Error"= "キーマネージャのキー生成エラー";
+"Key Manager Importing Key Error"= "キーマネージャのキーインポートエラー";
+"Key Manager Importing Key Exists Error"= "キーマネージャのインポート対象キーはすでに存在します";
+"Key Manager Exporting Key Exists Error"= "キーマネージャのエクスポート先キーはすでに存在します";
+"Internal Error" = "内部エラー";
+
+
+"New Post" = "新規投稿";
+"Add Attachments" = "添付ファイルを追加";
+"Or drag and drop images here." = "または、ここに画像をドラッグ＆ドロップしてください。";
+"Cancel" = "キャンセル";
+"Post" = "投稿";
+"Please scan the QR code with your wallet app" = "ウォレットアプリでQRコードをスキャンしてください";
+"Copy URL" = "URLをコピー";
+"Copied" = "コピーしました";
+"Disconnect" = "切断";
+"OK" = "OK";
+"Please select the amount" = "金額を選択してください";
+"Are you sure you want to disconnect?" = "接続を解除してもよろしいですか？";
+"Share" = "共有";
+"Delete" = "削除";
+
+
+"Edit" = "編集";
+"Title" = "タイトル";
+"External Link" = "外部リンク";
+"Type" = "タイプ";
+"Blog" = "ブログ";
+"Page" = "ページ";
+"Basic" = "基本";
+"Slug" = "スラッグ";
+"Tags" = "タグ";
+"Add a Tag" = "タグを追加";
+"Add" = "追加";
+"Navigation Weight" = "ナビゲーション表示順";
+"Navigation" = "ナビゲーション";
+
+"Are you sure you want to delete this article?" = "この記事を削除してもよろしいですか？";
+"Move Article to" = "記事の移動先";
+"Edit Article" = "記事を編集";
+"Settings" = "設定";
+"Template Settings" = "テンプレート設定";
+"Save" = "保存";
+"New Article" = "新規記事";
+"Edit Planet" = "Planetを編集";
+"Custom Code" = "カスタムコード";
+"Podcast Settings" = "Podcast設定";
+"Copy IPNS" = "IPNSをコピー";
+"Show IPNS and CID" = "IPNSとCIDを表示";
+"Share via AirDrop" = "AirDropで共有";
+"Archive Planet" = "Planetをアーカイブ";
+"Save as Planet Data File" = "Planetデータファイルとして保存";
+"Delete Planet" = "Planetを削除";
+
+"Archive" = "アーカイブ";
+"Open in WorldWideWeb Server" = "WorldWideWeb Serverで開く";
+"Rebuild" = "再構築";
+"Check with Pinnable" = "Pinnableで確認";
+"Export Planet" = "Planetをエクスポート";
+"Publish Planet" = "Planetを公開";
+"Domain" = "ドメイン";
+"API Server" = "APIサーバ";
+"Analytics" = "アナリティクス";
+"Social" = "ソーシャル";
+"API Endpoint" = "APIエンドポイント";
+"Pin Status" = "ピン留めの状態";
+"Pin Name" = "ピン留め名";
+"API Token" = "APIトークン";
+"Request ID" = "リクエストID";
+"Site Name" = "サイト名";
+"About" = "概要";
+
+"Author Name" = "著者名";
+"Template" = "テンプレート";
+"Basic Info" = "基本情報";
+"Pinning" = "ピン留め";
+"Project ID" = "プロジェクトID";
+"Project ID (Goerli)" = "プロジェクトID（Goerli）";
+"Integrations" = "連携";
+"Enable Pinnable for Pinning" = "ピン留めにPinnableを使用";
+"Enable Filebase for Pinning" = "ピン留めにFilebaseを使用";
+"Enable Juicebox Integration" = "Juicebox連携を有効にする";
+"Enable Plausible for Traffic Analytics" = "トラフィック分析にPlausibleを使用";
+"Enable dWebServices.xyz for IPNS" = "IPNSにdWebServices.xyzを使用";
+
+"Visitors Today" = "本日の訪問者";
+"Pageviews Today" = "本日のページビュー";
+"Loading Analytics Data" = "分析データを読み込み中";
+"Open Dashboard" = "ダッシュボードを開く";
+
+"Include in Site Navigation" = "サイトナビゲーションに含める";
+
+"Updated" = "更新済み";
+"Failed to locate downloaded file." = "ダウンロードしたファイルが見つかりませんでした。";
+"Please try to redownload it from article." = "記事からもう一度ダウンロードしてください。";
+"Dismiss" = "閉じる";
+"Open" = "開く";
+"Show in Finder" = "Finderに表示";
+"Copy Address" = "アドレスをコピー";
+"Remove from List" = "リストから削除";
+"View on Etherscan" = "Etherscanで表示";
+"Quit" = "終了";
+"What's New in Planet" = "Planetの新機能";
+
+// Welcome to Planet
+"Welcome to Planet" = "Planetへようこそ";
+"Build and publish and follow websites on IPFS" = "IPFSでWebサイトを構築・公開・フォロー";
+"Manage multiple IPNS ready to be linked to your ENS" = "ENSにリンクできる複数のIPNSを管理";
+"Two-column Markdown editor for writing and previewing" = "執筆とプレビューに使える2ペインMarkdownエディタ";
+"Export and import websites between Macs" = "Mac間でWebサイトをエクスポート／インポート";
+
+"Continue" = "続ける";
+
+"Mark All as Read" = "すべて既読にする";
+"Unfollow" = "フォロー解除";
+
+"Do you want to save your changes as a draft?" = "変更を下書きとして保存しますか？";
+
+"Are you sure you want to unfollow this planet?" = "このPlanetのフォローを解除してもよろしいですか？";
+
+"Here are your archived Planets. Archived planets are not auto published or updated. You can unarchive them from here." = "アーカイブ済みのPlanetです。アーカイブ済みのPlanetは自動公開または自動更新されません。ここからアーカイブを解除できます。";
+
+
+"Are you sure you want to delete %@? This action cannot be undone." = "%@を削除してもよろしいですか？この操作は取り消せません。";
+
+"Are you sure you want to delete this post?\n\n%@?\n\nThis action cannot be undone." = "この投稿を削除してもよろしいですか？\n\n%@\n\nこの操作は取り消せません。";
+
+"Would you like to use new library location at" = "次の新しいライブラリの場所を使用しますか:";
+
+"current database including following planets will be replaced with contents at this location" = "フォロー中のPlanetを含む現在のデータベースは、この場所の内容で置き換えられます";
+
+"When you tip a creator, transactions will be sent to the selected Ethereum network." = "クリエイターにチップを送ると、選択したEthereumネットワークにトランザクションが送信されます。";
+
+"Are you sure you want to archive this planet? Archived planets will not be auto updated. You can later unarchive it from settings." = "このPlanetをアーカイブしてもよろしいですか？アーカイブ済みのPlanetは自動更新されません。後で設定からアーカイブを解除できます。";
+
+"Planet lets you build and host your website on your Mac without requiring a centralized service." = "Planetを使えば、中央集権型サービスに頼らず、Mac上で自分のWebサイトを構築してホストできます。";
+
+"You can also use Planet to follow the content creators you like." = "Planetでは、好きなコンテンツクリエイターをフォローすることもできます。";
+
+"The big difference is that there is no middle layer between you and the content creators you follow." = "大きな違いは、あなたとフォローしているコンテンツクリエイターの間に仲介者がいないことです。";
+
+"You will receive the latest updates in a peer-to-peer manner." = "最新の更新をピアツーピア方式で受け取れます。";
+
+"The slug is the part of the URL that identifies the article. It should be unique and contain only lowercased letters, numbers, and hyphens." = "スラッグは記事を識別するURLの一部です。一意で、小文字の英字、数字、ハイフンのみを含める必要があります。";
+
+"If you want this article to redirect to an external link, enter the URL here." = "この記事を外部リンクへリダイレクトする場合は、ここにURLを入力してください。";
+
+"This domain will be used in places that need a domain prefix, like for RSS or Podcast feeds." = "このドメインは、RSSやPodcastフィードなど、ドメインの接頭辞が必要な場所で使用されます。";
+
+"Are you sure you want to archive this planet? Archived planets will not be auto published. You can later unarchive it from settings." = "このPlanetをアーカイブしてもよろしいですか？アーカイブ済みのPlanetは自動公開されません。後で設定からアーカイブを解除できます。";
+
+"Please input an integer for sorting, entries with smaller numbers will be ranked first." = "並べ替え用の整数を入力してください。数値が小さい項目ほど上位に表示されます。";
+
+"Articles of the Page type are not listed on the blog index page, nor are they included in the RSS feed." = "Pageタイプの記事はブログのインデックスページに表示されず、RSSフィードにも含まれません。";
+
+"Are you sure you want to delete this article? This action will remove it from your feed. However, if the article is still available on the source, it will reappear in your feed the next time you refresh it." = "この記事を削除してもよろしいですか？この操作により、記事はフィードから削除されます。ただし、配信元で記事がまだ利用可能な場合は、次回フィードを更新したときに再表示されます。";
