@@ -11,7 +11,7 @@
 "Writer" = "编辑器";
 "Tools" = "工具";
 "Template Browser" = "模板浏览器";
-"Downloads" = "下载管理器";
+"Downloads" = "下载";
 "Publish My Planets" = "发布我的网站";
 "Update Following Planets" = "更新关注的网站";
 "Reload Planets" = "重新载入网站";
@@ -584,7 +584,7 @@
 "Please enter an integer" = "请输入整数";
 "Pop up log window when a publishing error occurs" = "发布错误时显示日志窗口";
 "Preferred Model" = "首选模型";
-"Prevent computer sleep when the app is running" = "应用运行时防止电脑进入睡眠状态";
+"Prevent computer sleep when the app is running" = "应用运行时防止 Mac 进入睡眠状态";
 "Preview" = "预览";
 "Previously Used Tags" = "以前使用过的标签";
 "Prewarm new post on public gateways" = "在公共网关预热新帖子";
@@ -836,7 +836,7 @@
 "Planet write completed." = "Planet 写入完成。";
 "Planet: %@." = "Planet：%@。";
 "Planned updates: %@." = "计划更新：%@。";
-"Please check API token" = "请检查 API token";
+"Please check API token" = "请检查 API 令牌";
 "Please double check server information and try again." = "请检查服务器信息后重试。";
 "Posts from %@" = "来自 %@ 的帖子";
 "Preview Mode" = "预览模式";
@@ -924,7 +924,7 @@
 "Value" = "值";
 "Video" = "视频";
 "Audio" = "音频";
-"Document" = "文档";
+"Document" = "文稿";
 "Attachment" = "附件";
 "Hide API Token" = "隐藏 API 令牌";
 "HTTP %d" = "HTTP %d";
@@ -935,7 +935,7 @@
 "Show API Token" = "显示 API 令牌";
 "Warn before quitting Planet when there are publishing tasks in progress." = "有发布任务正在进行时，退出 Planet 前显示警告。";
 "When enabled, Planet automatically opens the relevant log window after a publishing error. Off by default." = "启用后，Planet 会在发布错误后自动打开相关日志窗口。默认关闭。";
-"Would you like to use new library location at: %@, current database including following planets will be replaced with contents at this location." = "是否要使用新的数据文件位置：%@？当前数据库（包括关注的 Planet）将被此位置中的内容替换。";
+"Would you like to use new library location at: %@, current database including following planets will be replaced with contents at this location." = "是否将 %@ 用作新的数据文件位置？当前数据库（包括关注的网站）将被该位置的内容替换。";
 "Advanced" = "高级";
 "Aggregate Now" = "立即聚合";
 "Contract address of the collection." = "合集的合约地址。";
@@ -945,3 +945,15 @@
 "Reuse post IDs from the sources if you trust them. This can keep post IDs in URLs consistent." = "如果信任来源，可以复用来源中的帖子 ID。这样可让 URL 中的帖子 ID 保持一致。";
 "Sites" = "站点";
 "Trust and reuse original IDs" = "信任来源并复用原始 ID";
+"API Access" = "API 访问";
+"Automate workflows, integrate with other systems, and build creative tools with the Planet RESTful API." = "使用 Planet RESTful API 自动化工作流、集成其他系统，并构建富有创意的工具。";
+"Choose from multiple artfully designed templates, or build your own template." = "可从多款精心设计的模板中选择，也可以构建自己的模板。";
+"ENS .eth / SNS .sol" = "ENS .eth / SNS .sol";
+"Follow Updates" = "关注更新";
+"Follow updates from other Planet sites, or RSS. Atom and JSON feeds are also supported." = "关注其他 Planet 站点或 RSS 的更新，也支持 Atom 和 JSON Feed。";
+"IPFS Publishing" = "IPFS 发布";
+"Link your IPFS websites to your blockchain names like Ethereum name (.eth) or Solana name (.sol)." = "将你的 IPFS 网站关联到 Ethereum Name（.eth）或 Solana Name（.sol）等区块链名称。";
+"Markdown Editor" = "Markdown 编辑器";
+"Publish your websites directly to the Internet with IPFS." = "使用 IPFS 将你的网站直接发布到互联网。";
+"Templates" = "模板";
+"Two-column Markdown editor for easily previewing changes. Drag and drop images, audio, or video. To-do list syntax is supported." = "两栏 Markdown 编辑器，可轻松预览更改。支持拖放图片、音频或视频，也支持待办事项语法。";

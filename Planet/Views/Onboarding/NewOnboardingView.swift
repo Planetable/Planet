@@ -26,7 +26,7 @@ struct NewOnboardingView: View {
                     .aspectRatio(contentMode: .fit)
 
                 HStack {
-                    Text("Welcome to your websites on your Mac")
+                    Text(L10n("Welcome to your websites on your Mac"))
                         .font(.title)
                         .padding(.top, (ICON_WIDTH / 2) + 20)
                         .padding(.leading, PADDING_LEFT)
@@ -39,7 +39,7 @@ struct NewOnboardingView: View {
                         feature(
                             icon: "feature.markdown-editor",
                             title: "Markdown Editor",
-                            description: "Two-column Markdown editor for easily previewing changes. Drag-n-drop images, audio, or video. To-do list syntax is supported.",
+                            description: "Two-column Markdown editor for easily previewing changes. Drag and drop images, audio, or video. To-do list syntax is supported.",
                             url: "https://docs.planetable.eth.limo/markdown/"
                         )
 
@@ -77,7 +77,7 @@ struct NewOnboardingView: View {
                         feature(
                             icon: "feature.api-access",
                             title: "API Access",
-                            description: "Automate, integrate with other systems, do creative things, with Planet RESTful API.",
+                            description: "Automate workflows, integrate with other systems, and build creative tools with the Planet RESTful API.",
                             url: "https://docs.planetable.eth.limo/api/"
                         )
                     }
@@ -99,7 +99,7 @@ struct NewOnboardingView: View {
                         }
                     } label: {
                         Image(systemName: "sparkles")
-                        Text("Follow Featured")
+                        Text(L10n("Follow Featured"))
                     }
                     .modifier(CapsuleOnMacOS26())
 
@@ -119,7 +119,7 @@ struct NewOnboardingView: View {
                                 .frame(width: 16, height: 16)
                                 .foregroundColor(.secondary)
                         }
-                        Text("Show this screen when app starts")
+                        Text(L10n("Show this screen when app starts"))
                             .font(.body)
                             .foregroundColor(.secondary)
                     }
@@ -134,8 +134,8 @@ struct NewOnboardingView: View {
                         UserDefaults.standard.set(showOnboardingScreen, forKey: "showOnboardingScreen")
                         dismiss()
                     } label: {
-                        Text("OK")
-                        .frame(minWidth: 50)
+                        Text(L10n("OK"))
+                            .frame(minWidth: 50)
                     }
                     .buttonStyle(.borderedProminent)
                     .modifier(CapsuleOnMacOS26())
@@ -181,11 +181,11 @@ struct NewOnboardingView: View {
                 .frame(width: 32, height: 32)
 
             VStack(alignment: .leading, spacing: 5) {
-                Text(title)
+                Text(L10n(title))
                     .font(.title2)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text(description)
+                Text(L10n(description))
                     .font(.body)
                     .lineLimit(4)
                     .frame(maxWidth: .infinity, alignment: .leading)

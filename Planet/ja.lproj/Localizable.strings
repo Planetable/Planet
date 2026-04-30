@@ -426,7 +426,7 @@
 "API Base URL" = "APIベースURL";
 "Accept Donation" = "寄付を受け付ける";
 "Account ID" = "アカウントID";
-"Add Attachments..." = "添付ファイルを追加...";
+"Add Attachments..." = "添付ファイルを追加…";
 "Address" = "アドレス";
 "Addresses" = "アドレス";
 "Aggregated from " = "取得元: ";
@@ -490,11 +490,11 @@
 "Failed to Add Attachments" = "添付ファイルの追加に失敗";
 "Failed to Import Text" = "テキストのインポートに失敗";
 "Find Related Articles" = "関連記事を検索";
-"Finding related articles..." = "関連記事を検索中...";
-"Folder is missing ..." = "フォルダが見つかりません...";
+"Finding related articles..." = "関連記事を検索中…";
+"Folder is missing ..." = "フォルダが見つかりません…";
 "Follow Featured" = "おすすめをフォロー";
 "Follow Featured Planets" = "おすすめPlanetをフォロー";
-"Follow Planet..." = "Planetをフォロー...";
+"Follow Planet..." = "Planetをフォロー…";
 "Full Rebuild" = "完全再構築";
 "GIF" = "GIF";
 "GIT" = "GIT";
@@ -534,7 +534,7 @@
 "LLM Output View" = "LLM出力ビュー";
 "LM Studio detected on localhost" = "localhostでLM Studioを検出しました";
 "Last Published: " = "前回の公開: ";
-"Loading IPFS ID..." = "IPFS IDを読み込み中...";
+"Loading IPFS ID..." = "IPFS IDを読み込み中…";
 "Local Gateway" = "ローカルゲートウェイ";
 "Log" = "ログ";
 "MP4" = "MP4";
@@ -543,7 +543,7 @@
 "Message:" = "メッセージ:";
 "Mint Settings" = "ミント設定";
 "Move Editing Planet Article Error" = "編集中Planet記事の移動エラー";
-"New Planet..." = "新規Planet...";
+"New Planet..." = "新規Planet…";
 "New Session" = "新規セッション";
 "No Icon Selected" = "アイコンが選択されていません";
 "No Session Selected" = "セッションが選択されていません";
@@ -559,7 +559,7 @@
 "Open CID in Public Gateway" = "パブリックゲートウェイでCIDを開く";
 "Open CID, IPNS, or ENS with the local IPFS gateway" = "ローカルIPFSゲートウェイでCID、IPNS、ENSを開く";
 "Open Console" = "コンソールを開く";
-"Open IPFS Resource..." = "IPFSリソースを開く...";
+"Open IPFS Resource..." = "IPFSリソースを開く…";
 "Open IPNS in Public Gateway" = "パブリックゲートウェイでIPNSを開く";
 "Open Local Gateway" = "ローカルゲートウェイを開く";
 "Open Permalink in Browser" = "パーマリンクをブラウザで開く";
@@ -583,7 +583,7 @@
 "Please enter an integer" = "整数を入力してください";
 "Pop up log window when a publishing error occurs" = "公開エラー時にログウインドウを表示";
 "Preferred Model" = "優先モデル";
-"Prevent computer sleep when the app is running" = "アプリの実行中はコンピュータをスリープさせない";
+"Prevent computer sleep when the app is running" = "アプリの実行中はMacをスリープさせない";
 "Preview" = "プレビュー";
 "Previously Used Tags" = "以前使用したタグ";
 "Prewarm new post on public gateways" = "新しい投稿をパブリックゲートウェイで事前読み込み";
@@ -596,8 +596,8 @@
 "Publish as IPNS" = "IPNSとして公開";
 "Publish via Cloudflare Pages" = "Cloudflare Pagesで公開";
 "Publish via SSH rsync" = "SSH rsyncで公開";
-"Publishing ..." = "公開中...";
-"Publishing..." = "公開中...";
+"Publishing ..." = "公開中…";
+"Publishing..." = "公開中…";
 "Quick Post" = "クイック投稿";
 "Quick Rebuild" = "クイック再構築";
 "Quick Rebuild Planet" = "Planetをクイック再構築";
@@ -610,7 +610,7 @@
 "Refresh Folder Access" = "フォルダアクセスを更新";
 "Refresh Icon" = "アイコンを更新";
 "Related Articles" = "関連記事";
-"Reloading..." = "再読み込み中...";
+"Reloading..." = "再読み込み中…";
 "Remove Audio" = "オーディオを削除";
 "Remove Icon" = "アイコンを削除";
 "Remove Video" = "ビデオを削除";
@@ -710,7 +710,7 @@
 "AI Research Chat" = "AIリサーチチャット";
 "API Console" = "APIコンソール";
 "API Server Status: **%@**" = "APIサーバーの状態: **%@**";
-"Adjusting the plan and continuing..." = "計画を調整して続行しています...";
+"Adjusting the plan and continuing..." = "計画を調整して続行しています…";
 "Aggregation completed" = "集約が完了しました";
 "Aggregation failed while publishing %@" = "%@の公開中に集約に失敗しました";
 "Aggregation failed while rebuilding %@" = "%@の再構築中に集約に失敗しました";
@@ -723,8 +723,8 @@
 "Article listing completed (%d filtered from %d total)." = "記事一覧が完了しました（抽出%d件 / 全%d件）。";
 "Article payload loaded." = "記事データを読み込みました。";
 "Article write completed." = "記事の書き込みが完了しました。";
-"Ask about this article..." = "この記事について質問...";
-"Ask about your planets and articles..." = "Planetと記事について質問...";
+"Ask about this article..." = "この記事について質問…";
+"Ask about your planets and articles..." = "Planetと記事について質問…";
 "Authorize" = "許可";
 "CID: " = "CID: ";
 "Case: insensitive." = "大文字小文字: 区別しない。";
@@ -739,8 +739,8 @@
 "Choose Planet Data to Import" = "インポートするPlanetデータを選択";
 "Cloudflare Pages is enabled but Account ID, API Token, or Project Name is missing." = "Cloudflare Pagesが有効ですが、Account ID、API Token、またはProject Nameが不足しています。";
 "Command: %@." = "コマンド: %@。";
-"Compressing video... %@" = "ビデオを圧縮中... %@";
-"Compressing video... %@ · %@" = "ビデオを圧縮中... %@ · %@";
+"Compressing video... %@" = "ビデオを圧縮中… %@";
+"Compressing video... %@ · %@" = "ビデオを圧縮中… %@ · %@";
 "Content mode: append." = "コンテンツモード: 追記。";
 "Content mode: replace." = "コンテンツモード: 置換。";
 "Context loaded from: %@" = "コンテキストの読み込み元: %@";
@@ -774,7 +774,7 @@
 "Failed to parse upload token: %@" = "アップロードトークンの解析に失敗しました: %@";
 "Failed to upsert hashes (HTTP %d): %@" = "ハッシュの更新に失敗しました（HTTP %d）: %@";
 "Feeding bytes to tiny gremlins" = "データを処理中";
-"Fetching posts from other sites..." = "ほかのサイトから投稿を取得中...";
+"Fetching posts from other sites..." = "ほかのサイトから投稿を取得中…";
 "Fields: %@." = "フィールド: %@。";
 "Fields: full snapshot." = "フィールド: 完全なスナップショット。";
 "Found %d match(es) across %d file(s)." = "%d件の一致が%d件のファイルで見つかりました。";
@@ -835,12 +835,12 @@
 "Planet write completed." = "Planetの書き込みが完了しました。";
 "Planet: %@." = "Planet: %@。";
 "Planned updates: %@." = "予定している更新: %@。";
-"Please check API token" = "API tokenを確認してください";
+"Please check API token" = "APIトークンを確認してください";
 "Please double check server information and try again." = "サーバー情報を確認してから、もう一度お試しください。";
 "Posts from %@" = "%@からの投稿";
 "Preview Mode" = "プレビューモード";
 "Published " = "公開: ";
-"Publishing %@..." = "%@を公開中...";
+"Publishing %@..." = "%@を公開中…";
 "Query: %@." = "クエリ: %@。";
 "Ran: %@" = "実行しました: %@";
 "Ran: %@." = "実行しました: %@。";
@@ -857,7 +857,7 @@
 "Reticulating splines" = "準備中";
 "Round %d, action %d/%d: %@ %@." = "ラウンド%d、操作%d/%d: %@ %@。";
 "Round %d/%d" = "ラウンド%d/%d";
-"Round %d/%d, action %d/%d: %@..." = "ラウンド%d/%d、操作%d/%d: %@...";
+"Round %d/%d, action %d/%d: %@..." = "ラウンド%d/%d、操作%d/%d：%@…";
 "Round %d/%d: tool queue ready with %d action(s)." = "ラウンド%d/%d: ツールキューの準備完了（操作%d件）。";
 "Running" = "実行中";
 "Running %@" = "%@を実行中";
@@ -867,7 +867,7 @@
 "Search completed (%d matches)." = "検索が完了しました（%d件一致）。";
 "Searching articles" = "記事を検索中";
 "Searching repo text" = "リポジトリ内テキストを検索中";
-"Searching..." = "検索中...";
+"Searching..." = "検索中…";
 "Select SSH Private Key" = "SSH秘密鍵を選択";
 "Select one of your planets before dropping a Markdown or text file." = "Markdownまたはテキストファイルをドロップする前に、自分のPlanetを1つ選択してください。";
 "Select the Planet app to allow changing its Finder icon" = "Finderアイコンの変更を許可するため、Planetアプリを選択してください";
@@ -889,7 +889,7 @@
 "Target planet: current context." = "対象Planet: 現在のコンテキスト。";
 "Template %@ Reloaded" = "テンプレート%@を再読み込みしました";
 "There is already an exported Planet in the destination.\nWe do not recommend overriding your backup.\nPlease choose another destination, or rename your previous backup." = "保存先にはエクスポート済みのPlanetがすでにあります。\nバックアップの上書きはおすすめしません。\n別の保存先を選ぶか、以前のバックアップの名前を変更してください。";
-"Thinking..." = "考え中...";
+"Thinking..." = "考え中…";
 "This video uses HDR. Choose an H265 preset to retain its color space." = "このビデオはHDRを使用しています。色空間を保持するにはH265プリセットを選択してください。";
 "This will remove all messages for this session and rename it to \"%@\"." = "このセッションのすべてのメッセージを削除し、名前を「%@」に変更します。";
 "This will remove all messages for this session. This action cannot be undone." = "このセッションのすべてのメッセージを削除します。この操作は取り消せません。";
@@ -909,7 +909,7 @@
 "Untangling cosmic paperclips" = "情報を整理中";
 "Untitled Article" = "無題の記事";
 "Updated " = "更新: ";
-"Updating results..." = "結果を更新中...";
+"Updating results..." = "結果を更新中…";
 "Upload batch %d/%d failed (HTTP %d): %@" = "アップロードバッチ%d/%dに失敗しました（HTTP %d）: %@";
 "View `%@` on IPFS" = "IPFSで`%@`を表示";
 "Warming up the idea engine" = "回答を準備中";
@@ -934,7 +934,7 @@
 "Show API Token" = "APIトークンを表示する";
 "Warn before quitting Planet when there are publishing tasks in progress." = "公開タスクの実行中にPlanetを終了しようとすると、警告を表示します。";
 "When enabled, Planet automatically opens the relevant log window after a publishing error. Off by default." = "オンにすると、公開エラーの発生後に関連するログウインドウを自動的に開きます。デフォルトではオフです。";
-"Would you like to use new library location at: %@, current database including following planets will be replaced with contents at this location." = "新しいライブラリの場所（%@）を使用しますか？現在のデータベース（フォロー中のPlanetを含む）は、この場所の内容に置き換えられます。";
+"Would you like to use new library location at: %@, current database including following planets will be replaced with contents at this location." = "新しいライブラリの場所として%@を使用しますか？現在のデータベース（フォロー中のPlanetを含む）は、この場所の内容に置き換えられます。";
 "Advanced" = "詳細";
 "Aggregate Now" = "今すぐ集約";
 "Contract address of the collection." = "コレクションのコントラクトアドレスです。";
@@ -944,3 +944,15 @@
 "Reuse post IDs from the sources if you trust them. This can keep post IDs in URLs consistent." = "ソースを信頼する場合は、ソースの投稿IDを再利用します。これによりURL内の投稿IDの一貫性を保てます。";
 "Sites" = "サイト";
 "Trust and reuse original IDs" = "元のIDを信頼して再利用する";
+"API Access" = "APIアクセス";
+"Automate workflows, integrate with other systems, and build creative tools with the Planet RESTful API." = "Planet RESTful APIを使って、ワークフローの自動化、ほかのシステムとの連携、独自ツールの作成ができます。";
+"Choose from multiple artfully designed templates, or build your own template." = "複数の美しくデザインされたテンプレートから選択するか、独自のテンプレートを作成できます。";
+"ENS .eth / SNS .sol" = "ENS .eth / SNS .sol";
+"Follow Updates" = "更新情報をフォロー";
+"Follow updates from other Planet sites, or RSS. Atom and JSON feeds are also supported." = "ほかのPlanetサイト、RSS、Atom、JSONフィードの更新をフォローできます。";
+"IPFS Publishing" = "IPFS公開";
+"Link your IPFS websites to your blockchain names like Ethereum name (.eth) or Solana name (.sol)." = "Ethereum Name（.eth）やSolana Name（.sol）などのブロックチェーン名に、IPFS Webサイトを関連付けられます。";
+"Markdown Editor" = "Markdownエディタ";
+"Publish your websites directly to the Internet with IPFS." = "IPFSを使ってWebサイトをインターネットに直接公開できます。";
+"Templates" = "テンプレート";
+"Two-column Markdown editor for easily previewing changes. Drag and drop images, audio, or video. To-do list syntax is supported." = "変更を簡単にプレビューできる2ペインのMarkdownエディタです。画像、オーディオ、ビデオをドラッグ＆ドロップできます。タスクリスト記法にも対応しています。";

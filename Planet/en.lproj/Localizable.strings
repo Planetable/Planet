@@ -944,3 +944,15 @@
 "Reuse post IDs from the sources if you trust them. This can keep post IDs in URLs consistent." = "Reuse post IDs from the sources if you trust them. This can keep post IDs in URLs consistent.";
 "Sites" = "Sites";
 "Trust and reuse original IDs" = "Trust and reuse original IDs";
+"API Access" = "API Access";
+"Automate workflows, integrate with other systems, and build creative tools with the Planet RESTful API." = "Automate workflows, integrate with other systems, and build creative tools with the Planet RESTful API.";
+"Choose from multiple artfully designed templates, or build your own template." = "Choose from multiple artfully designed templates, or build your own template.";
+"ENS .eth / SNS .sol" = "ENS .eth / SNS .sol";
+"Follow Updates" = "Follow Updates";
+"Follow updates from other Planet sites, or RSS. Atom and JSON feeds are also supported." = "Follow updates from other Planet sites, or RSS. Atom and JSON feeds are also supported.";
+"IPFS Publishing" = "IPFS Publishing";
+"Link your IPFS websites to your blockchain names like Ethereum name (.eth) or Solana name (.sol)." = "Link your IPFS websites to your blockchain names like Ethereum name (.eth) or Solana name (.sol).";
+"Markdown Editor" = "Markdown Editor";
+"Publish your websites directly to the Internet with IPFS." = "Publish your websites directly to the Internet with IPFS.";
+"Templates" = "Templates";
+"Two-column Markdown editor for easily previewing changes. Drag and drop images, audio, or video. To-do list syntax is supported." = "Two-column Markdown editor for easily previewing changes. Drag and drop images, audio, or video. To-do list syntax is supported.";
