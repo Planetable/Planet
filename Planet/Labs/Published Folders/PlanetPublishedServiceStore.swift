@@ -104,14 +104,14 @@ class PlanetPublishedServiceStore: ObservableObject {
     
     func updateWindowTitles() {
         var titles: [String: String] = [
-            "title": "Published Folders Dashboard",
+            "title": L10n("Published Folders Dashboard"),
             "subtitle": ""
         ]
         if let id = selectedFolderID, let folder = publishedFolders.first(where: { $0.id == id }) {
             titles["title"] = folder.url.lastPathComponent
-            titles["subtitle"] = "Never Published"
+            titles["subtitle"] = L10n("Never Published")
             if let date = folder.published {
-                titles["subtitle"] = "Last Published: " + date.relativeDateDescription()
+                titles["subtitle"] = L10n("Last Published: ") + date.relativeDateDescription()
             }
         }
         NotificationCenter.default.post(name: .dashboardUpdateWindowTitles, object: titles)
@@ -226,7 +226,7 @@ class PlanetPublishedServiceStore: ObservableObject {
         do {
             try await self.publishFolder(folder, skipCIDCheck: true)
             let content = UNMutableNotificationContent()
-            content.title = "Folder Published"
+            content.title = L10n("Folder Published")
             content.subtitle = folder.url.absoluteString
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
             let request = UNNotificationRequest(
@@ -237,25 +237,25 @@ class PlanetPublishedServiceStore: ObservableObject {
             try? await UNUserNotificationCenter.current().add(request)
         } catch PlanetError.IPFSInactiveError {
             let alert = NSAlert()
-            alert.messageText = "Failed to Publish Folder"
-            alert.informativeText = "IPFS not ready, please wait for a few seconds then try again."
+            alert.messageText = L10n("Failed to Publish Folder")
+            alert.informativeText = L10n("IPFS not ready, please wait for a few seconds then try again.")
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
         } catch PlanetError.PublishedServiceFolderUnchangedError {
             let alert = NSAlert()
-            alert.messageText = "Failed to Publish Folder"
-            alert.informativeText = "Folder content hasn't changed since last publish."
+            alert.messageText = L10n("Failed to Publish Folder")
+            alert.informativeText = L10n("Folder content hasn't changed since last publish.")
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
         } catch {
             debugPrint("Failed to publish folder: \(folder), error: \(error)")
             let alert = NSAlert()
-            alert.messageText = "Failed to Publish Folder"
+            alert.messageText = L10n("Failed to Publish Folder")
             alert.informativeText = error.localizedDescription
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
         }
     }
@@ -540,18 +540,18 @@ extension PlanetPublishedServiceStore {
         } catch {
             debugPrint("failed to request access to folder: \(folder), error: \(error)")
             let alert = NSAlert()
-            alert.messageText = "Failed to Access to Folder"
+            alert.messageText = L10n("Failed to Access to Folder")
             alert.informativeText = error.localizedDescription
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
         }
     }
     
     func addFolder() {
         let panel = NSOpenPanel()
-        panel.message = "Choose Folder to Publish"
-        panel.prompt = "Choose"
+        panel.message = L10n("Choose Folder to Publish")
+        panel.prompt = L10n("Choose")
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.folder]
         panel.canChooseDirectories = true
@@ -568,10 +568,10 @@ extension PlanetPublishedServiceStore {
         }
         if exists {
             let alert = NSAlert()
-            alert.messageText = "Failed to Add Folder"
-            alert.informativeText = "Selected folder has already been added."
+            alert.messageText = L10n("Failed to Add Folder")
+            alert.informativeText = L10n("Selected folder has already been added.")
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
             return
         }
@@ -595,18 +595,18 @@ extension PlanetPublishedServiceStore {
         } catch {
             debugPrint("failed to add folder: \(error)")
             let alert = NSAlert()
-            alert.messageText = "Failed to Add Folder"
+            alert.messageText = L10n("Failed to Add Folder")
             alert.informativeText = error.localizedDescription
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
         }
     }
 
     func fixFolderAccessPermissions(_ folder: PlanetPublishedFolder) {
         let panel = NSOpenPanel()
-        panel.message = "Re-authorize Access to Folder"
-        panel.prompt = "Authorize"
+        panel.message = L10n("Re-authorize Access to Folder")
+        panel.prompt = L10n("Authorize")
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.folder]
         panel.canChooseDirectories = true
@@ -624,16 +624,16 @@ extension PlanetPublishedServiceStore {
     func exportFolderKey(_ folder: PlanetPublishedFolder) {
         guard let _ = folder.published else {
             let alert = NSAlert()
-            alert.messageText = "Failed to Export Folder Key"
-            alert.informativeText = "Folder key doesn't exist, please make sure this folder has been successfully published."
+            alert.messageText = L10n("Failed to Export Folder Key")
+            alert.informativeText = L10n("Folder key doesn't exist, please make sure this folder has been successfully published.")
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
             return
         }
         let panel = NSOpenPanel()
-        panel.message = "Choose Directory to Save Folder Key"
-        panel.prompt = "Choose"
+        panel.message = L10n("Choose Directory to Save Folder Key")
+        panel.prompt = L10n("Choose")
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.folder]
         panel.canChooseDirectories = true
@@ -647,10 +647,10 @@ extension PlanetPublishedServiceStore {
             NSWorkspace.shared.activateFileViewerSelecting([keyPath])
         } catch {
             let alert = NSAlert()
-            alert.messageText = "Failed to Export Folder Key"
+            alert.messageText = L10n("Failed to Export Folder Key")
             alert.informativeText = error.localizedDescription
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
         }
     }

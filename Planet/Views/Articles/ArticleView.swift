@@ -26,7 +26,7 @@ struct PlanetRebuildView: View {
                             catch {
                                 DispatchQueue.main.async {
                                     PlanetStore.shared.isShowingAlert = true
-                                    PlanetStore.shared.alertTitle = "Failed to Rebuild Planet"
+                                    PlanetStore.shared.alertTitle = L10n("Failed to Rebuild Planet")
                                     PlanetStore.shared.alertMessage = error.localizedDescription
                                 }
                             }
@@ -45,7 +45,7 @@ struct PlanetRebuildView: View {
                             catch {
                                 Task { @MainActor in
                                     PlanetStore.shared.isShowingAlert = true
-                                    PlanetStore.shared.alertTitle = "Failed to Quick Rebuild Planet"
+                                    PlanetStore.shared.alertTitle = L10n("Failed to Quick Rebuild Planet")
                                     PlanetStore.shared.alertMessage = error.localizedDescription
                                 }
                             }
@@ -473,15 +473,15 @@ struct ArticleView: View {
 
     private func speechPlaybackHelpText() -> String {
         if speechPlayerViewModel.isSpeaking {
-            return "Stop Reading Aloud"
+            return L10n("Stop Reading Aloud")
         }
         if detectedSpeechLanguage != nil {
-            return "Read Aloud"
+            return L10n("Read Aloud")
         }
         if isDetectingSpeechLanguage {
-            return "Checking Read Aloud Availability"
+            return L10n("Checking Read Aloud Availability")
         }
-        return "Read Aloud Unavailable"
+        return L10n("Read Aloud Unavailable")
     }
 
     private func syncReaderViewPreference() {

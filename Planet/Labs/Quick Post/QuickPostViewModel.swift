@@ -500,7 +500,7 @@ class QuickPostViewModel: ObservableObject {
         alert.messageText = title
         alert.informativeText = message
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: L10n("OK"))
         alert.runModal()
     }
 }

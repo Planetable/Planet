@@ -97,8 +97,8 @@ extension MyArticleModel {
     func exportArticle(isCroptopData: Bool = false) throws {
         let panel = NSOpenPanel()
         let exportName = isCroptopData ? "Post" : "Article"
-        panel.message = "Choose Directory to Export \(exportName)"
-        panel.prompt = "Export"
+        panel.message = L10n("Choose Directory to Export %@", exportName)
+        panel.prompt = L10n("Export")
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.folder]
         panel.canChooseDirectories = true

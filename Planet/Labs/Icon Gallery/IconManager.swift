@@ -302,8 +302,8 @@ class IconManager: ObservableObject {
     @discardableResult
     func requestFinderIconAccess() -> Bool {
         let panel = NSOpenPanel()
-        panel.message = "Select the Planet app to allow changing its Finder icon"
-        panel.prompt = "Grant Access"
+        panel.message = L10n("Select the Planet app to allow changing its Finder icon")
+        panel.prompt = L10n("Grant Access")
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.applicationBundle]
         panel.canChooseDirectories = false
@@ -314,10 +314,10 @@ class IconManager: ObservableObject {
         guard let selectedBundle = Bundle(url: url),
               selectedBundle.bundleIdentifier == Bundle.main.bundleIdentifier else {
             let alert = NSAlert()
-            alert.messageText = "Invalid Selection"
-            alert.informativeText = "The selected app does not match Planet. Please select the Planet app."
+            alert.messageText = L10n("Invalid Selection")
+            alert.informativeText = L10n("The selected app does not match Planet. Please select the Planet app.")
             alert.alertStyle = .warning
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
             return false
         }

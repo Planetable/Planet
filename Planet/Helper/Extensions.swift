@@ -10,6 +10,15 @@ import Cocoa
 import CommonCrypto
 import SwiftUI
 
+func L10n(_ key: String) -> String {
+    let localized = NSLocalizedString(key, comment: "")
+    return localized.isEmpty ? key : localized
+}
+
+func L10n(_ key: String, _ arguments: CVarArg...) -> String {
+    String(format: L10n(key), arguments: arguments)
+}
+
 extension Data {
     func logFormat(encoding: String.Encoding = .utf8) -> String {
         String(data: self, encoding: encoding) ?? String(describing: self)

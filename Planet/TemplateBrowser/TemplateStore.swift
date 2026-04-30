@@ -176,7 +176,7 @@ class TemplateStore: ObservableObject {
             NotificationCenter.default.post(name: .refreshTemplatePreview, object: nil)
             NotificationCenter.default.post(name: .templateTitleSubtitleUpdated, object: nil)
             let notification = UNMutableNotificationContent()
-            notification.title = "Template \(id) Reloaded"
+            notification.title = L10n("Template %@ Reloaded", id)
             notification.interruptionLevel = .active
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
             let request = UNNotificationRequest(

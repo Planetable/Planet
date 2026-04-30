@@ -105,8 +105,8 @@ struct ArtworkView: View {
 
     private func chooseImageFileToUpload() -> URL? {
         let panel = NSOpenPanel()
-        panel.message = "Choose Artwork"
-        panel.prompt = "Choose"
+        panel.message = L10n("Choose Artwork")
+        panel.prompt = L10n("Choose")
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.png, .jpeg, .tiff, .webP]
         panel.canChooseDirectories = false

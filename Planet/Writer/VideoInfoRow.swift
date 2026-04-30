@@ -319,7 +319,7 @@ struct VideoInfoRow: View {
                 preparedExport?.cleanupTemporaryFiles()
                 resetCompressionState()
                 PlanetStore.shared.alert(
-                    title: "Failed to Compress Video",
+                    title: L10n("Failed to Compress Video"),
                     message: error.localizedDescription
                 )
             }
@@ -389,7 +389,7 @@ struct VideoInfoRow: View {
         } catch {
             log("revert to original failed error=\(describeError(error))")
             PlanetStore.shared.alert(
-                title: "Failed to Revert Video",
+                title: L10n("Failed to Revert Video"),
                 message: error.localizedDescription
             )
         }
@@ -401,10 +401,10 @@ struct VideoInfoRow: View {
               compressionFramesPerSecond.isFinite,
               compressionFramesPerSecond > 0
         else {
-            return "Compressing video... \(progressText)"
+            return L10n("Compressing video... %@", progressText)
         }
 
-        return "Compressing video... \(progressText) · \(formattedFramesPerSecond(compressionFramesPerSecond))"
+        return L10n("Compressing video... %@ · %@", progressText, formattedFramesPerSecond(compressionFramesPerSecond))
     }
 
     private func updateCompressionProgress(_ progress: Double) {
@@ -632,13 +632,17 @@ struct VideoInfoRow: View {
     ) {
         let message: String
         if let requiredCapacityBytes, let availableCapacityBytes {
-            message = "Planet needs at least \(formattedByteCount(requiredCapacityBytes)) of free temporary disk space to compress this video. Only \(formattedByteCount(availableCapacityBytes)) is currently available."
+            message = L10n(
+                "Planet needs at least %@ of free temporary disk space to compress this video. Only %@ is currently available.",
+                formattedByteCount(requiredCapacityBytes),
+                formattedByteCount(availableCapacityBytes)
+            )
         } else {
-            message = "Planet needs more free temporary disk space to compress this video."
+            message = L10n("Planet needs more free temporary disk space to compress this video.")
         }
 
         PlanetStore.shared.alert(
-            title: "Not Enough Disk Space to Compress Video",
+            title: L10n("Not Enough Disk Space to Compress Video"),
             message: message
         )
     }

@@ -58,7 +58,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                 }
                 catch {
                     PlanetStore.shared.isShowingAlert = true
-                    PlanetStore.shared.alertTitle = "Failed to Follow Planet"
+                    PlanetStore.shared.alertTitle = L10n("Failed to Follow Planet")
                     PlanetStore.shared.alertMessage = error.localizedDescription
                 }
             }
@@ -70,7 +70,7 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                     PlanetStore.shared.selectedView = .myPlanet(planet)
                 } catch {
                     PlanetStore.shared.isShowingAlert = true
-                    PlanetStore.shared.alertTitle = "Failed to Import Planet"
+                    PlanetStore.shared.alertTitle = L10n("Failed to Import Planet")
                     PlanetStore.shared.alertMessage = error.localizedDescription
                 }
             }
@@ -81,10 +81,10 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
                 } catch {
                     debugPrint("failed to import articles: \(error)")
                     PlanetStore.shared.isShowingAlert = true
-                    PlanetStore.shared.alertTitle = "Failed to Import Articles"
+                    PlanetStore.shared.alertTitle = L10n("Failed to Import Articles")
                     switch error {
                     case PlanetError.ImportPlanetArticlePublishingError:
-                        PlanetStore.shared.alertMessage = "Planet is in publishing progress, please try again later."
+                        PlanetStore.shared.alertMessage = L10n("Planet is in publishing progress, please try again later.")
                     default:
                         PlanetStore.shared.alertMessage = error.localizedDescription
                     }
@@ -292,10 +292,10 @@ extension PlanetAppDelegate {
                 PlanetStore.shared.isQuickSharing = true
             } catch {
                 let alert = NSAlert()
-                alert.messageText = "Failed to Create Post"
+                alert.messageText = L10n("Failed to Create Post")
                 alert.informativeText = error.localizedDescription
                 alert.alertStyle = .warning
-                alert.addButton(withTitle: "OK")
+                alert.addButton(withTitle: L10n("OK"))
                 alert.runModal()
             }
         }

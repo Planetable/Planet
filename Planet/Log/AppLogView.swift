@@ -78,7 +78,7 @@ class AppLogWindowManager: NSObject, NSWindowDelegate {
             defer: false
         )
         w.isReleasedWhenClosed = false
-        w.title = "Log"
+        w.title = L10n("Log")
         w.minSize = NSSize(width: 400, height: 240)
         w.contentView = NSHostingView(rootView: AppLogView(viewModel: viewModel))
         w.center()

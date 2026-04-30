@@ -133,7 +133,7 @@ extension MyPlanetModel {
                             await self.batchDeletePosts(domain: domain)
                         }
                     } label: {
-                        Text("Posts from \(domain)")
+                        Text(L10n("Posts from %@", domain))
                             .badge(self.getPostCount(domain: domain))
                     }
                 }
@@ -195,7 +195,7 @@ extension MyPlanetModel {
             debugPrint("Planet \(name) is already aggregating, skipping")
             return
         }
-        var finalTaskMessage = "Aggregation completed"
+        var finalTaskMessage = L10n("Aggregation completed")
         var finalTaskProgressIndicator: TaskProgressIndicatorType = .done
         var publishMessageTask: Task<Void, Never>?
         await MainActor.run {
@@ -204,7 +204,7 @@ extension MyPlanetModel {
         let planetName: String = self.name
         DispatchQueue.main.async {
             debugPrint("Aggregation: Started for \(planetName)")
-            PlanetStore.shared.currentTaskMessage = "Fetching posts from other sites..."
+            PlanetStore.shared.currentTaskMessage = L10n("Fetching posts from other sites...")
             PlanetStore.shared.currentTaskProgressIndicator = .progress
             PlanetStore.shared.isAggregating = true
         }
@@ -262,7 +262,7 @@ extension MyPlanetModel {
             }
             catch {
                 debugPrint("Aggregation: failed to rebuild \(planetName): \(error)")
-                finalTaskMessage = "Aggregation failed while rebuilding \(planetName)"
+                finalTaskMessage = L10n("Aggregation failed while rebuilding %@", planetName)
                 finalTaskProgressIndicator = .none
                 return
             }
@@ -274,7 +274,7 @@ extension MyPlanetModel {
                 }
                 await MainActor.run {
                     PlanetStore.shared.currentTaskProgressIndicator = .progress
-                    PlanetStore.shared.currentTaskMessage = "Publishing \(planetName)..."
+                    PlanetStore.shared.currentTaskMessage = L10n("Publishing %@...", planetName)
                 }
             }
             publishMessageTask = task
@@ -283,7 +283,7 @@ extension MyPlanetModel {
             }
             catch {
                 debugPrint("Aggregation: failed to publish \(planetName): \(error)")
-                finalTaskMessage = "Aggregation failed while publishing \(planetName)"
+                finalTaskMessage = L10n("Aggregation failed while publishing %@", planetName)
                 finalTaskProgressIndicator = .none
                 return
             }
@@ -296,20 +296,20 @@ extension MyPlanetModel {
 
     private func aggregateStatusMessage(for result: AggregateFetchResult) -> String {
         if result.updated == 0, result.deleted == 0 {
-            return "\(result.added) new posts fetched"
+            return L10n("%d new posts fetched", result.added)
         }
         var parts: [String] = []
         if result.added > 0 {
-            parts.append("\(result.added) added")
+            parts.append(L10n("%d added", result.added))
         }
         if result.updated > 0 {
-            parts.append("\(result.updated) updated")
+            parts.append(L10n("%d updated", result.updated))
         }
         if result.deleted > 0 {
-            parts.append("\(result.deleted) deleted")
+            parts.append(L10n("%d deleted", result.deleted))
         }
         if parts.isEmpty {
-            return "\(result.totalChanges) changes applied"
+            return L10n("%d changes applied", result.totalChanges)
         }
         return parts.joined(separator: ", ")
     }

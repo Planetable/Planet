@@ -115,8 +115,8 @@ struct PlanetAPIControlView: View {
                         .frame(width: 12, height: 12)
                         .foregroundStyle(control.serverIsRunning ? Color.green : Color.gray)
                 }
-                let status: String = control.serverIsRunning ? "Running" : "Stopped"
-                Text("API Server Status: **\(status)**")
+                let status: String = control.serverIsRunning ? L10n("Running") : L10n("Stopped")
+                Text(.init(L10n("API Server Status: **%@**", status)))
                     .padding(.leading, -2)
 
                 Spacer()
@@ -154,7 +154,7 @@ struct PlanetAPIControlView: View {
                         try await self.control.stop()
                     } catch {
                         isAlert = true
-                        alertTitle = "Failed to Stop Server"
+                        alertTitle = L10n("Failed to Stop Server")
                         alertMessage = error.localizedDescription
                     }
                 }
@@ -166,26 +166,26 @@ struct PlanetAPIControlView: View {
                             try await self.control.start()
                         } catch {
                             isAlert = true
-                            alertTitle = "Failed to Start Server"
+                            alertTitle = L10n("Failed to Start Server")
                             alertMessage = error.localizedDescription
                         }
                     }
                 } catch PlanetError.InvalidAPIPortError {
                     isAlert = true
-                    alertTitle = "Failed to Start Server"
-                    alertMessage = "Invalid API port, please double check and try again."
+                    alertTitle = L10n("Failed to Start Server")
+                    alertMessage = L10n("Invalid API port, please double check and try again.")
                 } catch PlanetError.InvalidAPIUsernameError {
                     isAlert = true
-                    alertTitle = "Failed to Start Server"
-                    alertMessage = "Invalid username, please double check and try again."
+                    alertTitle = L10n("Failed to Start Server")
+                    alertMessage = L10n("Invalid username, please double check and try again.")
                 } catch PlanetError.InvalidAPIPasscodeError {
                     isAlert = true
-                    alertTitle = "Failed to Start Server"
-                    alertMessage = "Invalid passcode, please double check and try again."
+                    alertTitle = L10n("Failed to Start Server")
+                    alertMessage = L10n("Invalid passcode, please double check and try again.")
                 } catch {
                     isAlert = true
-                    alertTitle = "Failed to Start Server"
-                    alertMessage = "Please double check server information and try again."
+                    alertTitle = L10n("Failed to Start Server")
+                    alertMessage = L10n("Please double check server information and try again.")
                 }
                 if self.isShowingPasscode {
                     Task { @MainActor in

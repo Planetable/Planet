@@ -35,7 +35,7 @@ struct SharingServicePicker: NSViewRepresentable {
             sharingServicesForItems items: [Any],
             proposedSharingServices proposedServices: [NSSharingService]
         ) -> [NSSharingService] {
-            guard let image = NSImage(systemSymbolName: "link", accessibilityDescription: "Link") else {
+            guard let image = NSImage(systemSymbolName: "link", accessibilityDescription: L10n("Link")) else {
                 return proposedServices
             }
             var share = proposedServices

@@ -109,7 +109,7 @@ struct Filebase: Codable {
                 debugPrint("Filebase: check pin status error - \(errorReason)")
                 var message: String?
                 if errorReason == "ERR_INVALID_TOKEN" {
-                    message = "Please check API token"
+                    message = L10n("Please check API token")
                 }
                 return (nil, message)
             }

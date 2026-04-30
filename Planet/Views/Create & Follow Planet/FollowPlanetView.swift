@@ -28,7 +28,7 @@ struct FollowPlanetView: View {
 
             VStack {
                 if isFollowing {
-                    Text("Following \(link)")
+                    Text(L10n("Following %@", link))
                     ProgressView()
                         .progressViewStyle(.linear)
                 } else {

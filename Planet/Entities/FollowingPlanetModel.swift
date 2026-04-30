@@ -775,8 +775,8 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         let lines = ensDomains.joined(separator: "\n")
         Task { @MainActor in
             let alert = NSAlert()
-            alert.messageText = "Follow Featured Planets"
-            alert.informativeText = "You will start following: \n\n" + lines
+            alert.messageText = L10n("Follow Featured Planets")
+            alert.informativeText = L10n("You will start following:") + "\n\n" + lines
             let _ = alert.runModal()
         }
         for domain in ensDomains {
@@ -1472,7 +1472,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
         }
         else {
             requestID = id
-            content.body = "\(newArticles.count) new articles"
+            content.body = L10n("%d new articles", newArticles.count)
             content.categoryIdentifier = "PlanetShowPlanetNotification"
         }
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
@@ -1645,10 +1645,10 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     func navigationSubtitle() -> String {
         if articles.isEmpty {
-            return "0 articles"
+            return L10n("0 articles")
         }
         else {
-            return "\(unreadCount) unread · \(articles.count) total"
+            return L10n("%d unread · %d total", unreadCount, articles.count)
         }
     }
 

@@ -342,10 +342,10 @@ struct PlanetQuickShareView: View {
                 }
                 catch {
                     let alert = NSAlert()
-                    alert.messageText = "Failed to Create Post"
+                    alert.messageText = L10n("Failed to Create Post")
                     alert.informativeText = error.localizedDescription
                     alert.alertStyle = .warning
-                    alert.addButton(withTitle: "OK")
+                    alert.addButton(withTitle: L10n("OK"))
                     alert.runModal()
                     return
                 }
@@ -363,8 +363,8 @@ struct PlanetQuickShareView: View {
 
     private func addAttachmentsAction() {
         let panel = NSOpenPanel()
-        panel.message = "Choose attachments to publish"
-        panel.prompt = "Choose"
+        panel.message = L10n("Choose attachments to publish")
+        panel.prompt = L10n("Choose")
         panel.allowsMultipleSelection = true
         panel.allowedContentTypes = [.image, .movie]
         panel.canChooseDirectories = false

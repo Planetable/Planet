@@ -57,10 +57,10 @@ struct TemplateBrowserInspectorView: View {
                                 Divider()
                                 HStack {
                                     Image(systemName: "questionmark.circle.fill")
-                                        .help(settings[key]?.description ?? "Description")
-                                    Text(settings[key]?.name ?? "Key")
+                                        .help(settings[key]?.description ?? L10n("Description"))
+                                    Text(settings[key]?.name ?? L10n("Key"))
                                     Spacer(minLength: 1)
-                                    Text("\(settings[key]?.defaultValue ?? "Value")")
+                                    Text(settings[key]?.defaultValue ?? L10n("Value"))
                                 }
                             }
 

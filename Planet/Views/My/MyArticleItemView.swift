@@ -64,7 +64,7 @@ struct MyArticleItemView: View {
                             )
                     }
                     if let included = article.isIncludedInNavigation, included {
-                        Text("Navigation \(article.navigationWeight ?? 1)")
+                        Text(L10n("Navigation %d", article.navigationWeight ?? 1))
                             .lineLimit(1)
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -123,7 +123,7 @@ struct MyArticleItemView: View {
                 else {
                     if let siteName = article.originalSiteName {
                         Section {
-                            Text("Aggregated from " + siteName)
+                            Text(L10n("Aggregated from ") + siteName)
                         }
                     }
                 }
@@ -154,7 +154,7 @@ struct MyArticleItemView: View {
                         } catch {
                             Task { @MainActor in
                                 PlanetStore.shared.isShowingAlert = true
-                                PlanetStore.shared.alertTitle = "Failed to Export Article"
+                                PlanetStore.shared.alertTitle = L10n("Failed to Export Article")
                                 PlanetStore.shared.alertMessage = error.localizedDescription
                             }
                         }
@@ -167,7 +167,7 @@ struct MyArticleItemView: View {
                         } catch {
                             Task { @MainActor in
                                 PlanetStore.shared.isShowingAlert = true
-                                PlanetStore.shared.alertTitle = "Failed to Share Article"
+                                PlanetStore.shared.alertTitle = L10n("Failed to Share Article")
                                 PlanetStore.shared.alertMessage = error.localizedDescription
                             }
                         }
@@ -281,7 +281,7 @@ struct MyArticleItemView: View {
                         catch {
                             debugPrint("failed to move article: \(error)")
                             PlanetStore.shared.isShowingAlert = true
-                            PlanetStore.shared.alertTitle = "Failed to Move Article"
+                            PlanetStore.shared.alertTitle = L10n("Failed to Move Article")
                             switch error {
                             case PlanetError.MovePublishingPlanetArticleError:
                                 PlanetStore.shared.alertMessage =

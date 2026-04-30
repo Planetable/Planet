@@ -46,9 +46,9 @@ class PlanetStatusManager: ObservableObject {
         }
         let alert = NSAlert()
         alert.alertStyle = .critical
-        alert.messageText = "There're unfinished publish processes running, please wait for a few more seconds."
-        alert.addButton(withTitle: "Wait")
-        alert.addButton(withTitle: "Quit Anyway")
+        alert.messageText = L10n("There're unfinished publish processes running, please wait for a few more seconds.")
+        alert.addButton(withTitle: L10n("Wait"))
+        alert.addButton(withTitle: L10n("Quit Anyway"))
         let response = alert.runModal()
         if response == .alertFirstButtonReturn {
             NSApplication.shared.reply(toApplicationShouldTerminate: false)

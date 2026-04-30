@@ -372,10 +372,10 @@ extension MyArticleSettingsView {
                 errors = errors + 1
 
                 let alert = NSAlert()
-                alert.messageText = "Article Slug Issue"
+                alert.messageText = L10n("Article Slug Issue")
                 alert.informativeText = MESSAGE_SLUG_REQUIREMENT
                 alert.alertStyle = .informational
-                alert.addButton(withTitle: "OK")
+                alert.addButton(withTitle: L10n("OK"))
                 alert.runModal()
             }
             else {
@@ -387,11 +387,11 @@ extension MyArticleSettingsView {
                             errors = errors + 1
 
                             let alert = NSAlert()
-                            alert.messageText = "Article Slug Issue"
+                            alert.messageText = L10n("Article Slug Issue")
                             alert.informativeText =
                                 "The slug is already used by \(article.title) (ID: \(article.id)). Please choose a different slug."
                             alert.alertStyle = .informational
-                            alert.addButton(withTitle: "OK")
+                            alert.addButton(withTitle: L10n("OK"))
                             alert.runModal()
                             break
                         }

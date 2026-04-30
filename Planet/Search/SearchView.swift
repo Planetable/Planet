@@ -374,11 +374,11 @@ struct SearchView: View {
             if isSearching {
                 ProgressView()
                     .controlSize(.small)
-                Text(result.isEmpty ? "Searching..." : "Updating results...")
+                Text(result.isEmpty ? L10n("Searching...") : L10n("Updating results..."))
                     .foregroundColor(.secondary)
             }
             else if result.count > 1 {
-                Text("\(result.count) results")
+                Text(L10n("%d results", result.count))
                     .foregroundColor(.secondary)
             }
             else if result.count == 1 {

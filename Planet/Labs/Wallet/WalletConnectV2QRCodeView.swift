@@ -80,7 +80,7 @@ struct WalletConnectV2QRCodeView: View {
             }
         }
 
-        return NSImage(systemSymbolName: "xmark.circle", accessibilityDescription: "Unavailable")!
+        return NSImage(systemSymbolName: "xmark.circle", accessibilityDescription: L10n("Unavailable"))!
     }
 }
 

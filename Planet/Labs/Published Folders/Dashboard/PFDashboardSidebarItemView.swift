@@ -65,10 +65,10 @@ struct PFDashboardSidebarItemView: View {
                 Button {
                     guard !self.serviceStore.publishingFolders.contains(folder.id) else {
                         let alert = NSAlert()
-                        alert.messageText = "Failed to Remove Folder"
-                        alert.informativeText = "Folder is in publishing progress, please try again later."
+                        alert.messageText = L10n("Failed to Remove Folder")
+                        alert.informativeText = L10n("Folder is in publishing progress, please try again later.")
                         alert.alertStyle = .informational
-                        alert.addButton(withTitle: "OK")
+                        alert.addButton(withTitle: L10n("OK"))
                         alert.runModal()
                         return
                     }

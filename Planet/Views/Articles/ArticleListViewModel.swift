@@ -73,6 +73,18 @@ enum ListViewFilter: String, CaseIterable {
         "Question": "questionmark.circle.fill",
         "Paperplane": "paperplane.circle.fill",
     ]
+
+    var localizedTitle: String {
+        L10n(rawValue)
+    }
+
+    var localizedButtonLabel: String {
+        L10n(Self.buttonLabels[rawValue] ?? rawValue)
+    }
+
+    var localizedEmptyLabel: String {
+        L10n(Self.emptyLabels[rawValue] ?? "No Articles")
+    }
 }
 
 

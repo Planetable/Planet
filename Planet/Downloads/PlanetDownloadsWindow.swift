@@ -14,7 +14,7 @@ class PlanetDownloadsWindow: NSWindow {
         self.collectionBehavior = .fullScreenNone
         self.minSize = NSMakeSize(320, 480)
         self.maxSize = NSMakeSize(640, CGFloat.infinity)
-        self.title = "Downloads"
+        self.title = L10n("Downloads")
         self.titlebarAppearsTransparent = false
         self.contentViewController = PlanetDownloadsViewController()
         self.delegate = self

@@ -76,10 +76,10 @@ struct PlanetSettingsGeneralView: View {
                                         catch {
                                             resetLibraryLocation()
                                             let alert = NSAlert()
-                                            alert.messageText = "Failed to Change Library Location"
+                                            alert.messageText = L10n("Failed to Change Library Location")
                                             alert.informativeText = error.localizedDescription
                                             alert.alertStyle = .informational
-                                            alert.addButton(withTitle: "OK")
+                                            alert.addButton(withTitle: L10n("OK"))
                                             alert.runModal()
                                         }
                                     } label: {
@@ -154,7 +154,7 @@ struct PlanetSettingsGeneralView: View {
                                     Picker("", selection: $ethereumChainId) {
                                         ForEach(EthereumChainID.allCases, id: \.id) { value in
                                             Text(
-                                                "\(EthereumChainID.names[value.rawValue] ?? "Unknown Chain ID \(value.rawValue)")"
+                                                "\(EthereumChainID.names[value.rawValue] ?? L10n("Unknown Chain ID %d", value.rawValue))"
                                             )
                                             .tag(value)
                                         }
@@ -189,8 +189,8 @@ struct PlanetSettingsGeneralView: View {
 
     private func updateLibraryLocation() throws {
         let panel = NSOpenPanel()
-        panel.message = "Choose Library Location"
-        panel.prompt = "Choose"
+        panel.message = L10n("Choose Library Location")
+        panel.prompt = L10n("Choose")
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.folder]
         panel.canChooseDirectories = true
@@ -205,12 +205,12 @@ struct PlanetSettingsGeneralView: View {
         }
         if useAsExistingLibraryLocation {
             let alert = NSAlert()
-            alert.messageText = "Existing Planet Library Found"
+            alert.messageText = L10n("Existing Planet Library Found")
             alert.alertStyle = .warning
             alert.informativeText =
                 "Would you like to use new library location at: \(url.path), current database including following planets will be replaced with contents at this location."
-            alert.addButton(withTitle: "Cancel")
-            alert.addButton(withTitle: "Continue & Update")
+            alert.addButton(withTitle: L10n("Cancel"))
+            alert.addButton(withTitle: L10n("Continue & Update"))
             let result = alert.runModal()
             if result == .alertFirstButtonReturn {
                 return

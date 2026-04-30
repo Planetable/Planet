@@ -85,10 +85,10 @@ class PFDashboardWindowController: NSWindowController {
         let serviceStore = PlanetPublishedServiceStore.shared
         guard !serviceStore.publishingFolders.contains(folder.id) else {
             let alert = NSAlert()
-            alert.messageText = "Failed to Publish Folder"
-            alert.informativeText = "Folder is in publishing progress, please try again later."
+            alert.messageText = L10n("Failed to Publish Folder")
+            alert.informativeText = L10n("Folder is in publishing progress, please try again later.")
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
             return
         }
@@ -108,10 +108,10 @@ class PFDashboardWindowController: NSWindowController {
         let serviceStore = PlanetPublishedServiceStore.shared
         guard !serviceStore.publishingFolders.contains(folder.id) else {
             let alert = NSAlert()
-            alert.messageText = "Failed to Remove Folder"
-            alert.informativeText = "Folder is in publishing progress, please try again later."
+            alert.messageText = L10n("Failed to Remove Folder")
+            alert.informativeText = L10n("Folder is in publishing progress, please try again later.")
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
             return
         }
@@ -204,11 +204,11 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
-            item.label = "Toggle Sidebar"
-            item.paletteLabel = "Toggle Sidebar"
-            item.toolTip = "Toggle Sidebar"
+            item.label = L10n("Toggle Sidebar")
+            item.paletteLabel = L10n("Toggle Sidebar")
+            item.toolTip = L10n("Toggle Sidebar")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "sidebar.left", accessibilityDescription: "Toggle Sidebar")
+            item.image = NSImage(systemSymbolName: "sidebar.left", accessibilityDescription: L10n("Toggle Sidebar"))
             return item
         case .dashboardSidebarSeparatorItem:
             if let vc = self.window?.contentViewController as? PFDashboardContainerViewController {
@@ -221,64 +221,64 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
-            item.label = "Add"
-            item.paletteLabel = "Add Folder"
-            item.toolTip = "Add Folder"
+            item.label = L10n("Add")
+            item.paletteLabel = L10n("Add Folder")
+            item.toolTip = L10n("Add Folder")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "plus", accessibilityDescription: "Add Folder")
+            item.image = NSImage(systemSymbolName: "plus", accessibilityDescription: L10n("Add Folder"))
             return item
         case .dashboardShareItem:
             let item = NSSharingServicePickerToolbarItem(itemIdentifier: itemIdentifier)
             item.delegate = self
-            item.menuFormRepresentation?.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
-            item.toolTip = "Share"
+            item.menuFormRepresentation?.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: L10n("Share"))
+            item.toolTip = L10n("Share")
             return item
         case .dashboardBackwardItem:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
-            item.label = "Backward"
-            item.paletteLabel = "Backward"
-            item.toolTip = "Backward"
+            item.label = L10n("Backward")
+            item.paletteLabel = L10n("Backward")
+            item.toolTip = L10n("Backward")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "chevron.backward", accessibilityDescription: "Backward")
+            item.image = NSImage(systemSymbolName: "chevron.backward", accessibilityDescription: L10n("Backward"))
             return item
         case .dashboardForwardItem:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
-            item.label = "Forward"
-            item.paletteLabel = "Forward"
-            item.toolTip = "Forward"
+            item.label = L10n("Forward")
+            item.paletteLabel = L10n("Forward")
+            item.toolTip = L10n("Forward")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "chevron.forward", accessibilityDescription: "Forward")
+            item.image = NSImage(systemSymbolName: "chevron.forward", accessibilityDescription: L10n("Forward"))
             return item
         case .dashboardHomeItem:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
-            item.label = "Home"
-            item.paletteLabel = "Home"
-            item.toolTip = "Home"
+            item.label = L10n("Home")
+            item.paletteLabel = L10n("Home")
+            item.toolTip = L10n("Home")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "house", accessibilityDescription: "Home")
+            item.image = NSImage(systemSymbolName: "house", accessibilityDescription: L10n("Home"))
             return item
         case .dashboardReloadItem:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
-            item.label = "Reload"
-            item.paletteLabel = "Reload"
-            item.toolTip = "Reload"
+            item.label = L10n("Reload")
+            item.paletteLabel = L10n("Reload")
+            item.toolTip = L10n("Reload")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: "Reload")
+            item.image = NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: L10n("Reload"))
             return item
         case .dashboardActionItem:
             let item = NSMenuToolbarItem(itemIdentifier: itemIdentifier)
             item.showsIndicator = true
-            item.label = "More"
-            item.paletteLabel = "More Actions"
-            item.toolTip = "Displays available actions"
+            item.label = L10n("More")
+            item.paletteLabel = L10n("More Actions")
+            item.toolTip = L10n("Displays available actions")
             item.isBordered = true
             item.image = NSImage(systemSymbolName: "ellipsis.circle", accessibilityDescription: "")
             let serviceStore = PlanetPublishedServiceStore.shared
@@ -288,7 +288,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
                     if let gatewayURL = URL(string: "https://eth.sucks/ipns/\(publishedLink)") {
                         let publicGatewayActionItem = NSMenuItem()
                         publicGatewayActionItem.representedObject = gatewayURL
-                        publicGatewayActionItem.title = "Open in Public Gateway"
+                        publicGatewayActionItem.title = L10n("Open in Public Gateway")
                         publicGatewayActionItem.target = self
                         publicGatewayActionItem.action = #selector(self.openInPublicGateway(_:))
                         menu.addItem(publicGatewayActionItem)
@@ -296,7 +296,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
                     if let localhostURL = URL(string: "\(IPFSState.shared.getGateway())/ipns/\(publishedLink)") {
                         let localhostActionItem = NSMenuItem()
                         localhostActionItem.representedObject = localhostURL
-                        localhostActionItem.title = "Open in Local Gateway"
+                        localhostActionItem.title = L10n("Open in Local Gateway")
                         localhostActionItem.target = self
                         localhostActionItem.action = #selector(self.openInLocalhost(_:))
                         menu.addItem(localhostActionItem)
@@ -305,14 +305,14 @@ extension PFDashboardWindowController: NSToolbarDelegate {
 
                 let revealFinderItem = NSMenuItem()
                 revealFinderItem.representedObject = folder
-                revealFinderItem.title = "Reveal in Finder"
+                revealFinderItem.title = L10n("Reveal in Finder")
                 revealFinderItem.target = self
                 revealFinderItem.action = #selector(self.revealInFinder(_:))
                 menu.addItem(revealFinderItem)
 
                 let publishFolderItem = NSMenuItem()
                 publishFolderItem.representedObject = folder
-                publishFolderItem.title = "Publish Folder"
+                publishFolderItem.title = L10n("Publish Folder")
                 publishFolderItem.target = self
                 publishFolderItem.action = #selector(self.publishFolderAction(_:))
                 menu.addItem(publishFolderItem)
@@ -322,7 +322,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
                 if folder.published != nil && folder.publishedLink != nil {
                     let backupFolderKeyItem = NSMenuItem()
                     backupFolderKeyItem.representedObject = folder
-                    backupFolderKeyItem.title = "Backup Folder Key"
+                    backupFolderKeyItem.title = L10n("Backup Folder Key")
                     backupFolderKeyItem.target = self
                     backupFolderKeyItem.action = #selector(self.backupFolderKey(_:))
                     menu.addItem(backupFolderKeyItem)
@@ -331,7 +331,7 @@ extension PFDashboardWindowController: NSToolbarDelegate {
 
                 let removeFolderItem = NSMenuItem()
                 removeFolderItem.representedObject = folder
-                removeFolderItem.title = "Remove Folder"
+                removeFolderItem.title = L10n("Remove Folder")
                 removeFolderItem.target = self
                 removeFolderItem.action = #selector(self.removeFolder(_:))
                 menu.addItem(removeFolderItem)
@@ -343,11 +343,11 @@ extension PFDashboardWindowController: NSToolbarDelegate {
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(self.toolbarItemAction(_:))
-            item.label = "Toggle Inspector View"
-            item.paletteLabel = "Toggle Inspector View"
-            item.toolTip = "Toggle Inspector View"
+            item.label = L10n("Toggle Inspector View")
+            item.paletteLabel = L10n("Toggle Inspector View")
+            item.toolTip = L10n("Toggle Inspector View")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "sidebar.right", accessibilityDescription: "Toggle Inspector View")
+            item.image = NSImage(systemSymbolName: "sidebar.right", accessibilityDescription: L10n("Toggle Inspector View"))
             return item
         case .dashboardInspectorSeparactorItem:
             if let vc = self.window?.contentViewController as? PFDashboardContainerViewController, let inspectorItem = vc.splitViewItems.last {

@@ -33,7 +33,7 @@ struct PlanetSettingsAIView: View {
     @State private var checkTask: Task<Void, Never>? = nil
     @State private var preferredModelCheckTask: Task<Void, Never>? = nil
     @State private var onDeviceAIState: StatusIndicatorState = .idle
-    @State private var onDeviceAILabel: String = "Checking…"
+    @State private var onDeviceAILabel: String = L10n("Checking…")
     @State private var ollamaDetected: Bool = false
     @State private var lmStudioDetected: Bool = false
 
@@ -310,9 +310,9 @@ struct PlanetSettingsAIView: View {
                 .foregroundStyle(.secondary)
         case .ok(let count, let modelFound):
             if modelFound {
-                Text("\(count) models available, preferred model supported")
+                Text(L10n("%d models available, preferred model supported", count))
             } else {
-                Text("\(count) models available, preferred model not found")
+                Text(L10n("%d models available, preferred model not found", count))
                     .foregroundStyle(.orange)
             }
         case .error(let message):
@@ -451,33 +451,33 @@ struct PlanetSettingsAIView: View {
             switch model.availability {
             case .available:
                 onDeviceAIState = .success
-                onDeviceAILabel = "Apple Intelligence model available"
+                onDeviceAILabel = L10n("Apple Intelligence model available")
             case .unavailable(let reason):
                 switch reason {
                 case .deviceNotEligible:
                     onDeviceAIState = .error
-                    onDeviceAILabel = "On-device AI is not available because this device is not eligible"
+                    onDeviceAILabel = L10n("On-device AI is not available because this device is not eligible")
                 case .modelNotReady:
                     onDeviceAIState = .warning
-                    onDeviceAILabel = "On-device AI is not available because the model is not ready"
+                    onDeviceAILabel = L10n("On-device AI is not available because the model is not ready")
                 case .appleIntelligenceNotEnabled:
                     onDeviceAIState = .warning
-                    onDeviceAILabel = "On-device AI is not available because Apple Intelligence is not enabled"
+                    onDeviceAILabel = L10n("On-device AI is not available because Apple Intelligence is not enabled")
                 @unknown default:
                     onDeviceAIState = .warning
-                    onDeviceAILabel = "On-device AI is not available"
+                    onDeviceAILabel = L10n("On-device AI is not available")
                 }
             @unknown default:
                 onDeviceAIState = .warning
-                onDeviceAILabel = "On-device AI availability is unknown"
+                onDeviceAILabel = L10n("On-device AI availability is unknown")
             }
         } else {
             onDeviceAIState = .idle
-            onDeviceAILabel = "On-device AI is not available because this Mac is not running macOS 26 or later"
+            onDeviceAILabel = L10n("On-device AI is not available because this Mac is not running macOS 26 or later")
         }
         #else
         onDeviceAIState = .idle
-        onDeviceAILabel = "On-device AI is not available because this build lacks the macOS 26 SDK"
+        onDeviceAILabel = L10n("On-device AI is not available because this build lacks the macOS 26 SDK")
         #endif
     }
 }

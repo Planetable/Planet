@@ -52,7 +52,7 @@ struct IPFSTrafficView: View {
             if let now = ipfsState.bandwidths.keys.max(), let stats = ipfsState.bandwidths[now] {
                 let i = IPFSState.formatter.string(fromByteCount: Int64(stats.totalIn))
                 let o = IPFSState.formatter.string(fromByteCount: Int64(stats.totalOut))
-                Text("Total In: \(i) Out: \(o)")
+                Text(L10n("Total In: %@ Out: %@", i, o))
                     .font(.caption)
             }
         }

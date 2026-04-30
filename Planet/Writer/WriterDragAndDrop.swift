@@ -173,12 +173,12 @@ class WriterDragAndDrop: ObservableObject, DropDelegate {
         }
 
         let alert = NSAlert()
-        alert.messageText = "Import Text into Writer?"
-        alert.informativeText = "This Writer already has a title or content."
+        alert.messageText = L10n("Import Text into Writer?")
+        alert.informativeText = L10n("This Writer already has a title or content.")
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "Append")
-        alert.addButton(withTitle: "Overwrite")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: L10n("Append"))
+        alert.addButton(withTitle: L10n("Overwrite"))
+        alert.addButton(withTitle: L10n("Cancel"))
 
         switch alert.runModal() {
         case .alertFirstButtonReturn:
@@ -234,7 +234,7 @@ class WriterDragAndDrop: ObservableObject, DropDelegate {
         alert.messageText = title
         alert.informativeText = message
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: L10n("OK"))
         alert.runModal()
     }
 }

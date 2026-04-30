@@ -143,7 +143,7 @@ class ArticleModel: ObservableObject, Identifiable, Equatable, Hashable {
                         .stroke(Color(.separatorColor), lineWidth: 1)
                 )
                 if attachments.count > 1 {
-                    Text("& \(attachments.count - 1) more")
+                    Text(L10n("& %d more", attachments.count - 1))
                         .lineLimit(1)
                         .font(.callout)
                         .foregroundColor(.secondary)

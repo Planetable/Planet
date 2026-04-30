@@ -52,7 +52,7 @@ class TBWindowController: NSWindowController {
         if #available(macOS 13.0, *) {
             toolbar.centeredItemIdentifiers = [.templatePreviewItems]
         }
-        w.title = "Template Browser"
+        w.title = L10n("Template Browser")
         w.toolbar = toolbar
         w.toolbar?.validateVisibleItems()
     }
@@ -91,12 +91,12 @@ class TBWindowController: NSWindowController {
 
     private func updateTemplateWindowTitles() {
         guard let templateID = TemplateStore.shared.selectedTemplateID, let template = TemplateStore.shared.templates.first(where: { $0.id == templateID }) else {
-            self.window?.title = "Template Browser"
+            self.window?.title = L10n("Template Browser")
             self.window?.subtitle = ""
             return
         }
-        self.window?.title = "\(template.name)"
-        self.window?.subtitle = "\(template.author) · Version \(template.version)"
+        self.window?.title = template.name
+        self.window?.subtitle = L10n("%@ · Version %@", template.author, template.version)
     }
 
     @objc private func toolbarItemAction(_ sender: Any) {
@@ -167,11 +167,11 @@ extension TBWindowController: NSToolbarDelegate {
                 let item = NSToolbarItem(itemIdentifier: itemIdentifier)
                 item.target = self
                 item.action = #selector(self.toolbarItemAction(_:))
-                item.label = "Toggle Sidebar"
-                item.paletteLabel = "Toggle Sidebar"
-                item.toolTip = "Toggle Sidebar"
+                item.label = L10n("Toggle Sidebar")
+                item.paletteLabel = L10n("Toggle Sidebar")
+                item.toolTip = L10n("Toggle Sidebar")
                 item.isBordered = true
-                item.image = NSImage(systemSymbolName: "sidebar.left", accessibilityDescription: "Toggle Sidebar")
+                item.image = NSImage(systemSymbolName: "sidebar.left", accessibilityDescription: L10n("Toggle Sidebar"))
                 return item
             case .templateSidebarSeparatorItem:
                 if let vc = self.window?.contentViewController as? TBContainerViewController {
@@ -184,11 +184,11 @@ extension TBWindowController: NSToolbarDelegate {
                 let item = NSToolbarItem(itemIdentifier: itemIdentifier)
                 item.target = self
                 item.action = #selector(self.toolbarItemAction(_:))
-                item.label = "Toggle Inspector View"
-                item.paletteLabel = "Toggle Inspector View"
-                item.toolTip = "Toggle Inspector View"
+                item.label = L10n("Toggle Inspector View")
+                item.paletteLabel = L10n("Toggle Inspector View")
+                item.toolTip = L10n("Toggle Inspector View")
                 item.isBordered = true
-                item.image = NSImage(systemSymbolName: "sidebar.right", accessibilityDescription: "Toggle Inspector View")
+                item.image = NSImage(systemSymbolName: "sidebar.right", accessibilityDescription: L10n("Toggle Inspector View"))
                 return item
             case .templateInspectorSeparatorItem:
                 if let vc = self.window?.contentViewController as? TBContainerViewController, let inspectorItem = vc.splitViewItems.last {
@@ -206,11 +206,11 @@ extension TBWindowController: NSToolbarDelegate {
                     let item = NSToolbarItem(itemIdentifier: itemIdentifier)
                     item.target = self
                     item.action = #selector(self.toolbarItemAction(_:))
-                    item.label = "Edit Template in VSCode"
-                    item.paletteLabel = "Edit Template in VSCode"
-                    item.toolTip = "Edit Template in VSCode"
+                    item.label = L10n("Edit Template in VSCode")
+                    item.paletteLabel = L10n("Edit Template in VSCode")
+                    item.toolTip = L10n("Edit Template in VSCode")
                     item.isBordered = true
-                    item.image = NSImage(systemSymbolName: "chevron.left.forwardslash.chevron.right", accessibilityDescription: "Open in VSCode")
+                    item.image = NSImage(systemSymbolName: "chevron.left.forwardslash.chevron.right", accessibilityDescription: L10n("Open in VSCode"))
                     return item
                 } else {
                     return nil
@@ -219,35 +219,35 @@ extension TBWindowController: NSToolbarDelegate {
                 let item = NSToolbarItem(itemIdentifier: itemIdentifier)
                 item.target = self
                 item.action = #selector(self.toolbarItemAction(_:))
-                item.label = "Refresh"
-                item.paletteLabel = "Refresh Template"
-                item.toolTip = "Refresh Template"
+                item.label = L10n("Refresh")
+                item.paletteLabel = L10n("Refresh Template")
+                item.toolTip = L10n("Refresh Template")
                 item.isBordered = true
-                item.image = NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: "Refresh Template")
+                item.image = NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: L10n("Refresh Template"))
                 return item
             case .templateRevealItem:
                 let item = NSToolbarItem(itemIdentifier: itemIdentifier)
                 item.target = self
                 item.action = #selector(self.toolbarItemAction(_:))
-                item.label = "Reveal in Finder"
-                item.paletteLabel = "Reveal in Finder"
-                item.toolTip = "Reveal in Finder"
+                item.label = L10n("Reveal in Finder")
+                item.paletteLabel = L10n("Reveal in Finder")
+                item.toolTip = L10n("Reveal in Finder")
                 item.isBordered = true
-                item.image = NSImage(systemSymbolName: "folder", accessibilityDescription: "Reveal in Finder")
+                item.image = NSImage(systemSymbolName: "folder", accessibilityDescription: L10n("Reveal in Finder"))
                 return item
             case .templatePreviewItems:
                 guard
-                    let indexImage: NSImage = NSImage(systemSymbolName: "list.bullet.rectangle", accessibilityDescription: "Index"),
-                    let blogImage: NSImage = NSImage(systemSymbolName: "doc.richtext", accessibilityDescription: "Blog")
+                    let indexImage: NSImage = NSImage(systemSymbolName: "list.bullet.rectangle", accessibilityDescription: L10n("Index")),
+                    let blogImage: NSImage = NSImage(systemSymbolName: "doc.richtext", accessibilityDescription: L10n("Blog"))
                 else {
                     return nil
                 }
                 let item = NSToolbarItemGroup(itemIdentifier: itemIdentifier, images: [blogImage, indexImage], selectionMode: .selectOne, labels: ["Blog", "Index"], target: self, action: #selector(self.toolbarItemAction(_:)))
                 item.controlRepresentation = .automatic
                 item.selectionMode = .selectOne
-                item.label = "Preview Mode"
-                item.paletteLabel = "Preview Mode"
-                item.toolTip = "Toggle Preview Mode"
+                item.label = L10n("Preview Mode")
+                item.paletteLabel = L10n("Preview Mode")
+                item.toolTip = L10n("Toggle Preview Mode")
                 item.selectedIndex = UserDefaults.standard.integer(forKey: String.selectedPreviewIndex)
                 return item
             default:

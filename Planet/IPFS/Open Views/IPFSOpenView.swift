@@ -59,7 +59,7 @@ struct IPFSOpenView: View {
             detectedType = "ENS"
         }
         else if destination.hasSuffix(".sol") {
-            detectedType = "Solana Name"
+            detectedType = L10n("Solana Name")
         }
         else {
             detectedType = " "

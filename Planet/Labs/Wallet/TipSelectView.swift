@@ -56,14 +56,14 @@ struct TipSelectView: View {
 
                 Spacer()
 
-                Text("\(EthereumChainID.names[ethereumChainId] ?? "Unknown Chain ID \(ethereumChainId)")")
+                Text(EthereumChainID.names[ethereumChainId] ?? L10n("Unknown Chain ID %d", ethereumChainId))
 
                 // TODO: If we want to allow users to switch network, we need to add this back, and pass the chain ID to the send function
                 /*
                 Picker(selection: $ethereumChainId, label: Text("")) {
                     ForEach(EthereumChainID.allCases, id: \.id) { value in
                         Text(
-                            "\(EthereumChainID.names[value.rawValue] ?? "Unknown Chain ID \(value.rawValue)")"
+                            "\(EthereumChainID.names[value.rawValue] ?? L10n("Unknown Chain ID %d", value.rawValue))"
                         )
                         .tag(value)
                         .frame(width: 120)
@@ -78,7 +78,7 @@ struct TipSelectView: View {
                     Picker(selection: $ethereumChainId, label: Text("")) {
                         ForEach(EthereumChainID.allCases, id: \.id) { value in
                             Text(
-                                "\(EthereumChainID.names[value.rawValue] ?? "Unknown Chain ID \(value.rawValue)")"
+                                "\(EthereumChainID.names[value.rawValue] ?? L10n("Unknown Chain ID %d", value.rawValue))"
                             )
                             .tag(value)
                             .frame(width: 120)
@@ -182,14 +182,12 @@ struct TipSelectView: View {
             return
         }
         let ethereumChainName = WalletManager.shared.currentNetworkName()
-        var walletAppString: String = ""
         let walletAppName = WalletManager.shared.getWalletAppName()
-        walletAppString = walletAppName + " on"
         let message: String
         if let ens = ens {
-            message = "Sending \(tipAmountLabel) to **\(ens)** on \(ethereumChainName), please confirm from \(walletAppString) your phone"
+            message = L10n("Sending %@ to **%@** on %@, please confirm from %@ on your phone", tipAmountLabel, ens, ethereumChainName, walletAppName)
         } else {
-            message = "Sending \(tipAmountLabel) to **\(receiver)** on \(ethereumChainName), please confirm from \(walletAppString) your phone"
+            message = L10n("Sending %@ to **%@** on %@, please confirm from %@ on your phone", tipAmountLabel, receiver, ethereumChainName, walletAppName)
         }
         dismiss()
         Task { @MainActor in
@@ -209,9 +207,9 @@ struct TipSelectView: View {
         var title: String
         let etherscanURLString: String = WalletManager.shared.etherscanURLString(address: receiver)
         if let ens = ens {
-            title = "Support this creator [`\(ens)`](\(etherscanURLString))"
+            title = L10n("Support this creator [`%@`](%@)", ens, etherscanURLString)
         } else {
-            title = "Support this creator [`" + receiver.shortWalletAddress() + "`](\(etherscanURLString))"
+            title = L10n("Support this creator [`%@`](%@)", receiver.shortWalletAddress(), etherscanURLString)
         }
         if let attributedString = try? AttributedString(markdown: title) {
             return attributedString
@@ -223,9 +221,9 @@ struct TipSelectView: View {
     private func titleStringPlain() -> String {
         var title: String
         if let ens = ens {
-            title = "Support this creator \(ens)"
+            title = L10n("Support this creator %@", ens)
         } else {
-            title = "Support this creator " + receiver.shortWalletAddress()
+            title = L10n("Support this creator %@", receiver.shortWalletAddress())
         }
         return title
     }

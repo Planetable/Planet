@@ -703,8 +703,8 @@ final class MyJSONDirectoryMonitor {
 
     func alert(title: String, message: String? = nil) {
         isShowingAlert = true
-        alertTitle = title
-        alertMessage = message ?? ""
+        alertTitle = L10n(title)
+        alertMessage = message.map { L10n($0) } ?? ""
     }
 
     func removeArticleFromList(article: ArticleModel) {
@@ -721,19 +721,19 @@ final class MyJSONDirectoryMonitor {
         switch selectedView {
         case .today:
             if let articles = selectedArticleList {
-                navigationSubtitle = "\(articles.count) fetched today"
+                navigationSubtitle = L10n("%d fetched today", articles.count)
             }
         case .unread:
             if let articles = selectedArticleList {
                 if totalUnreadCount > articles.count {
-                    navigationSubtitle = "\(articles.count) of \(totalUnreadCount) unread"
+                    navigationSubtitle = L10n("%d of %d unread", articles.count, totalUnreadCount)
                 } else {
-                    navigationSubtitle = "\(articles.count) unread"
+                    navigationSubtitle = L10n("%d unread", articles.count)
                 }
             }
         case .starred:
             if let articles = selectedArticleList {
-                navigationSubtitle = "\(articles.count) starred"
+                navigationSubtitle = L10n("%d starred", articles.count)
             }
         case .myPlanet(let planet):
             let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) ?? planet
@@ -776,25 +776,25 @@ final class MyJSONDirectoryMonitor {
         switch selectedView {
         case .today:
             selectedArticleList = getTodayArticles()
-            navigationTitle = "Today"
+            navigationTitle = L10n("Today")
             if let articles = selectedArticleList {
-                navigationSubtitle = "\(articles.count) fetched today"
+                navigationSubtitle = L10n("%d fetched today", articles.count)
             }
         case .unread:
             selectedArticleList = getUnreadArticles()
-            navigationTitle = "Unread"
+            navigationTitle = L10n("Unread")
             if let articles = selectedArticleList {
                 if totalUnreadCount > articles.count {
-                    navigationSubtitle = "\(articles.count) of \(totalUnreadCount) unread"
+                    navigationSubtitle = L10n("%d of %d unread", articles.count, totalUnreadCount)
                 } else {
-                    navigationSubtitle = "\(articles.count) unread"
+                    navigationSubtitle = L10n("%d unread", articles.count)
                 }
             }
         case .starred:
             selectedArticleList = getStarredArticles()
-            navigationTitle = "Starred"
+            navigationTitle = L10n("Starred")
             if let articles = selectedArticleList {
-                navigationSubtitle = "\(articles.count) starred"
+                navigationSubtitle = L10n("%d starred", articles.count)
             }
         case .myPlanet(let planet):
             let canonicalPlanet = myPlanets.first(where: { $0.id == planet.id }) ?? planet

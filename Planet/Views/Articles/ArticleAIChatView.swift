@@ -329,7 +329,7 @@ struct ArticleAIChatView: View {
         guard let base = UserDefaults.standard.string(forKey: .settingsAIAPIBase),
               let url = URL(string: base),
               let host = url.host else {
-            return "Remote"
+            return L10n("Remote")
         }
         return host
     }
@@ -343,7 +343,7 @@ struct ArticleAIChatView: View {
             return "\(remoteModelName) @ \(remoteHostname)"
         }
         if isOnDeviceAvailable {
-            return "Apple Intelligence (On-Device)"
+            return L10n("Apple Intelligence (On-Device)")
         }
         return ""
     }
@@ -413,7 +413,7 @@ struct ArticleAIChatView: View {
                     fontSize: chatFontSize,
                     isDisabled: isSending,
                     focusOnAppear: true,
-                    placeholder: isPlanetWideMode ? "Ask about your planets and articles\u{2026}" : "Ask about this article\u{2026}"
+                    placeholder: isPlanetWideMode ? L10n("Ask about your planets and articles...") : L10n("Ask about this article...")
                 )
 
                 Divider()
@@ -787,10 +787,10 @@ struct ArticleAIChatView: View {
 
     private var contextTitle: String {
         if isPlanetWideMode {
-            return "Your Planet Library"
+            return L10n("Your Planet Library")
         }
         guard let article = articleRef else {
-            return "Unknown"
+            return L10n("Unknown")
         }
         let title = article.title.trimmingCharacters(in: .whitespacesAndNewlines)
         if !title.isEmpty {
@@ -799,7 +799,7 @@ struct ArticleAIChatView: View {
 
         let content = article.content.trimmingCharacters(in: .whitespacesAndNewlines)
         if content.isEmpty {
-            return "Untitled Article"
+            return L10n("Untitled Article")
         }
 
         if let range = content.range(of: #"[.!?](\s|$)"#, options: .regularExpression) {
@@ -821,7 +821,7 @@ struct ArticleAIChatView: View {
 
     private var chatMessageList: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(isPlanetWideMode ? "Context: \(contextTitle)" : "Context loaded from: \(contextTitle)")
+            Text(isPlanetWideMode ? L10n("Context: %@", contextTitle) : L10n("Context loaded from: %@", contextTitle))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -939,7 +939,7 @@ struct ArticleAIChatView: View {
 
     private var sendingStatusText: String {
         guard let toolProgressText else {
-            return "Thinking..."
+            return L10n("Thinking...")
         }
         return toolProgressText.replacingOccurrences(
             of: #"^\[[^\]]+\]\s+"#,
@@ -2164,7 +2164,7 @@ struct ArticleAIChatView: View {
         }
         #endif
         Task { @MainActor in
-            errorText = "On-device AI is not available"
+            errorText = L10n("On-device AI is not available")
             isSending = false
         }
     }
@@ -2495,18 +2495,18 @@ struct ArticleAIChatView: View {
 
     private func thinkingProgressText(round: Int, maxRounds: Int) -> String {
         let playfulMessages = [
-            "Reticulating splines",
-            "Untangling cosmic paperclips",
-            "Feeding bytes to tiny gremlins",
-            "Warming up the idea engine",
-            "Rehearsing dramatic keyboard clacks",
-            "Tuning the thought antenna",
+            L10n("Reticulating splines"),
+            L10n("Untangling cosmic paperclips"),
+            L10n("Feeding bytes to tiny gremlins"),
+            L10n("Warming up the idea engine"),
+            L10n("Rehearsing dramatic keyboard clacks"),
+            L10n("Tuning the thought antenna"),
         ]
-        let playful = playfulMessages.randomElement() ?? "warming up"
+        let playful = playfulMessages.randomElement() ?? L10n("warming up")
 
         let lines = [
             "\(playful)...",
-            "Round \(round)/\(maxRounds)",
+            L10n("Round %d/%d", round, maxRounds),
         ]
         return lines.joined(separator: "\n")
     }
@@ -2519,11 +2519,11 @@ struct ArticleAIChatView: View {
         let toolNames = toolCalls.map { friendlyToolLabel(for: $0.name) }
         let previewNames = Array(toolNames.prefix(3))
         let hiddenCount = max(0, toolNames.count - previewNames.count)
-        var queueLine = "Round \(round)/\(maxRounds): tool queue ready with \(toolCalls.count) action(s)."
+        var queueLine = L10n("Round %d/%d: tool queue ready with %d action(s).", round, maxRounds, toolCalls.count)
         if !previewNames.isEmpty {
-            queueLine += "\nNext up: \(previewNames.joined(separator: " -> "))"
+            queueLine += "\n" + L10n("Next up: %@", previewNames.joined(separator: " -> "))
             if hiddenCount > 0 {
-                queueLine += " (+\(hiddenCount) more)"
+                queueLine += " " + L10n("(+%d more)", hiddenCount)
             }
         }
         return queueLine
@@ -2538,7 +2538,14 @@ struct ArticleAIChatView: View {
         maxRounds: Int
     ) -> String {
         var lines: [String] = [
-            "Round \(round)/\(maxRounds), action \(toolIndex + 1)/\(totalTools): \(friendlyToolLabel(for: toolCall.name))...",
+            L10n(
+                "Round %d/%d, action %d/%d: %@...",
+                round,
+                maxRounds,
+                toolIndex + 1,
+                totalTools,
+                friendlyToolLabel(for: toolCall.name)
+            ),
         ]
         if let argumentSummary = summarizeToolArguments(
             toolName: toolCall.name,
@@ -2560,17 +2567,24 @@ struct ArticleAIChatView: View {
     ) -> String {
         let statusText: String
         if let toolSucceeded {
-            statusText = toolSucceeded ? "completed" : "hit a snag"
+            statusText = toolSucceeded ? L10n("completed") : L10n("hit a snag")
         } else {
-            statusText = "returned data"
+            statusText = L10n("returned data")
         }
 
         var lines: [String] = [
-            "Round \(round), action \(toolIndex + 1)/\(totalTools): \(friendlyToolLabel(for: toolCall.name)) \(statusText).",
-            "Tool actions finished so far: \(totalExecuted).",
+            L10n(
+                "Round %d, action %d/%d: %@ %@.",
+                round,
+                toolIndex + 1,
+                totalTools,
+                friendlyToolLabel(for: toolCall.name),
+                statusText
+            ),
+            L10n("Tool actions finished so far: %d.", totalExecuted),
         ]
         if toolSucceeded == false {
-            lines.append("Adjusting the plan and continuing...")
+            lines.append(L10n("Adjusting the plan and continuing..."))
         }
         return lines.joined(separator: "\n")
     }
@@ -2578,23 +2592,23 @@ struct ArticleAIChatView: View {
     private func friendlyToolLabel(for toolName: String) -> String {
         switch toolName {
         case "read_article":
-            return "Reading article data"
+            return L10n("Reading article data")
         case "write_article":
-            return "Applying article edits"
+            return L10n("Applying article edits")
         case "read_planet":
-            return "Reading planet settings"
+            return L10n("Reading planet settings")
         case "write_planet":
-            return "Applying planet edits"
+            return L10n("Applying planet edits")
         case "shell":
-            return "Running shell command"
+            return L10n("Running shell command")
         case "search_articles":
-            return "Searching articles"
+            return L10n("Searching articles")
         case "grep":
-            return "Searching repo text"
+            return L10n("Searching repo text")
         case "list_planet_articles":
-            return "Listing planet articles"
+            return L10n("Listing planet articles")
         default:
-            return "Running \(toolName)"
+            return L10n("Running %@", toolName)
         }
     }
 
@@ -2607,117 +2621,117 @@ struct ArticleAIChatView: View {
         switch toolName {
         case "read_article":
             if let articleID = stringValue(from: arguments["article_id"]) {
-                parts.append("Target article: \(shortIdentifier(articleID)).")
+                parts.append(L10n("Target article: %@.", shortIdentifier(articleID)))
             } else {
-                parts.append("Target article: current selection.")
+                parts.append(L10n("Target article: current selection."))
             }
             if let fields = stringArrayValue(from: arguments["fields"]), !fields.isEmpty {
-                parts.append("Fields: \(previewList(fields, limit: 6)).")
+                parts.append(L10n("Fields: %@.", previewList(fields, limit: 6)))
             } else {
-                parts.append("Fields: full snapshot.")
+                parts.append(L10n("Fields: full snapshot."))
             }
         case "write_article":
             if let articleID = stringValue(from: arguments["article_id"]) {
-                parts.append("Target article: \(shortIdentifier(articleID)).")
+                parts.append(L10n("Target article: %@.", shortIdentifier(articleID)))
             } else {
-                parts.append("Target article: current selection.")
+                parts.append(L10n("Target article: current selection."))
             }
             let fields = inferredChangeKeys(
                 from: arguments,
                 idKeys: Set(["article_id", "replace_content"])
             )
             if !fields.isEmpty {
-                parts.append("Planned updates: \(previewList(fields, limit: 6)).")
+                parts.append(L10n("Planned updates: %@.", previewList(fields, limit: 6)))
             }
             if boolValue(from: arguments["replace_content"]) == true {
-                parts.append("Content mode: replace.")
+                parts.append(L10n("Content mode: replace."))
             } else if fields.contains("content") {
-                parts.append("Content mode: append.")
+                parts.append(L10n("Content mode: append."))
             }
         case "read_planet":
             if let planetID = stringValue(from: arguments["planet_id"]) {
-                parts.append("Target planet: \(shortIdentifier(planetID)).")
+                parts.append(L10n("Target planet: %@.", shortIdentifier(planetID)))
             } else {
-                parts.append("Target planet: current context.")
+                parts.append(L10n("Target planet: current context."))
             }
             if let fields = stringArrayValue(from: arguments["fields"]), !fields.isEmpty {
-                parts.append("Fields: \(previewList(fields, limit: 6)).")
+                parts.append(L10n("Fields: %@.", previewList(fields, limit: 6)))
             } else {
-                parts.append("Fields: full snapshot.")
+                parts.append(L10n("Fields: full snapshot."))
             }
         case "write_planet":
             if let planetID = stringValue(from: arguments["planet_id"]) {
-                parts.append("Target planet: \(shortIdentifier(planetID)).")
+                parts.append(L10n("Target planet: %@.", shortIdentifier(planetID)))
             } else {
-                parts.append("Target planet: current context.")
+                parts.append(L10n("Target planet: current context."))
             }
             let fields = inferredChangeKeys(
                 from: arguments,
                 idKeys: Set(["planet_id"])
             )
             if !fields.isEmpty {
-                parts.append("Planned updates: \(previewList(fields, limit: 6)).")
+                parts.append(L10n("Planned updates: %@.", previewList(fields, limit: 6)))
             }
         case "shell":
             if let command = stringValue(from: arguments["command"]) {
                 let singleLine = command.replacingOccurrences(of: "\n", with: " ")
-                parts.append("Command: \(truncateInline(singleLine, maxLength: 96)).")
+                parts.append(L10n("Command: %@.", truncateInline(singleLine, maxLength: 96)))
             }
             if let workingDirectory = stringValue(from: arguments["working_directory"]) {
-                parts.append("Dir: \(workingDirectory).")
+                parts.append(L10n("Dir: %@.", workingDirectory))
             }
             if let timeout = intValue(from: arguments["timeout_seconds"]) {
-                parts.append("Timeout: \(timeout)s.")
+                parts.append(L10n("Timeout: %ds.", timeout))
             }
         case "grep":
             if let pattern = stringValue(from: arguments["pattern"]) {
-                parts.append("Pattern: \(truncateInline(pattern, maxLength: 96)).")
+                parts.append(L10n("Pattern: %@.", truncateInline(pattern, maxLength: 96)))
             }
             if let path = stringValue(from: arguments["path"]) {
-                parts.append("Path: \(path).")
+                parts.append(L10n("Path: %@.", path))
             }
             if let literal = boolValue(from: arguments["literal"]) {
-                parts.append(literal ? "Mode: literal." : "Mode: regex.")
+                parts.append(literal ? L10n("Mode: literal.") : L10n("Mode: regex."))
             }
             if let caseSensitive = boolValue(from: arguments["case_sensitive"]) {
-                parts.append(caseSensitive ? "Case: sensitive." : "Case: insensitive.")
+                parts.append(caseSensitive ? L10n("Case: sensitive.") : L10n("Case: insensitive."))
             }
             if let maxResults = intValue(from: arguments["max_results"]) {
-                parts.append("Limit: \(maxResults).")
+                parts.append(L10n("Limit: %d.", maxResults))
             }
         case "search_articles":
             if let query = stringValue(from: arguments["query"]) {
-                parts.append("Query: \(truncateInline(query, maxLength: 96)).")
+                parts.append(L10n("Query: %@.", truncateInline(query, maxLength: 96)))
             }
             if let limit = intValue(from: arguments["limit"]) {
-                parts.append("Limit: \(limit).")
+                parts.append(L10n("Limit: %d.", limit))
             }
             if let planetID = stringValue(from: arguments["planet_id"]) {
-                parts.append("Planet: \(shortIdentifier(planetID)).")
+                parts.append(L10n("Planet: %@.", shortIdentifier(planetID)))
             }
         case "list_planet_articles":
             if let planetID = stringValue(from: arguments["planet_id"]) {
-                parts.append("Planet: \(shortIdentifier(planetID)).")
+                parts.append(L10n("Planet: %@.", shortIdentifier(planetID)))
             }
             if let limit = intValue(from: arguments["limit"]) {
-                parts.append("Limit: \(limit).")
+                parts.append(L10n("Limit: %d.", limit))
             }
             if let offset = intValue(from: arguments["offset"]) {
-                parts.append("Offset: \(offset).")
+                parts.append(L10n("Offset: %d.", offset))
             }
             if let sortBy = stringValue(from: arguments["sort_by"]) {
-                parts.append("Sort by: \(sortBy).")
+                parts.append(L10n("Sort by: %@.", sortBy))
             }
             if let sortOrder = stringValue(from: arguments["sort_order"]) {
-                parts.append("Order: \(sortOrder).")
+                parts.append(L10n("Order: %@.", sortOrder))
             }
             if let titleFilter = stringValue(from: arguments["title_filter"]) {
-                parts.append("Title filter: \(truncateInline(titleFilter, maxLength: 96)).")
+                parts.append(L10n("Title filter: %@.", truncateInline(titleFilter, maxLength: 96)))
             }
         default:
             let keys = Array(arguments.keys).sorted()
             if !keys.isEmpty {
-                parts.append("Argument keys: \(previewList(keys, limit: 6)).")
+                parts.append(L10n("Argument keys: %@.", previewList(keys, limit: 6)))
             }
         }
 
@@ -2730,88 +2744,88 @@ struct ArticleAIChatView: View {
             let json = try? JSONSerialization.jsonObject(with: data),
             let payload = json as? [String: Any]
         else {
-            return "Tool returned non-JSON output."
+            return L10n("Tool returned non-JSON output.")
         }
 
         if (payload["ok"] as? Bool) == false {
-            let error = stringValue(from: payload["error"]) ?? "Tool returned ok=false."
+            let error = stringValue(from: payload["error"]) ?? L10n("Tool returned ok=false.")
             let singleLineError = error.replacingOccurrences(of: "\n", with: " ")
-            return "Issue: \(truncateInline(singleLineError, maxLength: 220))"
+            return L10n("Issue: %@", truncateInline(singleLineError, maxLength: 220))
         }
 
         switch toolName {
         case "read_article":
             if let articlePayload = payload["article"] as? [String: Any] {
-                return "Loaded article payload with \(articlePayload.keys.count) top-level field(s)."
+                return L10n("Loaded article payload with %d top-level field(s).", articlePayload.keys.count)
             }
-            return "Article payload loaded."
+            return L10n("Article payload loaded.")
         case "write_article":
             let updatedFields = stringArrayValue(from: payload["updated_fields"]) ?? []
             if !updatedFields.isEmpty {
-                return "Saved article fields: \(previewList(updatedFields, limit: 6))."
+                return L10n("Saved article fields: %@.", previewList(updatedFields, limit: 6))
             }
-            return "Article write completed."
+            return L10n("Article write completed.")
         case "read_planet":
             if let planetPayload = payload["planet"] as? [String: Any] {
-                return "Loaded planet payload with \(planetPayload.keys.count) top-level field(s)."
+                return L10n("Loaded planet payload with %d top-level field(s).", planetPayload.keys.count)
             }
-            return "Planet payload loaded."
+            return L10n("Planet payload loaded.")
         case "write_planet":
             let updatedFields = stringArrayValue(from: payload["updated_fields"]) ?? []
             if !updatedFields.isEmpty {
-                return "Saved planet fields: \(previewList(updatedFields, limit: 6))."
+                return L10n("Saved planet fields: %@.", previewList(updatedFields, limit: 6))
             }
-            return "Planet write completed."
+            return L10n("Planet write completed.")
         case "shell":
             let exitCode = intValue(from: payload["exit_code"]) ?? 0
             let timedOut = (payload["timed_out"] as? Bool) ?? false
             if timedOut {
-                return "Shell command timed out."
+                return L10n("Shell command timed out.")
             }
             if exitCode != 0 {
                 if let stderr = stringValue(from: payload["stderr"]), !stderr.isEmpty {
                     let singleLine = stderr.replacingOccurrences(of: "\n", with: " ")
-                    return "Shell exit \(exitCode). stderr: \(truncateInline(singleLine, maxLength: 180))"
+                    return L10n("Shell exit %d. stderr: %@", exitCode, truncateInline(singleLine, maxLength: 180))
                 }
-                return "Shell exit \(exitCode)."
+                return L10n("Shell exit %d.", exitCode)
             }
             if let stdout = stringValue(from: payload["stdout"]),
                 !stdout.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             {
-                return "Shell finished with output."
+                return L10n("Shell finished with output.")
             }
-            return "Shell finished cleanly."
+            return L10n("Shell finished cleanly.")
         case "grep":
             let total = intValue(from: payload["total_matches"]) ?? 0
             let filesScanned = intValue(from: payload["files_scanned"]) ?? 0
             let truncated = (payload["truncated"] as? Bool) ?? false
             if truncated {
-                return "Found \(total) match(es) before hitting the result limit across \(filesScanned) file(s)."
+                return L10n("Found %d match(es) before hitting the result limit across %d file(s).", total, filesScanned)
             }
-            return "Found \(total) match(es) across \(filesScanned) file(s)."
+            return L10n("Found %d match(es) across %d file(s).", total, filesScanned)
         case "search_articles":
             let total = intValue(from: payload["total_matches"]) ?? 0
             if let results = payload["results"] as? [[String: Any]] {
-                return "Found \(total) match(es), returning \(results.count)."
+                return L10n("Found %d match(es), returning %d.", total, results.count)
             }
-            return "Search completed (\(total) matches)."
+            return L10n("Search completed (%d matches).", total)
         case "list_planet_articles":
             let total = intValue(from: payload["total_matches"]) ?? 0
             let totalArticles = intValue(from: payload["total_articles"]) ?? 0
             if let results = payload["results"] as? [[String: Any]] {
-                return "Listed \(results.count) of \(total) filtered article(s) from \(totalArticles) total."
+                return L10n("Listed %d of %d filtered article(s) from %d total.", results.count, total, totalArticles)
             }
-            return "Article listing completed (\(total) filtered from \(totalArticles) total)."
+            return L10n("Article listing completed (%d filtered from %d total).", total, totalArticles)
         default:
-            return "Tool response received."
+            return L10n("Tool response received.")
         }
     }
 
     private func successfulToolRunMessage(toolName: String, toolResult: String) -> String? {
         if let summary = summarizeToolResult(toolName: toolName, toolResult: toolResult) {
-            return "Ran: \(summary)"
+            return L10n("Ran: %@", summary)
         }
-        return "Ran: \(friendlyToolLabel(for: toolName))."
+        return L10n("Ran: %@.", friendlyToolLabel(for: toolName))
     }
 
     private func inferredChangeKeys(
@@ -4046,7 +4060,7 @@ struct ArticleAIChatView: View {
         }
         guard var changes = normalizedChanges(from: arguments, idKeys: Set(["article_id", "replace_content"])) else {
             let rawChanges = arguments["changes"]
-            let detail = "Expected `changes` as object/JSON-string, or top-level fields. got=\(debugValueType(rawChanges)); preview=\(debugDescription(rawChanges ?? "nil", maxLength: 500))"
+            let detail = L10n("Expected `changes` as object/JSON-string, or top-level fields. got=%@; preview=%@", debugValueType(rawChanges), debugDescription(rawChanges ?? "nil", maxLength: 500))
             return rejectedChangesToolResult(
                 toolName: "write_article",
                 detail: detail,
@@ -4199,7 +4213,7 @@ struct ArticleAIChatView: View {
         }
         guard var changes = normalizedChanges(from: arguments, idKeys: Set(["planet_id"])) else {
             let rawChanges = arguments["changes"]
-            let detail = "Expected `changes` as object/JSON-string, or top-level fields. got=\(debugValueType(rawChanges)); preview=\(debugDescription(rawChanges ?? "nil", maxLength: 500))"
+            let detail = L10n("Expected `changes` as object/JSON-string, or top-level fields. got=%@; preview=%@", debugValueType(rawChanges), debugDescription(rawChanges ?? "nil", maxLength: 500))
             return rejectedChangesToolResult(
                 toolName: "write_planet",
                 detail: detail,
@@ -5564,7 +5578,7 @@ struct ArticleAIChatView: View {
     }
 
     private func rejectedChangesToolResult(toolName: String, detail: String, example: String) -> String {
-        let localMessage = "I rejected \(toolName) because `changes` must be a non-empty JSON object. This write was not applied to avoid unintended edits. Retry with explicit fields, for example \(example)."
+        let localMessage = L10n("I rejected %@ because `changes` must be a non-empty JSON object. This write was not applied to avoid unintended edits. Retry with explicit fields, for example %@.", toolName, example)
         return toolResult([
             "ok": false,
             "rejected": true,
@@ -5592,13 +5606,13 @@ struct ArticleAIChatView: View {
             guard !updatedFields.isEmpty else {
                 return ""
             }
-            return " Updated fields: \(updatedFields.joined(separator: ", "))."
+            return L10n(" Updated fields: %@.", updatedFields.joined(separator: ", "))
         }()
 
         if toolName == "write_article" {
-            return "I modified the article.\(fieldSuffix)"
+            return L10n("I modified the article.") + fieldSuffix
         } else {
-            return "I modified the planet.\(fieldSuffix)"
+            return L10n("I modified the planet.") + fieldSuffix
         }
     }
 

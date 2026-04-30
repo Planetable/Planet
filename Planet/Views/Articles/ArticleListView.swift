@@ -12,9 +12,9 @@ class ArticleListDropDelegate: DropDelegate {
         var errorDescription: String? {
             switch self {
             case .multipleTextFilesWithAttachments:
-                return "Drop either a single Markdown or text file with attachments, or multiple Markdown/text files by themselves to import them as separate articles."
+                return L10n("Drop either a single Markdown or text file with attachments, or multiple Markdown/text files by themselves to import them as separate articles.")
             case .targetPlanetRequired:
-                return "Select one of your planets before dropping a Markdown or text file."
+                return L10n("Select one of your planets before dropping a Markdown or text file.")
             }
         }
     }
@@ -204,12 +204,14 @@ class ArticleListDropDelegate: DropDelegate {
     @MainActor
     private static func showDuplicatesSkippedAlert(count: Int) {
         let alert = NSAlert()
-        alert.messageText = "\(count) Duplicate \(count == 1 ? "Article" : "Articles") Skipped"
+        alert.messageText = count == 1
+            ? L10n("1 Duplicate Article Skipped")
+            : String(format: L10n("%d Duplicate Articles Skipped"), count)
         alert.informativeText = count == 1
-            ? "1 file was not imported because its title and content matched an existing article."
-            : "\(count) files were not imported because their title and content matched existing articles."
+            ? L10n("1 file was not imported because its title and content matched an existing article.")
+            : String(format: L10n("%d files were not imported because their title and content matched existing articles."), count)
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: L10n("OK"))
         alert.runModal()
     }
 
@@ -282,11 +284,11 @@ class ArticleListDropDelegate: DropDelegate {
             // Yield so AppKit can finish dismissing the drag visuals before the modal alert blocks the main thread.
             try? await Task.sleep(nanoseconds: dragAlertPresentationDelay)
             let confirm = NSAlert()
-            confirm.messageText = "Import \(textDocumentURLs.count) Files?"
-            confirm.informativeText = "Each Markdown or text file will be imported as a separate article."
+            confirm.messageText = String(format: L10n("Import %d Files?"), textDocumentURLs.count)
+            confirm.informativeText = L10n("Each Markdown or text file will be imported as a separate article.")
             confirm.alertStyle = .informational
-            confirm.addButton(withTitle: "Import")
-            confirm.addButton(withTitle: "Cancel")
+            confirm.addButton(withTitle: L10n("Import"))
+            confirm.addButton(withTitle: L10n("Cancel"))
             guard confirm.runModal() == .alertFirstButtonReturn else {
                 return true
             }
@@ -323,10 +325,10 @@ class ArticleListDropDelegate: DropDelegate {
                 // Give AppKit time to clear drag visuals before the modal alert appears.
                 try? await Task.sleep(nanoseconds: Self.dragAlertPresentationDelay)
                 let alert = NSAlert()
-                alert.messageText = "Failed to Create Post"
+                alert.messageText = L10n("Failed to Create Post")
                 alert.informativeText = error.localizedDescription
                 alert.alertStyle = .warning
-                alert.addButton(withTitle: "OK")
+                alert.addButton(withTitle: L10n("OK"))
                 alert.runModal()
             }
         }
@@ -485,7 +487,7 @@ struct ArticleListView: View {
             VStack(spacing: 0) {
                 if viewModel.articles.isEmpty {
                     /*
-                    Text(ListViewFilter.emptyLabels[filter.rawValue] ?? "No Articles")
+                    Text(filter.localizedEmptyLabel)
                         .foregroundColor(.secondary)
                         .font(.system(size: 14, weight: .regular))
                     */
@@ -596,7 +598,7 @@ struct ArticleListView: View {
                                         ?? "line.3.horizontal.circle"
                                 )
                             }
-                            Text(ListViewFilter.buttonLabels[aFilter.rawValue] ?? aFilter.rawValue)
+                            Text(aFilter.localizedButtonLabel)
                         }
                     }
                     if aFilter == .starred || aFilter == .star || aFilter == .done {
@@ -608,7 +610,7 @@ struct ArticleListView: View {
             }
             .modifier(FilterButtonCompatModifier())
             .menuIndicator(.hidden)
-            .help(viewModel.filter.rawValue)
+            .help(viewModel.filter.localizedTitle)
         }
         .onAppear {
             viewModel.articles = filterArticles(planetStore.selectedArticleList ?? []) ?? []

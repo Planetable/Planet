@@ -86,7 +86,7 @@ extension WriterWindow: NSToolbarDelegate {
             return makeToolbarButton(
                 itemIdentifier: .send,
                 title: title,
-                image: NSImage(systemSymbolName: "paperplane", accessibilityDescription: "Send")!,
+                image: NSImage(systemSymbolName: "paperplane", accessibilityDescription: L10n("Send"))!,
                 selector: "send:"
             )
         case .insertEmoji:
@@ -94,7 +94,7 @@ extension WriterWindow: NSToolbarDelegate {
             return makeToolbarButton(
                 itemIdentifier: .insertEmoji,
                 title: title,
-                image: NSImage(systemSymbolName: "face.smiling", accessibilityDescription: "Insert Emoji")!,
+                image: NSImage(systemSymbolName: "face.smiling", accessibilityDescription: L10n("Insert Emoji"))!,
                 selector: "insertEmoji:"
             )
         case .attachPhoto:
@@ -102,7 +102,7 @@ extension WriterWindow: NSToolbarDelegate {
             return makeToolbarButton(
                 itemIdentifier: .attachPhoto,
                 title: title,
-                image: NSImage(systemSymbolName: "photo.on.rectangle", accessibilityDescription: "Attach Photo")!,
+                image: NSImage(systemSymbolName: "photo.on.rectangle", accessibilityDescription: L10n("Attach Photo"))!,
                 selector: "attachPhoto:"
             )
         case .attachVideo:
@@ -110,7 +110,7 @@ extension WriterWindow: NSToolbarDelegate {
             return makeToolbarButton(
                 itemIdentifier: .attachVideo,
                 title: title,
-                image: NSImage(systemSymbolName: "video.badge.plus", accessibilityDescription: "Attach Video")!,
+                image: NSImage(systemSymbolName: "video.badge.plus", accessibilityDescription: L10n("Attach Video"))!,
                 selector: "attachVideo:"
             )
         case .attachAudio:
@@ -118,7 +118,7 @@ extension WriterWindow: NSToolbarDelegate {
             return makeToolbarButton(
                 itemIdentifier: .attachAudio,
                 title: title,
-                image: NSImage(systemSymbolName: "waveform.badge.plus", accessibilityDescription: "Attach Audio")!,
+                image: NSImage(systemSymbolName: "waveform.badge.plus", accessibilityDescription: L10n("Attach Audio"))!,
                 selector: "attachAudio:"
             )
 

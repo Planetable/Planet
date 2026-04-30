@@ -92,7 +92,7 @@ struct MyArticleGridView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Are you sure you want to delete this post?\n\n\(article.title)\n\nThis action cannot be undone.")
+            Text(L10n("Are you sure you want to delete this post?\n\n%@\n\nThis action cannot be undone.", article.title))
         }
         .contextMenu {
             Button {
@@ -150,7 +150,7 @@ struct MyArticleGridView: View {
                         Button {
                             NSWorkspace.shared.open(url)
                         } label: {
-                            Text("View `\(attachment)` on IPFS")
+                            Text(.init(L10n("View `%@` on IPFS", attachment)))
                         }
                     }
                 }
@@ -199,7 +199,7 @@ struct MyArticleGridView: View {
                         } catch {
                             Task { @MainActor in
                                 PlanetStore.shared.isShowingAlert = true
-                                PlanetStore.shared.alertTitle = "Failed to Export Post"
+                                PlanetStore.shared.alertTitle = L10n("Failed to Export Post")
                                 PlanetStore.shared.alertMessage = error.localizedDescription
                             }
                         }
@@ -212,7 +212,7 @@ struct MyArticleGridView: View {
                         } catch {
                             Task { @MainActor in
                                 PlanetStore.shared.isShowingAlert = true
-                                PlanetStore.shared.alertTitle = "Failed to Share Post"
+                                PlanetStore.shared.alertTitle = L10n("Failed to Share Post")
                                 PlanetStore.shared.alertMessage = error.localizedDescription
                             }
                         }

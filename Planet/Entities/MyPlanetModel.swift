@@ -2930,7 +2930,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
               let apiToken = cloudflarePagesAPIToken, !apiToken.isEmpty,
               let projectName = cloudflarePagesProjectName, !projectName.isEmpty
         else {
-            let message = "Cloudflare Pages is enabled but Account ID, API Token, or Project Name is missing."
+            let message = L10n("Cloudflare Pages is enabled but Account ID, API Token, or Project Name is missing.")
             CloudflarePagesLogger.log("[ERROR] [\(name)] \(message)")
             throw PlanetError.CloudflarePagesPublishError(message)
         }
@@ -3530,7 +3530,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     func sendNotificationForRebuild(kind: String) async {
         let startedAt = Self.perfNow()
         let notification = UNMutableNotificationContent()
-        notification.title = "Planet Rebuilt"
+        notification.title = L10n("Planet Rebuilt")
         notification.subtitle = self.name
         notification.interruptionLevel = .active
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
@@ -3560,7 +3560,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     func sendNotificationForNewCID(cid: String) async {
         let notification = UNMutableNotificationContent()
         notification.title = self.name + ": Planet Published"
-        notification.subtitle = "CID: " + cid
+        notification.subtitle = L10n("CID: ") + cid
 
         if FileManager.default.fileExists(atPath: publicAvatarPath.path) {
             // Copy the avatar to the temporary directory
@@ -3640,14 +3640,14 @@ extension MyPlanetModel {
     func navigationSubtitle() -> String {
         if articles.count > 0 {
             if articles.count > 1 {
-                return "\(articles.count) articles"
+                return L10n("%d articles", articles.count)
             }
             else {
-                return "1 article"
+                return L10n("1 article")
             }
         }
         else {
-            return "No articles"
+            return L10n("No articles")
         }
     }
 

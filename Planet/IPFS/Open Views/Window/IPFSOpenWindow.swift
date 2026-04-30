@@ -15,7 +15,7 @@ class IPFSOpenWindow: NSWindow {
         super.init(contentRect: NSRect(origin: .zero, size: .init(width: Self.minWidth, height: Self.minHeight)), styleMask: [.miniaturizable, .closable, .resizable, .titled], backing: .buffered, defer: true)
         self.minSize = CGSize(width: Self.minWidth, height: Self.minHeight)
         self.collectionBehavior = .fullScreenNone
-        self.title = "Open IPFS Resource"
+        self.title = L10n("Open IPFS Resource")
         self.titlebarAppearsTransparent = false
         self.titleVisibility = .visible
         self.delegate = self

@@ -70,10 +70,10 @@ struct RelatedArticlesView: View {
                 if isSearching {
                     ProgressView()
                         .controlSize(.small)
-                    Text("Finding related articles...")
+                    Text(L10n("Finding related articles..."))
                         .foregroundColor(.secondary)
                 } else if results.count > 1 {
-                    Text("\(results.count) related articles")
+                    Text(L10n("%d related articles", results.count))
                         .foregroundColor(.secondary)
                 } else if results.count == 1 {
                     Text("1 related article")

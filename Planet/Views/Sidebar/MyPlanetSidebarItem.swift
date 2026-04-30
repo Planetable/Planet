@@ -79,7 +79,7 @@ struct MyPlanetSidebarItem: View {
                         NSWorkspace.shared.open(url)
                     } label: {
                         Image("custom.cloudflare")
-                        Text("Open \(host)")
+                        Text(L10n("Open %@", host))
                     }
                 }
 
@@ -200,17 +200,13 @@ struct MyPlanetSidebarItem: View {
                         } catch PlanetError.FileExistsError {
                             Task { @MainActor in
                                 self.planetStore.isShowingAlert = true
-                                self.planetStore.alertTitle = "Failed to Share Planet Data"
-                                self.planetStore.alertMessage = """
-                                    There is already an exported Planet in the destination.
-                                    We do not recommend override your backup.
-                                    Please choose another destination, or rename your previous backup.
-                                """
+                                self.planetStore.alertTitle = L10n("Failed to Share Planet Data")
+                                self.planetStore.alertMessage = L10n("There is already an exported Planet in the destination.\nWe do not recommend overriding your backup.\nPlease choose another destination, or rename your previous backup.")
                             }
                         } catch {
                             Task { @MainActor in
                                 self.planetStore.isShowingAlert = true
-                                self.planetStore.alertTitle = "Failed to Share Planet Data"
+                                self.planetStore.alertTitle = L10n("Failed to Share Planet Data")
                                 self.planetStore.alertMessage = error.localizedDescription
                             }
                         }
@@ -223,7 +219,7 @@ struct MyPlanetSidebarItem: View {
                         } catch {
                             Task { @MainActor in
                                 self.planetStore.isShowingAlert = true
-                                self.planetStore.alertTitle = "Failed to Share Planet Data"
+                                self.planetStore.alertTitle = L10n("Failed to Share Planet Data")
                                 self.planetStore.alertMessage = error.localizedDescription
                             }
                         }
@@ -286,7 +282,7 @@ struct MyPlanetSidebarItem: View {
                 Text("Delete")
             }
         } message: {
-            Text("Are you sure you want to delete \(planet.name)? This action cannot be undone.")
+            Text(L10n("Are you sure you want to delete %@? This action cannot be undone.", planet.name))
         }
         .confirmationDialog(
             Text("Delete Article"),
@@ -374,8 +370,8 @@ struct MyPlanetSidebarItem: View {
 
     private func exportPlanet() throws {
         let panel = NSOpenPanel()
-        panel.message = "Choose Directory to Export Planet"
-        panel.prompt = "Export"
+        panel.message = L10n("Choose Directory to Export Planet")
+        panel.prompt = L10n("Export")
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.folder]
         panel.canChooseDirectories = true
@@ -474,7 +470,7 @@ struct MyPlanetSidebarItem: View {
                     catch {
                         Task { @MainActor in
                             self.planetStore.isShowingAlert = true
-                            self.planetStore.alertTitle = "Failed to Quick Rebuild Planet"
+                            self.planetStore.alertTitle = L10n("Failed to Quick Rebuild Planet")
                             self.planetStore.alertMessage = error.localizedDescription
                         }
                     }
@@ -494,7 +490,7 @@ struct MyPlanetSidebarItem: View {
                     catch {
                         Task { @MainActor in
                             self.planetStore.isShowingAlert = true
-                            self.planetStore.alertTitle = "Failed to Rebuild Planet"
+                            self.planetStore.alertTitle = L10n("Failed to Rebuild Planet")
                             self.planetStore.alertMessage = error.localizedDescription
                         }
                     }

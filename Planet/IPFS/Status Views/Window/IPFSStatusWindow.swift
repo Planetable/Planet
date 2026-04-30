@@ -24,7 +24,7 @@ class IPFSStatusWindow: NSWindow {
         super.init(contentRect: NSRect(origin: windowOrigin, size: .init(width: Self.minWidth, height: Self.minHeight)), styleMask: [.closable, .titled, .fullSizeContentView], backing: .buffered, defer: true)
         self.minSize = CGSize(width: Self.minWidth, height: Self.minHeight)
         self.collectionBehavior = .fullScreenNone
-        self.title = "IPFS Status"
+        self.title = L10n("IPFS Status")
         self.titlebarAppearsTransparent = true
         self.titleVisibility = .visible
         self.isMovableByWindowBackground = true

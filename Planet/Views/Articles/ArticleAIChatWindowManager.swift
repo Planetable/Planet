@@ -84,8 +84,8 @@ final class ArticleAIChatWindowController: NSWindowController {
 
         super.init(window: window)
 
-        toolbarState.title = "AI Research Chat"
-        toolbarState.singleProviderLabel = "Remote"
+        toolbarState.title = L10n("AI Research Chat")
+        toolbarState.singleProviderLabel = L10n("Remote")
         window.setFrameAutosaveName(autosaveName)
         window.delegate = self
         setupToolbar()
@@ -205,31 +205,31 @@ extension ArticleAIChatWindowController: NSToolbarDelegate {
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(toolbarItemAction(_:))
-            item.label = "Clear Chat History"
-            item.paletteLabel = "Clear Chat History"
-            item.toolTip = "Clear Chat History"
+            item.label = L10n("Clear Chat History")
+            item.paletteLabel = L10n("Clear Chat History")
+            item.toolTip = L10n("Clear Chat History")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "trash", accessibilityDescription: "Clear Chat History")
+            item.image = NSImage(systemSymbolName: "trash", accessibilityDescription: L10n("Clear Chat History"))
             return item
         case .aiChatDecreaseFont:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(toolbarItemAction(_:))
-            item.label = "Decrease Font Size"
-            item.paletteLabel = "Decrease Font Size"
-            item.toolTip = "Decrease Font Size"
+            item.label = L10n("Decrease Font Size")
+            item.paletteLabel = L10n("Decrease Font Size")
+            item.toolTip = L10n("Decrease Font Size")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "textformat.size.smaller", accessibilityDescription: "Decrease Font Size")
+            item.image = NSImage(systemSymbolName: "textformat.size.smaller", accessibilityDescription: L10n("Decrease Font Size"))
             return item
         case .aiChatIncreaseFont:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(toolbarItemAction(_:))
-            item.label = "Increase Font Size"
-            item.paletteLabel = "Increase Font Size"
-            item.toolTip = "Increase Font Size"
+            item.label = L10n("Increase Font Size")
+            item.paletteLabel = L10n("Increase Font Size")
+            item.toolTip = L10n("Increase Font Size")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "textformat.size.larger", accessibilityDescription: "Increase Font Size")
+            item.image = NSImage(systemSymbolName: "textformat.size.larger", accessibilityDescription: L10n("Increase Font Size"))
             return item
         default:
             return nil

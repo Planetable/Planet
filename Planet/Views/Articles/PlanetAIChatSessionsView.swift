@@ -159,18 +159,18 @@ struct PlanetAIChatSessionSidebar: View {
     }
 
     private var deleteAlertTitle: String {
-        isClearingOnlySession ? "Do you want to clear this only session?" : "Delete Session"
+        isClearingOnlySession ? L10n("Do you want to clear this only session?") : L10n("Delete Session")
     }
 
     private var deleteAlertActionTitle: String {
-        isClearingOnlySession ? "Clear" : "Delete"
+        isClearingOnlySession ? L10n("Clear") : L10n("Delete")
     }
 
     private var deleteAlertMessage: String {
         if isClearingOnlySession {
-            return "This will remove all messages for this session and rename it to \"\(PlanetAIChatSession.defaultTitle)\"."
+            return L10n("This will remove all messages for this session and rename it to \"%@\".", L10n(PlanetAIChatSession.defaultTitle))
         }
-        return "This will remove all messages for this session. This action cannot be undone."
+        return L10n("This will remove all messages for this session. This action cannot be undone.")
     }
 
     var body: some View {
@@ -228,7 +228,7 @@ private struct PlanetAIChatSessionSidebarRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Text(session.title)
+            Text(session.title == PlanetAIChatSession.defaultTitle ? L10n(PlanetAIChatSession.defaultTitle) : session.title)
                 .lineLimit(1)
 
             Spacer(minLength: 0)
@@ -240,7 +240,7 @@ private struct PlanetAIChatSessionSidebarRow: View {
                     .foregroundColor(.secondary)
             }
             .buttonStyle(.borderless)
-            .help("Delete Session")
+            .help(L10n("Delete Session"))
         }
         .padding(.vertical, 2)
     }

@@ -129,17 +129,17 @@ struct VideoCompressionJob {
         var title: String {
             switch self {
             case .h264FitInside1080p:
-                return "H264: Fit inside 1080P"
+                return L10n("H264: Fit inside 1080P")
             case .h264FitInside720p:
-                return "H264: Fit inside 720P"
+                return L10n("H264: Fit inside 720P")
             case .h264FitInside480p:
-                return "H264: Fit inside 480P"
+                return L10n("H264: Fit inside 480P")
             case .h265FitInside1080p:
-                return "HEVC: Fit inside 1080P"
+                return L10n("HEVC: Fit inside 1080P")
             case .h265FitInside720p:
-                return "HEVC: Fit inside 720P"
+                return L10n("HEVC: Fit inside 720P")
             case .h265FitInside480p:
-                return "HEVC: Fit inside 480P"
+                return L10n("HEVC: Fit inside 480P")
             }
         }
 
@@ -301,15 +301,15 @@ struct VideoCompressionJob {
         var errorDescription: String? {
             switch self {
             case .exportSessionUnavailable:
-                return "Planet could not create a video export session."
+                return L10n("Planet could not create a video export session.")
             case .invalidVideoTrack:
-                return "Planet could not read the video track for this attachment."
+                return L10n("Planet could not read the video track for this attachment.")
             case .hdrRequiresHEVC:
-                return "This video uses HDR. Choose an H265 preset to retain its color space."
+                return L10n("This video uses HDR. Choose an H265 preset to retain its color space.")
             case .outputFileTypeUnavailable:
-                return "Planet could not determine an output format for the compressed video."
+                return L10n("Planet could not determine an output format for the compressed video.")
             case .exportFailed(let message):
-                return message ?? "Planet could not compress this video."
+                return message ?? L10n("Planet could not compress this video.")
             }
         }
     }

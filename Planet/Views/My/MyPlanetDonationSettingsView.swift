@@ -197,11 +197,11 @@ extension MyPlanetDonationSettingsView {
             errors += 1
 
             let alert = NSAlert()
-            alert.messageText = "Invalid ETH Address"
+            alert.messageText = L10n("Invalid ETH Address")
             alert.informativeText =
-                "Please enter a valid Ethereum address. The address should start with '0x' and have exactly 42 characters."
+                L10n("Please enter a valid Ethereum address. The address should start with '0x' and have exactly 42 characters.")
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: L10n("OK"))
             alert.runModal()
         }
         return errors

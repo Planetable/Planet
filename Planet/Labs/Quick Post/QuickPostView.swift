@@ -254,8 +254,8 @@ struct QuickPostView: View {
 
     private func attach(_ type: AttachmentType = .file) throws {
         let panel = NSOpenPanel()
-        panel.message = "Add Attachments"
-        panel.prompt = "Add"
+        panel.message = L10n("Add Attachments")
+        panel.prompt = L10n("Add")
         panel.allowedContentTypes = viewModel.allowedContentTypes
         panel.allowsMultipleSelection = viewModel.allowMultipleSelection
         panel.canChooseDirectories = false
@@ -322,7 +322,7 @@ struct QuickPostView: View {
                 } catch {
                     Task { @MainActor in
                         PlanetStore.shared.isShowingAlert = true
-                        PlanetStore.shared.alertTitle = "Failed to Prepare Article for Publishing"
+                        PlanetStore.shared.alertTitle = L10n("Failed to Prepare Article for Publishing")
                         PlanetStore.shared.alertMessage = error.localizedDescription
                     }
                     return

@@ -5,7 +5,7 @@ struct ChatInputField: View {
     let fontSize: CGFloat
     let isDisabled: Bool
     var focusOnAppear: Bool = false
-    var placeholder: String = "Ask about this article\u{2026}"
+    var placeholder: String = L10n("Ask about this article...")
 
     private let contentInset: CGFloat = 10
     private let placeholderTopInset: CGFloat = 12

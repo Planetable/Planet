@@ -45,7 +45,7 @@ actor IPFSDaemon {
         } catch {
             Self.logger.error("Failed to read IPFS repo directory: \(error)")
             await MainActor.run {
-                IPFSState.shared.reasonIPFSNotRunning = "Failed to access IPFS repository at \(IPFSCommand.IPFSRepositoryPath.path).\n\nError: \(error.localizedDescription)"
+                IPFSState.shared.reasonIPFSNotRunning = L10n("Failed to access IPFS repository at %@.\n\nError: %@", IPFSCommand.IPFSRepositoryPath.path, error.localizedDescription)
             }
             return
         }
@@ -903,8 +903,8 @@ actor IPFSDaemon {
         if count > 0 {
             // Create and schedule notification
             let content = UNMutableNotificationContent()
-            content.title = "IPFS Garbage Collection Complete"
-            content.body = "Removed \(count) unused objects"
+            content.title = L10n("IPFS Garbage Collection Complete")
+            content.body = L10n("Removed %d unused objects", count)
             content.sound = .default
             content.interruptionLevel = .timeSensitive
 

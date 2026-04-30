@@ -15,7 +15,7 @@ class PlanetKeyManagerWindow: NSWindow {
         self.collectionBehavior = .fullScreenNone
         self.minSize = NSMakeSize(480, 320)
         self.maxSize = NSMakeSize(CGFloat.infinity, CGFloat.infinity)
-        self.title = "Key Manager"
+        self.title = L10n("Key Manager")
         self.titlebarAppearsTransparent = false
         self.contentViewController = PlanetKeyManagerViewController()
         self.delegate = self

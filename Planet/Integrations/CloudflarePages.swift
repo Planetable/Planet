@@ -82,7 +82,7 @@ struct CloudflarePages {
         let (createData, createResponse) = try await URLSession.shared.data(for: createRequest)
         guard let createHTTP = createResponse as? HTTPURLResponse, createHTTP.statusCode == 200 else {
             let responseBody = String(data: createData, encoding: .utf8) ?? ""
-            let message = "Failed to create project '\(projectName)': \(responseBody)"
+            let message = L10n("Failed to create project '%@': %@", projectName, responseBody)
             CloudflarePagesLogger.log("[ERROR] \(message)")
             throw PlanetError.CloudflarePagesPublishError(message)
         }
@@ -107,7 +107,7 @@ struct CloudflarePages {
             includingPropertiesForKeys: [.isRegularFileKey],
             options: [.skipsHiddenFiles]
         ) else {
-            let message = "Failed to enumerate files in \(directoryURL.path)"
+            let message = L10n("Failed to enumerate files in %@", directoryURL.path)
             CloudflarePagesLogger.log("[ERROR] \(message)")
             throw PlanetError.CloudflarePagesPublishError(message)
         }
@@ -198,7 +198,7 @@ struct CloudflarePages {
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let responseBody = String(data: data, encoding: .utf8) ?? ""
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            let message = "Failed to get upload token (HTTP \(statusCode)): \(responseBody)"
+            let message = L10n("Failed to get upload token (HTTP %d): %@", statusCode, responseBody)
             CloudflarePagesLogger.log("[ERROR] \(message)")
             throw PlanetError.CloudflarePagesPublishError(message)
         }
@@ -207,7 +207,7 @@ struct CloudflarePages {
               let result = json["result"] as? [String: Any],
               let jwt = result["jwt"] as? String else {
             let responseBody = String(data: data, encoding: .utf8) ?? ""
-            let message = "Failed to parse upload token: \(responseBody)"
+            let message = L10n("Failed to parse upload token: %@", responseBody)
             CloudflarePagesLogger.log("[ERROR] \(message)")
             throw PlanetError.CloudflarePagesPublishError(message)
         }
@@ -230,7 +230,7 @@ struct CloudflarePages {
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let responseBody = String(data: data, encoding: .utf8) ?? ""
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            let message = "Failed to check missing files (HTTP \(statusCode)): \(responseBody)"
+            let message = L10n("Failed to check missing files (HTTP %d): %@", statusCode, responseBody)
             CloudflarePagesLogger.log("[ERROR] \(message)")
             throw PlanetError.CloudflarePagesPublishError(message)
         }
@@ -245,7 +245,7 @@ struct CloudflarePages {
         }
 
         let responseBody = String(data: data, encoding: .utf8) ?? ""
-        let message = "Unexpected check-missing response: \(responseBody)"
+        let message = L10n("Unexpected check-missing response: %@", responseBody)
         CloudflarePagesLogger.log("[ERROR] \(message)")
         throw PlanetError.CloudflarePagesPublishError(message)
     }
@@ -265,7 +265,7 @@ struct CloudflarePages {
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let responseBody = String(data: data, encoding: .utf8) ?? ""
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            let message = "Failed to upsert hashes (HTTP \(statusCode)): \(responseBody)"
+            let message = L10n("Failed to upsert hashes (HTTP %d): %@", statusCode, responseBody)
             CloudflarePagesLogger.log("[ERROR] \(message)")
             throw PlanetError.CloudflarePagesPublishError(message)
         }
@@ -334,7 +334,7 @@ struct CloudflarePages {
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let responseBody = String(data: responseData, encoding: .utf8) ?? ""
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            let message = "Upload batch \(index)/\(total) failed (HTTP \(statusCode)): \(responseBody)"
+            let message = L10n("Upload batch %d/%d failed (HTTP %d): %@", index, total, statusCode, responseBody)
             CloudflarePagesLogger.log("[ERROR] \(message)")
             throw PlanetError.CloudflarePagesPublishError(message)
         }
@@ -370,7 +370,7 @@ struct CloudflarePages {
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let responseBody = String(data: responseData, encoding: .utf8) ?? ""
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            let message = "Failed to create deployment (HTTP \(statusCode)): \(responseBody)"
+            let message = L10n("Failed to create deployment (HTTP %d): %@", statusCode, responseBody)
             CloudflarePagesLogger.log("[ERROR] \(message)")
             throw PlanetError.CloudflarePagesPublishError(message)
         }

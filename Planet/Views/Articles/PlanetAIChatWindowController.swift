@@ -22,7 +22,7 @@ enum AIChatToolbarCommand {
 final class AIChatToolbarState: ObservableObject {
     let commands = PassthroughSubject<AIChatToolbarCommand, Never>()
 
-    @Published var title: String = "AI Chat"
+    @Published var title: String = L10n("AI Chat")
     @Published var selectedProviderRawValue: String = "Remote"
     @Published var isRemoteAvailable: Bool = false
     @Published var isOnDeviceAvailable: Bool = false
@@ -113,7 +113,7 @@ final class AIChatProviderToolbarItem: NSToolbarItem {
     private func updateView() {
         if state.isRemoteAvailable && state.isOnDeviceAvailable {
             segmentedControl.setLabel(state.remoteProviderLabel, forSegment: 0)
-            segmentedControl.setLabel("On-Device", forSegment: 1)
+            segmentedControl.setLabel(L10n("On-Device"), forSegment: 1)
             segmentedControl.selectedSegment = state.selectedProviderRawValue == "On-Device" ? 1 : 0
             segmentedControl.sizeToFit()
             segmentedControl.frame.size = segmentedControl.fittingSize
@@ -179,8 +179,8 @@ final class PlanetAIChatWindowController: NSWindowController {
         super.init(window: chatWindow)
         setupToolbar()
         observeSessionStore()
-        toolbarState.title = "Planet AI Chat"
-        toolbarState.singleProviderLabel = "Remote"
+        toolbarState.title = L10n("Planet AI Chat")
+        toolbarState.singleProviderLabel = L10n("Remote")
         window?.setFrameAutosaveName(PlanetAIChatWindowConfiguration.windowAutosaveName)
     }
 
@@ -197,7 +197,7 @@ final class PlanetAIChatWindowController: NSWindowController {
         toolbar.autosavesConfiguration = false
         toolbar.displayMode = .iconOnly
 
-        window.title = "Planet AI Chat"
+        window.title = L10n("Planet AI Chat")
         window.titleVisibility = .hidden
         window.toolbar = toolbar
         window.toolbar?.validateVisibleItems()
@@ -335,41 +335,41 @@ extension PlanetAIChatWindowController: NSToolbarDelegate {
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(toolbarItemAction(_:))
-            item.label = "Clear Chat History"
-            item.paletteLabel = "Clear Chat History"
-            item.toolTip = "Clear Chat History"
+            item.label = L10n("Clear Chat History")
+            item.paletteLabel = L10n("Clear Chat History")
+            item.toolTip = L10n("Clear Chat History")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "trash", accessibilityDescription: "Clear Chat History")
+            item.image = NSImage(systemSymbolName: "trash", accessibilityDescription: L10n("Clear Chat History"))
             return item
         case .aiChatDecreaseFont:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(toolbarItemAction(_:))
-            item.label = "Decrease Font Size"
-            item.paletteLabel = "Decrease Font Size"
-            item.toolTip = "Decrease Font Size"
+            item.label = L10n("Decrease Font Size")
+            item.paletteLabel = L10n("Decrease Font Size")
+            item.toolTip = L10n("Decrease Font Size")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "textformat.size.smaller", accessibilityDescription: "Decrease Font Size")
+            item.image = NSImage(systemSymbolName: "textformat.size.smaller", accessibilityDescription: L10n("Decrease Font Size"))
             return item
         case .aiChatIncreaseFont:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(toolbarItemAction(_:))
-            item.label = "Increase Font Size"
-            item.paletteLabel = "Increase Font Size"
-            item.toolTip = "Increase Font Size"
+            item.label = L10n("Increase Font Size")
+            item.paletteLabel = L10n("Increase Font Size")
+            item.toolTip = L10n("Increase Font Size")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "textformat.size.larger", accessibilityDescription: "Increase Font Size")
+            item.image = NSImage(systemSymbolName: "textformat.size.larger", accessibilityDescription: L10n("Increase Font Size"))
             return item
         case .planetAIChatSidebar:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(toolbarItemAction(_:))
-            item.label = "Toggle Sidebar"
-            item.paletteLabel = "Toggle Sidebar"
-            item.toolTip = "Toggle Sidebar"
+            item.label = L10n("Toggle Sidebar")
+            item.paletteLabel = L10n("Toggle Sidebar")
+            item.toolTip = L10n("Toggle Sidebar")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "sidebar.left", accessibilityDescription: "Toggle Sidebar")
+            item.image = NSImage(systemSymbolName: "sidebar.left", accessibilityDescription: L10n("Toggle Sidebar"))
             return item
         case .planetAIChatSidebarSeparator:
             if let viewController = window?.contentViewController as? PlanetAIChatContainerViewController {
@@ -384,11 +384,11 @@ extension PlanetAIChatWindowController: NSToolbarDelegate {
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.target = self
             item.action = #selector(toolbarItemAction(_:))
-            item.label = "New Session"
-            item.paletteLabel = "New Session"
-            item.toolTip = "New Session"
+            item.label = L10n("New Session")
+            item.paletteLabel = L10n("New Session")
+            item.toolTip = L10n("New Session")
             item.isBordered = true
-            item.image = NSImage(systemSymbolName: "plus", accessibilityDescription: "New Session")
+            item.image = NSImage(systemSymbolName: "plus", accessibilityDescription: L10n("New Session"))
             return item
         default:
             return nil
@@ -407,7 +407,7 @@ final class PlanetAIChatWindow: NSWindow {
     ) {
         super.init(contentRect: contentRect, styleMask: style, backing: backingStoreType, defer: flag)
         collectionBehavior = .fullScreenNone
-        title = "Planet AI Chat"
+        title = L10n("Planet AI Chat")
         titleVisibility = .hidden
         titlebarAppearsTransparent = false
         toolbarStyle = .unified

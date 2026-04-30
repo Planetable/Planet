@@ -82,7 +82,7 @@ struct AccountBadgeView: View {
             Text(walletAddress)
                 .font(.footnote)
 
-            Text("Connected with \(WalletManager.shared.getWalletAppName())")
+            Text(L10n("Connected with %@", WalletManager.shared.getWalletAppName()))
                 .font(.footnote)
 
             Divider()

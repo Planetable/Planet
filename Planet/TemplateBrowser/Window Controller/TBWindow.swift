@@ -11,7 +11,7 @@ class TBWindow: NSWindow {
     override init(contentRect: NSRect, styleMask style: NSWindow.StyleMask, backing backingStoreType: NSWindow.BackingStoreType, defer flag: Bool) {
         super.init(contentRect: contentRect, styleMask: style, backing: backingStoreType, defer: flag)
         self.collectionBehavior = .fullScreenNone
-        self.title = "Template Browser"
+        self.title = L10n("Template Browser")
         self.titlebarAppearsTransparent = false
         self.toolbarStyle = .unified
         self.contentViewController = TBContainerViewController()

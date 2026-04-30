@@ -1344,7 +1344,7 @@ extension MyPlanetEditView {
 
     private func selectSSHKey() {
         let panel = NSOpenPanel()
-        panel.title = "Select SSH Private Key"
+        panel.title = L10n("Select SSH Private Key")
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
@@ -1378,7 +1378,7 @@ extension MyPlanetEditView {
         alert.messageText = title
         alert.informativeText = message
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: L10n("OK"))
         alert.runModal()
     }
 

@@ -43,7 +43,7 @@ struct MyPlanetTemplateSettingsView: View {
                                 ForEach(keys.sorted(), id: \.self) { key in
                                     HStack {
                                         HStack {
-                                            Text("\(settings[key]?.name ?? "Name")")
+                                            Text(settings[key]?.name ?? L10n("Name"))
                                             Spacer()
                                         }
                                         .frame(width: CONTROL_CAPTION_WIDTH)

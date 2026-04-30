@@ -379,25 +379,30 @@ enum WriterPasteboardImporter {
     ) -> Bool {
         let alert = NSAlert()
         let attachmentName = attachmentDisplayName(for: attachmentType)
-        alert.messageText = "Replace Existing \(attachmentName)?"
+        alert.messageText = String(format: L10n("Replace Existing %@?"), attachmentName)
         alert.informativeText =
-            "This article already has a \(attachmentName.lowercased()) attachment (\(existingAttachmentName)). Replace it with the pasted \(attachmentName.lowercased())?"
+            String(
+                format: L10n("This article already has a %@ attachment (%@). Replace it with the pasted %@?"),
+                attachmentName.lowercased(),
+                existingAttachmentName,
+                attachmentName.lowercased()
+            )
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "Replace")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: L10n("Replace"))
+        alert.addButton(withTitle: L10n("Cancel"))
         return alert.runModal() == .alertFirstButtonReturn
     }
 
     private static func attachmentDisplayName(for attachmentType: AttachmentType) -> String {
         switch attachmentType {
         case .video:
-            return "Video"
+            return L10n("Video")
         case .audio:
-            return "Audio"
+            return L10n("Audio")
         case .file:
-            return "Document"
+            return L10n("Document")
         default:
-            return "Attachment"
+            return L10n("Attachment")
         }
     }
 
@@ -406,7 +411,7 @@ enum WriterPasteboardImporter {
         alert.messageText = title
         alert.informativeText = message
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: L10n("OK"))
         alert.runModal()
     }
 

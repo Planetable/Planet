@@ -305,8 +305,8 @@ struct WriterView: View {
 
     private func addAttachmentsAction() throws {
         let panel = NSOpenPanel()
-        panel.message = "Choose Attachments"
-        panel.prompt = "Choose"
+        panel.message = L10n("Choose Attachments")
+        panel.prompt = L10n("Choose")
         panel.allowsMultipleSelection = viewModel.allowMultipleSelection
         panel.allowedContentTypes = viewModel.allowedContentTypes
         panel.canChooseDirectories = false

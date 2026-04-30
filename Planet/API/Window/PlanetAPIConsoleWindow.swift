@@ -20,7 +20,7 @@ class PlanetAPIConsoleWindow: NSWindow {
         }()
         super.init(contentRect: NSRect(origin: windowOrigin, size: .init(width: Self.minWidth, height: Self.minHeight)), styleMask: [.closable, .titled, .fullSizeContentView, .resizable, .miniaturizable], backing: .buffered, defer: true)
         self.minSize = CGSize(width: Self.minWidth, height: Self.minHeight)
-        self.title = "API Console"
+        self.title = L10n("API Console")
         self.titlebarAppearsTransparent = false
         self.titleVisibility = .visible
         self.isOpaque = true

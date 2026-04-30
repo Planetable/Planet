@@ -16,12 +16,12 @@ struct RebuildProgressView: View {
         VStack(spacing: 10) {
             HStack {
                 if case .myPlanet(let planet) = PlanetStore.shared.selectedView {
-                    planet.smallAvatarAndNameView(label: "Rebuilding \(planet.name)")
+                    planet.smallAvatarAndNameView(label: L10n("Rebuilding %@", planet.name))
                 } else {
                     Text("Rebuilding")
                 }
                 Spacer()
-                Text("\(completed)/\(total) items done")
+                Text(L10n("%d/%d items done", completed, total))
                     // TODO: - use a better signal to update progress
                     .onReceive(NotificationCenter.default.publisher(for: .myArticleBuilt)) {
                         aNotification in

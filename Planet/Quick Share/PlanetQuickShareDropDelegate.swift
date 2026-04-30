@@ -64,10 +64,10 @@ class PlanetQuickShareDropDelegate: DropDelegate {
                     try PlanetQuickShareViewModel.shared.prepareFiles(urls)
                 } catch {
                     let alert = NSAlert()
-                    alert.messageText = "Failed to Add Attachments"
+                    alert.messageText = L10n("Failed to Add Attachments")
                     alert.informativeText = error.localizedDescription
                     alert.alertStyle = .warning
-                    alert.addButton(withTitle: "OK")
+                    alert.addButton(withTitle: L10n("OK"))
                     alert.runModal()
                 }
             }

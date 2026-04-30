@@ -13,7 +13,7 @@ class PFDashboardWindow: NSWindow {
         super.init(contentRect: contentRect, styleMask: style, backing: backingStoreType, defer: flag)
         self.collectionBehavior = .fullScreenNone
         self.titlebarAppearsTransparent = false
-        self.title = "Published Folders Dashboard"
+        self.title = L10n("Published Folders Dashboard")
         self.subtitle = ""
         self.toolbarStyle = .unified
         self.contentViewController = PFDashboardContainerViewController()

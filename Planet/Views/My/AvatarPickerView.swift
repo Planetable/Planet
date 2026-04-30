@@ -15,6 +15,8 @@ enum AvatarCategory: String, CaseIterable {
 
     var id: String { rawValue }
 
+    var localizedTitle: String { L10n(rawValue) }
+
     var jsonFile: String {
         switch self {
         case .nostalgia:
@@ -65,7 +67,7 @@ struct AvatarPickerView: View {
             VStack(spacing: 0) {
                 List(selection: $selection) {
                     ForEach(AvatarCategory.allCases, id: \.self) { aCategory in
-                        Text(aCategory.rawValue)
+                        Text(aCategory.localizedTitle)
                     }
                 }
 
