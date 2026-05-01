@@ -1,0 +1,4 @@
+interface:
+  display_name: "Apple Localization"
+  short_description: "Add and polish macOS localizations"
+  default_prompt: "Use $apple-localization to add a new localization and review it against Apple's shipped macOS UI terms."
