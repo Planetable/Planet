@@ -796,6 +796,7 @@
 		58CF46BD304061747169320E /* sv */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		5C6AA3EBF9D93CD2CEBD4639 /* da */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = da; path = da.lproj/Localizable.strings; sourceTree = "<group>"; };
 		5CE71A58A58525049CC222C6 /* RelatedArticlesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RelatedArticlesView.swift; sourceTree = "<group>"; };
+		5EA6EB20D0206A13EBB7FEDD /* he */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = he; path = he.lproj/Localizable.strings; sourceTree = "<group>"; };
 		5EE74B2FAA1274536FF8442A /* hi */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		6322851C1AA43284036CB9C1 /* ja */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		6A03269B2C81C49100FEDD55 /* MyPlanetDonationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetDonationSettingsView.swift; sourceTree = "<group>"; };
@@ -950,6 +951,7 @@
 		E2D8ACC35962D47E0080BE4E /* it */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		E399FD48A62B607DCEF8C76D /* PlanetAIChatWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PlanetAIChatWindowController.swift; path = PlanetAIChatWindowController.swift; sourceTree = "<group>"; };
 		E59E62B0E2A71B9B4135B005 /* PlanetLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlanetLogger.swift; sourceTree = "<group>"; };
+		E5E6DD5CA1E5BE8BEF39B1CC /* he */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = he; path = he.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		E8B4FE3E2A8D144E00C01E94 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		E8B4FE432A8D146100C01E94 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		EB43D1083A3830A823305AA5 /* zh-Hant */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -1915,6 +1917,7 @@
 				tr,
 				it,
 				da,
+				he,
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
@@ -2526,6 +2529,7 @@
 				D584AC2F4BD93928EF787876 /* tr */,
 				8E2751B5275DEC7A6D8B0AA0 /* it */,
 				5C6AA3EBF9D93CD2CEBD4639 /* da */,
+				5EA6EB20D0206A13EBB7FEDD /* he */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -2550,6 +2554,7 @@
 				D09B610A1851B7F75F30E1D7 /* tr */,
 				E2D8ACC35962D47E0080BE4E /* it */,
 				839C3B2373346DCBD530F1BC /* da */,
+				E5E6DD5CA1E5BE8BEF39B1CC /* he */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
