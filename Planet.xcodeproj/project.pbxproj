@@ -617,6 +617,7 @@
 		032A1470030A4BCB2F066FA6 /* hi */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		03E9DC5C055F824D215A8981 /* MarkdownEditorTextView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkdownEditorTextView.swift; sourceTree = "<group>"; };
 		0B14374A86131144DC199477 /* ArticleAIOnDeviceTools.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArticleAIOnDeviceTools.swift; sourceTree = "<group>"; };
+		133C6811D1EA3279EA0ECB21 /* pt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		16C059C53BCDB7CBCB2507A0 /* de */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		196AB5BD526941A7FAB5D1AD /* AppLogView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLogView.swift; sourceTree = "<group>"; };
 		2A04DADC28EAD2250040D8E0 /* PlanetPublishedServiceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetPublishedServiceStore.swift; sourceTree = "<group>"; };
@@ -928,6 +929,7 @@
 		CB6EC2B7EEF3EF83DA342363 /* SearchDatabase.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchDatabase.swift; sourceTree = "<group>"; };
 		CF0A0001303909CF00000000 /* CloudflarePages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflarePages.swift; sourceTree = "<group>"; };
 		D1E4B9A32F4CB0A100AA1101 /* PlanetSettingsLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetSettingsLayout.swift; sourceTree = "<group>"; };
+		D26864F968699C76B8745427 /* pt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D7A100052F6AFA1100AA0001 /* VideoAttachmentInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoAttachmentInfo.swift; sourceTree = "<group>"; };
 		D7A100062F6AFA1100AA0001 /* VideoInfoRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInfoRow.swift; sourceTree = "<group>"; };
 		D7A100092F6AFA1100AA0001 /* VideoCompressionJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCompressionJob.swift; sourceTree = "<group>"; };
@@ -1891,6 +1893,7 @@
 				fr,
 				hi,
 				ru,
+				pt,
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
@@ -2494,6 +2497,7 @@
 				9E6DEFB79570666667A1BE19 /* fr */,
 				5EE74B2FAA1274536FF8442A /* hi */,
 				DCC5765EA8A6DE16DFB8E30C /* ru */,
+				D26864F968699C76B8745427 /* pt */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -2510,6 +2514,7 @@
 				BCD0959846D54F0AD00ACB86 /* fr */,
 				032A1470030A4BCB2F066FA6 /* hi */,
 				5449C667BC184F7654134D0B /* ru */,
+				133C6811D1EA3279EA0ECB21 /* pt */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
