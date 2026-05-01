@@ -60,7 +60,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     static func followingPlanetsPath() -> URL {
         let url = URLUtils.repoPath().appendingPathComponent("Following", isDirectory: true)
-        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
     var basePath: URL {

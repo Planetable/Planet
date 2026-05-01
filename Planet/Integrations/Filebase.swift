@@ -72,7 +72,7 @@ struct Filebase: Codable {
             debugPrint("Filebase: failed to send POST request")
             return nil
         }
-        if !(response2 as! HTTPURLResponse).ok {
+        guard let httpResponse = response2 as? HTTPURLResponse, httpResponse.ok else {
             debugPrint("Filebase: http response is non-200 \(response2)")
             return nil
         }

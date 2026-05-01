@@ -32,12 +32,15 @@ struct PlausiblePopoverView: View {
                 Divider()
                 Button {
                     let plausibleServer = planet.plausibleAPIServer ?? "plausible.io"
-                    do {
-                        let url = try URL(string: "https://\(plausibleServer)/\(String(plausibleDomain.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""))")!
-                        if NSWorkspace.shared.open(url) {
-                        }
-                    } catch {
+                    var components = URLComponents()
+                    components.scheme = "https"
+                    components.host = plausibleServer
+                    components.path = "/" + plausibleDomain
+                    guard let url = components.url else {
+                        PlanetStore.shared.alert(title: "Invalid Plausible Dashboard URL")
+                        return
                     }
+                    NSWorkspace.shared.open(url)
                 } label: {
                     Text("Open Dashboard")
                     Image(systemName: "chevron.right.circle.fill")

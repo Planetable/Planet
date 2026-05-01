@@ -4,9 +4,11 @@ import Foundation
 class PlanetDirectoryMonitor {
     private var stream: FSEventStreamRef?
     private let callback: FSEventStreamCallback = { (stream, contextInfo, numEvents, eventPaths, eventFlags, eventIds) in
-        let watcher: PlanetDirectoryMonitor = unsafeBitCast(contextInfo, to: PlanetDirectoryMonitor.self)
+        guard let contextInfo else { return }
+        let watcher = Unmanaged<PlanetDirectoryMonitor>.fromOpaque(contextInfo).takeUnretainedValue()
+        let paths = unsafeBitCast(eventPaths, to: NSArray.self)
         for idx in 0..<Int(numEvents) {
-            let path = unsafeBitCast(eventPaths, to: NSArray.self)[idx] as! String
+            guard let path = paths[idx] as? String else { continue }
             watcher.processEvent(path: path, eventId: eventIds[idx])
         }
     }
@@ -35,8 +37,12 @@ class PlanetDirectoryMonitor {
             latency,
             UInt32(kFSEventStreamCreateFlagUseCFTypes | kFSEventStreamCreateFlagFileEvents)
         )
-        FSEventStreamScheduleWithRunLoop(stream!, CFRunLoopGetCurrent(), CFRunLoopMode.defaultMode.rawValue)
-        FSEventStreamStart(stream!)
+        guard let stream else {
+            debugPrint("Failed to create FSEvent stream for published folder: \(directory)")
+            return
+        }
+        FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(), CFRunLoopMode.defaultMode.rawValue)
+        FSEventStreamStart(stream)
     }
     
     func stop() {

@@ -26,25 +26,31 @@ class WalletConnect {
         self.delegate = delegate
     }
 
-    func connect() -> String {
+    func connect() throws -> String {
         // gnosis wc bridge: https://safe-walletconnect.safe.global/
+        guard let bridgeURL = URL(string: "https://safe-walletconnect.safe.global/"),
+              let iconURL = URL(string: "https://github.com/Planetable.png"),
+              let appURL = URL(string: "https://planetable.xyz")
+        else {
+            throw PlanetError.InternalError
+        }
         let wcUrl = WCURL(
             topic: UUID().uuidString,
-            bridgeURL: URL(string: "https://safe-walletconnect.safe.global/")!,
-            key: try! randomKey()
+            bridgeURL: bridgeURL,
+            key: try randomKey()
         )
         let clientMeta = Session.ClientMeta(
             name: "Planet",
             description: "Build and host decentralized websites",
-            icons: [URL(string: "https://github.com/Planetable.png")!],
-            url: URL(string: "https://planetable.xyz")!
+            icons: [iconURL],
+            url: appURL
         )
         let dAppInfo = Session.DAppInfo(peerId: UUID().uuidString, peerMeta: clientMeta)
         client = Client(delegate: self, dAppInfo: dAppInfo)
 
         print("WalletConnect URL: \(wcUrl.absoluteString)")
 
-        try! client.connect(to: wcUrl)
+        try client.connect(to: wcUrl)
         return wcUrl.absoluteString
     }
 
@@ -101,8 +107,16 @@ class WalletConnect {
         }
     }
 
-    private func nonceRequest() -> Request {
-        return .eth_getTransactionCount(url: session.url, account: session.walletInfo!.accounts[0])
+    private var walletAccount: String? {
+        session?.walletInfo?.accounts.first
+    }
+
+    private func nonceRequest() -> Request? {
+        guard let session, let account = walletAccount else {
+            debugPrint("WalletConnect V1 missing session account")
+            return nil
+        }
+        return try? .eth_getTransactionCount(url: session.url, account: account)
     }
 
     private func nonce(from response: Response) -> String? {
@@ -112,9 +126,18 @@ class WalletConnect {
     // MARK: - Send Transaction
 
     func sendTransaction(receiver: String, amount: Int, memo: String, ens: String? = nil) {
-        try? client.send(nonceRequest()) { [weak self] response in
+        guard let client, let request = nonceRequest() else {
+            delegate.failedToConnect()
+            return
+        }
+        try? client.send(request) { [weak self] response in
             guard let self = self, let nonce = self.nonce(from: response) else { return }
+            guard let account = self.walletAccount else {
+                self.delegate.failedToConnect()
+                return
+            }
             let transaction = self.tipTransaction(
+                from: account,
                 to: receiver,
                 amount: amount,
                 memo: memo,
@@ -132,7 +155,7 @@ class WalletConnect {
                         let record = EthereumTransaction(
                             id: result,
                             chainID: currentChainId,
-                            from: self?.session.walletInfo!.accounts[0] ?? "error",
+                            from: self?.walletAccount ?? "error",
                             to: receiver,
                             toENS: ens,
                             amount: amount,
@@ -152,12 +175,18 @@ class WalletConnect {
     func tipTransaction(to receiver: String, amount: Int, memo: String, nonce: String)
         -> Client.Transaction
     {
+        tipTransaction(from: walletAccount ?? "", to: receiver, amount: amount, memo: memo, nonce: nonce)
+    }
+
+    func tipTransaction(from sender: String, to receiver: String, amount: Int, memo: String, nonce: String)
+        -> Client.Transaction
+    {
         let tipAmount = amount * 10_000_000_000_000_000  // Tip Amount: X * 0.01 ETH
         let value = String(tipAmount, radix: 16)
         let memoEncoded: String = "0x" + memo.data(using: .utf8)!.toHexString()
         let currentChainId = WalletManager.shared.currentNetwork()?.rawValue ?? 1
         return Client.Transaction(
-            from: session.walletInfo!.accounts[0],
+            from: sender,
             to: receiver,
             data: memoEncoded,
             gas: nil,
@@ -175,9 +204,18 @@ class WalletConnect {
     // Mark: - Test Transaction
 
     func sendTestTransaction(receiver: String, amount: Int, memo: String, ens: String? = nil) {
-        try? client.send(nonceRequest()) { [weak self] response in
+        guard let client, let request = nonceRequest() else {
+            delegate.failedToConnect()
+            return
+        }
+        try? client.send(request) { [weak self] response in
             guard let self = self, let nonce = self.nonce(from: response) else { return }
+            guard let account = self.walletAccount else {
+                self.delegate.failedToConnect()
+                return
+            }
             let transaction = self.testTransaction(
+                from: account,
                 to: receiver,
                 amount: amount,
                 memo: memo,
@@ -193,12 +231,18 @@ class WalletConnect {
     func testTransaction(to receiver: String, amount: Int, memo: String, nonce: String)
         -> Client.Transaction
     {
+        testTransaction(from: walletAccount ?? "", to: receiver, amount: amount, memo: memo, nonce: nonce)
+    }
+
+    func testTransaction(from sender: String, to receiver: String, amount: Int, memo: String, nonce: String)
+        -> Client.Transaction
+    {
         let amount = amount * 10 * 1_000_000_000_000_000  // Amount: X * 0.01 ETH
         let value = String(amount, radix: 16)
         let memoEncoded = "0x" + memo.data(using: .utf8)!.toHexString()
         let currentChainId = WalletManager.shared.currentNetwork()?.rawValue ?? 1
         return Client.Transaction(
-            from: session.walletInfo!.accounts[0],
+            from: sender,
             to: receiver,
             data: memoEncoded,
             gas: nil,
@@ -225,8 +269,13 @@ extension WalletConnect: ClientDelegate {
 
     func client(_ client: Client, didConnect session: Session) {
         self.session = session
-        let sessionData = try! JSONEncoder().encode(session)
-        UserDefaults.standard.set(sessionData, forKey: sessionKey)
+        do {
+            let sessionData = try JSONEncoder().encode(session)
+            UserDefaults.standard.set(sessionData, forKey: sessionKey)
+        }
+        catch {
+            debugPrint("WalletConnect V1 failed to persist session: \(error)")
+        }
         delegate.didConnect()
     }
 
@@ -241,8 +290,8 @@ extension WalletConnect: ClientDelegate {
 }
 
 extension Request {
-    static func eth_getTransactionCount(url: WCURL, account: String) -> Request {
-        return try! Request(
+    static func eth_getTransactionCount(url: WCURL, account: String) throws -> Request {
+        try Request(
             url: url,
             method: "eth_getTransactionCount",
             params: [account, "latest"]

@@ -15,17 +15,41 @@ struct CloudflarePages {
     private static let maxBatchSize = 10 * 1024 * 1024
     private static let rootHTMLMarker = "\n<!-- Planet Cloudflare Pages root -->\n"
     private static let tokenVerifyURL = URL(string: "https://api.cloudflare.com/client/v4/user/tokens/verify")!
+    private static let apiBaseURL = URL(string: "https://api.cloudflare.com/client/v4")!
 
     let accountID: String
     let apiToken: String
     let projectName: String
 
-    private var baseURL: String {
-        "https://api.cloudflare.com/client/v4/accounts/\(accountID)/pages/projects"
+    private var projectsURL: URL {
+        var url = Self.apiBaseURL
+        url.appendPathComponent("accounts")
+        url.appendPathComponent(accountID)
+        url.appendPathComponent("pages")
+        url.appendPathComponent("projects")
+        return url
     }
 
-    private var assetsBaseURL: String {
-        "https://api.cloudflare.com/client/v4/pages/assets"
+    private var assetsURL: URL {
+        var url = Self.apiBaseURL
+        url.appendPathComponent("pages")
+        url.appendPathComponent("assets")
+        return url
+    }
+
+    private func projectURL(appending pathComponent: String? = nil) -> URL {
+        var url = projectsURL
+        url.appendPathComponent(projectName)
+        if let pathComponent {
+            url.appendPathComponent(pathComponent)
+        }
+        return url
+    }
+
+    private func assetURL(_ pathComponent: String) -> URL {
+        var url = assetsURL
+        url.appendPathComponent(pathComponent)
+        return url
     }
 
     static func verifyAPIToken(_ apiToken: String) async -> Bool {
@@ -53,7 +77,7 @@ struct CloudflarePages {
 
     /// Ensure the Pages project exists, creating it if needed.
     func ensureProjectExists() async throws {
-        let url = URL(string: "\(baseURL)/\(projectName)")!
+        let url = projectURL()
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(apiToken)", forHTTPHeaderField: "Authorization")
@@ -67,7 +91,7 @@ struct CloudflarePages {
 
         // Project doesn't exist — create it
         CloudflarePagesLogger.log("Creating project '\(projectName)'")
-        let createURL = URL(string: baseURL)!
+        let createURL = projectsURL
         var createRequest = URLRequest(url: createURL)
         createRequest.httpMethod = "POST"
         createRequest.setValue("Bearer \(apiToken)", forHTTPHeaderField: "Authorization")
@@ -189,7 +213,7 @@ struct CloudflarePages {
 
     /// Get a JWT upload token for the project.
     private func getUploadToken() async throws -> String {
-        let url = URL(string: "\(baseURL)/\(projectName)/upload-token")!
+        let url = projectURL(appending: "upload-token")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(apiToken)", forHTTPHeaderField: "Authorization")
@@ -217,7 +241,7 @@ struct CloudflarePages {
 
     /// Check which file hashes are missing on the server.
     private func checkMissingFiles(hashes: [String], jwt: String) async throws -> [String] {
-        let url = URL(string: "\(assetsBaseURL)/check-missing")!
+        let url = assetURL("check-missing")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
@@ -252,7 +276,7 @@ struct CloudflarePages {
 
     /// Register all file hashes with CF after uploading.
     private func upsertHashes(hashes: [String], jwt: String) async throws {
-        let url = URL(string: "\(assetsBaseURL)/upsert-hashes")!
+        let url = assetURL("upsert-hashes")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
@@ -313,7 +337,7 @@ struct CloudflarePages {
             "Uploading batch \(index)/\(total): \(files.count) files, \(ByteCountFormatter.string(fromByteCount: Int64(totalBytes), countStyle: .file))"
         )
 
-        let url = URL(string: "\(assetsBaseURL)/upload")!
+        let url = assetURL("upload")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.timeoutInterval = 300
@@ -343,7 +367,7 @@ struct CloudflarePages {
 
     /// Create the deployment with the manifest (files already uploaded).
     private func createDeployment(manifest: [String: String]) async throws -> URL? {
-        let url = URL(string: "\(baseURL)/\(projectName)/deployments")!
+        let url = projectURL(appending: "deployments")
         let boundary = UUID().uuidString
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

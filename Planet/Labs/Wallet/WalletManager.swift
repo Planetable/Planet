@@ -161,18 +161,28 @@ class WalletManager: NSObject, ObservableObject {
         if let session = walletConnect.session {
             debugPrint("Found existing session: \(session)")
             Task { @MainActor in
-                PlanetStore.shared.walletAddress = session.walletInfo?.accounts[0] ?? ""
+                PlanetStore.shared.walletAddress = session.walletInfo?.accounts.first ?? ""
                 debugPrint("Wallet Address: \(PlanetStore.shared.walletAddress)")
             }
         }
     }
 
     func connectV1() {
-        let connectionURL = walletConnect.connect()
-        print("WalletConnect V1 URL: \(connectionURL)")
-        Task { @MainActor in
-            PlanetStore.shared.walletConnectV1ConnectionURL = connectionURL
-            PlanetStore.shared.isShowingWalletConnectV1QRCode = true
+        do {
+            let connectionURL = try walletConnect.connect()
+            print("WalletConnect V1 URL: \(connectionURL)")
+            Task { @MainActor in
+                PlanetStore.shared.walletConnectV1ConnectionURL = connectionURL
+                PlanetStore.shared.isShowingWalletConnectV1QRCode = true
+            }
+        }
+        catch {
+            Task { @MainActor in
+                PlanetStore.shared.alert(
+                    title: "Failed to Connect Wallet",
+                    message: error.localizedDescription
+                )
+            }
         }
     }
 
@@ -251,7 +261,13 @@ class WalletManager: NSObject, ObservableObject {
             Sign.instance.sessionResponsePublisher
                 .receive(on: DispatchQueue.main)
                 .sink { [unowned self] response in
-                    let record = Sign.instance.getSessionRequestRecord(id: response.id)!
+                    guard let record = Sign.instance.getSessionRequestRecord(id: response.id) else {
+                        debugPrint("WalletConnect 2.0 missing request record for response id: \(response.id)")
+                        Task { @MainActor in
+                            PlanetStore.shared.isShowingWalletConnectV2QRCode = false
+                        }
+                        return
+                    }
                     switch response.result {
                     case .response(let response):
                         Task {
@@ -552,7 +568,13 @@ class WalletManager: NSObject, ObservableObject {
             let requestParams = AnyCodable(["0x4d7920656d61696c206973206a6f686e40646f652e636f6d202d2031363533333933373535313531", walletAddress])
             */
             let method = "eth_sendTransaction"
-            let walletAddress = session.accounts[0].address
+            guard let account = session.accounts.first else {
+                await MainActor.run {
+                    PlanetStore.shared.alert(title: "No Wallet Account Found")
+                }
+                return
+            }
+            let walletAddress = account.address
             let tx = self.tipTransaction(
                 from: walletAddress,
                 to: receiver,
@@ -766,6 +788,8 @@ extension WalletManager: WalletConnectDelegate {
     func failedToConnect() {
         Task { @MainActor in
             debugPrint("Failed to connect: \(self)")
+            PlanetStore.shared.isShowingWalletConnectV1QRCode = false
+            PlanetStore.shared.alert(title: "Failed to Connect Wallet")
         }
     }
 
@@ -773,7 +797,7 @@ extension WalletManager: WalletConnectDelegate {
         Task { @MainActor in
             PlanetStore.shared.isShowingWalletConnectV1QRCode = false
             PlanetStore.shared.walletAddress =
-                self.walletConnect.session.walletInfo?.accounts[0] ?? ""
+                self.walletConnect.session.walletInfo?.accounts.first ?? ""
             debugPrint("Wallet Address: \(PlanetStore.shared.walletAddress)")
             debugPrint("Session: \(String(describing: self.walletConnect.session))")
         }

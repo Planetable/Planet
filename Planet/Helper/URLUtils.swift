@@ -10,26 +10,27 @@ import Foundation
 import ImageIO
 
 struct URLUtils {
-    static let applicationSupportPath = try! FileManager.default.url(
-        for: .applicationSupportDirectory,
-        in: .userDomainMask,
-        appropriateFor: nil,
-        create: true
-    )
+    private static func userDirectory(_ directory: FileManager.SearchPathDirectory) -> URL {
+        do {
+            return try FileManager.default.url(
+                for: directory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: true
+            )
+        }
+        catch {
+            debugPrint("Failed to resolve user directory \(directory): \(error)")
+            return FileManager.default.urls(for: directory, in: .userDomainMask).first
+                ?? FileManager.default.temporaryDirectory
+        }
+    }
 
-    static let documentsPath = try! FileManager.default.url(
-        for: .documentDirectory,
-        in: .userDomainMask,
-        appropriateFor: nil,
-        create: true
-    )
+    static let applicationSupportPath = userDirectory(.applicationSupportDirectory)
 
-    static let cachesPath = try! FileManager.default.url(
-        for: .cachesDirectory,
-        in: .userDomainMask,
-        appropriateFor: nil,
-        create: true
-    )
+    static let documentsPath = userDirectory(.documentDirectory)
+
+    static let cachesPath = userDirectory(.cachesDirectory)
 
     static let legacyPlanetsPath = applicationSupportPath.appendingPathComponent(
         "planets",
@@ -98,13 +99,13 @@ struct URLUtils {
 
     static let defaultRepoPath: URL = {
         let url = Self.documentsPath.appendingPathComponent("Planet", isDirectory: true)
-        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
 
     static let temporaryPath: URL = {
         let url = Self.cachesPath.appendingPathComponent("tmp", isDirectory: true)
-        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
 }

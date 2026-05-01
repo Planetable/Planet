@@ -930,7 +930,10 @@ actor IPFSDaemon {
         let gateway = IPFSState.shared.getGateway()
         let url = URL(string: "\(gateway)/ipns/\(ipns)\(path)")!
         let (data, response) = try await URLSession.shared.data(for: URLRequest(url: url))
-        let httpResponse = response as! HTTPURLResponse
+        guard let httpResponse = response as? HTTPURLResponse else {
+            Self.logger.error("Failed to get file from IPFS \(ipns)\(path): non-HTTP response")
+            throw PlanetError.IPFSAPIError
+        }
         if !httpResponse.ok {
             Self.logger.error(
                 """

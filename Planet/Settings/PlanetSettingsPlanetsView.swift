@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PlanetSettingsPlanetsView: View {
     @EnvironmentObject private var store: PlanetStore
+    @State private var unarchiveErrorMessage: String?
 
     var body: some View {
         VStack {
@@ -23,16 +24,7 @@ struct PlanetSettingsPlanetsView: View {
                         Text(planet.name)
                         Spacer()
                         Button("Unarchive") {
-                            planet.archived = false
-                            planet.archivedAt = nil
-                            do {
-                                try planet.save()
-                                store.myArchivedPlanets.removeAll { $0.id == planet.id }
-                                store.myPlanets.insert(planet, at: 0)
-                            }
-                            catch {
-                                fatalError("Error when accessing planet repo: \(error)")
-                            }
+                            unarchive(planet)
                         }
                     }.padding(4)
                 }
@@ -45,21 +37,62 @@ struct PlanetSettingsPlanetsView: View {
                         Text(planet.name)
                         Spacer()
                         Button("Unarchive") {
-                            planet.archived = false
-                            planet.archivedAt = nil
-                            do {
-                                try planet.save()
-                                store.followingArchivedPlanets.removeAll { $0.id == planet.id }
-                                store.followingPlanets.insert(planet, at: 0)
-                            }
-                            catch {
-                                fatalError("Error when accessing planet repo: \(error)")
-                            }
+                            unarchive(planet)
                         }
                     }.padding(4)
                 }
             }.tableStyle(.bordered)
         }.padding()
+        .alert(
+            isPresented: Binding(
+                get: { unarchiveErrorMessage != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        unarchiveErrorMessage = nil
+                    }
+                }
+            )
+        ) {
+            Alert(
+                title: Text(L10n("Failed to Unarchive Planet")),
+                message: Text(unarchiveErrorMessage ?? ""),
+                dismissButton: .default(Text(L10n("OK")))
+            )
+        }
+    }
+
+    private func unarchive(_ planet: MyPlanetModel) {
+        let oldArchived = planet.archived
+        let oldArchivedAt = planet.archivedAt
+        planet.archived = false
+        planet.archivedAt = nil
+        do {
+            try planet.save()
+            store.myArchivedPlanets.removeAll { $0.id == planet.id }
+            store.myPlanets.insert(planet, at: 0)
+        }
+        catch {
+            planet.archived = oldArchived
+            planet.archivedAt = oldArchivedAt
+            unarchiveErrorMessage = error.localizedDescription
+        }
+    }
+
+    private func unarchive(_ planet: FollowingPlanetModel) {
+        let oldArchived = planet.archived
+        let oldArchivedAt = planet.archivedAt
+        planet.archived = false
+        planet.archivedAt = nil
+        do {
+            try planet.save()
+            store.followingArchivedPlanets.removeAll { $0.id == planet.id }
+            store.followingPlanets.insert(planet, at: 0)
+        }
+        catch {
+            planet.archived = oldArchived
+            planet.archivedAt = oldArchivedAt
+            unarchiveErrorMessage = error.localizedDescription
+        }
     }
 }
 

@@ -37,9 +37,11 @@ class TemplateWebView: WKWebView {
             case Self.openLinkIdentifier, Self.openLinkInNewWindowIdentifier, Self.downloadLinkedFileIdentifier:
                 menuItem.target = self
                 menuItem.action = #selector(openLinkAction(_:))
+                menuItem.isHidden = !DownloadsScriptMessageHandler.instance.hasSelectedURL
             case Self.openImageInNewWindowIdentifier, Self.downloadImageIdentifier:
                 menuItem.target = self
                 menuItem.action = #selector(openImageAction(_:))
+                menuItem.isHidden = !DownloadsScriptMessageHandler.instance.hasSelectedURL
             default:
                 break
             }
@@ -47,26 +49,19 @@ class TemplateWebView: WKWebView {
     }
     
     @objc private func openLinkAction(_ sender: NSMenuItem) {
-        guard let urlString = DownloadsScriptMessageHandler.instance.href else { return }
-        if urlString.hasPrefix("file:///") {
-            let targetURL = URL(fileURLWithPath: urlString)
-            ArticleWebViewModel.shared.processInternalFileLink(targetURL)
+        guard let url = DownloadsScriptMessageHandler.instance.hrefURL else { return }
+        if url.isFileURL {
+            ArticleWebViewModel.shared.processInternalFileLink(url)
         }
-        if let url = URL(string: urlString) {
-            ArticleWebViewModel.shared.processPossibleInternalLink(url)
-            if !ArticleWebViewModel.shared.checkInternalLink(url) {
-                NSWorkspace.shared.open(url)
-            }
+        ArticleWebViewModel.shared.processPossibleInternalLink(url)
+        if !ArticleWebViewModel.shared.checkInternalLink(url) {
+            NSWorkspace.shared.open(url)
         }
     }
     
     @objc private func openImageAction(_ sender: NSMenuItem) {
-        if let _ = DownloadsScriptMessageHandler.instance.href, let srcString = DownloadsScriptMessageHandler.instance.src {
-            NSWorkspace.shared.open(URL(string: srcString)!)
-        } else if let urlString = DownloadsScriptMessageHandler.instance.href {
-            NSWorkspace.shared.open(URL(string: urlString)!)
-        } else if let srcString = DownloadsScriptMessageHandler.instance.src {
-            NSWorkspace.shared.open(URL(string: srcString)!)
+        if let url = DownloadsScriptMessageHandler.instance.selectedSourceURL {
+            NSWorkspace.shared.open(url)
         }
     }
 }

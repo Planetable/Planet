@@ -109,7 +109,10 @@ class TemplateStore: ObservableObject {
             }
             if overwriteLocal {
                 logger.info("Overwriting local built-in template \(builtInTemplate.name)")
-                let source = builtInTemplate.base!
+                guard let source = builtInTemplate.base else {
+                    logger.error("Built-in template \(builtInTemplate.name) is missing its source bundle")
+                    continue
+                }
                 let directoryName = source.lastPathComponent
                 let destination = templatesPath.appendingPathComponent(
                     directoryName,
@@ -117,7 +120,10 @@ class TemplateStore: ObservableObject {
                 )
                 try? FileManager.default.removeItem(at: destination)
                 try FileManager.default.copyItem(at: source, to: destination)
-                let newTemplate = Template.from(path: destination)!
+                guard let newTemplate = Template.from(path: destination) else {
+                    logger.error("Failed to load copied built-in template at \(destination.path)")
+                    continue
+                }
                 templatesMapping[newTemplate.name] = newTemplate
             }
         }

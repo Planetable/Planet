@@ -41,7 +41,7 @@ class DotBitKit: NSObject {
             } catch {
                 return nil
             }
-            if !(response as! HTTPURLResponse).ok {
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.ok else {
                 return nil
             }
             if let json = try? JSON(data: data) {

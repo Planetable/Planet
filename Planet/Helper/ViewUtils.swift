@@ -282,14 +282,18 @@ struct ViewUtils {
 
     static func getPresetGradient(from walletAddress: String) -> Gradient {
         let characters: [UInt8] = Array(walletAddress.utf8)
-        let lastCharUInt8 = characters.last!
+        guard let lastCharUInt8 = characters.last else {
+            return presetGradients[0]
+        }
         let index = Int(lastCharUInt8) % presetGradients.count
         return presetGradients[index]
     }
 
     static func getEmoji(from walletAddress: String) -> String {
         let characters: [UInt8] = Array(walletAddress.utf8)
-        let lastCharUInt8 = characters.last!
+        guard let lastCharUInt8 = characters.last else {
+            return emojiList[0]
+        }
         let index = Int(lastCharUInt8) % emojiList.count
         return emojiList[index]
     }

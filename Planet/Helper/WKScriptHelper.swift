@@ -23,6 +23,31 @@ class DownloadsScriptMessageHandler: NSObject, WKScriptMessageHandler {
     public private(set) var href: String?
     public private(set) var src: String?
 
+    var hrefURL: URL? {
+        Self.url(from: href)
+    }
+
+    var srcURL: URL? {
+        Self.url(from: src)
+    }
+
+    var selectedURL: URL? {
+        hrefURL ?? srcURL
+    }
+
+    var selectedSourceURL: URL? {
+        srcURL ?? hrefURL
+    }
+
+    var hasSelectedURL: Bool {
+        selectedURL != nil
+    }
+
+    private static func url(from string: String?) -> URL? {
+        guard let string, !string.isEmpty else { return nil }
+        return URL(string: string)
+    }
+
     static private var contextMenuScript = """
         window.oncontextmenu = (event) => {
             var target = event.target

@@ -346,7 +346,10 @@ final class MyJSONDirectoryMonitor {
         do {
             try load()
         } catch {
-            fatalError("Error when accessing planet repo: \(error)")
+            logger.error("Error when accessing planet repo: \(error.localizedDescription, privacy: .public)")
+            alertTitle = L10n("Failed to Load Planet Library")
+            alertMessage = error.localizedDescription
+            isShowingAlert = true
         }
         rebuildSearchSnapshots()
 
@@ -1044,7 +1047,6 @@ final class MyJSONDirectoryMonitor {
             return a.id != article.id
         })
         let articleIDString: String = article.id.uuidString
-        let fromPlanetIDString: String = fromPlanet.id.uuidString
         let toPlanetIDString: String = toPlanet.id.uuidString
         let fromArticlePath = article.path
         let targetArticlePath = fromArticlePath.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(toPlanetIDString).appendingPathComponent("Articles").appendingPathComponent("\(articleIDString).json")
@@ -1081,11 +1083,20 @@ final class MyJSONDirectoryMonitor {
         movedArticle.planet = toPlanet
         movedArticle.draft = nil
 
-        movedArticle.path = URL(string: article.path.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
-        movedArticle.publicBasePath = URL(string: article.publicBasePath.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
-        movedArticle.publicIndexPath = URL(string: article.publicIndexPath.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
-        movedArticle.publicInfoPath = URL(string: article.publicInfoPath.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
-        movedArticle.publicNFTMetadataPath = URL(string: article.publicNFTMetadataPath.absoluteString.replacingOccurrences(of: fromPlanetIDString, with: toPlanetIDString))!
+        movedArticle.path = targetArticlePath
+        movedArticle.publicBasePath = targetArticlePublicPath
+        movedArticle.publicIndexPath = targetArticlePublicPath.appendingPathComponent(
+            "index.html",
+            isDirectory: false
+        )
+        movedArticle.publicInfoPath = targetArticlePublicPath.appendingPathComponent(
+            "article.json",
+            isDirectory: false
+        )
+        movedArticle.publicNFTMetadataPath = targetArticlePublicPath.appendingPathComponent(
+            "nft.json",
+            isDirectory: false
+        )
 
         toPlanet.articles.append(movedArticle)
         toPlanet.articles = toPlanet.articles.sorted(by: { $0.created > $1.created })

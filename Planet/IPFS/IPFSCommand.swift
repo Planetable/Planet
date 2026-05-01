@@ -21,7 +21,7 @@ struct IPFSCommand {
     static let IPFSRepositoryPath: URL = {
         // ~/Library/Containers/xyz.planetable.Planet/Data/Library/Application\ Support/ipfs/
         let url = URLUtils.applicationSupportPath.appendingPathComponent("ipfs", isDirectory: true)
-        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
 
