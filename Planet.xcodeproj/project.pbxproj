@@ -915,8 +915,10 @@
 		776E9594BE16BBA78335B7E6 /* SearchEmbedding.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchEmbedding.swift; sourceTree = "<group>"; };
 		7F734B8BCC1EF5CD62FD9670 /* HybridSearch.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HybridSearch.swift; sourceTree = "<group>"; };
 		92E9E61088FF7A043F46E188 /* SSHRsyncLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SSHRsyncLogger.swift; sourceTree = "<group>"; };
+		9E6DEFB79570666667A1BE19 /* fr */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		AA729AFD95BEA841F609C824 /* es */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B2962470A0BD816B35A9053D /* zh-Hant */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		BCD0959846D54F0AD00ACB86 /* fr */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C1A2B3D4E5F6A7B8C9D0E1F2 /* SleepPreventer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepPreventer.swift; sourceTree = "<group>"; };
 		C5461C37C5F0484513C22072 /* PlanetStore+Spotlight.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "PlanetStore+Spotlight.swift"; sourceTree = "<group>"; };
 		C8E2EF7C3F97DE6E2D15B60D /* IPFSLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IPFSLogger.swift; sourceTree = "<group>"; };
@@ -1882,6 +1884,7 @@
 				"zh-Hans",
 				ja,
 				"zh-Hant",
+				fr,
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
@@ -2482,6 +2485,7 @@
 				AA729AFD95BEA841F609C824 /* es */,
 				16C059C53BCDB7CBCB2507A0 /* de */,
 				6322851C1AA43284036CB9C1 /* ja */,
+				9E6DEFB79570666667A1BE19 /* fr */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -2495,6 +2499,7 @@
 				7242BAB814AADE640D752C4E /* es */,
 				43D9216A1E2C83FFC61A358C /* de */,
 				F55430C33A9460932E50054D /* ja */,
+				BCD0959846D54F0AD00ACB86 /* fr */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
