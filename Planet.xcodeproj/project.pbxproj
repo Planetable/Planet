@@ -789,6 +789,7 @@
 		44BF4852CA45DC20EE145C58 /* SearchIndex.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SearchIndex.swift; sourceTree = "<group>"; };
 		4C06A60D631FAB5EEF3BAF8C /* PlanetAIChatSessionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlanetAIChatSessionsView.swift; sourceTree = "<group>"; };
 		5274E7C86A55DA0BB03CE7EF /* CloudflarePagesLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudflarePagesLogger.swift; sourceTree = "<group>"; };
+		5449C667BC184F7654134D0B /* ru */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		5CE71A58A58525049CC222C6 /* RelatedArticlesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RelatedArticlesView.swift; sourceTree = "<group>"; };
 		5EE74B2FAA1274536FF8442A /* hi */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		6322851C1AA43284036CB9C1 /* ja */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -930,6 +931,7 @@
 		D7A100052F6AFA1100AA0001 /* VideoAttachmentInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoAttachmentInfo.swift; sourceTree = "<group>"; };
 		D7A100062F6AFA1100AA0001 /* VideoInfoRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInfoRow.swift; sourceTree = "<group>"; };
 		D7A100092F6AFA1100AA0001 /* VideoCompressionJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCompressionJob.swift; sourceTree = "<group>"; };
+		DCC5765EA8A6DE16DFB8E30C /* ru */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E399FD48A62B607DCEF8C76D /* PlanetAIChatWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PlanetAIChatWindowController.swift; path = PlanetAIChatWindowController.swift; sourceTree = "<group>"; };
 		E59E62B0E2A71B9B4135B005 /* PlanetLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlanetLogger.swift; sourceTree = "<group>"; };
 		E8B4FE3E2A8D144E00C01E94 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -1888,6 +1890,7 @@
 				"zh-Hant",
 				fr,
 				hi,
+				ru,
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
@@ -2490,6 +2493,7 @@
 				6322851C1AA43284036CB9C1 /* ja */,
 				9E6DEFB79570666667A1BE19 /* fr */,
 				5EE74B2FAA1274536FF8442A /* hi */,
+				DCC5765EA8A6DE16DFB8E30C /* ru */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -2505,6 +2509,7 @@
 				F55430C33A9460932E50054D /* ja */,
 				BCD0959846D54F0AD00ACB86 /* fr */,
 				032A1470030A4BCB2F066FA6 /* hi */,
+				5449C667BC184F7654134D0B /* ru */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
