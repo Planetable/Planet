@@ -614,6 +614,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		032A1470030A4BCB2F066FA6 /* hi */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		03E9DC5C055F824D215A8981 /* MarkdownEditorTextView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkdownEditorTextView.swift; sourceTree = "<group>"; };
 		0B14374A86131144DC199477 /* ArticleAIOnDeviceTools.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArticleAIOnDeviceTools.swift; sourceTree = "<group>"; };
 		16C059C53BCDB7CBCB2507A0 /* de */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -789,6 +790,7 @@
 		4C06A60D631FAB5EEF3BAF8C /* PlanetAIChatSessionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlanetAIChatSessionsView.swift; sourceTree = "<group>"; };
 		5274E7C86A55DA0BB03CE7EF /* CloudflarePagesLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudflarePagesLogger.swift; sourceTree = "<group>"; };
 		5CE71A58A58525049CC222C6 /* RelatedArticlesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RelatedArticlesView.swift; sourceTree = "<group>"; };
+		5EE74B2FAA1274536FF8442A /* hi */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		6322851C1AA43284036CB9C1 /* ja */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		6A03269B2C81C49100FEDD55 /* MyPlanetDonationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPlanetDonationSettingsView.swift; sourceTree = "<group>"; };
 		6A03269E2C81DF2000FEDD55 /* String+EthereumChecksumAddress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+EthereumChecksumAddress.swift"; sourceTree = "<group>"; };
@@ -1885,6 +1887,7 @@
 				ja,
 				"zh-Hant",
 				fr,
+				hi,
 			);
 			mainGroup = 2AC4993C27BB6E7500F1C2D1;
 			packageReferences = (
@@ -2486,6 +2489,7 @@
 				16C059C53BCDB7CBCB2507A0 /* de */,
 				6322851C1AA43284036CB9C1 /* ja */,
 				9E6DEFB79570666667A1BE19 /* fr */,
+				5EE74B2FAA1274536FF8442A /* hi */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -2500,6 +2504,7 @@
 				43D9216A1E2C83FFC61A358C /* de */,
 				F55430C33A9460932E50054D /* ja */,
 				BCD0959846D54F0AD00ACB86 /* fr */,
+				032A1470030A4BCB2F066FA6 /* hi */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
