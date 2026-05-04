@@ -514,27 +514,12 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
             return nil
         }
 
-        let ogImageData = try await FeedUtils.findAvatarFromHTMLOGImage(
+        let htmlImageData = try await FeedUtils.findAvatarFromHTMLImages(
             htmlDocument: source.document,
             htmlURL: source.url
         )
-        if let ogImageData,
-           imageIsValid(ogImageData),
-           imageIsSquare(ogImageData)
-        {
-            return ogImageData
-        }
-
-        let iconData = try await FeedUtils.findAvatarFromHTMLIcons(
-            htmlDocument: source.document,
-            htmlURL: source.url
-        )
-        if let iconData, imageIsValid(iconData) {
-            return iconData
-        }
-
-        if let ogImageData, imageIsValid(ogImageData) {
-            return ogImageData
+        if let htmlImageData, imageIsValid(htmlImageData) {
+            return htmlImageData
         }
 
         return nil
