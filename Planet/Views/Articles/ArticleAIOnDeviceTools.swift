@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ArticleAIRepoGrepRequest {
+struct ArticleAIRepoGrepRequest: Sendable {
     let pattern: String
     let path: String?
     let literal: Bool
@@ -15,7 +15,7 @@ struct ArticleAIRepoGrepRequest {
     let maxResults: Int
 }
 
-struct ArticleAIRepoGrepMatch {
+struct ArticleAIRepoGrepMatch: Sendable {
     let path: String
     let line: Int
     let column: Int
@@ -31,7 +31,7 @@ struct ArticleAIRepoGrepMatch {
     }
 }
 
-struct ArticleAIRepoGrepResult {
+struct ArticleAIRepoGrepResult: Sendable {
     let pattern: String
     let searchRoot: String
     let literal: Bool
@@ -78,6 +78,19 @@ private struct ArticleAIRepoGrepError: LocalizedError {
 enum ArticleAIRepoGrep {
     private static let maxFileSizeBytes = 2_000_000
     private static let maxPreviewLength = 400
+
+    static func searchAsync(request: ArticleAIRepoGrepRequest, repoRoot: URL) async throws -> ArticleAIRepoGrepResult {
+        try await withCheckedThrowingContinuation { continuation in
+            DispatchQueue.global(qos: .utility).async {
+                do {
+                    let result = try search(request: request, repoRoot: repoRoot)
+                    continuation.resume(returning: result)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
 
     static func search(request: ArticleAIRepoGrepRequest, repoRoot: URL) throws -> ArticleAIRepoGrepResult {
         let pattern = request.pattern.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -428,7 +441,7 @@ struct WritePlanetArguments: Sendable {
 @available(macOS 26.0, *)
 @Generable(description: "Arguments for searching articles")
 struct SearchArticlesArguments: Sendable {
-    @Guide(description: "Search query. Supports phrases in quotes and -negation.")
+    @Guide(description: "Search query. Supports phrases in quotes and -negation. Use for semantic/topic search where wording may differ; for exact dates, IDs, title fragments, URLs, quoted text, or other literal tokens, use grep first.")
     var query: String
     @Guide(description: "Maximum number of results to return. Defaults to 10, max 50.")
     var limit: Int?
@@ -437,13 +450,13 @@ struct SearchArticlesArguments: Sendable {
 }
 
 @available(macOS 26.0, *)
-@Generable(description: "Arguments for grep-style repo search")
+@Generable(description: "Arguments for grep-style library search")
 struct GrepArguments: Sendable {
-    @Guide(description: "Required search pattern. Literal matching is used by default.")
+    @Guide(description: "Required search pattern. For exact tokens from the user, pass the exact spelling and punctuation first, including date-like strings such as 2026-1-1. Leave literal as true unless regex is explicitly needed.")
     var pattern: String
-    @Guide(description: "Optional relative file or directory under the Planet repo root to search. Defaults to the repo root.")
+    @Guide(description: "Optional relative file or directory under the Planet library root to search. Defaults to the library root.")
     var path: String?
-    @Guide(description: "Optional. Treat pattern as literal text. Defaults to true.")
+    @Guide(description: "Optional. Treat pattern as literal text. Defaults to true; keep true for exact user-provided dates, IDs, titles, URLs, quoted text, identifiers, symbols, setting keys, and phrases.")
     var literal: Bool?
     @Guide(description: "Optional. Case-sensitive matching. Defaults to false.")
     var caseSensitive: Bool?
@@ -770,7 +783,7 @@ struct WritePlanetTool: Tool {
 @available(macOS 26.0, *)
 struct SearchArticlesTool: Tool {
     var name: String { "search_articles" }
-    var description: String { "Search across all articles by keyword or topic. Returns matching article titles and previews." }
+    var description: String { "Search across all articles by keyword or topic. Use for semantic/topic searches where wording may differ; for exact dates, IDs, title fragments, URLs, file paths, quoted text, or other literal tokens, use grep first." }
 
     func call(arguments: SearchArticlesArguments) async throws -> String {
         let limit = min(50, max(1, arguments.limit ?? 10))
@@ -808,7 +821,7 @@ struct SearchArticlesTool: Tool {
 @available(macOS 26.0, *)
 struct GrepTool: Tool {
     var name: String { "grep" }
-    var description: String { "Search text files in the Planet repo for an exact string or regex. Prefer this for exact repo/file-content lookups." }
+    var description: String { "Search text files in the Planet library for an exact string or regex. Best first tool for exact literal lookups such as dates, title fragments, quoted text, URLs, domains, file paths, UUIDs/IDs, tags, numbers, identifiers, symbols, proper nouns, and setting keys." }
 
     func call(arguments: GrepArguments) async throws -> String {
         let request = ArticleAIRepoGrepRequest(
@@ -822,7 +835,7 @@ struct GrepTool: Tool {
             "grep called pattern=\(arguments.pattern), path=\(arguments.path ?? "nil"), literal=\(arguments.literal ?? true), caseSensitive=\(arguments.caseSensitive ?? false), maxResults=\(arguments.maxResults ?? 20)"
         )
         do {
-            let result = try ArticleAIRepoGrep.search(request: request, repoRoot: URLUtils.repoPath())
+            let result = try await ArticleAIRepoGrep.searchAsync(request: request, repoRoot: URLUtils.repoPath())
             onDeviceToolLog(
                 "grep result matches=\(result.totalMatches), filesScanned=\(result.filesScanned), truncated=\(result.truncated)"
             )

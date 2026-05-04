@@ -375,10 +375,10 @@ struct ArticleAIChatView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     chatMessageList
-                        .padding(.leading, 12)
-                        .padding(.trailing, 12)
+                        .padding(.leading, 20)
+                        .padding(.trailing, 20)
                         .padding(.bottom, 20)
-                        .padding(.top, 16)
+                        .padding(.top, 12)
                 }
                 .background(Color(NSColor.textBackgroundColor))
                 .applyScrollPositionTracking(id: $scrolledMessageID)
@@ -820,7 +820,7 @@ struct ArticleAIChatView: View {
     }
 
     private var chatMessageList: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        LazyVStack(alignment: .leading, spacing: 10) {
             Text(isPlanetWideMode ? L10n("Context: %@", contextTitle) : L10n("Context loaded from: %@", contextTitle))
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -828,12 +828,6 @@ struct ArticleAIChatView: View {
 
             ForEach(messages) { message in
                 HStack(alignment: .top) {
-                    Text(isAssistantStyleMessage(message) ? "AI" : "You")
-                        .font(.system(size: chatFontSize))
-                        .lineSpacing(5)
-                        .foregroundStyle(.secondary)
-                        .padding(.top, isAssistantStyleMessage(message) ? 0 : 8)
-                        .frame(width: 34, alignment: .trailing)
                     VStack(alignment: .leading, spacing: 6) {
                         if message.isReasoningResponse {
                             Button {
@@ -912,19 +906,12 @@ struct ArticleAIChatView: View {
             }
 
             if isSending {
-                HStack(alignment: .top) {
-                    Text("AI")
-                        .font(.system(size: chatFontSize))
+                TimelineView(.periodic(from: .now, by: 0.14)) { context in
+                    Text("\(sendingAnimationFrame(for: context.date)) \(sendingStatusText)")
+                        .font(.system(size: chatFontSize, design: .monospaced))
                         .lineSpacing(5)
                         .foregroundStyle(.secondary)
-                        .frame(width: 34, alignment: .trailing)
-                    TimelineView(.periodic(from: .now, by: 0.14)) { context in
-                        Text("\(sendingAnimationFrame(for: context.date)) \(sendingStatusText)")
-                            .font(.system(size: chatFontSize, design: .monospaced))
-                            .lineSpacing(5)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
 
@@ -1254,12 +1241,14 @@ struct ArticleAIChatView: View {
         let evenRowBackground = makeArticleAITableCodeBackgroundColor()
         let oddRowBackground = Color(NSColor.textBackgroundColor)
         let cornerRadius: CGFloat = 5
+        let isTextSelectionEnabled = markdownTableCellCount(table) <= Self.markdownTableCellSelectionLimit
 
-        return VStack(spacing: 0) {
+        return LazyVStack(spacing: 0) {
             assistantMarkdownTableRow(
                 table.headers,
                 alignments: table.alignments,
-                isHeader: true
+                isHeader: true,
+                isTextSelectionEnabled: isTextSelectionEnabled
             )
             .background(headerBackground)
 
@@ -1269,11 +1258,12 @@ struct ArticleAIChatView: View {
                     .frame(height: 1)
             }
 
-            ForEach(Array(table.rows.enumerated()), id: \.offset) { index, row in
+            ForEach(table.rows.indices, id: \.self) { index in
                 assistantMarkdownTableRow(
-                    row,
+                    table.rows[index],
                     alignments: table.alignments,
-                    isHeader: false
+                    isHeader: false,
+                    isTextSelectionEnabled: isTextSelectionEnabled
                 )
                 .background(index.isMultiple(of: 2) ? evenRowBackground : oddRowBackground)
 
@@ -1296,16 +1286,18 @@ struct ArticleAIChatView: View {
     private func assistantMarkdownTableRow(
         _ cells: [String],
         alignments: [ArticleAIMarkdownTableAlignment],
-        isHeader: Bool
+        isHeader: Bool,
+        isTextSelectionEnabled: Bool
     ) -> some View {
         let borderColor = Color("BorderColor")
 
         return HStack(spacing: 0) {
-            ForEach(Array(cells.enumerated()), id: \.offset) { index, cell in
+            ForEach(cells.indices, id: \.self) { index in
                 assistantMarkdownTableCell(
-                    cell,
+                    cells[index],
                     alignment: index < alignments.count ? alignments[index] : .leading,
-                    isHeader: isHeader
+                    isHeader: isHeader,
+                    isTextSelectionEnabled: isTextSelectionEnabled
                 )
 
                 if index < cells.count - 1 {
@@ -1321,10 +1313,13 @@ struct ArticleAIChatView: View {
     private func assistantMarkdownTableCell(
         _ content: String,
         alignment: ArticleAIMarkdownTableAlignment,
-        isHeader: Bool
+        isHeader: Bool,
+        isTextSelectionEnabled: Bool
     ) -> some View {
         let textView: Text = {
-            if let attributed = attributedAssistantTableCellMessage(content) {
+            if markdownTableCellNeedsAttributedRendering(content),
+                let attributed = attributedAssistantTableCellMessage(content)
+            {
                 return isHeader ? Text(attributed).fontWeight(.semibold) : Text(attributed)
             } else {
                 return isHeader
@@ -1333,17 +1328,41 @@ struct ArticleAIChatView: View {
             }
         }()
 
-        textView
-            .textSelection(.enabled)
+        let cell = textView
             .multilineTextAlignment(alignment.textAlignment)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: alignment.frameAlignment)
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
+
+        if isTextSelectionEnabled {
+            cell.textSelection(.enabled)
+        } else {
+            cell
+        }
+    }
+
+    private func markdownTableCellNeedsAttributedRendering(_ content: String) -> Bool {
+        content.localizedCaseInsensitiveContains("<font")
+            || content.localizedCaseInsensitiveContains("<span")
+            || content.contains("](")
+            || content.contains("**")
+            || content.contains("__")
+            || content.contains("`")
+            || content.contains("*")
+            || content.contains("_")
+    }
+
+    private static let markdownTableCellSelectionLimit = 120
+
+    private func markdownTableCellCount(_ table: ArticleAIMarkdownTable) -> Int {
+        table.headers.count + table.rows.reduce(0) { count, row in
+            count + row.count
+        }
     }
 
     private func attributedAssistantTableCellMessage(_ content: String) -> AttributedString? {
-        guard let fragments = fontTagFragments(in: content) else {
+        guard let fragments = htmlColorFragments(in: content) else {
             return attributedAssistantMessage(content)
         }
 
@@ -1437,31 +1456,72 @@ struct ArticleAIChatView: View {
         return result
     }
 
-    private func fontTagFragments(in content: String) -> [ArticleAIFontTagFragment]? {
-        guard content.localizedCaseInsensitiveContains("<font") else {
+    private func htmlColorFragments(in content: String) -> [ArticleAIFontTagFragment]? {
+        guard content.localizedCaseInsensitiveContains("<font")
+            || content.localizedCaseInsensitiveContains("<span")
+        else {
             return nil
         }
 
-        let pattern = #"<font\s+color\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))\s*>(.*?)</font>"#
-        guard let regex = try? NSRegularExpression(
-            pattern: pattern,
-            options: [.caseInsensitive, .dotMatchesLineSeparators]
-        ) else {
-            return nil
+        struct HTMLColorMatch {
+            let range: NSRange
+            let text: String
+            let color: Color?
         }
 
         let fullRange = NSRange(content.startIndex..<content.endIndex, in: content)
-        let matches = regex.matches(in: content, options: [], range: fullRange)
-        guard !matches.isEmpty else {
+        var colorMatches: [HTMLColorMatch] = []
+
+        if let fontRegex = try? NSRegularExpression(
+            pattern: #"<font\b[^>]*\bcolor\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))[^>]*>(.*?)</font>"#,
+            options: [.caseInsensitive, .dotMatchesLineSeparators]
+        ) {
+            let matches = fontRegex.matches(in: content, options: [], range: fullRange)
+            colorMatches += matches.map { match in
+                let colorValue = firstMatchingCapture(in: match, source: content, ranges: [1, 2, 3]) ?? ""
+                let innerText = firstMatchingCapture(in: match, source: content, ranges: [4]) ?? ""
+                return HTMLColorMatch(
+                    range: match.range,
+                    text: innerText,
+                    color: colorFromHTMLColorValue(colorValue)
+                )
+            }
+        }
+
+        if let spanRegex = try? NSRegularExpression(
+            pattern: #"<span\b(?=[^>]*\bstyle\s*=)[^>]*\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))[^>]*>(.*?)</span>"#,
+            options: [.caseInsensitive, .dotMatchesLineSeparators]
+        ) {
+            let matches = spanRegex.matches(in: content, options: [], range: fullRange)
+            colorMatches += matches.map { match in
+                let styleValue = firstMatchingCapture(in: match, source: content, ranges: [1, 2, 3]) ?? ""
+                let innerText = firstMatchingCapture(in: match, source: content, ranges: [4]) ?? ""
+                return HTMLColorMatch(
+                    range: match.range,
+                    text: innerText,
+                    color: colorFromInlineStyle(styleValue)
+                )
+            }
+        }
+
+        colorMatches.sort { lhs, rhs in
+            if lhs.range.location != rhs.range.location {
+                return lhs.range.location < rhs.range.location
+            }
+            return lhs.range.length > rhs.range.length
+        }
+        guard !colorMatches.isEmpty else {
             return nil
         }
 
         var fragments: [ArticleAIFontTagFragment] = []
         var currentLocation = 0
 
-        for match in matches {
-            let matchRange = match.range
-            guard matchRange.location != NSNotFound else {
+        for colorMatch in colorMatches {
+            let matchRange = colorMatch.range
+            guard matchRange.location != NSNotFound,
+                matchRange.location >= currentLocation
+            else {
                 continue
             }
 
@@ -1479,13 +1539,10 @@ struct ArticleAIChatView: View {
                 )
             }
 
-            let colorValue =
-                firstMatchingCapture(in: match, source: content, ranges: [1, 2, 3]) ?? ""
-            let innerText = firstMatchingCapture(in: match, source: content, ranges: [4]) ?? ""
             fragments.append(
                 ArticleAIFontTagFragment(
-                    text: innerText,
-                    color: colorFromFontTag(colorValue)
+                    text: colorMatch.text,
+                    color: colorMatch.color
                 )
             )
 
@@ -1532,8 +1589,23 @@ struct ArticleAIChatView: View {
         return nil
     }
 
-    private func colorFromFontTag(_ value: String) -> Color? {
+    private func colorFromInlineStyle(_ value: String) -> Color? {
+        let pattern = #"(?i)(?:^|;)\s*color\s*:\s*([^;]+)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else {
+            return nil
+        }
+        let range = NSRange(value.startIndex..<value.endIndex, in: value)
+        guard let match = regex.firstMatch(in: value, options: [], range: range),
+            let colorValue = firstMatchingCapture(in: match, source: value, ranges: [1])
+        else {
+            return nil
+        }
+        return colorFromHTMLColorValue(colorValue)
+    }
+
+    private func colorFromHTMLColorValue(_ value: String) -> Color? {
         let normalized = value
+            .replacingOccurrences(of: "!important", with: "", options: .caseInsensitive)
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
         guard !normalized.isEmpty else {
@@ -3847,7 +3919,7 @@ struct ArticleAIChatView: View {
                 "type": "function",
                 "function": [
                     "name": "shell",
-                    "description": "Run a shell command in the Planet repo root (or a subdirectory).",
+                    "description": "Run a shell command in the Planet library root (or a subdirectory).",
                     "parameters": [
                         "type": "object",
                         "properties": [
@@ -3857,7 +3929,7 @@ struct ArticleAIChatView: View {
                             ],
                             "working_directory": [
                                 "type": "string",
-                                "description": "Optional relative path under Planet repo root. Defaults to repo root.",
+                                "description": "Optional relative path under the Planet library root. Defaults to the library root.",
                             ],
                             "timeout_seconds": [
                                 "type": "integer",
@@ -3872,13 +3944,13 @@ struct ArticleAIChatView: View {
                 "type": "function",
                 "function": [
                     "name": "search_articles",
-                    "description": "Search across all articles by keyword or topic. Returns matching articles with titles, previews, relevance scores, and article IDs that can be passed to read_article.",
+                    "description": "Search across all articles by keyword or topic. Use for semantic/topic searches where wording may differ; for exact dates, IDs, title fragments, URLs, file paths, quoted text, or other literal tokens, use grep first.",
                     "parameters": [
                         "type": "object",
                         "properties": [
                             "query": [
                                 "type": "string",
-                                "description": "Search query. Supports phrases in quotes and -negation.",
+                                "description": "Search query. Supports phrases in quotes and -negation. Use this for semantic/topic search, not as the first tool for exact literal tokens.",
                             ],
                             "limit": [
                                 "type": "integer",
@@ -3897,21 +3969,21 @@ struct ArticleAIChatView: View {
                 "type": "function",
                 "function": [
                     "name": "grep",
-                    "description": "Search text files in the Planet repo for an exact string or regex. Prefer this for exact repo/file-content lookups.",
+                    "description": "Search text files in the Planet library for an exact string or regex. Best first tool for exact literal lookups such as dates, title fragments, quoted text, URLs, domains, file paths, UUIDs/IDs, tags, numbers, identifiers, symbols, proper nouns, and setting keys.",
                     "parameters": [
                         "type": "object",
                         "properties": [
                             "pattern": [
                                 "type": "string",
-                                "description": "Required search pattern. Literal matching is used by default.",
+                                "description": "Required search pattern. For exact tokens from the user, pass the exact spelling and punctuation first, including date-like strings such as 2026-1-1. Leave literal as true unless regex is explicitly needed.",
                             ],
                             "path": [
                                 "type": "string",
-                                "description": "Optional relative file or directory under the Planet repo root to search. Defaults to the repo root.",
+                                "description": "Optional relative file or directory under the Planet library root to search. Defaults to the library root.",
                             ],
                             "literal": [
                                 "type": "boolean",
-                                "description": "Optional. Treat pattern as literal text. Defaults to true.",
+                                "description": "Optional. Treat pattern as literal text. Defaults to true; keep true for exact user-provided dates, IDs, titles, URLs, quoted text, identifiers, symbols, setting keys, and phrases.",
                             ],
                             "case_sensitive": [
                                 "type": "boolean",
@@ -3930,7 +4002,7 @@ struct ArticleAIChatView: View {
                 "type": "function",
                 "function": [
                     "name": "list_planet_articles",
-                    "description": "List articles for a specific planet using structural retrieval instead of keyword relevance. Supports pagination, sorting, and optional title filtering while preserving the requested sort order.",
+                    "description": "List articles for a specific planet using structural retrieval instead of keyword relevance. Use after a planet is known for browsing, pagination, or ordered lists; for exact dates, IDs, title fragments, or other literal tokens, use grep first.",
                     "parameters": [
                         "type": "object",
                         "properties": [
@@ -3982,7 +4054,7 @@ struct ArticleAIChatView: View {
         case "search_articles":
             return await runSearchArticlesTool(arguments: arguments)
         case "grep":
-            return runGrepTool(arguments: arguments)
+            return await runGrepTool(arguments: arguments)
         case "list_planet_articles":
             return await runListPlanetArticlesTool(arguments: arguments)
         default:
@@ -4311,7 +4383,7 @@ struct ArticleAIChatView: View {
         }
     }
 
-    private func runGrepTool(arguments: [String: Any]) -> String {
+    private func runGrepTool(arguments: [String: Any]) async -> String {
         guard let pattern = stringValue(from: arguments["pattern"]) else {
             return toolResult([
                 "ok": false,
@@ -4332,7 +4404,7 @@ struct ArticleAIChatView: View {
         )
 
         do {
-            let result = try ArticleAIRepoGrep.search(request: request, repoRoot: repoRoot)
+            let result = try await ArticleAIRepoGrep.searchAsync(request: request, repoRoot: repoRoot)
             debugLog(
                 "runGrepTool completed matches=\(result.totalMatches), filesScanned=\(result.filesScanned), truncated=\(result.truncated)"
             )
@@ -5688,14 +5760,34 @@ struct ArticleAIChatView: View {
         return text
     }
 
+    private var exactLookupToolGuidance: String {
+        """
+        Exact lookup routing:
+        - Use grep first with literal=true whenever the user provides an exact token to find, open, reference, or compare, including dates/date-like strings (2026-1-1, 2026-01-01, 2026/1/1), title fragments, quoted text, URLs/domains, file paths, UUIDs/IDs, tags, numbers, identifiers, symbols, proper nouns, and setting keys.
+        - Preserve the user's spelling and punctuation in the first grep pattern; do not normalize dates or rewrite tokens before the first attempt.
+        - If a literal date token has no useful grep match, try common alternate date spellings with grep next, such as YYYY-M-D, YYYY-MM-DD, and YYYY/M/D.
+        - Use search_articles for semantic/topic searches where wording may differ, and list_planet_articles for browsing or pagination after a planet is known.
+        - After grep identifies article candidates, use read_article when full article content or a chat_link is needed.
+        """
+    }
+
+    private var responseFormattingGuidance: String {
+        """
+        Response formatting:
+        - For colored inline text, especially inside Markdown tables, use <font color="green">...</font>, <font color="red">...</font>, or another simple <font color="...">...</font> tag.
+        - Do not use CSS span styles such as <span style="color:green">...</span> for colored text.
+        """
+    }
+
     private var systemPrompt: String {
         if isPlanetWideMode {
             return """
             You are a useful research assistant with access to the user's entire Planet library.
             Return only essential information.
             No small talk, no preambles like "here is", and do not ask follow-up questions at the end.
-            If tools are available, use them when needed to read or update article/planet models, search repo text, or run shell commands.
-            Use search_articles to find content across all planets, list_planet_articles to browse a specific planet's articles, and grep for exact string matches in repo files.
+            If tools are available, use them when needed to read or update article/planet models, search Planet library text, or run shell commands.
+            \(exactLookupToolGuidance)
+            \(responseFormattingGuidance)
             For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
             Whenever you mention or summarize article content from the Planet library, include a Markdown link for every referenced article.
             Use the exact chat_link value from article context or tool output, and if you do not have a chat_link yet, call a tool that returns one before answering. Never invent links.
@@ -5708,8 +5800,9 @@ struct ArticleAIChatView: View {
         You are a useful research assistant.
         Return only essential information.
         No small talk, no preambles like "here is", and do not ask follow-up questions at the end.
-        If tools are available, use them when needed to read or update article/planet models, search repo text, or run shell commands.
-        Use grep for exact string matches in repo files.
+        If tools are available, use them when needed to read or update article/planet models, search Planet library text, or run shell commands.
+        \(exactLookupToolGuidance)
+        \(responseFormattingGuidance)
         For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
         Whenever you mention or summarize article content from the Planet library, include a Markdown link for every referenced article.
         Use the exact chat_link value from article context or tool output, and if you do not have a chat_link yet, call a tool that returns one before answering. Never invent links.
@@ -5854,7 +5947,7 @@ struct ArticleAIChatView: View {
             lines.append("")
         }
 
-        lines.append("Use search_articles to find content across all planets, list_planet_articles to browse a specific planet's articles, and grep for exact string matches in repo files.")
+        lines.append(exactLookupToolGuidance)
         return lines.joined(separator: "\n")
     }
 
