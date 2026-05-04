@@ -615,7 +615,7 @@ struct ArticleListView: View {
         .onAppear {
             viewModel.articles = filterArticles(planetStore.selectedArticleList ?? []) ?? []
         }
-        .onChange(of: planetStore.selectedArticleList) { _ in
+        .onChange(of: planetStore.selectedArticleListVersion) { _ in
             viewModel.articles = filterArticles(planetStore.selectedArticleList ?? []) ?? []
         }
         .onChange(of: viewModel.filter) { _ in

@@ -229,7 +229,12 @@ final class MyJSONDirectoryMonitor {
             return nil
         }
     }
-    @Published var selectedArticleList: [ArticleModel]? = nil
+    @Published private(set) var selectedArticleListVersion: UInt = 0
+    @Published var selectedArticleList: [ArticleModel]? = nil {
+        didSet {
+            selectedArticleListVersion &+= 1
+        }
+    }
     @Published var selectedArticle: ArticleModel? {
         didSet {
             if selectedArticle != oldValue {
