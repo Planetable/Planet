@@ -4202,6 +4202,7 @@ struct ArticleAIChatView: View {
             var updated = try encodeToDictionary(myArticle)
             mergeJSON(base: &updated, changes: changes)
             updated["id"] = myArticle.id.uuidString
+            updated["modified"] = Date().timeIntervalSinceReferenceDate
             let updatedData = try JSONSerialization.data(withJSONObject: updated, options: [.prettyPrinted, .sortedKeys])
             _ = try JSONDecoder.shared.decode(MyArticleModel.self, from: updatedData)
             try updatedData.write(to: myArticle.path, options: .atomic)

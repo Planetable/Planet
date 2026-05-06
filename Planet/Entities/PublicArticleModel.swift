@@ -17,6 +17,7 @@ struct PublicArticleModel: Codable {
     let content: String
     let contentRendered: String?
     let created: Date
+    var modified: Date? = nil
     let hasVideo: Bool?
     let videoFilename: String?
     let hasAudio: Bool?

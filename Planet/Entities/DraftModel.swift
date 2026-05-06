@@ -432,6 +432,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     func saveToArticle() throws -> MyArticleModel {
         let planet: MyPlanetModel
         let article: MyArticleModel
+        var isEditingExistingArticle = false
         switch target! {
         case .myPlanet(let wrapper):
             planet = wrapper.value
@@ -454,6 +455,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             articles?.sort(by: { MyArticleModel.reorder(a: $0, b: $1) })
             planet.articles = articles
         case .article(let wrapper):
+            isEditingExistingArticle = true
             article = wrapper.value
             planet = article.planet
             if let articleSlug = article.slug, articleSlug.count > 0 {
@@ -527,7 +529,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                 article.summary = summary
             }
         }
-        try article.save()
+        try article.save(markingModified: isEditingExistingArticle)
         try article.savePublic()
         try delete()
         try planet.copyTemplateAssets()

@@ -16,9 +16,16 @@ extension MyArticleModel {
     // MARK: -  Save to My/:planet_id/Articles/:article_id.json
 
     /// Persist any changes to the model.
-    func save() throws {
+    func save(markingModified: Bool = false) throws {
+        if markingModified {
+            markModified()
+        }
         try JSONEncoder.shared.encode(self).write(to: path, options: .atomic)
         PlanetStore.upsertSearchSnapshotIfReady(for: self)
+    }
+
+    func markModified(_ date: Date = Date()) {
+        modified = date
     }
 
     /// Delete the metadata and any in the public folder

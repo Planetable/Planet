@@ -197,7 +197,7 @@ struct MyArticleSettingsView: View {
                         article.navigationWeight = Int(navigationWeight)
                         article.tags = tags
                         Task {
-                            try article.save()
+                            try article.save(markingModified: true)
                             if let previousSlug = previousSlug, slugChanged, previousSlug.count > 0 {
                                 article.removeSlug(previousSlug)
                             }

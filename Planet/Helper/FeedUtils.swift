@@ -309,8 +309,11 @@ struct FeedUtils {
     }
 
     private static func fetchHTMLAvatarCandidate(_ candidate: HTMLAvatarCandidate) async -> DownloadedHTMLAvatarCandidate? {
-        var request = URLRequest(url: candidate.url, timeoutInterval: htmlAvatarDownloadTimeout)
-        request.cachePolicy = .returnCacheDataElseLoad
+        let request: URLRequest = {
+            var request = URLRequest(url: candidate.url, timeoutInterval: htmlAvatarDownloadTimeout)
+            request.cachePolicy = .returnCacheDataElseLoad
+            return request
+        }()
 
         guard let (data, response) = try? await withTimeout(seconds: htmlAvatarDownloadTimeout, operation: {
             try await URLSession.shared.data(for: request)

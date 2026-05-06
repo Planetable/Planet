@@ -33,6 +33,7 @@ class MyArticleModel: ArticleModel, Codable {
     var originalPostDate: Date? = nil
 
     @Published var pinned: Date? = nil
+    @Published var modified: Date? = nil
 
     // populated when initializing
     unowned var planet: MyPlanetModel! = nil
@@ -98,6 +99,7 @@ class MyArticleModel: ArticleModel, Codable {
             content: content,
             contentRendered: contentRendered,
             created: created,
+            modified: modified,
             hasVideo: hasVideo,
             videoFilename: videoFilename,
             hasAudio: hasAudio,
@@ -231,7 +233,7 @@ class MyArticleModel: ArticleModel, Codable {
         case id, articleType,
             link, slug, heroImage, heroImageWidth, heroImageHeight, externalLink,
             title, content, contentRendered, summary,
-            created, starred, starType,
+            created, modified, starred, starType,
             videoFilename, audioFilename,
             attachments, cids, tags,
             isIncludedInNavigation,
@@ -279,6 +281,7 @@ class MyArticleModel: ArticleModel, Codable {
         originalPostID = try? container.decodeIfPresent(String.self, forKey: .originalPostID)
         originalPostDate = try? container.decodeIfPresent(Date.self, forKey: .originalPostDate)
         pinned = try? container.decodeIfPresent(Date.self, forKey: .pinned)
+        modified = try container.decodeIfPresent(Date.self, forKey: .modified)
         super.init(
             id: id,
             title: title,
@@ -321,6 +324,7 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(originalPostID, forKey: .originalPostID)
         try container.encodeIfPresent(originalPostDate, forKey: .originalPostDate)
         try container.encodeIfPresent(pinned, forKey: .pinned)
+        try container.encodeIfPresent(modified, forKey: .modified)
     }
 
     init(
@@ -334,6 +338,7 @@ class MyArticleModel: ArticleModel, Codable {
         contentRendered: String? = nil,
         summary: String?,
         created: Date,
+        modified: Date? = nil,
         starred: Date?,
         starType: ArticleStarType,
         videoFilename: String?,
@@ -348,6 +353,7 @@ class MyArticleModel: ArticleModel, Codable {
         self.externalLink = externalLink
         self.contentRendered = contentRendered
         self.summary = summary
+        self.modified = modified
         self.isIncludedInNavigation = isIncludedInNavigation
         self.navigationWeight = navigationWeight
         super.init(
@@ -655,7 +661,7 @@ extension MyArticleModel {
         if found {
             self.content = lines.joined(separator: "\n")
             do {
-                try self.save()
+                try self.save(markingModified: true)
                 Task {
                     try self.savePublic()
                     NotificationCenter.default.post(name: .loadArticle, object: nil)

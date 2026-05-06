@@ -187,6 +187,7 @@ extension MyArticleModel {
                 contentRendered: articleToImport.contentRendered,
                 summary: articleToImport.summary,
                 created: articleToImport.created,
+                modified: articleToImport.modified,
                 starred: articleToImport.starred,
                 starType: articleToImport.starType,
                 videoFilename: articleToImport.videoFilename,

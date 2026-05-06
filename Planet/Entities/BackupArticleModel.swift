@@ -23,6 +23,7 @@ struct BackupArticleModel: Codable {
     let starred: Date?
     let starType: ArticleStarType
     let created: Date
+    let modified: Date?
     let videoFilename: String?
     let audioFilename: String?
     let attachments: [String]?

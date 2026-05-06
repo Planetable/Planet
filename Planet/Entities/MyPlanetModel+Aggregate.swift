@@ -711,6 +711,10 @@ extension MyPlanetModel {
                 existingArticle.created = article.created
                 changed = true
             }
+            if existingArticle.modified != article.modified {
+                existingArticle.modified = article.modified
+                changed = true
+            }
             if existingArticle.videoFilename != article.videoFilename {
                 existingArticle.videoFilename = article.videoFilename
                 changed = true
@@ -1027,6 +1031,7 @@ extension MyPlanetModel {
                             content: article.content,
                             summary: "",
                             created: article.created,
+                            modified: article.modified,
                             starred: nil,
                             starType: .star,
                             videoFilename: nil,
@@ -1153,6 +1158,7 @@ extension MyPlanetModel {
                             content: article.content,
                             summary: "",
                             created: article.created,
+                            modified: article.modified,
                             starred: nil,
                             starType: .star,
                             videoFilename: nil,
