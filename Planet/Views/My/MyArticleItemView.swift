@@ -215,6 +215,15 @@ struct MyArticleItemView: View {
 
                 Divider()
 
+                if let articleReference = article.articleReference {
+                    Button {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(articleReference, forType: .string)
+                    } label: {
+                        Text("Copy Ref: \(articleReference)")
+                    }
+                }
+
                 Button {
                     if let url = article.browserURL {
                         NSPasteboard.general.clearContents()

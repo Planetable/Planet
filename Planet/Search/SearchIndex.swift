@@ -47,7 +47,8 @@ final class SearchIndex: Sendable {
             title: snapshot.title,
             content: snapshot.content,
             tags: tags,
-            slug: snapshot.slug ?? ""
+            slug: snapshot.slug ?? "",
+            articleReference: snapshot.articleReference ?? ""
         )
 
         let existingHash = try String.fetchOne(
@@ -74,13 +75,16 @@ final class SearchIndex: Sendable {
         try db.execute(
             sql: """
                 INSERT INTO articles (article_id, planet_id, planet_name, planet_kind,
+                                      article_number, article_reference,
                                       title, content, preview_text, slug, tags, attachments,
                                       created_at, content_hash)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(article_id) DO UPDATE SET
                     planet_id = excluded.planet_id,
                     planet_name = excluded.planet_name,
                     planet_kind = excluded.planet_kind,
+                    article_number = excluded.article_number,
+                    article_reference = excluded.article_reference,
                     title = excluded.title,
                     content = excluded.content,
                     preview_text = excluded.preview_text,
@@ -95,6 +99,8 @@ final class SearchIndex: Sendable {
                 snapshot.planetID.uuidString,
                 snapshot.planetName,
                 planetKind,
+                snapshot.articleNumber,
+                snapshot.articleReference,
                 snapshot.title,
                 snapshot.content,
                 snapshot.previewText,
@@ -123,8 +129,8 @@ final class SearchIndex: Sendable {
             )
         }
         try db.execute(
-            sql: "INSERT INTO articles_fts(rowid, title, content, tags, slug) VALUES (?, ?, ?, ?, ?)",
-            arguments: [rowID, ftsTitle, ftsContent, tags, snapshot.slug]
+            sql: "INSERT INTO articles_fts(rowid, title, content, tags, slug, article_reference) VALUES (?, ?, ?, ?, ?, ?)",
+            arguments: [rowID, ftsTitle, ftsContent, tags, snapshot.slug, snapshot.articleReference]
         )
     }
 
@@ -264,11 +270,13 @@ final class SearchIndex: Sendable {
                             a.planet_id,
                             a.planet_name,
                             a.planet_kind,
+                            a.article_number,
+                            a.article_reference,
                             a.title,
                             a.content,
                             a.preview_text,
                             a.created_at,
-                            bm25(articles_fts, 10.0, 1.0, 5.0, 3.0) AS rank
+                            bm25(articles_fts, 10.0, 1.0, 5.0, 3.0, 8.0) AS rank
                         FROM articles_fts
                         JOIN articles a ON a.rowid = articles_fts.rowid
                         WHERE articles_fts MATCH ?
@@ -294,6 +302,8 @@ final class SearchIndex: Sendable {
                     }
 
                     let planetKind: PlanetKind = planetKindRaw == 0 ? .my : .following
+                    let articleNumber = (row["article_number"] as? Int64).map(Int.init)
+                    let articleReference = row["article_reference"] as? String
                     let created = Date(timeIntervalSinceReferenceDate: createdAt)
                     let preview = row["preview_text"] as? String
                     let snippet = Self.makeSnippet(
@@ -305,6 +315,8 @@ final class SearchIndex: Sendable {
                     return SearchResult(
                         articleID: articleID,
                         articleCreated: created,
+                        articleNumber: articleNumber,
+                        articleReference: articleReference,
                         title: title,
                         preview: snippet,
                         planetID: planetID,

@@ -20,6 +20,9 @@ extension MyArticleModel {
         if markingModified {
             markModified()
         }
+        if articleNumber == nil || (articleNumber ?? 0) <= 0 {
+            articleNumber = planet.allocateArticleNumber()
+        }
         try JSONEncoder.shared.encode(self).write(to: path, options: .atomic)
         PlanetStore.upsertSearchSnapshotIfReady(for: self)
     }

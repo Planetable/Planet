@@ -12,6 +12,7 @@ struct BackupArticleModel: Codable {
     let articleType: ArticleType?
     let link: String
     let slug: String?
+    let articleNumber: Int?
     let heroImage: String?
     let heroImageWidth: Int?
     let heroImageHeight: Int?

@@ -7,6 +7,7 @@ class MyArticleModel: ArticleModel, Codable {
 
     @Published var link: String
     @Published var slug: String? = nil
+    @Published var articleNumber: Int? = nil
     @Published var heroImage: String? = nil
     var heroImageWidth: Int? = nil
     var heroImageHeight: Int? = nil
@@ -83,6 +84,16 @@ class MyArticleModel: ArticleModel, Codable {
         return nil
     }
 
+    var articleReference: String? {
+        guard let planet = planet,
+              let articleNumber,
+              articleNumber > 0
+        else {
+            return nil
+        }
+        return "\(planet.articleReferencePrefix)-\(articleNumber)"
+    }
+
     var publicArticle: PublicArticleModel {
         PublicArticleModel(
             articleType: articleType ?? .blog,
@@ -94,6 +105,8 @@ class MyArticleModel: ArticleModel, Codable {
                 return link
             }(),
             slug: slug ?? "",
+            articleNumber: articleNumber,
+            articleReference: articleReference,
             externalLink: externalLink ?? "",
             title: title,
             content: content,
@@ -231,7 +244,8 @@ class MyArticleModel: ArticleModel, Codable {
 
     enum CodingKeys: String, CodingKey {
         case id, articleType,
-            link, slug, heroImage, heroImageWidth, heroImageHeight, externalLink,
+            link, slug, articleNumber, articleReference,
+            heroImage, heroImageWidth, heroImageHeight, externalLink,
             title, content, contentRendered, summary,
             created, modified, starred, starType,
             videoFilename, audioFilename,
@@ -253,6 +267,7 @@ class MyArticleModel: ArticleModel, Codable {
         }
         link = try container.decode(String.self, forKey: .link)
         slug = try container.decodeIfPresent(String.self, forKey: .slug)
+        articleNumber = try container.decodeIfPresent(Int.self, forKey: .articleNumber)
         heroImage = try container.decodeIfPresent(String.self, forKey: .heroImage)
         heroImageWidth = try container.decodeIfPresent(Int.self, forKey: .heroImageWidth)
         heroImageHeight = try container.decodeIfPresent(Int.self, forKey: .heroImageHeight)
@@ -301,6 +316,8 @@ class MyArticleModel: ArticleModel, Codable {
         try container.encodeIfPresent(articleType, forKey: .articleType)
         try container.encode(link, forKey: .link)
         try container.encodeIfPresent(slug, forKey: .slug)
+        try container.encodeIfPresent(articleNumber, forKey: .articleNumber)
+        try container.encodeIfPresent(articleReference, forKey: .articleReference)
         try container.encodeIfPresent(heroImage, forKey: .heroImage)
         try container.encodeIfPresent(heroImageWidth, forKey: .heroImageWidth)
         try container.encodeIfPresent(heroImageHeight, forKey: .heroImageHeight)
@@ -331,6 +348,7 @@ class MyArticleModel: ArticleModel, Codable {
         id: UUID,
         link: String,
         slug: String? = nil,
+        articleNumber: Int? = nil,
         heroImage: String? = nil,
         externalLink: String? = nil,
         title: String,
@@ -349,6 +367,7 @@ class MyArticleModel: ArticleModel, Codable {
     ) {
         self.link = link
         self.slug = slug
+        self.articleNumber = articleNumber
         self.heroImage = heroImage
         self.externalLink = externalLink
         self.contentRendered = contentRendered
@@ -420,6 +439,7 @@ class MyArticleModel: ArticleModel, Codable {
             attachments: nil
         )
         article.planet = planet
+        article.articleNumber = planet.allocateArticleNumber()
         try FileManager.default.createDirectory(
             at: article.publicBasePath,
             withIntermediateDirectories: true

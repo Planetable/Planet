@@ -34,6 +34,8 @@ struct APISearchResultPlanet: Content {
 struct APISearchResultArticle: Content {
     let articleID: UUID
     let articleCreated: Date
+    let articleNumber: Int?
+    let articleReference: String?
     let title: String
     let preview: String
     let planetID: UUID

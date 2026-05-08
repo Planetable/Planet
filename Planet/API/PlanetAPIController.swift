@@ -755,6 +755,8 @@ class PlanetAPIController: NSObject, ObservableObject {
                     APISearchResultArticle(
                         articleID: result.articleID,
                         articleCreated: result.articleCreated,
+                        articleNumber: result.articleNumber,
+                        articleReference: result.articleReference,
                         title: result.title,
                         preview: result.preview,
                         planetID: result.planetID,

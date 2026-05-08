@@ -16,7 +16,7 @@ final class SearchDatabase: Sendable {
 
     /// Bump this whenever the schema or indexing strategy changes.
     /// On mismatch the database is recreated and a full rebuild happens automatically.
-    private static let schemaVersion = 8
+    private static let schemaVersion = 9
 
     /// `nil` when the database could not be opened (corrupted file, migration failure, etc.).
     /// Callers must handle `nil` gracefully — search degrades to in-memory fallback.
@@ -110,6 +110,8 @@ final class SearchDatabase: Sendable {
                 planet_id TEXT NOT NULL,
                 planet_name TEXT NOT NULL,
                 planet_kind INTEGER NOT NULL,
+                article_number INTEGER,
+                article_reference TEXT,
                 title TEXT NOT NULL,
                 content TEXT NOT NULL,
                 preview_text TEXT,
@@ -126,7 +128,7 @@ final class SearchDatabase: Sendable {
         // gets NLTokenizer-segmented CJK words appended for matching.
         try db.execute(sql: """
             CREATE VIRTUAL TABLE IF NOT EXISTS articles_fts USING fts5(
-                title, content, tags, slug,
+                title, content, tags, slug, article_reference,
                 content_rowid='rowid',
                 tokenize='unicode61 remove_diacritics 2'
             )
@@ -183,10 +185,16 @@ final class SearchDatabase: Sendable {
     }
 
     /// Shared hash function for content-change detection.
-    static func contentHash(title: String, content: String, tags: String = "", slug: String = "") -> String {
+    static func contentHash(
+        title: String,
+        content: String,
+        tags: String = "",
+        slug: String = "",
+        articleReference: String = ""
+    ) -> String {
         var combined = title + "\n" + content
-        if !tags.isEmpty || !slug.isEmpty {
-            combined += "\n" + tags + "\n" + slug
+        if !tags.isEmpty || !slug.isEmpty || !articleReference.isEmpty {
+            combined += "\n" + tags + "\n" + slug + "\n" + articleReference
         }
         var hash: UInt64 = 5381
         for byte in combined.utf8 {

@@ -12,6 +12,8 @@ struct PublicArticleModel: Codable {
     let id: UUID
     let link: String
     var slug: String? = ""
+    var articleNumber: Int? = nil
+    var articleReference: String? = nil
     var externalLink: String? = ""
     let title: String
     let content: String

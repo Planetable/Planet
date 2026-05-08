@@ -180,6 +180,7 @@ extension MyArticleModel {
                 id: newArticleUUID,
                 link: newArticleUUID.uuidString,
                 slug: articleToImport.slug,
+                articleNumber: planet.allocateArticleNumber(),
                 heroImage: articleToImport.heroImage,
                 externalLink: articleToImport.externalLink,
                 title: articleToImport.title,

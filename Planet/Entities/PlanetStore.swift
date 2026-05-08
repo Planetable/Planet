@@ -1087,6 +1087,7 @@ final class MyJSONDirectoryMonitor {
         let movedArticle = article
         movedArticle.planet = toPlanet
         movedArticle.draft = nil
+        movedArticle.articleNumber = toPlanet.allocateArticleNumber()
 
         movedArticle.path = targetArticlePath
         movedArticle.publicBasePath = targetArticlePublicPath
@@ -1105,6 +1106,7 @@ final class MyJSONDirectoryMonitor {
 
         toPlanet.articles.append(movedArticle)
         toPlanet.articles = toPlanet.articles.sorted(by: { $0.created > $1.created })
+        try movedArticle.save()
 
         // debugPrint("copy templates assets for target planet")
         // try toPlanet.copyTemplateAssets()

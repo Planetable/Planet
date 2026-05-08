@@ -13,6 +13,8 @@ struct BackupMyPlanetModel: Codable {
     let about: String
     let domain: String?
     let authorName: String?
+    let slug: String?
+    let nextArticleNumber: Int?
     let ipns: String
     let created: Date
     let updated: Date

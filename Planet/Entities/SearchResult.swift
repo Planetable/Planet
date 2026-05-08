@@ -15,6 +15,8 @@ enum PlanetKind: String, Sendable {
 struct SearchResult: Hashable, Sendable {
     let articleID: UUID
     let articleCreated: Date
+    let articleNumber: Int?
+    let articleReference: String?
     let title: String
     let preview: String
     let planetID: UUID
@@ -27,6 +29,8 @@ struct SearchResult: Hashable, Sendable {
     init(
         articleID: UUID,
         articleCreated: Date,
+        articleNumber: Int? = nil,
+        articleReference: String? = nil,
         title: String,
         preview: String,
         planetID: UUID,
@@ -38,6 +42,8 @@ struct SearchResult: Hashable, Sendable {
     ) {
         self.articleID = articleID
         self.articleCreated = articleCreated
+        self.articleNumber = articleNumber
+        self.articleReference = articleReference
         self.title = title
         self.preview = preview
         self.planetID = planetID

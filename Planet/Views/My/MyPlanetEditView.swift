@@ -3,6 +3,8 @@ import SwiftUI
 struct MyPlanetEditView: View {
     let CONTROL_CAPTION_WIDTH: CGFloat = 120
     let SOCIAL_CONTROL_CAPTION_WIDTH: CGFloat = 120
+    let MESSAGE_SLUG_REQUIREMENT =
+        "The slug should contain only letters, numbers, and hyphens."
 
     private enum CloudflareTokenStatus: Equatable {
         case idle
@@ -23,6 +25,7 @@ struct MyPlanetEditView: View {
     @State private var about: String
     @State private var domain: String
     @State private var authorName: String
+    @State private var slug: String
     @State private var templateName: String
     @State private var saveRoundAvatar: Bool = false
     @State private var doNotIndex: Bool = false
@@ -87,6 +90,7 @@ struct MyPlanetEditView: View {
         let about: String
         let domain: String?
         let authorName: String?
+        let slug: String?
         let templateName: String
         let saveRoundAvatar: Bool
         let doNotIndex: Bool
@@ -125,6 +129,7 @@ struct MyPlanetEditView: View {
         _about = State(wrappedValue: planet.about)
         _domain = State(wrappedValue: planet.domain ?? "")
         _authorName = State(wrappedValue: planet.authorName ?? "")
+        _slug = State(wrappedValue: planet.slug ?? "")
         _templateName = State(wrappedValue: planet.templateName)
         _saveRoundAvatar = State(wrappedValue: planet.saveRoundAvatar ?? false)
         _doNotIndex = State(wrappedValue: planet.doNotIndex ?? false)
@@ -202,15 +207,18 @@ struct MyPlanetEditView: View {
         }
     }
 
-    private func publishingHelpRow(_ text: String) -> some View {
+    private func helpRow(
+        _ text: Text,
+        leftOffset: CGFloat? = nil,
+        lineLimit: Int = 3
+    ) -> some View {
         HStack {
             HStack {
                 Spacer()
             }
-            .frame(width: CONTROL_CAPTION_WIDTH + 10)
+            .frame(width: leftOffset ?? CONTROL_CAPTION_WIDTH + 10)
 
-            Text(text)
-                .lineLimit(3)
+            text.lineLimit(lineLimit)
                 .font(.footnote)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -235,8 +243,8 @@ struct MyPlanetEditView: View {
                 Spacer()
             }
 
-            publishingHelpRow(
-                "When disabled, publish actions skip IPFS work and leave any existing IPNS or CID unchanged."
+            helpRow(
+                Text("When disabled, publish actions skip IPFS work and leave any existing IPNS or CID unchanged.")
             )
 
             publishingLinkRow(
@@ -310,8 +318,8 @@ struct MyPlanetEditView: View {
                 }
             }
 
-            publishingHelpRow(
-                "Select a private key if ssh-agent is not available."
+            helpRow(
+                Text("Select a private key if ssh-agent is not available.")
             )
 
             HStack {
@@ -327,8 +335,8 @@ struct MyPlanetEditView: View {
                 Spacer()
             }
 
-            publishingHelpRow(
-                "When enabled, files on the destination that are not in the source will be removed."
+            helpRow(
+                Text("When enabled, files on the destination that are not in the source will be removed.")
             )
 
             Divider()
@@ -396,8 +404,8 @@ struct MyPlanetEditView: View {
                 .textFieldStyle(.roundedBorder)
             }
 
-            publishingHelpRow(
-                "The project will be created automatically if it doesn't exist. Use an API token with Cloudflare Pages Edit permission."
+            helpRow(
+                Text("The project will be created automatically if it doesn't exist. Use an API token with Cloudflare Pages Edit permission.")
             )
 
             if let urlString = planet.cloudflarePagesLastDeployedURL,
@@ -593,20 +601,11 @@ struct MyPlanetEditView: View {
                 .textFieldStyle(.roundedBorder)
         }
 
-        HStack {
-            HStack {
-                Spacer()
-            }
-            .frame(width: CONTROL_CAPTION_WIDTH + 20)
-
-            Text(
-                "You can get your API endpoint after you have added this site to [Pinnable](https://pinnable.xyz)."
-            )
-            .lineLimit(2)
-            .font(.footnote)
-            .foregroundColor(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
-        }
+        helpRow(
+            Text("You can get your API endpoint after you have added this site to [Pinnable](https://pinnable.xyz)."),
+            leftOffset: CONTROL_CAPTION_WIDTH + 20 + 10,
+            lineLimit: 2
+        )
 
         if let enabled = planet.pinnableEnabled, enabled {
             HStack {
@@ -917,6 +916,19 @@ struct MyPlanetEditView: View {
 
                         HStack {
                             HStack {
+                                Text("Slug")
+                                Spacer()
+                            }
+                            .frame(width: CONTROL_CAPTION_WIDTH)
+
+                            TextField("", text: $slug, prompt: Text("my-site"))
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        helpRow(Text(MESSAGE_SLUG_REQUIREMENT), lineLimit: 2)
+
+                        HStack {
+                            HStack {
                                 Text("Domain")
                                 Spacer()
                             }
@@ -926,20 +938,10 @@ struct MyPlanetEditView: View {
                                 .textFieldStyle(.roundedBorder)
                         }
 
-                        HStack {
-                            HStack {
-                                Spacer()
-                            }
-                            .frame(width: CONTROL_CAPTION_WIDTH + 10)
-
-                            Text(
-                                "This domain will be used in places that need a domain prefix, like for RSS or Podcast feeds."
-                            )
-                            .lineLimit(2)
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        }
+                        helpRow(
+                            Text("This domain will be used in places that need a domain prefix, like for RSS or Podcast feeds."),
+                            lineLimit: 2
+                        )
 
                         HStack {
                             HStack {
@@ -986,19 +988,23 @@ struct MyPlanetEditView: View {
                         if PlanetStore.app == .planet
                             || ($templateName.wrappedValue != "Croptop" && PlanetStore.app == .lite)
                         {
-                            Picker(selection: $templateName) {
-                                ForEach(TemplateStore.shared.templates) { template in
-                                    Text(template.name)
-                                        .tag(template.name)
+                            HStack {
+                                Picker(selection: $templateName) {
+                                    ForEach(TemplateStore.shared.templates) { template in
+                                        Text(template.name)
+                                            .tag(template.name)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text("Template")
+                                        Spacer()
+                                    }
+                                    .frame(width: CONTROL_CAPTION_WIDTH)
                                 }
-                            } label: {
-                                HStack {
-                                    Text("Template")
-                                    Spacer()
-                                }
-                                .frame(width: CONTROL_CAPTION_WIDTH)
+                                .pickerStyle(.menu)
+
+                                Spacer()
                             }
-                            .pickerStyle(.menu)
                         }
 
                         if PlanetStore.app == .lite {
@@ -1107,6 +1113,7 @@ struct MyPlanetEditView: View {
                             return
                         }
                         let planetNameChanged = snapshot.name != previousSnapshot.name
+                        let planetSlugChanged = snapshot.slug != previousSnapshot.slug
                         let resaveAvatar =
                             (planet.saveRoundAvatar ?? false) != snapshot.saveRoundAvatar
                             && snapshot.saveRoundAvatar
@@ -1114,6 +1121,9 @@ struct MyPlanetEditView: View {
                         apply(snapshot)
                         Task {
                             try planet.save()
+                            if planetSlugChanged {
+                                try planet.articles.forEach { try $0.save() }
+                            }
                             if planetNameChanged {
                                 _ = await PlanetStore.shared.reindexSpotlightItems(
                                     forPlanetID: planet.id
@@ -1205,6 +1215,10 @@ extension MyPlanetEditView {
         return trimmed.isEmpty ? nil : trimmed
     }
 
+    private func normalizedSlug(_ value: String?) -> String? {
+        normalizedOptionalString(value)
+    }
+
     private func normalizedSocialUsername(_ value: String?) -> String? {
         guard let value else { return nil }
         let trimmed = value.sanitized().trim()
@@ -1221,6 +1235,7 @@ extension MyPlanetEditView {
             about: planet.about.trim(),
             domain: normalizedOptionalString(planet.domain),
             authorName: normalizedOptionalString(planet.authorName),
+            slug: normalizedSlug(planet.slug),
             templateName: planet.templateName,
             saveRoundAvatar: planet.saveRoundAvatar ?? false,
             doNotIndex: planet.doNotIndex ?? false,
@@ -1263,6 +1278,7 @@ extension MyPlanetEditView {
             about: about.trim(),
             domain: normalizedOptionalString(domain),
             authorName: normalizedOptionalString(authorName),
+            slug: normalizedSlug(slug),
             templateName: templateName,
             saveRoundAvatar: saveRoundAvatar,
             doNotIndex: doNotIndex,
@@ -1303,6 +1319,7 @@ extension MyPlanetEditView {
         planet.about = snapshot.about
         planet.domain = snapshot.domain
         planet.authorName = snapshot.authorName
+        planet.slug = snapshot.slug
         planet.templateName = snapshot.templateName
         planet.saveRoundAvatar = snapshot.saveRoundAvatar
         planet.doNotIndex = snapshot.doNotIndex
@@ -1397,6 +1414,17 @@ extension MyPlanetEditView {
                 showValidationAlert(
                     title: "Invalid Domain Name",
                     message: "Please enter a valid domain name. Do not include the protocol (http:// or https://) or any trailing slashes."
+                )
+            }
+        }
+        if let slug = normalizedSlug(slug) {
+            let regex = try! NSRegularExpression(pattern: "^[A-Za-z0-9-]+$")
+            let range = NSRange(location: 0, length: slug.utf16.count)
+            if regex.firstMatch(in: slug, options: [], range: range) == nil {
+                errors += 1
+                showValidationAlert(
+                    title: "Planet Slug Issue",
+                    message: MESSAGE_SLUG_REQUIREMENT
                 )
             }
         }

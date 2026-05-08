@@ -4,6 +4,8 @@ import SwiftUI
 
 class FollowingArticleModel: ArticleModel, Codable {
     var link: String
+    var articleNumber: Int? = nil
+    var articleReference: String? = nil
     @Published var read: Date? = nil {
         didSet {
             planet?.updateUnreadMetadata(for: self, previousRead: oldValue, currentRead: read)
@@ -295,13 +297,15 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, link, title, content, summary, created, read, starred, starType, videoFilename, audioFilename, attachments
+        case id, link, articleNumber, articleReference, title, content, summary, created, read, starred, starType, videoFilename, audioFilename, attachments
     }
 
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decode(UUID.self, forKey: .id)
         link = try container.decode(String.self, forKey: .link)
+        articleNumber = try container.decodeIfPresent(Int.self, forKey: .articleNumber)
+        articleReference = try container.decodeIfPresent(String.self, forKey: .articleReference)
         let title = try container.decode(String.self, forKey: .title)
         let content = try container.decode(String.self, forKey: .content)
         summary = try container.decodeIfPresent(String.self, forKey: .summary)
@@ -319,6 +323,8 @@ class FollowingArticleModel: ArticleModel, Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(link, forKey: .link)
+        try container.encodeIfPresent(articleNumber, forKey: .articleNumber)
+        try container.encodeIfPresent(articleReference, forKey: .articleReference)
         try container.encode(title, forKey: .title)
         try container.encode(content, forKey: .content)
         try container.encodeIfPresent(summary, forKey: .summary)
@@ -334,6 +340,8 @@ class FollowingArticleModel: ArticleModel, Codable {
     init(
         id: UUID,
         link: String,
+        articleNumber: Int? = nil,
+        articleReference: String? = nil,
         title: String,
         content: String,
         created: Date,
@@ -345,6 +353,8 @@ class FollowingArticleModel: ArticleModel, Codable {
         attachments: [String]?
     ) {
         self.link = link
+        self.articleNumber = articleNumber
+        self.articleReference = articleReference
         self.read = read
         self.summary = FollowingArticleModel.extractSummary(content: content)
         super.init(id: id, title: title, content: content, created: created, starred: starred, starType: starType, videoFilename: videoFilename, audioFilename: audioFilename, attachments: attachments)
@@ -383,6 +393,8 @@ class FollowingArticleModel: ArticleModel, Codable {
         let article = FollowingArticleModel(
             id: UUID(),
             link: articleLink,
+            articleNumber: publicArticle.articleNumber,
+            articleReference: publicArticle.articleReference,
             title: publicArticle.title,
             content: publicArticle.content,
             created: publicArticle.created,

@@ -101,7 +101,8 @@ final class SearchEmbedding: Sendable {
             title: snapshot.title,
             content: snapshot.content,
             tags: tags,
-            slug: snapshot.slug ?? ""
+            slug: snapshot.slug ?? "",
+            articleReference: snapshot.articleReference ?? ""
         )
         let contentHash = SearchDatabase.contentHash(title: snapshot.title, content: snapshot.content)
 
@@ -351,6 +352,7 @@ final class SearchEmbedding: Sendable {
                     db,
                     sql: """
                         SELECT article_id, planet_id, planet_name, planet_kind,
+                               article_number, article_reference,
                                title, content, preview_text, created_at
                         FROM articles
                         WHERE article_id IN (\(placeholders))
@@ -375,6 +377,8 @@ final class SearchEmbedding: Sendable {
                 }
 
                 let planetKind: PlanetKind = planetKindRaw == 0 ? .my : .following
+                let articleNumber = (row["article_number"] as? Int64).map(Int.init)
+                let articleReference = row["article_reference"] as? String
                 let created = Date(timeIntervalSinceReferenceDate: createdAt)
                 let preview = row["preview_text"] as? String
                 let snippet = SearchIndex.makeSnippet(
@@ -386,6 +390,8 @@ final class SearchEmbedding: Sendable {
                 return SearchResult(
                     articleID: articleID,
                     articleCreated: created,
+                    articleNumber: articleNumber,
+                    articleReference: articleReference,
                     title: title,
                     preview: snippet,
                     planetID: planetID,
@@ -490,6 +496,7 @@ final class SearchEmbedding: Sendable {
                     db,
                     sql: """
                         SELECT article_id, planet_id, planet_name, planet_kind,
+                               article_number, article_reference,
                                title, content, preview_text, created_at
                         FROM articles
                         WHERE article_id IN (\(placeholders))
@@ -512,6 +519,8 @@ final class SearchEmbedding: Sendable {
                 else { return nil }
 
                 let planetKind: PlanetKind = planetKindRaw == 0 ? .my : .following
+                let articleNumber = (row["article_number"] as? Int64).map(Int.init)
+                let articleReference = row["article_reference"] as? String
                 let created = Date(timeIntervalSinceReferenceDate: createdAt)
                 let preview = row["preview_text"] as? String
                 let snippet = SearchIndex.makeSnippet(
@@ -520,6 +529,7 @@ final class SearchEmbedding: Sendable {
 
                 return SearchResult(
                     articleID: aid, articleCreated: created,
+                    articleNumber: articleNumber, articleReference: articleReference,
                     title: title, preview: snippet,
                     planetID: planetID, planetName: planetName,
                     planetKind: planetKind, relevanceScore: similarity

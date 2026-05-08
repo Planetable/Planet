@@ -24,6 +24,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     @Published var about: String
     @Published var domain: String?
     @Published var authorName: String?
+    @Published var slug: String? = nil
+    @Published var nextArticleNumber: Int? = nil
+    private let articleNumberAllocationLock = NSLock()
     let created: Date
     let ipns: String
     @Published var updated: Date
@@ -701,12 +704,98 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         return url
     }
 
+    var articleReferencePrefix: String {
+        if let slug = slug?.trim(), !slug.isEmpty {
+            return slug.uppercased()
+        }
+        return String(id.uuidString.prefix(8)).uppercased()
+    }
+
+    @discardableResult
+    func ensureArticleNumbers() -> Bool {
+        articleNumberAllocationLock.lock()
+        defer {
+            articleNumberAllocationLock.unlock()
+        }
+
+        guard articles != nil else {
+            if nextArticleNumber == nil {
+                nextArticleNumber = 1
+                return true
+            }
+            return false
+        }
+
+        var changed = false
+        var usedNumbers = Set<Int>()
+        let orderedArticles = articles.sorted {
+            if $0.created != $1.created {
+                return $0.created < $1.created
+            }
+            return $0.id.uuidString < $1.id.uuidString
+        }
+
+        for article in orderedArticles {
+            guard let articleNumber = article.articleNumber, articleNumber > 0 else {
+                if article.articleNumber != nil {
+                    article.articleNumber = nil
+                    changed = true
+                }
+                continue
+            }
+            if usedNumbers.contains(articleNumber) {
+                article.articleNumber = nil
+                changed = true
+            }
+            else {
+                usedNumbers.insert(articleNumber)
+            }
+        }
+
+        var nextNumber = max(nextArticleNumber ?? 1, (usedNumbers.max() ?? 0) + 1)
+        for article in orderedArticles where article.articleNumber == nil {
+            article.articleNumber = nextNumber
+            usedNumbers.insert(nextNumber)
+            nextNumber += 1
+            changed = true
+        }
+
+        let minimumNextNumber = (usedNumbers.max() ?? 0) + 1
+        if nextArticleNumber == nil || (nextArticleNumber ?? 1) < minimumNextNumber {
+            nextArticleNumber = minimumNextNumber
+            changed = true
+        }
+
+        return changed
+    }
+
+    func allocateArticleNumber() -> Int {
+        articleNumberAllocationLock.lock()
+        defer {
+            articleNumberAllocationLock.unlock()
+        }
+
+        let highestExistingNumber = articles?
+            .compactMap { article -> Int? in
+                guard let articleNumber = article.articleNumber, articleNumber > 0 else {
+                    return nil
+                }
+                return articleNumber
+            }
+            .max() ?? 0
+        let number = max(nextArticleNumber ?? 1, highestExistingNumber + 1)
+        nextArticleNumber = number + 1
+        return number
+    }
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(name)
         hasher.combine(about)
         hasher.combine(domain)
         hasher.combine(authorName)
+        hasher.combine(slug)
+        hasher.combine(nextArticleNumber)
         hasher.combine(created)
         hasher.combine(ipns)
         hasher.combine(updated)
@@ -798,6 +887,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.about == rhs.about
             && lhs.domain == rhs.domain
             && lhs.authorName == rhs.authorName
+            && lhs.slug == rhs.slug
+            && lhs.nextArticleNumber == rhs.nextArticleNumber
             && lhs.created == rhs.created
             && lhs.ipns == rhs.ipns
             && lhs.updated == rhs.updated
@@ -869,7 +960,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, about, domain, authorName, ipns,
+        case id, name, about, domain, authorName, slug, nextArticleNumber, ipns,
             created, updated,
             templateName, lastPublished, lastPublishedCID,
             archived, archivedAt,
@@ -906,6 +997,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         about = try container.decode(String.self, forKey: .about)
         domain = try container.decodeIfPresent(String.self, forKey: .domain)
         authorName = try container.decodeIfPresent(String.self, forKey: .authorName)
+        slug = try container.decodeIfPresent(String.self, forKey: .slug)
+        nextArticleNumber = try container.decodeIfPresent(Int.self, forKey: .nextArticleNumber)
         ipns = try container.decode(String.self, forKey: .ipns)
         created = try container.decode(Date.self, forKey: .created)
         updated = try container.decode(Date.self, forKey: .updated)
@@ -1049,6 +1142,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         try container.encode(about, forKey: .about)
         try container.encodeIfPresent(domain, forKey: .domain)
         try container.encodeIfPresent(authorName, forKey: .authorName)
+        try container.encodeIfPresent(slug, forKey: .slug)
+        try container.encodeIfPresent(nextArticleNumber, forKey: .nextArticleNumber)
         try container.encode(ipns, forKey: .ipns)
         try container.encode(created, forKey: .created)
         try container.encode(updated, forKey: .updated)
@@ -1179,6 +1274,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             try? MyArticleModel.load(from: $0, planet: planet)
         }
         planet.articles = articles.sorted(by: { MyArticleModel.reorder(a: $0, b: $1) })
+        if planet.ensureArticleNumbers() {
+            for article in planet.articles {
+                try? article.save()
+            }
+            try? planet.save()
+        }
         try? planet.loadOps()
         try? planet.loadTemplateSettingsAndFiltersCache()
         return planet
@@ -1204,6 +1305,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         planet.podcastCoverArt = nil
         planet.drafts = []
         planet.articles = []
+        planet.nextArticleNumber = 1
         try FileManager.default.createDirectory(
             at: planet.basePath,
             withIntermediateDirectories: true
@@ -1305,6 +1407,12 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         // Restore authorName
         if backupPlanet.authorName != nil {
             planet.authorName = backupPlanet.authorName
+        }
+        if backupPlanet.slug != nil {
+            planet.slug = backupPlanet.slug
+        }
+        if backupPlanet.nextArticleNumber != nil {
+            planet.nextArticleNumber = backupPlanet.nextArticleNumber
         }
 
         // Restore last published CID
@@ -1536,6 +1644,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     id: backupArticle.id,
                     link: backupArticle.link,
                     slug: backupArticle.slug,
+                    articleNumber: backupArticle.articleNumber,
                     externalLink: backupArticle.externalLink,
                     title: backupArticle.title,
                     content: backupArticle.content,
@@ -1589,6 +1698,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         Self.logger.info(
             "Regenerated \(planet.articles.count) articles from backup articles for backup planet \(backupPlanet.id)"
         )
+        _ = planet.ensureArticleNumbers()
 
         try FileManager.default.createDirectory(
             at: planet.basePath,
@@ -3056,6 +3166,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             about: about,
             domain: domain,
             authorName: authorName,
+            slug: slug,
+            nextArticleNumber: nextArticleNumber,
             ipns: ipns,
             created: created,
             updated: updated,
@@ -3105,6 +3217,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                     articleType: $0.articleType,
                     link: $0.link,
                     slug: $0.slug,
+                    articleNumber: $0.articleNumber,
                     heroImage: $0.heroImage,
                     heroImageWidth: $0.heroImageWidth,
                     heroImageHeight: $0.heroImageHeight,

@@ -17,6 +17,8 @@ private let searchMinimumChunkSize = 64
 struct SearchArticleSnapshot: Sendable {
     let articleID: UUID
     let articleCreated: Date
+    let articleNumber: Int?
+    let articleReference: String?
     let title: String
     let content: String
     let previewText: String?
@@ -28,7 +30,8 @@ struct SearchArticleSnapshot: Sendable {
     let planetKind: PlanetKind
 
     func matches(_ query: String) -> Bool {
-        contains(title, query: query)
+        contains(articleReference, query: query)
+            || contains(title, query: query)
             || contains(slug, query: query)
             || tags.contains(where: { contains($0, query: query) })
             || attachments.contains(where: { contains($0, query: query) })
@@ -39,6 +42,8 @@ struct SearchArticleSnapshot: Sendable {
         SearchResult(
             articleID: articleID,
             articleCreated: articleCreated,
+            articleNumber: articleNumber,
+            articleReference: articleReference,
             title: title,
             preview: makePreview(matching: query),
             planetID: planetID,
@@ -143,6 +148,8 @@ extension SearchArticleSnapshot {
         self.init(
             articleID: article.id,
             articleCreated: article.created,
+            articleNumber: article.articleNumber,
+            articleReference: article.articleReference,
             title: article.title,
             content: article.content,
             previewText: article.summary,
@@ -159,6 +166,8 @@ extension SearchArticleSnapshot {
         self.init(
             articleID: article.id,
             articleCreated: article.created,
+            articleNumber: article.articleNumber,
+            articleReference: article.articleReference,
             title: article.title,
             content: article.content,
             previewText: article.summary,
