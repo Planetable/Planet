@@ -480,10 +480,10 @@ class PlanetAPIController: NSObject, ObservableObject {
             if TemplateStore.shared.hasTemplate(named: template) {
                 return template
             }
-            guard let defaultTemplate = TemplateStore.shared.templates.first else {
+            guard let defaultTemplateName = TemplateStore.shared.defaultNewPlanetTemplateName() else {
                 throw Abort(.internalServerError, reason: "No templates are available.")
             }
-            return defaultTemplate.name
+            return defaultTemplateName
         }()
         let planet = try await MyPlanetModel.create(
             name: planetName,

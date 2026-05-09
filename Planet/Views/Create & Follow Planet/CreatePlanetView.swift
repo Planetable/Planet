@@ -6,7 +6,9 @@ struct CreatePlanetView: View {
     @EnvironmentObject var planetStore: PlanetStore
     @State private var name = ""
     @State private var about = ""
-    @State private var templateName = (Bundle.main.executableURL?.lastPathComponent == "Croptop") ? "Croptop" : "Plain"
+    @State private var templateName = TemplateStore.shared.defaultNewPlanetTemplateName(
+        preferCroptop: Bundle.main.executableURL?.lastPathComponent == "Croptop"
+    ) ?? TemplateStore.preferredNewPlanetTemplateName
     @State private var creating = false
 
     var body: some View {

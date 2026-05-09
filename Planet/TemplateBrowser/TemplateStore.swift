@@ -5,6 +5,7 @@ import UserNotifications
 
 class TemplateStore: ObservableObject {
     static let shared = TemplateStore()
+    static let preferredNewPlanetTemplateName = "Sepia"
 
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "TemplateStore")
 
@@ -147,6 +148,16 @@ class TemplateStore: ObservableObject {
 
     func hasTemplate(named name: String) -> Bool {
         templates.contains(where: { $0.name == name })
+    }
+
+    func defaultNewPlanetTemplateName(preferCroptop: Bool = false) -> String? {
+        if preferCroptop, hasTemplate(named: "Croptop") {
+            return "Croptop"
+        }
+        if hasTemplate(named: Self.preferredNewPlanetTemplateName) {
+            return Self.preferredNewPlanetTemplateName
+        }
+        return templates.first?.name
     }
 
     subscript(templateID: Template.ID?) -> Template? {
