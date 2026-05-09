@@ -21,6 +21,62 @@ struct TemplateSetting: Codable, Hashable, Identifiable {
     var advanced: Bool? = false  // Show the setting in a separate Advanced tab
 
     var id: String { name }
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case type
+        case defaultValue
+        case description
+        case advanced
+    }
+
+    init(
+        name: String,
+        type: String,
+        defaultValue: String,
+        description: String,
+        advanced: Bool? = false
+    ) {
+        self.name = name
+        self.type = type
+        self.defaultValue = defaultValue
+        self.description = description
+        self.advanced = advanced
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        type = try container.decode(String.self, forKey: .type)
+        description = try container.decode(String.self, forKey: .description)
+        advanced = try container.decodeIfPresent(Bool.self, forKey: .advanced) ?? false
+
+        defaultValue = try Self.decodeDefaultValue(from: container)
+    }
+
+    private static func decodeDefaultValue(
+        from container: KeyedDecodingContainer<CodingKeys>
+    ) throws -> String {
+        if let value = try? container.decode(String.self, forKey: .defaultValue) {
+            return value
+        }
+        if let value = try? container.decode(Bool.self, forKey: .defaultValue) {
+            return value ? "true" : "false"
+        }
+        if let value = try? container.decode(Int.self, forKey: .defaultValue) {
+            return value.description
+        }
+        if let value = try? container.decode(UInt64.self, forKey: .defaultValue) {
+            return value.description
+        }
+        if let value = try? container.decode(Decimal.self, forKey: .defaultValue) {
+            return NSDecimalNumber(decimal: value).stringValue
+        }
+        if let value = try? container.decode(Double.self, forKey: .defaultValue) {
+            return value.description
+        }
+        return try container.decode(String.self, forKey: .defaultValue)
+    }
 }
 
 struct ArticleTemplateRenderPerfBreakdown {

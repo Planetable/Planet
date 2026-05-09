@@ -34,59 +34,22 @@ struct MyPlanetTemplateSettingsView: View {
                 }
 
                 TabView {
-                    ScrollView {
-                        VStack(spacing: CONTROL_ROW_SPACING) {
-                            if let template = planet.template, let settings = template.settings,
-                                let keys = Array(settings.keys) as? [String]
-                            {
+                    if let template = planet.template, let settings = template.settings {
+                        let basicKeys = settingKeys(in: settings, advanced: false)
+                        let advancedKeys = settingKeys(in: settings, advanced: true)
 
-                                ForEach(keys.sorted(), id: \.self) { key in
-                                    HStack {
-                                        HStack {
-                                            Text(settings[key]?.name ?? L10n("Name"))
-                                            Spacer()
-                                        }
-                                        .frame(width: CONTROL_CAPTION_WIDTH)
-
-                                        TextField("", text: binding(key: key))
-                                            .textFieldStyle(.roundedBorder)
-
-                                        if key.hasSuffix("Color") {
-                                            ColorPicker(
-                                                "",
-                                                selection: bindingColor(key: key),
-                                                supportsOpacity: false
-                                            )
-                                        }
-                                    }
-
-                                    if let description = settings[key]?.description,
-                                        description.count > 0
-                                    {
-                                        HStack {
-                                            HStack {
-                                                Spacer()
-                                            }
-                                            .frame(width: CONTROL_CAPTION_WIDTH + 10)
-
-                                            Text(
-                                                description
-                                            )
-                                            .font(.footnote)
-                                            .foregroundColor(.secondary)
-                                            .fixedSize(horizontal: false, vertical: true)
-
-                                            Spacer()
-                                        }
-                                    }
-                                }
+                        settingsList(settings: settings, keys: basicKeys)
+                            .tabItem {
+                                Text("Template Settings")
                             }
+
+                        if !advancedKeys.isEmpty {
+                            settingsList(settings: settings, keys: advancedKeys)
+                                .tabItem {
+                                    Text("Advanced")
+                                }
                         }
-                        .padding(16)
-                    }.frame(minHeight: 340, idealHeight: 410)
-                        .tabItem {
-                            Text("Template Settings")
-                        }
+                    }
                 }
 
                 HStack(spacing: 8) {
@@ -125,9 +88,8 @@ struct MyPlanetTemplateSettingsView: View {
                             if response == .OK, let url = openPanel.url {
                                 do {
                                     let data = try Data(contentsOf: url)
-                                    let settings =
-                                        try JSONSerialization.jsonObject(with: data)
-                                        as? [String: String]
+                                    let json = try JSONSerialization.jsonObject(with: data)
+                                    let settings = stringTemplateSettings(from: json)
                                     if let settings = settings {
                                         for (key, value) in settings {
                                             // If key exists in user settings, update it
@@ -239,6 +201,40 @@ struct MyPlanetTemplateSettingsView: View {
         )
     }
 
+    private func stringTemplateSettings(from json: Any) -> [String: String]? {
+        guard let dict = json as? [String: Any] else {
+            return nil
+        }
+        return dict.reduce(into: [:]) { result, item in
+            if let value = item.value as? String {
+                result[item.key] = value
+            }
+            else if isJSONBoolean(item.value), let value = item.value as? Bool {
+                result[item.key] = value ? "true" : "false"
+            }
+            else if let value = item.value as? NSNumber {
+                result[item.key] = value.stringValue
+            }
+        }
+    }
+
+    private func isJSONBoolean(_ value: Any) -> Bool {
+        return CFGetTypeID(value as CFTypeRef) == CFBooleanGetTypeID()
+    }
+
+    private func bindingBoolean(key: String) -> Binding<Bool> {
+        return Binding<Bool>(
+            get: {
+                return booleanValue(
+                    from: userSettings[key] ?? planet.template?.settings?[key]?.defaultValue ?? "false"
+                )
+            },
+            set: {
+                userSettings[key] = $0 ? "true" : "false"
+            }
+        )
+    }
+
     private func bindingColor(key: String) -> Binding<Color> {
         return Binding<Color>(
             get: {
@@ -249,5 +245,89 @@ struct MyPlanetTemplateSettingsView: View {
                 colors[key] = $0
             }
         )
+    }
+
+    private func settingKeys(in settings: [String: TemplateSetting], advanced: Bool) -> [String] {
+        return settings.keys
+            .filter { key in
+                isAdvancedSetting(settings[key]) == advanced
+            }
+            .sorted()
+    }
+
+    private func settingsList(settings: [String: TemplateSetting], keys: [String]) -> some View {
+        ScrollView {
+            VStack(spacing: CONTROL_ROW_SPACING) {
+                ForEach(keys, id: \.self) { key in
+                    settingRow(key: key, setting: settings[key])
+                }
+            }
+            .padding(16)
+        }
+        .frame(minHeight: 340, idealHeight: 410)
+    }
+
+    @ViewBuilder
+    private func settingRow(key: String, setting: TemplateSetting?) -> some View {
+        HStack {
+            HStack {
+                Text(setting?.name ?? L10n("Name"))
+                Spacer()
+            }
+            .frame(width: CONTROL_CAPTION_WIDTH)
+
+            if isBooleanSetting(setting) {
+                Toggle("", isOn: bindingBoolean(key: key))
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                Spacer()
+            }
+            else {
+                TextField("", text: binding(key: key))
+                    .textFieldStyle(.roundedBorder)
+
+                if key.hasSuffix("Color") {
+                    ColorPicker(
+                        "",
+                        selection: bindingColor(key: key),
+                        supportsOpacity: false
+                    )
+                }
+            }
+        }
+
+        if let description = setting?.description, description.count > 0 {
+            HStack {
+                HStack {
+                    Spacer()
+                }
+                .frame(width: CONTROL_CAPTION_WIDTH + 10)
+
+                Text(description)
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer()
+            }
+        }
+    }
+
+    private func isBooleanSetting(_ setting: TemplateSetting?) -> Bool {
+        return setting?.type.trimmingCharacters(in: .whitespacesAndNewlines)
+            .caseInsensitiveCompare("boolean") == .orderedSame
+    }
+
+    private func isAdvancedSetting(_ setting: TemplateSetting?) -> Bool {
+        return setting?.advanced == true
+    }
+
+    private func booleanValue(from value: String) -> Bool {
+        switch value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "true", "1", "yes", "on":
+            return true
+        default:
+            return false
+        }
     }
 }

@@ -382,13 +382,35 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     private func loadTemplateSettingsFromDisk() -> [String: String] {
         if let data = try? Data(contentsOf: templateSettingsPath) {
             if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
-                if let dict = json as? [String: String] {
+                if let dict = Self.stringTemplateSettings(from: json) {
                     return dict
                 }
             }
         }
         return [:]
     }
+
+    private static func stringTemplateSettings(from json: Any) -> [String: String]? {
+        guard let dict = json as? [String: Any] else {
+            return nil
+        }
+        return dict.reduce(into: [:]) { result, item in
+            if let value = item.value as? String {
+                result[item.key] = value
+            }
+            else if Self.isJSONBoolean(item.value), let value = item.value as? Bool {
+                result[item.key] = value ? "true" : "false"
+            }
+            else if let value = item.value as? NSNumber {
+                result[item.key] = value.stringValue
+            }
+        }
+    }
+
+    private static func isJSONBoolean(_ value: Any) -> Bool {
+        return CFGetTypeID(value as CFTypeRef) == CFBooleanGetTypeID()
+    }
+
     private static func templateSettingsHash(for settings: [String: String]) -> String {
         do {
             let data = try JSONSerialization.data(withJSONObject: settings, options: [.sortedKeys])
