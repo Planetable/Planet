@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import os
 import queue
@@ -17,6 +18,7 @@ log = logging.getLogger(__name__)
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 CHANNELS = ['release', 'insider']
+CHANNEL_PAGE_SIZE = 20
 
 # Background generation queue: items are (channel, tag) tuples.
 _gen_queue = queue.Queue()
@@ -30,6 +32,9 @@ _gh_queue = queue.Queue()
 _gh_synced = set()
 _NUM_GH_WORKERS = 2
 _GH_CACHE_FILE = os.path.join(APP_DIR, '.gh_synced')
+_gh_compare_lock = threading.Lock()
+_gh_compare_status = {}  # tag: {state, hash, matches, message, request_id}
+_gh_compare_request_id = 0
 
 # Tags cache: { channel: (timestamp, [tags]) }
 _tags_cache = {}
@@ -45,6 +50,10 @@ _LOCK_TTL = 300  # 5 min TTL — auto-expires if process crashes
 # ---------------------------------------------------------------------------
 # Git helpers
 # ---------------------------------------------------------------------------
+
+def github_release_url(tag):
+    return f'https://github.com/{GH_REPO}/releases/tag/{tag}'
+
 
 def git(*args):
     result = subprocess.run(
@@ -133,22 +142,128 @@ def get_tag_iso_date(tag):
 
 def gh_release_body_is_empty(tag):
     """True if a GitHub release exists for *tag* and its body is empty."""
+    ok, body, _ = gh_release_body_with_result(tag)
+    if not ok:
+        return False
+    return body.strip() == ''
+
+
+def gh_release_body_with_result(tag):
+    """Return (ok, body, error) for a GitHub release body lookup."""
     result = gh('release', 'view', tag, '--repo', GH_REPO, '--json', 'body', '-q', '.body')
     if result.returncode != 0:
-        return False
-    return result.stdout.strip() == ''
+        detail = result.stderr.strip() or result.stdout.strip() or f'gh exited {result.returncode}'
+        return False, None, detail
+    return True, result.stdout, None
 
 
 def gh_update_release_notes(channel, tag):
     """Push the local .md notes to a GitHub release. Returns True on success."""
+    ok, _ = gh_update_release_notes_with_result(channel, tag)
+    return ok
+
+
+def gh_update_release_notes_with_result(channel, tag):
+    """Push the local .md notes to a GitHub release. Returns (ok, error)."""
     path = notes_path(channel, tag)
     if not os.path.isfile(path):
-        return False
+        return False, 'Release notes file does not exist.'
     result = gh('release', 'edit', tag, '--repo', GH_REPO, '--notes-file', path)
     if result.returncode != 0:
         log.warning('gh release edit failed for %s: %s', tag, result.stderr.strip())
-        return False
-    return True
+        detail = result.stderr.strip() or result.stdout.strip() or f'gh exited {result.returncode}'
+        return False, detail
+    return True, None
+
+
+def _normalize_release_md(text):
+    """Normalize only transport artifacts so local files and gh output compare cleanly."""
+    return text.replace('\r\n', '\n').replace('\r', '\n').rstrip()
+
+
+def _notes_hash(channel, tag):
+    if not notes_exist(channel, tag):
+        return None
+    return hashlib.sha256(read_notes(channel, tag).encode('utf-8')).hexdigest()
+
+
+def _set_gh_compare_matches(channel, tag, matches, message):
+    global _gh_compare_request_id
+    local_hash = _notes_hash(channel, tag)
+    with _gh_compare_lock:
+        _gh_compare_request_id += 1
+        _gh_compare_status[tag] = {
+            'state': 'done',
+            'hash': local_hash,
+            'matches': matches,
+            'message': message,
+            'request_id': _gh_compare_request_id,
+        }
+
+
+def _gh_compare_worker(channel, tag, local_hash, request_id):
+    try:
+        local_notes = read_notes(channel, tag)
+        ok, gh_body, error = gh_release_body_with_result(tag)
+        if ok:
+            matches = _normalize_release_md(gh_body) == _normalize_release_md(local_notes)
+            message = '' if matches else 'GitHub release notes are missing or different from the local notes.'
+        else:
+            matches = False
+            message = 'GitHub release notes are missing or different from the local notes.'
+            log.info('GitHub release body check failed for %s: %s', tag, error)
+        status = {
+            'state': 'done',
+            'hash': local_hash,
+            'matches': matches,
+            'message': message,
+            'request_id': request_id,
+        }
+    except Exception as exc:
+        log.exception('Failed to compare GitHub release notes for %s', tag)
+        status = {
+            'state': 'done',
+            'hash': local_hash,
+            'matches': False,
+            'message': 'Could not check GitHub release notes.',
+            'request_id': request_id,
+        }
+
+    with _gh_compare_lock:
+        current = _gh_compare_status.get(tag)
+        if current and current.get('request_id') == request_id:
+            _gh_compare_status[tag] = status
+
+
+def enqueue_gh_compare(channel, tag):
+    """Start a one-shot background check comparing local notes to the GitHub release body."""
+    global _gh_compare_request_id
+    local_hash = _notes_hash(channel, tag)
+    if not local_hash:
+        return
+    with _gh_compare_lock:
+        current = _gh_compare_status.get(tag)
+        if (
+            current
+            and current.get('state') == 'pending'
+            and current.get('hash') == local_hash
+        ):
+            return
+        _gh_compare_request_id += 1
+        request_id = _gh_compare_request_id
+        _gh_compare_status[tag] = {
+            'state': 'pending',
+            'hash': local_hash,
+            'matches': None,
+            'message': '',
+            'request_id': request_id,
+        }
+    thread = threading.Thread(
+        target=_gh_compare_worker,
+        args=(channel, tag, local_hash, request_id),
+        daemon=True,
+    )
+    thread.start()
 
 
 # ---------------------------------------------------------------------------
@@ -330,6 +445,18 @@ _STYLE = """
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
     .tag-date { color: var(--color-text-muted); margin-left: auto; font-size: 12px; }
     .meta { color: var(--color-text-secondary); font-size: 13px; margin-bottom: 16px; line-height: 1.6; }
+    .pagination {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 16px; font-size: 13px; color: var(--color-text-secondary);
+    }
+    .pagination .page-link {
+      padding: 6px 10px; border: 1px solid var(--color-border); border-radius: 6px;
+      color: var(--color-text); background: var(--color-btn-secondary-bg); text-decoration: none;
+    }
+    .pagination .page-link:hover { background: var(--color-bg-hover); }
+    .pagination .page-link.disabled { color: var(--color-text-muted); cursor: default; opacity: 0.6; }
+    .pagination .page-link.disabled:hover { background: var(--color-btn-secondary-bg); }
+    .pagination .page-summary { margin-left: 4px; }
     .notes { max-width: 720px; line-height: 1.7; font-size: 14px; }
     .notes ul { padding-left: 20px; margin: 8px 0; }
     .notes li { margin-bottom: 6px; }
@@ -339,8 +466,14 @@ _STYLE = """
       font-size: 13px; text-decoration: none;
     }
     .btn:hover { background: var(--color-accent-hover); }
+    .btn:disabled { opacity: 0.6; cursor: default; }
     .btn.secondary { background: var(--color-btn-secondary-bg); color: var(--color-text); border: 1px solid var(--color-border); }
     .btn.secondary:hover { background: var(--color-bg-hover); }
+    .actions { display: flex; gap: 8px; align-items: center; margin-top: 16px; }
+    .status { min-height: 18px; margin-top: 8px; font-size: 13px; color: var(--color-text-secondary); }
+    .status.info { color: var(--color-text-secondary); }
+    .status.success { color: var(--color-green); }
+    .status.error { color: var(--color-error); }
     .loading { display: none; align-items: center; gap: 10px; font-size: 13px; color: var(--color-text-secondary); }
     .loading.active { display: flex; }
     .spinner {
@@ -371,8 +504,25 @@ _SIDEBAR = """
     <script>var _s=document.getElementById('search-input');if(_s&&_s.value)requestAnimationFrame(function(){_s.selectionStart=_s.selectionEnd=_s.value.length})</script>
     <h2>Channels</h2>
     {% for ch in channels %}
-    <a href="/channel/{{ ch }}" class="{{ 'active' if ch == active_channel else '' }}">{{ ch }}</a>
+    <a href="/channel/{{ ch }}" data-channel-link="{{ ch }}" class="{{ 'active' if ch == active_channel else '' }}">{{ ch }}</a>
     {% endfor %}
+    <script>
+    (function() {
+      try {
+        var keyPrefix = 'sparkle-notes:last-page:';
+        var activeChannel = '{{ active_channel|default('', true) }}';
+        var currentPage = '{{ page|default('', true) }}';
+        if (activeChannel && currentPage) {
+          localStorage.setItem(keyPrefix + activeChannel, currentPage);
+        }
+        document.querySelectorAll('[data-channel-link]').forEach(function(link) {
+          var channel = link.getAttribute('data-channel-link');
+          var page = parseInt(localStorage.getItem(keyPrefix + channel) || '1', 10);
+          link.href = '/channel/' + encodeURIComponent(channel) + (page > 1 ? '?page=' + page : '');
+        });
+      } catch (e) {}
+    })();
+    </script>
   </div>
 """
 
@@ -396,6 +546,21 @@ _TPL_CHANNEL = _jinja.from_string(
       </li>
       {% endfor %}
     </ul>
+    {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+      <a class="page-link" href="/channel/{{ active_channel }}?page={{ page - 1 }}">Previous</a>
+      {% else %}
+      <span class="page-link disabled">Previous</span>
+      {% endif %}
+      {% if page < total_pages %}
+      <a class="page-link" href="/channel/{{ active_channel }}?page={{ page + 1 }}">Next</a>
+      {% else %}
+      <span class="page-link disabled">Next</span>
+      {% endif %}
+      <span class="page-summary">Page {{ page }} of {{ total_pages }} · {{ total_tags }} tags</span>
+    </div>
+    {% endif %}
     {% else %}
     <p class="empty-state">No tags found for this channel.</p>
     {% endif %}
@@ -419,14 +584,17 @@ _TPL_TAG = _jinja.from_string(
         &middot; Initial release
       {% endif %}
         &middot; {{ commit_count }} commit{{ 's' if commit_count != 1 else '' }}
+        &middot; <a href="{{ github_release_url }}" target="_blank" rel="noopener noreferrer">GitHub Release</a>
     </div>
 
     <div id="notes-area">
       {% if notes_html %}
         <div class="notes">{{ notes_html | safe }}</div>
-        <div style="margin-top: 16px;">
+        <div class="actions">
           <button class="btn secondary" onclick="regenerateNotes()">Regenerate</button>
+          <button id="gh-btn" class="btn" onclick="postToGitHub()">Post to GitHub</button>
         </div>
+        <div id="gh-status" class="status" role="status"></div>
       {% elif is_pending %}
         <div id="loading-bg" class="loading active">
           <div class="spinner"></div>
@@ -443,11 +611,38 @@ _TPL_TAG = _jinja.from_string(
     </div>
 
     <script>
+    function notesActionsHtml() {
+      return '<div class="actions">' +
+        '<button class="btn secondary" onclick="regenerateNotes()">Regenerate</button>' +
+        '<button id="gh-btn" class="btn" onclick="postToGitHub()">Post to GitHub</button>' +
+        '</div><div id="gh-status" class="status" role="status"></div>';
+    }
+    async function pollGitHubStatus(attempt) {
+      const status = document.getElementById('gh-status');
+      if (!status || status.classList.contains('success') || status.classList.contains('error')) return;
+      try {
+        const resp = await fetch('/channel/{{ active_channel }}/tag/{{ tag }}/github-status');
+        const data = await resp.json();
+        if (data.pending) {
+          if (attempt < 20) setTimeout(() => pollGitHubStatus(attempt + 1), 1000);
+          return;
+        }
+        if (data.matches === false && data.message) {
+          status.textContent = data.message;
+          status.className = 'status info';
+        } else if (data.matches === true) {
+          status.textContent = '';
+          status.className = 'status';
+        }
+      } catch (e) {
+        if (attempt < 20) setTimeout(() => pollGitHubStatus(attempt + 1), 1000);
+      }
+    }
     async function doGenerate(endpoint) {
       const btn = document.getElementById('gen-btn');
       if (btn) btn.style.display = 'none';
       document.getElementById('loading').classList.add('active');
-      document.querySelectorAll('.btn.secondary').forEach(b => b.style.display = 'none');
+      document.querySelectorAll('.actions .btn').forEach(b => b.style.display = 'none');
       try {
         const resp = await fetch(endpoint, { method: 'POST' });
         if (!resp.ok) {
@@ -457,7 +652,8 @@ _TPL_TAG = _jinja.from_string(
         const data = await resp.json();
         document.getElementById('notes-area').innerHTML =
           '<div class="notes">' + data.html + '</div>' +
-          '<div style="margin-top:16px"><button class="btn secondary" onclick="regenerateNotes()">Regenerate</button></div>';
+          notesActionsHtml();
+        pollGitHubStatus(0);
       } catch (e) {
         document.getElementById('notes-area').innerHTML =
           '<p style="color:var(--color-error)">Error: ' + e.message + '</p>' +
@@ -471,6 +667,40 @@ _TPL_TAG = _jinja.from_string(
     function regenerateNotes() {
       doGenerate('/channel/{{ active_channel }}/tag/{{ tag }}/regenerate');
     }
+    async function postToGitHub() {
+      const btn = document.getElementById('gh-btn');
+      const status = document.getElementById('gh-status');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Posting...';
+      }
+      if (status) {
+        status.textContent = '';
+        status.className = 'status';
+      }
+      try {
+        const resp = await fetch('/channel/{{ active_channel }}/tag/{{ tag }}/post-github', { method: 'POST' });
+        const data = await resp.json().catch(() => ({ error: 'Unexpected response from server.' }));
+        if (!resp.ok) throw new Error(data.error || resp.statusText);
+        if (status) {
+          status.textContent = data.message || 'Posted to GitHub.';
+          status.classList.add('success');
+        }
+      } catch (e) {
+        if (status) {
+          status.textContent = 'Error: ' + e.message;
+          status.classList.add('error');
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Post to GitHub';
+        }
+      }
+    }
+    {% if notes_html %}
+    pollGitHubStatus(0);
+    {% endif %}
     {% if is_pending %}
     (function pollStatus() {
       setTimeout(async () => {
@@ -566,8 +796,18 @@ def channel(channel_name):
     if channel_name not in CHANNELS:
         abort(404)
     tags = get_tags_for_channel(channel_name)
+    total_tags = len(tags)
+    total_pages = max(1, (total_tags + CHANNEL_PAGE_SIZE - 1) // CHANNEL_PAGE_SIZE)
+    try:
+        page = int(request.args.get('page', '1'))
+    except ValueError:
+        page = 1
+    page = min(max(page, 1), total_pages)
+    start = (page - 1) * CHANNEL_PAGE_SIZE
+    page_tags = tags[start:start + CHANNEL_PAGE_SIZE]
+
     tag_info = []
-    for t in tags:
+    for t in page_tags:
         date = get_tag_date(t)
         has_notes = notes_exist(channel_name, t)
         with _generating_lock:
@@ -577,6 +817,9 @@ def channel(channel_name):
         channels=CHANNELS,
         active_channel=channel_name,
         tags=tag_info,
+        page=page,
+        total_pages=total_pages,
+        total_tags=total_tags,
     )
 
 
@@ -595,6 +838,7 @@ def tag(channel_name, tag_name):
     notes_html = None
     if notes_exist(channel_name, tag_name):
         notes_html = markdown_to_html(read_notes(channel_name, tag_name))
+        enqueue_gh_compare(channel_name, tag_name)
 
     with _generating_lock:
         is_pending = tag_name in _generating
@@ -606,6 +850,7 @@ def tag(channel_name, tag_name):
         tag_date=tag_date,
         prev_tag=prev_tag,
         commit_count=commit_count,
+        github_release_url=github_release_url(tag_name),
         notes_html=notes_html,
         is_pending=is_pending,
     )
@@ -628,6 +873,7 @@ def generate(channel_name, tag_name):
             return jsonify(error=str(exc)), 502
 
     write_notes(channel_name, tag_name, notes)
+    enqueue_gh_compare(channel_name, tag_name)
     return jsonify(html=markdown_to_html(notes))
 
 
@@ -636,6 +882,31 @@ def tag_status(channel_name, tag_name):
     return jsonify(
         has_notes=notes_exist(channel_name, tag_name),
         pending=tag_name in _generating,  # GIL-atomic read, lock not needed for single check
+    )
+
+
+@app.route('/channel/<channel_name>/tag/<tag_name>/github-status')
+def github_status(channel_name, tag_name):
+    if channel_name not in CHANNELS or not tag_name.startswith(channel_name + '-'):
+        abort(404)
+    if not notes_exist(channel_name, tag_name):
+        return jsonify(pending=False, matches=None, message='')
+
+    local_hash = _notes_hash(channel_name, tag_name)
+    with _gh_compare_lock:
+        current = dict(_gh_compare_status.get(tag_name) or {})
+
+    if not current or current.get('hash') != local_hash:
+        enqueue_gh_compare(channel_name, tag_name)
+        return jsonify(pending=True, matches=None, message='')
+
+    if current.get('state') == 'pending':
+        return jsonify(pending=True, matches=None, message='')
+
+    return jsonify(
+        pending=False,
+        matches=current.get('matches'),
+        message=current.get('message') or '',
     )
 
 
@@ -649,6 +920,24 @@ def regenerate(channel_name, tag_name):
         os.remove(path)
 
     return generate(channel_name, tag_name)
+
+
+@app.route('/channel/<channel_name>/tag/<tag_name>/post-github', methods=['POST'])
+def post_github(channel_name, tag_name):
+    if channel_name not in CHANNELS or not tag_name.startswith(channel_name + '-'):
+        abort(404)
+    if not notes_exist(channel_name, tag_name):
+        return jsonify(error='Generate release notes before posting to GitHub.'), 409
+
+    ok, error = gh_update_release_notes_with_result(channel_name, tag_name)
+    if not ok:
+        return jsonify(error=error), 502
+
+    if tag_name not in _gh_synced:
+        _gh_synced.add(tag_name)
+        _save_gh_tag(tag_name)
+    _set_gh_compare_matches(channel_name, tag_name, True, '')
+    return jsonify(message='Posted release notes to GitHub.')
 
 
 # ---------------------------------------------------------------------------
