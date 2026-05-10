@@ -225,6 +225,12 @@ struct MyArticleItemView: View {
                 }
 
                 Button {
+                    copyMarkdown()
+                } label: {
+                    Text("Copy Markdown")
+                }
+
+                Button {
                     if let url = article.browserURL {
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(url.absoluteString, forType: .string)
@@ -380,6 +386,13 @@ struct MyArticleItemView: View {
             return img
         }
         return nil
+    }
+
+    private func copyMarkdown() {
+        let markdown = "\(article.title)\n\n\(article.content)"
+
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(markdown, forType: .string)
     }
 
     private func updateArticlePinStatus(_ flag: Bool) async throws {
