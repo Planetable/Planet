@@ -167,7 +167,7 @@ struct PlanetQuickShareView: View {
                     let dropDelegate = PlanetQuickShareDropDelegate()
                     attachmentSectionPlaceholder()
                         .focusable()
-                        .onDrop(of: [.image, .movie], delegate: dropDelegate)
+                        .onDrop(of: PlanetQuickShareDropDelegate.supportedContentTypes, delegate: dropDelegate)
                         .onPasteCommand(of: [.fileURL, .image, .movie, .mp3], perform: PlanetQuickShareViewModel.shared.processPasteItems(_:))
                         .contextMenu {
                             PasteButton(supportedContentTypes: [.fileURL, .image, .movie, .mp3], payloadAction: PlanetQuickShareViewModel.shared.processPasteItems(_:))

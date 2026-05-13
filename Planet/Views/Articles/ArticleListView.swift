@@ -31,7 +31,14 @@ class ArticleListDropDelegate: DropDelegate {
     }
 
     func validateDrop(info: DropInfo) -> Bool {
-        return info.itemProviders(for: [.fileURL]).count > 0
+        let providerCount = info.itemProviders(for: PlanetQuickShareDropDelegate.supportedContentTypes).count
+        let hasDirectImage = PlanetQuickShareDropDelegate.dragPasteboardHasDirectImage()
+        let hasPromise = PlanetQuickShareDropDelegate.dragPasteboardHasFilePromise()
+        let isValid = providerCount > 0 || hasDirectImage || hasPromise
+        Self.log(
+            "ArticleList.validateDrop valid=\(isValid) providers=\(providerCount) hasDirectImage=\(hasDirectImage) hasPromise=\(hasPromise) location=\(Self.describeLocation(info.location))"
+        )
+        return isValid
     }
 
     private static func droppedFileURLs(from info: DropInfo) async -> [URL] {
@@ -300,9 +307,28 @@ class ArticleListDropDelegate: DropDelegate {
     }
 
     func performDrop(info: DropInfo) -> Bool {
+        Self.log("ArticleList.performDrop started location=\(Self.describeLocation(info.location))")
+        if let imageURL = PlanetQuickShareDropDelegate.imageFileFromDragPasteboard() {
+            Self.log("ArticleList.performDrop received directPasteboardImage")
+            PlanetQuickShareDropDelegate.prepareQuickShare(for: imageURL)
+            return true
+        }
+
+        if PlanetQuickShareDropDelegate.receivePromisedFileFromDragPasteboard({ fileURL in
+            guard let fileURL else {
+                Self.log("ArticleList.performDrop promisedFile produced no URL", level: .warning)
+                return
+            }
+            Self.log("ArticleList.performDrop received promisedFile")
+            PlanetQuickShareDropDelegate.prepareQuickShare(for: fileURL)
+        }) {
+            return true
+        }
+
         Task { @MainActor in
             do {
                 let fileURLs = await Self.droppedFileURLs(from: info)
+                Self.log("ArticleList.performDrop fileURLCount=\(fileURLs.count)")
                 if try await Self.handleTextDocumentDrop(fileURLs) {
                     if #available(macOS 14.0, *) {
                         NSApp.activate()
@@ -313,7 +339,10 @@ class ArticleListDropDelegate: DropDelegate {
                 }
 
                 let urls: [URL] = await PlanetQuickShareDropDelegate.processDropInfo(info)
-                guard urls.count > 0 else { return }
+                guard urls.count > 0 else {
+                    Self.log("ArticleList.performDrop no quick-share URLs extracted", level: .warning)
+                    return
+                }
                 try PlanetQuickShareViewModel.shared.prepareFiles(urls)
                 PlanetStore.shared.isQuickSharing = true
                 if #available(macOS 14.0, *) {
@@ -333,6 +362,14 @@ class ArticleListDropDelegate: DropDelegate {
             }
         }
         return true
+    }
+
+    private static func log(_ message: String, level: PlanetLogger.Level = .info) {
+        PlanetLogger.log("DragDrop: \(message)", level: level)
+    }
+
+    private static func describeLocation(_ location: CGPoint) -> String {
+        "(\(String(format: "%.1f", location.x)),\(String(format: "%.1f", location.y)))"
     }
 }
 
@@ -633,7 +670,7 @@ struct ArticleListView: View {
                 }
             }
         }
-        .onDrop(of: [.fileURL], delegate: articleDropDelegate)
+        .onDrop(of: PlanetQuickShareDropDelegate.supportedContentTypes, delegate: articleDropDelegate)
         .onWidthChange { newWidth in
             @AppStorage("articleListWidth") var articleListWidth = 240.0
             articleListWidth = newWidth

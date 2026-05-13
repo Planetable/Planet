@@ -489,6 +489,7 @@ final class QuickPostTextEditorContainer: NSView {
         textView.isRichText = false
         textView.usesFontPanel = false
         textView.allowsUndo = true
+        textView.registerForDraggedTypes(QuickPostViewModel.supportedMediaPasteboardTypes)
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = 4
         textView.defaultParagraphStyle = paragraphStyle
@@ -567,6 +568,38 @@ final class QuickPostEditorTextView: MarkdownEditorTextView {
             return
         }
         super.paste(sender)
+    }
+
+    override var acceptableDragTypes: [NSPasteboard.PasteboardType] {
+        QuickPostViewModel.supportedMediaPasteboardTypes + super.acceptableDragTypes
+    }
+
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        if viewModel.canImportMedia(from: sender.draggingPasteboard) {
+            return .copy
+        }
+        return super.draggingEntered(sender)
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        if viewModel.canImportMedia(from: sender.draggingPasteboard) {
+            return .copy
+        }
+        return super.draggingUpdated(sender)
+    }
+
+    override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        if viewModel.canImportMedia(from: sender.draggingPasteboard) {
+            return true
+        }
+        return super.prepareForDragOperation(sender)
+    }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        if viewModel.processMediaDropIfAvailable(from: sender.draggingPasteboard) {
+            return true
+        }
+        return super.performDragOperation(sender)
     }
 
 }
