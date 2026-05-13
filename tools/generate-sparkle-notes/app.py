@@ -1313,4 +1313,4 @@ if __name__ == '__main__':
     elif len(sys.argv) > 1 and sys.argv[1] == 'sync-gh':
         sync_gh()
     else:
-        app.run(debug=True, port=6323, use_reloader=False)
+        app.run(debug=True, host='0.0.0.0', port=6323, use_reloader=False)
