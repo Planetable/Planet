@@ -114,8 +114,24 @@ enum MarkdownListAutocomplete {
                         for: NSRange(location: searchPos, length: 0))
 
         let lineRange = NSRange(location: lineStart, length: contentsEnd - lineStart)
-        let currentLine = ns.substring(with: lineRange)
-        let trimmed = currentLine.trimmingCharacters(in: .whitespaces)
+        let currentLine = ns.substring(with: lineRange) as NSString
+        var firstVisibleOffset = 0
+        while firstVisibleOffset < currentLine.length {
+            let character = currentLine.character(at: firstVisibleOffset)
+            guard let scalar = UnicodeScalar(Int(character)),
+                  CharacterSet.whitespaces.contains(scalar)
+            else {
+                break
+            }
+            firstVisibleOffset += 1
+        }
+
+        // Before the first visible character, Return should insert a plain newline
+        // instead of continuing the current list item.
+        guard cursorPos > lineStart + firstVisibleOffset else { return .none }
+
+        let currentLineString = currentLine as String
+        let trimmed = currentLineString.trimmingCharacters(in: .whitespaces)
 
         // Check if current line is an empty list marker
         let isEmptyNumberedItem = trimmed.range(of: #"^\d+\.$"#, options: .regularExpression) != nil
