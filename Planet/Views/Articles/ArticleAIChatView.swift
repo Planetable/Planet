@@ -425,13 +425,14 @@ struct ArticleAIChatView: View {
                     fontSize: chatFontSize,
                     isDisabled: isSending,
                     focusOnAppear: true,
-                    placeholder: isPlanetWideMode ? L10n("Ask about your planets and articles...") : L10n("Ask about this article...")
+                    placeholder: isPlanetWideMode ? L10n("Ask about your planets and articles...") : L10n("Ask about this article..."),
+                    onSend: sendMessage
                 )
 
                 Divider()
 
                 HStack(spacing: 8) {
-                    Text("Return inserts a new line. Command-Return sends.")
+                    Text("Return sends. ⌘Return adds a line break.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
@@ -441,7 +442,7 @@ struct ArticleAIChatView: View {
                         }
                         .frame(minWidth: 56)
                         .disabled(!canSendMessage)
-                        .keyboardShortcut(.return, modifiers: [.command])
+                        .keyboardShortcut(.return, modifiers: [])
                         .buttonStyle(.borderedProminent)
                         .buttonBorderShape(.capsule)
                     } else {
@@ -450,7 +451,7 @@ struct ArticleAIChatView: View {
                         }
                         .frame(minWidth: 56)
                         .disabled(!canSendMessage)
-                        .keyboardShortcut(.return, modifiers: [.command])
+                        .keyboardShortcut(.return, modifiers: [])
                         .buttonStyle(.borderedProminent)
                         .buttonBorderShape(.roundedRectangle)
                     }

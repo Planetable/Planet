@@ -622,7 +622,7 @@
 "Reset App Icon" = "Uygulama Simgesini Sıfırla";
 "Reset to Default Size" = "Varsayılan Boyuta Sıfırla";
 "Restore the original video so you can choose another preset." = "Başka bir ön ayar seçebilmeniz için özgün videoyu geri yükleyin.";
-"Return inserts a new line. Command-Return sends." = "Return yeni satır ekler. Command-Return gönderir.";
+"Return sends. ⌘Return adds a line break." = "Return gönderir. ⌘Return satır sonu ekler.";
 "Revert to Initial" = "İlk Haline Döndür";
 "Run GC" = "GC Çalıştır";
 "Run IPFS Garbage Collection" = "IPFS Çöp Toplamayı Çalıştır";

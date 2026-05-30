@@ -622,7 +622,7 @@
 "Reset App Icon" = "Επαναφορά εικονιδίου εφαρμογής";
 "Reset to Default Size" = "Επαναφορά στο προεπιλεγμένο μέγεθος";
 "Restore the original video so you can choose another preset." = "Επαναφέρετε το αρχικό βίντεο ώστε να μπορείτε να επιλέξετε άλλη προεπιλογή.";
-"Return inserts a new line. Command-Return sends." = "Το Return εισάγει νέα γραμμή. Το Command-Return στέλνει.";
+"Return sends. ⌘Return adds a line break." = "Το Return στέλνει. Το ⌘Return προσθέτει αλλαγή γραμμής.";
 "Revert to Initial" = "Επαναφορά στην αρχική κατάσταση";
 "Run GC" = "Εκτέλεση GC";
 "Run IPFS Garbage Collection" = "Εκτέλεση συλλογής απορριμμάτων IPFS";

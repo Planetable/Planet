@@ -622,7 +622,7 @@
 "Reset App Icon" = "Nollaa apin kuvake";
 "Reset to Default Size" = "Palauta oletuskokoon";
 "Restore the original video so you can choose another preset." = "Palauta alkuperäinen video, jotta voit valita toisen esiasetuksen.";
-"Return inserts a new line. Command-Return sends." = "Rivinvaihto lisää uuden rivin. Komento-rivinvaihto lähettää.";
+"Return sends. ⌘Return adds a line break." = "Return lähettää. ⌘Return lisää rivinvaihdon.";
 "Revert to Initial" = "Palauta alkuperäiseen";
 "Run GC" = "Suorita roskien keruu";
 "Run IPFS Garbage Collection" = "Suorita IPFS:n roskien keruu";

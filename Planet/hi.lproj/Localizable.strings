@@ -622,7 +622,7 @@
 "Reset App Icon" = "ऐप आइकन रीसेट करें";
 "Reset to Default Size" = "डिफ़ॉल्ट आकार पर रीसेट करें";
 "Restore the original video so you can choose another preset." = "मूल वीडियो रीस्टोर करें ताकि आप कोई दूसरा प्रीसेट चुन सकें।";
-"Return inserts a new line. Command-Return sends." = "Return नई पंक्ति डालता है। Command-Return भेजता है।";
+"Return sends. ⌘Return adds a line break." = "Return भेजता है। ⌘Return लाइन ब्रेक जोड़ता है।";
 "Revert to Initial" = "शुरुआती स्थिति पर लौटाएँ";
 "Run GC" = "GC चलाएँ";
 "Run IPFS Garbage Collection" = "IPFS गैर्बेज कलेक्शन चलाएँ";

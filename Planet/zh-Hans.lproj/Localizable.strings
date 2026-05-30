@@ -623,7 +623,7 @@
 "Reset App Icon" = "重置应用图标";
 "Reset to Default Size" = "重置为默认大小";
 "Restore the original video so you can choose another preset." = "恢复原始视频，以便选择其他预设。";
-"Return inserts a new line. Command-Return sends." = "Return 插入换行，Command-Return 发送。";
+"Return sends. ⌘Return adds a line break." = "Return 发送，⌘Return 添加换行。";
 "Revert to Initial" = "恢复为初始值";
 "Run GC" = "运行 GC";
 "Run IPFS Garbage Collection" = "运行 IPFS 垃圾回收";

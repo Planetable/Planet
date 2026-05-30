@@ -622,7 +622,7 @@
 "Reset App Icon" = "앱 아이콘 재설정";
 "Reset to Default Size" = "기본 크기로 재설정";
 "Restore the original video so you can choose another preset." = "원본 비디오를 복원하면 다른 프리셋을 선택할 수 있습니다.";
-"Return inserts a new line. Command-Return sends." = "Return 키는 새 줄을 삽입하고 Command-Return은 보냅니다.";
+"Return sends. ⌘Return adds a line break." = "Return은 보내고 ⌘Return은 줄바꿈을 추가합니다.";
 "Revert to Initial" = "초기 상태로 되돌리기";
 "Run GC" = "GC 실행";
 "Run IPFS Garbage Collection" = "IPFS 가비지 컬렉션 실행";

@@ -622,7 +622,7 @@
 "Reset App Icon" = "Nulstil appsymbol";
 "Reset to Default Size" = "Nulstil til standardstørrelse";
 "Restore the original video so you can choose another preset." = "Gendan den oprindelige video, så du kan vælge en anden forudindstilling.";
-"Return inserts a new line. Command-Return sends." = "Retur indsætter en ny linje. Kommando-Retur sender.";
+"Return sends. ⌘Return adds a line break." = "Retur sender. ⌘Return tilføjer et linjeskift.";
 "Revert to Initial" = "Vend tilbage til oprindelig";
 "Run GC" = "Kør GC";
 "Run IPFS Garbage Collection" = "Kør IPFS-oprydning";

@@ -622,7 +622,7 @@
 "Reset App Icon" = "איפוס סמל היישום";
 "Reset to Default Size" = "איפוס לגודל ברירת-המחדל";
 "Restore the original video so you can choose another preset." = "שחזור הווידאו המקורי כדי לאפשר בחירה בהגדרה קבועה מראש אחרת.";
-"Return inserts a new line. Command-Return sends." = "מקש Return מוסיף שורה חדשה. Command-Return שולח.";
+"Return sends. ⌘Return adds a line break." = "Return שולח. ⌘Return מוסיף מעבר שורה.";
 "Revert to Initial" = "חזרה למצב הראשוני";
 "Run GC" = "הרצת GC";
 "Run IPFS Garbage Collection" = "הרצת איסוף אשפה של IPFS";

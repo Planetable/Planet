@@ -622,7 +622,7 @@
 "Reset App Icon" = "Lähtesta rakenduse ikoon";
 "Reset to Default Size" = "Lähtesta vaikesuurusele";
 "Restore the original video so you can choose another preset." = "Taasta algne video, et saaksid valida teise eelseadistuse.";
-"Return inserts a new line. Command-Return sends." = "Return lisab uue rea. Command-Return saadab.";
+"Return sends. ⌘Return adds a line break." = "Return saadab. ⌘Return lisab reavahetuse.";
 "Revert to Initial" = "Taasta algseis";
 "Run GC" = "Käivita prügikoristus";
 "Run IPFS Garbage Collection" = "Käivita IPFS-i prügikoristus";
