@@ -43,6 +43,16 @@ class KeyboardShortcutHelper: ObservableObject {
             } label: {
                 Text("Follow Featured Planets")
             }
+
+            Divider()
+
+            Button {
+                if let url = URL(string: "https://github.com/sponsors/Planetable") {
+                    NSWorkspace.shared.open(url)
+                }
+            } label: {
+                Text("Sponsor @Planetable on GitHub")
+            }
         }
     }
 
