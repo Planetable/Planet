@@ -283,7 +283,10 @@ struct ArticleAIChatView: View {
     @State private var inputText: String = ""
     @State private var isSending: Bool = false
     @State private var errorText: String? = nil
-    @State private var shouldAnimateScroll: Bool = false
+    @State private var isPinnedToBottom: Bool = true
+    @State private var isUserScrollIntentDown: Bool = true
+    @State private var scrollWheelMonitor: Any? = nil
+    @State private var chatScrollHostBox = ChatScrollHostBox()
     @State private var chatFontSize: CGFloat = {
         let stored = UserDefaults.standard.double(forKey: .settingsAIChatFontSize)
         return stored >= 12 && stored <= 20 ? CGFloat(stored) : 14
@@ -385,36 +388,65 @@ struct ArticleAIChatView: View {
             }
 
             ScrollViewReader { proxy in
-                ScrollView {
-                    chatMessageList
-                        .padding(.leading, 20)
-                        .padding(.trailing, 20)
-                        .padding(.bottom, 20)
-                        .padding(.top, 12)
-                }
-                .background(Color(NSColor.textBackgroundColor))
-                .applyScrollPositionTracking(id: $scrolledMessageID)
-                .onChange(of: messages.count) { _ in
-                    if let targetID = pendingScrollTarget {
-                        pendingScrollTarget = nil
-                        if #available(macOS 14.0, *) {
-                            scrolledMessageID = targetID
-                        } else {
-                            proxy.scrollTo(targetID, anchor: .top)
-                        }
-                    } else if let lastID = messages.last?.id {
-                        if shouldAnimateScroll {
-                            withAnimation {
-                                proxy.scrollTo(lastID, anchor: .bottom)
-                            }
-                        } else {
-                            proxy.scrollTo(lastID, anchor: .bottom)
+                GeometryReader { viewport in
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            chatMessageList
+                                .padding(.leading, 20)
+                                .padding(.trailing, 20)
+                                .padding(.bottom, 20)
+                                .padding(.top, 12)
+                            // Bottom sentinel: scroll target for pin-to-bottom, and
+                            // reports its position so we know when the user is back at the bottom.
+                            Color.clear
+                                .frame(height: 1)
+                                .id(Self.bottomScrollAnchorID)
+                                .background(
+                                    GeometryReader { geometry in
+                                        Color.clear.preference(
+                                            key: ChatBottomDistancePreferenceKey.self,
+                                            value: geometry.frame(in: .named(Self.chatScrollCoordinateSpace)).minY
+                                        )
+                                    }
+                                )
                         }
                     }
+                    .background(Color(NSColor.textBackgroundColor))
+                    .background(ChatScrollHostAccessor(box: chatScrollHostBox))
+                    .coordinateSpace(name: Self.chatScrollCoordinateSpace)
+                    .applyScrollPositionTracking(id: $scrolledMessageID)
+                    .onPreferenceChange(ChatBottomDistancePreferenceKey.self) { sentinelTop in
+                        updateBottomPinState(distanceFromBottom: sentinelTop - viewport.size.height)
+                    }
+                    .onChange(of: messages) { _ in
+                        if let targetID = pendingScrollTarget {
+                            pendingScrollTarget = nil
+                            isPinnedToBottom = false
+                            if #available(macOS 14.0, *) {
+                                scrolledMessageID = targetID
+                            } else {
+                                proxy.scrollTo(targetID, anchor: .top)
+                            }
+                        } else if isPinnedToBottom {
+                            if messages.last?.role == "user" {
+                                withAnimation {
+                                    proxy.scrollTo(Self.bottomScrollAnchorID, anchor: .bottom)
+                                }
+                            } else {
+                                proxy.scrollTo(Self.bottomScrollAnchorID, anchor: .bottom)
+                            }
+                        }
+                    }
+                    .onChange(of: isSending) { _ in
+                        scrollToBottomIfPinned(proxy)
+                    }
+                    .onChange(of: toolProgressText) { _ in
+                        scrollToBottomIfPinned(proxy)
+                    }
+                    .environment(\.openURL, OpenURLAction { url in
+                        handleChatLink(url)
+                    })
                 }
-                .environment(\.openURL, OpenURLAction { url in
-                    handleChatLink(url)
-                })
             }
 
             Divider()
@@ -480,8 +512,9 @@ struct ArticleAIChatView: View {
             loadPersistedChat()
             prepareInitialContextIfNeeded()
             syncToolbarState()
-            Task { @MainActor in
-                shouldAnimateScroll = true
+            scrollWheelMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
+                handleScrollWheelEvent(event)
+                return event
             }
             fontSizeKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                 guard event.modifierFlags.contains(.command),
@@ -510,6 +543,10 @@ struct ArticleAIChatView: View {
             if let monitor = fontSizeKeyMonitor {
                 NSEvent.removeMonitor(monitor)
                 fontSizeKeyMonitor = nil
+            }
+            if let monitor = scrollWheelMonitor {
+                NSEvent.removeMonitor(monitor)
+                scrollWheelMonitor = nil
             }
         }
         .onChange(of: selectedProvider) { _ in
@@ -769,6 +806,44 @@ struct ArticleAIChatView: View {
         persistChat()
     }
 
+    private static let bottomScrollAnchorID = "ai-chat-bottom-anchor"
+    private static let chatScrollCoordinateSpace = "ai-chat-scroll"
+    private static let bottomRepinThreshold: CGFloat = 40
+
+    private func scrollToBottomIfPinned(_ proxy: ScrollViewProxy) {
+        guard isPinnedToBottom else { return }
+        proxy.scrollTo(Self.bottomScrollAnchorID, anchor: .bottom)
+    }
+
+    // Re-pinning is driven by the sentinel position; unpinning only ever happens
+    // from an explicit user scroll-up gesture, so content growth during streaming
+    // can never kick the user out of follow mode.
+    private func updateBottomPinState(distanceFromBottom: CGFloat) {
+        guard !isPinnedToBottom else { return }
+        if distanceFromBottom <= 0
+            || (isUserScrollIntentDown && distanceFromBottom <= Self.bottomRepinThreshold)
+        {
+            isPinnedToBottom = true
+        }
+    }
+
+    private func handleScrollWheelEvent(_ event: NSEvent) {
+        guard let hostView = chatScrollHostBox.view,
+            let window = hostView.window,
+            event.window === window
+        else { return }
+        let location = hostView.convert(event.locationInWindow, from: nil)
+        guard hostView.bounds.contains(location) else { return }
+        if event.scrollingDeltaY > 0 {
+            isUserScrollIntentDown = false
+            if isPinnedToBottom {
+                isPinnedToBottom = false
+            }
+        } else if event.scrollingDeltaY < 0 {
+            isUserScrollIntentDown = true
+        }
+    }
+
     private func syncToolbarState() {
         guard let toolbarState else { return }
         toolbarState.title = isPlanetWideMode ? "Planet AI Chat" : "AI Research Chat"
@@ -789,6 +864,8 @@ struct ArticleAIChatView: View {
         blockCache.removeAll()
         expandedReasoningMessageIDs.removeAll()
         scrolledMessageID = nil
+        isPinnedToBottom = true
+        isUserScrollIntentDown = true
         errorText = nil
         toolProgressText = nil
         onDeviceSession = nil
@@ -2129,6 +2206,8 @@ struct ArticleAIChatView: View {
         debugLog("sendMessage promptLength=\(prompt.count), promptPreview=\(truncate(prompt, maxLength: 160))")
         inputText = ""
         errorText = nil
+        isPinnedToBottom = true
+        isUserScrollIntentDown = true
         messages.append(ArticleAIChatMessage(role: "user", content: prompt, tokenUsage: nil))
         apiMessages.append(["role": "user", "content": prompt])
         if let sessionID = sessionID {
@@ -6246,6 +6325,33 @@ struct ArticleAIChatView: View {
         return formatter
     }()
 
+}
+
+private struct ChatBottomDistancePreferenceKey: PreferenceKey {
+    static let defaultValue: CGFloat = .greatestFiniteMagnitude
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = min(value, nextValue())
+    }
+}
+
+private final class ChatScrollHostBox {
+    weak var view: NSView?
+}
+
+// Invisible background view used to resolve the chat scroll view's window and
+// frame, so the scroll wheel event monitor only reacts to events over this chat.
+private struct ChatScrollHostAccessor: NSViewRepresentable {
+    let box: ChatScrollHostBox
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView(frame: .zero)
+        box.view = view
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        box.view = nsView
+    }
 }
 
 private extension View {
