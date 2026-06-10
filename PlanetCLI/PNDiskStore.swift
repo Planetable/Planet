@@ -1,5 +1,7 @@
 import AppKit
 import Foundation
+import ImageIO
+import UniformTypeIdentifiers
 
 struct PNLibraryDoctorResult: Codable {
     let libraryPath: String
@@ -460,9 +462,7 @@ final class PNDiskStore {
         }
         var names = replace ? [] : existing
         for attachment in attachments {
-            let name = attachment.lastPathComponent
-            let target = publicBase.appendingPathComponent(name, isDirectory: false)
-            try copyReplacing(attachment, to: target)
+            let name = try copyAttachment(attachment, into: publicBase)
             if !names.contains(name) {
                 names.append(name)
             }
@@ -470,6 +470,59 @@ final class PNDiskStore {
         let video = names.first(where: isVideo)
         let audio = names.first(where: isAudio)
         return (names, video, audio)
+    }
+
+    /// Copy one attachment into the public folder, matching the app's
+    /// attachment pipeline: HEIC images become `<basename>.jpg` and JPEG
+    /// images are rewritten without GPS metadata. Falls back to a plain
+    /// copy when conversion or stripping fails.
+    private func copyAttachment(_ source: URL, into publicBase: URL) throws -> String {
+        let ext = source.pathExtension.lowercased()
+        if ext == "heic", let jpeg = jpegData(fromImageAt: source) {
+            let name = source.deletingPathExtension().lastPathComponent + ".jpg"
+            try jpeg.write(to: publicBase.appendingPathComponent(name, isDirectory: false), options: .atomic)
+            return name
+        }
+        let name = source.lastPathComponent
+        let target = publicBase.appendingPathComponent(name, isDirectory: false)
+        if ext == "jpg" || ext == "jpeg", let stripped = gpsStrippedImageData(fromImageAt: source) {
+            try stripped.write(to: target, options: .atomic)
+            return name
+        }
+        try copyReplacing(source, to: target)
+        return name
+    }
+
+    private func jpegData(fromImageAt url: URL) -> Data? {
+        guard let image = NSImage(contentsOf: url),
+              let tiff = image.tiffRepresentation,
+              let bitmap = NSBitmapImageRep(data: tiff)
+        else {
+            return nil
+        }
+        return bitmap.representation(using: .jpeg, properties: [:])
+    }
+
+    /// Rewrite an image without its GPS dictionary, preserving the encoded
+    /// image data and the remaining metadata.
+    private func gpsStrippedImageData(fromImageAt url: URL) -> Data? {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let type = CGImageSourceGetType(source)
+        else {
+            return nil
+        }
+        let count = CGImageSourceGetCount(source)
+        guard count > 0 else { return nil }
+        let output = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(output, type, count, nil) else {
+            return nil
+        }
+        let removeGPS = [kCGImagePropertyGPSDictionary: kCFNull as Any] as CFDictionary
+        for index in 0..<count {
+            CGImageDestinationAddImageFromSource(destination, source, index, removeGPS)
+        }
+        guard CGImageDestinationFinalize(destination) else { return nil }
+        return output as Data
     }
 
     private func publicArticleRecord(from article: PNArticleRecord, planet: PNPlanetRecord) -> PNPublicArticleRecord {
@@ -742,11 +795,21 @@ final class PNDiskStore {
         return String(text.prefix(180)).pnTrimmed
     }
 
+    // Classify by uniform type like the app's AttachmentType.from, with video
+    // taking precedence over audio for types that conform to both.
     private func isVideo(_ name: String) -> Bool {
-        ["mp4", "m4v", "mov", "avi", "mpeg", "mpg", "webm"].contains((name as NSString).pathExtension.lowercased())
+        guard let type = contentType(forName: name) else { return false }
+        return type.conforms(to: .movie) || type.conforms(to: .video)
     }
 
     private func isAudio(_ name: String) -> Bool {
-        ["aac", "mp3", "m4a", "ogg", "wav", "webm"].contains((name as NSString).pathExtension.lowercased())
+        guard let type = contentType(forName: name), !isVideo(name) else { return false }
+        return type.conforms(to: .audio)
+    }
+
+    private func contentType(forName name: String) -> UTType? {
+        let ext = (name as NSString).pathExtension
+        guard !ext.isEmpty else { return nil }
+        return UTType(filenameExtension: ext)
     }
 }

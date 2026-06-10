@@ -187,7 +187,7 @@ Human-readable tables are the default. `--json` is the machine-readable mode.
 - `article attachment add <path>...` appends files, like `update --attachment`.
 - `article attachment delete <name>...` removes named attachments one by one.
 
-In API mode, append/replace map to the `attachmentMode=append|replace` query parameter on the article-modify route, and the `attachment` subcommands map to the `/attachments` sub-routes. Disk mode performs the equivalent file operations directly. Disk mode does not perform the app's HEIC-to-JPEG conversion or GPS stripping, and classifies the primary video/audio file by extension rather than by uniform type.
+In API mode, append/replace map to the `attachmentMode=append|replace` query parameter on the article-modify route, and the `attachment` subcommands map to the `/attachments` sub-routes. Disk mode performs the equivalent file operations directly and matches the app's attachment pipeline: HEIC attachments are converted to JPEG named `<basename>.jpg`, GPS metadata is stripped from JPEG attachments without re-encoding the image, and the primary video/audio file is classified by uniform type with video taking precedence.
 
 In API mode the app serves reads and planet deletion for archived planets, but rejects content mutations and publish with HTTP 400 because archived planets are excluded from publishing. Disk mode does not enforce this and will mutate archived planet files when asked.
 

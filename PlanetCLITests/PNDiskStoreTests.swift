@@ -1,4 +1,6 @@
 import AppKit
+import ImageIO
+import UniformTypeIdentifiers
 import XCTest
 
 final class PNDiskStoreTests: XCTestCase {
@@ -189,6 +191,42 @@ final class PNDiskStoreTests: XCTestCase {
         XCTAssertEqual(publicArticle?.attachments, [])
     }
 
+    func testDiskAttachmentsMatchAppPipeline() throws {
+        let sandbox = try PNTestSandbox()
+        defer { sandbox.cleanup() }
+
+        let store = PNDiskStore(root: sandbox.libraryURL)
+        let planet = try store.createPlanet(name: "Pipeline Planet", about: "", template: nil, avatar: nil)
+        defer { _ = try? store.deletePlanet(planet) }
+
+        // Primary video/audio classified by uniform type, video first.
+        let movie = try sandbox.makeTextFixture(name: "clip.mov", contents: "fake")
+        let song = try sandbox.makeTextFixture(name: "song.mp3", contents: "fake")
+        let blob = try sandbox.makeTextFixture(name: "data.bin", contents: "fake")
+        var article = try store.createArticle(planet: planet, title: "Media", content: "x", date: nil, attachments: [movie, song, blob])
+        XCTAssertEqual(article.videoFilename, "clip.mov")
+        XCTAssertEqual(article.audioFilename, "song.mp3")
+
+        // GPS metadata is stripped from JPEG attachments.
+        let jpegWithGPS = try makeJPEGWithGPSFixture(named: "gps.jpg", in: sandbox)
+        XCTAssertNotNil(gpsDictionary(at: jpegWithGPS), "Fixture should carry GPS metadata.")
+        article = try store.addAttachments(planet: planet, article: article, attachments: [jpegWithGPS])
+        XCTAssertTrue(article.attachments?.contains("gps.jpg") == true)
+        let publicJPEG = store.articlePublicPath(article, in: planet).appendingPathComponent("gps.jpg", isDirectory: false)
+        XCTAssertNil(gpsDictionary(at: publicJPEG))
+        XCTAssertNotNil(NSBitmapImageRep(data: try Data(contentsOf: publicJPEG)), "Stripped JPEG should remain a valid image.")
+
+        // HEIC attachments are converted to <basename>.jpg.
+        guard let heic = makeHEICFixture(named: "photo.heic", in: sandbox) else {
+            throw XCTSkip("HEIC encoding is unavailable on this machine.")
+        }
+        article = try store.addAttachments(planet: planet, article: article, attachments: [heic])
+        XCTAssertTrue(article.attachments?.contains("photo.jpg") == true)
+        XCTAssertFalse(article.attachments?.contains("photo.heic") == true)
+        let converted = store.articlePublicPath(article, in: planet).appendingPathComponent("photo.jpg", isDirectory: false)
+        XCTAssertEqual(Array(try Data(contentsOf: converted).prefix(2)), [0xFF, 0xD8], "Converted file should be a JPEG.")
+    }
+
     func testPartialUUIDSelectorsResolveWithExactMatchPrecedence() throws {
         let sandbox = try PNTestSandbox()
         defer { sandbox.cleanup() }
@@ -299,6 +337,64 @@ final class PNDiskStoreTests: XCTestCase {
         XCTAssertEqual(parsed.options.source, .disk)
         XCTAssertEqual(parsed.options.libraryOverride?.standardizedFileURL.path, sandbox.libraryURL.path)
         XCTAssertEqual(parsed.arguments, ["planet", "list"])
+    }
+
+    private func makeJPEGWithGPSFixture(named name: String, in sandbox: PNTestSandbox) throws -> URL {
+        let base = try sandbox.makeImageFixture(name: "base-\(name)", width: 40, height: 40)
+        let data = try Data(contentsOf: base)
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let type = CGImageSourceGetType(source)
+        else {
+            throw PNError.diskError("Unable to read JPEG fixture source.")
+        }
+        let url = sandbox.root.appendingPathComponent(name, isDirectory: false)
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, type, 1, nil) else {
+            throw PNError.diskError("Unable to create JPEG fixture destination.")
+        }
+        let gps: [CFString: Any] = [
+            kCGImagePropertyGPSLatitude: 37.7749,
+            kCGImagePropertyGPSLongitude: 122.4194,
+        ]
+        CGImageDestinationAddImageFromSource(destination, source, 0, [kCGImagePropertyGPSDictionary: gps] as CFDictionary)
+        guard CGImageDestinationFinalize(destination) else {
+            throw PNError.diskError("Unable to write JPEG fixture with GPS metadata.")
+        }
+        return url
+    }
+
+    private func gpsDictionary(at url: URL) -> [CFString: Any]? {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+        else {
+            return nil
+        }
+        return properties[kCGImagePropertyGPSDictionary] as? [CFString: Any]
+    }
+
+    private func makeHEICFixture(named name: String, in sandbox: PNTestSandbox) -> URL? {
+        guard let bitmap = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: 40,
+            pixelsHigh: 40,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        ), let cgImage = bitmap.cgImage else {
+            return nil
+        }
+        let url = sandbox.root.appendingPathComponent(name, isDirectory: false)
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, UTType.heic.identifier as CFString, 1, nil) else {
+            return nil
+        }
+        CGImageDestinationAddImage(destination, cgImage, nil)
+        guard CGImageDestinationFinalize(destination) else {
+            return nil
+        }
+        return url
     }
 
     private func writePlanetFixture(_ planet: PNPlanetRecord, in libraryURL: URL) throws {
