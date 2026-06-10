@@ -98,8 +98,15 @@ def get_commits_between(prev_tag, tag):
     return git('log', '--oneline', '--no-merges', tag)
 
 
+def _is_release_note_candidate_path(path):
+    """True when a changed path can represent a Planet app user-facing change."""
+    if path == 'Planet/versioning.xcconfig':
+        return False
+    return path.startswith('Planet/') or path.startswith('Planet.xcodeproj/')
+
+
 def _filter_user_facing_commits(commits):
-    """Remove commits that only touch files under tools/ directories."""
+    """Remove commits that only touch tooling or release metadata."""
     if not commits:
         return commits
     lines = []
@@ -111,8 +118,7 @@ def _filter_user_facing_commits(commits):
         if not files:
             lines.append(line)
             continue
-        # Keep the commit if any changed file is outside tools/
-        if any(not f.startswith('tools/') for f in files.split('\n') if f):
+        if any(_is_release_note_candidate_path(f) for f in files.split('\n') if f):
             lines.append(line)
     return '\n'.join(lines)
 
@@ -346,26 +352,23 @@ def generate_notes_with_codex(commits, prev_tag, tag):
     else:
         scope = f"up to `{tag}` (initial release)"
     prompt = (
-        f"You are writing release notes from git commits {scope} "
-        f"for a macOS app update.\n\n"
-        "Rules:\n"
-        "- Use only the commit list supplied on stdin. Do not inspect files or run commands.\n"
-        "- Output ONLY a plain bullet list. No headings, no sections, no preamble.\n"
-        "- Each bullet format: **Bold short label** — Description of what is new or changed.\n"
-        "- Group closely related commits into one bullet. Use commas to list multiple related items within one bullet.\n"
-        "- Aim for 3-12 bullets total depending on commit volume.\n"
-        "- Tone: concise, confident, informative. Written for end users.\n"
-        "- Name features, UI elements, and behaviors specifically.\n"
-        "- Do NOT include commit hashes, author names, or issue numbers.\n"
-        "- Only include end-user-facing changes. Skip anything related to CI, build scripts, developer tooling, or internal infrastructure.\n"
-        "- Do NOT wrap output in markdown code fences.\n"
-        "- Do NOT include any preamble, commentary, or explanation. ONLY output lines starting with '- '.\n\n"
+        f"Write end-user release notes for the main Planet macOS app from git commits {scope}.\n\n"
+        "Input scope:\n"
+        "- Use only the commit list supplied on stdin. Do not inspect files, run commands, or infer from commit hashes.\n"
+        "- Include only changes that affect people using the Planet macOS app UI or behavior.\n"
+        "- Skip this release-notes utility, scripts, CI, build/release automation, tests, docs, generated metadata, version bumps, refactors, and internal infrastructure unless the commit clearly describes a user-visible app change.\n\n"
+        "Output format:\n"
+        "- Return only Markdown bullets. No heading, sections, preamble, explanation, blank lines, or code fences.\n"
+        "- Every output line must start with '- '.\n"
+        "- Bullet format: - **Bold short label** — concise end-user description.\n"
+        "- Group closely related commits; do not duplicate the same feature or fix under multiple labels.\n"
+        "- Aim for 3-12 bullets. If there are no qualifying app-facing changes, output exactly '- No user-facing Planet app changes.'\n"
+        "- Do not include commit hashes, author names, issue/PR numbers, file paths, dependency names, or implementation details.\n"
+        "- Name user-visible features, UI elements, and behaviors specifically when commit subjects provide them.\n\n"
         "Example style:\n"
         "- **Continuity Camera** — Import photos/videos directly from iPhone into Writer\n"
         "- **Article selection & navigation** — Restore last selected article on launch, "
         "auto-scroll sidebar, preserve selection after saving/moving drafts\n"
-        "- **Dependencies** — Replaced ENSKit with lightweight ENSDataKit, "
-        "removed unused HDWalletKit, updated Sparkle to 2.9.0\n"
     )
     with tempfile.NamedTemporaryFile(delete=False) as output_file:
         output_path = output_file.name
