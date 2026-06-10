@@ -170,23 +170,158 @@ final class PNCommandRunner {
 
     private func runInstall(arguments input: PNArguments) throws {
         var arguments = input
-        let to = try arguments.option("--to") ?? "/usr/local/bin"
+        let explicitDestination = try arguments.option("--to")
+        let installDirectory = defaultInstallDirectory()
+        let to = explicitDestination ?? installDirectory.path
         let force = arguments.flag("--force")
         try arguments.ensureNoExtras()
 
         let source = PNAppBridge.executableURL
-        let targetBase = URL(fileURLWithPath: to)
+        let targetBase = URL(fileURLWithPath: NSString(string: to).expandingTildeInPath)
         let target = targetBase.lastPathComponent == "pn" ? targetBase : targetBase.appendingPathComponent("pn", isDirectory: false)
-        if FileManager.default.fileExists(atPath: target.path) {
-            guard force else {
+        let existingSymbolicLink = existingSymbolicLinkDestination(at: target)
+        let targetExists = FileManager.default.fileExists(atPath: target.path) || existingSymbolicLink != nil
+        var didLink = false
+        if targetExists {
+            if force {
+                try FileManager.default.removeItem(at: target)
+            }
+            else if let existingSymbolicLink {
+                // Relink anything that does not already point at this executable,
+                // including stale links left by moved or removed app copies.
+                let destination = symbolicLinkDestinationURL(existingSymbolicLink, relativeTo: target)
+                if destination.resolvingSymlinksInPath().path != source.path {
+                    try FileManager.default.removeItem(at: target)
+                }
+            }
+            else {
                 throw PNError.diskError("\(target.path) already exists. Re-run with --force to replace it.")
             }
-            try FileManager.default.removeItem(at: target)
         }
-        try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try FileManager.default.createSymbolicLink(at: target, withDestinationURL: source)
+        if !FileManager.default.fileExists(atPath: target.path) && existingSymbolicLinkDestination(at: target) == nil {
+            try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try FileManager.default.createSymbolicLink(at: target, withDestinationURL: source)
+            didLink = true
+        }
+        let shouldUpdateShellProfile = target.deletingLastPathComponent().standardizedFileURL.path == installDirectory.standardizedFileURL.path
+        let didUpdateShellProfile = shouldUpdateShellProfile
+            ? try ensureZshProfileContainsInstallPath(installDirectory)
+            : false
         let result = PNInstallResult(source: source.path, target: target.path)
-        emit(result, human: "Linked \(target.path) -> \(source.path)")
+        var lines = didLink
+            ? ["Linked \(target.path) -> \(source.path)"]
+            : ["Link already up to date at \(target.path) -> \(source.path)"]
+        if didUpdateShellProfile {
+            lines.append("Updated ~/.zprofile to include \(target.deletingLastPathComponent().path) in PATH")
+        }
+        emit(result, human: lines.joined(separator: "\n"))
+    }
+
+    private func defaultInstallDirectory() -> URL {
+        realHomeDirectory().appendingPathComponent(".local/bin", isDirectory: true)
+    }
+
+    // When spawned from the sandboxed app, HOME points to the app container;
+    // resolve the user's real home directory instead.
+    private func realHomeDirectory() -> URL {
+        if let home = getpwuid(getuid())?.pointee.pw_dir {
+            return URL(fileURLWithPath: String(cString: home), isDirectory: true)
+        }
+        return FileManager.default.homeDirectoryForCurrentUser
+    }
+
+    private func existingSymbolicLinkDestination(at url: URL) -> String? {
+        try? FileManager.default.destinationOfSymbolicLink(atPath: url.path)
+    }
+
+    private func symbolicLinkDestinationURL(_ destination: String, relativeTo linkURL: URL) -> URL {
+        let destinationURL = destination.hasPrefix("/")
+            ? URL(fileURLWithPath: destination)
+            : linkURL.deletingLastPathComponent().appendingPathComponent(destination)
+        return destinationURL.standardizedFileURL
+    }
+
+    private func ensureZshProfileContainsInstallPath(_ installDirectory: URL) throws -> Bool {
+        if try zshPATHContainsInstallDirectory(installDirectory) {
+            return false
+        }
+
+        let profileURL = realHomeDirectory()
+            .appendingPathComponent(".zprofile", isDirectory: false)
+        let commentLine = "# Added by Planet to make the pn CLI available in Terminal."
+        let exportLine = #"export PATH="$HOME/.local/bin:$PATH""#
+        var contents = ""
+
+        if FileManager.default.fileExists(atPath: profileURL.path) {
+            contents = try String(contentsOf: profileURL, encoding: .utf8)
+            if contents.contains(exportLine) {
+                return false
+            }
+        }
+
+        if !contents.isEmpty && !contents.hasSuffix("\n") {
+            contents.append("\n")
+        }
+        if !contents.isEmpty {
+            contents.append("\n")
+        }
+        contents.append(commentLine)
+        contents.append("\n")
+        contents.append(exportLine)
+        contents.append("\n")
+
+        try contents.write(to: profileURL, atomically: true, encoding: .utf8)
+        return true
+    }
+
+    private func zshPATHContainsInstallDirectory(_ installDirectory: URL) throws -> Bool {
+        let process = Process()
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+        let pathMarkerStart = "__PLANET_PN_PATH_START__"
+        let pathMarkerEnd = "__PLANET_PN_PATH_END__"
+        process.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        process.arguments = [
+            "-lic",
+            #"printf "\n__PLANET_PN_PATH_START__%s__PLANET_PN_PATH_END__\n" "$PATH""#,
+        ]
+        process.environment = [
+            "HOME": realHomeDirectory().path,
+            "LOGNAME": NSUserName(),
+            "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+            "SHELL": "/bin/zsh",
+            "USER": NSUserName(),
+        ]
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
+
+        try process.run()
+        process.waitUntilExit()
+
+        let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: outputData, encoding: .utf8) ?? ""
+        guard process.terminationStatus == 0 else {
+            let error = String(data: errorData, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            throw PNError.diskError(error?.pnNilIfEmpty ?? output.trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+        guard
+            let pathStartRange = output.range(of: pathMarkerStart),
+            let pathEndRange = output.range(of: pathMarkerEnd, range: pathStartRange.upperBound..<output.endIndex)
+        else {
+            throw PNError.diskError("Could not read shell PATH.")
+        }
+        let path = String(output[pathStartRange.upperBound..<pathEndRange.lowerBound])
+        return pathList(path, contains: installDirectory)
+    }
+
+    private func pathList(_ pathList: String, contains targetURL: URL) -> Bool {
+        let targetPath = targetURL.standardizedFileURL.path
+        return pathList.split(separator: ":").contains { item in
+            let expandedPath = NSString(string: String(item)).expandingTildeInPath
+            return URL(fileURLWithPath: expandedPath).standardizedFileURL.path == targetPath
+        }
     }
 
     private func runStatus() throws {
@@ -880,7 +1015,7 @@ final class PNCommandRunner {
             Commands:
               help [command]
               version
-              install [--to /usr/local/bin] [--force]
+              install [--to ~/.local/bin] [--force]
               status
               api status
               api start [--port 8086] [--wait 10]

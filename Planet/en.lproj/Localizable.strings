@@ -10,6 +10,15 @@
 
 "Writer" = "";
 "Tools" = "";
+"Install CLI" = "";
+"CLI Already Installed" = "";
+"CLI Installed" = "";
+"Failed to Install CLI" = "";
+"Install the pn CLI to ~/.local/bin so it becomes available in Terminal?" = "";
+"A symbolic link for pn is already installed at ~/.local/bin/pn and can be used in Terminal." = "";
+"A symbolic link for pn has been installed at ~/.local/bin/pn and can be used in Terminal." = "";
+"The bundled pn helper could not be found." = "";
+"pn install failed." = "";
 "Template Browser" = "";
 "Downloads" = "";
 "Publish My Planets" = "";
@@ -270,6 +279,7 @@
 "Add Attachments" = "";
 "Or drag and drop images here." = "";
 "Cancel" = "";
+"Install" = "";
 "Post" = "";
 "Please scan the QR code with your wallet app" = "";
 "Copy URL" = "";
@@ -567,6 +577,7 @@
 "Open Local Gateway" = "Open Local Gateway";
 "Open Permalink in Browser" = "Open Permalink in Browser";
 "Open Shareable Link in Browser" = "Open Shareable Link in Browser";
+"Open Terminal" = "Open Terminal";
 "Open Template Folder in iTerm" = "Open Template Folder in iTerm";
 "Open in Terminal" = "Open in Terminal";
 "Open in Tower" = "Open in Tower";

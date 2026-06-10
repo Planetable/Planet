@@ -8,7 +8,7 @@ The initial scope is a Content MVP: inspect and mutate local planets and article
 
 `pn` is a macOS command-line target in `Planet.xcodeproj` with `MACOSX_DEPLOYMENT_TARGET = 12.0`.
 
-The main `Planet` scheme builds the CLI target, the app target has an explicit dependency on `pn`, and the app copies the built executable into `Contents/Helpers` during the app build. The CLI should not be auto-installed into `/usr/local/bin` as part of every build. Users can opt in with `pn install`.
+The main `Planet` scheme builds the CLI target, the app target has an explicit dependency on `pn`, and the app copies the built executable into `Contents/Helpers` during the app build. The CLI should not be auto-installed into `~/.local/bin` as part of every build. Users can opt in with `pn install`.
 
 When editing the project file for this target, use the `xcodeproj` Ruby gem rather than editing `project.pbxproj` by hand.
 
@@ -146,7 +146,7 @@ Commands:
 ```
 pn help [command]
 pn version
-pn install [--to /usr/local/bin] [--force]
+pn install [--to ~/.local/bin] [--force]
 pn status
 pn api status
 pn api start [--port 8086] [--wait 10]
@@ -196,10 +196,10 @@ In API mode the app serves reads and planet deletion for archived planets, but r
 The bundled helper can install itself by creating a symlink:
 
 ```
-Planet.app/Contents/Helpers/pn install --to /usr/local/bin
+Planet.app/Contents/Helpers/pn install --to ~/.local/bin
 ```
 
-Use `--force` to replace an existing target symlink or file. The install command points the destination to the currently running `pn` executable, so it works from the app bundle and from a development build.
+The install command points the destination to the currently running `pn` executable, so it works from the app bundle and from a development build. An existing symlink that points at a different executable is replaced automatically, so stale links from moved or removed app copies heal on reinstall; a regular file at the target is only replaced with `--force`. When installing to the default `~/.local/bin`, `pn install` checks the user's login zsh `PATH` and appends a commented `~/.zprofile` entry if needed. The app menu install path relies on Planet's sandbox home-relative exception for `~/.local` and `~/.zprofile`.
 
 ## Verification
 

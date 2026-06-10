@@ -205,6 +205,12 @@ class KeyboardShortcutHelper: ObservableObject {
                 apiConsoleMenus()
 
                 Button {
+                    self.installCLIAction()
+                } label: {
+                    Text("Install CLI")
+                }
+
+                Button {
                     AppLogWindowManager.shared.open()
                 } label: {
                     Text("Log")
@@ -327,6 +333,138 @@ class KeyboardShortcutHelper: ObservableObject {
                 }
             }
         }
+    }
+
+    private func installCLIAction() {
+        if installedCLILinksToBundledCLI {
+            do {
+                try runCLIInstall()
+                presentCLIAlreadyInstalledAlert()
+            }
+            catch {
+                presentCLIInstallError(error)
+            }
+            return
+        }
+
+        let alert = NSAlert()
+        alert.messageText = L10n("Install CLI")
+        alert.informativeText = L10n("Install the pn CLI to ~/.local/bin so it becomes available in Terminal?")
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: L10n("Install"))
+        alert.addButton(withTitle: L10n("Cancel"))
+
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+        do {
+            try runCLIInstall()
+            presentCLIInstalledAlert(
+                messageText: L10n("CLI Installed"),
+                informativeText: L10n("A symbolic link for pn has been installed at ~/.local/bin/pn and can be used in Terminal.")
+            )
+        }
+        catch {
+            presentCLIInstallError(error)
+        }
+    }
+
+    private var installedCLILinksToBundledCLI: Bool {
+        guard let destination = try? FileManager.default.destinationOfSymbolicLink(atPath: cliInstallURL.path) else {
+            return false
+        }
+        let destinationURL = destination.hasPrefix("/")
+            ? URL(fileURLWithPath: destination)
+            : cliInstallURL.deletingLastPathComponent().appendingPathComponent(destination)
+        return destinationURL.standardizedFileURL.resolvingSymlinksInPath().path
+            == bundledCLIURL.resolvingSymlinksInPath().path
+    }
+
+    private var cliInstallDirectory: URL {
+        cliRealHomeDirectory.appendingPathComponent(".local/bin", isDirectory: true)
+    }
+
+    // In the sandbox, homeDirectoryForCurrentUser points to the app container;
+    // the CLI must be installed relative to the user's real home directory.
+    private var cliRealHomeDirectory: URL {
+        if let home = getpwuid(getuid())?.pointee.pw_dir {
+            return URL(fileURLWithPath: String(cString: home), isDirectory: true)
+        }
+        return FileManager.default.homeDirectoryForCurrentUser
+    }
+
+    private var cliInstallURL: URL {
+        cliInstallDirectory.appendingPathComponent("pn", isDirectory: false)
+    }
+
+    // pn is embedded in Contents/Helpers, which url(forAuxiliaryExecutable:)
+    // does not search.
+    private var bundledCLIURL: URL {
+        Bundle.main.bundleURL
+            .appendingPathComponent("Contents/Helpers/pn", isDirectory: false)
+    }
+
+    private func runCLIInstall() throws {
+        let cliURL = bundledCLIURL
+        guard FileManager.default.isExecutableFile(atPath: cliURL.path) else {
+            throw CLIInstallError.helperNotFound
+        }
+
+        let process = Process()
+        let outputPipe = Pipe()
+        process.executableURL = cliURL
+        process.arguments = ["install", "--to", cliInstallDirectory.path]
+        process.standardOutput = outputPipe
+        process.standardError = outputPipe
+
+        try process.run()
+        process.waitUntilExit()
+
+        let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: outputData, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard process.terminationStatus == 0 else {
+            throw CLIInstallError.installFailed(output ?? L10n("pn install failed."))
+        }
+    }
+
+    private func presentCLIAlreadyInstalledAlert() {
+        presentCLIInstalledAlert(
+            messageText: L10n("CLI Already Installed"),
+            informativeText: L10n("A symbolic link for pn is already installed at ~/.local/bin/pn and can be used in Terminal.")
+        )
+    }
+
+    private func presentCLIInstallError(_ error: Error) {
+        let alert = NSAlert()
+        alert.messageText = L10n("Failed to Install CLI")
+        alert.informativeText = error.localizedDescription
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: L10n("OK"))
+        alert.runModal()
+    }
+
+    private func presentCLIInstalledAlert(messageText: String, informativeText: String) {
+        let alert = NSAlert()
+        alert.messageText = messageText
+        alert.informativeText = informativeText
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: L10n("OK"))
+        alert.addButton(withTitle: L10n("Open Terminal"))
+
+        if alert.runModal() == .alertSecondButtonReturn {
+            openTerminal()
+        }
+    }
+
+    private func openTerminal() {
+        guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Terminal") else {
+            return
+        }
+
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+        NSWorkspace.shared.openApplication(at: appURL, configuration: configuration, completionHandler: nil)
     }
 
     // MARK: -
@@ -505,5 +643,19 @@ class KeyboardShortcutHelper: ObservableObject {
     @ViewBuilder
     private func apiConsoleMenus() -> some View {
         PlanetAPIConsoleWindowManager.shared.consoleCommandMenu()
+    }
+}
+
+private enum CLIInstallError: LocalizedError {
+    case helperNotFound
+    case installFailed(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .helperNotFound:
+            return L10n("The bundled pn helper could not be found.")
+        case .installFailed(let output):
+            return output.isEmpty ? L10n("pn install failed.") : output
+        }
     }
 }
