@@ -1803,44 +1803,483 @@ struct ArticleAIChatView: View {
         )
     }
 
-    private static let latexSymbolMap: [(pattern: String, replacement: String)] = [
-        (#"$\approx$"#, "≈"),
-        (#"$\rightarrow$"#, "→"),
-        (#"$\leftarrow$"#, "←"),
-        (#"$\leftrightarrow$"#, "↔"),
-        (#"$\Rightarrow$"#, "⇒"),
-        (#"$\Leftarrow$"#, "⇐"),
-        (#"$\uparrow$"#, "↑"),
-        (#"$\downarrow$"#, "↓"),
-        (#"$\times$"#, "×"),
-        (#"$\div$"#, "÷"),
-        (#"$\pm$"#, "±"),
-        (#"$\neq$"#, "≠"),
-        (#"$\leq$"#, "≤"),
-        (#"$\geq$"#, "≥"),
-        (#"$\infty$"#, "∞"),
-        (#"$\alpha$"#, "α"),
-        (#"$\beta$"#, "β"),
-        (#"$\gamma$"#, "γ"),
-        (#"$\delta$"#, "δ"),
-        (#"$\pi$"#, "π"),
-        (#"$\sum$"#, "∑"),
-        (#"$\prod$"#, "∏"),
-        (#"$\sqrt$"#, "√"),
-        (#"$\degree$"#, "°"),
-        (#"$\cdot$"#, "·"),
-        (#"$\ldots$"#, "…"),
-        (#"$\sim$"#, "∼"),
+    // MARK: - LaTeX math normalization
+    //
+    // Models like Gemma emit inline TeX math such as `$x \cdot y = k$` or
+    // `$\frac{V2EX \text{ 数量}}{SOL \text{ 数量}} \times 1$`. The chat renderer is
+    // plain-text based, so math spans are converted to Unicode text. The same
+    // models also use dollar-prefixed cashtags like `$V2EX`, so a `$...$` span is
+    // only treated as math when it contains a known TeX command.
+
+    private static let latexSymbolCommands: [String: String] = [
+        // Operators and relations
+        "times": "×", "div": "÷", "cdot": "·", "pm": "±", "mp": "∓",
+        "neq": "≠", "ne": "≠", "leq": "≤", "le": "≤", "geq": "≥", "ge": "≥",
+        "approx": "≈", "equiv": "≡", "sim": "∼", "simeq": "≃", "cong": "≅",
+        "propto": "∝", "ll": "≪", "gg": "≫", "ast": "∗", "star": "⋆",
+        "bullet": "•", "circ": "∘", "oplus": "⊕", "otimes": "⊗",
+        // Arrows
+        "rightarrow": "→", "to": "→", "leftarrow": "←", "gets": "←",
+        "leftrightarrow": "↔", "Rightarrow": "⇒", "implies": "⇒",
+        "Leftarrow": "⇐", "Leftrightarrow": "⇔", "iff": "⇔",
+        "uparrow": "↑", "downarrow": "↓", "mapsto": "↦",
+        // Sets and logic
+        "in": "∈", "notin": "∉", "subset": "⊂", "supset": "⊃",
+        "subseteq": "⊆", "supseteq": "⊇", "cup": "∪", "cap": "∩",
+        "emptyset": "∅", "varnothing": "∅", "forall": "∀", "exists": "∃",
+        "neg": "¬", "land": "∧", "lor": "∨", "setminus": "∖",
+        // Calculus and misc
+        "infty": "∞", "partial": "∂", "nabla": "∇", "sum": "∑", "prod": "∏",
+        "int": "∫", "oint": "∮", "degree": "°", "ldots": "…", "cdots": "⋯",
+        "dots": "…", "vdots": "⋮", "prime": "′", "angle": "∠", "perp": "⊥",
+        "parallel": "∥", "therefore": "∴", "because": "∵",
+        // Greek
+        "alpha": "α", "beta": "β", "gamma": "γ", "delta": "δ",
+        "epsilon": "ε", "varepsilon": "ε", "zeta": "ζ", "eta": "η",
+        "theta": "θ", "vartheta": "ϑ", "iota": "ι", "kappa": "κ",
+        "lambda": "λ", "mu": "μ", "nu": "ν", "xi": "ξ", "pi": "π",
+        "rho": "ρ", "sigma": "σ", "varsigma": "ς", "tau": "τ",
+        "upsilon": "υ", "phi": "φ", "varphi": "φ", "chi": "χ",
+        "psi": "ψ", "omega": "ω",
+        "Gamma": "Γ", "Delta": "Δ", "Theta": "Θ", "Lambda": "Λ", "Xi": "Ξ",
+        "Pi": "Π", "Sigma": "Σ", "Upsilon": "Υ", "Phi": "Φ", "Psi": "Ψ",
+        "Omega": "Ω",
+        // Function names render as themselves
+        "log": "log", "ln": "ln", "lg": "lg", "exp": "exp",
+        "sin": "sin", "cos": "cos", "tan": "tan", "cot": "cot",
+        "sec": "sec", "csc": "csc", "arcsin": "arcsin", "arccos": "arccos",
+        "arctan": "arctan", "sinh": "sinh", "cosh": "cosh", "tanh": "tanh",
+        "lim": "lim", "min": "min", "max": "max", "sup": "sup", "inf": "inf",
+        "det": "det", "dim": "dim", "mod": "mod", "bmod": "mod", "gcd": "gcd",
+    ]
+
+    // Commands whose brace-group argument is kept as plain text, dropping the wrapper
+    private static let latexTextCommands: Set<String> = [
+        "text", "textbf", "textit", "texttt", "textrm", "textsf",
+        "mathrm", "mathbf", "mathit", "mathsf", "mathtt", "mathbb", "mathcal",
+        "boldsymbol", "operatorname", "mbox", "hbox",
+        "vec", "hat", "bar", "tilde", "overline", "underline",
+    ]
+
+    private static let latexIgnoredCommands: Set<String> = [
+        "left", "right", "displaystyle", "textstyle", "scriptstyle",
+        "limits", "nolimits",
+        "big", "Big", "bigg", "Bigg", "bigl", "bigr", "Bigl", "Bigr",
+        "biggl", "biggr", "Biggl", "Biggr",
+    ]
+
+    private static let latexSpacingCommands: Set<String> = [
+        "quad", "qquad", "enspace", "thinspace",
+    ]
+
+    private static let knownLatexCommands: Set<String> = {
+        var names = Set(latexSymbolCommands.keys)
+        names.formUnion(latexTextCommands)
+        names.formUnion(latexIgnoredCommands)
+        names.formUnion(latexSpacingCommands)
+        names.formUnion(["frac", "dfrac", "tfrac", "sqrt"])
+        return names
+    }()
+
+    private static let latexSuperscriptMap: [Character: Character] = [
+        "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵",
+        "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
+        "+": "⁺", "-": "⁻", "=": "⁼", "(": "⁽", ")": "⁾", "n": "ⁿ", "i": "ⁱ",
+    ]
+
+    private static let latexSubscriptMap: [Character: Character] = [
+        "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄", "5": "₅",
+        "6": "₆", "7": "₇", "8": "₈", "9": "₉",
+        "+": "₊", "-": "₋", "=": "₌", "(": "₍", ")": "₎",
+        "a": "ₐ", "e": "ₑ", "h": "ₕ", "k": "ₖ", "l": "ₗ", "m": "ₘ",
+        "n": "ₙ", "o": "ₒ", "p": "ₚ", "s": "ₛ", "t": "ₜ", "x": "ₓ",
     ]
 
     private func normalizedMessageContent(_ content: String) -> String {
-        var result = content
+        let unified = content
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
-        for entry in Self.latexSymbolMap {
-            result = result.replacingOccurrences(of: entry.pattern, with: entry.replacement)
+        return Self.normalizeLatexMarkup(in: unified)
+    }
+
+    private static func normalizeLatexMarkup(in content: String) -> String {
+        guard content.contains("$") || content.contains("\\") else {
+            return content
+        }
+        var output: [String] = []
+        var inCodeFence = false
+        var inMathBlock = false
+        for line in content.components(separatedBy: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if inCodeFence {
+                output.append(line)
+                if trimmed.hasPrefix("```") || trimmed.hasPrefix("~~~") {
+                    inCodeFence = false
+                }
+                continue
+            }
+            if inMathBlock {
+                if trimmed == "$$" || trimmed == #"\]"# {
+                    inMathBlock = false
+                    continue
+                }
+                output.append(convertLatexMath(line))
+                continue
+            }
+            if trimmed.hasPrefix("```") || trimmed.hasPrefix("~~~") {
+                inCodeFence = true
+                output.append(line)
+                continue
+            }
+            if trimmed == "$$" || trimmed == #"\["# {
+                inMathBlock = true
+                continue
+            }
+            output.append(normalizeInlineLatex(in: line))
+        }
+        return output.joined(separator: "\n")
+    }
+
+    private static func normalizeInlineLatex(in line: String) -> String {
+        guard line.contains("$") || line.contains(#"\("#) || line.contains(#"\["#) else {
+            return line
+        }
+        let chars = Array(line)
+        var result = ""
+        var inInlineCode = false
+        var i = 0
+
+        func indexOfClosingDelimiter(_ closer: Character, from start: Int) -> Int? {
+            var j = start
+            while j + 1 < chars.count {
+                if chars[j] == "\\", chars[j + 1] == closer {
+                    return j
+                }
+                j += 1
+            }
+            return nil
+        }
+
+        while i < chars.count {
+            let character = chars[i]
+            if character == "`" {
+                inInlineCode.toggle()
+                result.append(character)
+                i += 1
+                continue
+            }
+            if inInlineCode {
+                result.append(character)
+                i += 1
+                continue
+            }
+            if character == "\\", i + 1 < chars.count,
+                chars[i + 1] == "(" || chars[i + 1] == "["
+            {
+                let closer: Character = chars[i + 1] == "(" ? ")" : "]"
+                if let close = indexOfClosingDelimiter(closer, from: i + 2) {
+                    result.append(convertLatexMath(String(chars[(i + 2)..<close])))
+                    i = close + 2
+                    continue
+                }
+            }
+            if character == "$" {
+                if i + 1 < chars.count, chars[i + 1] == "$" {
+                    var j = i + 2
+                    var closing: Int?
+                    while j + 1 < chars.count {
+                        if chars[j] == "$", chars[j + 1] == "$" {
+                            closing = j
+                            break
+                        }
+                        j += 1
+                    }
+                    if let closing = closing {
+                        result.append(convertLatexMath(String(chars[(i + 2)..<closing])))
+                        i = closing + 2
+                        continue
+                    }
+                } else if let closing = chars[(i + 1)...].firstIndex(of: "$") {
+                    let span = String(chars[(i + 1)..<closing])
+                    if isLikelyLatexMathSpan(span) {
+                        result.append(convertLatexMath(span))
+                        i = closing + 1
+                        continue
+                    }
+                }
+                // Not math (likely a cashtag like $V2EX): keep the dollar sign
+                // and keep scanning after it, so a later math span still converts.
+                result.append(character)
+                i += 1
+                continue
+            }
+            result.append(character)
+            i += 1
         }
         return result
+    }
+
+    private static func isLikelyLatexMathSpan(_ span: String) -> Bool {
+        if containsKnownLatexCommand(span) {
+            return true
+        }
+        // Command-less math like `E = mc^2`, `10^{-3}` or `x_1 + x_2`: accept
+        // only strictly math-shaped spans with a superscript or subscript, so
+        // cashtags ($V2EX) and env-var mentions ($FOO_BAR) stay literal.
+        guard span.count <= 64 else {
+            return false
+        }
+        var hasScript = span.contains("^")
+        if !hasScript {
+            let chars = Array(span)
+            for (index, character) in chars.enumerated() where character == "_" {
+                guard index + 1 < chars.count else { break }
+                let next = chars[index + 1]
+                if next.isNumber || next == "{" {
+                    hasScript = true
+                    break
+                }
+            }
+        }
+        guard hasScript else {
+            return false
+        }
+        return span.allSatisfy { character in
+            if character.isASCII, character.isLetter || character.isNumber {
+                return true
+            }
+            return " +-*/=^_{}().,<>".contains(character)
+        }
+    }
+
+    private static func containsKnownLatexCommand(_ span: String) -> Bool {
+        guard span.contains("\\") else {
+            return false
+        }
+        let chars = Array(span)
+        var i = 0
+        while i < chars.count {
+            guard chars[i] == "\\" else {
+                i += 1
+                continue
+            }
+            var name = ""
+            var j = i + 1
+            while j < chars.count, chars[j].isLetter, chars[j].isASCII {
+                name.append(chars[j])
+                j += 1
+            }
+            if knownLatexCommands.contains(name) {
+                return true
+            }
+            i = max(j, i + 1)
+        }
+        return false
+    }
+
+    private static func convertLatexMath(_ content: String) -> String {
+        let chars = Array(content)
+        var i = 0
+        return collapseLatexSpaces(convertLatexExpression(chars, &i))
+    }
+
+    private static func convertLatexExpression(_ chars: [Character], _ i: inout Int) -> String {
+        var out = ""
+        while i < chars.count {
+            let character = chars[i]
+            switch character {
+            case "\\":
+                guard i + 1 < chars.count else {
+                    out.append(character)
+                    i += 1
+                    continue
+                }
+                let next = chars[i + 1]
+                if next.isLetter, next.isASCII {
+                    i += 1
+                    var name = ""
+                    while i < chars.count, chars[i].isLetter, chars[i].isASCII {
+                        name.append(chars[i])
+                        i += 1
+                    }
+                    out.append(convertLatexCommand(name, chars, &i))
+                } else {
+                    i += 2
+                    switch next {
+                    case "$", "%", "_", "{", "}", "&", "#":
+                        out.append(next)
+                    case ",", ";", ":", " ", "\\":
+                        out.append(" ")
+                    case "!":
+                        break
+                    default:
+                        out.append("\\")
+                        out.append(next)
+                    }
+                }
+            case "{":
+                out.append(parseLatexGroup(chars, &i))
+            case "}":
+                i += 1
+            case "^", "_":
+                i += 1
+                let operand = parseLatexArgument(chars, &i)
+                out.append(formatLatexScript(operand, isSuperscript: character == "^"))
+            case "~":
+                out.append(" ")
+                i += 1
+            default:
+                out.append(character)
+                i += 1
+            }
+        }
+        return out
+    }
+
+    private static func parseLatexGroup(_ chars: [Character], _ i: inout Int) -> String {
+        // Expects chars[i] == "{"; returns the converted inner content.
+        i += 1
+        var depth = 1
+        var inner: [Character] = []
+        while i < chars.count {
+            let character = chars[i]
+            if character == "{" {
+                depth += 1
+            } else if character == "}" {
+                depth -= 1
+                if depth == 0 {
+                    i += 1
+                    break
+                }
+            }
+            inner.append(character)
+            i += 1
+        }
+        var innerIndex = 0
+        return convertLatexExpression(inner, &innerIndex)
+    }
+
+    private static func parseLatexArgument(_ chars: [Character], _ i: inout Int) -> String {
+        while i < chars.count, chars[i] == " " {
+            i += 1
+        }
+        guard i < chars.count else {
+            return ""
+        }
+        if chars[i] == "{" {
+            return parseLatexGroup(chars, &i)
+        }
+        if chars[i] == "\\", i + 1 < chars.count, chars[i + 1].isLetter, chars[i + 1].isASCII {
+            i += 1
+            var name = ""
+            while i < chars.count, chars[i].isLetter, chars[i].isASCII {
+                name.append(chars[i])
+                i += 1
+            }
+            return convertLatexCommand(name, chars, &i)
+        }
+        let character = chars[i]
+        i += 1
+        return String(character)
+    }
+
+    private static func convertLatexCommand(_ name: String, _ chars: [Character], _ i: inout Int) -> String {
+        if latexTextCommands.contains(name) {
+            var j = i
+            while j < chars.count, chars[j] == " " {
+                j += 1
+            }
+            guard j < chars.count, chars[j] == "{" else {
+                return ""
+            }
+            i = j
+            return parseLatexGroup(chars, &i)
+        }
+        switch name {
+        case "frac", "dfrac", "tfrac":
+            let numerator = latexFractionOperand(parseLatexArgument(chars, &i))
+            let denominator = latexFractionOperand(parseLatexArgument(chars, &i))
+            return "\(numerator)/\(denominator)"
+        case "sqrt":
+            var j = i
+            while j < chars.count, chars[j] == " " {
+                j += 1
+            }
+            if j < chars.count, chars[j] == "[" {
+                while j < chars.count, chars[j] != "]" {
+                    j += 1
+                }
+                i = min(j + 1, chars.count)
+            }
+            let radicand = collapseLatexSpaces(parseLatexArgument(chars, &i))
+            if radicand.isEmpty {
+                return "√"
+            }
+            return radicand.contains(" ") ? "√(\(radicand))" : "√\(radicand)"
+        default:
+            break
+        }
+        if latexIgnoredCommands.contains(name) {
+            return ""
+        }
+        if latexSpacingCommands.contains(name) {
+            return " "
+        }
+        if let symbol = latexSymbolCommands[name] {
+            return symbol
+        }
+        return "\\\(name)"
+    }
+
+    private static func latexFractionOperand(_ value: String) -> String {
+        let trimmed = collapseLatexSpaces(value)
+        guard trimmed.count > 1 else {
+            return trimmed
+        }
+        let needsParentheses = trimmed.contains { " +-±×·÷/=".contains($0) }
+        return needsParentheses ? "(\(trimmed))" : trimmed
+    }
+
+    private static func formatLatexScript(_ content: String, isSuperscript: Bool) -> String {
+        let trimmed = content.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else {
+            return ""
+        }
+        if isSuperscript, trimmed == "∘" {
+            return "°"
+        }
+        let map = isSuperscript ? latexSuperscriptMap : latexSubscriptMap
+        var mapped = ""
+        var isFullyMapped = true
+        for character in trimmed {
+            guard let replacement = map[character] else {
+                isFullyMapped = false
+                break
+            }
+            mapped.append(replacement)
+        }
+        if isFullyMapped {
+            return mapped
+        }
+        let marker = isSuperscript ? "^" : "_"
+        return trimmed.count == 1 ? "\(marker)\(trimmed)" : "\(marker)(\(trimmed))"
+    }
+
+    private static func collapseLatexSpaces(_ value: String) -> String {
+        var out = ""
+        var previousWasSpace = false
+        for character in value {
+            if character == " " {
+                if !previousWasSpace {
+                    out.append(character)
+                }
+                previousWasSpace = true
+            } else {
+                out.append(character)
+                previousWasSpace = false
+            }
+        }
+        return out.trimmingCharacters(in: .whitespaces)
     }
 
     private func assistantMessageBlocks(_ content: String) -> [ArticleAIMessageBlock] {
