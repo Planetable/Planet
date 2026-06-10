@@ -48,16 +48,47 @@ enum PNAppBridge {
         return URL(fileURLWithPath: String(cString: buffer)).resolvingSymlinksInPath()
     }
 
-    static var appResourcesURL: URL? {
+    static var appBundleURL: URL? {
         let executable = executableURL
         let helpers = executable.deletingLastPathComponent()
         if helpers.lastPathComponent == "Helpers" {
             let contents = helpers.deletingLastPathComponent()
-            let resources = contents.appendingPathComponent("Resources", isDirectory: true)
+            let app = contents.deletingLastPathComponent()
+            if app.pathExtension == "app", FileManager.default.fileExists(atPath: app.path) {
+                return app
+            }
+        }
+        let siblingApp = executable
+            .deletingLastPathComponent()
+            .appendingPathComponent("Planet.app", isDirectory: true)
+        if FileManager.default.fileExists(atPath: siblingApp.path) {
+            return siblingApp
+        }
+        return nil
+    }
+
+    static var appInfoDictionary: [String: Any]? {
+        guard let infoURL = appBundleURL?
+            .appendingPathComponent("Contents", isDirectory: true)
+            .appendingPathComponent("Info.plist", isDirectory: false),
+              let data = try? Data(contentsOf: infoURL),
+              let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+        else {
+            return nil
+        }
+        return plist as? [String: Any]
+    }
+
+    static var appResourcesURL: URL? {
+        if let appBundleURL {
+            let resources = appBundleURL
+                .appendingPathComponent("Contents", isDirectory: true)
+                .appendingPathComponent("Resources", isDirectory: true)
             if FileManager.default.fileExists(atPath: resources.path) {
                 return resources
             }
         }
+        let executable = executableURL
         let siblingAppResources = executable
             .deletingLastPathComponent()
             .appendingPathComponent("Planet.app", isDirectory: true)

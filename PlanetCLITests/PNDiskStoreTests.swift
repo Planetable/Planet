@@ -339,6 +339,24 @@ final class PNDiskStoreTests: XCTestCase {
         XCTAssertEqual(parsed.arguments, ["planet", "list"])
     }
 
+    func testVersionStringPrefersPlanetAppMarketingVersion() throws {
+        let version = PNCommandRunner.versionString(
+            appInfo: ["CFBundleShortVersionString": "0.22.3"],
+            bundleInfo: ["CFBundleShortVersionString": "0.1.0"]
+        )
+
+        XCTAssertEqual(version, "0.22.3")
+    }
+
+    func testVersionStringFallsBackToCLIBundleVersion() throws {
+        let version = PNCommandRunner.versionString(
+            appInfo: nil,
+            bundleInfo: ["CFBundleShortVersionString": "0.22.3"]
+        )
+
+        XCTAssertEqual(version, "0.22.3")
+    }
+
     private func makeJPEGWithGPSFixture(named name: String, in sandbox: PNTestSandbox) throws -> URL {
         let base = try sandbox.makeImageFixture(name: "base-\(name)", width: 40, height: 40)
         let data = try Data(contentsOf: base)

@@ -74,6 +74,25 @@ final class PNCommandRunner {
         self.options = options
     }
 
+    private static var currentVersion: String {
+        versionString(appInfo: PNAppBridge.appInfoDictionary, bundleInfo: Bundle.main.infoDictionary)
+    }
+
+    static func versionString(appInfo: [String: Any]?, bundleInfo: [String: Any]?) -> String {
+        version(in: appInfo) ?? version(in: bundleInfo) ?? "unknown"
+    }
+
+    private static func version(in info: [String: Any]?) -> String? {
+        for key in ["CFBundleShortVersionString", "CFBundleVersion"] {
+            guard let value = info?[key] as? String else { continue }
+            let version = value.pnTrimmed
+            if !version.isEmpty {
+                return version
+            }
+        }
+        return nil
+    }
+
     static func run(rawArguments: [String]) -> Int32 {
         do {
             let parsed = try parseGlobalOptions(rawArguments)
@@ -145,7 +164,8 @@ final class PNCommandRunner {
             print(helpText(topic: arguments.pop()))
         case "version":
             try arguments.ensureNoExtras()
-            emit(["pn": "0.1.0"], human: "pn 0.1.0")
+            let version = Self.currentVersion
+            emit(["pn": version], human: "pn \(version)")
         case "install":
             try runInstall(arguments: arguments)
         case "status":
