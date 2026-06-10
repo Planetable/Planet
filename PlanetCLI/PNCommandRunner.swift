@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 
 enum PNBackend {
@@ -57,6 +58,7 @@ struct PNArguments {
 
 final class PNCommandRunner {
     let options: PNGlobalOptions
+    private var ensuredClient: PNAPIClient?
     lazy var disk: PNDiskStore = {
         PNDiskStore(root: PNPreferences.libraryURL(override: options.libraryOverride))
     }()
@@ -186,7 +188,7 @@ final class PNCommandRunner {
         let client = shouldCheckAPI ? makeAPIClient() : nil
         var apiReachable = false
         if let client {
-            apiReachable = client.ping()
+            apiReachable = client.isReachable()
         }
         if let client, appRunning, !apiReachable {
             try PNAppBridge.openAPIStart(port: client.baseURL.port ?? PNPreferences.apiPort())
@@ -223,19 +225,30 @@ final class PNCommandRunner {
         case "status":
             try arguments.ensureNoExtras()
             let client = makeAPIClient()
-            let reachable = client.ping()
-            emit(PNAPIStatus(reachable: reachable, url: client.baseURL.absoluteString), human: "API \(reachable ? "running" : "stopped") at \(client.baseURL.absoluteString)")
+            let state = client.probe()
+            let reachable = state != .unreachable
+            let authRequired = state == .unauthorized
+            let human: String
+            if reachable {
+                human = "API running at \(client.baseURL.absoluteString)\(authRequired ? " (authentication required)" : "")"
+            } else {
+                human = "API stopped at \(client.baseURL.absoluteString)"
+            }
+            emit(PNAPIStatus(reachable: reachable, url: client.baseURL.absoluteString, authRequired: authRequired), human: human)
         case "start":
             let port = Int(try arguments.option("--port") ?? String(PNPreferences.apiPort())) ?? PNPreferences.apiPort()
             let wait = TimeInterval(try arguments.option("--wait") ?? "10") ?? 10
             try arguments.ensureNoExtras()
             try PNAppBridge.openAPIStart(port: port)
             let client = PNAPIClient(baseURL: URL(string: "http://127.0.0.1:\(port)")!, timeout: options.timeout)
-            let reachable = client.waitUntilReachable(seconds: wait)
-            guard reachable else {
+            guard client.waitUntilReachable(seconds: wait) else {
                 throw PNError.apiUnavailable("Planet API did not become reachable at port \(port).")
             }
-            emit(PNAPIStatus(reachable: true, url: client.baseURL.absoluteString), human: "API running at \(client.baseURL.absoluteString)")
+            let authRequired = client.probe() == .unauthorized
+            emit(
+                PNAPIStatus(reachable: true, url: client.baseURL.absoluteString, authRequired: authRequired),
+                human: "API running at \(client.baseURL.absoluteString)\(authRequired ? " (authentication required)" : "")"
+            )
         case "stop":
             try arguments.ensureNoExtras()
             try PNAppBridge.openAPIStop()
@@ -458,15 +471,67 @@ final class PNCommandRunner {
     }
 
     private func ensuredAPIClient() throws -> PNAPIClient {
+        if let ensuredClient {
+            return ensuredClient
+        }
         let client = makeAPIClient()
-        if client.ping() {
-            return client
+        var state = client.probe()
+        if state == .unreachable {
+            try PNAppBridge.openAPIStart(port: client.baseURL.port ?? PNPreferences.apiPort())
+            guard client.waitUntilReachable(seconds: options.timeout) else {
+                throw PNError.apiUnavailable("Planet API is not reachable at \(client.baseURL.absoluteString).")
+            }
+            state = client.probe()
         }
-        try PNAppBridge.openAPIStart(port: client.baseURL.port ?? PNPreferences.apiPort())
-        guard client.waitUntilReachable(seconds: options.timeout) else {
-            throw PNError.apiUnavailable("Planet API is not reachable at \(client.baseURL.absoluteString).")
+        if state == .unauthorized {
+            try authenticateAPIClient(client)
         }
+        ensuredClient = client
         return client
+    }
+
+    private func authenticateAPIClient(_ client: PNAPIClient) throws {
+        let environment = ProcessInfo.processInfo.environment
+        let defaultUsername = environment["PN_API_USERNAME"]?.pnNilIfEmpty ?? "Planet"
+
+        if let passcode = environment["PN_API_PASSCODE"]?.pnNilIfEmpty {
+            client.credentials = (defaultUsername, passcode)
+            if client.probe() == .ok {
+                return
+            }
+            client.credentials = nil
+        }
+
+        guard isatty(STDIN_FILENO) != 0 else {
+            throw PNError.apiUnavailable("Planet API requires authentication. Set PN_API_USERNAME and PN_API_PASSCODE, or run pn in an interactive terminal.")
+        }
+
+        for _ in 0..<3 {
+            let username = promptLine("Username [\(defaultUsername)]: ")?.pnNilIfEmpty ?? defaultUsername
+            guard let passcode = promptSecret("Passcode: ")?.pnNilIfEmpty else {
+                throw PNError.apiUnavailable("Planet API authentication cancelled.")
+            }
+            client.credentials = (username, passcode)
+            if client.probe() == .ok {
+                return
+            }
+            FileHandle.standardError.write(Data("pn: invalid username or passcode, try again.\n".utf8))
+        }
+        client.credentials = nil
+        throw PNError.apiUnavailable("Planet API authentication failed after 3 attempts.")
+    }
+
+    private func promptLine(_ prompt: String) -> String? {
+        FileHandle.standardError.write(Data(prompt.utf8))
+        return readLine()
+    }
+
+    private func promptSecret(_ prompt: String) -> String? {
+        var buffer = [CChar](repeating: 0, count: 1024)
+        guard let raw = readpassphrase(prompt, &buffer, buffer.count, 0) else {
+            return nil
+        }
+        return String(cString: raw)
     }
 
     private func selectedPlanets(includeAll: Bool, archived: Bool) throws -> [PNPlanetRecord] {
@@ -489,12 +554,7 @@ final class PNCommandRunner {
     }
 
     private func resolvePlanet(_ selector: String, in planets: [PNPlanetRecord]) throws -> PNPlanetRecord {
-        let matches: [PNPlanetRecord]
-        if let uuid = UUID(uuidString: selector) {
-            matches = planets.filter { $0.id == uuid }
-        } else {
-            matches = planets.filter { $0.slug?.pnCaseInsensitiveEquals(selector) == true || $0.name.pnCaseInsensitiveEquals(selector) }
-        }
+        let matches = PNSelector.planets(planets, matching: selector)
         guard !matches.isEmpty else { throw PNError.notFound("Planet not found: \(selector)") }
         guard matches.count == 1 else {
             throw PNError.ambiguous("Planet selector is ambiguous:\n" + matches.map { "\($0.id.uuidString)  \($0.name)" }.joined(separator: "\n"))
@@ -526,12 +586,7 @@ final class PNCommandRunner {
     }
 
     private func resolveArticle(_ selector: String, in articles: [PNArticleRecord], planet: PNPlanetRecord) throws -> PNArticleRecord {
-        let matches: [PNArticleRecord]
-        if let uuid = UUID(uuidString: selector) {
-            matches = articles.filter { $0.id == uuid }
-        } else {
-            matches = articles.filter { $0.reference(in: planet)?.uppercased() == selector.uppercased() || $0.title.pnCaseInsensitiveEquals(selector) }
-        }
+        let matches = PNSelector.articles(articles, matching: selector, planet: planet)
         guard !matches.isEmpty else { throw PNError.notFound("Article not found: \(selector)") }
         guard matches.count == 1 else {
             throw PNError.ambiguous("Article selector is ambiguous:\n" + matches.map { "\($0.id.uuidString)  \($0.reference(in: planet) ?? "-")  \($0.title)" }.joined(separator: "\n"))

@@ -83,15 +83,7 @@ final class PNDiskStore {
 
     func resolvePlanet(_ selector: String, includeArchived: Bool = true) throws -> PNPlanetRecord {
         let all = try planets(includeArchived: includeArchived, archivedOnly: false)
-        let matches: [PNPlanetRecord]
-        if let uuid = UUID(uuidString: selector) {
-            matches = all.filter { $0.id == uuid }
-        } else {
-            matches = all.filter { planet in
-                planet.slug?.pnCaseInsensitiveEquals(selector) == true
-                    || planet.name.pnCaseInsensitiveEquals(selector)
-            }
-        }
+        let matches = PNSelector.planets(all, matching: selector)
         guard !matches.isEmpty else {
             throw PNError.notFound("Planet not found: \(selector)")
         }
@@ -118,16 +110,7 @@ final class PNDiskStore {
 
     func resolveArticle(_ selector: String, in planet: PNPlanetRecord) throws -> PNArticleRecord {
         let all = try articles(for: planet, includeAll: true)
-        let matches: [PNArticleRecord]
-        if let uuid = UUID(uuidString: selector) {
-            matches = all.filter { $0.id == uuid }
-        } else {
-            let upperSelector = selector.uppercased()
-            matches = all.filter { article in
-                article.reference(in: planet)?.uppercased() == upperSelector
-                    || article.title.pnCaseInsensitiveEquals(selector)
-            }
-        }
+        let matches = PNSelector.articles(all, matching: selector, planet: planet)
         guard !matches.isEmpty else {
             throw PNError.notFound("Article not found: \(selector)")
         }

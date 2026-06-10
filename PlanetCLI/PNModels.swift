@@ -26,6 +26,7 @@ struct PNStatus: Codable {
 struct PNAPIStatus: Codable {
     let reachable: Bool
     let url: String
+    let authRequired: Bool
 }
 
 struct PNTemplateRecord: Codable {
@@ -217,4 +218,47 @@ struct PNSearchArticle: Codable {
 struct PNInstallResult: Codable {
     let source: String
     let target: String
+}
+
+enum PNSelector {
+    /// Selector precedence: full UUID, then exact slug or name, then a UUID
+    /// prefix (Docker style). Exact matches win so a planet named like a hex
+    /// prefix never becomes ambiguous with another planet's UUID.
+    static func planets(_ all: [PNPlanetRecord], matching selector: String) -> [PNPlanetRecord] {
+        if let uuid = UUID(uuidString: selector) {
+            return all.filter { $0.id == uuid }
+        }
+        let exact = all.filter { planet in
+            planet.slug?.pnCaseInsensitiveEquals(selector) == true
+                || planet.name.pnCaseInsensitiveEquals(selector)
+        }
+        if !exact.isEmpty {
+            return exact
+        }
+        return all.filter { $0.id.pnHasPrefix(selector) }
+    }
+
+    /// Selector precedence: full UUID, then exact reference or title, then a
+    /// UUID prefix.
+    static func articles(_ all: [PNArticleRecord], matching selector: String, planet: PNPlanetRecord) -> [PNArticleRecord] {
+        if let uuid = UUID(uuidString: selector) {
+            return all.filter { $0.id == uuid }
+        }
+        let upperSelector = selector.uppercased()
+        let exact = all.filter { article in
+            article.reference(in: planet)?.uppercased() == upperSelector
+                || article.title.pnCaseInsensitiveEquals(selector)
+        }
+        if !exact.isEmpty {
+            return exact
+        }
+        return all.filter { $0.id.pnHasPrefix(selector) }
+    }
+}
+
+extension UUID {
+    func pnHasPrefix(_ prefix: String) -> Bool {
+        guard !prefix.isEmpty else { return false }
+        return uuidString.hasPrefix(prefix.uppercased())
+    }
 }

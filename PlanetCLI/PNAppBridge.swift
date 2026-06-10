@@ -15,14 +15,29 @@ enum PNAppBridge {
         guard let url = components.url else {
             throw PNError.runtime("Unable to construct API start URL.")
         }
-        NSWorkspace.shared.open(url)
+        try openControlURL(url)
     }
 
     static func openAPIStop() throws {
         guard let url = URL(string: "planet://api/stop") else {
             throw PNError.runtime("Unable to construct API stop URL.")
         }
-        NSWorkspace.shared.open(url)
+        try openControlURL(url)
+    }
+
+    private static func openControlURL(_ url: URL) throws {
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = false
+        let semaphore = DispatchSemaphore(value: 0)
+        var failure: Error?
+        NSWorkspace.shared.open(url, configuration: configuration) { _, error in
+            failure = error
+            semaphore.signal()
+        }
+        _ = semaphore.wait(timeout: .now() + 10)
+        if let failure {
+            throw PNError.runtime("Unable to open \(url.absoluteString): \(failure.localizedDescription)")
+        }
     }
 
     static var executableURL: URL {

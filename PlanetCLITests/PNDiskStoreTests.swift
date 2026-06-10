@@ -142,6 +142,57 @@ final class PNDiskStoreTests: XCTestCase {
         XCTAssertEqual(publicPlanet.tags, ["cli": "CLI", "swift": "Swift"])
     }
 
+    func testPartialUUIDSelectorsResolveWithExactMatchPrecedence() throws {
+        let sandbox = try PNTestSandbox()
+        defer { sandbox.cleanup() }
+
+        let store = PNDiskStore(root: sandbox.libraryURL)
+        let now = Date()
+        let planetA = PNPlanetRecord(
+            id: UUID(uuidString: "AAAA1111-0000-4000-8000-000000000001")!,
+            name: "Alpha",
+            about: "",
+            ipns: "k51-fixture-a",
+            created: now,
+            updated: now,
+            templateName: "Plain"
+        )
+        let planetB = PNPlanetRecord(
+            id: UUID(uuidString: "AAAA2222-0000-4000-8000-000000000002")!,
+            name: "AAAA1111",
+            about: "",
+            ipns: "k51-fixture-b",
+            created: now,
+            updated: now,
+            templateName: "Plain"
+        )
+        try writePlanetFixture(planetA, in: sandbox.libraryURL)
+        try writePlanetFixture(planetB, in: sandbox.libraryURL)
+
+        XCTAssertEqual(try store.resolvePlanet("aaaa1111-0000").id, planetA.id)
+        XCTAssertEqual(try store.resolvePlanet(planetA.id.uuidString.lowercased()).id, planetA.id)
+        XCTAssertEqual(try store.resolvePlanet("aaaa1111").id, planetB.id, "Exact name match should win over a UUID prefix match.")
+
+        do {
+            _ = try store.resolvePlanet("AAAA")
+            XCTFail("Expected ambiguous selector error for a shared UUID prefix.")
+        } catch PNError.ambiguous(let message) {
+            XCTAssertTrue(message.contains(planetA.id.uuidString))
+            XCTAssertTrue(message.contains(planetB.id.uuidString))
+        }
+
+        let article = PNArticleRecord(
+            id: UUID(uuidString: "BBBB3333-0000-4000-8000-000000000003")!,
+            link: "/BBBB3333-0000-4000-8000-000000000003/",
+            title: "Hello",
+            content: "World",
+            created: now
+        )
+        try writeArticleFixture(article, planet: planetA, in: sandbox.libraryURL)
+        XCTAssertEqual(try store.resolveArticle("bbbb3333", in: planetA).id, article.id)
+        XCTAssertEqual(try store.resolveArticle("hello", in: planetA).id, article.id)
+    }
+
     func testAmbiguousSelectorsFailWithCandidateIDs() throws {
         let sandbox = try PNTestSandbox()
         defer { sandbox.cleanup() }
@@ -201,6 +252,23 @@ final class PNDiskStoreTests: XCTestCase {
         XCTAssertEqual(parsed.options.source, .disk)
         XCTAssertEqual(parsed.options.libraryOverride?.standardizedFileURL.path, sandbox.libraryURL.path)
         XCTAssertEqual(parsed.arguments, ["planet", "list"])
+    }
+
+    private func writePlanetFixture(_ planet: PNPlanetRecord, in libraryURL: URL) throws {
+        let directory = libraryURL
+            .appendingPathComponent("My", isDirectory: true)
+            .appendingPathComponent(planet.id.uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try PNJSON.write(planet, to: directory.appendingPathComponent("planet.json", isDirectory: false))
+    }
+
+    private func writeArticleFixture(_ article: PNArticleRecord, planet: PNPlanetRecord, in libraryURL: URL) throws {
+        let directory = libraryURL
+            .appendingPathComponent("My", isDirectory: true)
+            .appendingPathComponent(planet.id.uuidString, isDirectory: true)
+            .appendingPathComponent("Articles", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try PNJSON.write(article, to: directory.appendingPathComponent("\(article.id.uuidString).json", isDirectory: false))
     }
 
     private func assertPNG(at url: URL, width: Int, height: Int, file: StaticString = #filePath, line: UInt = #line) throws {

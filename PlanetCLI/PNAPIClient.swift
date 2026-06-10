@@ -6,28 +6,43 @@ struct PNMultipartFile {
     let contentType: String
 }
 
+enum PNAPIServerState {
+    case unreachable
+    case ok
+    case unauthorized
+}
+
 final class PNAPIClient {
     let baseURL: URL
     let timeout: TimeInterval
+    var credentials: (username: String, password: String)?
 
     init(baseURL: URL, timeout: TimeInterval) {
         self.baseURL = baseURL
         self.timeout = timeout
     }
 
-    func ping() -> Bool {
+    func probe() -> PNAPIServerState {
         do {
-            let text = try requestText(method: "GET", path: ["v0", "ping"])
-            return text.pnTrimmed == "pong"
+            _ = try requestText(method: "GET", path: ["v0", "ping"])
+            return .ok
+        } catch PNError.apiError(401, _) {
+            return .unauthorized
+        } catch PNError.apiError {
+            return .ok
         } catch {
-            return false
+            return .unreachable
         }
+    }
+
+    func isReachable() -> Bool {
+        probe() != .unreachable
     }
 
     func waitUntilReachable(seconds: TimeInterval) -> Bool {
         let deadline = Date().addingTimeInterval(seconds)
         repeat {
-            if ping() {
+            if isReachable() {
                 return true
             }
             Thread.sleep(forTimeInterval: 0.25)
@@ -231,10 +246,8 @@ final class PNAPIClient {
         }
         var request = URLRequest(url: url, timeoutInterval: timeout)
         request.httpMethod = method
-        if PNPreferences.apiUsesPasscode() {
-            let username = PNPreferences.apiUsername()
-            let password = try PNKeychain.apiPasscode()
-            let token = "\(username):\(password)".data(using: .utf8)?.base64EncodedString() ?? ""
+        if let credentials {
+            let token = "\(credentials.username):\(credentials.password)".data(using: .utf8)?.base64EncodedString() ?? ""
             request.setValue("Basic \(token)", forHTTPHeaderField: "Authorization")
         }
         return request

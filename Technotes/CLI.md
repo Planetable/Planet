@@ -22,7 +22,6 @@ The CLI source lives in `PlanetCLI/`.
 - `PNDiskStore.swift` reads and writes the on-disk Planet library.
 - `PNModels.swift` contains pure Swift `Codable` records that mirror persisted Planet JSON keys.
 - `PNPreferences.swift` reads Planet's container preferences and resolves default library and API settings.
-- `PNKeychain.swift` reads the API passcode keychain item when API authentication is enabled.
 - `PNAppBridge.swift` detects the running app, opens the app URL API controls, and resolves bundled app resources for disk-mode operations.
 - `PNJSON.swift` centralizes date and pretty/sorted JSON encoding.
 
@@ -55,11 +54,18 @@ These URLs are internal control actions for `pn` and should stay ahead of generi
 
 ## API Authentication
 
-When `PlanetSettingsAPIUsesPasscodeKey` is true in Planet's container preferences, `pn` sends HTTP Basic Auth.
+`pn` discovers authentication from the server, not from preferences. It probes `GET /v0/ping`: a 2xx response means the API is open, an HTTP 401 means the API is reachable but requires HTTP Basic Auth, and a transport error means the API is not running. A 401 never triggers the app-start URL action.
 
-The username comes from `PlanetSettingsAPIUsernameKey`, defaulting to `Planet` if it is empty. The password comes from the generic-password keychain item with service `xyz.planetable.Planet` and account `PlanetSettingsAPIPasscodeKey`.
+When the server requires authentication, `pn` resolves credentials in this order, validating each candidate with the read-only `GET /v0/ping` before using it:
 
-If authentication is enabled but the passcode cannot be read, `pn` fails before making the authenticated request. This is better than silently making unauthenticated calls that are expected to fail.
+1. `PN_API_USERNAME` and `PN_API_PASSCODE` environment variables.
+2. An interactive Username/Passcode prompt on the terminal, up to three attempts. The username defaults to `PN_API_USERNAME`, falling back to `Planet`. Prompts write to stderr so `--json` output stays clean.
+
+`pn` deliberately does not read the app's keychain item: the passcode lives in the data-protection keychain, which a separately signed CLI cannot access reliably.
+
+If neither source produces valid credentials, or stdin is not a terminal, `pn` fails with a message pointing at the environment variables.
+
+API control URLs are opened without activating the app, so `pn` does not steal focus from the terminal.
 
 ## Library Resolution
 
@@ -114,11 +120,13 @@ When adding a field, prefer matching the existing JSON key and optionality. Avoi
 
 ## Selectors
 
-Planet selectors accept UUID, slug, or exact case-insensitive planet name.
+Planet selectors accept UUID, slug, exact case-insensitive planet name, or a UUID prefix in the Docker CLI style, such as the first eight characters of the UUID.
 
-Article selectors accept UUID, article reference such as `<PREFIX>-<number>`, or exact case-insensitive article title.
+Article selectors accept UUID, article reference such as `<PREFIX>-<number>`, exact case-insensitive article title, or a UUID prefix.
 
-Ambiguous selectors fail and print candidate IDs. This is deliberate; CLI mutations should not guess between similarly named planets or articles.
+Matching precedence is full UUID, then exact slug/name or reference/title, then UUID prefix. Exact matches win so a planet named like a hex prefix never becomes ambiguous with another planet's UUID. The shared matching logic lives in `PNSelector` in `PNModels.swift`.
+
+Ambiguous selectors fail and print candidate IDs. This is deliberate; CLI mutations should not guess between similarly named planets or articles, and a UUID prefix shared by several records is rejected the same way.
 
 ## Command Surface
 
@@ -214,7 +222,7 @@ tmp=$(mktemp -d /tmp/pn-install.XXXXXX)
 "$tmp/pn" --version
 ```
 
-For app/API smoke testing, start Planet with API disabled and run `pn status`. It should detect the running app, send `planet://api/start`, wait for `/v0/ping`, and report `source: api`. Repeat with passcode authentication enabled to verify keychain lookup and Basic Auth.
+For app/API smoke testing, start Planet with API disabled and run `pn status`. It should detect the running app, send `planet://api/start`, wait for `/v0/ping`, and report `source: api`. Repeat with passcode authentication enabled to verify the interactive Username/Passcode prompt, the `PN_API_USERNAME`/`PN_API_PASSCODE` environment variables, and Basic Auth.
 
 ## Limitations
 

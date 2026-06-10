@@ -6,11 +6,7 @@ enum PNPreferences {
     static let environmentIPFSRepositoryPath = "PLANET_CLI_IPFS_REPOSITORY_PATH"
     static let environmentIPFSExecutablePath = "PLANET_CLI_IPFS_EXECUTABLE"
     static let settingsLibraryLocation = "PlanetSettingsLibraryLocationKey"
-    static let settingsAPIEnabled = "PlanetSettingsAPIEnabledKey"
-    static let settingsAPIUsesPasscode = "PlanetSettingsAPIUsesPasscodeKey"
     static let settingsAPIPort = "PlanetSettingsAPIPortKey"
-    static let settingsAPIUsername = "PlanetSettingsAPIUsernameKey"
-    static let settingsAPIPasscode = "PlanetSettingsAPIPasscodeKey"
     static let myPlanetsOrderKey = "myPlanetsOrder"
 
     static var homeURL: URL {
@@ -92,14 +88,6 @@ enum PNPreferences {
 
     static func apiURL(override: URL?) -> URL {
         override ?? URL(string: "http://127.0.0.1:\(apiPort())")!
-    }
-
-    static func apiUsesPasscode() -> Bool {
-        (preferences[settingsAPIUsesPasscode] as? Bool) ?? false
-    }
-
-    static func apiUsername() -> String {
-        (preferences[settingsAPIUsername] as? String)?.pnNilIfEmpty ?? "Planet"
     }
 
     private static func environmentURL(_ name: String, isDirectory: Bool) -> URL? {
