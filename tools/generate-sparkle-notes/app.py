@@ -319,6 +319,16 @@ def markdown_to_html(md_text):
     return '\n'.join(html_lines)
 
 
+def normalize_markdown_notes(raw):
+    """Return bullet-only Markdown notes from model output; reject HTML."""
+    notes = '\n'.join(line.strip() for line in raw.split('\n') if line.strip().startswith('- '))
+    if not notes:
+        return ''
+    if re.search(r'</?[a-zA-Z][^>]*>', notes):
+        raise ValueError('codex returned HTML instead of Markdown')
+    return notes
+
+
 def search_notes(query):
     """Search tag names and note contents across all channels. Returns [(channel, tag, snippet)]."""
     results = []
@@ -358,12 +368,12 @@ def generate_notes_with_codex(commits, prev_tag, tag):
         "- Include only changes that affect people using the Planet macOS app UI or behavior.\n"
         "- Skip this release-notes utility, scripts, CI, build/release automation, tests, docs, generated metadata, version bumps, refactors, and internal infrastructure unless the commit clearly describes a user-visible app change.\n\n"
         "Output format:\n"
-        "- Return only Markdown bullets. No heading, sections, preamble, explanation, blank lines, or code fences.\n"
+        "- Return only plain Markdown bullets. No HTML, heading, sections, preamble, explanation, blank lines, or code fences.\n"
         "- Every output line must start with '- '.\n"
         "- Bullet format: - **Bold short label** — concise end-user description.\n"
         "- Group closely related commits; do not duplicate the same feature or fix under multiple labels.\n"
         "- Aim for 3-12 bullets. If there are no qualifying app-facing changes, output exactly '- No user-facing Planet app changes.'\n"
-        "- Do not include commit hashes, author names, issue/PR numbers, file paths, dependency names, or implementation details.\n"
+        "- Do not include HTML tags, commit hashes, author names, issue/PR numbers, file paths, dependency names, or implementation details.\n"
         "- Name user-visible features, UI elements, and behaviors specifically when commit subjects provide them.\n\n"
         "Example style:\n"
         "- **Continuity Camera** — Import photos/videos directly from iPhone into Writer\n"
@@ -404,7 +414,7 @@ def generate_notes_with_codex(commits, prev_tag, tag):
         with open(output_path, encoding='utf-8') as f:
             raw = f.read().strip()
         log.info('codex output for %s:\n%s', tag, raw)
-        notes = '\n'.join(line for line in raw.split('\n') if line.startswith('- '))
+        notes = normalize_markdown_notes(raw)
         if not notes:
             raise RuntimeError(f'codex returned no usable notes for {tag}')
         return notes
