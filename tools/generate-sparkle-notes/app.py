@@ -4,6 +4,7 @@ import os
 import queue
 import re
 import subprocess
+import tempfile
 import threading
 import time
 
@@ -336,10 +337,10 @@ def search_notes(query):
 
 
 # ---------------------------------------------------------------------------
-# Claude invocation
+# Codex invocation
 # ---------------------------------------------------------------------------
 
-def generate_notes_with_claude(commits, prev_tag, tag):
+def generate_notes_with_codex(commits, prev_tag, tag):
     if prev_tag:
         scope = f"between `{prev_tag}` and `{tag}`"
     else:
@@ -348,6 +349,7 @@ def generate_notes_with_claude(commits, prev_tag, tag):
         f"You are writing release notes from git commits {scope} "
         f"for a macOS app update.\n\n"
         "Rules:\n"
+        "- Use only the commit list supplied on stdin. Do not inspect files or run commands.\n"
         "- Output ONLY a plain bullet list. No headings, no sections, no preamble.\n"
         "- Each bullet format: **Bold short label** — Description of what is new or changed.\n"
         "- Group closely related commits into one bullet. Use commas to list multiple related items within one bullet.\n"
@@ -365,24 +367,49 @@ def generate_notes_with_claude(commits, prev_tag, tag):
         "- **Dependencies** — Replaced ENSKit with lightweight ENSDataKit, "
         "removed unused HDWalletKit, updated Sparkle to 2.9.0\n"
     )
-    result = subprocess.run(
-        ['claude', '-p', prompt],
-        input=commits,
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    if result.stderr:
-        log.warning('claude stderr for %s: %s', tag, result.stderr.strip())
-    if result.returncode != 0:
-        log.error('claude exited %d for %s', result.returncode, tag)
-        raise RuntimeError(f'claude exited {result.returncode} for {tag}')
-    log.info('claude output for %s:\n%s', tag, result.stdout.strip())
-    raw = result.stdout.strip()
-    notes = '\n'.join(line for line in raw.split('\n') if line.startswith('- '))
-    if not notes:
-        raise RuntimeError(f'claude returned no usable notes for {tag}')
-    return notes
+    with tempfile.NamedTemporaryFile(delete=False) as output_file:
+        output_path = output_file.name
+    try:
+        try:
+            result = subprocess.run(
+                [
+                    'codex',
+                    'exec',
+                    '--model', 'gpt-5.5',
+                    '--config', 'model_reasoning_effort="high"',
+                    '--config', 'approval_policy="never"',
+                    '--cd', REPO_ROOT,
+                    '--sandbox', 'read-only',
+                    '--skip-git-repo-check',
+                    '--ephemeral',
+                    '--color', 'never',
+                    '--output-last-message', output_path,
+                    prompt,
+                ],
+                input=commits,
+                capture_output=True,
+                text=True,
+                timeout=180,
+            )
+        except FileNotFoundError as exc:
+            raise RuntimeError('codex CLI not found on PATH') from exc
+        if result.stderr:
+            log.warning('codex stderr for %s: %s', tag, result.stderr.strip())
+        if result.returncode != 0:
+            log.error('codex exited %d for %s', result.returncode, tag)
+            raise RuntimeError(f'codex exited {result.returncode} for {tag}')
+        with open(output_path, encoding='utf-8') as f:
+            raw = f.read().strip()
+        log.info('codex output for %s:\n%s', tag, raw)
+        notes = '\n'.join(line for line in raw.split('\n') if line.startswith('- '))
+        if not notes:
+            raise RuntimeError(f'codex returned no usable notes for {tag}')
+        return notes
+    finally:
+        try:
+            os.remove(output_path)
+        except FileNotFoundError:
+            pass
 
 
 # ---------------------------------------------------------------------------
@@ -585,6 +612,9 @@ _TPL_TAG = _jinja.from_string(
       {% endif %}
         &middot; {{ commit_count }} commit{{ 's' if commit_count != 1 else '' }}
         &middot; <a href="{{ github_release_url }}" target="_blank" rel="noopener noreferrer">GitHub Release</a>
+        {% if planet_post_url %}
+        &middot; <a href="{{ planet_post_url }}" target="_blank" rel="noopener noreferrer">Planet Post</a>
+        {% endif %}
     </div>
 
     <div id="notes-area">
@@ -593,8 +623,14 @@ _TPL_TAG = _jinja.from_string(
         <div class="actions">
           <button class="btn secondary" onclick="regenerateNotes()">Regenerate</button>
           <button id="gh-btn" class="btn" onclick="postToGitHub()">Post to GitHub</button>
+          {% if planet_enabled %}
+          <button id="planet-btn" class="btn" onclick="postToPlanet()">Post to Planet</button>
+          {% endif %}
         </div>
         <div id="gh-status" class="status" role="status"></div>
+        {% if planet_enabled %}
+        <div id="planet-status" class="status" role="status"></div>
+        {% endif %}
       {% elif is_pending %}
         <div id="loading-bg" class="loading active">
           <div class="spinner"></div>
@@ -615,7 +651,14 @@ _TPL_TAG = _jinja.from_string(
       return '<div class="actions">' +
         '<button class="btn secondary" onclick="regenerateNotes()">Regenerate</button>' +
         '<button id="gh-btn" class="btn" onclick="postToGitHub()">Post to GitHub</button>' +
-        '</div><div id="gh-status" class="status" role="status"></div>';
+        {% if planet_enabled %}
+        '<button id="planet-btn" class="btn" onclick="postToPlanet()">Post to Planet</button>' +
+        {% endif %}
+        '</div><div id="gh-status" class="status" role="status"></div>' +
+        {% if planet_enabled %}
+        '<div id="planet-status" class="status" role="status"></div>' +
+        {% endif %}
+        '';
     }
     async function pollGitHubStatus(attempt) {
       const status = document.getElementById('gh-status');
@@ -695,6 +738,37 @@ _TPL_TAG = _jinja.from_string(
         if (btn) {
           btn.disabled = false;
           btn.textContent = 'Post to GitHub';
+        }
+      }
+    }
+    async function postToPlanet() {
+      const btn = document.getElementById('planet-btn');
+      const status = document.getElementById('planet-status');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Posting...';
+      }
+      if (status) {
+        status.textContent = '';
+        status.className = 'status';
+      }
+      try {
+        const resp = await fetch('/channel/{{ active_channel }}/tag/{{ tag }}/post-planet', { method: 'POST' });
+        const data = await resp.json().catch(() => ({ error: 'Unexpected response from server.' }));
+        if (!resp.ok) throw new Error(data.error || resp.statusText);
+        if (status) {
+          status.textContent = data.message || 'Posted to Planet.';
+          status.classList.add('success');
+        }
+      } catch (e) {
+        if (status) {
+          status.textContent = 'Error: ' + e.message;
+          status.classList.add('error');
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Post to Planet';
         }
       }
     }
@@ -851,8 +925,10 @@ def tag(channel_name, tag_name):
         prev_tag=prev_tag,
         commit_count=commit_count,
         github_release_url=github_release_url(tag_name),
+        planet_post_url=url_for('planet_post_link', channel_name=channel_name, tag_name=tag_name) if _planet_enabled else None,
         notes_html=notes_html,
         is_pending=is_pending,
+        planet_enabled=_planet_enabled,
     )
 
 
@@ -867,7 +943,7 @@ def generate(channel_name, tag_name):
         notes = '- No changes in this release.\n'
     else:
         try:
-            notes = generate_notes_with_claude(commits, prev_tag, tag_name)
+            notes = generate_notes_with_codex(commits, prev_tag, tag_name)
         except Exception as exc:
             log.exception('Failed to generate notes for %s', tag_name)
             return jsonify(error=str(exc)), 502
@@ -940,6 +1016,35 @@ def post_github(channel_name, tag_name):
     return jsonify(message='Posted release notes to GitHub.')
 
 
+@app.route('/channel/<channel_name>/tag/<tag_name>/post-planet', methods=['POST'])
+def post_planet(channel_name, tag_name):
+    if channel_name not in CHANNELS or not tag_name.startswith(channel_name + '-'):
+        abort(404)
+    if not notes_exist(channel_name, tag_name):
+        return jsonify(error='Generate release notes before posting to Planet.'), 409
+
+    try:
+        ok, message, error = planet_post_notes_with_result(channel_name, tag_name)
+    except Exception as exc:
+        log.exception('Failed to post notes to Planet for %s', tag_name)
+        return jsonify(error=str(exc)), 502
+    if not ok:
+        return jsonify(error=error), 502
+
+    return jsonify(message=message)
+
+
+@app.route('/channel/<channel_name>/tag/<tag_name>/planet-post')
+def planet_post_link(channel_name, tag_name):
+    if channel_name not in CHANNELS or not tag_name.startswith(channel_name + '-'):
+        abort(404)
+
+    ok, public_url, error = planet_post_public_url_with_result(channel_name, tag_name)
+    if not ok:
+        abort(404, description=error)
+    return redirect(public_url)
+
+
 # ---------------------------------------------------------------------------
 # Background generation worker
 # ---------------------------------------------------------------------------
@@ -964,7 +1069,7 @@ def _worker():
                     write_notes(channel, tag_name, '- No changes in this release.\n')
                 else:
                     log.info('Generating notes for %s', tag_name)
-                    notes = generate_notes_with_claude(commits, prev_tag, tag_name)
+                    notes = generate_notes_with_codex(commits, prev_tag, tag_name)
                     write_notes(channel, tag_name, notes)
                     log.info('Done: %s', tag_name)
                 if _planet_enabled:
@@ -1049,6 +1154,73 @@ def _find_article_by_title(client, planet_id, tag_name):
     return None
 
 
+def planet_post_public_url_with_result(channel, tag_name, client=None, config_module=None):
+    """Return the local public URL for a Planet post. Returns (ok, url, error)."""
+    if config_module is None:
+        try:
+            import config as config_module
+        except ImportError:
+            return False, None, 'Planet sync is not configured.'
+
+    planet_server = getattr(config_module, 'PLANET_SERVER', None)
+    planet_channels = getattr(config_module, 'PLANET_CHANNELS', None)
+    if not planet_server or not planet_channels:
+        return False, None, 'Planet sync is not configured.'
+
+    planet_id = planet_channels.get(channel)
+    if not planet_id:
+        return False, None, f'No Planet channel is configured for {channel}.'
+
+    if client is None:
+        from planet import PlanetClient
+        client = PlanetClient(planet_server)
+
+    article_id = _find_article_by_title(client, planet_id, tag_name)
+    if not article_id:
+        return False, None, 'Planet post does not exist.'
+
+    return True, f'{planet_server.rstrip("/")}/{planet_id}/{article_id}/', None
+
+
+def planet_post_notes_with_result(channel, tag_name, client=None, config_module=None):
+    """Create a Planet article for the local notes. Returns (ok, message, error)."""
+    if config_module is None:
+        try:
+            import config as config_module
+        except ImportError:
+            return False, None, 'Planet sync is not configured.'
+
+    planet_server = getattr(config_module, 'PLANET_SERVER', None)
+    planet_channels = getattr(config_module, 'PLANET_CHANNELS', None)
+    if not planet_server or not planet_channels:
+        return False, None, 'Planet sync is not configured.'
+
+    planet_id = planet_channels.get(channel)
+    if not planet_id:
+        return False, None, f'No Planet channel is configured for {channel}.'
+
+    if not notes_exist(channel, tag_name):
+        return False, None, 'Release notes file does not exist.'
+
+    if client is None:
+        from planet import PlanetClient
+        client = PlanetClient(planet_server)
+
+    if _find_article_by_title(client, planet_id, tag_name):
+        _planet_synced.add(tag_name)
+        _save_planet_tag(tag_name)
+        return True, 'Already posted to Planet.', None
+
+    content = read_notes(channel, tag_name)
+    html = markdown_to_html(content)
+    date = get_tag_iso_date(tag_name)
+    client.create_article(planet_id, title=tag_name, content=html, date=date)
+    _planet_synced.add(tag_name)
+    _save_planet_tag(tag_name)
+    log.info('Created Planet article: %s (date: %s)', tag_name, date)
+    return True, 'Posted to Planet.', None
+
+
 def _planet_sync_worker():
     """Worker that checks/creates articles in Planet for each tag."""
     from planet import PlanetClient
@@ -1060,20 +1232,11 @@ def _planet_sync_worker():
     while True:
         channel, tag_name = _planet_queue.get()
         try:
-            planet_id = config.PLANET_CHANNELS.get(channel)
-            if not planet_id:
-                continue
-            if _find_article_by_title(client, planet_id, tag_name):
-                _save_planet_tag(tag_name)
-                continue
-            if not notes_exist(channel, tag_name):
-                continue
-            content = read_notes(channel, tag_name)
-            html = markdown_to_html(content)
-            date = get_tag_iso_date(tag_name)
-            client.create_article(planet_id, title=tag_name, content=html, date=date)
-            _save_planet_tag(tag_name)
-            log.info('Created Planet article: %s (date: %s)', tag_name, date)
+            ok, _message, error = planet_post_notes_with_result(
+                channel, tag_name, client=client, config_module=config
+            )
+            if not ok:
+                log.warning('Failed to sync %s to Planet: %s', tag_name, error)
         except Exception:
             log.exception('Failed to sync %s to Planet', tag_name)
         finally:
