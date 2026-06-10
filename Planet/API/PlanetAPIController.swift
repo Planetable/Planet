@@ -84,12 +84,10 @@ class PlanetAPIController: NSObject, ObservableObject {
             try? await stop()
             throw error
         }
-        Task.detached(priority: .utility) {
-            await MainActor.run {
-                self.serverIsRunning = true
-            }
-            UserDefaults.standard.set(true, forKey: .settingsAPIEnabled)
+        await MainActor.run {
+            self.serverIsRunning = true
         }
+        UserDefaults.standard.set(true, forKey: .settingsAPIEnabled)
         startBonjourService()
     }
 
@@ -109,14 +107,11 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
         try await globalApp?.asyncShutdown()
         globalApp = nil
-        Task.detached(priority: .utility) {
-            try? await Task.sleep(nanoseconds: 200_000_000)
-            await MainActor.run {
-                self.serverIsRunning = false
-            }
-            if !skipStatus {
-                UserDefaults.standard.set(false, forKey: .settingsAPIEnabled)
-            }
+        await MainActor.run {
+            self.serverIsRunning = false
+        }
+        if !skipStatus {
+            UserDefaults.standard.set(false, forKey: .settingsAPIEnabled)
         }
         stopBonjourService()
     }
@@ -314,11 +309,20 @@ class PlanetAPIController: NSObject, ObservableObject {
             throw Abort(.badRequest, reason: "Invalid UUID format.")
         }
         return try await MainActor.run {
-            let myPlanets = PlanetStore.shared.myPlanets
-            guard let planet = myPlanets.first(where: { $0.id == uuid }) else {
+            let store = PlanetStore.shared
+            guard
+                let planet = store.myPlanets.first(where: { $0.id == uuid })
+                    ?? store.myArchivedPlanets.first(where: { $0.id == uuid })
+            else {
                 throw Abort(.notFound, reason: "Planet not found.")
             }
             return planet
+        }
+    }
+
+    private func ensurePlanetIsNotArchived(_ planet: MyPlanetModel) throws {
+        if planet.archived == true {
+            throw Abort(.badRequest, reason: "Planet is archived.")
         }
     }
 
@@ -333,7 +337,11 @@ class PlanetAPIController: NSObject, ObservableObject {
             throw Abort(.badRequest, reason: "Invalid planet UUID format.")
         }
         return try await MainActor.run {
-            guard let planet = PlanetStore.shared.myPlanets.first(where: { $0.id == planetUUID }) else {
+            let store = PlanetStore.shared
+            guard
+                let planet = store.myPlanets.first(where: { $0.id == planetUUID })
+                    ?? store.myArchivedPlanets.first(where: { $0.id == planetUUID })
+            else {
                 throw Abort(.notFound, reason: "Planet not found.")
             }
             guard
@@ -451,8 +459,17 @@ class PlanetAPIController: NSObject, ObservableObject {
     }
 
     private func routeGetPlanets(fromRequest req: Request) async throws -> Response {
+        let archivedOnly = req.query[Bool.self, at: "archived"] ?? false
+        let includeAll = req.query[Bool.self, at: "all"] ?? false
         return try await MainActor.run {
-            let planets = PlanetStore.shared.myPlanets
+            let planets: [MyPlanetModel]
+            if archivedOnly {
+                planets = PlanetStore.shared.myArchivedPlanets
+            } else if includeAll {
+                planets = PlanetStore.shared.myPlanets + PlanetStore.shared.myArchivedPlanets
+            } else {
+                planets = PlanetStore.shared.myPlanets
+            }
             return try self.createResponse(from: planets, status: .ok)
         }
     }
@@ -519,6 +536,7 @@ class PlanetAPIController: NSObject, ObservableObject {
 
     private func routeModifyPlanetInfo(fromRequest req: Request) async throws -> Response {
         let planet = try await getPlanetByUUID(fromRequest: req)
+        try ensurePlanetIsNotArchived(planet)
         let p: APIPlanet = try req.content.decode(APIPlanet.self)
         let planetName = p.name ?? ""
         let planetAbout = p.about ?? ""
@@ -568,6 +586,7 @@ class PlanetAPIController: NSObject, ObservableObject {
                         PlanetStore.shared.selectedView = nil
                     }
                     PlanetStore.shared.myPlanets.removeAll { $0.id == planet.id }
+                    PlanetStore.shared.myArchivedPlanets.removeAll { $0.id == planet.id }
                 }
             }
         }
@@ -576,6 +595,7 @@ class PlanetAPIController: NSObject, ObservableObject {
 
     private func routePublishPlanet(fromRequest req: Request) async throws -> Response {
         let planet = try await getPlanetByUUID(fromRequest: req)
+        try ensurePlanetIsNotArchived(planet)
         defer {
             Task.detached(priority: .utility) {
                 try? await planet.publish()
@@ -594,6 +614,7 @@ class PlanetAPIController: NSObject, ObservableObject {
 
     private func routeCreatePlanetArticle(fromRequest req: Request) async throws -> Response {
         let planet = try await getPlanetByUUID(fromRequest: req)
+        try ensurePlanetIsNotArchived(planet)
         let article: APIPlanetArticle = try req.content.decode(APIPlanetArticle.self)
         let articleTitle = article.title ?? ""
         let articleContent = article.content ?? ""
@@ -640,13 +661,10 @@ class PlanetAPIController: NSObject, ObservableObject {
             }
         }
         // TODO: What if the saveToArticle operation is a Task.detached?
-        try await MainActor.run {
-            _ = try draft.saveToArticle()
+        let createdArticle = try await MainActor.run {
+            try draft.saveToArticle()
         }
-        if let a = planet.articles.first {
-            return try self.createResponse(from: a, status: .created)
-        }
-        return try self.createResponse(from: draft, status: .created)
+        return try self.createResponse(from: createdArticle, status: .created)
     }
 
     private func routeGetPlanetArticle(fromRequest req: Request) async throws -> Response {
@@ -659,6 +677,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         let result = try await getPlanetAndArticleByUUID(fromRequest: req)
         let planet = result.planet
         let article = result.article
+        try ensurePlanetIsNotArchived(planet)
         let draft = try DraftModel.create(from: article)
         let updateArticle: APIPlanetArticle = try req.content.decode(APIPlanetArticle.self)
         if let articleTitle = updateArticle.title, articleTitle != "" {
@@ -781,6 +800,7 @@ class PlanetAPIController: NSObject, ObservableObject {
         let result = try await getPlanetAndArticleByUUID(fromRequest: req)
         let planet = result.planet
         let article = result.article
+        try ensurePlanetIsNotArchived(planet)
         await MainActor.run {
             article.delete()
             planet.updated = Date()

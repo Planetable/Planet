@@ -6,6 +6,19 @@ Please refer to PlanetAPIController.swift mark *Planet Public API* for more deta
 ```
 curl -X GET http://localhost:8086/v0/planets/my
 ```
+
+Optional query parameters:
+- archived: Bool. When true, returns only archived planets.
+- all: Bool. When true, returns both active and archived planets.
+
+By default, only active planets are returned.
+
+```
+curl -X GET "http://localhost:8086/v0/planets/my?archived=true"
+curl -X GET "http://localhost:8086/v0/planets/my?all=true"
+```
+
+Archived planets are readable through all per-planet GET routes and can be deleted with `DELETE /v0/planets/my/:uuid`. Modify, publish, and article create/modify/delete requests against an archived planet fail with `400 Planet is archived.`
 Returns:
 ```
 [

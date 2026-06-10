@@ -28,6 +28,9 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     // Reference: https://developer.apple.com/forums/thread/673822
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first else { return }
+        if handleAPIControlURL(url) {
+            return
+        }
         if url.absoluteString == "planet://Template" {
             Task { @MainActor in
                 openTemplateWindow()
@@ -93,6 +96,51 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
         } else {
             queueQuickShareWindow(forFiles: urls)
         }
+    }
+
+    private func handleAPIControlURL(_ url: URL) -> Bool {
+        guard url.scheme == "planet",
+              url.host?.lowercased() == "api"
+        else {
+            return false
+        }
+
+        let action = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).lowercased()
+        guard action == "start" || action == "stop" else {
+            return false
+        }
+
+        Task {
+            do {
+                let control = PlanetAPIController.shared
+                if action == "stop" {
+                    if control.serverIsRunning {
+                        try await control.stop()
+                    }
+                    return
+                }
+
+                let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+                let requestedPort = components?.queryItems?.first(where: { $0.name == "port" })?.value
+                let currentPort = UserDefaults.standard.string(forKey: .settingsAPIPort) ?? "8086"
+                let port = requestedPort ?? currentPort
+                var needsStart = !control.serverIsRunning
+                if let portNumber = Int(port), portNumber >= 1024, portNumber <= 32767 {
+                    if control.serverIsRunning, port != currentPort {
+                        try await control.stop(skipStatus: true)
+                        needsStart = true
+                    }
+                    UserDefaults.standard.set(port, forKey: .settingsAPIPort)
+                }
+
+                if needsStart {
+                    try await control.start()
+                }
+            } catch {
+                debugPrint("failed to handle Planet API control URL \(url): \(error)")
+            }
+        }
+        return true
     }
 
     func application(_ application: NSApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([NSUserActivityRestoring]) -> Void) -> Bool {
