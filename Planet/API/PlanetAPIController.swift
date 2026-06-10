@@ -235,6 +235,27 @@ class PlanetAPIController: NSObject, ObservableObject {
             return try await self.routeCreatePlanetArticle(fromRequest: req)
         }
 
+        //MARK: GET /v0/planets/my/:uuid/articles/:article/attachments
+        //MARK: List an article's attachment filenames -
+        /// Return Array<String>
+        builder.get("v0", "planets", "my", ":uuid", "articles", ":article", "attachments") { req async throws -> Response in
+            return try await self.routeListArticleAttachments(fromRequest: req)
+        }
+
+        //MARK: POST /v0/planets/my/:uuid/articles/:article/attachments
+        //MARK: Append attachments to an article, upserting by filename -
+        /// Return MyArticleModel, Struct
+        builder.on(.POST, "v0", "planets", "my", ":uuid", "articles", ":article", "attachments", body: .collect(maxSize: "50mb")) { req async throws -> Response in
+            return try await self.routeAddArticleAttachments(fromRequest: req)
+        }
+
+        //MARK: DELETE /v0/planets/my/:uuid/articles/:article/attachments/:name
+        //MARK: Delete a single attachment by filename -
+        /// Return MyArticleModel, Struct
+        builder.delete("v0", "planets", "my", ":uuid", "articles", ":article", "attachments", ":name") { req async throws -> Response in
+            return try await self.routeDeleteArticleAttachment(fromRequest: req)
+        }
+
         //MARK: GET /v0/planets/my/:planet_uuid/articles/:article_uuid
         //MARK: Get an article by planet and article UUID -
         /// Return MyArticleModel, Struct
@@ -388,6 +409,88 @@ class PlanetAPIController: NSObject, ObservableObject {
         }
         try data.write(to: targetURL)
         return targetURL
+    }
+
+    private struct IncomingAttachment {
+        let filename: String
+        let data: Data
+    }
+
+    private func attachmentMode(fromRequest req: Request) -> APIAttachmentMode? {
+        guard let raw = req.query[String.self, at: "attachmentMode"]?.lowercased() else {
+            return nil
+        }
+        return APIAttachmentMode(rawValue: raw)
+    }
+
+    /// Collect incoming attachments from either a decoded `attachments` field
+    /// or `attachment` multipart parts, the two shapes clients send.
+    private func collectIncomingAttachments(fromRequest req: Request, decoded: APIPlanetArticle) -> [IncomingAttachment] {
+        if let files = decoded.attachments {
+            return files.compactMap { file in
+                let filename = file.filename
+                guard !filename.isEmpty else { return nil }
+                let data = Data(buffer: file.data)
+                guard !data.isEmpty else { return nil }
+                return IncomingAttachment(filename: filename, data: data)
+            }
+        }
+        let r = self.createRequest(from: req)
+        return r.parseMultiPartFormData().compactMap { part in
+            guard part.name == "attachment", let filename = part.fileName else { return nil }
+            let data = Data(bytes: part.body, count: part.body.count)
+            guard !data.isEmpty else { return nil }
+            return IncomingAttachment(filename: filename, data: data)
+        }
+    }
+
+    private func applyAttachments(_ incoming: [IncomingAttachment], to draft: DraftModel, planetID: UUID, mode: APIAttachmentMode) throws {
+        switch mode {
+        case .keep:
+            return
+        case .replace:
+            for existing in draft.attachments {
+                draft.deleteAttachment(name: existing.name)
+            }
+        case .append:
+            // Upsert: drop an inherited attachment with the same filename so we
+            // do not end up with duplicate names.
+            for item in incoming {
+                draft.deleteAttachment(name: item.filename)
+            }
+        }
+        for item in incoming {
+            let savedURL = try self.saveAttachment(item.data, filename: item.filename, forPlanet: planetID)
+            let attachmentType = AttachmentType.from(savedURL)
+            try draft.addAttachment(path: savedURL, type: attachmentType)
+            Task.detached(priority: .background) {
+                try? FileManager.default.removeItem(at: savedURL)
+            }
+        }
+    }
+
+    private func getPlanetAndArticle(named req: Request) async throws -> (planet: MyPlanetModel, article: MyArticleModel) {
+        guard let planetUUIDString = req.parameters.get("uuid"),
+              let planetUUID = UUID(uuidString: planetUUIDString) else {
+            throw Abort(.badRequest, reason: "Invalid planet UUID format.")
+        }
+        guard let articleUUIDString = req.parameters.get("article"),
+              let articleUUID = UUID(uuidString: articleUUIDString) else {
+            throw Abort(.badRequest, reason: "Invalid article UUID format.")
+        }
+        return try await MainActor.run {
+            let store = PlanetStore.shared
+            guard
+                let planet = store.myPlanets.first(where: { $0.id == planetUUID })
+                    ?? store.myArchivedPlanets.first(where: { $0.id == planetUUID })
+            else {
+                throw Abort(.notFound, reason: "Planet not found.")
+            }
+            guard let article = planet.articles.first(where: { $0.id == articleUUID }) else {
+                throw Abort(.notFound, reason: "Article not found.")
+            }
+            return (planet, article)
+        }
     }
 
     private func createResponse<T: Encodable>(from value: T, status: HTTPResponseStatus) throws -> Response {
@@ -630,36 +733,9 @@ class PlanetAPIController: NSObject, ObservableObject {
             draft.date = getDateFromString(articleDateString)
         }
         draft.content = articleContent
-        if let attachments = article.attachments {
-            for attachment in attachments {
-                let savedURL = try self.saveAttachment(attachment, forPlanet: planet.id)
-                let attachmentType = AttachmentType.from(savedURL)
-                try draft.addAttachment(path: savedURL, type: attachmentType)
-                Task.detached(priority: .background) {
-                    try? FileManager.default.removeItem(at: savedURL)
-                }
-            }
-        } else {
-            let r: HttpRequest = self.createRequest(from: req)
-            let multipartDatas = r.parseMultiPartFormData()
-            for multipartData in multipartDatas {
-                guard let propertyName = multipartData.name else { continue }
-                switch propertyName {
-                    case "attachment":
-                        let fileData = Data(bytes: multipartData.body, count: multipartData.body.count)
-                        if let fileName = multipartData.fileName, fileData.count > 0 {
-                            let savedURL =  try self.saveAttachment(fileData, filename: fileName, forPlanet: planet.id)
-                            let attachmentType = AttachmentType.from(savedURL)
-                            try draft.addAttachment(path: savedURL, type: attachmentType)
-                            Task.detached(priority: .background) {
-                                try? FileManager.default.removeItem(at: savedURL)
-                            }
-                        }
-                    default:
-                        break
-                }
-            }
-        }
+        // A fresh draft has no attachments, so append adds the full set.
+        let incoming = collectIncomingAttachments(fromRequest: req, decoded: article)
+        try applyAttachments(incoming, to: draft, planetID: planet.id, mode: .append)
         // TODO: What if the saveToArticle operation is a Task.detached?
         let createdArticle = try await MainActor.run {
             try draft.saveToArticle()
@@ -679,7 +755,9 @@ class PlanetAPIController: NSObject, ObservableObject {
         let article = result.article
         try ensurePlanetIsNotArchived(planet)
         let draft = try DraftModel.create(from: article)
-        let updateArticle: APIPlanetArticle = try req.content.decode(APIPlanetArticle.self)
+        // Tolerate a body the content decoder cannot parse (e.g. an empty
+        // multipart sent to clear all attachments) instead of returning 500.
+        let updateArticle: APIPlanetArticle = (try? req.content.decode(APIPlanetArticle.self)) ?? APIPlanetArticle()
         if let articleTitle = updateArticle.title, articleTitle != "" {
             draft.title = articleTitle
         }
@@ -691,53 +769,65 @@ class PlanetAPIController: NSObject, ObservableObject {
         if let articleContent = updateArticle.content, articleContent != "" {
             draft.content = articleContent
         }
-        if let attachments = updateArticle.attachments {
-            for existingAttachment in draft.attachments {
-                draft.deleteAttachment(name: existingAttachment.name)
-            }
-            for attachment in attachments {
-                let savedURL = try self.saveAttachment(attachment, forPlanet: planet.id)
-                let attachmentType = AttachmentType.from(savedURL)
-                try draft.addAttachment(path: savedURL, type: attachmentType)
-                Task.detached(priority: .background) {
-                    try? FileManager.default.removeItem(at: savedURL)
-                }
-            }
-        } else {
-            let r: HttpRequest = self.createRequest(from: req)
-            let multipartDatas = r.parseMultiPartFormData()
-            if multipartDatas.count > 0 {
-                for multipartData in multipartDatas {
-                    if let propertyName = multipartData.name, propertyName == "attachment" {
-                        for existingAttachment in draft.attachments {
-                            draft.deleteAttachment(name: existingAttachment.name)
-                        }
-                        break
-                    }
-                }
-                for multipartData in multipartDatas {
-                    guard let propertyName = multipartData.name else { continue }
-                    switch propertyName {
-                        case "attachment":
-                            let fileData = Data(bytes: multipartData.body, count: multipartData.body.count)
-                            if let fileName = multipartData.fileName, fileData.count > 0 {
-                                let savedURL = try self.saveAttachment(fileData, filename: fileName, forPlanet: planet.id)
-                                let attachmentType = AttachmentType.from(savedURL)
-                                try draft.addAttachment(path: savedURL, type: attachmentType)
-                                Task.detached(priority: .background) {
-                                    try? FileManager.default.removeItem(at: savedURL)
-                                }
-                            }
-                        default:
-                            break
-                    }
-                }
-            }
+        // attachmentMode=keep|append|replace controls how the sent attachments
+        // interact with the existing ones. Without the parameter the legacy
+        // behavior holds: sending attachments replaces them all, sending none
+        // leaves them untouched.
+        let incoming = collectIncomingAttachments(fromRequest: req, decoded: updateArticle)
+        let mode = attachmentMode(fromRequest: req) ?? (incoming.isEmpty ? .keep : .replace)
+        try applyAttachments(incoming, to: draft, planetID: planet.id, mode: mode)
+        let updatedArticle = try await MainActor.run {
+            try draft.saveToArticle()
         }
-        try await MainActor.run {
-            _ = try draft.saveToArticle()
+        return try self.createResponse(from: updatedArticle, status: .accepted)
+    }
+
+    // Files Planet generates inside an article's public folder. They can leak
+    // into the persisted attachments list, so the attachment routes hide them.
+    private static let generatedAttachmentFilenames: Set<String> = [
+        "index.html", "simple.html", "article.json", "article.md", "nft.json",
+        "nft.json.cid.txt", "_cover.png", "_preview.png", "_videoThumbnail.png",
+        "_bg.png", "_grid.jpg", "_grid.png", "favicon.ico",
+    ]
+
+    private func routeListArticleAttachments(fromRequest req: Request) async throws -> Response {
+        let result = try await getPlanetAndArticle(named: req)
+        let names = await MainActor.run { result.article.attachments ?? [] }
+        let filtered = names.filter { !Self.generatedAttachmentFilenames.contains($0) }
+        return try self.createResponse(from: filtered, status: .ok)
+    }
+
+    private func routeAddArticleAttachments(fromRequest req: Request) async throws -> Response {
+        let result = try await getPlanetAndArticle(named: req)
+        try ensurePlanetIsNotArchived(result.planet)
+        let decoded: APIPlanetArticle = (try? req.content.decode(APIPlanetArticle.self)) ?? APIPlanetArticle()
+        let incoming = collectIncomingAttachments(fromRequest: req, decoded: decoded)
+        guard !incoming.isEmpty else {
+            throw Abort(.badRequest, reason: "No attachments found in request.")
         }
-        return try self.createResponse(from: article, status: .accepted)
+        let draft = try DraftModel.create(from: result.article)
+        try applyAttachments(incoming, to: draft, planetID: result.planet.id, mode: .append)
+        let updatedArticle = try await MainActor.run {
+            try draft.saveToArticle()
+        }
+        return try self.createResponse(from: updatedArticle, status: .ok)
+    }
+
+    private func routeDeleteArticleAttachment(fromRequest req: Request) async throws -> Response {
+        let result = try await getPlanetAndArticle(named: req)
+        try ensurePlanetIsNotArchived(result.planet)
+        guard let name = req.parameters.get("name"), !name.isEmpty else {
+            throw Abort(.badRequest, reason: "Invalid attachment name.")
+        }
+        let draft = try DraftModel.create(from: result.article)
+        guard draft.attachments.contains(where: { $0.name == name }) else {
+            throw Abort(.notFound, reason: "Attachment not found: \(name)")
+        }
+        draft.deleteAttachment(name: name)
+        let updatedArticle = try await MainActor.run {
+            try draft.saveToArticle()
+        }
+        return try self.createResponse(from: updatedArticle, status: .ok)
     }
 
     private func routeSearch(fromRequest req: Request) async throws -> Response {

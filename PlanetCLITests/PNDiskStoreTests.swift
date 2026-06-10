@@ -142,6 +142,53 @@ final class PNDiskStoreTests: XCTestCase {
         XCTAssertEqual(publicPlanet.tags, ["cli": "CLI", "swift": "Swift"])
     }
 
+    func testAttachmentAppendReplaceClearAndDeleteOne() throws {
+        let sandbox = try PNTestSandbox()
+        defer { sandbox.cleanup() }
+
+        let store = PNDiskStore(root: sandbox.libraryURL)
+        let planet = try store.createPlanet(name: "Attachment Planet", about: "", template: nil, avatar: nil)
+        defer { _ = try? store.deletePlanet(planet) }
+
+        let one = try sandbox.makeTextFixture(name: "one.txt", contents: "one")
+        let two = try sandbox.makeTextFixture(name: "two.txt", contents: "two")
+        let three = try sandbox.makeTextFixture(name: "three.txt", contents: "three")
+
+        var article = try store.createArticle(planet: planet, title: "A", content: "B", date: nil, attachments: [one])
+        XCTAssertEqual(article.attachments, ["one.txt"])
+
+        // Append keeps existing and adds the new one.
+        article = try store.addAttachments(planet: planet, article: article, attachments: [two])
+        XCTAssertEqual(article.attachments, ["one.txt", "two.txt"])
+        XCTAssertEqual(store.articleAttachmentNames(for: article), ["one.txt", "two.txt"])
+
+        // Replace drops all existing and adds only the new set.
+        article = try store.updateArticle(planet: planet, article: article, title: nil, content: nil, date: nil, replaceAttachments: true, attachments: [three])
+        XCTAssertEqual(article.attachments, ["three.txt"])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: store.articlePublicPath(article, in: planet).appendingPathComponent("one.txt").path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: store.articlePublicPath(article, in: planet).appendingPathComponent("three.txt").path))
+
+        // Delete one by name.
+        article = try store.addAttachments(planet: planet, article: article, attachments: [one, two])
+        XCTAssertEqual(article.attachments, ["three.txt", "one.txt", "two.txt"])
+        article = try store.deleteAttachment(planet: planet, article: article, name: "one.txt")
+        XCTAssertEqual(article.attachments, ["three.txt", "two.txt"])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: store.articlePublicPath(article, in: planet).appendingPathComponent("one.txt").path))
+
+        do {
+            _ = try store.deleteAttachment(planet: planet, article: article, name: "missing.txt")
+            XCTFail("Expected not-found error for unknown attachment.")
+        } catch PNError.notFound {
+            // expected
+        }
+
+        // Replace with an empty set clears all.
+        article = try store.updateArticle(planet: planet, article: article, title: nil, content: nil, date: nil, replaceAttachments: true, attachments: [])
+        XCTAssertEqual(article.attachments, [])
+        let publicArticle = try readPublicPlanet(in: sandbox.libraryURL, id: planet.id).articles.first
+        XCTAssertEqual(publicArticle?.attachments, [])
+    }
+
     func testPartialUUIDSelectorsResolveWithExactMatchPrecedence() throws {
         let sandbox = try PNTestSandbox()
         defer { sandbox.cleanup() }

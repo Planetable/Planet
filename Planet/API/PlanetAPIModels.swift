@@ -21,6 +21,17 @@ struct APIPlanetArticle: Content {
     var attachments: [File]?
 }
 
+/// How an article-modify request should treat its attachments.
+/// - keep: leave existing attachments untouched (default when none are sent).
+/// - append: add the sent attachments, upserting by filename, keeping the rest.
+/// - replace: drop all existing attachments, then add the sent ones (default
+///   when attachments are sent; sending none clears all).
+enum APIAttachmentMode: String {
+    case keep
+    case append
+    case replace
+}
+
 
 struct APISearchResultPlanet: Content {
     let id: UUID

@@ -155,21 +155,34 @@ final class PNAPIClient {
         if let title { fields["title"] = title }
         if let content { fields["content"] = content }
         if let date { fields["date"] = PNDateParser.format(date) }
-        if replaceAttachments || !attachments.isEmpty {
+        let path = ["v0", "planets", "my", planetID.uuidString, "articles", articleID.uuidString]
+        // replace clears then adds (sending none clears all); append upserts the
+        // new attachments while keeping the rest; neither leaves them untouched.
+        if replaceAttachments {
+            // Clear-all: send JSON, not an empty multipart the server can't parse.
+            if attachments.isEmpty {
+                return try requestJSON(PNArticleRecord.self, method: "POST", path: path, query: ["attachmentMode": "replace"], json: fields)
+            }
             return try requestMultipart(
                 PNArticleRecord.self,
                 method: "POST",
-                path: ["v0", "planets", "my", planetID.uuidString, "articles", articleID.uuidString],
+                path: path,
+                query: ["attachmentMode": "replace"],
                 fields: fields,
                 files: attachments.map { PNMultipartFile(fieldName: "attachment", url: $0, contentType: Self.mimeType(for: $0)) }
             )
         }
-        return try requestJSON(
-            PNArticleRecord.self,
-            method: "POST",
-            path: ["v0", "planets", "my", planetID.uuidString, "articles", articleID.uuidString],
-            json: fields
-        )
+        if !attachments.isEmpty {
+            return try requestMultipart(
+                PNArticleRecord.self,
+                method: "POST",
+                path: path,
+                query: ["attachmentMode": "append"],
+                fields: fields,
+                files: attachments.map { PNMultipartFile(fieldName: "attachment", url: $0, contentType: Self.mimeType(for: $0)) }
+            )
+        }
+        return try requestJSON(PNArticleRecord.self, method: "POST", path: path, json: fields)
     }
 
     func deleteArticle(planetID: UUID, articleID: UUID) throws -> PNArticleRecord {
@@ -177,6 +190,40 @@ final class PNAPIClient {
             PNArticleRecord.self,
             method: "DELETE",
             path: ["v0", "planets", "my", planetID.uuidString, "articles", articleID.uuidString]
+        )
+    }
+
+    func articleAttachments(planetID: UUID, articleID: UUID) throws -> [String] {
+        do {
+            return try requestJSON(
+                [String].self,
+                method: "GET",
+                path: ["v0", "planets", "my", planetID.uuidString, "articles", articleID.uuidString, "attachments"]
+            )
+        } catch PNError.apiError(404, let body) {
+            guard !body.contains("not found") else {
+                throw PNError.notFound("Article not found via API: \(articleID.uuidString)")
+            }
+            return []
+        }
+    }
+
+    func addArticleAttachments(planetID: UUID, articleID: UUID, attachments: [URL]) throws -> PNArticleRecord {
+        try requestMultipart(
+            PNArticleRecord.self,
+            method: "POST",
+            path: ["v0", "planets", "my", planetID.uuidString, "articles", articleID.uuidString, "attachments"],
+            fields: [:],
+            files: attachments.map { PNMultipartFile(fieldName: "attachment", url: $0, contentType: Self.mimeType(for: $0)) }
+        )
+    }
+
+    func deleteArticleAttachment(planetID: UUID, articleID: UUID, name: String) throws -> PNArticleRecord {
+        // makeRequest percent-encodes each path component, so pass the raw name.
+        try requestJSON(
+            PNArticleRecord.self,
+            method: "DELETE",
+            path: ["v0", "planets", "my", planetID.uuidString, "articles", articleID.uuidString, "attachments", name]
         )
     }
 
@@ -218,11 +265,12 @@ final class PNAPIClient {
         _ type: T.Type,
         method: String,
         path: [String],
+        query: [String: String] = [:],
         fields: [String: String],
         files: [PNMultipartFile]
     ) throws -> T {
         let boundary = "pn-\(UUID().uuidString)"
-        var request = try makeRequest(method: method, path: path)
+        var request = try makeRequest(method: method, path: path, query: query)
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.httpBody = try multipartBody(boundary: boundary, fields: fields, files: files)
         let data = try perform(request)

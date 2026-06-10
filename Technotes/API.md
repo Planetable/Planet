@@ -214,11 +214,18 @@ Inputs:
 - content: String
 - attachments: file at any supported type, 50MB max in total.
 
+Optional query parameter `attachmentMode` controls how the sent attachments interact with existing ones:
+- `keep`: leave existing attachments untouched.
+- `append`: add the sent attachments, upserting by filename, keeping the rest.
+- `replace`: drop all existing attachments, then add the sent ones. Sending no attachments clears them all.
+
+Without the parameter the legacy behavior holds: sending attachments replaces them all, sending none leaves them untouched.
+
 ```
-curl -X POST http://localhost:8086/v0/planets/my/12345678-312A-466D-979A-9BEC7D0F450A/articles/12345678-1234-466D-979A-9BEC7D0F450A \
+curl -X POST "http://localhost:8086/v0/planets/my/12345678-312A-466D-979A-9BEC7D0F450A/articles/12345678-1234-466D-979A-9BEC7D0F450A?attachmentMode=append" \
   -H 'Content-Type: multipart/form-data' \
   -F 'title=Updated Article' \
-  -F 'content=Say hi to article. <img src="image.jpg" />'
+  -F 'attachment=@photo.jpg'
 ```
 Returns:
 ```
@@ -228,6 +235,34 @@ Returns:
     "content": "Say hi to article. <img src="image.jpg" />",
     ...
 }
+```
+
+
+### List article attachments: ```GET /v0/planets/my/:planet_uuid/articles/:article_uuid/attachments```
+
+Returns the attachment filenames as a JSON array of strings. Allowed on archived planets.
+```
+curl -X GET http://localhost:8086/v0/planets/my/12345678-312A-466D-979A-9BEC7D0F450A/articles/12345678-1234-466D-979A-9BEC7D0F450A/attachments
+```
+```
+["photo.jpg", "notes.txt"]
+```
+
+
+### Append article attachments: ```POST /v0/planets/my/:planet_uuid/articles/:article_uuid/attachments```
+
+Multipart `attachment` parts, 50MB max in total. Appends to the existing set, upserting by filename. Returns the updated article. Rejected on archived planets.
+```
+curl -X POST http://localhost:8086/v0/planets/my/12345678-312A-466D-979A-9BEC7D0F450A/articles/12345678-1234-466D-979A-9BEC7D0F450A/attachments \
+  -F 'attachment=@photo.jpg'
+```
+
+
+### Delete an article attachment: ```DELETE /v0/planets/my/:planet_uuid/articles/:article_uuid/attachments/:name```
+
+Deletes a single attachment by filename. Returns the updated article. 404 if the named attachment does not exist. Rejected on archived planets.
+```
+curl -X DELETE http://localhost:8086/v0/planets/my/12345678-312A-466D-979A-9BEC7D0F450A/articles/12345678-1234-466D-979A-9BEC7D0F450A/attachments/photo.jpg
 ```
 
 

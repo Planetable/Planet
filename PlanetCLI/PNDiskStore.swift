@@ -280,6 +280,62 @@ final class PNDiskStore {
         return updated
     }
 
+    // Files Planet generates inside an article's public folder, mirrored from
+    // the app so attachment listings show only user attachments.
+    static let generatedAttachmentNames: Set<String> = [
+        "index.html", "simple.html", "article.json", "article.md", "nft.json",
+        "nft.json.cid.txt", "_cover.png", "_preview.png", "_videoThumbnail.png",
+        "_bg.png", "_grid.jpg", "_grid.png", "favicon.ico",
+    ]
+
+    func articleAttachmentNames(for article: PNArticleRecord) -> [String] {
+        (article.attachments ?? []).filter { !Self.generatedAttachmentNames.contains($0) }
+    }
+
+    func addAttachments(planet: PNPlanetRecord, article: PNArticleRecord, attachments: [URL]) throws -> PNArticleRecord {
+        guard !attachments.isEmpty else { return article }
+        return try updateArticle(
+            planet: planet,
+            article: article,
+            title: nil,
+            content: nil,
+            date: nil,
+            replaceAttachments: false,
+            attachments: attachments
+        )
+    }
+
+    func deleteAttachment(planet: PNPlanetRecord, article: PNArticleRecord, name: String) throws -> PNArticleRecord {
+        let url = articlePath(article, in: planet)
+        var object = try PNJSON.readObject(from: url)
+        var names = (object["attachments"] as? [String]) ?? article.attachments ?? []
+        guard names.contains(name) else {
+            throw PNError.notFound("Attachment not found: \(name)")
+        }
+        names.removeAll { $0 == name }
+        try? fileManager.removeItem(at: articlePublicPath(article, in: planet).appendingPathComponent(name, isDirectory: false))
+        object["attachments"] = names
+        if (object["videoFilename"] as? String) == name {
+            object["videoFilename"] = names.first(where: isVideo).map { $0 as Any } ?? NSNull()
+        }
+        if (object["audioFilename"] as? String) == name {
+            object["audioFilename"] = names.first(where: isAudio).map { $0 as Any } ?? NSNull()
+        }
+        if (object["heroImage"] as? String) == name {
+            object["heroImage"] = NSNull()
+            object["heroImageWidth"] = NSNull()
+            object["heroImageHeight"] = NSNull()
+        }
+        object["cids"] = [:]
+        object["modified"] = PNJSON.dateNumber(Date())
+        try PNJSON.writeObject(object, to: url)
+        let updated = try PNJSON.read(PNArticleRecord.self, from: url)
+        try writePublicArticle(updated, planet: planet)
+        try touchPlanetUpdated(planet)
+        try writePublicPlanet(for: planet.id)
+        return updated
+    }
+
     func deleteArticle(planet: PNPlanetRecord, article: PNArticleRecord) throws -> PNArticleRecord {
         try? fileManager.removeItem(at: articlePath(article, in: planet))
         try? fileManager.removeItem(at: articlePublicPath(article, in: planet))

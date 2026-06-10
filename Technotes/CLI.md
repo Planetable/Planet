@@ -165,14 +165,29 @@ pn article list <planet> [--all] [--limit <n>]
 pn article show <planet> <article> [--content]
 pn article path <planet> <article> [--public]
 pn article create <planet> [--title <title>] [--content <text> | --content-file <path>] [--date <iso8601>] [--attachment <path>]...
-pn article update <planet> <article> [--title <title>] [--content <text> | --content-file <path>] [--date <iso8601>] [--replace-attachments --attachment <path>]...
+pn article update <planet> <article> [--title <title>] [--content <text> | --content-file <path>] [--date <iso8601>] [--replace-attachments] [--attachment <path>]...
 pn article delete <planet> <article> [--yes]
+pn article attachment list <planet> <article>
+pn article attachment add <planet> <article> <path>...
+pn article attachment delete <planet> <article> <name>... [--yes]
 pn search <query> [--limit <n>] [--planet <planet>]
 ```
 
 Human-readable tables are the default. `--json` is the machine-readable mode.
 
 `planet list --archived` and `planet list --all` map to `/v0/planets/my?archived=true` and `?all=true` in API mode. Planet selectors resolve against all planets, including archived ones, in both modes.
+
+## Attachments
+
+`article update` and the `article attachment` commands behave the same in API and disk mode:
+
+- `article update <planet> <article> --attachment <path>...` appends the given files, upserting by filename and keeping the rest.
+- `article update <planet> <article> --replace-attachments [--attachment <path>...]` drops all existing attachments and adds the given set. With no `--attachment`, it clears all attachments.
+- `article attachment list` prints the attachment filenames.
+- `article attachment add <path>...` appends files, like `update --attachment`.
+- `article attachment delete <name>...` removes named attachments one by one.
+
+In API mode, append/replace map to the `attachmentMode=append|replace` query parameter on the article-modify route, and the `attachment` subcommands map to the `/attachments` sub-routes. Disk mode performs the equivalent file operations directly. Disk mode does not perform the app's HEIC-to-JPEG conversion or GPS stripping, and classifies the primary video/audio file by extension rather than by uniform type.
 
 In API mode the app serves reads and planet deletion for archived planets, but rejects content mutations and publish with HTTP 400 because archived planets are excluded from publishing. Disk mode does not enforce this and will mutate archived planet files when asked.
 

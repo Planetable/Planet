@@ -49,6 +49,13 @@ struct PNArguments {
         return result
     }
 
+    /// Consume and return all remaining positional values (no leading "--").
+    mutating func popRemaining() -> [String] {
+        let positional = values.filter { !$0.hasPrefix("--") }
+        values.removeAll { !$0.hasPrefix("--") }
+        return positional
+    }
+
     func ensureNoExtras() throws {
         guard values.isEmpty else {
             throw PNError.usage("Unexpected arguments: \(values.joined(separator: " "))")
@@ -420,8 +427,47 @@ final class PNCommandRunner {
             try confirm("Delete article \(articleSelector) from \(planetSelector)?", yes: yes)
             let article = try deleteArticle(planetSelector: planetSelector, articleSelector: articleSelector)
             emit(article, human: "Deleted article \(article.title) (\(article.id.uuidString)).")
+        case "attachment":
+            try runArticleAttachment(arguments: arguments)
         default:
             throw PNError.usage("Unknown article command: \(subcommand)")
+        }
+    }
+
+    private func runArticleAttachment(arguments input: PNArguments) throws {
+        var arguments = input
+        guard let subcommand = arguments.pop() else { throw PNError.usage("Missing article attachment command.") }
+        switch subcommand {
+        case "list":
+            let planetSelector = try arguments.require("planet")
+            let articleSelector = try arguments.require("article")
+            try arguments.ensureNoExtras()
+            let names = try articleAttachmentNames(planetSelector: planetSelector, articleSelector: articleSelector)
+            emit(["attachments": names], human: names.isEmpty ? "(none)" : names.joined(separator: "\n"))
+        case "add":
+            let planetSelector = try arguments.require("planet")
+            let articleSelector = try arguments.require("article")
+            let paths = arguments.popRemaining().map { URL(fileURLWithPath: $0) }
+            try arguments.ensureNoExtras()
+            guard !paths.isEmpty else {
+                throw PNError.usage("article attachment add requires at least one file path.")
+            }
+            let article = try addArticleAttachments(planetSelector: planetSelector, articleSelector: articleSelector, attachments: paths)
+            emit(article, human: "Attachments for \(article.title): \((article.attachments ?? []).joined(separator: ", "))")
+        case "delete", "rm":
+            let planetSelector = try arguments.require("planet")
+            let articleSelector = try arguments.require("article")
+            let yes = arguments.flag("--yes")
+            let names = arguments.popRemaining()
+            try arguments.ensureNoExtras()
+            guard !names.isEmpty else {
+                throw PNError.usage("article attachment delete requires at least one attachment name.")
+            }
+            try confirm("Delete \(names.count) attachment(s) from \(articleSelector)?", yes: yes)
+            let article = try deleteArticleAttachments(planetSelector: planetSelector, articleSelector: articleSelector, names: names)
+            emit(article, human: "Attachments for \(article.title): \((article.attachments ?? []).isEmpty ? "(none)" : (article.attachments ?? []).joined(separator: ", "))")
+        default:
+            throw PNError.usage("Unknown article attachment command: \(subcommand)")
         }
     }
 
@@ -655,9 +701,6 @@ final class PNCommandRunner {
     private func updateArticle(planetSelector: String, articleSelector: String, title: String?, content: String?, date: Date?, replaceAttachments: Bool, attachments: [URL]) throws -> PNArticleRecord {
         switch try backend() {
         case .api(let client):
-            guard !(replaceAttachments && attachments.isEmpty) else {
-                throw PNError.apiUnavailable("The Planet API cannot clear all attachments in one request. Use --source disk for that operation.")
-            }
             let planet = try resolvePlanet(planetSelector, in: client.planets(includeArchived: true))
             let article = try resolveArticle(articleSelector, in: try client.articles(planetID: planet.id), planet: planet)
             return try client.updateArticle(planetID: planet.id, articleID: article.id, title: title, content: content, date: date, replaceAttachments: replaceAttachments, attachments: attachments)
@@ -678,6 +721,52 @@ final class PNCommandRunner {
             let planet = try disk.resolvePlanet(planetSelector)
             let article = try disk.resolveArticle(articleSelector, in: planet)
             return try disk.deleteArticle(planet: planet, article: article)
+        }
+    }
+
+    private func articleAttachmentNames(planetSelector: String, articleSelector: String) throws -> [String] {
+        switch try backend() {
+        case .api(let client):
+            let planet = try resolvePlanet(planetSelector, in: client.planets(includeArchived: true))
+            let article = try resolveArticle(articleSelector, in: try client.articles(planetID: planet.id), planet: planet)
+            return try client.articleAttachments(planetID: planet.id, articleID: article.id)
+        case .disk:
+            let planet = try disk.resolvePlanet(planetSelector)
+            let article = try disk.resolveArticle(articleSelector, in: planet)
+            return disk.articleAttachmentNames(for: article)
+        }
+    }
+
+    private func addArticleAttachments(planetSelector: String, articleSelector: String, attachments: [URL]) throws -> PNArticleRecord {
+        switch try backend() {
+        case .api(let client):
+            let planet = try resolvePlanet(planetSelector, in: client.planets(includeArchived: true))
+            let article = try resolveArticle(articleSelector, in: try client.articles(planetID: planet.id), planet: planet)
+            return try client.addArticleAttachments(planetID: planet.id, articleID: article.id, attachments: attachments)
+        case .disk:
+            let planet = try disk.resolvePlanet(planetSelector)
+            let article = try disk.resolveArticle(articleSelector, in: planet)
+            return try disk.addAttachments(planet: planet, article: article, attachments: attachments)
+        }
+    }
+
+    private func deleteArticleAttachments(planetSelector: String, articleSelector: String, names: [String]) throws -> PNArticleRecord {
+        switch try backend() {
+        case .api(let client):
+            let planet = try resolvePlanet(planetSelector, in: client.planets(includeArchived: true))
+            let article = try resolveArticle(articleSelector, in: try client.articles(planetID: planet.id), planet: planet)
+            var updated = article
+            for name in names {
+                updated = try client.deleteArticleAttachment(planetID: planet.id, articleID: article.id, name: name)
+            }
+            return updated
+        case .disk:
+            let planet = try disk.resolvePlanet(planetSelector)
+            var article = try disk.resolveArticle(articleSelector, in: planet)
+            for name in names {
+                article = try disk.deleteAttachment(planet: planet, article: article, name: name)
+            }
+            return article
         }
     }
 
@@ -781,7 +870,7 @@ final class PNCommandRunner {
         case "planet":
             return "pn planet list|show|path|create|update|delete|publish ..."
         case "article":
-            return "pn article list|show|path|create|update|delete ..."
+            return "pn article list|show|path|create|update|delete|attachment ..."
         case "api":
             return "pn api status|start|stop"
         default:
@@ -810,8 +899,11 @@ final class PNCommandRunner {
               article show <planet> <article> [--content]
               article path <planet> <article> [--public]
               article create <planet> [--title <title>] [--content <text> | --content-file <path>] [--date <iso8601>] [--attachment <path>]...
-              article update <planet> <article> [--title <title>] [--content <text> | --content-file <path>] [--date <iso8601>] [--replace-attachments --attachment <path>]...
+              article update <planet> <article> [--title <title>] [--content <text> | --content-file <path>] [--date <iso8601>] [--replace-attachments] [--attachment <path>]...
               article delete <planet> <article> [--yes]
+              article attachment list <planet> <article>
+              article attachment add <planet> <article> <path>...
+              article attachment delete <planet> <article> <name>... [--yes]
               search <query> [--limit <n>] [--planet <planet>]
             """
         }
