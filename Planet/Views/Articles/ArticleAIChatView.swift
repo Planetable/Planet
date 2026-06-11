@@ -284,9 +284,9 @@ struct ArticleAIChatView: View {
     @State private var isSending: Bool = false
     @State private var errorText: String? = nil
     @State private var isPinnedToBottom: Bool = true
-    @State private var isUserScrollIntentDown: Bool = true
-    @State private var scrollWheelMonitor: Any? = nil
-    @State private var chatScrollHostBox = ChatScrollHostBox()
+    @State private var isUserScrollingChat: Bool = false
+    @State private var isChatNearBottom: Bool = true
+    @State private var bottomScrollRequest: Int = 0
     @State private var chatFontSize: CGFloat = {
         let stored = UserDefaults.standard.double(forKey: .settingsAIChatFontSize)
         return stored >= 12 && stored <= 20 ? CGFloat(stored) : 14
@@ -388,65 +388,55 @@ struct ArticleAIChatView: View {
             }
 
             ScrollViewReader { proxy in
-                GeometryReader { viewport in
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            chatMessageList
-                                .padding(.leading, 20)
-                                .padding(.trailing, 20)
-                                .padding(.bottom, 20)
-                                .padding(.top, 12)
-                            // Bottom sentinel: scroll target for pin-to-bottom, and
-                            // reports its position so we know when the user is back at the bottom.
-                            Color.clear
-                                .frame(height: 1)
-                                .id(Self.bottomScrollAnchorID)
-                                .background(
-                                    GeometryReader { geometry in
-                                        Color.clear.preference(
-                                            key: ChatBottomDistancePreferenceKey.self,
-                                            value: geometry.frame(in: .named(Self.chatScrollCoordinateSpace)).minY
-                                        )
-                                    }
-                                )
-                        }
+                ScrollView {
+                    VStack(spacing: 0) {
+                        chatMessageList
+                            .padding(.leading, 20)
+                            .padding(.trailing, 20)
+                            .padding(.bottom, 20)
+                            .padding(.top, 12)
+                        Color.clear
+                            .frame(height: 1)
+                            .id(Self.bottomScrollAnchorID)
                     }
-                    .background(Color(NSColor.textBackgroundColor))
-                    .background(ChatScrollHostAccessor(box: chatScrollHostBox))
-                    .coordinateSpace(name: Self.chatScrollCoordinateSpace)
-                    .applyScrollPositionTracking(id: $scrolledMessageID)
-                    .onPreferenceChange(ChatBottomDistancePreferenceKey.self) { sentinelTop in
-                        updateBottomPinState(distanceFromBottom: sentinelTop - viewport.size.height)
-                    }
-                    .onChange(of: messages) { _ in
-                        if let targetID = pendingScrollTarget {
-                            pendingScrollTarget = nil
-                            isPinnedToBottom = false
-                            if #available(macOS 14.0, *) {
-                                scrolledMessageID = targetID
-                            } else {
-                                proxy.scrollTo(targetID, anchor: .top)
-                            }
-                        } else if isPinnedToBottom {
-                            if messages.last?.role == "user" {
-                                withAnimation {
-                                    proxy.scrollTo(Self.bottomScrollAnchorID, anchor: .bottom)
-                                }
-                            } else {
-                                proxy.scrollTo(Self.bottomScrollAnchorID, anchor: .bottom)
-                            }
-                        }
-                    }
-                    .onChange(of: isSending) { _ in
-                        scrollToBottomIfPinned(proxy)
-                    }
-                    .onChange(of: toolProgressText) { _ in
-                        scrollToBottomIfPinned(proxy)
-                    }
-                    .environment(\.openURL, OpenURLAction { url in
-                        handleChatLink(url)
-                    })
                 }
+                .background(Color(NSColor.textBackgroundColor))
+                .background(
+                    ChatScrollPositionObserver(
+                        bottomScrollRequest: bottomScrollRequest,
+                        onUserScrollStateChange: { isUserScrolling in
+                            isUserScrollingChat = isUserScrolling
+                        },
+                        onPositionChange: { distanceFromBottom, isUserInitiated in
+                            if updateBottomPinState(distanceFromBottom: distanceFromBottom, isUserInitiated: isUserInitiated) {
+                                requestBottomScrollIfPinned(allowActiveUserScroll: true)
+                            }
+                        }
+                    )
+                )
+                .applyScrollPositionTracking(id: $scrolledMessageID)
+                .onChange(of: messages) { _ in
+                    if let targetID = pendingScrollTarget {
+                        pendingScrollTarget = nil
+                        isPinnedToBottom = false
+                        if #available(macOS 14.0, *) {
+                            scrolledMessageID = targetID
+                        } else {
+                            proxy.scrollTo(targetID, anchor: .top)
+                        }
+                    } else {
+                        requestBottomScrollIfPinned()
+                    }
+                }
+                .onChange(of: isSending) { _ in
+                    requestBottomScrollIfPinned()
+                }
+                .onChange(of: toolProgressText) { _ in
+                    requestBottomScrollIfPinned()
+                }
+                .environment(\.openURL, OpenURLAction { url in
+                    handleChatLink(url)
+                })
             }
 
             Divider()
@@ -512,10 +502,6 @@ struct ArticleAIChatView: View {
             loadPersistedChat()
             prepareInitialContextIfNeeded()
             syncToolbarState()
-            scrollWheelMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
-                handleScrollWheelEvent(event)
-                return event
-            }
             fontSizeKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                 guard event.modifierFlags.contains(.command),
                       !event.modifierFlags.contains(.shift),
@@ -543,10 +529,6 @@ struct ArticleAIChatView: View {
             if let monitor = fontSizeKeyMonitor {
                 NSEvent.removeMonitor(monitor)
                 fontSizeKeyMonitor = nil
-            }
-            if let monitor = scrollWheelMonitor {
-                NSEvent.removeMonitor(monitor)
-                scrollWheelMonitor = nil
             }
         }
         .onChange(of: selectedProvider) { _ in
@@ -807,41 +789,31 @@ struct ArticleAIChatView: View {
     }
 
     private static let bottomScrollAnchorID = "ai-chat-bottom-anchor"
-    private static let chatScrollCoordinateSpace = "ai-chat-scroll"
     private static let bottomRepinThreshold: CGFloat = 40
 
-    private func scrollToBottomIfPinned(_ proxy: ScrollViewProxy) {
-        guard isPinnedToBottom else { return }
-        proxy.scrollTo(Self.bottomScrollAnchorID, anchor: .bottom)
+    private func canScrollToBottomWhilePinned(allowActiveUserScroll: Bool = false) -> Bool {
+        isPinnedToBottom && (!isUserScrollingChat || allowActiveUserScroll || isChatNearBottom)
     }
 
-    // Re-pinning is driven by the sentinel position; unpinning only ever happens
-    // from an explicit user scroll-up gesture, so content growth during streaming
-    // can never kick the user out of follow mode.
-    private func updateBottomPinState(distanceFromBottom: CGFloat) {
-        guard !isPinnedToBottom else { return }
-        if distanceFromBottom <= 0
-            || (isUserScrollIntentDown && distanceFromBottom <= Self.bottomRepinThreshold)
-        {
+    private func requestBottomScrollIfPinned(allowActiveUserScroll: Bool = false) {
+        guard canScrollToBottomWhilePinned(allowActiveUserScroll: allowActiveUserScroll) else { return }
+        bottomScrollRequest &+= 1
+    }
+
+    @discardableResult
+    private func updateBottomPinState(distanceFromBottom: CGFloat, isUserInitiated: Bool) -> Bool {
+        let wasNearBottom = isChatNearBottom
+        let isNearBottom = distanceFromBottom <= Self.bottomRepinThreshold
+        isChatNearBottom = isNearBottom
+        if isNearBottom {
             isPinnedToBottom = true
+            return false
         }
-    }
-
-    private func handleScrollWheelEvent(_ event: NSEvent) {
-        guard let hostView = chatScrollHostBox.view,
-            let window = hostView.window,
-            event.window === window
-        else { return }
-        let location = hostView.convert(event.locationInWindow, from: nil)
-        guard hostView.bounds.contains(location) else { return }
-        if event.scrollingDeltaY > 0 {
-            isUserScrollIntentDown = false
-            if isPinnedToBottom {
-                isPinnedToBottom = false
-            }
-        } else if event.scrollingDeltaY < 0 {
-            isUserScrollIntentDown = true
+        if isUserInitiated {
+            isPinnedToBottom = false
+            return false
         }
+        return isPinnedToBottom && (!isUserScrollingChat || wasNearBottom)
     }
 
     private func syncToolbarState() {
@@ -865,7 +837,8 @@ struct ArticleAIChatView: View {
         expandedReasoningMessageIDs.removeAll()
         scrolledMessageID = nil
         isPinnedToBottom = true
-        isUserScrollIntentDown = true
+        isUserScrollingChat = false
+        isChatNearBottom = true
         errorText = nil
         toolProgressText = nil
         onDeviceSession = nil
@@ -2645,8 +2618,8 @@ struct ArticleAIChatView: View {
         debugLog("sendMessage promptLength=\(prompt.count), promptPreview=\(truncate(prompt, maxLength: 160))")
         inputText = ""
         errorText = nil
-        isPinnedToBottom = true
-        isUserScrollIntentDown = true
+        isPinnedToBottom = isPinnedToBottom || isChatNearBottom
+        isUserScrollingChat = false
         messages.append(ArticleAIChatMessage(role: "user", content: prompt, tokenUsage: nil))
         apiMessages.append(["role": "user", "content": prompt])
         if let sessionID = sessionID {
@@ -6877,30 +6850,272 @@ struct ArticleAIChatView: View {
 
 }
 
-private struct ChatBottomDistancePreferenceKey: PreferenceKey {
-    static let defaultValue: CGFloat = .greatestFiniteMagnitude
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = min(value, nextValue())
+private struct ChatScrollPositionObserver: NSViewRepresentable {
+    let bottomScrollRequest: Int
+    let onUserScrollStateChange: (Bool) -> Void
+    let onPositionChange: (CGFloat, Bool) -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(
+            onUserScrollStateChange: onUserScrollStateChange,
+            onPositionChange: onPositionChange
+        )
     }
-}
-
-private final class ChatScrollHostBox {
-    weak var view: NSView?
-}
-
-// Invisible background view used to resolve the chat scroll view's window and
-// frame, so the scroll wheel event monitor only reacts to events over this chat.
-private struct ChatScrollHostAccessor: NSViewRepresentable {
-    let box: ChatScrollHostBox
 
     func makeNSView(context: Context) -> NSView {
-        let view = NSView(frame: .zero)
-        box.view = view
+        let view = ChatScrollProbeView(frame: .zero)
+        view.onHierarchyChange = { [weak coordinator = context.coordinator] probeView in
+            coordinator?.attach(from: probeView)
+        }
         return view
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
-        box.view = nsView
+        context.coordinator.onUserScrollStateChange = onUserScrollStateChange
+        context.coordinator.onPositionChange = onPositionChange
+        context.coordinator.attach(from: nsView)
+        context.coordinator.handleBottomScrollRequest(bottomScrollRequest)
+    }
+
+    static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
+        coordinator.detach()
+    }
+
+    final class Coordinator: NSObject {
+        var onUserScrollStateChange: (Bool) -> Void
+        var onPositionChange: (CGFloat, Bool) -> Void
+
+        private weak var scrollView: NSScrollView?
+        private var boundsObserver: NSObjectProtocol?
+        private var willStartLiveScrollObserver: NSObjectProtocol?
+        private var didLiveScrollObserver: NSObjectProtocol?
+        private var didEndLiveScrollObserver: NSObjectProtocol?
+        private var scrollWheelMonitor: Any?
+        private var userScrollResetWorkItem: DispatchWorkItem?
+        private var bottomScrollWorkItems: [DispatchWorkItem] = []
+        private var lastBottomScrollRequest: Int = 0
+        private var isUserScrolling = false
+
+        init(
+            onUserScrollStateChange: @escaping (Bool) -> Void,
+            onPositionChange: @escaping (CGFloat, Bool) -> Void
+        ) {
+            self.onUserScrollStateChange = onUserScrollStateChange
+            self.onPositionChange = onPositionChange
+        }
+
+        deinit {
+            detach()
+        }
+
+        func attach(from view: NSView) {
+            guard let nextScrollView = enclosingScrollView(for: view) else { return }
+            guard nextScrollView !== scrollView else {
+                reportPosition(isUserInitiated: false)
+                return
+            }
+            detach()
+            scrollView = nextScrollView
+            nextScrollView.contentView.postsBoundsChangedNotifications = true
+
+            boundsObserver = NotificationCenter.default.addObserver(
+                forName: NSView.boundsDidChangeNotification,
+                object: nextScrollView.contentView,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self else { return }
+                self.reportPosition(isUserInitiated: self.isUserScrolling)
+            }
+
+            willStartLiveScrollObserver = NotificationCenter.default.addObserver(
+                forName: NSScrollView.willStartLiveScrollNotification,
+                object: nextScrollView,
+                queue: .main
+            ) { [weak self] _ in
+                self?.markUserScrolling()
+            }
+
+            didLiveScrollObserver = NotificationCenter.default.addObserver(
+                forName: NSScrollView.didLiveScrollNotification,
+                object: nextScrollView,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self else { return }
+                self.markUserScrolling()
+                self.reportPosition(isUserInitiated: true)
+            }
+
+            didEndLiveScrollObserver = NotificationCenter.default.addObserver(
+                forName: NSScrollView.didEndLiveScrollNotification,
+                object: nextScrollView,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self else { return }
+                self.reportPosition(isUserInitiated: true)
+                self.scheduleUserScrollReset(after: 0.1)
+            }
+
+            scrollWheelMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+                self?.markUserScrollingIfEventIsInsideScrollView(event)
+                return event
+            }
+
+            reportPosition(isUserInitiated: false)
+        }
+
+        func handleBottomScrollRequest(_ request: Int) {
+            guard request > 0, request != lastBottomScrollRequest else { return }
+            guard scrollView != nil else { return }
+            lastBottomScrollRequest = request
+            scheduleBottomScrolls()
+        }
+
+        func detach() {
+            let center = NotificationCenter.default
+            for observer in [
+                boundsObserver,
+                willStartLiveScrollObserver,
+                didLiveScrollObserver,
+                didEndLiveScrollObserver,
+            ].compactMap({ $0 }) {
+                center.removeObserver(observer)
+            }
+            boundsObserver = nil
+            willStartLiveScrollObserver = nil
+            didLiveScrollObserver = nil
+            didEndLiveScrollObserver = nil
+
+            if let scrollWheelMonitor {
+                NSEvent.removeMonitor(scrollWheelMonitor)
+                self.scrollWheelMonitor = nil
+            }
+            userScrollResetWorkItem?.cancel()
+            userScrollResetWorkItem = nil
+            cancelBottomScrolls()
+            setUserScrolling(false)
+            scrollView = nil
+        }
+
+        private func enclosingScrollView(for view: NSView) -> NSScrollView? {
+            if let scrollView = view.enclosingScrollView {
+                return scrollView
+            }
+            var current: NSView? = view
+            while let candidate = current {
+                if let scrollView = candidate as? NSScrollView {
+                    return scrollView
+                }
+                current = candidate.superview
+            }
+            return nil
+        }
+
+        private func markUserScrollingIfEventIsInsideScrollView(_ event: NSEvent) {
+            guard let scrollView,
+                let eventWindow = event.window,
+                eventWindow === scrollView.window
+            else { return }
+            let point = scrollView.convert(event.locationInWindow, from: nil)
+            guard scrollView.bounds.contains(point) else { return }
+            markUserScrolling()
+        }
+
+        private func markUserScrolling() {
+            cancelBottomScrolls()
+            setUserScrolling(true)
+            scheduleUserScrollReset(after: 0.35)
+        }
+
+        private func scheduleUserScrollReset(after delay: TimeInterval) {
+            userScrollResetWorkItem?.cancel()
+            let workItem = DispatchWorkItem { [weak self] in
+                self?.setUserScrolling(false)
+            }
+            userScrollResetWorkItem = workItem
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+        }
+
+        private func scheduleBottomScrolls() {
+            cancelBottomScrolls()
+            scheduleBottomScroll(after: 0)
+            scheduleBottomScroll(after: 0.03)
+            scheduleBottomScroll(after: 0.12)
+        }
+
+        private func scheduleBottomScroll(after delay: TimeInterval) {
+            let workItem = DispatchWorkItem { [weak self] in
+                self?.scrollToBottom()
+            }
+            bottomScrollWorkItems.append(workItem)
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+        }
+
+        private func cancelBottomScrolls() {
+            bottomScrollWorkItems.forEach { $0.cancel() }
+            bottomScrollWorkItems.removeAll()
+        }
+
+        private func setUserScrolling(_ value: Bool) {
+            guard isUserScrolling != value else { return }
+            isUserScrolling = value
+            DispatchQueue.main.async { [onUserScrollStateChange] in
+                onUserScrollStateChange(value)
+            }
+        }
+
+        private func reportPosition(isUserInitiated: Bool) {
+            guard let scrollView,
+                let documentView = scrollView.documentView
+            else { return }
+
+            let visibleRect = scrollView.contentView.documentVisibleRect
+            let documentBounds = documentView.bounds
+            let rawDistance = documentView.isFlipped
+                ? documentBounds.maxY - visibleRect.maxY
+                : visibleRect.minY - documentBounds.minY
+            let distanceFromBottom = max(0, rawDistance)
+
+            DispatchQueue.main.async { [onPositionChange] in
+                onPositionChange(distanceFromBottom, isUserInitiated)
+            }
+        }
+
+        private func scrollToBottom() {
+            guard let scrollView,
+                let documentView = scrollView.documentView
+            else { return }
+
+            scrollView.layoutSubtreeIfNeeded()
+            documentView.layoutSubtreeIfNeeded()
+
+            let clipView = scrollView.contentView
+            let visibleRect = clipView.documentVisibleRect
+            let documentBounds = documentView.bounds
+            let targetY: CGFloat
+            if documentView.isFlipped {
+                targetY = max(documentBounds.minY, documentBounds.maxY - visibleRect.height)
+            } else {
+                targetY = documentBounds.minY
+            }
+            let targetOrigin = NSPoint(x: visibleRect.minX, y: targetY)
+            clipView.scroll(to: targetOrigin)
+            scrollView.reflectScrolledClipView(clipView)
+            reportPosition(isUserInitiated: false)
+        }
+    }
+}
+
+private final class ChatScrollProbeView: NSView {
+    var onHierarchyChange: ((NSView) -> Void)?
+
+    override func viewDidMoveToSuperview() {
+        super.viewDidMoveToSuperview()
+        onHierarchyChange?(self)
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        onHierarchyChange?(self)
     }
 }
 
