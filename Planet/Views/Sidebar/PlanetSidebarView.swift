@@ -16,6 +16,7 @@ struct PlanetSidebarView: View {
     @StateObject var ipfsState = IPFSState.shared
     @AppStorage(String.settingsAIIsReady) private var settingsAIIsReady: Bool = false
     @State private var isOnDeviceAIAvailable: Bool = false
+    @State private var scrollSettleGate = ListScrollSettleGate()
 
     let timer1m = Timer.publish(every: 60, on: .current, in: .common).autoconnect()
     let timer3m = Timer.publish(every: 180, on: .current, in: .common).autoconnect()
@@ -107,8 +108,16 @@ struct PlanetSidebarView: View {
                 .listStyle(.sidebar)
                 .onReceive(NotificationCenter.default.publisher(for: .scrollToSidebarItem)) { n in
                     if let id = n.object as? String {
-                        sidebarProxy.scrollTo(id, anchor: .center)
+                        scrollSettleGate.perform {
+                            sidebarProxy.scrollTo(id, anchor: .center)
+                        }
                     }
+                }
+                .onChange(of: planetStore.myPlanets.map(\.id)) { _ in
+                    scrollSettleGate.noteContentChange()
+                }
+                .onChange(of: planetStore.followingPlanets.map(\.id)) { _ in
+                    scrollSettleGate.noteContentChange()
                 }
             }
 

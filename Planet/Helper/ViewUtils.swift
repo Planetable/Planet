@@ -155,6 +155,61 @@ extension Color {
     }
 }
 
+/// macOS 12's SwiftUI List corrupts its scroll offset when
+/// ScrollViewProxy.scrollTo runs while the list content is still settling
+/// (initial layout, or a wholesale replacement such as switching to a freshly
+/// followed planet). On macOS 13+, `perform` runs the scroll action
+/// immediately; on macOS 12 it defers the action until the list content has
+/// been stable for `settleDelay`. Only the latest deferred action is kept.
+/// Call `noteContentChange` whenever the list content is replaced.
+@MainActor
+final class ListScrollSettleGate {
+    private var lastContentChange = Date()
+    private var deferredTask: Task<Void, Never>?
+    private let settleDelay: TimeInterval
+    private let maxWait: TimeInterval
+
+    init(settleDelay: TimeInterval = 0.6, maxWait: TimeInterval = 5) {
+        self.settleDelay = settleDelay
+        self.maxWait = maxWait
+    }
+
+    func noteContentChange() {
+        lastContentChange = Date()
+    }
+
+    func perform(_ action: @escaping () -> Void) {
+        if #available(macOS 13.0, *) {
+            action()
+            return
+        }
+        deferredTask?.cancel()
+        deferredTask = Task { @MainActor [weak self] in
+            let startedAt = Date()
+            while true {
+                guard let self, !Task.isCancelled else { return }
+                let remaining = self.settleDelay - Date().timeIntervalSince(self.lastContentChange)
+                if remaining <= 0 {
+                    break
+                }
+                // Content keeps churning; give up rather than risking a
+                // corrupted offset from scrolling mid-layout.
+                if Date().timeIntervalSince(startedAt) > self.maxWait {
+                    return
+                }
+                try? await Task.sleep(nanoseconds: UInt64(max(remaining, 0.05) * 1_000_000_000))
+            }
+            guard !Task.isCancelled else { return }
+            action()
+        }
+    }
+
+    func cancel() {
+        deferredTask?.cancel()
+        deferredTask = nil
+    }
+}
+
 enum ViewVisibility: CaseIterable {
     case visible  // view is fully visible
     case invisible  // view is hidden but takes up space

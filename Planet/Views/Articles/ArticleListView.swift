@@ -461,16 +461,19 @@ struct ArticleListView: View {
     @State var articles: [ArticleModel]? = []
     @State private var pendingScrollArticleID: UUID?
     @State private var pendingScrollTask: Task<Void, Never>?
+    @State private var scrollSettleGate = ListScrollSettleGate()
 
     let articleDropDelegate = ArticleListDropDelegate()
 
     private func scrollToArticle(_ articleID: UUID, proxy: ScrollViewProxy, animated: Bool) {
-        if animated {
-            withAnimation {
+        scrollSettleGate.perform {
+            if animated {
+                withAnimation {
+                    proxy.scrollTo(articleID, anchor: .center)
+                }
+            } else {
                 proxy.scrollTo(articleID, anchor: .center)
             }
-        } else {
-            proxy.scrollTo(articleID, anchor: .center)
         }
     }
 
@@ -559,13 +562,18 @@ struct ArticleListView: View {
                             }.id(article.id)
                         }
                         .onReceive(NotificationCenter.default.publisher(for: .scrollToTopArticleList)) { n in
-                            if let article = viewModel.articles.first {
-                                debugPrint("Scrolling to top of Article List: \(article)")
-                                pendingScrollTask?.cancel()
-                                pendingScrollTask = nil
-                                pendingScrollArticleID = nil
-                                withAnimation {
-                                    proxy.scrollTo(article.id, anchor: .top)
+                            pendingScrollTask?.cancel()
+                            pendingScrollTask = nil
+                            pendingScrollArticleID = nil
+                            // Resolve the first article when the scroll runs:
+                            // on macOS 12 the deferred scroll can fire after
+                            // the list content is replaced.
+                            scrollSettleGate.perform {
+                                if let article = viewModel.articles.first {
+                                    debugPrint("Scrolling to top of Article List: \(article)")
+                                    withAnimation {
+                                        proxy.scrollTo(article.id, anchor: .top)
+                                    }
                                 }
                             }
                         }
@@ -585,6 +593,7 @@ struct ArticleListView: View {
                             }
                         }
                         .onChange(of: viewModel.articlesVersion) { _ in
+                            scrollSettleGate.noteContentChange()
                             guard pendingScrollArticleID != nil else {
                                 return
                             }
@@ -679,6 +688,7 @@ struct ArticleListView: View {
             pendingScrollTask?.cancel()
             pendingScrollTask = nil
             pendingScrollArticleID = nil
+            scrollSettleGate.cancel()
         }
     }
 }

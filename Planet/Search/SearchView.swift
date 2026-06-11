@@ -17,6 +17,7 @@ struct SearchView: View {
 
     @AppStorage("searchText") private var storedSearchText: String = ""
     @State private var searchTask: Task<Void, Never>?
+    @State private var scrollSettleGate = ListScrollSettleGate()
 
     @Environment(\.dismiss) private var dismiss
     private let searchEmptyAnchorID = "search-results-empty-anchor"
@@ -58,12 +59,18 @@ struct SearchView: View {
             ScrollViewReader { proxy in
                 searchResultView()
                     .onChange(of: result.map(\.articleID)) { _ in
+                        scrollSettleGate.noteContentChange()
                         Task { @MainActor in
                             await Task.yield()
-                            if let firstID = result.first?.articleID {
-                                proxy.scrollTo(firstID, anchor: .top)
-                            } else {
-                                proxy.scrollTo(searchEmptyAnchorID, anchor: .top)
+                            // Resolve the target when the scroll runs: on
+                            // macOS 12 the deferred scroll can fire after the
+                            // results have changed again.
+                            scrollSettleGate.perform {
+                                if let firstID = result.first?.articleID {
+                                    proxy.scrollTo(firstID, anchor: .top)
+                                } else {
+                                    proxy.scrollTo(searchEmptyAnchorID, anchor: .top)
+                                }
                             }
                         }
                         if let focusedResult, !result.contains(focusedResult) {
@@ -72,8 +79,10 @@ struct SearchView: View {
                     }
                     .onChange(of: focusedResult?.articleID) { id in
                         if let id = id {
-                            withAnimation(.easeInOut(duration: 0.12)) {
-                                proxy.scrollTo(id, anchor: .center)
+                            scrollSettleGate.perform {
+                                withAnimation(.easeInOut(duration: 0.12)) {
+                                    proxy.scrollTo(id, anchor: .center)
+                                }
                             }
                         }
                     }
@@ -95,6 +104,7 @@ struct SearchView: View {
             searchTask = nil
             isSearching = false
             storedSearchText = searchText
+            scrollSettleGate.cancel()
         }
     }
 
