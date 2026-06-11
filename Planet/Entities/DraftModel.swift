@@ -432,6 +432,9 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
 
     @discardableResult
     func saveToArticle() throws -> MyArticleModel {
+        #if DEBUG
+        let perfStartedAt = DispatchTime.now().uptimeNanoseconds
+        #endif
         let planet: MyPlanetModel
         let article: MyArticleModel
         var isEditingExistingArticle = false
@@ -575,8 +578,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                     await article.prewarm()
                 }
             } catch {
-                // Handle errors appropriately
-                print("During saving and publishing planet \(planet.name), an error occurred: \(error)")
+                IPFSLogger.log("[ERROR] [\(planet.name)] Saving and publishing after article save failed: \(String(describing: error))")
             }
         }
 
@@ -587,6 +589,16 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
                 preserving: preferredView
             )
         }
+
+        #if DEBUG
+        PerfLogger.record([
+            "scope=save_to_article",
+            "planet_id=\(planet.id.uuidString)",
+            "planet_name=\(PerfLogger.quoted(planet.name))",
+            "article_id=\(article.id.uuidString)",
+            "sync_ms=\(PerfLogger.milliseconds(DispatchTime.now().uptimeNanoseconds - perfStartedAt))",
+        ])
+        #endif
 
         // Croptop: delete cached hero image after editing.
         Task { @MainActor in

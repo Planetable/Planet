@@ -104,7 +104,9 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     // Protects cached template settings/filter expansion during parallel article renders.
     private let templateSettingsCacheLock = NSLock()
     private var cachedTemplateSettingsAndFilters: TemplateSettingsFiltersCache? = nil
-    private var queuedAutoPublishAfterRebuild = false
+    // Set when publish() is requested while another publish is in flight;
+    // drained as one follow-up publish when the in-flight publish finishes.
+    private var queuedPublish = false
     var attachmentsLastVerified: Date? = nil
     @Published var needsRebuild: Bool = false
 
@@ -195,9 +197,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         logPerf(scope: "rebuild", fields: ["kind=\(kind)"] + fields)
     }
     private func logPlanetPublicPerf(fields: [String]) {
+        // DEBUG builds also record the publish path (e.g. savePublic after an
+        // API post), not just rebuilds.
+        #if !DEBUG
         guard isRebuilding else {
             return
         }
+        #endif
         logPerf(scope: "planet_public", fields: fields)
     }
     private func saveOpsInBackground(kind: String) {
@@ -2691,10 +2697,22 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         self.isPublishing = false
         self.publishStartedAt = nil
         PlanetStatusManager.shared.updateStatus()
-        guard self.queuedAutoPublishAfterRebuild else {
+        guard self.queuedPublish else {
             return false
         }
-        self.queuedAutoPublishAfterRebuild = false
+        self.queuedPublish = false
+        return true
+    }
+
+    /// Coalesce a publish request that arrived while another publish (or IPNS
+    /// keepalive) holds `isPublishing`. Returns true if a follow-up publish was
+    /// newly queued, false if one is already pending.
+    @MainActor
+    private func queuePublishWhileBusy() -> Bool {
+        if self.queuedPublish {
+            return false
+        }
+        self.queuedPublish = true
         return true
     }
 
@@ -2714,17 +2732,17 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         PlanetStatusManager.shared.updateStatus()
     }
 
-    private func drainQueuedAutoPublishAfterRebuildIfNeeded(_ shouldDrain: Bool) {
+    private func drainQueuedPublishIfNeeded(_ shouldDrain: Bool) {
         guard shouldDrain else {
             return
         }
-        debugPrint("Draining queued auto-publish after rebuild for \(name)")
+        logIPFS("[\(name)] Starting queued follow-up publish")
         Task.detached(priority: .background) {
             do {
                 try await self.publish()
             }
             catch {
-                debugPrint("Queued auto-publish after rebuild failed for \(self.name): \(error)")
+                self.logIPFS("[ERROR] [\(self.name)] Queued follow-up publish failed: \(String(describing: error))")
             }
         }
     }
@@ -2734,14 +2752,13 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         let (status, shouldStartImmediately) = await MainActor.run { () -> (String, Bool) in
             debugPrint("Auto-publish requested after rebuild for \(self.name)")
             if self.isPublishing {
-                if self.queuedAutoPublishAfterRebuild {
-                    debugPrint("Auto-publish after rebuild already queued for \(self.name), coalescing")
-                    return ("coalesced", false)
+                if self.queuePublishWhileBusy() {
+                    debugPrint("Queueing auto-publish after rebuild for \(self.name)")
+                    return ("queued", false)
                 }
                 else {
-                    debugPrint("Queueing auto-publish after rebuild for \(self.name)")
-                    self.queuedAutoPublishAfterRebuild = true
-                    return ("queued", false)
+                    debugPrint("Auto-publish after rebuild already queued for \(self.name), coalescing")
+                    return ("coalesced", false)
                 }
             }
             return ("started", true)
@@ -2766,7 +2783,8 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
     private func performPublish() async throws {
         if isRebuilding {
-            debugPrint("Planet \(name) is being rebuilt, skipping publish")
+            // Safe to skip: the rebuild requests its own publish on completion.
+            logIPFS("[\(name)] Being rebuilt, skipping publish")
             return
         }
         let shouldPublishIPNS = publishAsIPNS ?? true
@@ -2785,6 +2803,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
 
         var cid: String? = nil
+        var ipfsPrepError: Error? = nil
         if shouldPublishIPNS {
             do {
                 logIPFS("[\(name)] Starting IPFS publish")
@@ -2842,9 +2861,15 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
                 }
             }
             catch {
-                logIPFS("[ERROR] [\(name)] IPFS publish preparation failed: \(String(describing: error))")
-                openIPFSLogWindow()
-                throw error
+                // SSH rsync and Cloudflare Pages deploys have no dependency on
+                // IPFS; keep them running and rethrow this error afterwards.
+                guard shouldPublishSSHRsync || shouldPublishCloudflarePages else {
+                    logIPFS("[ERROR] [\(name)] IPFS publish preparation failed: \(String(describing: error))")
+                    openIPFSLogWindow()
+                    throw error
+                }
+                ipfsPrepError = error
+                logIPFS("[ERROR] [\(name)] IPFS publish preparation failed, continuing with remaining destinations: \(String(describing: error))")
             }
         }
 
@@ -2943,6 +2968,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             openIPFSLogWindow()
             throw ipnsError
         }
+        if let ipfsPrepError {
+            openIPFSLogWindow()
+            throw ipfsPrepError
+        }
         if let sshRsyncError {
             throw sshRsyncError
         }
@@ -2952,12 +2981,28 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
     }
 
     func publish() async throws {
-        let startedPublishing = await MainActor.run {
-            self.beginPublishingState()
+        enum StartDisposition {
+            case started
+            case queued
+            case coalesced
         }
-        if !startedPublishing {
-            debugPrint("Planet \(name) is already publishing, skipping")
+        // Begin-or-queue must be one synchronous MainActor block: a separate
+        // queue step could race the in-flight publish's finish and never drain.
+        let disposition = await MainActor.run { () -> StartDisposition in
+            if self.beginPublishingState() {
+                return .started
+            }
+            return self.queuePublishWhileBusy() ? .queued : .coalesced
+        }
+        switch disposition {
+        case .queued:
+            logIPFS("[\(name)] Already publishing, queued a follow-up publish")
             return
+        case .coalesced:
+            logIPFS("[\(name)] Already publishing, a follow-up publish is already queued")
+            return
+        case .started:
+            break
         }
 
         var publishError: Error? = nil
@@ -2968,10 +3013,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             publishError = error
         }
 
-        let shouldDrainQueuedAutoPublish = await MainActor.run {
+        let shouldDrainQueuedPublish = await MainActor.run {
             self.finishPublishingState()
         }
-        drainQueuedAutoPublishAfterRebuildIfNeeded(shouldDrainQueuedAutoPublish)
+        drainQueuedPublishIfNeeded(shouldDrainQueuedPublish)
 
         if let publishError {
             throw publishError
@@ -3034,10 +3079,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             keepAliveError = error
         }
 
-        let shouldDrainQueuedAutoPublish = await MainActor.run {
+        let shouldDrainQueuedPublish = await MainActor.run {
             self.finishPublishingState()
         }
-        drainQueuedAutoPublishAfterRebuildIfNeeded(shouldDrainQueuedAutoPublish)
+        drainQueuedPublishIfNeeded(shouldDrainQueuedPublish)
 
         if let keepAliveError {
             if let planetError = keepAliveError as? PlanetError, case .IPFSAPIError = planetError {

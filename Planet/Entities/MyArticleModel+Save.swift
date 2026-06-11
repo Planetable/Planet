@@ -89,11 +89,18 @@ extension MyArticleModel {
         guard let planet = planet else {
             throw PlanetError.InternalError
         }
+        // DEBUG builds also trace the publish path (e.g. savePublic after an
+        // API post), not just rebuilds.
+        #if DEBUG
+        let perfTraceEnabled = true
+        #else
+        let perfTraceEnabled = planet.isRebuilding
+        #endif
         var perfTrace = ArticlePerfTrace(
             planetID: planet.id,
             articleID: self.id,
             articleTitle: self.title,
-            enabled: planet.isRebuilding
+            enabled: perfTraceEnabled
         )
 
         do {
