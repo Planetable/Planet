@@ -72,20 +72,22 @@ The following configuration variables can be overridden:
 - CODE_SIGN_STYLE
 - ORGANIZATION_IDENTIFIER_PREFIX
 - PLANET_ENABLE_APPLE_INTELLIGENCE
+- PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT
 
 ### Build-Time Feature Flags
 
 Planet centralizes build-time feature switches in `FeatureFlags.swift`. To enable
-or disable Apple Intelligence support for a local build, set this in
+or disable feature-flagged code for a local build, set values in
 `Planet/local.xcconfig`:
 
 ```
 PLANET_ENABLE_APPLE_INTELLIGENCE = YES
+PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT = NO
 ```
 
-Set it to `NO` to compile out Apple Intelligence support. Even when enabled,
-Apple Intelligence still requires a macOS 26 SDK at build time and macOS 26 or
-later at runtime.
+Set `PLANET_ENABLE_APPLE_INTELLIGENCE` to `NO` to compile out Apple Intelligence support. Even when enabled, Apple Intelligence still requires a macOS 26 SDK at build time and macOS 26 or later at runtime.
+
+`PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT` defaults to `NO`. Set it to `YES` to compile in AI chat scroll restoration and bottom pinning.
 
 ## Build Instructions
 

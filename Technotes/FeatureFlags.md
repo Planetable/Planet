@@ -1,6 +1,6 @@
 # Feature Flags
 
-Planet uses build-time feature flags for features that should be compiled in or out of a given app build. The first flag managed this way is Apple Intelligence support.
+Planet uses build-time feature flags for features that should be compiled in or out of a given app build. Current flags cover Apple Intelligence support and AI chat scroll management.
 
 ## Goals
 
@@ -23,6 +23,7 @@ Planet uses build-time feature flags for features that should be compiled in or 
 | Build setting | Swift condition | FeatureFlags property | Default |
 |---------------|-----------------|-----------------------|---------|
 | `PLANET_ENABLE_APPLE_INTELLIGENCE` | `PLANET_ENABLE_APPLE_INTELLIGENCE` | `FeatureFlags.appleIntelligenceSupport` | `YES` |
+| `PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT` | `PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT` | `FeatureFlags.aiChatScrollManagement` | `NO` |
 
 ## Xcode Configuration
 
@@ -32,15 +33,21 @@ The tracked xcconfig files define the default and map `YES`/`NO` onto Swift acti
 PLANET_ENABLE_APPLE_INTELLIGENCE = YES
 PLANET_APPLE_INTELLIGENCE_COMPILATION_CONDITION_YES = PLANET_ENABLE_APPLE_INTELLIGENCE
 PLANET_APPLE_INTELLIGENCE_COMPILATION_CONDITION_NO =
-SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) $(PLANET_APPLE_INTELLIGENCE_COMPILATION_CONDITION_$(PLANET_ENABLE_APPLE_INTELLIGENCE))
+PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT = NO
+PLANET_AI_CHAT_SCROLL_MANAGEMENT_COMPILATION_CONDITION_YES = PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT
+PLANET_AI_CHAT_SCROLL_MANAGEMENT_COMPILATION_CONDITION_NO =
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) $(PLANET_APPLE_INTELLIGENCE_COMPILATION_CONDITION_$(PLANET_ENABLE_APPLE_INTELLIGENCE)) $(PLANET_AI_CHAT_SCROLL_MANAGEMENT_COMPILATION_CONDITION_$(PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT))
 ```
 
 When `PLANET_ENABLE_APPLE_INTELLIGENCE` is `YES`, Swift receives `-D PLANET_ENABLE_APPLE_INTELLIGENCE`. When it is `NO`, the mapped condition is empty and the Apple Intelligence code is compiled out.
+
+When `PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT` is `YES`, Swift receives `-D PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT`. When it is `NO`, the AI chat window does not install the AppKit scroll observer, does not restore a saved scroll target, and does not request bottom pinning as messages stream in.
 
 Local builds can override the setting in `Planet/local.xcconfig`:
 
 ```xcconfig
 PLANET_ENABLE_APPLE_INTELLIGENCE = NO
+PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT = YES
 ```
 
 `local.xcconfig` is included by both Debug and Release xcconfigs and is ignored by Git, so it is the right place for developer-machine choices.

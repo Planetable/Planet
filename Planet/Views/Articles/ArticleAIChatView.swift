@@ -401,21 +401,20 @@ struct ArticleAIChatView: View {
                     }
                 }
                 .background(Color(NSColor.textBackgroundColor))
-                .background(
-                    ChatScrollPositionObserver(
-                        bottomScrollRequest: bottomScrollRequest,
-                        onUserScrollStateChange: { isUserScrolling in
-                            isUserScrollingChat = isUserScrolling
-                        },
-                        onPositionChange: { distanceFromBottom, isUserInitiated in
-                            if updateBottomPinState(distanceFromBottom: distanceFromBottom, isUserInitiated: isUserInitiated) {
-                                requestBottomScrollIfPinned(allowActiveUserScroll: true)
-                            }
+                .applyAIChatScrollManagement(
+                    bottomScrollRequest: bottomScrollRequest,
+                    scrollPositionID: $scrolledMessageID,
+                    onUserScrollStateChange: { isUserScrolling in
+                        isUserScrollingChat = isUserScrolling
+                    },
+                    onPositionChange: { distanceFromBottom, isUserInitiated in
+                        if updateBottomPinState(distanceFromBottom: distanceFromBottom, isUserInitiated: isUserInitiated) {
+                            requestBottomScrollIfPinned(allowActiveUserScroll: true)
                         }
-                    )
+                    }
                 )
-                .applyScrollPositionTracking(id: $scrolledMessageID)
                 .onChange(of: messages) { _ in
+                    guard FeatureFlags.aiChatScrollManagement else { return }
                     if let targetID = pendingScrollTarget {
                         pendingScrollTarget = nil
                         isPinnedToBottom = false
@@ -429,9 +428,11 @@ struct ArticleAIChatView: View {
                     }
                 }
                 .onChange(of: isSending) { _ in
+                    guard FeatureFlags.aiChatScrollManagement else { return }
                     requestBottomScrollIfPinned()
                 }
                 .onChange(of: toolProgressText) { _ in
+                    guard FeatureFlags.aiChatScrollManagement else { return }
                     requestBottomScrollIfPinned()
                 }
                 .environment(\.openURL, OpenURLAction { url in
@@ -737,7 +738,8 @@ struct ArticleAIChatView: View {
             blockCache[message.id] = assistantMessageBlocks(message.content)
         }
 
-        if let scrollIDString = savedScrollTarget,
+        if FeatureFlags.aiChatScrollManagement,
+            let scrollIDString = savedScrollTarget,
             let scrollUUID = UUID(uuidString: scrollIDString),
             messages.contains(where: { $0.id == scrollUUID })
         {
@@ -770,7 +772,7 @@ struct ArticleAIChatView: View {
                 isReasoningResponse: item.isReasoningResponse
             )
         }
-        let scrollTarget = topVisibleMessageID()?.uuidString
+        let scrollTarget = FeatureFlags.aiChatScrollManagement ? topVisibleMessageID()?.uuidString : nil
         let envelope = ArticleAIChatPersistedData(
             provider: selectedProvider.rawValue,
             messages: persistedMessages,
@@ -781,7 +783,8 @@ struct ArticleAIChatView: View {
     }
 
     private func topVisibleMessageID() -> UUID? {
-        scrolledMessageID
+        guard FeatureFlags.aiChatScrollManagement else { return nil }
+        return scrolledMessageID
     }
 
     private func saveScrollPosition() {
@@ -792,7 +795,8 @@ struct ArticleAIChatView: View {
     private static let bottomRepinThreshold: CGFloat = 40
 
     private func canScrollToBottomWhilePinned(allowActiveUserScroll: Bool = false) -> Bool {
-        isPinnedToBottom && (!isUserScrollingChat || allowActiveUserScroll || isChatNearBottom)
+        guard FeatureFlags.aiChatScrollManagement else { return false }
+        return isPinnedToBottom && (!isUserScrollingChat || allowActiveUserScroll || isChatNearBottom)
     }
 
     private func requestBottomScrollIfPinned(allowActiveUserScroll: Bool = false) {
@@ -802,6 +806,7 @@ struct ArticleAIChatView: View {
 
     @discardableResult
     private func updateBottomPinState(distanceFromBottom: CGFloat, isUserInitiated: Bool) -> Bool {
+        guard FeatureFlags.aiChatScrollManagement else { return false }
         let wasNearBottom = isChatNearBottom
         let isNearBottom = distanceFromBottom <= Self.bottomRepinThreshold
         isChatNearBottom = isNearBottom
@@ -2618,8 +2623,10 @@ struct ArticleAIChatView: View {
         debugLog("sendMessage promptLength=\(prompt.count), promptPreview=\(truncate(prompt, maxLength: 160))")
         inputText = ""
         errorText = nil
-        isPinnedToBottom = isPinnedToBottom || isChatNearBottom
-        isUserScrollingChat = false
+        if FeatureFlags.aiChatScrollManagement {
+            isPinnedToBottom = isPinnedToBottom || isChatNearBottom
+            isUserScrollingChat = false
+        }
         messages.append(ArticleAIChatMessage(role: "user", content: prompt, tokenUsage: nil))
         apiMessages.append(["role": "user", "content": prompt])
         if let sessionID = sessionID {
@@ -6850,6 +6857,7 @@ struct ArticleAIChatView: View {
 
 }
 
+#if PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT
 private struct ChatScrollPositionObserver: NSViewRepresentable {
     let bottomScrollRequest: Int
     let onUserScrollStateChange: (Bool) -> Void
@@ -7118,24 +7126,53 @@ private final class ChatScrollProbeView: NSView {
         onHierarchyChange?(self)
     }
 }
+#endif
 
 private extension View {
     @ViewBuilder
-    func applyScrollPositionTracking(id: Binding<UUID?>) -> some View {
+    func applyAIChatScrollManagement(
+        bottomScrollRequest: Int,
+        scrollPositionID: Binding<UUID?>,
+        onUserScrollStateChange: @escaping (Bool) -> Void,
+        onPositionChange: @escaping (CGFloat, Bool) -> Void
+    ) -> some View {
+        #if PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT
+        self
+            .background(
+                ChatScrollPositionObserver(
+                    bottomScrollRequest: bottomScrollRequest,
+                    onUserScrollStateChange: onUserScrollStateChange,
+                    onPositionChange: onPositionChange
+                )
+            )
+            .applyScrollPositionTracking(id: scrollPositionID)
+        #else
+        self
+        #endif
+    }
+
+    #if PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT
+    @ViewBuilder
+    private func applyScrollPositionTracking(id: Binding<UUID?>) -> some View {
         if #available(macOS 14.0, *) {
             self.scrollPosition(id: id, anchor: .top)
         } else {
             self
         }
     }
+    #endif
 
     @ViewBuilder
     func applyScrollTargetLayout() -> some View {
+        #if PLANET_ENABLE_AI_CHAT_SCROLL_MANAGEMENT
         if #available(macOS 14.0, *) {
             self.scrollTargetLayout()
         } else {
             self
         }
+        #else
+        self
+        #endif
     }
 }
 
