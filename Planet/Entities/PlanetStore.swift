@@ -815,12 +815,23 @@ final class MyJSONDirectoryMonitor {
             selectedArticle = matchingArticle
             // Scroll the article list to reveal the restored selection.
             // Use a delay so SwiftUI has time to populate the List.
+            // On macOS 12, scrolling a List that is still settling its initial
+            // layout corrupts the scroll offset, so skip the launch-time
+            // restore scroll there and only restore the selection.
             let article = matchingArticle
             let needsLoadNotification = isPendingRestore
+            let needsScroll: Bool
+            if #available(macOS 13.0, *) {
+                needsScroll = true
+            } else {
+                needsScroll = !isPendingRestore
+            }
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 300_000_000)
                 guard self.selectedArticle?.id == article.id else { return }
-                NotificationCenter.default.post(name: .scrollToArticle, object: article)
+                if needsScroll {
+                    NotificationCenter.default.post(name: .scrollToArticle, object: article)
+                }
                 if needsLoadNotification {
                     NotificationCenter.default.post(name: .loadArticle, object: nil)
                 }
@@ -841,7 +852,11 @@ final class MyJSONDirectoryMonitor {
 
         if pendingSidebarScroll {
             pendingSidebarScroll = false
-            scrollSidebarToSelectedView()
+            // pendingSidebarScroll is only set on the launch-restore path;
+            // skip the scroll on macOS 12 for the same layout reason as above.
+            if #available(macOS 13.0, *) {
+                scrollSidebarToSelectedView()
+            }
         }
     }
 
