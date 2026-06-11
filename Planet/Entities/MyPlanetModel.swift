@@ -981,7 +981,7 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             && lhs.cloudflarePagesLastDeployedURL == rhs.cloudflarePagesLastDeployedURL
     }
 
-    enum CodingKeys: String, CodingKey {
+    enum CodingKeys: String, CodingKey, CaseIterable {
         case id, name, about, domain, authorName, slug, nextArticleNumber, ipns,
             created, updated,
             templateName, lastPublished, lastPublishedCID,
@@ -1260,7 +1260,10 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         self.templateName = templateName
     }
 
-    static func load(from directoryPath: URL) throws -> MyPlanetModel {
+    /// Load a planet from its directory. Pass `includeAuxiliaryData: false` when the
+    /// instance is only used as a data source for `update(from:)`, which reloads the
+    /// auxiliary data against the existing instance anyway.
+    static func load(from directoryPath: URL, includeAuxiliaryData: Bool = true) throws -> MyPlanetModel {
         guard let planetID = UUID(uuidString: directoryPath.lastPathComponent) else {
             // directory name is not a UUID
             throw PlanetError.PersistenceError
@@ -1275,17 +1278,6 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
 
         planet.avatar = NSImage(contentsOf: planet.avatarPath)
         planet.podcastCoverArt = NSImage(contentsOf: planet.podcastCoverArtPath)
-
-        let draftDirectories = try FileManager.default.contentsOfDirectory(
-            at: planet.draftsPath,
-            includingPropertiesForKeys: nil
-        ).filter { $0.hasDirectoryPath }
-        debugPrint(
-            "Loading Planet \(planet.name) drafts from \(draftDirectories.count) directories"
-        )
-        planet.drafts = draftDirectories.compactMap {
-            try? DraftModel.load(from: $0, planet: planet)
-        }
 
         let articleDirectory = directoryPath.appendingPathComponent("Articles", isDirectory: true)
         let articleFiles = try FileManager.default.contentsOfDirectory(
@@ -1302,9 +1294,125 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
             }
             try? planet.save()
         }
-        try? planet.loadOps()
-        try? planet.loadTemplateSettingsAndFiltersCache()
+        if includeAuxiliaryData {
+            try planet.loadAuxiliaryData()
+        }
         return planet
+    }
+
+    /// Load drafts, publish ops, and the template settings cache from disk.
+    /// Split out of `load(from:)` so in-place reloads can run it against the
+    /// existing instance instead of the freshly loaded data source.
+    func loadAuxiliaryData() throws {
+        let draftDirectories = try FileManager.default.contentsOfDirectory(
+            at: draftsPath,
+            includingPropertiesForKeys: nil
+        ).filter { $0.hasDirectoryPath }
+        debugPrint(
+            "Loading Planet \(name) drafts from \(draftDirectories.count) directories"
+        )
+        drafts = draftDirectories.compactMap {
+            try? DraftModel.load(from: $0, planet: self)
+        }
+        try? loadOps()
+        try? loadTemplateSettingsAndFiltersCache()
+    }
+
+    /// Refresh this planet in place from a freshly loaded copy of the same planet,
+    /// preserving object identity so SwiftUI selection and scroll position survive
+    /// external data reloads. `fresh` is treated as a data source only and must not
+    /// be retained afterwards. Keep the copied fields in sync with `CodingKeys`.
+    /// Transient runtime state (isPublishing, isRebuilding, metrics, …) is kept.
+    func update(from fresh: MyPlanetModel) {
+        guard fresh.id == id else { return }
+        name = fresh.name
+        about = fresh.about
+        domain = fresh.domain
+        authorName = fresh.authorName
+        slug = fresh.slug
+        nextArticleNumber = fresh.nextArticleNumber
+        updated = fresh.updated
+        templateName = fresh.templateName
+        lastPublished = fresh.lastPublished
+        lastPublishedCID = fresh.lastPublishedCID
+        archived = fresh.archived
+        archivedAt = fresh.archivedAt
+        plausibleEnabled = fresh.plausibleEnabled
+        plausibleDomain = fresh.plausibleDomain
+        plausibleAPIKey = fresh.plausibleAPIKey
+        plausibleAPIServer = fresh.plausibleAPIServer
+        twitterUsername = fresh.twitterUsername
+        githubUsername = fresh.githubUsername
+        telegramUsername = fresh.telegramUsername
+        mastodonUsername = fresh.mastodonUsername
+        discordLink = fresh.discordLink
+        dWebServicesEnabled = fresh.dWebServicesEnabled
+        dWebServicesDomain = fresh.dWebServicesDomain
+        dWebServicesAPIKey = fresh.dWebServicesAPIKey
+        pinnableEnabled = fresh.pinnableEnabled
+        pinnableAPIEndpoint = fresh.pinnableAPIEndpoint
+        pinnablePinCID = fresh.pinnablePinCID
+        filebaseEnabled = fresh.filebaseEnabled
+        filebasePinName = fresh.filebasePinName
+        filebaseAPIToken = fresh.filebaseAPIToken
+        filebaseRequestID = fresh.filebaseRequestID
+        filebasePinCID = fresh.filebasePinCID
+        customCodeHeadEnabled = fresh.customCodeHeadEnabled
+        customCodeHead = fresh.customCodeHead
+        customCodeBodyStartEnabled = fresh.customCodeBodyStartEnabled
+        customCodeBodyStart = fresh.customCodeBodyStart
+        customCodeBodyEndEnabled = fresh.customCodeBodyEndEnabled
+        customCodeBodyEnd = fresh.customCodeBodyEnd
+        podcastCategories = fresh.podcastCategories
+        podcastLanguage = fresh.podcastLanguage
+        podcastExplicit = fresh.podcastExplicit
+        juiceboxEnabled = fresh.juiceboxEnabled
+        juiceboxProjectID = fresh.juiceboxProjectID
+        juiceboxProjectIDGoerli = fresh.juiceboxProjectIDGoerli
+        acceptsDonation = fresh.acceptsDonation
+        acceptsDonationMessage = fresh.acceptsDonationMessage
+        acceptsDonationETHAddress = fresh.acceptsDonationETHAddress
+        tags = fresh.tags
+        aggregation = fresh.aggregation
+        reuseOriginalID = fresh.reuseOriginalID
+        saveRoundAvatar = fresh.saveRoundAvatar
+        doNotIndex = fresh.doNotIndex
+        prewarmNewPost = fresh.prewarmNewPost
+        publishAsIPNS = fresh.publishAsIPNS
+        sshRsyncEnabled = fresh.sshRsyncEnabled
+        sshRsyncDestination = fresh.sshRsyncDestination
+        sshRsyncKeyPath = fresh.sshRsyncKeyPath
+        sshRsyncDeleteEnabled = fresh.sshRsyncDeleteEnabled
+        cloudflarePagesEnabled = fresh.cloudflarePagesEnabled
+        cloudflarePagesAccountID = fresh.cloudflarePagesAccountID
+        cloudflarePagesAPIToken = fresh.cloudflarePagesAPIToken
+        cloudflarePagesProjectName = fresh.cloudflarePagesProjectName
+        cloudflarePagesLastDeployedProjectName = fresh.cloudflarePagesLastDeployedProjectName
+        cloudflarePagesLastDeployedURL = fresh.cloudflarePagesLastDeployedURL
+
+        avatar = fresh.avatar
+        podcastCoverArt = fresh.podcastCoverArt
+
+        // Merge articles by id into existing instances; fresh-only articles are
+        // adopted after re-parenting them to self. Existing instances keep their
+        // in-memory draft reference, since fresh drafts point at the fresh graph.
+        var existingArticlesByID: [UUID: MyArticleModel] = [:]
+        for article in articles ?? [] {
+            existingArticlesByID[article.id] = article
+        }
+        articles = (fresh.articles ?? []).map { freshArticle in
+            if let existing = existingArticlesByID[freshArticle.id] {
+                existing.update(from: freshArticle)
+                return existing
+            }
+            freshArticle.planet = self
+            return freshArticle
+        }
+
+        // Reload drafts/ops/template cache against self: DraftModel holds unowned
+        // references to its planet/article, so fresh drafts must not be adopted
+        // across instances.
+        try? loadAuxiliaryData()
     }
 
     static func create(name: String, about: String, templateName: String) async throws

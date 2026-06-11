@@ -53,7 +53,7 @@ struct MyArticleSettingsView: View {
             VStack(spacing: 8) {
 
                 HStack(spacing: 10) {
-                    article.planet.smallAvatarAndNameView()
+                    article.planet?.smallAvatarAndNameView()
                     Spacer()
                     if let articleReference = article.articleReference {
                         Button {

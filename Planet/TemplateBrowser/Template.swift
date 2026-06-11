@@ -378,7 +378,7 @@ class Template: Codable, Identifiable {
             "site_navigation": siteNavigation,
             "has_avatar": hasAvatar,
             "has_podcast": hasPodcast,
-            "planet_ipns": article.planet.ipns,
+            "planet_ipns": planet.ipns,
             "assets_prefix": "../",
             "template_settings": self.settings ?? [:],
             "user_settings": userSettings,
@@ -393,7 +393,7 @@ class Template: Codable, Identifiable {
             "style_css_sha256": styleCSSHash,
             "current_item_type": "blog",
             "social_image_url": article.socialImageURL?.absoluteString
-                ?? article.planet.ogImageURLString,
+                ?? planet.ogImageURLString,
         ]
         perf.contextDuration = Self.perfElapsed(since: contextStartedAt)
 

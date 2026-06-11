@@ -32,7 +32,7 @@ extension MyArticleModel {
         if hasTextOnlyContent() {
             let coverImageText = self.getCoverImageText()
 
-            if self.planet.templateName == "Croptop" {
+            if self.planet?.templateName == "Croptop" {
                 saveCoverImage(
                     with: coverImageText,
                     filename: publicCoverImagePath.path,
@@ -61,11 +61,11 @@ extension MyArticleModel {
     func getCoverImageCIDIfNeeded() -> String? {
         var needsCoverImageCID = false
         if let attachments = self.attachments, attachments.count == 0,
-            self.planet.templateName == "Croptop"
+            self.planet?.templateName == "Croptop"
         {
             needsCoverImageCID = true
         }
-        if audioFilename != nil, self.planet.templateName == "Croptop" {
+        if audioFilename != nil, self.planet?.templateName == "Croptop" {
             needsCoverImageCID = true
         }
 
@@ -80,7 +80,7 @@ extension MyArticleModel {
     func processAttachmentCIDIfNeeded() {
         // This logic is needed because the Croptop grid view needs at least one picture
         if let attachments = self.attachments, attachments.count == 0 {
-            if self.planet.templateName == "Croptop" {
+            if self.planet?.templateName == "Croptop" {
                 // _cover.png CID is only needed by Croptop now
                 let newAttachments: [String] = ["_cover.png"]
                 DispatchQueue.main.async {
@@ -92,7 +92,7 @@ extension MyArticleModel {
         if let attachments = self.attachments {
             attachmentsToProcess = attachments
         }
-        if attachmentsToProcess.count == 0, self.planet.templateName == "Croptop" {
+        if attachmentsToProcess.count == 0, self.planet?.templateName == "Croptop" {
             attachmentsToProcess = ["_cover.png"]
         }
         var attachmentCIDs: [String: String] = self.cids ?? [:]
@@ -140,7 +140,7 @@ extension MyArticleModel {
 
     /// Process NFT metadata
     func processNFTMetadata(with coverImageCID: String?) throws {
-        guard let template = planet.template else {
+        guard let template = planet?.template else {
             throw PlanetError.MissingTemplateError
         }
         if let cids = self.cids, cids.count > 0, let firstKeyValuePair = cids.first,
@@ -227,7 +227,7 @@ extension MyArticleModel {
 
     /// Render article HTML
     func processArticleHTML() throws -> ArticleHTMLPerfBreakdown {
-        guard let template = planet.template else {
+        guard let template = planet?.template else {
             throw PlanetError.MissingTemplateError
         }
 
@@ -284,7 +284,7 @@ extension MyArticleModel {
 
     /// Process slug
     func processSlug() {
-        if let articleSlug = self.slug, articleSlug.count > 0 {
+        if let articleSlug = self.slug, articleSlug.count > 0, let planet = planet {
             let publicSlugBasePath = planet.publicBasePath.appendingPathComponent(
                 articleSlug,
                 isDirectory: true
@@ -301,6 +301,9 @@ extension MyArticleModel {
     /// Minimal save: only renders index.html so ArticleView can display the article immediately.
     /// Call `savePublicDeferred()` afterward to complete cover images, CIDs, hero grids, etc.
     func savePublicMinimal() throws {
+        guard planet != nil else {
+            throw PlanetError.InternalError
+        }
         removeDSStore()
         if !FileManager.default.fileExists(atPath: publicBasePath.path) {
             try FileManager.default.createDirectory(
@@ -315,6 +318,9 @@ extension MyArticleModel {
     /// Complete the remaining savePublic work that was skipped by `savePublicMinimal()`:
     /// cover images, CIDs, NFT metadata, hero grid, hero image size, slug copy, article.json, and ops.
     func savePublicDeferred() throws {
+        guard let planet = planet else {
+            throw PlanetError.InternalError
+        }
         try saveCoverImage()
         savePreviewImageFromPDF()
         let coverImageCID: String? = getCoverImageCIDIfNeeded()
@@ -326,7 +332,7 @@ extension MyArticleModel {
         try JSONEncoder.shared.encode(publicArticle).write(to: publicInfoPath, options: .atomic)
         processSlug()
         do {
-            try self.planet.saveOps()
+            try planet.saveOps()
         } catch {
             debugPrint("failed to save ops to file: \(error)")
         }

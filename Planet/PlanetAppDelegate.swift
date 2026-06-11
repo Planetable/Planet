@@ -184,6 +184,10 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        #if DEBUG
+        ModelUpdateFieldCoverageCheck.run()
+        #endif
+
         ScheduledTasksManager.shared.startTasks()
 
         setupNotification()

@@ -357,8 +357,10 @@ struct ArticleView: View {
                     if let followingArticle = planetStore.selectedArticle as? FollowingArticleModel {
                         if followingArticle.supportsReaderView {
                             Button {
-                                setReaderViewEnabled(!showLocalRendered, for: followingArticle.planet)
-                                syncSelectedArticlePresentation()
+                                if let planet = followingArticle.planet {
+                                    setReaderViewEnabled(!showLocalRendered, for: planet)
+                                    syncSelectedArticlePresentation()
+                                }
                             } label: {
                                 Image(systemName: showLocalRendered ? "globe" : "doc.richtext")
                             }
@@ -506,12 +508,13 @@ struct ArticleView: View {
 
     private func syncReaderViewPreference() {
         guard let followingArticle = planetStore.selectedArticle as? FollowingArticleModel,
-            followingArticle.supportsReaderView
+            followingArticle.supportsReaderView,
+            let planet = followingArticle.planet
         else {
             showLocalRendered = false
             return
         }
-        showLocalRendered = preferredReaderView(for: followingArticle.planet)
+        showLocalRendered = preferredReaderView(for: planet)
     }
 
     private func preferredReaderView(for planet: FollowingPlanetModel) -> Bool {
@@ -664,10 +667,10 @@ struct ArticleView: View {
             }
             sharingItem = followingArticle.browserURL?.absoluteURL
             currentItemLink = followingArticle.link
-            if followingArticle.planet.planetType == .ens
-                || followingArticle.planet.planetType == .dotbit
+            if let planet = followingArticle.planet,
+                planet.planetType == .ens || planet.planetType == .dotbit
             {
-                currentItemHost = followingArticle.planet.link
+                currentItemHost = planet.link
             }
         } else {
             debugPrint("Failed to switch selected article - branch B")
@@ -742,7 +745,7 @@ struct ArticleView: View {
     }
 
     private func articleURL(for myArticle: MyArticleModel) -> URL {
-        if myArticle.planet.templateName == "Croptop" {
+        if myArticle.planet?.templateName == "Croptop" {
             if FileManager.default.fileExists(atPath: myArticle.publicSimplePath.path) {
                 let now = Date()
                 let simpleHTMLAge = now.timeIntervalSince1970 - (

@@ -17,6 +17,11 @@ extension MyArticleModel {
 
     /// Persist any changes to the model.
     func save(markingModified: Bool = false) throws {
+        // A nil planet means this instance went stale after a store reload;
+        // writing would clobber the current article file with stale data.
+        guard let planet = planet else {
+            throw PlanetError.InternalError
+        }
         if markingModified {
             markModified()
         }
@@ -33,12 +38,13 @@ extension MyArticleModel {
 
     /// Delete the metadata and any in the public folder
     func delete() {
+        guard let planet = planet else { return }
         if let slug = self.slug, slug.count > 0 {
             self.removeSlug(slug)
         }
         PlanetStore.removeSearchSnapshotIfReady(articleID: self.id)
         let removeArticle = {
-            self.planet.articles.removeAll { $0.id == self.id }
+            planet.articles.removeAll { $0.id == self.id }
         }
         if Thread.isMainThread {
             removeArticle()
@@ -56,6 +62,7 @@ extension MyArticleModel {
         if slugToRemove.count == 0 || slug.count == 0 {
             return
         }
+        guard let planet = planet else { return }
         let slugPath = planet.publicBasePath.appendingPathComponent(
             slugToRemove,
             isDirectory: true
@@ -79,11 +86,14 @@ extension MyArticleModel {
     }
 
     private func savePublicInternal(saveOpsAfterwards: Bool) throws {
+        guard let planet = planet else {
+            throw PlanetError.InternalError
+        }
         var perfTrace = ArticlePerfTrace(
-            planetID: self.planet.id,
+            planetID: planet.id,
             articleID: self.id,
             articleTitle: self.title,
-            enabled: self.planet.isRebuilding
+            enabled: planet.isRebuilding
         )
 
         do {
@@ -148,7 +158,7 @@ extension MyArticleModel {
 
             if saveOpsAfterwards {
                 do {
-                    try self.planet.saveOps()
+                    try planet.saveOps()
                 }
                 catch {
                     debugPrint("failed to save ops to file: \(error)")
@@ -271,11 +281,12 @@ extension MyArticleModel {
     }
 
     func saveVideoThumbnail() {
+        guard let planet = planet else { return }
         guard let videoFilename = self.videoFilename else { return }
         let videoThumbnailFilename = "_videoThumbnail.png"
         let videoThumbnailPath = publicBasePath.appendingPathComponent(videoThumbnailFilename)
         let opKey = "\(self.id)-video-thumbnail-\(videoFilename)"
-        if let op = self.planet.opDate(for: opKey),
+        if let op = planet.opDate(for: opKey),
             FileManager.default.fileExists(atPath: videoThumbnailPath.path)
         {
             debugPrint("Video thumbnail operation for \(opKey) is already done at \(op)")
@@ -286,7 +297,7 @@ extension MyArticleModel {
         {
             try? data.write(to: videoThumbnailPath)
         }
-        self.planet.recordOp(opKey)
+        planet.recordOp(opKey)
     }
 
     func getVideoThumbnail() -> NSImage? {
@@ -424,6 +435,7 @@ extension MyArticleModel {
      If the article has a hero image, generate a grid version of it.
      */
     func saveHeroGrid() {
+        guard let planet = planet else { return }
         guard let heroImageFilename = self.getHeroImage() else { return }
         let heroImagePath = publicBasePath.appendingPathComponent(
             heroImageFilename,
@@ -434,7 +446,7 @@ extension MyArticleModel {
         let heroGridJPEGFilename = "_grid.jpg"
         let heroGridJPEGPath = publicBasePath.appendingPathComponent(heroGridJPEGFilename)
         let opKey = "\(self.id)-hero-grid-\(heroImageFilename)"
-        if let op = self.planet.opDate(for: opKey),
+        if let op = planet.opDate(for: opKey),
             FileManager.default.fileExists(atPath: heroImagePath.path),
             FileManager.default.fileExists(atPath: heroGridPNGPath.path)
         {
@@ -454,7 +466,7 @@ extension MyArticleModel {
             self.hasHeroGrid = true
         }
         debugPrint("Hero grid is saved for \(self.title)")
-        self.planet.recordOp(opKey)
+        planet.recordOp(opKey)
     }
 
     var heroGridImage: NSImage? {
@@ -572,7 +584,7 @@ extension MyArticleModel {
         paragraphStyle.alignment = .left
 
         let font: NSFont
-        if planet.templateName == "Croptop" {
+        if planet?.templateName == "Croptop" {
             // Use the pixelated Capsule font for the Croptop template
             font = NSFont(name: "Capsules-500", size: 32) ?? NSFont.systemFont(ofSize: 32)
             debugPrint("Using Capsules-500 font for Croptop: \(font)")

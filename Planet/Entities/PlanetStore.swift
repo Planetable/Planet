@@ -419,15 +419,6 @@ final class MyJSONDirectoryMonitor {
         }
     }
 
-    private enum SelectedViewSnapshot {
-        case none
-        case today
-        case unread
-        case starred
-        case myPlanet(UUID)
-        case followingPlanet(UUID)
-    }
-
     private struct MyArticleSelectionTarget {
         let planetID: UUID
         let articleID: UUID
@@ -465,91 +456,85 @@ final class MyJSONDirectoryMonitor {
         myDataReloadInProgress = true
         defer { myDataReloadInProgress = false }
 
-        let selectedViewSnapshot = snapshotSelectedView()
-        let selectedArticleID = selectedArticle?.id
-
         // Only navigate to the changed article when the user is already viewing that planet,
         // to avoid disrupting reading of an unrelated planet.
         let isViewingTargetPlanet: Bool
-        if case .myPlanet(let id) = selectedViewSnapshot, let target, target.planetID == id {
+        if case .myPlanet(let planet) = selectedView, let target, target.planetID == planet.id {
             isViewingTargetPlanet = true
         } else {
             isViewingTargetPlanet = false
         }
 
+        let freshPlanets: [MyPlanetModel]
         do {
-            try load()
-            if let target,
-                let article = myPlanets.first(where: { $0.id == target.planetID })?.articles.first(where: { $0.id == target.articleID })
-            {
-                Task.detached {
-                    try? article.savePublic()
-                    await MainActor.run {
-                        NotificationCenter.default.post(name: .loadArticle, object: nil)
-                    }
-                }
-            }
-            selectedArticleList = nil
-            ArticleListViewModel.shared.articles = []
-            restoreSelection(from: selectedViewSnapshot)
-            refreshSelectedArticles()
-            if isViewingTargetPlanet, let target,
-                let planet = myPlanets.first(where: { $0.id == target.planetID })
-            {
-                // Force detail-view refresh for the changed article.
-                selectedArticle = nil
-                selectedArticle = planet.articles.first(where: { $0.id == target.articleID })
-            } else {
-                // Force detail-view refresh for the previously-selected article.
-                selectedArticle = nil
-                if let selectedArticleID {
-                    selectedArticle = selectedArticleList?.first(where: { $0.id == selectedArticleID })
-                }
+            let directories = try FileManager.default.contentsOfDirectory(
+                at: MyPlanetModel.myPlanetsPath(),
+                includingPropertiesForKeys: nil
+            ).filter { $0.hasDirectoryPath }
+            // Auxiliary data (drafts/ops/template cache) is loaded exactly once:
+            // by update(from:) against the existing instance, or below when a
+            // fresh planet is adopted directly.
+            freshPlanets = directories.compactMap {
+                try? MyPlanetModel.load(from: $0, includeAuxiliaryData: false)
             }
         } catch {
             logger.error("Failed to reload after external my data change: \(error.localizedDescription)")
+            return
         }
-    }
 
-    private func snapshotSelectedView() -> SelectedViewSnapshot {
-        switch selectedView {
-        case .today:
-            return .today
-        case .unread:
-            return .unread
-        case .starred:
-            return .starred
-        case .myPlanet(let planet):
-            return .myPlanet(planet.id)
-        case .followingPlanet(let planet):
-            return .followingPlanet(planet.id)
-        case .none:
-            return .none
+        // Merge fresh data into existing instances (matched by id) instead of replacing
+        // the object graph: preserved identity keeps the sidebar selection, the article
+        // list selection, and the scroll position intact, and prevents retained SwiftUI
+        // rows from ending up with articles whose planet was deallocated.
+        var existingByID: [UUID: MyPlanetModel] = [:]
+        for planet in myPlanets + myArchivedPlanets {
+            existingByID[planet.id] = planet
         }
-    }
+        var active: [MyPlanetModel] = []
+        var archived: [MyPlanetModel] = []
+        for fresh in freshPlanets {
+            let planet: MyPlanetModel
+            if let existing = existingByID[fresh.id] {
+                existing.update(from: fresh)
+                planet = existing
+            } else {
+                try? fresh.loadAuxiliaryData()
+                planet = fresh
+            }
+            if planet.archived == true {
+                archived.append(planet)
+            } else {
+                active.append(planet)
+            }
+        }
+        myArchivedPlanets = archived
+        myPlanets = active
+        loadMyPlanetsOrder()
 
-    private func restoreSelection(from snapshot: SelectedViewSnapshot) {
-        switch snapshot {
-        case .today:
-            selectedView = .today
-        case .unread:
-            selectedView = .unread
-        case .starred:
-            selectedView = .starred
-        case .myPlanet(let id):
-            if let planet = myPlanets.first(where: { $0.id == id }) {
-                selectedView = .myPlanet(planet)
-            } else {
-                selectedView = nil
-            }
-        case .followingPlanet(let id):
-            if let planet = followingPlanets.first(where: { $0.id == id }) {
-                selectedView = .followingPlanet(planet)
-            } else {
-                selectedView = nil
-            }
-        case .none:
+        // Clear selection only if the selected planet disappeared or was archived.
+        if case .myPlanet(let planet) = selectedView,
+            !myPlanets.contains(where: { $0.id == planet.id })
+        {
             selectedView = nil
+        }
+
+        // Rebuild the visible article list from the same instances; this restores
+        // the by-id selection without resetting the list.
+        refreshSelectedArticles()
+
+        if let target,
+            let article = myPlanets.first(where: { $0.id == target.planetID })?
+                .articles.first(where: { $0.id == target.articleID })
+        {
+            if isViewingTargetPlanet {
+                selectedArticle = article
+            }
+            Task.detached {
+                try? article.savePublic()
+                await MainActor.run {
+                    NotificationCenter.default.post(name: .loadArticle, object: nil)
+                }
+            }
         }
     }
 
@@ -899,12 +884,21 @@ final class MyJSONDirectoryMonitor {
         return articles
     }
 
+    /// Resolve the in-store planet instance owning the article, falling back to a
+    /// by-id search of myPlanets when the article's weak planet reference is gone.
+    private func canonicalPlanet(for article: MyArticleModel) -> MyPlanetModel? {
+        if let planet = article.planet {
+            return myPlanets.first(where: { $0.id == planet.id }) ?? planet
+        }
+        return myPlanets.first(where: { planet in
+            planet.articles.contains(where: { $0.id == article.id })
+        })
+    }
+
     private func preferredSelectionViewAfterSaving(
         _ article: MyArticleModel,
         preserving preferredView: PlanetDetailViewType?
-    ) -> PlanetDetailViewType {
-        let articlePlanet = article.planet!
-
+    ) -> PlanetDetailViewType? {
         switch preferredView {
         case .today:
             if article.created.timeIntervalSinceNow > -86400 {
@@ -921,8 +915,10 @@ final class MyJSONDirectoryMonitor {
             break
         }
 
-        let canonicalPlanet = myPlanets.first(where: { $0.id == articlePlanet.id }) ?? articlePlanet
-        return .myPlanet(canonicalPlanet)
+        guard let articlePlanet = canonicalPlanet(for: article) else {
+            return nil
+        }
+        return .myPlanet(articlePlanet)
     }
 
     @MainActor
@@ -930,8 +926,9 @@ final class MyJSONDirectoryMonitor {
         _ article: MyArticleModel,
         preserving preferredView: PlanetDetailViewType?
     ) async {
-        let articlePlanet = article.planet!
-        let targetPlanet = myPlanets.first(where: { $0.id == articlePlanet.id }) ?? articlePlanet
+        guard let targetPlanet = canonicalPlanet(for: article) else {
+            return
+        }
         let selectionDelay: UInt64 = targetPlanet.templateName == "Croptop" ? 200_000_000 : 0
 
         func selectArticleFromCurrentList() -> ArticleModel? {
@@ -954,7 +951,9 @@ final class MyJSONDirectoryMonitor {
             NotificationCenter.default.post(name: .scrollToArticle, object: selected)
         }
 
-        let preferredTargetView = preferredSelectionViewAfterSaving(article, preserving: preferredView)
+        guard let preferredTargetView = preferredSelectionViewAfterSaving(article, preserving: preferredView) else {
+            return
+        }
         let initialView = selectedView
         selectedView = preferredTargetView
         if selectedView == initialView {

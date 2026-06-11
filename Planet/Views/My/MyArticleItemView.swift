@@ -280,9 +280,12 @@ struct MyArticleItemView: View {
 
     @ViewBuilder
     private func moveArticleItem() -> some View {
-        let activePlanets: [MyPlanetModel] = PlanetStore.shared.myPlanets.filter { p in
-            return (p.archived == nil || p.archived! == false) && article.planet != p
-        }
+        let activePlanets: [MyPlanetModel] = {
+            guard let articlePlanet = article.planet else { return [] }
+            return PlanetStore.shared.myPlanets.filter { p in
+                return (p.archived == nil || p.archived! == false) && articlePlanet != p
+            }
+        }()
         Menu("Move Article to") {
             ForEach(activePlanets, id: \.id) { targetPlanet in
                 Button {

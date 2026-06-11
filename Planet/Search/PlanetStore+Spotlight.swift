@@ -175,10 +175,10 @@ extension PlanetStore {
 
     private func currentSpotlightSnapshots(forPlanetID planetID: UUID) -> [SearchArticleSnapshot] {
         if let myPlanet = myPlanets.first(where: { $0.id == planetID }) {
-            return myPlanet.articles.map(SearchArticleSnapshot.init(article:))
+            return myPlanet.articles.compactMap(SearchArticleSnapshot.init(article:))
         }
         if let followingPlanet = followingPlanets.first(where: { $0.id == planetID }) {
-            return followingPlanet.articles.map(SearchArticleSnapshot.init(article:))
+            return followingPlanet.articles.compactMap(SearchArticleSnapshot.init(article:))
         }
         return cachedSearchSnapshots.filter { $0.planetID == planetID }
     }

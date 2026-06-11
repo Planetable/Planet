@@ -526,7 +526,8 @@ final class OnDeviceToolContext: Sendable {
     }
 
     func syncDraftIfExists(for article: MyArticleModel) throws {
-        let draftDirectoryPath = article.planet.articleDraftsPath.appendingPathComponent(
+        guard let planet = article.planet else { return }
+        let draftDirectoryPath = planet.articleDraftsPath.appendingPathComponent(
             article.id.uuidString,
             isDirectory: true
         )
@@ -616,12 +617,15 @@ struct ReadArticleTool: Tool {
             guard let myArticle = context.resolveMyArticle(articleID: arguments.articleID) else {
                 return "Error: Article not found."
             }
+            guard let planet = myArticle.planet else {
+                return "Error: Planet not found for article."
+            }
             let full = try context.encodeToDictionary(myArticle)
             var filtered = context.filter(dictionary: full, fields: arguments.fields)
             filtered["article_id"] = myArticle.id.uuidString
-            filtered["planet_id"] = myArticle.planet.id.uuidString
+            filtered["planet_id"] = planet.id.uuidString
             filtered["planet_kind"] = PlanetKind.my.rawValue
-            filtered["chat_link"] = "planet://article/\(PlanetKind.my.rawValue)/\(myArticle.planet.id.uuidString)/\(myArticle.id.uuidString)"
+            filtered["chat_link"] = "planet://article/\(PlanetKind.my.rawValue)/\(planet.id.uuidString)/\(myArticle.id.uuidString)"
             let data = try JSONSerialization.data(withJSONObject: filtered, options: [.prettyPrinted, .sortedKeys])
             return String(data: data, encoding: .utf8) ?? "Error: Failed to encode article."
         }

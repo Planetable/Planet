@@ -37,14 +37,20 @@ class MyArticleModel: ArticleModel, Codable {
     @Published var modified: Date? = nil
 
     // populated when initializing
-    unowned var planet: MyPlanetModel! = nil
+    // weak (not unowned): planet instances are replaced wholesale on store reload, and
+    // stale article models retained by SwiftUI List rows would otherwise trap on any
+    // read of a dangling unowned reference (swift_abortRetainUnowned, macOS 12).
+    weak var planet: MyPlanetModel? = nil
     var draft: DraftModel? = nil
 
-    lazy var path = planet.articlesPath.appendingPathComponent(
+    // Invariant: planet is assigned right after init/decode and outlives normal use of
+    // these paths; mutation entry points (save/delete/savePublic*) guard against a nil
+    // planet before first access. The force unwrap is deliberate.
+    lazy var path = planet!.articlesPath.appendingPathComponent(
         "\(id.uuidString).json",
         isDirectory: false
     )
-    lazy var publicBasePath = planet.publicBasePath.appendingPathComponent(
+    lazy var publicBasePath = planet!.publicBasePath.appendingPathComponent(
         id.uuidString,
         isDirectory: true
     )
@@ -135,6 +141,7 @@ class MyArticleModel: ArticleModel, Codable {
         )
     }
     var localGatewayURL: URL? {
+        guard let planet = planet else { return nil }
         return URL(string: "\(IPFSState.shared.getGateway())/ipns/\(planet.ipns)/\(id.uuidString)/")
     }
     var localPreviewURL: URL? {
@@ -142,6 +149,7 @@ class MyArticleModel: ArticleModel, Codable {
         // Otherwise, use the local gateway URL
         let apiEnabled = UserDefaults.standard.bool(forKey: String.settingsAPIEnabled)
         if apiEnabled {
+            guard let planet = planet else { return nil }
             let apiPort =
                 UserDefaults
                 .standard.string(forKey: String.settingsAPIPort) ?? "8086"
@@ -156,6 +164,7 @@ class MyArticleModel: ArticleModel, Codable {
     }
     /// The URL that can be viewed and shared in a regular browser.
     var browserURL: URL? {
+        guard let planet = planet else { return nil }
         var urlPath = "/\(id.uuidString)/"
         if let slug = slug, slug.count > 0 {
             urlPath = "/\(slug)/"
@@ -196,7 +205,7 @@ class MyArticleModel: ArticleModel, Codable {
         }
     }
     var permalinkURL: URL? {
-        if let cid = planet.lastPublishedCID, cid.hasPrefix("bafy") {
+        if let cid = planet?.lastPublishedCID, cid.hasPrefix("bafy") {
             return URL(string: "https://\(cid).eth.sucks\(link)")
         }
         return nil
@@ -242,7 +251,7 @@ class MyArticleModel: ArticleModel, Codable {
         return false
     }
 
-    enum CodingKeys: String, CodingKey {
+    enum CodingKeys: String, CodingKey, CaseIterable {
         case id, articleType,
             link, slug, articleNumber, articleReference,
             heroImage, heroImageWidth, heroImageHeight, externalLink,
@@ -416,6 +425,42 @@ class MyArticleModel: ArticleModel, Codable {
         return article
     }
 
+    /// Refresh this article in place from a freshly loaded copy of the same article,
+    /// preserving object identity so SwiftUI selection and scroll position survive
+    /// external data reloads. Keep the copied fields in sync with `CodingKeys`.
+    func update(from fresh: MyArticleModel) {
+        guard fresh.id == id else { return }
+        articleType = fresh.articleType
+        link = fresh.link
+        slug = fresh.slug
+        articleNumber = fresh.articleNumber
+        heroImage = fresh.heroImage
+        heroImageWidth = fresh.heroImageWidth
+        heroImageHeight = fresh.heroImageHeight
+        hasHeroGrid = fresh.hasHeroGrid
+        externalLink = fresh.externalLink
+        title = fresh.title
+        content = fresh.content
+        contentRendered = fresh.contentRendered
+        summary = fresh.summary
+        created = fresh.created
+        modified = fresh.modified
+        starred = fresh.starred
+        starType = fresh.starType
+        videoFilename = fresh.videoFilename
+        audioFilename = fresh.audioFilename
+        attachments = fresh.attachments
+        cids = fresh.cids
+        tags = fresh.tags
+        isIncludedInNavigation = fresh.isIncludedInNavigation
+        navigationWeight = fresh.navigationWeight
+        originalSiteName = fresh.originalSiteName
+        originalSiteDomain = fresh.originalSiteDomain
+        originalPostID = fresh.originalPostID
+        originalPostDate = fresh.originalPostDate
+        pinned = fresh.pinned
+    }
+
     static func compose(
         link: String?,
         date: Date = Date(),
@@ -471,9 +516,10 @@ class MyArticleModel: ArticleModel, Codable {
     // MARK: Prewarm
 
     func prewarm() async {
+        guard let planet = planet else { return }
         guard planet.publishAsIPNS ?? true else { return }
         guard let postURL = browserURL else { return }
-        let planetName = self.planet.name
+        let planetName = planet.name
         let articleJSONURL = postURL.appendingPathComponent("article.json")
         let nftJSONURL = postURL.appendingPathComponent("nft.json")
         let nftJSONCIDURL = postURL.appendingPathComponent("nft.json.cid.txt")
@@ -516,12 +562,12 @@ class MyArticleModel: ArticleModel, Codable {
             let tagsURL = planetRootURL.appendingPathComponent("tags.html")
             Task.detached(priority: .background) {
                 do {
-                    debugPrint("About to prewarm \(self.planet.name) tags: \(tagsURL)")
+                    debugPrint("About to prewarm \(planetName) tags: \(tagsURL)")
                     let (tagsData, _) = try await URLSession.shared.data(from: tagsURL)
-                    debugPrint("Prewarmed \(self.planet.name) tags: \(tagsData.count) bytes")
+                    debugPrint("Prewarmed \(planetName) tags: \(tagsData.count) bytes")
                 }
                 catch {
-                    debugPrint("Failed to prewarm \(self.planet.name) tags \(tagsURL): \(error)")
+                    debugPrint("Failed to prewarm \(planetName) tags \(tagsURL): \(error)")
                 }
             }
         }
@@ -529,12 +575,12 @@ class MyArticleModel: ArticleModel, Codable {
         if let archiveURL = planet.browserURL?.appendingPathComponent("archive.html") {
             Task.detached(priority: .background) {
                 do {
-                    debugPrint("About to prewarm \(self.planet.name) archive: \(archiveURL)")
+                    debugPrint("About to prewarm \(planetName) archive: \(archiveURL)")
                     let (archiveData, _) = try await URLSession.shared.data(from: archiveURL)
-                    debugPrint("Prewarmed \(self.planet.name) archive: \(archiveData.count) bytes")
+                    debugPrint("Prewarmed \(planetName) archive: \(archiveData.count) bytes")
                 }
                 catch {
-                    debugPrint("Failed to prewarm \(self.planet.name) archive \(archiveURL): \(error)")
+                    debugPrint("Failed to prewarm \(planetName) archive \(archiveURL): \(error)")
                 }
             }
         }
@@ -544,17 +590,17 @@ class MyArticleModel: ArticleModel, Codable {
                 for attachment in attachments {
                     let attachmentURL = postURL.appendingPathComponent(attachment)
                     do {
-                        debugPrint("About to prewarm \(self.planet.name) attachment: \(attachmentURL)")
+                        debugPrint("About to prewarm \(planetName) attachment: \(attachmentURL)")
                         let (attachmentData, _) = try await URLSession.shared.data(
                             from: attachmentURL
                         )
                         debugPrint(
-                            "Prewarmed \(self.planet.name) attachment: \(attachmentData.count) bytes"
+                            "Prewarmed \(planetName) attachment: \(attachmentData.count) bytes"
                         )
                     }
                     catch {
                         debugPrint(
-                            "Failed to prewarm \(self.planet.name) attachment \(attachmentURL): \(error)"
+                            "Failed to prewarm \(planetName) attachment \(attachmentURL): \(error)"
                         )
                     }
                 }
@@ -563,31 +609,31 @@ class MyArticleModel: ArticleModel, Codable {
                 let videoThumbnailURL = postURL.appendingPathComponent("_videoThumbnail.png")
                 do {
                     debugPrint(
-                        "About to prewarm \(self.planet.name) video thumbnail: \(videoThumbnailURL)"
+                        "About to prewarm \(planetName) video thumbnail: \(videoThumbnailURL)"
                     )
                     let (videoThumbnailData, _) = try await URLSession.shared.data(
                         from: videoThumbnailURL
                     )
                     debugPrint(
-                        "Prewarmed \(self.planet.name) video thumbnail: \(videoThumbnailData.count) bytes"
+                        "Prewarmed \(planetName) video thumbnail: \(videoThumbnailData.count) bytes"
                     )
                 }
                 catch {
                     debugPrint(
-                        "Failed to prewarm \(self.planet.name) video thumbnail \(videoThumbnailURL): \(error)"
+                        "Failed to prewarm \(planetName) video thumbnail \(videoThumbnailURL): \(error)"
                     )
                 }
             }
             if self.hasHeroGrid {
                 let heroGridURL = postURL.appendingPathComponent("_grid.png")
                 do {
-                    debugPrint("About to prewarm \(self.planet.name) hero grid: \(heroGridURL)")
+                    debugPrint("About to prewarm \(planetName) hero grid: \(heroGridURL)")
                     let (heroGridData, _) = try await URLSession.shared.data(from: heroGridURL)
-                    debugPrint("Prewarmed \(self.planet.name) hero grid: \(heroGridData.count) bytes")
+                    debugPrint("Prewarmed \(planetName) hero grid: \(heroGridData.count) bytes")
                 }
                 catch {
                     debugPrint(
-                        "Failed to prewarm \(self.planet.name) hero grid \(heroGridURL): \(error)"
+                        "Failed to prewarm \(planetName) hero grid \(heroGridURL): \(error)"
                     )
                 }
             }

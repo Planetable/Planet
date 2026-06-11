@@ -559,10 +559,12 @@
 		8E1035B8735325B803F6938C /* PNDiskStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E073A385BB7A7839A414A902 /* PNDiskStore.swift */; };
 		8F03F9FAEFE88AA819E13F28 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2FA88FEC08699B75D7818C /* FeatureFlags.swift */; };
 		8F33EB5B385321311DA2AF54 /* AppLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196AB5BD526941A7FAB5D1AD /* AppLogView.swift */; };
+		930B0748E616F70F9F7FF489 /* ModelUpdateFieldCoverageCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F7B76DB94C513A9D189B3C /* ModelUpdateFieldCoverageCheck.swift */; };
 		9D3C01152F6C7DAF50871B06 /* PNAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16241C46F4F9D954C3BF6BBF /* PNAPIClient.swift */; };
 		9F1807DD072155243C041DFC /* ThemeColorExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 412635EFFFDD8D11BBC4BC56 /* ThemeColorExtractor.swift */; };
 		9F283A9A8EA2592CEC565037 /* SearchIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44BF4852CA45DC20EE145C58 /* SearchIndex.swift */; };
 		A14E34849B8C45E69780141C /* SearchDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB6EC2B7EEF3EF83DA342363 /* SearchDatabase.swift */; };
+		A2587363679B28FC942BC9C8 /* ModelUpdateFieldCoverageCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F7B76DB94C513A9D189B3C /* ModelUpdateFieldCoverageCheck.swift */; };
 		A310844E599715564A5B908D /* PNModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4454B175F94AFF29C4CC394F /* PNModels.swift */; };
 		A8E3461C94DD9CF45659CC72 /* PlanetAIChatSessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C06A60D631FAB5EEF3BAF8C /* PlanetAIChatSessionsView.swift */; };
 		B1554926223D7E6D8B65E40D /* DragPasteboardMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F4FA3B2D9A523EB833A02F3 /* DragPasteboardMedia.swift */; };
@@ -665,6 +667,7 @@
 		03E9DC5C055F824D215A8981 /* MarkdownEditorTextView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkdownEditorTextView.swift; sourceTree = "<group>"; };
 		0B14374A86131144DC199477 /* ArticleAIOnDeviceTools.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ArticleAIOnDeviceTools.swift; sourceTree = "<group>"; };
 		133C6811D1EA3279EA0ECB21 /* pt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		14F7B76DB94C513A9D189B3C /* ModelUpdateFieldCoverageCheck.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ModelUpdateFieldCoverageCheck.swift; sourceTree = "<group>"; };
 		16241C46F4F9D954C3BF6BBF /* PNAPIClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PNAPIClient.swift; sourceTree = "<group>"; };
 		16C059C53BCDB7CBCB2507A0 /* de */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		196AB5BD526941A7FAB5D1AD /* AppLogView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLogView.swift; sourceTree = "<group>"; };
@@ -1848,6 +1851,7 @@
 				72114E45790363ADCC6F7673 /* DraftModel.swift */,
 				721143E2F2DEA3A694022B20 /* AttachmentModel.swift */,
 				6A43E7D02B873F4900316F81 /* SearchResult.swift */,
+				14F7B76DB94C513A9D189B3C /* ModelUpdateFieldCoverageCheck.swift */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -2433,6 +2437,7 @@
 				6AADD6C72AF8809600898A6E /* MyArticleModel+SavePublic.swift in Sources */,
 				BF9F577F9FFA8A77F474CF1A /* PlanetStore+Spotlight.swift in Sources */,
 				6B50625D6A91C63998683BCA /* DragPasteboardMedia.swift in Sources */,
+				930B0748E616F70F9F7FF489 /* ModelUpdateFieldCoverageCheck.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2681,6 +2686,7 @@
 				9F1807DD072155243C041DFC /* ThemeColorExtractor.swift in Sources */,
 				8F03F9FAEFE88AA819E13F28 /* FeatureFlags.swift in Sources */,
 				B1554926223D7E6D8B65E40D /* DragPasteboardMedia.swift in Sources */,
+				A2587363679B28FC942BC9C8 /* ModelUpdateFieldCoverageCheck.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

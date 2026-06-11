@@ -78,15 +78,16 @@ struct MyArticleGridView: View {
         ) {
             Button("Delete", role: .destructive) {
                 ASMediaManager.shared.deactivateView(byID: article.id)
+                guard let planet = article.planet else { return }
                 article.delete()
                 PlanetStore.shared.refreshSelectedArticles()
-                article.planet.updated = Date()
-                try? article.planet.save()
+                planet.updated = Date()
+                try? planet.save()
 
                 Task(priority: .userInitiated) {
-                    try? await article.planet.savePublic()
+                    try? await planet.savePublic()
                     Task(priority: .background) {
-                        try? await article.planet.publish()
+                        try? await planet.publish()
                     }
                 }
             }

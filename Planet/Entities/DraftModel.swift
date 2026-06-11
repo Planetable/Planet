@@ -38,6 +38,8 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
     // populated when initializing
     var target: DraftTarget!
 
+    // Invariant: drafts are only created for live articles, whose planet is set;
+    // these lazies are first evaluated at draft creation. The force unwraps are deliberate.
     lazy var planetUUIDString: String = {
         switch target! {
         case .myPlanet(let wrapper):
@@ -45,7 +47,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
             return planet.id.uuidString
         case .article(let wrapper):
             let article = wrapper.value
-            return article.planet.id.uuidString
+            return article.planet!.id.uuidString
         }
     }()
 
@@ -54,7 +56,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         case .myPlanet(let wrapper):
             return wrapper.value
         case .article(let wrapper):
-            return wrapper.value.planet
+            return wrapper.value.planet!
         }
     }()
 
@@ -62,7 +64,7 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         switch target! {
         case .article(let wrapper):
             let article = wrapper.value
-            return article.planet.articleDraftsPath.appendingPathComponent(
+            return article.planet!.articleDraftsPath.appendingPathComponent(
                 article.id.uuidString,
                 isDirectory: true
             )
@@ -457,7 +459,10 @@ class DraftModel: Identifiable, Equatable, Hashable, Codable, ObservableObject {
         case .article(let wrapper):
             isEditingExistingArticle = true
             article = wrapper.value
-            planet = article.planet
+            guard let articlePlanet = article.planet else {
+                throw PlanetError.InternalError
+            }
+            planet = articlePlanet
             if let articleSlug = article.slug, articleSlug.count > 0 {
                 article.link = "/\(articleSlug)/"
             }

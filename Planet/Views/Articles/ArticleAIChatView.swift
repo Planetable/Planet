@@ -2747,7 +2747,7 @@ struct ArticleAIChatView: View {
                             instructions = systemPrompt + "\n\n" + onDeviceArticleContextMessage()
                         }
                         let articleID = articleRef?.id
-                        let planetID = (articleRef as? MyArticleModel)?.planet.id
+                        let planetID = (articleRef as? MyArticleModel)?.planet?.id
                         let (tools, _) = await MainActor.run {
                             OnDeviceToolFactory.makeTools(articleID: articleID, planetID: planetID)
                         }
@@ -4743,14 +4743,20 @@ struct ArticleAIChatView: View {
             let refreshedJSON = try encodeToDictionary(refreshed)
             debugLog("runWriteArticleTool success articleID=\(myArticle.id.uuidString), refreshedTitleLength=\(refreshed.title.count)")
 
+            guard let refreshedPlanet = refreshed.planet else {
+                return toolResult([
+                    "ok": false,
+                    "error": "Planet not found for article_id: \(myArticle.id.uuidString)",
+                ])
+            }
             return toolResult([
                 "ok": true,
                 "article_id": myArticle.id.uuidString,
-                "planet_id": refreshed.planet.id.uuidString,
+                "planet_id": refreshedPlanet.id.uuidString,
                 "planet_kind": PlanetKind.my.rawValue,
                 "chat_link": articleChatLink(
                     planetKind: .my,
-                    planetID: refreshed.planet.id,
+                    planetID: refreshedPlanet.id,
                     articleID: myArticle.id
                 ),
                 "path": refreshed.path.path,
@@ -5149,10 +5155,12 @@ struct ArticleAIChatView: View {
         articleID: String?,
         fields: [String]?
     ) -> ArticleAIReadableArticleSnapshot? {
-        if let myArticle = resolveMyArticle(articleID: articleID) {
+        if let myArticle = resolveMyArticle(articleID: articleID),
+            let planet = myArticle.planet
+        {
             return makeReadableArticleSnapshot(
                 articleID: myArticle.id,
-                planetID: myArticle.planet.id,
+                planetID: planet.id,
                 planetKind: .my,
                 path: myArticle.path.path,
                 article: myArticle,
@@ -5160,10 +5168,12 @@ struct ArticleAIChatView: View {
             )
         }
 
-        if let followingArticle = resolveFollowingArticle(articleID: articleID) {
+        if let followingArticle = resolveFollowingArticle(articleID: articleID),
+            let planet = followingArticle.planet
+        {
             return makeReadableArticleSnapshot(
                 articleID: followingArticle.id,
-                planetID: followingArticle.planet.id,
+                planetID: planet.id,
                 planetKind: .following,
                 path: followingArticle.path.path,
                 article: followingArticle,
@@ -5231,11 +5241,13 @@ struct ArticleAIChatView: View {
             return PlanetStore.shared.myPlanets.first(where: { $0.id == planetUUID })
         }
 
-        if let myArticle = articleRef as? MyArticleModel {
-            return PlanetStore.shared.myPlanets.first(where: { $0.id == myArticle.planet.id }) ?? myArticle.planet
+        if let myArticle = articleRef as? MyArticleModel, let planet = myArticle.planet {
+            return PlanetStore.shared.myPlanets.first(where: { $0.id == planet.id }) ?? planet
         }
-        if let selectedMyArticle = PlanetStore.shared.selectedArticle as? MyArticleModel {
-            return PlanetStore.shared.myPlanets.first(where: { $0.id == selectedMyArticle.planet.id }) ?? selectedMyArticle.planet
+        if let selectedMyArticle = PlanetStore.shared.selectedArticle as? MyArticleModel,
+            let planet = selectedMyArticle.planet
+        {
+            return PlanetStore.shared.myPlanets.first(where: { $0.id == planet.id }) ?? planet
         }
         if case .myPlanet(let selectedPlanet)? = PlanetStore.shared.selectedView {
             return PlanetStore.shared.myPlanets.first(where: { $0.id == selectedPlanet.id }) ?? selectedPlanet
@@ -5579,7 +5591,11 @@ struct ArticleAIChatView: View {
 
     @MainActor
     private func syncDraftIfExists(for article: MyArticleModel) throws -> Bool {
-        let draftDirectoryPath = article.planet.articleDraftsPath.appendingPathComponent(
+        guard let planet = article.planet else {
+            debugLog("syncDraftIfExists no planet for articleID=\(article.id.uuidString)")
+            return false
+        }
+        let draftDirectoryPath = planet.articleDraftsPath.appendingPathComponent(
             article.id.uuidString,
             isDirectory: true
         )
@@ -6415,26 +6431,28 @@ struct ArticleAIChatView: View {
         planetKind: PlanetKind,
         chatLink: String
     )? {
-        if let myArticle = article as? MyArticleModel {
+        if let myArticle = article as? MyArticleModel, let planet = myArticle.planet {
             return (
                 articleID: myArticle.id,
-                planetID: myArticle.planet.id,
+                planetID: planet.id,
                 planetKind: .my,
                 chatLink: articleChatLink(
                     planetKind: .my,
-                    planetID: myArticle.planet.id,
+                    planetID: planet.id,
                     articleID: myArticle.id
                 )
             )
         }
-        if let followingArticle = article as? FollowingArticleModel {
+        if let followingArticle = article as? FollowingArticleModel,
+            let planet = followingArticle.planet
+        {
             return (
                 articleID: followingArticle.id,
-                planetID: followingArticle.planet.id,
+                planetID: planet.id,
                 planetKind: .following,
                 chatLink: articleChatLink(
                     planetKind: .following,
-                    planetID: followingArticle.planet.id,
+                    planetID: planet.id,
                     articleID: followingArticle.id
                 )
             )

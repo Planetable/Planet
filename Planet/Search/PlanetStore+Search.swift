@@ -144,7 +144,8 @@ struct SearchArticleSnapshot: Sendable {
 }
 
 extension SearchArticleSnapshot {
-    init(article: MyArticleModel) {
+    init?(article: MyArticleModel) {
+        guard let planet = article.planet else { return nil }
         self.init(
             articleID: article.id,
             articleCreated: article.created,
@@ -156,13 +157,14 @@ extension SearchArticleSnapshot {
             slug: article.slug,
             tags: article.tags.map { Array($0.keys) } ?? [],
             attachments: article.attachments ?? [],
-            planetID: article.planet.id,
-            planetName: article.planet.name,
+            planetID: planet.id,
+            planetName: planet.name,
             planetKind: .my
         )
     }
 
-    init(article: FollowingArticleModel) {
+    init?(article: FollowingArticleModel) {
+        guard let planet = article.planet else { return nil }
         self.init(
             articleID: article.id,
             articleCreated: article.created,
@@ -174,8 +176,8 @@ extension SearchArticleSnapshot {
             slug: nil,
             tags: [],
             attachments: article.attachments ?? [],
-            planetID: article.planet.id,
-            planetName: article.planet.name,
+            planetID: planet.id,
+            planetName: planet.name,
             planetKind: .following
         )
     }
@@ -254,13 +256,17 @@ private func buildSearchSnapshots(
 
     for planet in myPlanets {
         for article in planet.articles {
-            snapshots.append(SearchArticleSnapshot(article: article))
+            if let snapshot = SearchArticleSnapshot(article: article) {
+                snapshots.append(snapshot)
+            }
         }
     }
 
     for planet in followingPlanets {
         for article in planet.articles {
-            snapshots.append(SearchArticleSnapshot(article: article))
+            if let snapshot = SearchArticleSnapshot(article: article) {
+                snapshots.append(snapshot)
+            }
         }
     }
 
@@ -272,7 +278,9 @@ extension PlanetStore {
         guard isSharedReady else {
             return
         }
-        let snapshot = SearchArticleSnapshot(article: article)
+        guard let snapshot = SearchArticleSnapshot(article: article) else {
+            return
+        }
         PlanetStore.upsertSpotlightItem(for: snapshot)
         Task { @MainActor in
             PlanetStore.shared.upsertSearchSnapshot(for: article)
@@ -295,7 +303,9 @@ extension PlanetStore {
         guard isSharedReady else {
             return
         }
-        let snapshot = SearchArticleSnapshot(article: article)
+        guard let snapshot = SearchArticleSnapshot(article: article) else {
+            return
+        }
         // Skip per-article Spotlight indexing for following articles — batch reindex
         // happens once after updateArticles() completes via reindexSpotlightItems().
         Task { @MainActor in
@@ -415,11 +425,13 @@ extension PlanetStore {
     }
 
     func upsertSearchSnapshot(for article: MyArticleModel) {
-        upsertSearchSnapshot(SearchArticleSnapshot(article: article))
+        guard let snapshot = SearchArticleSnapshot(article: article) else { return }
+        upsertSearchSnapshot(snapshot)
     }
 
     func upsertSearchSnapshot(for article: FollowingArticleModel) {
-        upsertSearchSnapshot(SearchArticleSnapshot(article: article))
+        guard let snapshot = SearchArticleSnapshot(article: article) else { return }
+        upsertSearchSnapshot(snapshot)
     }
 
     func removeSearchSnapshot(articleID: UUID) {

@@ -18,21 +18,30 @@ class FollowingArticleModel: ArticleModel, Codable {
     var summary: String? = nil
 
     // populated when initializing
-    unowned var planet: FollowingPlanetModel! = nil
+    // weak (not unowned): planet instances are replaced wholesale on store reload, and
+    // stale article models retained by SwiftUI List rows would otherwise trap on any
+    // read of a dangling unowned reference (swift_abortRetainUnowned, macOS 12).
+    weak var planet: FollowingPlanetModel? = nil
 
-    lazy var path = planet.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
+    // Invariant: planet is assigned right after init/decode and outlives normal use of
+    // these paths; mutation entry points (save/delete) guard against a nil planet
+    // before first access. The force unwrap is deliberate.
+    lazy var path = planet!.articlesPath.appendingPathComponent("\(id.uuidString).json", isDirectory: false)
 
-    lazy var localPreviewPath = planet.articlesPath.appendingPathComponent("\(id.uuidString)-local.html", isDirectory: false)
+    lazy var localPreviewPath = planet!.articlesPath.appendingPathComponent("\(id.uuidString)-local.html", isDirectory: false)
 
     var supportsReaderView: Bool {
-        planet.planetType == .dns
+        planet?.planetType == .dns
     }
 
     var supportsReadAloud: Bool {
-        planet.planetType == .dns || planet.planetType == .dnslink
+        planet?.planetType == .dns || planet?.planetType == .dnslink
     }
 
     func renderLocalPreview(fontSize: CGFloat = 14) throws -> URL {
+        guard let planet = planet else {
+            throw PlanetError.InternalError
+        }
         guard let templateURL = Bundle.main.url(forResource: "WriterBasic", withExtension: "html") else {
             throw PlanetError.RenderMarkdownError
         }
@@ -115,6 +124,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
 
     var webviewURL: URL? {
+        guard let planet = planet else { return nil }
         debugPrint("Generating webviewURL: planet.type: \(planet.planetType) planet.link: \(planet.link) article.link: \(link)")
         switch planet.planetType {
         case .planet, .dnslink, .ens, .dotbit:
@@ -176,6 +186,7 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
     /// URL that can be viewed and shared in a regular browser.
     var browserURL: URL? {
+        guard let planet = planet else { return nil }
         debugPrint("Generating browserURL: planet.type: \(planet.planetType) planet.link: \(planet.link) article.link: \(link)")
         switch planet.planetType {
         case .planet:
@@ -421,11 +432,17 @@ class FollowingArticleModel: ArticleModel, Codable {
     }
 
     func save() throws {
+        // A nil planet means this instance went stale after a store reload;
+        // writing would clobber the current article file with stale data.
+        guard planet != nil else {
+            throw PlanetError.InternalError
+        }
         try JSONEncoder.shared.encode(self).write(to: path, options: .atomic)
         PlanetStore.upsertSearchSnapshotIfReady(for: self)
     }
 
     func delete() {
+        guard planet != nil else { return }
         PlanetStore.removeSearchSnapshotIfReady(articleID: self.id)
         try? FileManager.default.removeItem(at: path)
     }
