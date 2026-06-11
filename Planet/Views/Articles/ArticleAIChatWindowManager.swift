@@ -4,8 +4,15 @@ import SwiftUI
 
 private enum ArticleAIChatWindowConfiguration {
     static let contentWidth: CGFloat = 720
-    static let contentHeight: CGFloat = 520
+    static let fallbackContentHeight: CGFloat = 520
     static let minimumWindowSize = NSSize(width: 480, height: 360)
+
+    static func defaultContentHeight(for screenSize: NSSize) -> CGFloat {
+        guard screenSize.height > 0 else {
+            return fallbackContentHeight
+        }
+        return CGFloat(Int(screenSize.height * PlanetUI.AI_CHAT_WINDOW_HEIGHT_SCREEN_RATIO))
+    }
 
     static func autosaveName(for articleID: UUID) -> String {
         "ArticleAIChat-\(articleID.uuidString)"
@@ -53,11 +60,11 @@ final class ArticleAIChatWindowController: NSWindowController {
         self.onClose = onClose
         self.autosaveName = ArticleAIChatWindowConfiguration.autosaveName(for: article.id)
 
+        let screenSize = NSScreen.main?.frame.size ?? .zero
         let windowSize = NSSize(
             width: ArticleAIChatWindowConfiguration.contentWidth,
-            height: ArticleAIChatWindowConfiguration.contentHeight
+            height: ArticleAIChatWindowConfiguration.defaultContentHeight(for: screenSize)
         )
-        let screenSize = NSScreen.main?.frame.size ?? .zero
         let rect = NSMakeRect(
             screenSize.width / 2 - windowSize.width / 2,
             screenSize.height / 2 - windowSize.height / 2,

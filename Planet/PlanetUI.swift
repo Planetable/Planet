@@ -24,6 +24,7 @@ struct PlanetUI {
     static let WINDOW_INSPECTOR_WIDTH_MAX: CGFloat = 280
     static let WINDOW_CONTENT_WIDTH_MIN: CGFloat = 400
     static let WINDOW_CONTENT_HEIGHT_MIN: CGFloat = 400
+    static let AI_CHAT_WINDOW_HEIGHT_SCREEN_RATIO: CGFloat = 0.618
 
     // Croptop 2-column NSWindowController-based windows
     static let CROPTOP_WINDOW_CONTENT_WIDTH_MIN: CGFloat = 460

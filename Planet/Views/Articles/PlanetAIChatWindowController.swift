@@ -6,9 +6,16 @@ private enum PlanetAIChatWindowConfiguration {
     static let windowAutosaveName = "Planet AI Chat Window"
     static let containerIdentifier = "PlanetAIChatContainerViewController"
     static let contentWidth: CGFloat = 720
-    static let contentHeight: CGFloat = 560
+    static let fallbackContentHeight: CGFloat = 560
     static let centerToolbarWidth: CGFloat = 260
     static let trailingToolbarWidth: CGFloat = 150
+
+    static func defaultContentHeight(for screenSize: NSSize) -> CGFloat {
+        guard screenSize.height > 0 else {
+            return fallbackContentHeight
+        }
+        return CGFloat(Int(screenSize.height * PlanetUI.AI_CHAT_WINDOW_HEIGHT_SCREEN_RATIO))
+    }
 }
 
 enum AIChatToolbarCommand {
@@ -151,11 +158,15 @@ final class PlanetAIChatWindowController: NSWindowController {
     private let toolbarState = AIChatToolbarState()
 
     override init(window: NSWindow?) {
+        let screenSize = NSScreen.main?.frame.size ?? .zero
         let windowSize = NSSize(
             width: PlanetUI.WINDOW_SIDEBAR_WIDTH_MIN + PlanetAIChatWindowConfiguration.contentWidth,
-            height: max(PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, PlanetAIChatWindowConfiguration.contentHeight)
+            height: PlanetAIChatWindowConfiguration.defaultContentHeight(for: screenSize)
         )
-        let screenSize = NSScreen.main?.frame.size ?? .zero
+        let minimumWindowSize = NSSize(
+            width: windowSize.width,
+            height: max(PlanetUI.WINDOW_CONTENT_HEIGHT_MIN, PlanetAIChatWindowConfiguration.fallbackContentHeight)
+        )
         let rect = NSMakeRect(
             screenSize.width / 2 - windowSize.width / 2,
             screenSize.height / 2 - windowSize.height / 2,
@@ -170,7 +181,7 @@ final class PlanetAIChatWindowController: NSWindowController {
             defer: true
         )
         let defaultFrame = rect
-        chatWindow.minSize = windowSize
+        chatWindow.minSize = minimumWindowSize
         chatWindow.maxSize = NSSize(width: screenSize.width, height: .infinity)
         chatWindow.toolbarStyle = .unified
         if !chatWindow.setFrameUsingName(PlanetAIChatWindowConfiguration.windowAutosaveName) {
