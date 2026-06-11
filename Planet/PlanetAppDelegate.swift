@@ -220,6 +220,11 @@ class PlanetAppDelegate: NSObject, NSApplicationDelegate {
             WebAppUpdater.shared.updateWebApp()
         }
 
+        // Workspace folder with MEMORY.md for AI chat persistent memory
+        DispatchQueue.global(qos: .background).async {
+            PlanetAIMemory.ensureMemoryFile()
+        }
+
         NSApp.registerServicesMenuSendTypes([], returnTypes: WriterPasteboardImporter.readablePasteboardTypes)
     }
 

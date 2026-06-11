@@ -3235,6 +3235,8 @@ struct ArticleAIChatView: View {
             return L10n("Searching repo text")
         case "list_planet_articles":
             return L10n("Listing planet articles")
+        case "update_memory":
+            return L10n("Updating memory")
         default:
             return L10n("Running %@", toolName)
         }
@@ -3356,6 +3358,16 @@ struct ArticleAIChatView: View {
             if let titleFilter = stringValue(from: arguments["title_filter"]) {
                 parts.append(L10n("Title filter: %@.", truncateInline(titleFilter, maxLength: 96)))
             }
+        case "update_memory":
+            if let note = stringValue(from: arguments["note"]) {
+                let singleLine = note.replacingOccurrences(of: "\n", with: " ")
+                parts.append(L10n("Note: %@.", truncateInline(singleLine, maxLength: 96)))
+            }
+            if boolValue(from: arguments["replace"]) == true {
+                parts.append(L10n("Mode: replace."))
+            } else {
+                parts.append(L10n("Mode: append."))
+            }
         default:
             let keys = Array(arguments.keys).sorted()
             if !keys.isEmpty {
@@ -3444,6 +3456,12 @@ struct ArticleAIChatView: View {
                 return L10n("Listed %d of %d filtered article(s) from %d total.", results.count, total, totalArticles)
             }
             return L10n("Article listing completed (%d filtered from %d total).", total, totalArticles)
+        case "update_memory":
+            let length = intValue(from: payload["memory_length"]) ?? 0
+            if stringValue(from: payload["mode"]) == "replace" {
+                return L10n("Memory replaced; MEMORY.md is now %d character(s).", length)
+            }
+            return L10n("Memory note saved; MEMORY.md is now %d character(s).", length)
         default:
             return L10n("Tool response received.")
         }
@@ -4591,6 +4609,27 @@ struct ArticleAIChatView: View {
                     ],
                 ],
             ],
+            [
+                "type": "function",
+                "function": [
+                    "name": "update_memory",
+                    "description": "Persist long-term memory for the user in Workspace/MEMORY.md. Use when the user asks to remember, update, or forget a fact or preference. Appends the note as a dated bullet by default; set replace=true to rewrite the whole file when removing or reorganizing entries.",
+                    "parameters": [
+                        "type": "object",
+                        "properties": [
+                            "note": [
+                                "type": "string",
+                                "description": "Memory text in Markdown. For appends keep it one concise bullet-sized line. When replace=true, pass the complete new MEMORY.md content.",
+                            ],
+                            "replace": [
+                                "type": "boolean",
+                                "description": "Optional. Defaults to false (append). Set true to replace the entire MEMORY.md content with `note`.",
+                            ],
+                        ],
+                        "required": ["note"],
+                    ],
+                ],
+            ],
         ]
     }
 
@@ -4613,6 +4652,8 @@ struct ArticleAIChatView: View {
             return await runGrepTool(arguments: arguments)
         case "list_planet_articles":
             return await runListPlanetArticlesTool(arguments: arguments)
+        case "update_memory":
+            return runUpdateMemoryTool(arguments: arguments)
         default:
             debugLog("unknown tool requested: \(toolCall.name)")
             return toolResult([
@@ -4977,6 +5018,41 @@ struct ArticleAIChatView: View {
             return toolResult([
                 "ok": false,
                 "error": "Grep failed: \(error.localizedDescription)",
+            ])
+        }
+    }
+
+    private func runUpdateMemoryTool(arguments: [String: Any]) -> String {
+        guard let note = stringValue(from: arguments["note"]),
+            !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        else {
+            return toolResult([
+                "ok": false,
+                "error": "Missing required `note`.",
+            ])
+        }
+
+        let replace = boolValue(from: arguments["replace"]) ?? false
+        debugLog("runUpdateMemoryTool replace=\(replace), noteLength=\(note.count)")
+
+        do {
+            let memoryLength: Int
+            if replace {
+                memoryLength = try PlanetAIMemory.replaceContent(note)
+            } else {
+                memoryLength = try PlanetAIMemory.appendNote(note)
+            }
+            return toolResult([
+                "ok": true,
+                "memory_file": PlanetAIMemory.memoryFileURL.path,
+                "mode": replace ? "replace" : "append",
+                "memory_length": memoryLength,
+            ])
+        } catch {
+            debugLogError("runUpdateMemoryTool failed", error: error)
+            return toolResult([
+                "ok": false,
+                "error": "Memory update failed: \(error.localizedDescription)",
             ])
         }
     }
@@ -6352,6 +6428,21 @@ struct ArticleAIChatView: View {
         """
     }
 
+    private var memoryGuidance: String {
+        var lines: [String] = [
+            "Persistent memory:",
+            "- Workspace/MEMORY.md at the Planet library root stores long-term notes the user asked you to remember.",
+            "- Apply relevant MEMORY.md entries to better understand the user and tailor answers; do not recite the file unless asked.",
+            "- When the user asks you to remember, update, or forget something, call update_memory; append a concise note by default, or set replace=true with the full rewritten file content to update or remove entries.",
+        ]
+        if let memory = PlanetAIMemory.loadForPrompt() {
+            lines.append("")
+            lines.append("Current MEMORY.md contents:")
+            lines.append(memory)
+        }
+        return lines.joined(separator: "\n")
+    }
+
     private var systemPrompt: String {
         if isPlanetWideMode {
             return """
@@ -6361,6 +6452,7 @@ struct ArticleAIChatView: View {
             If tools are available, use them when needed to read or update article/planet models, search Planet library text, or run shell commands.
             \(exactLookupToolGuidance)
             \(responseFormattingGuidance)
+            \(memoryGuidance)
             For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
             Whenever you mention or summarize article content from the Planet library, include a Markdown link for every referenced article.
             Use the exact chat_link value from article context or tool output, and if you do not have a chat_link yet, call a tool that returns one before answering. Never invent links.
@@ -6376,6 +6468,7 @@ struct ArticleAIChatView: View {
         If tools are available, use them when needed to read or update article/planet models, search Planet library text, or run shell commands.
         \(exactLookupToolGuidance)
         \(responseFormattingGuidance)
+        \(memoryGuidance)
         For article/planet edits, prefer read_article/write_article/read_planet/write_planet; only use shell if the user explicitly asks for shell.
         Whenever you mention or summarize article content from the Planet library, include a Markdown link for every referenced article.
         Use the exact chat_link value from article context or tool output, and if you do not have a chat_link yet, call a tool that returns one before answering. Never invent links.

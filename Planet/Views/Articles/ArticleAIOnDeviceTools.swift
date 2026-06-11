@@ -450,6 +450,15 @@ struct SearchArticlesArguments: Sendable {
 }
 
 @available(macOS 26.0, *)
+@Generable(description: "Arguments for updating persistent user memory")
+struct UpdateMemoryArguments: Sendable {
+    @Guide(description: "Memory text in Markdown. For appends keep it one concise bullet-sized line. When replace is true, pass the complete new MEMORY.md content.")
+    var note: String
+    @Guide(description: "Optional. Defaults to false (append). Set to true to replace the entire MEMORY.md content with note.")
+    var replace: Bool?
+}
+
+@available(macOS 26.0, *)
 @Generable(description: "Arguments for grep-style library search")
 struct GrepArguments: Sendable {
     @Guide(description: "Required search pattern. For exact tokens from the user, pass the exact spelling and punctuation first, including date-like strings such as 2026-1-1. Leave literal as true unless regex is explicitly needed.")
@@ -862,6 +871,37 @@ struct GrepTool: Tool {
     }
 }
 
+// MARK: - Update Memory Tool
+
+@available(macOS 26.0, *)
+struct UpdateMemoryTool: Tool {
+    var name: String { "update_memory" }
+    var description: String { "Persist long-term memory for the user in Workspace/MEMORY.md. Use when the user asks to remember, update, or forget a fact or preference. Appends the note as a dated bullet by default; set replace to true to rewrite the whole file." }
+
+    func call(arguments: UpdateMemoryArguments) async throws -> String {
+        let replace = arguments.replace ?? false
+        onDeviceToolLog("update_memory called replace=\(replace), noteLength=\(arguments.note.count)")
+        let note = arguments.note.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !note.isEmpty else {
+            return "Error: No memory note provided."
+        }
+        do {
+            let memoryLength: Int
+            if replace {
+                memoryLength = try PlanetAIMemory.replaceContent(arguments.note)
+            } else {
+                memoryLength = try PlanetAIMemory.appendNote(note)
+            }
+            let mode = replace ? "replace" : "append"
+            onDeviceToolLog("update_memory success mode=\(mode), memoryLength=\(memoryLength)")
+            return "Memory updated (\(mode)); MEMORY.md is now \(memoryLength) character(s)."
+        } catch {
+            onDeviceToolLog("update_memory failed: \(error.localizedDescription)")
+            return "Error: Failed to update memory: \(error.localizedDescription)"
+        }
+    }
+}
+
 // MARK: - Helper
 
 private final class OnDeviceUncheckedSendableBox<Value>: @unchecked Sendable {
@@ -885,6 +925,7 @@ enum OnDeviceToolFactory {
             WritePlanetTool(context: context),
             SearchArticlesTool(),
             GrepTool(),
+            UpdateMemoryTool(),
         ]
         return (tools, context)
     }

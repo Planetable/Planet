@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		06DF9C7A7A8104BC02F53F9A /* PlanetAIMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AE6A87025B0F773780CF878 /* PlanetAIMemory.swift */; };
 		0AA0B181DEC749A0DB6E8A6E /* PlanetAIChatWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E399FD48A62B607DCEF8C76D /* PlanetAIChatWindowController.swift */; };
 		0C84F068A74BE01EAE71C0CC /* SSHRsyncLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E9E61088FF7A043F46E188 /* SSHRsyncLogger.swift */; };
 		0EE328A6839BE6C7A0FE7752 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4A3C339B79F63C5B4475B12 /* XCTest.framework */; };
@@ -839,6 +840,7 @@
 		2CCA533E0D21FAAEEEB5CE71 /* CoreSpotlight.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreSpotlight.framework; path = System/Library/Frameworks/CoreSpotlight.framework; sourceTree = SDKROOT; };
 		2F4FA3B2D9A523EB833A02F3 /* DragPasteboardMedia.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DragPasteboardMedia.swift; sourceTree = "<group>"; };
 		342A67E3EAD082AA10974830 /* NaturalLanguage.framework */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.framework; name = NaturalLanguage.framework; path = System/Library/Frameworks/NaturalLanguage.framework; sourceTree = SDKROOT; };
+		3AE6A87025B0F773780CF878 /* PlanetAIMemory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlanetAIMemory.swift; sourceTree = "<group>"; };
 		3BF7A284CCD68E7CBE9F9D73 /* fi */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = fi; path = fi.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		412635EFFFDD8D11BBC4BC56 /* ThemeColorExtractor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeColorExtractor.swift; sourceTree = "<group>"; };
 		43D9216A1E2C83FFC61A358C /* de */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -1573,6 +1575,7 @@
 				4C06A60D631FAB5EEF3BAF8C /* PlanetAIChatSessionsView.swift */,
 				E399FD48A62B607DCEF8C76D /* PlanetAIChatWindowController.swift */,
 				72A8762054781F152975DEE9 /* ArticleSpeechPlayer.swift */,
+				3AE6A87025B0F773780CF878 /* PlanetAIMemory.swift */,
 			);
 			path = Articles;
 			sourceTree = "<group>";
@@ -2687,6 +2690,7 @@
 				8F03F9FAEFE88AA819E13F28 /* FeatureFlags.swift in Sources */,
 				B1554926223D7E6D8B65E40D /* DragPasteboardMedia.swift in Sources */,
 				A2587363679B28FC942BC9C8 /* ModelUpdateFieldCoverageCheck.swift in Sources */,
+				06DF9C7A7A8104BC02F53F9A /* PlanetAIMemory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
