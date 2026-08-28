@@ -4340,7 +4340,17 @@ struct ArticleAIChatView: View {
 
     private func modelSupportsToolUse(_ model: String) -> Bool {
         let modelName = model.lowercased()
-        return modelName.contains("sonnet") || modelName.contains("opus") || modelName.contains("gemma")
+        // Most current chat models support tool calling, so default to enabled and
+        // exclude only models that don't: embedding models, vision-only models, and
+        // small chat models known to lack tool support.
+        let unsupportedKeywords = [
+            "embed",
+            "minilm",
+            "llava",
+            "moondream",
+            "tinyllama",
+        ]
+        return !unsupportedKeywords.contains { modelName.contains($0) }
     }
 
     private func modelNeedsOpenAIStreamUsageOption(_ model: String) -> Bool {
