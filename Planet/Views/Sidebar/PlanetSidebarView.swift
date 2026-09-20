@@ -155,8 +155,7 @@ struct PlanetSidebarView: View {
                         }
                     } label: {
                         Image(systemName: "plus")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
+                            .font(.system(size: 14, weight: .medium))
                             .frame(width: 24, height: 24, alignment: .center)
                     }
                     .padding(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 0))

@@ -28,18 +28,16 @@ class PlanetQuickShareDropDelegate: DropDelegate {
     private static let activePromiseLock = NSLock()
     private static var activePromises: [UUID: ActiveFilePromise] = [:]
 
-    static let supportedContentTypes: [UTType] = {
-        let filePromiseTypes = NSFilePromiseReceiver.readableDraggedTypes.map {
-            UTType($0) ?? UTType(importedAs: $0)
-        }
-        return filePromiseTypes + [.fileURL, .image, .movie, .pdf, .mp3]
-    }()
+    // File-promise pasteboard identifiers are not all declared UTTypes. Keep the
+    // complete list as strings so SwiftUI can register every promise format.
+    static let supportedTypeIdentifiers: [String] = NSFilePromiseReceiver.readableDraggedTypes
+        + [UTType.fileURL, .image, .movie, .pdf, .mp3].map(\.identifier)
 
     init() {}
 
     static func processDropInfo(_ info: DropInfo) async -> [URL] {
         log(
-            "processDropInfo started providers=\(info.itemProviders(for: supportedContentTypes).count) location=\(describeLocation(info.location))"
+            "processDropInfo started providers=\(info.itemProviders(for: supportedTypeIdentifiers).count) location=\(describeLocation(info.location))"
         )
 
         var urls: [URL] = []
@@ -83,7 +81,7 @@ class PlanetQuickShareDropDelegate: DropDelegate {
     }
 
     func validateDrop(info: DropInfo) -> Bool {
-        let providerCount = info.itemProviders(for: Self.supportedContentTypes).count
+        let providerCount = info.itemProviders(for: Self.supportedTypeIdentifiers).count
         let hasDirectImage = Self.dragPasteboardHasDirectImage()
         let hasPromise = Self.dragPasteboardHasFilePromise()
         let isValid = providerCount > 0 || hasDirectImage || hasPromise

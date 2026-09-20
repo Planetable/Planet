@@ -1238,7 +1238,7 @@ extension MyPlanetModel {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             let html = String(decoding: data, as: UTF8.self)
-            let doc: Document = try SwiftSoup.parse(html)
+            let doc: SwiftSoup.Document = try SwiftSoup.parse(html)
             let ogImage = try doc.select("meta[property=og:image]").first()
             debugPrint("Aggregation: og:image: \(String(describing: ogImage)) found in \(url)")
             if let ogImage = ogImage {

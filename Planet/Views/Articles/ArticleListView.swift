@@ -31,7 +31,7 @@ class ArticleListDropDelegate: DropDelegate {
     }
 
     func validateDrop(info: DropInfo) -> Bool {
-        let providerCount = info.itemProviders(for: PlanetQuickShareDropDelegate.supportedContentTypes).count
+        let providerCount = info.itemProviders(for: PlanetQuickShareDropDelegate.supportedTypeIdentifiers).count
         let hasDirectImage = PlanetQuickShareDropDelegate.dragPasteboardHasDirectImage()
         let hasPromise = PlanetQuickShareDropDelegate.dragPasteboardHasFilePromise()
         let isValid = providerCount > 0 || hasDirectImage || hasPromise
@@ -679,7 +679,7 @@ struct ArticleListView: View {
                 }
             }
         }
-        .onDrop(of: PlanetQuickShareDropDelegate.supportedContentTypes, delegate: articleDropDelegate)
+        .onDrop(of: PlanetQuickShareDropDelegate.supportedTypeIdentifiers, delegate: articleDropDelegate)
         .onWidthChange { newWidth in
             @AppStorage("articleListWidth") var articleListWidth = 240.0
             articleListWidth = newWidth

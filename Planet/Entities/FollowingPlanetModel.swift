@@ -469,7 +469,7 @@ class FollowingPlanetModel: Equatable, Hashable, Identifiable, ObservableObject,
 
     private static func avatarHTMLSource(
         from discovery: FeedDiscoveryResult
-    ) async throws -> (document: Document, url: URL)? {
+    ) async throws -> (document: SwiftSoup.Document, url: URL)? {
         if let htmlDocument = discovery.htmlDocument,
            let htmlURL = discovery.htmlURL
         {
