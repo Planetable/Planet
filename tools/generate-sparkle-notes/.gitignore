@@ -5,3 +5,4 @@ insider/*.md
 release/*.md
 .gh_synced
 .planet_synced
+flask.log
