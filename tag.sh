@@ -5,7 +5,20 @@ CYAN='\033[0;36m'
 YELLOW='\033[0;33m'
 RESET='\033[0m'
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Read a build setting value from an xcconfig file (handles "KEY = value;" and "KEY = value").
+xcconfig_value() {
+  local file="$1" key="$2"
+  sed -nE "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*([^;]*);?[[:space:]]*$/\1/p" "$file" | tail -1
+}
+
+marketing_version="$(xcconfig_value "${SCRIPT_DIR}/Planet/marketing_version.xcconfig" MARKETING_VERSION)"
+project_version="$(xcconfig_value "${SCRIPT_DIR}/Planet/versioning.xcconfig" CURRENT_PROJECT_VERSION)"
+
 echo -e "Today: ${CYAN}$(date '+%Y-%m-%d %I:%M:%S %p %Z')${RESET}"
+echo -e "MARKETING_VERSION (marketing_version.xcconfig): ${GREEN}${marketing_version:-<not found>}${RESET}"
+echo -e "CURRENT_PROJECT_VERSION (versioning.xcconfig):  ${GREEN}${project_version:-<not found>}${RESET}"
 echo ""
 echo "Last 5 tags:"
 git tag -l --sort=-creatordate --format='%(creatordate:short)|%(refname:short)|%(contents:subject)' | head -5 | while IFS='|' read -r date_part tag_part msg_part; do
