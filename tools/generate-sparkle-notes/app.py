@@ -29,6 +29,7 @@ _NUM_WORKERS = 2
 _planet_enabled = False
 
 GH_REPO = 'Planetable/Planet'
+_GH_RELEASE_CHECK_LIMIT = 10  # newest GitHub releases (incl. prereleases) to compare against local notes
 _gh_queue = queue.Queue()
 _gh_synced = set()
 _NUM_GH_WORKERS = 2
@@ -64,12 +65,65 @@ def git(*args):
     return result.stdout.strip()
 
 
+_GH_AUTH_ERROR_MARKERS = (
+    '401', 'bad credentials', 'gh auth login', 'not logged in', 'authentication',
+    'token is invalid', 'token in gh_token', 'could not prompt',
+)
+_gh_auth_warn_lock = threading.Lock()
+_gh_auth_warned_at = 0.0
+_GH_AUTH_WARN_INTERVAL = 60  # throttle repeated auth warnings from workers
+
+
+def _looks_like_gh_auth_error(text):
+    lowered = (text or '').lower()
+    return any(marker in lowered for marker in _GH_AUTH_ERROR_MARKERS)
+
+
+def _warn_gh_auth(detail, context, throttle=True):
+    """Log a warning about a gh auth problem; throttled so busy workers don't spam the log."""
+    global _gh_auth_warned_at
+    now = time.monotonic()
+    with _gh_auth_warn_lock:
+        if throttle and now - _gh_auth_warned_at < _GH_AUTH_WARN_INTERVAL:
+            return
+        _gh_auth_warned_at = now
+    log.warning('gh auth problem (%s): %s. Run `gh auth login` or check GH_TOKEN.',
+                context, ' '.join(detail.split()))
+
+
 def gh(*args):
     result = subprocess.run(
         ['gh', *args],
         capture_output=True, text=True,
     )
+    if result.returncode != 0:
+        detail = result.stderr.strip() or result.stdout.strip()
+        if _looks_like_gh_auth_error(detail):
+            _warn_gh_auth(detail, 'gh ' + ' '.join(args[:2]))
     return result
+
+
+def gh_auth_check():
+    """Run `gh auth status`; log a warning and return False if gh is not usable."""
+    try:
+        result = subprocess.run(
+            ['gh', 'auth', 'status', '--hostname', 'github.com'],
+            capture_output=True, text=True,
+        )
+    except FileNotFoundError:
+        log.warning('gh auth problem: the `gh` CLI is not installed or not on PATH')
+        return False
+    if result.returncode == 0:
+        return True
+    output = result.stderr.strip() or result.stdout.strip() or f'gh exited {result.returncode}'
+    # Keep only the failing lines; `gh auth status` also prints healthy accounts.
+    problem_lines = [
+        line.strip() for line in output.splitlines()
+        if line.strip().startswith('X ') or _looks_like_gh_auth_error(line) or 'failed' in line.lower()
+    ]
+    detail = '; '.join(problem_lines) if problem_lines else output
+    _warn_gh_auth(detail, 'gh auth status', throttle=False)
+    return False
 
 
 def get_tags_for_channel(channel):
@@ -96,6 +150,57 @@ def get_commits_between(prev_tag, tag):
     if prev_tag:
         return git('log', '--oneline', '--no-merges', f'{prev_tag}..{tag}')
     return git('log', '--oneline', '--no-merges', tag)
+
+
+def channel_for_tag(tag):
+    """Map a tag like release-0.22.4 / insider-20261006-1 to its channel, or None."""
+    prefix = tag.split('-', 1)[0]
+    return prefix if prefix in CHANNELS and tag.startswith(prefix + '-') else None
+
+
+def get_gh_releases(limit=_GH_RELEASE_CHECK_LIMIT):
+    """Return the newest GitHub releases (including prereleases, excluding drafts).
+
+    Uses the REST API so each item carries its body in a single call. Each item is a dict
+    with tagName / isPrerelease / publishedAt / body. Returns [] on failure.
+    """
+    import json
+    result = gh('api', f'repos/{GH_REPO}/releases?per_page={int(limit)}')
+    if result.returncode != 0:
+        log.warning('gh api releases failed: %s', result.stderr.strip() or result.stdout.strip())
+        return []
+    try:
+        items = json.loads(result.stdout or '[]')
+    except ValueError:
+        log.warning('gh api releases returned invalid JSON')
+        return []
+    return [
+        {
+            'tagName': r.get('tag_name') or '',
+            'isPrerelease': bool(r.get('prerelease')),
+            'publishedAt': r.get('published_at') or '',
+            'body': r.get('body') or '',
+        }
+        for r in items
+        if isinstance(r, dict) and not r.get('draft')
+    ]
+
+
+def tag_exists_locally(tag):
+    return git('tag', '-l', tag) == tag
+
+
+def git_fetch_tags():
+    """Fetch tags from origin so GitHub-only releases can be generated. Returns True on success."""
+    result = subprocess.run(
+        ['git', '-C', REPO_ROOT, 'fetch', '--tags', '--quiet', 'origin'],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        log.warning('git fetch --tags failed: %s', result.stderr.strip())
+        return False
+    _tags_cache.clear()
+    return True
 
 
 def _is_release_note_candidate_path(path):
@@ -145,14 +250,6 @@ def get_tag_date(tag):
 def get_tag_iso_date(tag):
     """Return tag creation date in ISO 8601 format."""
     return git('tag', '-l', '--format=%(creatordate:iso-strict)', tag)
-
-
-def gh_release_body_is_empty(tag):
-    """True if a GitHub release exists for *tag* and its body is empty."""
-    ok, body, _ = gh_release_body_with_result(tag)
-    if not ok:
-        return False
-    return body.strip() == ''
 
 
 def gh_release_body_with_result(tag):
@@ -1114,6 +1211,16 @@ def _cleanup_empty_notes():
                     os.remove(path)
 
 
+def _enqueue_generation(channel, tag_name):
+    """Queue a tag for note generation unless it is already queued. Returns True if queued."""
+    with _generating_lock:
+        if tag_name in _generating:
+            return False
+        _generating.add(tag_name)
+    _gen_queue.put((channel, tag_name))
+    return True
+
+
 def enqueue_missing():
     """Delete empty .md files, then queue all tags without notes."""
     _cleanup_empty_notes()
@@ -1122,14 +1229,55 @@ def enqueue_missing():
         for tag_name in get_tags_for_channel(ch):
             if notes_exist(ch, tag_name):
                 continue
-            with _generating_lock:
-                if tag_name in _generating:
-                    continue
-                _generating.add(tag_name)
-            _gen_queue.put((ch, tag_name))
-            queued += 1
+            if _enqueue_generation(ch, tag_name):
+                queued += 1
     if queued:
         log.info('Queued %d tags for background generation', queued)
+
+
+def enqueue_missing_from_gh():
+    """Check the newest GitHub releases (incl. prereleases) and queue any without local notes.
+
+    Tags that only exist on GitHub are fetched into the local repo first, since generation
+    needs the commit range. Generated notes are then posted to GitHub and Planet by the
+    generation worker as usual.
+    """
+    missing = []
+    empty_body = []
+    for rel in get_gh_releases():
+        tag_name = rel.get('tagName') or ''
+        ch = channel_for_tag(tag_name)
+        if not ch:
+            continue
+        if not notes_exist(ch, tag_name):
+            missing.append((ch, tag_name))
+        elif not _normalize_release_md(rel.get('body', '')):
+            empty_body.append((ch, tag_name))
+
+    # Notes exist locally but the GitHub release body is empty (e.g. the release was
+    # published after the first sync attempt): push again, ignoring the synced cache.
+    for ch, tag_name in empty_body:
+        log.info('GitHub release %s has an empty body, queuing notes push', tag_name)
+        _gh_synced.add(tag_name)
+        _gh_queue.put((ch, tag_name))
+
+    if not missing:
+        return
+
+    if any(not tag_exists_locally(t) for _, t in missing):
+        log.info('GitHub has releases not in local git, fetching tags')
+        git_fetch_tags()
+
+    queued = 0
+    for ch, tag_name in missing:
+        if not tag_exists_locally(tag_name):
+            log.warning('GitHub release %s has no local tag, skipping', tag_name)
+            continue
+        if _enqueue_generation(ch, tag_name):
+            log.info('GitHub release %s has no local notes, queued for generation', tag_name)
+            queued += 1
+    if queued:
+        log.info('Queued %d GitHub releases for background generation', queued)
 
 
 # ---------------------------------------------------------------------------
@@ -1358,21 +1506,36 @@ def _save_gh_tag(tag_name):
 
 
 def _gh_sync_worker():
-    """Worker that pushes release notes to empty GitHub releases."""
+    """Worker that pushes release notes to empty GitHub releases.
+
+    Only a confirmed non-empty body or a successful push marks a tag as synced. Any other
+    outcome drops the tag from the in-memory set so the next periodic refresh retries it;
+    typically the GitHub release simply does not exist yet because CI publishes it a few
+    minutes after the tag.
+    """
     while True:
         channel, tag_name = _gh_queue.get()
         try:
             if not notes_exist(channel, tag_name):
+                _gh_synced.discard(tag_name)
                 continue
-            if not gh_release_body_is_empty(tag_name):
+            ok, body, error = gh_release_body_with_result(tag_name)
+            if not ok:
+                _gh_synced.discard(tag_name)
+                log.info('GitHub release %s not available yet, will retry: %s',
+                         tag_name, ' '.join((error or '').split()))
+                continue
+            if body.strip():
                 _save_gh_tag(tag_name)
                 continue
             if gh_update_release_notes(channel, tag_name):
                 _save_gh_tag(tag_name)
                 log.info('Pushed notes to GitHub release: %s', tag_name)
             else:
-                log.warning('Failed to push notes to GitHub release: %s', tag_name)
+                _gh_synced.discard(tag_name)
+                log.warning('Failed to push notes to GitHub release %s, will retry', tag_name)
         except Exception:
+            _gh_synced.discard(tag_name)
             log.exception('Failed to sync %s to GitHub', tag_name)
         finally:
             _gh_queue.task_done()
@@ -1399,9 +1562,14 @@ def sync_gh():
         for tag_name in get_tags_for_channel(ch):
             if not notes_exist(ch, tag_name):
                 continue
-            if not gh_release_body_is_empty(tag_name):
+            ok, body, error = gh_release_body_with_result(tag_name)
+            if not ok:
                 skipped += 1
-                print(f'  SKIP  {tag_name} (no release or body not empty)', flush=True)
+                print(f'  SKIP  {tag_name} (no GitHub release: {" ".join((error or "").split())})', flush=True)
+                continue
+            if body.strip():
+                skipped += 1
+                print(f'  SKIP  {tag_name} (body not empty)', flush=True)
                 continue
             if gh_update_release_notes(ch, tag_name):
                 synced += 1
@@ -1419,6 +1587,8 @@ def _periodic_refresh():
             log.info('Periodic refresh: checking for new tags')
             # Clear tags cache so fresh tags are fetched from git
             _tags_cache.clear()
+            gh_auth_check()
+            enqueue_missing_from_gh()
             enqueue_missing()
             enqueue_planet_sync()
             enqueue_gh_sync()
@@ -1457,6 +1627,9 @@ if not _is_cli() and not _is_reloader_parent():
 
     for _i in range(_NUM_WORKERS):
         threading.Thread(target=_worker, daemon=True).start()
+    if gh_auth_check():
+        log.info('gh auth OK')
+    enqueue_missing_from_gh()
     enqueue_missing()
 
     try:
