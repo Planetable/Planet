@@ -166,6 +166,13 @@ struct StencilExtension {
 }
 
 struct CMarkRenderer {
+    // cmark_gfm_core_extensions_ensure_registered() is not thread-safe: concurrent first calls
+    // register the extensions more than once, which renumbers the global table node types under
+    // any parse in flight and trips cmark's assertions. A static let is initialized exactly once.
+    private static let registerExtensions: Void = {
+        cmark_gfm_core_extensions_ensure_registered()
+    }()
+
     static func replaceYouTubeLinks(_ text: String) -> String {
         let pattern = #"https?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?"#
 
@@ -184,7 +191,7 @@ struct CMarkRenderer {
         // Process 1: Replace all YouTube links with embed code
         let inputText: String = CMarkRenderer.replaceYouTubeLinks(markdown)
 
-        cmark_gfm_core_extensions_ensure_registered()
+        _ = registerExtensions
 
         guard let parser = cmark_parser_new(CMARK_OPT_FOOTNOTES) else { return nil }
         defer { cmark_parser_free(parser) }
