@@ -47,7 +47,7 @@ struct StencilExtension {
                 if let images = images {
                     for image in images {
                         if let src = try? image.attr("src") {
-                            if src.hasPrefix("https://") || src.hasPrefix("http://") {
+                            if !StencilExtension.isArticleRelative(src) {
                                 continue
                             }
                             else {
@@ -163,6 +163,29 @@ struct StencilExtension {
         }
         return ext
     }()
+
+    /// Whether an image source names a file beside the article, the only kind
+    /// absoluteImageURL moves: not empty, not from the root or another host
+    /// (/ or //), not a query or fragment alone, and with no scheme (https:,
+    /// data:, ipfs:). A scheme is what a browser reads as one, a letter then
+    /// letters, digits, + - or . up to the first colon, so "Shot 10:30.png"
+    /// is still a file.
+    static func isArticleRelative(_ src: String) -> Bool {
+        guard let first = src.unicodeScalars.first, !"/?#".unicodeScalars.contains(first) else {
+            return false
+        }
+        guard let colon = src.unicodeScalars.firstIndex(of: ":"), colon != src.unicodeScalars.startIndex else {
+            return true
+        }
+        for (i, c) in src.unicodeScalars[..<colon].enumerated() {
+            let letter = ("a"..."z").contains(c) || ("A"..."Z").contains(c)
+            let other = ("0"..."9").contains(c) || c == "+" || c == "-" || c == "."
+            if !letter && (i == 0 || !other) {
+                return true
+            }
+        }
+        return false
+    }
 }
 
 struct CMarkRenderer {
