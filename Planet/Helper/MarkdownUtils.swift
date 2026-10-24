@@ -46,17 +46,18 @@ struct StencilExtension {
                 let images = try? doc.select("img")
                 if let images = images {
                     for image in images {
-                        if let src = try? image.attr("src") {
+                        // A browser drops the spaces around a src, so " a.png" is a.png
+                        if let src = try? image.attr("src").trimmingCharacters(in: StencilExtension.htmlWhitespace) {
                             if !StencilExtension.isArticleRelative(src) {
                                 continue
                             }
                             else {
                                 // Convert relative img src to absolute full URL
-                                if let site = arguments.first as? String,
-                                    let articleID: UUID = arguments[1] as? UUID
+                                if arguments.count > 1,
+                                    let site = arguments[0] as? String,
+                                    let articleID = arguments[1] as? UUID
                                 {
                                     let prefix = "\(site)/\(articleID.uuidString)/"
-                                    debugPrint("prefix: \(prefix)")
                                     let absoluteURL = prefix + src
                                     let _ = try? image.attr("src", absoluteURL)
                                 }
@@ -163,6 +164,9 @@ struct StencilExtension {
         }
         return ext
     }()
+
+    /// The ASCII whitespace HTML strips from both ends of a URL attribute.
+    static let htmlWhitespace = CharacterSet(charactersIn: " \t\n\r\u{0C}")
 
     /// Whether an image source names a file beside the article, the only kind
     /// absoluteImageURL moves: not empty, not from the root or another host
