@@ -139,11 +139,14 @@ def get_tags_for_channel(channel):
 
 def get_previous_tag(tag):
     series = tag.split('-')[0] + '-'
-    output = git('tag', '--sort=-creatordate', '--merged', tag)
-    for t in output.split('\n'):
-        if t.startswith(series) and t != tag:
-            return t
-    return None
+    return git(
+        'describe',
+        '--tags',
+        '--match', f'{series}*',
+        '--abbrev=0',
+        '--first-parent',
+        f'{tag}^',
+    ) or None
 
 
 def get_commits_between(prev_tag, tag):
@@ -226,6 +229,28 @@ def _filter_user_facing_commits(commits):
         if any(_is_release_note_candidate_path(f) for f in files.split('\n') if f):
             lines.append(line)
     return '\n'.join(lines)
+
+
+def _release_note_context(commits):
+    """Expand one-line git log entries with the details needed to judge user impact."""
+    records = []
+    for line in commits.splitlines():
+        if not line.strip():
+            continue
+        sha = line.split()[0]
+        message = git('show', '-s', '--format=%s%n%n%b', sha).strip()
+        files = git('diff-tree', '--no-commit-id', '--name-only', '-r', sha)
+        relevant_files = [
+            path for path in files.splitlines()
+            if path and _is_release_note_candidate_path(path)
+        ]
+        record = f"Commit message:\n{message or line}"
+        if relevant_files:
+            record += "\n\nRelevant changed paths:\n" + '\n'.join(
+                f'- {path}' for path in relevant_files
+            )
+        records.append(record)
+    return '\n\n---\n\n'.join(records)
 
 
 def _refresh_tag_dates():
@@ -461,17 +486,21 @@ def generate_notes_with_codex(commits, prev_tag, tag):
     prompt = (
         f"Write end-user release notes for the main Planet macOS app from git commits {scope}.\n\n"
         "Input scope:\n"
-        "- Use only the commit list supplied on stdin. Do not inspect files, run commands, or infer from commit hashes.\n"
-        "- Include only changes that affect people using the Planet macOS app UI or behavior.\n"
+        "- Use only the commit records supplied on stdin. They include full commit messages and relevant changed paths. Do not inspect files or run commands.\n"
+        "- Include changes that affect people using Planet or the content and websites Planet produces. Crashes, data correctness, publishing, rendered HTML, feeds, images, and bundled site-template updates are user-facing.\n"
         "- Skip this release-notes utility, scripts, CI, build/release automation, tests, docs, generated metadata, version bumps, refactors, and internal infrastructure unless the commit clearly describes a user-visible app change.\n\n"
+        "Selection and wording:\n"
+        "- Read the full commit message, not just its technical title. Translate the concrete user-visible consequence into plain language.\n"
+        "- Do not discard a fix merely because its title names an implementation function or its changed path is a helper file.\n"
+        "- Treat a clearly named update to Planet's bundled site templates as user-facing even when no details beyond the update are provided.\n\n"
         "Output format:\n"
         "- Return only plain Markdown bullets. No HTML, heading, sections, preamble, explanation, blank lines, or code fences.\n"
         "- Every output line must start with '- '.\n"
         "- Bullet format: - **Bold short label** — concise end-user description.\n"
         "- Group closely related commits; do not duplicate the same feature or fix under multiple labels.\n"
-        "- Aim for 3-12 bullets. If there are no qualifying app-facing changes, output exactly '- No user-facing Planet app changes.'\n"
+        "- Produce 1-12 bullets, according to the number of distinct user-facing changes. If there truly are none, output exactly '- No user-facing Planet app changes.'\n"
         "- Do not include HTML tags, commit hashes, author names, issue/PR numbers, file paths, dependency names, or implementation details.\n"
-        "- Name user-visible features, UI elements, and behaviors specifically when commit subjects provide them.\n\n"
+        "- Name user-visible features, UI elements, and behaviors specifically when the commit records provide them.\n\n"
         "Example style:\n"
         "- **Continuity Camera** — Import photos/videos directly from iPhone into Writer\n"
         "- **Article selection & navigation** — Restore last selected article on launch, "
@@ -485,7 +514,7 @@ def generate_notes_with_codex(commits, prev_tag, tag):
                 [
                     'codex',
                     'exec',
-                    '--model', 'gpt-5.5',
+                    '--model', 'gpt-6.1-sol',
                     '--config', 'model_reasoning_effort="high"',
                     '--config', 'approval_policy="never"',
                     '--cd', REPO_ROOT,
@@ -496,7 +525,7 @@ def generate_notes_with_codex(commits, prev_tag, tag):
                     '--output-last-message', output_path,
                     prompt,
                 ],
-                input=commits,
+                input=_release_note_context(commits),
                 capture_output=True,
                 text=True,
                 timeout=180,
