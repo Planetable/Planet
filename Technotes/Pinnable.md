@@ -1,0 +1,9 @@
+# Pinnable: pushing the IPNS record after a publish
+
+Since 2026-11-03, right after a planet is published to IPNS, Planet posts the IPNS record its own Kubo just wrote to Pinnable, when Pinnable is enabled for that planet. The call is `POST <pin API endpoint>/record` with the record as a multipart field named `record`; the pin API endpoint is the `/pin/<uuid>` URL the planet already calls to be pinned. `Pinnable.pushRecord(ipns:)` in `Planet/Integrations/Pinnable.swift` does it, from `MyPlanetModel.callPinnable()`.
+
+Why: a DHT node keeps an IPNS record for 36 hours after it received it, and only the publisher's node puts it back, every 4 hours, while it runs. So a planet published from a Mac that is then closed stops resolving on every gateway after 36 hours, however long the record itself is valid (Planet publishes with a lifetime of 7200 hours). Pinnable keeps each site's best record and puts it back into the DHT every 4 hours, which keeps the name resolvable while the Mac is off. Pushing the record at publish time makes a new version live on every gateway seconds after the publish instead of on Pinnable's next check.
+
+What is sent: the bytes of the Type 5 line of the local `routing/get` answer for `/ipns/<name>`, which is the record the publish just wrote, signed by the planet's key. No key leaves the Mac, and the record is never changed. Pinnable checks it against the site's name, keeps it only if its sequence is higher than the one it has, puts it into the DHT and pins the new CID. A failure of the call is logged with `debugPrint` and ignored, because the checker on Pinnable finds the record on its own within 4 hours.
+
+Answers Pinnable gives: 202 kept, 200 already have this sequence, 400 not a valid record or expired, 409 the site has no IPNS name yet, 413 longer than 2048 bytes, 429 more than one record a minute, 404 unknown uuid.

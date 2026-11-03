@@ -3304,6 +3304,11 @@ class MyPlanetModel: Equatable, Hashable, Identifiable, ObservableObject, Codabl
         }
         let pinnable = Pinnable(api: pinnableAPIEndpoint)
         await pinnable.pin()
+        // The record the local node just wrote: Pinnable puts it into the DHT
+        // and pins the new version at once (Technotes/Pinnable.md).
+        if publishAsIPNS ?? true {
+            await pinnable.pushRecord(ipns: ipns)
+        }
     }
 
     func checkPinnablePinStatus() async -> PinnablePinStatus? {
