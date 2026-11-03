@@ -222,16 +222,17 @@ actor IPFSDaemon {
         }
          */
 
-        Self.logger.info("Updating peers")
-        if let result = try? IPFSCommand.setPeers(
-            peersJSON: String(data: IPFSDaemon.peers.rawData(), encoding: .utf8)!
-        ).run(),
+        // Peering is off for now (Technotes/Peering.md): the nodes the old list
+        // named no longer answer. Builds before 2026-11 wrote that list into the
+        // repo, so clear it instead of leaving Kubo to dial dead addresses.
+        Self.logger.info("Clearing peers")
+        if let result = try? IPFSCommand.setPeers(peersJSON: "[]").run(),
             result.ret == 0
         {
-            Self.logger.info("Updated peers")
+            Self.logger.info("Cleared peers")
         }
         else {
-            Self.logger.info("Unable to set peers for IPFS")
+            Self.logger.info("Unable to clear peers for IPFS")
         }
 
         Self.logger.info("Set DNS resolvers")
@@ -997,37 +998,6 @@ actor IPFSDaemon {
 }
 
 extension IPFSDaemon {
-    // IPFS peering
-    // peers from https://docs.ipfs.io/how-to/peering-with-content-providers/#content-provider-list
-    static let peers = JSON([
-        [
-            "ID": "12D3KooWBJY6ZVV8Tk8UDDFMEqWoxn89Xc8wnpm8uBFSR3ijDkui",
-            "Addrs": [
-                "/ip4/167.71.172.216/tcp/4001",
-                "/ip6/2604:a880:800:10::826:1/tcp/4001",
-                "/ip4/167.71.172.216/udp/4001/quic",
-                "/ip6/2604:a880:800:10::826:1/udp/4001/quic",
-            ],
-        ],  // Pinnable
-        [
-            "ID": "12D3KooWJ6MTkNM8Bu8DzNiRm1GY3Wqh8U8Pp1zRWap6xY3MvsNw",
-            "Addrs": [
-                "/dnsaddr/node-1.ipfs.bit.site"
-            ],
-        ],  // bit.site
-        [
-            "ID": "12D3KooWQ85aSCFwFkByr5e3pUCQeuheVhobVxGSSs1DrRQHGv1t",
-            "Addrs": [
-                "/dnsaddr/node-1.ipfs.4everland.net"
-            ],
-        ],  // 4everland.io
-        [
-            "ID": "12D3KooWGtYkBAaqJMJEmywMxaCiNP7LCEFUAFiLEBASe232c2VH",
-            "Addrs": [
-                "/dns4/bitswap.filebase.io/tcp/443/wss"
-            ],
-        ],  // Filebase
-    ])
     // DoH resolvers
     static let resolvers = JSON([
         "bit.": "https://dweb-dns.v2ex.pro/dns-query",
