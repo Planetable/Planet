@@ -29,7 +29,7 @@
     {% for article in planet.articles %}
     <item>
         <title>{{ article.title|escape }}</title>
-        <link>{{ root_prefix }}/{{ article.id }}/</link>
+        <link>{{ root_prefix }}/{% if article.slug.count > 0 %}{{ article.slug }}{% else %}{{ article.id }}{% endif %}/</link>
         <guid>{{ root_prefix }}/{{ article.id }}/</guid>
         <pubDate>{{ article.created|rfc822 }}</pubDate>
         {% if article.heroImage %}
