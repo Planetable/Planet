@@ -1012,26 +1012,6 @@ struct ArticleView: View {
             if let _ = canTip(planet: planet) {
                 Button {
                     planetStore.isShowingWalletTipAmount = true
-                    /* Previous logic for sending test transaction
-                        let ens = planet.link
-                        let message: String
-                        message = "Sending 0.01 Ξ to **\(ens)** on test network, please confirm from your phone"
-                        Task { @MainActor in
-                            PlanetStore.shared.walletTransactionProgressMessage = message
-                            PlanetStore.shared.isShowingWalletTransactionProgress = true
-                        }
-                        let memo: String
-                        if let link = currentItemLink {
-                            memo = "planet:\(planet.link)\(link)"
-                        } else {
-                            memo = "planet:\(planet.link)"
-                        }
-                        WalletManager.shared.walletConnect.sendTestTransaction(receiver: receiver, amount: 5, memo: memo, ens: ens)
-                        // WalletManager.shared.walletConnect.sendTransaction(receiver: receiver, amount: 5, memo: memo, ens: ens)
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                            PlanetStore.shared.isShowingWalletTransactionProgress = false
-                        }
-                        */
                 } label: {
                     Image("custom.ethereum")
                 }.help("Tip with Ethereum")

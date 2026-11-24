@@ -285,7 +285,6 @@ final class MyJSONDirectoryMonitor {
     @Published var currentTaskMessage: String = ""
     @Published var currentTaskProgressIndicator: TaskProgressIndicatorType = .none
 
-    @Published var isShowingWalletConnectV1QRCode: Bool = false
     @Published var isShowingWalletAccount: Bool = false
 
     @Published var isShowingWalletTipAmount: Bool = false
@@ -293,7 +292,6 @@ final class MyJSONDirectoryMonitor {
     @Published var walletTransactionProgressMessage: String = ""
     @Published var walletTransactionMemo: String = ""
 
-    @Published var walletConnectV1ConnectionURL: String = ""
     @Published var walletAddress: String = ""
 
     @Published var isShowingWalletDisconnectConfirmation: Bool = false

@@ -76,13 +76,6 @@ class KeyboardShortcutHelper: ObservableObject {
                 }
             }
             else {
-                /* TODO: Remove this button for V1
-                Button {
-                    WalletManager.shared.connectV1()
-                } label: {
-                    Text("Connect Wallet")
-                }
-                */
 
                 if PlanetStore.shared.walletConnectV2Ready {
                     Button {

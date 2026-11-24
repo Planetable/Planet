@@ -194,7 +194,6 @@ struct TipSelectView: View {
             PlanetStore.shared.walletTransactionProgressMessage = message
             PlanetStore.shared.isShowingWalletTransactionProgress = true
         }
-        // WalletManager.shared.walletConnect.sendTransaction(receiver: receiver, amount: tipAmount, memo: memo, ens: ens)
         Task {
             await WalletManager.shared.sendTransactionV2(receiver: receiver, amount: tipAmount, memo: memo, ens: ens, gas: currentGasPrice)
         }

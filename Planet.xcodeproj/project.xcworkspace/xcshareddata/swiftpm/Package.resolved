@@ -1,5 +1,5 @@
 {
-  "originHash" : "90defa762c09dd8a876ec47c62f93bfcd1e00542a06c65f808ff023f830dc328",
+  "originHash" : "78dbb5a75dfe12594599584331c1756e8292b605bc0c761f8b6472d319b0b18a",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -440,15 +440,6 @@
       "state" : {
         "revision" : "4014016aad591a120f244f9b9e8a57252b7e62b4",
         "version" : "4.115.0"
-      }
-    },
-    {
-      "identity" : "walletconnectswift",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/WalletConnect/WalletConnectSwift.git",
-      "state" : {
-        "branch" : "master",
-        "revision" : "9e4dfba34fb35336fd5da551285d7986ff536cb8"
       }
     },
     {

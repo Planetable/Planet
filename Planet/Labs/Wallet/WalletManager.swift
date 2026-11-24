@@ -15,7 +15,6 @@ import WalletConnectNetworking
 import WalletConnectPairing
 import WalletConnectRelay
 import WalletConnectSign
-import WalletConnectSwift
 import Web3
 
 enum EthereumChainID: Int, Codable, CaseIterable {
@@ -89,8 +88,6 @@ class WalletManager: NSObject, ObservableObject {
 
     static let lastWalletAddressKey: String = "PlanetLastActiveWalletAddressKey"
 
-    var walletConnect: WalletConnect!
-
     @Published private(set) var uriString: String?
     @Published private(set) var state: SigningState = .none
 
@@ -151,39 +148,6 @@ class WalletManager: NSObject, ObservableObject {
             return session.peer.name
         }
         return "WalletConnect 2.0"
-        // return self.walletConnect.session.walletInfo?.peerMeta.name ?? "Unknown Wallet"
-    }
-
-    // MARK: - V1
-    func setupV1() {
-        walletConnect = WalletConnect(delegate: self)
-        walletConnect.reconnectIfNeeded()
-        if let session = walletConnect.session {
-            debugPrint("Found existing session: \(session)")
-            Task { @MainActor in
-                PlanetStore.shared.walletAddress = session.walletInfo?.accounts.first ?? ""
-                debugPrint("Wallet Address: \(PlanetStore.shared.walletAddress)")
-            }
-        }
-    }
-
-    func connectV1() {
-        do {
-            let connectionURL = try walletConnect.connect()
-            print("WalletConnect V1 URL: \(connectionURL)")
-            Task { @MainActor in
-                PlanetStore.shared.walletConnectV1ConnectionURL = connectionURL
-                PlanetStore.shared.isShowingWalletConnectV1QRCode = true
-            }
-        }
-        catch {
-            Task { @MainActor in
-                PlanetStore.shared.alert(
-                    title: "Failed to Connect Wallet",
-                    message: error.localizedDescription
-                )
-            }
-        }
     }
 
     // MARK: - V2
@@ -612,7 +576,7 @@ class WalletManager: NSObject, ObservableObject {
     }
 
     func tipTransaction(from sender: String, to receiver: String, amount: Int, memo: String, gas: Int? = nil)
-        -> Client.Transaction
+        -> WCTransaction
     {
         let tipAmount = amount * 10_000_000_000_000_000  // Tip Amount: X * 0.01 ETH
         let value = String(tipAmount, radix: 16)
@@ -623,7 +587,7 @@ class WalletManager: NSObject, ObservableObject {
             let chainId = 1
         #endif
         let gasPrice: String? = gas?.gweiToHex()
-        return Client.Transaction(
+        return WCTransaction(
             from: sender,
             to: receiver,
             data: memoEncoded,
@@ -780,34 +744,6 @@ struct EtherscanTransaction: Codable {
     let confirmations: String
     let methodId: String
     let functionName: String
-}
-
-// MARK: - WalletConnectDelegate
-
-extension WalletManager: WalletConnectDelegate {
-    func failedToConnect() {
-        Task { @MainActor in
-            debugPrint("Failed to connect: \(self)")
-            PlanetStore.shared.isShowingWalletConnectV1QRCode = false
-            PlanetStore.shared.alert(title: "Failed to Connect Wallet")
-        }
-    }
-
-    func didConnect() {
-        Task { @MainActor in
-            PlanetStore.shared.isShowingWalletConnectV1QRCode = false
-            PlanetStore.shared.walletAddress =
-                self.walletConnect.session.walletInfo?.accounts.first ?? ""
-            debugPrint("Wallet Address: \(PlanetStore.shared.walletAddress)")
-            debugPrint("Session: \(String(describing: self.walletConnect.session))")
-        }
-    }
-
-    func didDisconnect() {
-        Task { @MainActor in
-            PlanetStore.shared.walletAddress = ""
-        }
-    }
 }
 
 extension PlanetStore {

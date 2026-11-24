@@ -128,9 +128,6 @@ struct PlanetMainView: View {
             RebuildProgressView()
                 .interactiveDismissDisabled()
         }
-        .sheet(isPresented: $planetStore.isShowingWalletConnectV1QRCode) {
-            WalletConnectV1QRCodeView(payload: planetStore.walletConnectV1ConnectionURL)
-        }
         .sheet(isPresented: $planetStore.isShowingWalletConnectV2QRCode) {
             WalletConnectV2QRCodeView(payload: planetStore.walletConnectV2ConnectionURL)
         }
@@ -169,8 +166,6 @@ struct PlanetMainView: View {
                 Task {
                     await WalletManager.shared.disconnectV2()
                 }
-                // V1:
-                // try? WalletManager.shared.walletConnect.client.disconnect(from: WalletManager.shared.walletConnect.session)
             } label: {
                 Text("Disconnect")
             }

@@ -137,12 +137,6 @@ struct WalletAccountView: View {
 
             HStack(spacing: 8) {
                 Button {
-//                    guard let session = WalletManager.shared.walletConnect.session else {
-//                        dismiss()
-//                        return
-//                    }
-//                    try? WalletManager.shared.walletConnect.client.disconnect(from: session)
-//                    dismiss()
                     Task { @MainActor in
                         self.planetStore.isShowingWalletDisconnectConfirmation.toggle()
                     }

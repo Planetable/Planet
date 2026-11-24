@@ -76,7 +76,7 @@ Provides the video player UI. Used in:
 
 Used for image filtering and QR code generation:
 
-- **WalletConnectV1QRCodeView / WalletConnectV2QRCodeView** — generates QR codes for WalletConnect pairing using `CIFilter.qrCodeGenerator()` and renders them via `CIContext`.
+- **WalletConnectV2QRCodeView** — generates QR codes for WalletConnect pairing using `CIFilter.qrCodeGenerator()` and renders them via `CIContext`.
 - **WalletManager** — imports `CoreImage.CIFilterBuiltins` for QR code generation.
 - **Template** — applies `CIColorControls` (darken) and `CIGaussianBlur` filters to template preview images, composites them over a black background using `CISourceOverCompositing`.
 
