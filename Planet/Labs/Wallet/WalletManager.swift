@@ -38,12 +38,22 @@ enum EthereumChainID: Int, Codable, CaseIterable {
         11_155_111: "https://sepolia.otterscan.io",
     ]
 
-    var rpcURL: String {
+    /// Free public JSON-RPC servers, tried in this order until one answers.
+    var rpcURLs: [String] {
         switch self {
         case .mainnet:
-            return "https://eth.llamarpc.com"
+            return [
+                "https://ethereum-rpc.publicnode.com",
+                "https://1rpc.io/eth",
+                "https://eth.drpc.org",
+                "https://rpc.flashbots.net",
+            ]
         case .sepolia:
-            return "https://eth-sepolia.public.blastapi.io"
+            return [
+                "https://ethereum-sepolia-rpc.publicnode.com",
+                "https://1rpc.io/sepolia",
+                "https://sepolia.gateway.tenderly.co",
+            ]
         }
     }
 
@@ -54,6 +64,56 @@ enum EthereumChainID: Int, Codable, CaseIterable {
         case .sepolia:
             return "https://api-sepolia.etherscan.io/api"
         }
+    }
+
+    /// Sends one Web3.swift request, moving to the next server in `rpcURLs` when a server fails.
+    ///
+    /// The server that answered last is tried first next time, so a dead server costs one attempt
+    /// instead of one per request.
+    func rpc<Result>(
+        _ send: (Web3, @escaping (Web3Response<Result>) -> Void) -> Void
+    ) async throws -> Result {
+        var lastError: Error?
+        for url in EthereumRPCServers.ordered(rpcURLs, for: self) {
+            let web3 = Web3(provider: Web3HttpProvider(rpcURL: url, session: EthereumRPCServers.session))
+            let response: Web3Response<Result> = await withCheckedContinuation { continuation in
+                send(web3) { continuation.resume(returning: $0) }
+            }
+            switch response.status {
+            case .success(let result):
+                EthereumRPCServers.setPreferred(url, for: self)
+                return result
+            case .failure(let error):
+                debugPrint("Ethereum RPC \(url) failed: \(error)")
+                lastError = error
+            }
+        }
+        throw lastError ?? URLError(.cannotConnectToHost)
+    }
+}
+
+private enum EthereumRPCServers {
+    /// Short timeout so a server that hangs doesn't hold up the next one.
+    static let session: URLSession = {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 10
+        return URLSession(configuration: configuration)
+    }()
+
+    private static let lock = NSLock()
+    private static var preferred: [EthereumChainID: String] = [:]
+
+    static func ordered(_ urls: [String], for chain: EthereumChainID) -> [String] {
+        lock.lock()
+        defer { lock.unlock() }
+        guard let first = preferred[chain], urls.contains(first) else { return urls }
+        return [first] + urls.filter { $0 != first }
+    }
+
+    static func setPreferred(_ url: String, for chain: EthereumChainID) {
+        lock.lock()
+        defer { lock.unlock() }
+        preferred[chain] = url
     }
 }
 
@@ -606,27 +666,20 @@ class WalletManager: NSObject, ObservableObject {
     func getTransaction(by hash: String, on chain: EthereumChainID = .mainnet) async throws
         -> EthereumTransactionObject?
     {
-        let web3 = Web3(rpcURL: chain.rpcURL)
         do {
             let transactionHash = try EthereumData(ethereumValue: hash)
-            return try await withCheckedThrowingContinuation { continuation in
-                web3.eth.getTransactionByHash(blockHash: transactionHash) { response in
-                    if response.status.isSuccess, let transaction = response.result {
-                        debugPrint(
-                            "Transaction on \(chain): \(String(describing: transaction?.from.hex(eip55: true))) -> \(transaction?.to?.hex(eip55: true) ?? "") \(String(describing: transaction?.value))"
-                        )
-                        continuation.resume(returning: transaction)
-                    }
-                    else if let error = response.error {
-                        debugPrint("Error: \(error)")
-                        continuation.resume(throwing: error)
-                    }
-                    else {
-                        debugPrint("Transaction not found")
-                        continuation.resume(returning: nil)
-                    }
-                }
+            let transaction: EthereumTransactionObject? = try await chain.rpc { web3, completion in
+                web3.eth.getTransactionByHash(blockHash: transactionHash, response: completion)
             }
+            if let transaction {
+                debugPrint(
+                    "Transaction on \(chain): \(transaction.from.hex(eip55: true)) -> \(transaction.to?.hex(eip55: true) ?? "") \(transaction.value)"
+                )
+            }
+            else {
+                debugPrint("Transaction not found")
+            }
+            return transaction
         }
         catch {
             debugPrint("Error: \(error)")

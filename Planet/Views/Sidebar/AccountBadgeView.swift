@@ -195,36 +195,30 @@ struct AccountBadgeView: View {
             await WalletManager.shared.getTransactions(for: walletAddress)
         }
         // Get balance with Web3.swift
-        let web3: Web3
         let currentActiveChain = EthereumChainID.allCases.first(where: {
             $0.id == currentActiveChainID
         }) ?? .mainnet
-        web3 = Web3(rpcURL: currentActiveChain.rpcURL)
-        web3.eth.blockNumber { response in
-            if response.status.isSuccess, let blockNumber = response.result {
-                print("Block number: \(blockNumber)")
-                if let address = try? EthereumAddress(hex: walletAddress, eip55: false) {
-                    web3.eth.getBalance(address: address, block: .block(blockNumber.quantity)) {
-                        response in
-                        if response.status.isSuccess, let balance = response.result {
-                            print("Balance: \(balance)")
-                            // Format the balance
-                            let ethers =
-                                Double(balance.quantity) / Double(1_000_000_000_000_000_000)
-                            debugPrint("ethers: \(ethers)")
-                            DispatchQueue.main.async {
-                                displayBalance = String(
-                                    format:
-                                        "%.2f \(EthereumChainID.coinNames[currentActiveChainID] ?? "ETH")",
-                                    ethers
-                                )
-                            }
-                        }
-                        else {
-                            print("Error: \(response.error!)")
-                        }
-                    }
+        guard let address = try? EthereumAddress(hex: walletAddress, eip55: false) else { return }
+        Task {
+            do {
+                let balance: EthereumQuantity = try await currentActiveChain.rpc { web3, completion in
+                    web3.eth.getBalance(address: address, block: .latest, response: completion)
                 }
+                print("Balance: \(balance)")
+                // Format the balance
+                let ethers =
+                    Double(balance.quantity) / Double(1_000_000_000_000_000_000)
+                debugPrint("ethers: \(ethers)")
+                await MainActor.run {
+                    displayBalance = String(
+                        format:
+                            "%.2f \(EthereumChainID.coinNames[currentActiveChainID] ?? "ETH")",
+                        ethers
+                    )
+                }
+            }
+            catch {
+                print("Error: \(error)")
             }
         }
     }

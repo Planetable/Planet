@@ -160,18 +160,20 @@ struct TipSelectView: View {
 
     private func updateCurrentGasPrice() {
         let chain = EthereumChainID(rawValue: ethereumChainId) ?? .mainnet
-        let web3 = Web3(rpcURL: chain.rpcURL)
-        web3.eth.gasPrice() { response in
-            if response.status.isSuccess, let gasPrice = response.result {
+        Task {
+            do {
+                let gasPrice: EthereumQuantity = try await chain.rpc { web3, completion in
+                    web3.eth.gasPrice(response: completion)
+                }
                 print("Gas price: \(gasPrice)")
                 // Format the gas price
                 let gweis: Int = Int(Double(gasPrice.quantity) / Double(1_000_000_000))
                 debugPrint("gweis: \(gweis)")
-                DispatchQueue.main.async {
+                await MainActor.run {
                     currentGasPrice = gweis
                 }
-            } else {
-                print("Error: \(response.error!)")
+            } catch {
+                print("Error: \(error)")
             }
         }
     }
