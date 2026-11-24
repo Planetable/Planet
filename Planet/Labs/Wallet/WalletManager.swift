@@ -864,14 +864,83 @@ extension RequestParams {
     }
 }
 
-extension WebSocket: @retroactive WebSocketConnecting {}
-
 struct DefaultSocketFactory: WebSocketFactory {
     func create(with url: URL) -> WebSocketConnecting {
-        let socket = WebSocket(url: url)
-        let queue = DispatchQueue(label: "com.walletconnect.sdk.sockets", attributes: .concurrent)
-        socket.callbackQueue = queue
-        return socket
+        return SerializedWebSocket(url: url)
+    }
+}
+
+/// Wraps Starscream's `WebSocket` so WalletConnect can share it across threads.
+///
+/// Starscream keeps `request` as a plain stored property and rewrites it inside `connect()`.
+/// WalletConnect's relay `Dispatcher` sets `request.url` from `onDisconnect` and on fallback, while
+/// its reconnect paths call `connect()` from the network monitor queue and from Swift tasks. Without
+/// a lock, two threads can change the same `NSMutableURLRequest` at once and over-release it,
+/// which crashes in `CFRelease` under `URLRequest.url.setter`.
+///
+/// Callbacks are delivered on a serial queue, so relay messages stay in order and connect and
+/// disconnect handlers never run at the same time.
+final class SerializedWebSocket: WebSocketConnecting {
+    private let socket: WebSocket
+    private let lock = NSRecursiveLock()
+    private var connectHandler: (() -> Void)?
+    private var disconnectHandler: ((Error?) -> Void)?
+    private var textHandler: ((String) -> Void)?
+
+    init(url: URL) {
+        socket = WebSocket(url: url)
+        socket.callbackQueue = DispatchQueue(label: "xyz.planetable.Planet.walletconnect.socket")
+        socket.onConnect = { [weak self] in
+            self?.onConnect?()
+        }
+        socket.onDisconnect = { [weak self] error in
+            self?.onDisconnect?(error)
+        }
+        socket.onText = { [weak self] text in
+            self?.onText?(text)
+        }
+    }
+
+    private func locked<T>(_ body: () -> T) -> T {
+        lock.lock()
+        defer { lock.unlock() }
+        return body()
+    }
+
+    var isConnected: Bool {
+        socket.isConnected
+    }
+
+    var onConnect: (() -> Void)? {
+        get { locked { connectHandler } }
+        set { locked { connectHandler = newValue } }
+    }
+
+    var onDisconnect: ((Error?) -> Void)? {
+        get { locked { disconnectHandler } }
+        set { locked { disconnectHandler = newValue } }
+    }
+
+    var onText: ((String) -> Void)? {
+        get { locked { textHandler } }
+        set { locked { textHandler = newValue } }
+    }
+
+    var request: URLRequest {
+        get { locked { socket.request } }
+        set { locked { socket.request = newValue } }
+    }
+
+    func connect() {
+        locked { socket.connect() }
+    }
+
+    func disconnect() {
+        locked { socket.disconnect() }
+    }
+
+    func write(string: String, completion: (() -> Void)?) {
+        socket.write(string: string, completion: completion)
     }
 }
 
