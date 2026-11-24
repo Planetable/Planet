@@ -57,13 +57,9 @@ enum EthereumChainID: Int, Codable, CaseIterable {
         }
     }
 
+    /// Etherscan API V2 serves every chain from one host; requests pick the chain with `chainid`.
     var etherscanAPI: String {
-        switch self {
-        case .mainnet:
-            return "https://api.etherscan.io/api"
-        case .sepolia:
-            return "https://api-sepolia.etherscan.io/api"
-        }
+        return "https://api.etherscan.io/v2/api"
     }
 
     /// Sends one Web3.swift request, moving to the next server in `rpcURLs` when a server fails.
@@ -715,7 +711,7 @@ class WalletManager: NSObject, ObservableObject {
             for chain in EthereumChainID.allCases {
                 debugPrint("Fetching transactions for \(address) on \(chain)")
                 let etherscanAPIPrefix = chain.etherscanAPI
-                let apiCall = etherscanAPIPrefix + "?module=account&action=txlist&address=\(address)&startblock=0&endblock=99999999&page=1&offset=0&sort=asc&apikey=\(apiToken)"
+                let apiCall = etherscanAPIPrefix + "?chainid=\(chain.id)&module=account&action=txlist&address=\(address)&startblock=0&endblock=99999999&page=1&offset=0&sort=asc&apikey=\(apiToken)"
                 if let url = URL(string: apiCall) {
                     do {
                         let (data, _) = try await URLSession.shared.data(from: url)
