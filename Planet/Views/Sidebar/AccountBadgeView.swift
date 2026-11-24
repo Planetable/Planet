@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftyJSON
 import Web3
 
 struct AccountBadgeView: View {
@@ -170,14 +169,9 @@ struct AccountBadgeView: View {
     }
 
     private func loadBalance() {
-        // Verify NFT ownership for unlocking icons
+        // Unlock NFT tier icons; checks each wallet once per launch
         Task {
-            do {
-                try await verifyNFTOwnership(address: walletAddress)
-            }
-            catch {
-                debugPrint("Error occurred when verifying NFT ownership: \(error)")
-            }
+            await PinningNFT.unlockIcons(for: walletAddress)
         }
         /* Test transaction
         Task {
@@ -219,44 +213,6 @@ struct AccountBadgeView: View {
             }
             catch {
                 print("Error: \(error)")
-            }
-        }
-    }
-
-    private func verifyNFTOwnership(address: String) async throws {
-        let client = EthereumAPI.Flashbots
-        let addressInTopic =
-            "0x000000000000000000000000" + address.dropFirst("0x".count).lowercased()
-        let params: JSON = [
-            [
-                "address": "0x3f98e2b3237a61348585c9bdb30a5571ff59cc41",
-                "topics": [
-                    "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-                    "0x0000000000000000000000000000000000000000000000000000000000000000",
-                    addressInTopic,
-                ],
-                "fromBlock": "earliest",
-                "toBlock": "latest",
-            ]
-        ]
-        let result = try await client.request(method: "eth_getLogs", params: params)
-        switch result {
-        case .error(_):
-            debugPrint("Ethereum API error")
-        case .result(let result):
-            for item in result.arrayValue {
-                let topic = item["topics"][3].stringValue
-                let tokenID = String(topic.dropFirst("0x".count).drop(while: { $0 == "0" }))
-                if let decimalID = UInt64(tokenID, radix: 16),
-                    let tier = String(Int(decimalID)).first
-                {
-                    debugPrint("User has tier \(tier)")
-                    do {
-                        try IconManager.shared.unlockIcon(byIDString: String(tier))
-                    } catch {
-                        debugPrint("failed to unlock icon by id: \(tier), error: \(error)")
-                    }
-                }
             }
         }
     }
