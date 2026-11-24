@@ -3,6 +3,7 @@ import logging
 import os
 import queue
 import re
+import shutil
 import subprocess
 import tempfile
 import threading
@@ -447,7 +448,7 @@ def normalize_markdown_notes(raw):
     if not notes:
         return ''
     if re.search(r'</?[a-zA-Z][^>]*>', notes):
-        raise ValueError('codex returned HTML instead of Markdown')
+        raise ValueError('the model returned HTML instead of Markdown')
     return notes
 
 
@@ -475,10 +476,15 @@ def search_notes(query):
 
 
 # ---------------------------------------------------------------------------
-# Codex invocation
+# Claude invocation
 # ---------------------------------------------------------------------------
 
-def generate_notes_with_codex(commits, prev_tag, tag):
+# One-off `claude --print` session that isn't saved to disk.
+CLAUDE_MODEL = 'opus'
+CLAUDE_EFFORT = 'high'
+
+
+def generate_notes_with_claude(commits, prev_tag, tag):
     if prev_tag:
         scope = f"between `{prev_tag}` and `{tag}`"
     else:
@@ -506,49 +512,44 @@ def generate_notes_with_codex(commits, prev_tag, tag):
         "- **Article selection & navigation** — Restore last selected article on launch, "
         "auto-scroll sidebar, preserve selection after saving/moving drafts\n"
     )
-    with tempfile.NamedTemporaryFile(delete=False) as output_file:
-        output_path = output_file.name
+    claude = shutil.which('claude') or os.path.expanduser('~/.local/bin/claude')
+    # A parent Claude Code session (for example when this service is started from one) sets
+    # CLAUDECODE, which stops a nested `claude` from starting.
+    env = {key: value for key, value in os.environ.items() if key != 'CLAUDECODE'}
     try:
-        try:
-            result = subprocess.run(
-                [
-                    'codex',
-                    'exec',
-                    '--model', 'gpt-6.1-sol',
-                    '--config', 'model_reasoning_effort="high"',
-                    '--config', 'approval_policy="never"',
-                    '--cd', REPO_ROOT,
-                    '--sandbox', 'read-only',
-                    '--skip-git-repo-check',
-                    '--ephemeral',
-                    '--color', 'never',
-                    '--output-last-message', output_path,
-                    prompt,
-                ],
-                input=_release_note_context(commits),
-                capture_output=True,
-                text=True,
-                timeout=180,
-            )
-        except FileNotFoundError as exc:
-            raise RuntimeError('codex CLI not found on PATH') from exc
-        if result.stderr:
-            log.warning('codex stderr for %s: %s', tag, result.stderr.strip())
-        if result.returncode != 0:
-            log.error('codex exited %d for %s', result.returncode, tag)
-            raise RuntimeError(f'codex exited {result.returncode} for {tag}')
-        with open(output_path, encoding='utf-8') as f:
-            raw = f.read().strip()
-        log.info('codex output for %s:\n%s', tag, raw)
-        notes = normalize_markdown_notes(raw)
-        if not notes:
-            raise RuntimeError(f'codex returned no usable notes for {tag}')
-        return notes
-    finally:
-        try:
-            os.remove(output_path)
-        except FileNotFoundError:
-            pass
+        result = subprocess.run(
+            [
+                claude,
+                '--print', prompt,
+                '--model', CLAUDE_MODEL,
+                '--effort', CLAUDE_EFFORT,
+                '--no-session-persistence',
+                # No tools and no MCP servers: the model only sees the commit records on stdin.
+                '--tools', '',
+                '--strict-mcp-config',
+                '--output-format', 'text',
+            ],
+            input=_release_note_context(commits),
+            capture_output=True,
+            text=True,
+            timeout=300,
+            # Outside the repo, so the session doesn't load the project's CLAUDE.md or settings.
+            cwd=tempfile.gettempdir(),
+            env=env,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError('claude CLI not found') from exc
+    if result.stderr:
+        log.warning('claude stderr for %s: %s', tag, result.stderr.strip())
+    if result.returncode != 0:
+        log.error('claude exited %d for %s', result.returncode, tag)
+        raise RuntimeError(f'claude exited {result.returncode} for {tag}')
+    raw = result.stdout.strip()
+    log.info('claude output for %s:\n%s', tag, raw)
+    notes = normalize_markdown_notes(raw)
+    if not notes:
+        raise RuntimeError(f'claude returned no usable notes for {tag}')
+    return notes
 
 
 # ---------------------------------------------------------------------------
@@ -1082,7 +1083,7 @@ def generate(channel_name, tag_name):
         notes = '- No changes in this release.\n'
     else:
         try:
-            notes = generate_notes_with_codex(commits, prev_tag, tag_name)
+            notes = generate_notes_with_claude(commits, prev_tag, tag_name)
         except Exception as exc:
             log.exception('Failed to generate notes for %s', tag_name)
             return jsonify(error=str(exc)), 502
@@ -1208,7 +1209,7 @@ def _worker():
                     write_notes(channel, tag_name, '- No changes in this release.\n')
                 else:
                     log.info('Generating notes for %s', tag_name)
-                    notes = generate_notes_with_codex(commits, prev_tag, tag_name)
+                    notes = generate_notes_with_claude(commits, prev_tag, tag_name)
                     write_notes(channel, tag_name, notes)
                     log.info('Done: %s', tag_name)
                 if _planet_enabled:
