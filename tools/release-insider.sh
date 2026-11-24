@@ -205,7 +205,7 @@ rclone_spaces() {
   RCLONE_CONFIG_SPACES_ENDPOINT=$SPACE_ENDPOINT \
   RCLONE_CONFIG_SPACES_ACCESS_KEY_ID=$(security find-generic-password -a access_key -s planet-release.spaces.planetable -w) \
   RCLONE_CONFIG_SPACES_SECRET_ACCESS_KEY=$(security find-generic-password -a secret_key -s planet-release.spaces.planetable -w) \
-  rclone --config /dev/null "$@"
+  rclone --config /dev/null --s3-no-check-bucket "$@"
 }
 
 push_tag() {
